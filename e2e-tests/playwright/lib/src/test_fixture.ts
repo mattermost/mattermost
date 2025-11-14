@@ -26,6 +26,7 @@ import {
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
+    mergeWithOnPremServerConfig,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -84,6 +85,7 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
+    readonly mergeWithOnPremServerConfig;
     readonly initSetup;
 
     // ./test_action
@@ -141,6 +143,7 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
+        this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
 
         // ./test_action
@@ -191,7 +194,7 @@ export class AxeBuilderExtended {
     readonly builder: (page: Page, options?: AxeBuilderOptions) => AxeBuilder;
 
     // See https://github.com/dequelabs/axe-core/blob/master/doc/API.md#axe-core-tags
-    readonly tags: string[] = ['wcag2a', 'wcag2aa'];
+    readonly tags: string[] = ['wcag2a', 'wcag2aa', 'wcag21aa'];
 
     constructor() {
         this.builder = (page: Page, options: AxeBuilderOptions = {}) => {

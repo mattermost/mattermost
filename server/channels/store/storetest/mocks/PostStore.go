@@ -1224,6 +1224,24 @@ func (_m *PostStore) RefreshPostStats() error {
 	return r0
 }
 
+// RestoreContentFlaggedPost provides a mock function with given fields: post, statusFieldId, contentFlaggingManagedFieldId
+func (_m *PostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
+	ret := _m.Called(post, statusFieldId, contentFlaggingManagedFieldId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestoreContentFlaggedPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Post, string, string) error); ok {
+		r0 = rf(post, statusFieldId, contentFlaggingManagedFieldId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: rctx, post
 func (_m *PostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	ret := _m.Called(rctx, post)

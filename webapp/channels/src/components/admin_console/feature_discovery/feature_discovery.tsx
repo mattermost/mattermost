@@ -14,6 +14,7 @@ import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import SkuTag from 'components/widgets/tag/sku_tag';
 
 import type {LicenseSkus} from 'utils/constants';
 import {AboutLinks, LicenseLinks} from 'utils/constants';
@@ -49,6 +50,7 @@ type Props = {
     isSubscriptionLoaded: boolean;
     isPaidSubscription: boolean;
     customer?: CloudCustomer;
+    showSkuTag?: boolean;
 }
 
 type State = {
@@ -203,6 +205,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
             isCloud,
             isCloudTrial,
             isSubscriptionLoaded,
+            showSkuTag,
         } = this.props;
 
         // on first load the license information is available and we can know if it is cloud license, but the subscription is not loaded yet
@@ -277,6 +280,11 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 data-testid='featureDiscovery'
             >
                 <div className='FeatureDiscovery_copyWrapper'>
+                    {showSkuTag &&
+                    <SkuTag
+                        sku={this.props.minimumSKURequiredForFeature}
+                        className='FeatureDiscovery_tag'
+                    />}
                     <div
                         className='FeatureDiscovery_title'
                         data-testid='featureDiscovery_title'

@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
@@ -12,7 +13,6 @@ import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/pr
 import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
-import {useChannel} from 'components/common/hooks/useChannel';
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
@@ -34,7 +34,7 @@ const orderedFieldName = [
     'action_time',
     'post_preview',
     'post_id',
-    'reviewer',
+    'reviewer_user_id',
     'reporting_user_id',
     'reporting_time',
     'reporting_comment',
@@ -48,7 +48,7 @@ const shortModeFieldOrder = [
     'status',
     'reporting_reason',
     'post_preview',
-    'reviewer',
+    'reviewer_user_id',
 ];
 
 type Props = {
@@ -67,7 +67,18 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
 
     const [reportedPost, setReportedPost] = useState<Post>();
-    const channel = useChannel(reportedPost?.channel_id || '');
+    const [channel, setChannel] = useState<Channel | undefined>();
+
+    useEffect(() => {
+        const fetchChannel = async () => {
+            if (reportedPost && reportedPost.channel_id) {
+                const fetchedChannel = await getChannel(reportedPostId)(reportedPost.channel_id);
+                setChannel(fetchedChannel);
+            }
+        };
+
+        fetchChannel();
+    }, [reportedPost, reportedPostId]);
 
     useEffect(() => {
         const work = async () => {
@@ -127,16 +138,35 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const mode = isRHS ? 'full' : 'short';
 
     const metadata = useMemo<PropertiesCardViewMetadata>(() => {
-        return {
+        const fieldMetadata = {
             post_preview: {
                 getPost: loadFlaggedPost,
                 fetchDeletedPost: true,
+                getChannel: getChannel(reportedPostId),
+                getTeam: getTeam(reportedPostId),
             },
             reporting_comment: {
                 placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
             },
+            team: {
+                getTeam: getTeam(reportedPostId),
+            },
+            channel: {
+                getChannel: getChannel(reportedPostId),
+            },
         };
-    }, [formatMessage]);
+
+        if (channel) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            fieldMetadata.reviewer_user_id = {
+                searchUsers: getSearchContentReviewersFunction(channel.team_id),
+                setUser: saveReviewerSelection(reportedPostId),
+            };
+        }
+
+        return fieldMetadata;
+    }, [channel, formatMessage, reportedPostId]);
 
     const footer = useMemo(() => {
         if (isRHS) {
@@ -187,6 +217,30 @@ export function DataSpillageReport({post, isRHS}: Props) {
     );
 }
 
-async function loadFlaggedPost(postId: string) {
-    return Client4.getFlaggedPost(postId);
+async function loadFlaggedPost(flaggedPostId: string) {
+    return Client4.getFlaggedPost(flaggedPostId);
+}
+
+function getSearchContentReviewersFunction(teamId: string) {
+    return (term: string) => {
+        return Client4.searchContentFlaggingReviewers(term, teamId);
+    };
+}
+
+function saveReviewerSelection(flaggedPostId: string) {
+    return (userId: string) => {
+        return Client4.setContentFlaggingReviewer(flaggedPostId, userId);
+    };
+}
+
+function getChannel(flaggedPostId: string) {
+    return (channelId: string) => {
+        return Client4.getChannel(channelId, true, flaggedPostId);
+    };
+}
+
+function getTeam(flaggedPostId: string) {
+    return (teamId: string) => {
+        return Client4.getTeam(teamId, true, flaggedPostId);
+    };
 }

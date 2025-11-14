@@ -152,29 +152,29 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.11.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.3.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.2
-PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.4.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.1
+PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.10.0
+PLUGIN_PACKAGES += mattermost-plugin-agents-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
-PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.4.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
-PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
 # Note that the '+' in the file name is encoded as %2B for the URL we use to
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.4.2%2B4a22550-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1%2B6e1b6eb-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6%2B2b0e66a-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.5.1%2Bfe08fbc-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.6.0%2B79cbc7d-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7%2Ba980cd2-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -292,6 +292,8 @@ else
 
 	docker compose down -v
 	docker compose rm -v
+
+	docker volume rm mattermost-server_postgres-14-data || true
 endif
 
 plugin-checker:
@@ -320,20 +322,11 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
 	$(GOBIN)/golangci-lint run ./... ./public/...
-endif
-
-modernize: ## Run modernize linter on codebase
-## https://pkg.go.dev/golang.org/x/tools/gopls/internal/analysis/modernize is not support in golangci-lint.
-## We need to invoke it directly.
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
-else
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -429,7 +422,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 endif
 
-check-style: plugin-checker vet modernize golangci-lint ## Runs style/lint checks
+check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0

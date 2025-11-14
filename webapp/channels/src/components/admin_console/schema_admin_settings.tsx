@@ -31,6 +31,7 @@ import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
 import WithTooltip from 'components/with_tooltip';
@@ -65,7 +66,7 @@ export type SystemConsoleCustomSettingsComponentProps = {
     showConfirm: boolean;
 }
 
-type Props = {
+export type SchemaAdminSettingsProps = {
     config: Partial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;
     setNavigationBlocked: (blocked: boolean) => void;
@@ -113,12 +114,12 @@ export function descriptorOrStringToString(text: string | MessageDescriptor | un
     return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
-export class SchemaAdminSettings extends React.PureComponent<Props, State> {
+export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettingsProps, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
     private buildSettingFunctions: {[x: string]: (setting: any) => JSX.Element};
 
-    constructor(props: Props) {
+    constructor(props: SchemaAdminSettingsProps) {
         super(props);
         this.isPlugin = false;
 
@@ -154,7 +155,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         };
     }
 
-    static getDerivedStateFromProps(props: Props, state: State) {
+    static getDerivedStateFromProps(props: SchemaAdminSettingsProps, state: State) {
         if (props.schema && props.schema.id !== state.prevSchemaId) {
             return {
                 prevSchemaId: props.schema.id,
@@ -1063,6 +1064,9 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                         <CustomComponent
                             settingsList={settingsList}
                             key={section.key}
+                            sectionTitle={section.title}
+                            sectionDescription={section.description}
+                            {...section.componentProps}
                         />
                     ));
                     return;
@@ -1109,24 +1113,43 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     return;
                 }
 
-                sections.push(
-                    <div
-                        className={'config-section'}
-                        key={section.key}
-                    >
-                        <SettingsGroup
-                            show={true}
+                // Sections with enhanced properties use AdminSectionPanel for richer UI
+                const hasEnhancedProps = section.description || section.license_sku;
+
+                if (hasEnhancedProps) {
+                    sections.push(
+                        <AdminSectionPanel
+                            key={section.key}
                             title={section.title}
-                            subtitle={section.subtitle}
+                            description={section.description}
+                            licenseSku={section.license_sku}
                         >
-                            <div className={'section-body'}>
-                                {header}
-                                {settingsList}
-                                {footer}
-                            </div>
-                        </SettingsGroup>
-                    </div>,
-                );
+                            {header}
+                            {settingsList}
+                            {footer}
+                        </AdminSectionPanel>,
+                    );
+                } else {
+                    // Standard sections use existing rendering
+                    sections.push(
+                        <div
+                            className={'config-section'}
+                            key={section.key}
+                        >
+                            <SettingsGroup
+                                show={true}
+                                title={section.title}
+                                subtitle={section.subtitle}
+                            >
+                                <div className={'section-body'}>
+                                    {header}
+                                    {settingsList}
+                                    {footer}
+                                </div>
+                            </SettingsGroup>
+                        </div>,
+                    );
+                }
             });
 
             return (

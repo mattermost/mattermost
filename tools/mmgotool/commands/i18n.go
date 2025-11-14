@@ -117,6 +117,14 @@ func getBaseFileSrcStrings(mattermostDir string) ([]Translation, error) {
 	return translations, err
 }
 
+// resolveSymlink resolves a path if it's a symlink, otherwise returns the original path
+func resolveSymlink(path string) string {
+	if realPath, err := filepath.EvalSymlinks(path); err == nil {
+		return realPath
+	}
+	return path
+}
+
 func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portalDir string) map[string]bool {
 	i18nStrings := map[string]bool{}
 	walkFunc := func(p string, info os.FileInfo, err error) error {
@@ -125,13 +133,14 @@ func extractSrcStrings(enterpriseDir, mattermostDir, modelDir, pluginDir, portal
 		}
 		return extractFromPath(p, info, err, i18nStrings)
 	}
+
 	if portalDir != "" {
-		_ = filepath.Walk(portalDir, walkFunc)
+		_ = filepath.Walk(resolveSymlink(portalDir), walkFunc)
 	} else {
-		_ = filepath.Walk(mattermostDir, walkFunc)
-		_ = filepath.Walk(enterpriseDir, walkFunc)
-		_ = filepath.Walk(modelDir, walkFunc)
-		_ = filepath.Walk(pluginDir, walkFunc)
+		_ = filepath.Walk(resolveSymlink(mattermostDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(enterpriseDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(modelDir), walkFunc)
+		_ = filepath.Walk(resolveSymlink(pluginDir), walkFunc)
 	}
 	return i18nStrings
 }
