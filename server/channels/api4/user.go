@@ -2258,7 +2258,8 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if user.DeleteAt > 0 {
 		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
-			AuthService: "deactivated",
+			AuthService:   "",
+			IsDeactivated: true,
 		}); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
@@ -2270,11 +2271,31 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	if user.IsGuest() &&
-		user.IsMagicLinkEnabled() &&
-		c.App.Channels().License() != nil &&
-		*c.App.Channels().License().Features.GuestAccounts &&
-		*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+	canSendMagicLinkEmail := func(user *model.User) bool {
+		if !user.IsGuest() {
+			return false
+		}
+
+		if !user.IsMagicLinkEnabled() {
+			return false
+		}
+
+		if c.App.Channels().License() == nil {
+			return false
+		}
+
+		if !*c.App.Channels().License().Features.GuestAccounts {
+			return false
+		}
+
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			return false
+		}
+
+		return true
+	}
+
+	if canSendMagicLinkEmail(user) {
 		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(user.Email, c.App.GetSiteURL())
 		if eErr != nil {
 			switch {

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/* eslint-disable max-lines */
-
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
@@ -739,9 +737,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        if (result.data === Constants.MAGIC_LINK_SERVICE) {
+        if (result.data?.auth_service === Constants.MAGIC_LINK_SERVICE) {
             setMagicLinkSuccessful(true);
-        } else if (result.data === Constants.LOGIN_TYPE_DEACTIVATED) {
+        } else if (result.data?.is_deactivated) {
             setAlertBanner({
                 mode: 'danger',
                 title: formatMessage({

@@ -1118,5 +1118,6 @@ type UserPostStats struct {
 }
 
 type LoginTypeResponse struct {
-	AuthService string `json:"auth_service"`
+	AuthService   string `json:"auth_service"`
+	IsDeactivated bool   `json:"is_deactivated,omitempty"`
 }

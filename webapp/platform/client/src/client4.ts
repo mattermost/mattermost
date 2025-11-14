@@ -854,7 +854,7 @@ export default class Client4 {
             login_id: loginId,
         };
 
-        return this.doFetch<{auth_service: 'magic_link' | '' }>(
+        return this.doFetch<{auth_service: 'magic_link' | ''; is_deactivated: boolean }>(
             `${this.getUsersRoute()}/login/type`,
             {method: 'post', body: JSON.stringify(body)},
         );
