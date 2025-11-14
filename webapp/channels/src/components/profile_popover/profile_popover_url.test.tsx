@@ -21,6 +21,8 @@ describe('components/ProfilePopoverUrl', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
         attrs: {
             value_type: 'url',
             visibility: 'when_set',
