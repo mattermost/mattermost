@@ -376,7 +376,7 @@ function CELEditor({
                 <div className='help-text-container'>
                     <div>
                         <HelpText
-                            message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
+                            message={'Write rules like `user.attributes.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
                             onLearnMoreClick={() => setShowHelpModal(true)}
                         />
                     </div>
