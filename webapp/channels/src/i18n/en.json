@@ -307,6 +307,7 @@
   "admin.access_control.policy.edit_policy.error.name_required": "Please add a name to the policy",
   "admin.access_control.policy.edit_policy.error.unassign_channels": "Error unassigning channels: {error}",
   "admin.access_control.policy.edit_policy.error.update_active_status": "Error updating policy active status: {error}",
+  "admin.access_control.policy.edit_policy.no_usable_attributes_tooltip": "Please configure user attributes to use the editor.",
   "admin.access_control.policy.edit_policy.notice.button": "Configure user attributes",
   "admin.access_control.policy.edit_policy.notice.text": "You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.",
   "admin.access_control.policy.edit_policy.notice.title": "Please add user attributes and values to use Attribute-Based Access Control",
