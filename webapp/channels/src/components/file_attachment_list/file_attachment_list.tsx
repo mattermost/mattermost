@@ -82,6 +82,7 @@ export default function FileAttachmentList(props: Props) {
                     disableActions={props.disableActions}
                     disableThumbnail={isDeleted}
                     disablePreview={isDeleted}
+                    overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
                 />,
             );
         }

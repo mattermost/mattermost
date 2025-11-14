@@ -790,35 +790,112 @@ func TestGetFile(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	sent, err := testutils.ReadTestFile("test.png")
-	require.NoError(t, err)
+	t.Run("base case", func(t *testing.T) {
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
 
-	fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
-	require.NoError(t, err)
+		fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+		require.NoError(t, err)
 
-	fileId := fileResp.FileInfos[0].Id
+		fileId := fileResp.FileInfos[0].Id
 
-	data, _, err := client.GetFile(context.Background(), fileId)
-	require.NoError(t, err)
-	require.NotEqual(t, 0, len(data), "should not be empty")
+		data, _, err := client.GetFile(context.Background(), fileId)
+		require.NoError(t, err)
+		require.NotEqual(t, 0, len(data), "should not be empty")
 
-	for i := range data {
-		require.Equal(t, sent[i], data[i], "received file didn't match sent one")
-	}
+		for i := range data {
+			require.Equal(t, sent[i], data[i], "received file didn't match sent one")
+		}
 
-	_, resp, err := client.GetFile(context.Background(), "junk")
-	require.Error(t, err)
-	CheckBadRequestStatus(t, resp)
+		_, resp, err := client.GetFile(context.Background(), "junk")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFile(context.Background(), model.NewId())
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
+		_, resp, err = client.GetFile(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
 
-	_, err = client.Logout(context.Background())
-	require.NoError(t, err)
-	_, resp, err = client.GetFile(context.Background(), fileId)
-	require.Error(t, err)
-	CheckUnauthorizedStatus(t, resp)
+		_, err = client.Logout(context.Background())
+		require.NoError(t, err)
+		_, resp, err = client.GetFile(context.Background(), fileId)
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+	})
+
+	t.Run("content reviewer should be able to get file of channel and team they are not a member of", func(t *testing.T) {
+		th.LoginBasic(t)
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "failed to set license")
+
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		newChannel := th.CreatePrivateChannel(t)
+
+		sent, err := testutils.ReadTestFile("test.png")
+		require.NoError(t, err)
+
+		fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+		require.NoError(t, err)
+
+		post := th.CreatePostWithFilesWithClient(t, client, newChannel, fileResp.FileInfos[0])
+
+		reviewer := th.CreateUser(t)
+		response, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: []string{reviewer.Id},
+				},
+			},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		response, err = client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		reviewerClient := th.CreateClient()
+		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, "Pa$$word11")
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		_, response, err = reviewerClient.GetFileAsContentReviewer(context.Background(), fileResp.FileInfos[0].Id, post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		// Try again after removing the user from content reviewers
+		response, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
+			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+				EnableContentFlagging: model.NewPointer(true),
+			},
+			ReviewerSettings: &model.ReviewSettingsRequest{
+				ReviewerSettings: model.ReviewerSettings{
+					CommonReviewers: model.NewPointer(true),
+				},
+				ReviewerIDsSettings: model.ReviewerIDsSettings{
+					CommonReviewerIds: []string{th.BasicUser.Id},
+				},
+			},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		_, response, err = reviewerClient.GetFileAsContentReviewer(context.Background(), fileResp.FileInfos[0].Id, post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+	})
 }
 
 func TestGetFileAsSystemAdmin(t *testing.T) {

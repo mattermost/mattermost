@@ -15,6 +15,8 @@ const (
 	ContentFlaggingBotUsername = "content-review"
 
 	commentMaxRunes = 1000
+
+	AsContentReviewerParam = "as_content_reviewer"
 )
 
 const (
