@@ -58,6 +58,9 @@ const defaultProps: Props = deepFreeze({
     usersEmails: [],
     usersEmailsSearch: '',
     townSquareDisplayName: '',
+    canInviteGuestsWithMagicLink: false,
+    useGuestMagicLink: false,
+    toggleGuestMagicLink: jest.fn(),
 });
 
 let props = defaultProps;
@@ -160,5 +163,77 @@ describe('InviteView', () => {
             </Provider>,
         );
         expect(wrapper.find(InviteAs).length).toBe(0);
+    });
+
+    it('shows guest magic link checkbox when inviting guests and guest magic link is enabled', async () => {
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.GUEST,
+            canInviteGuestsWithMagicLink: true,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
+        expect(checkbox.length).toBe(1);
+    });
+
+    it('hides guest magic link checkbox when inviting members', async () => {
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.MEMBER,
+            canInviteGuestsWithMagicLink: true,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
+        expect(checkbox.length).toBe(0);
+    });
+
+    it('hides guest magic link checkbox when guest magic link is not enabled', async () => {
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.GUEST,
+            canInviteGuestsWithMagicLink: false,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
+        expect(checkbox.length).toBe(0);
+    });
+
+    it('calls toggleGuestMagicLink when checkbox is clicked', async () => {
+        const toggleGuestMagicLink = jest.fn();
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.GUEST,
+            canInviteGuestsWithMagicLink: true,
+            toggleGuestMagicLink,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
+        checkbox.simulate('change');
+
+        expect(toggleGuestMagicLink).toHaveBeenCalledTimes(1);
     });
 });

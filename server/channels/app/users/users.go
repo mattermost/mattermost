@@ -215,6 +215,15 @@ func (us *UserService) DeactivateAllGuests() ([]string, error) {
 	return users, nil
 }
 
+func (us *UserService) DeactivateMagicLinkGuests() ([]string, error) {
+	users, err := us.store.DeactivateMagicLinkGuests()
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (us *UserService) InvalidateCacheForUser(userID string) {
 	us.store.InvalidateProfilesInChannelCacheByUser(userID)
 	us.store.InvalidateProfileCacheForUser(userID)

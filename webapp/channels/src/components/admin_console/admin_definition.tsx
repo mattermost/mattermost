@@ -58,6 +58,7 @@ import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
+import CustomEnableDisableGuestAccountsMagicLinkSetting from './custom_enable_disable_guest_accounts_magic_link_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
@@ -5115,6 +5116,12 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.configIsFalse('ServiceSettings', 'EnableMultifactorAuthentication'),
                                 it.configIsFalse('ServiceSettings', 'EnforceMultifactorAuthentication'),
                             ),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
+                        },
+                        {
+                            type: 'custom',
+                            component: CustomEnableDisableGuestAccountsMagicLinkSetting,
+                            key: 'GuestAccountsSettings.EnableGuestMagicLink',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                         },
                     ],

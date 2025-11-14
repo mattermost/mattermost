@@ -299,6 +299,36 @@ func (_m *UserStore) DeactivateGuests() ([]string, error) {
 	return r0, r1
 }
 
+// DeactivateMagicLinkGuests provides a mock function with no fields
+func (_m *UserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeactivateMagicLinkGuests")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]string, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []string); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DemoteUserToGuest provides a mock function with given fields: userID
 func (_m *UserStore) DemoteUserToGuest(userID string) (*model.User, error) {
 	ret := _m.Called(userID)

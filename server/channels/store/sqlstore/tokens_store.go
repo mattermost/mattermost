@@ -120,3 +120,22 @@ func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) error {
 	}
 	return nil
 }
+
+func (s SqlTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
+	// Since we are storing the extra information as a plain string, (JSON)
+	// we need to compare with the JSON string representation.
+	var token model.Token
+	query, args, err := s.tokenSelectQuery.
+		Where(sq.Eq{"Type": tokenType, "Extra": model.MapToJSON(map[string]string{"email": email})}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not build sql query to get token by type and email")
+	}
+	if err := s.GetReplica().Get(&token, query, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Type=%s, Email=%s", tokenType, email))
+		}
+		return nil, errors.Wrapf(err, "failed to get Token with Type=%s and Email=%s", tokenType, email)
+	}
+	return &token, nil
+}

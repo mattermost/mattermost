@@ -359,6 +359,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
 	props["HideGuestTags"] = strconv.FormatBool(*c.GuestAccountsSettings.HideTags)
 	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(*c.GuestAccountsSettings.EnforceMultifactorAuthentication)
+	props["EnableGuestMagicLink"] = strconv.FormatBool(*c.GuestAccountsSettings.EnableGuestMagicLink)
 
 	if license != nil {
 		if *license.Features.LDAP {

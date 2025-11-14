@@ -22,14 +22,17 @@ import (
 
 const (
 	emailRateLimitingMemstoreSize = 65536
+	emailRateLimitingPerMinute    = 60
 	emailRateLimitingPerHour      = 20
 	emailRateLimitingMaxBurst     = 20
 
-	TokenTypePasswordRecovery = "password_recovery"
-	TokenTypeVerifyEmail      = "verify_email"
-	TokenTypeTeamInvitation   = "team_invitation"
-	TokenTypeGuestInvitation  = "guest_invitation"
-	TokenTypeCWSAccess        = "cws_access_token"
+	TokenTypePasswordRecovery         = "password_recovery"
+	TokenTypeVerifyEmail              = "verify_email"
+	TokenTypeTeamInvitation           = "team_invitation"
+	TokenTypeGuestInvitation          = "guest_invitation"
+	TokenTypeCWSAccess                = "cws_access_token"
+	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
+	TokenTypeGuestMagicLink           = "guest_magic_link"
 )
 
 func condenseSiteURL(siteURL string) string {
@@ -48,10 +51,11 @@ type Service struct {
 	userService *users.UserService
 	store       store.Store
 
-	templatesContainer      *templates.Container
-	perHourEmailRateLimiter *throttled.GCRARateLimiter
-	perDayEmailRateLimiter  *throttled.GCRARateLimiter
-	EmailBatching           *EmailBatchingJob
+	templatesContainer        *templates.Container
+	perMinuteEmailRateLimiter *throttled.GCRARateLimiter
+	perHourEmailRateLimiter   *throttled.GCRARateLimiter
+	perDayEmailRateLimiter    *throttled.GCRARateLimiter
+	EmailBatching             *EmailBatchingJob
 }
 
 type ServiceConfig struct {
@@ -101,6 +105,11 @@ func (es *Service) setUpRateLimiters() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
 	}
 
+	perMinuteQuota := throttled.RateQuota{
+		MaxRate:  throttled.PerMin(emailRateLimitingPerMinute),
+		MaxBurst: emailRateLimitingMaxBurst,
+	}
+
 	perHourQuota := throttled.RateQuota{
 		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
 		MaxBurst: emailRateLimitingMaxBurst,
@@ -109,6 +118,11 @@ func (es *Service) setUpRateLimiters() error {
 	perDayQuota := throttled.RateQuota{
 		MaxRate:  throttled.PerDay(1),
 		MaxBurst: 0,
+	}
+
+	perMinuteRateLimiter, err := throttled.NewGCRARateLimiter(store, perMinuteQuota)
+	if err != nil || perMinuteRateLimiter == nil {
+		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
 	perHourRateLimiter, err := throttled.NewGCRARateLimiter(store, perHourQuota)
@@ -121,6 +135,7 @@ func (es *Service) setUpRateLimiters() error {
 		return errors.Wrap(err, "Unable to setup per day email rate limiting GCRA rate limiter.")
 	}
 
+	es.perMinuteEmailRateLimiter = perMinuteRateLimiter
 	es.perHourEmailRateLimiter = perHourRateLimiter
 	es.perDayEmailRateLimiter = perDayRateLimiter
 	return nil
@@ -140,7 +155,8 @@ type ServiceInterface interface {
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error)
 	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
-	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
+	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool, isGuestMagicLink bool) error
+	SendMagicLinkEmailSelfService(invite string, siteURL string) error
 	SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
