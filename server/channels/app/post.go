@@ -1045,8 +1045,8 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 	return postList, nil
 }
 
-func (a *App) GetPostsEtag(channelID string, collapsedThreads bool) string {
-	return a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads)
+func (a *App) GetPostsEtag(channelID string, userId string, collapsedThreads bool) string {
+	return a.Srv().Store().Post().GetEtag(channelID, userId, true, collapsedThreads)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
