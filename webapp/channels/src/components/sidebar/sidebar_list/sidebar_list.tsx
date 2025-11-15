@@ -18,6 +18,7 @@ import {General} from 'mattermost-redux/constants';
 
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
+import MarkAllAsReadModal from 'components/mark_all_as_read_modal';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
@@ -35,6 +36,7 @@ const UnreadChannels = makeAsyncComponent('UnreadChannels', lazy(() => import('.
 
 type Props = WrappedComponentProps & {
     currentTeam?: Team;
+    currentUserId: string;
     currentChannelId: string;
     categories: ChannelCategory[];
     unreadChannelIds: string[];
@@ -52,6 +54,8 @@ type Props = WrappedComponentProps & {
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
     onDragEnd: (result: DropResult) => void;
+    markAllAsReadWithoutConfirm: boolean;
+    markAllAsReadShortcutEnabled: boolean;
 
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
@@ -62,12 +66,16 @@ type Props = WrappedComponentProps & {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
+        readAllMessages: (userId: string) => void;
+        markAllInTeamAsRead: (userId: string, teamId: string) => void;
+        setMarkAllAsReadWithoutConfirm: (userId: string, value: boolean) => void;
     };
 };
 
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
+    showMarkAllReadModal: boolean;
 };
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
@@ -93,6 +101,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
+            showMarkAllReadModal: false,
         };
         this.scrollbar = React.createRef();
 
@@ -105,11 +114,17 @@ export class SidebarList extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.addEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentWillUnmount() {
         document.removeEventListener('keydown', this.navigateChannelShortcut);
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.removeEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -338,6 +353,19 @@ export class SidebarList extends React.PureComponent<Props, State> {
         }
     };
 
+    markAllChannelsAsReadShortcut = (e: KeyboardEvent) => {
+        if (!e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+            e.preventDefault();
+            if (this.props.markAllAsReadWithoutConfirm) {
+                this.markAllAsRead();
+            } else {
+                this.setState({
+                    showMarkAllReadModal: true,
+                });
+            }
+        }
+    };
+
     renderCategory = (category: ChannelCategory, index: number) => {
         return (
             <SidebarCategory
@@ -418,6 +446,39 @@ export class SidebarList extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.stopDragging();
+    };
+
+    hasAnyUnreads = () => {
+        return this.props.unreadChannelIds.length > 0 || this.props.hasUnreadThreads;
+    };
+
+    markAllAsRead = () => {
+        if (this.hasAnyUnreads()) {
+            // I'm not sure if a user can ever _not_ be in a team, but this just
+            // feels safe in case that functionality is ever introduced, so the
+            // hotkey still marks all DMs as read.
+            if (this.props.currentTeam?.id) {
+                this.props.actions.markAllInTeamAsRead(this.props.currentUserId, this.props.currentTeam.id);
+            }
+            this.props.actions.readAllMessages(this.props.currentUserId);
+        }
+    };
+
+    onMarkAllAsReadConfirm = (dontShowAgain: boolean) => {
+        this.markAllAsRead();
+        this.props.actions.setMarkAllAsReadWithoutConfirm(
+            this.props.currentUserId,
+            dontShowAgain,
+        );
+        this.setState({
+            showMarkAllReadModal: false,
+        });
+    };
+
+    onMarkAllAsReadCancel = () => {
+        this.setState({
+            showMarkAllReadModal: false,
+        });
     };
 
     render() {
@@ -527,6 +588,15 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         {channelList}
                     </Scrollbars>
                 </div>
+                {
+                    this.props.markAllAsReadShortcutEnabled && (
+                        <MarkAllAsReadModal
+                            show={this.state.showMarkAllReadModal}
+                            onConfirm={this.onMarkAllAsReadConfirm}
+                            onCancel={this.onMarkAllAsReadCancel}
+                        />
+                    )
+                }
             </>
         );
     }
