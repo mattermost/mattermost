@@ -29,7 +29,11 @@
               properties:
                 channel_id:
                   type: string
-                  description: The channel ID to post in
+                  description: &channel_id The machine-generated, unique, 26-character-long
+                    alphanumeric string identifying the channel to post in.
+                    Given a human-readable channel name, to find the `channel_id`,
+                    use [the API](/#tag/channels/operation/GetChannelByName) or
+                    [the `mmctl channel search` command](https://docs.mattermost.com/manage/mmctl-command-line-tool.html#mmctl-channel-search).
                 message:
                   type: string
                   description: The message contents, can be formatted with Markdown
@@ -108,7 +112,7 @@
                   properties:
                     channel_id:
                       type: string
-                      description: The channel ID to post in
+                      description: *channel_id
                     message:
                       type: string
                       description: The message contents, can be formatted with Markdown
