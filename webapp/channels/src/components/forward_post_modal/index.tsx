@@ -145,7 +145,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
             notificationText = (
                 <FormattedMessage
                     id='forward_post_modal.notification.private_channel'
-                    defaultMessage='This message is from a private channel and can only be shared with <strong>{channelName}</strong>'
+                    defaultMessage="Messages in Private Channels can't be forwarded to other channels. Selecting <strong>Forward</strong> will post the message in the current channel <strong>{channelName}</strong>."
                     values={{
                         channelName,
                         strong: (x: React.ReactNode) => <strong>{x}</strong>,
@@ -153,19 +153,33 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                 />
             );
         } else {
-            const allParticipants = channel?.display_name.split(', ') || [];
+            const allParticipants = channel?.display_name.split(', ') || []; // gives the names of all the participants except the user's
             const participants = allParticipants.map((participant) => <strong key={participant}>{participant}</strong>);
-
-            notificationText = (
-                <FormattedMessage
-                    id='forward_post_modal.notification.dm_or_gm'
-                    defaultMessage='This message is from a private conversation and can only be shared with {participants}'
-                    values={{
-                        participants: <FormattedList value={participants}/>,
-                        strong: (x: React.ReactNode) => <strong>{x}</strong>,
-                    }}
-                />
-            );
+            if (allParticipants.length >= 2) {
+                // Group Message
+                notificationText = (
+                    <FormattedMessage
+                        id='forward_post_modal.notification.group_message'
+                        defaultMessage="Group Messages can't be forwarded to other channels. Selecting <strong>Forward</strong> will post the message in the current Group Message with {participants}."
+                        values={{
+                            participants: <FormattedList value={participants}/>,
+                            strong: (x: React.ReactNode) => <strong>{x}</strong>,
+                        }}
+                    />
+                );
+            } else {
+                // Direct Message
+                notificationText = (
+                    <FormattedMessage
+                        id='forward_post_modal.notification.direct_message'
+                        defaultMessage="Direct Messages can't be forwarded to other channels. Selecting <strong>Forward</strong> will post the message in the current Direct Message with {participants}."
+                        values={{
+                            participants: <FormattedList value={participants}/>,
+                            strong: (x: React.ReactNode) => <strong>{x}</strong>,
+                        }}
+                    />
+                );
+            }
         }
 
         notification = (
