@@ -31,7 +31,7 @@ const (
 	contentFlaggingMigrationVersion                = "v5"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
-	contentFlaggingPropertyNameStatus              = "status"
+	ContentFlaggingPropertyNameStatus              = "status"
 	contentFlaggingPropertyNameReportingUserID     = "reporting_user_id"
 	contentFlaggingPropertyNameReportingReason     = "reporting_reason"
 	contentFlaggingPropertyNameReportingComment    = "reporting_comment"
@@ -640,9 +640,9 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			Name:    contentFlaggingPropertyNameFlaggedPostId,
 			Type:    model.PropertyFieldTypeText,
 		},
-		contentFlaggingPropertyNameStatus: {
+		ContentFlaggingPropertyNameStatus: {
 			GroupID: group.ID,
-			Name:    contentFlaggingPropertyNameStatus,
+			Name:    ContentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
 				"options": []map[string]string{
