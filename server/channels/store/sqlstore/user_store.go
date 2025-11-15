@@ -1487,7 +1487,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	return v, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
 	if !options.IncludeBotAccounts {
@@ -1515,7 +1515,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 		return 0, errors.Wrap(err, "Failed to build query.")
 	}
 
-	var v int64
+	var v int32
 	err = us.GetReplica().Get(&v, queryStr, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to get the active users during the requested period.")
