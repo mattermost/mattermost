@@ -97,6 +97,20 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	bot, appErr := c.App.GetBot(c.AppContext, botUserId, true)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Prevent updating the name of the system bot
+	if bot.Username == model.BotSystemBotUsername {
+		if botPatch.Username != nil && *botPatch.Username != bot.Username {
+			c.Err = model.NewAppError("PatchBot", "api.bot.system_bot_name_update_forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
 	updatedBot, appErr := c.App.PatchBot(c.AppContext, botUserId, botPatch)
 	if appErr != nil {
 		c.Err = appErr
@@ -215,7 +229,20 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 		return
 	}
 
-	bot, err := c.App.UpdateBotActive(c.AppContext, botUserId, active)
+	// Get the bot to check if it's the system bot
+	bot, err := c.App.GetBot(c.AppContext, botUserId, true)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Prevent disabling the system bot
+	if bot.Username == model.BotSystemBotUsername && !active {
+		c.Err = model.NewAppError("updateBotActive", "api.bot.system_bot_disable_forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	bot, err = c.App.UpdateBotActive(c.AppContext, botUserId, active)
 	if err != nil {
 		c.Err = err
 		return

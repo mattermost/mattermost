@@ -667,6 +667,18 @@ func TestDisableUserBots(t *testing.T) {
 	}
 	require.Len(t, bots, 46)
 
+	// Create system-bot
+	sysBot, err := th.App.CreateBot(th.Context, &model.Bot{
+		Username:    model.BotSystemBotUsername,
+		Description: "system bot",
+		OwnerId:     ownerId1,
+	})
+	require.Nil(t, err)
+	defer func() {
+		appErr := th.App.PermanentDeleteBot(th.Context, sysBot.UserId)
+		assert.Nil(t, appErr)
+	}()
+
 	u2bot1, err := th.App.CreateBot(th.Context, &model.Bot{
 		Username:    "username_nodisable",
 		Description: "a bot",
@@ -690,6 +702,11 @@ func TestDisableUserBots(t *testing.T) {
 
 	// Check bots and corresponding user not disabled for creator 2
 	bot, err := th.App.GetBot(th.Context, u2bot1.UserId, true)
+	require.Nil(t, err)
+	require.Zero(t, bot.DeleteAt)
+
+	// Check if system bot is disabled. Should not be disabled
+	bot, err = th.App.GetBot(th.Context, sysBot.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, bot.DeleteAt)
 
