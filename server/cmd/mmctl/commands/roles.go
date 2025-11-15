@@ -48,14 +48,36 @@ var RolesMemberCmd = &cobra.Command{
 	RunE: withClient(rolesMemberCmdF),
 	Args: cobra.MinimumNArgs(1),
 }
+var RolesListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List available roles",
+	Example: `  $ mmctl roles list
+  $ mmctl roles list --json`,
+	RunE: withClient(rolesListCmdF),
+	Args: cobra.NoArgs,
+}
 
 func init() {
 	RolesCmd.AddCommand(
 		RolesSystemAdminCmd,
 		RolesMemberCmd,
+		RolesListCmd,
 	)
 
 	RootCmd.AddCommand(RolesCmd)
+}
+
+func rolesListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	roles, _, err := c.GetAllRoles(context.TODO())
+	if err != nil {
+		return fmt.Errorf("failed to get roles: %w", err)
+	}
+
+	for _, role := range roles {
+		printer.PrintT("{{.Name}}", role)
+	}
+
+	return nil
 }
 
 func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) error {
