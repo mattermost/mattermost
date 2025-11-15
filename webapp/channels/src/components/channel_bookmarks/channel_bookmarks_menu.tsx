@@ -11,6 +11,7 @@ import {
     LinkVariantIcon,
     PaperclipIcon,
     PlusIcon,
+    SlashForwardIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkCreate} from '@mattermost/types/channel_bookmarks';
 
@@ -38,7 +39,7 @@ function BookmarksMenu({
     const {formatMessage} = useIntl();
     const showLabel = !hasBookmarks;
 
-    const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(channelId);
+    const {handleCreateLink, handleCreateFile, handleCreateCommand} = useBookmarkAddActions(channelId);
     const canAdd = useChannelBookmarkPermission(channelId, 'add');
 
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
@@ -54,6 +55,7 @@ function BookmarksMenu({
 
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
+    const addCommandLabel = formatMessage({id: 'channel_bookmarks.addCommand', defaultMessage: 'Add a command'});
 
     if (!canAdd) {
         return null;
@@ -101,6 +103,13 @@ function BookmarksMenu({
                         labels={<span>{attachFileLabel}</span>}
                     />
                 )}
+                <Menu.Item
+                    key='channelBookmarksAddCommand'
+                    id='channelBookmarksAddCommand'
+                    onClick={handleCreateCommand}
+                    leadingElement={<SlashForwardIcon size={18}/>}
+                    labels={<span>{addCommandLabel}</span>}
+                />
             </Menu.Container>
         </MenuButtonContainer>
     );
@@ -118,13 +127,13 @@ const MenuButtonContainer = styled.div<{withLabel: boolean}>`
 export const useBookmarkAddActions = (channelId: string) => {
     const dispatch = useDispatch();
 
-    const handleCreate = useCallback((file?: File) => {
+    const handleCreate = useCallback((bookmarkType: 'link' | 'file' | 'command', file?: File) => {
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_CREATE,
             dialogType: ChannelBookmarkCreateModal,
             dialogProps: {
                 channelId,
-                bookmarkType: file ? 'file' : 'link',
+                bookmarkType,
                 file,
                 onConfirm: async (data: ChannelBookmarkCreate) => dispatch(createBookmark(channelId, data)),
             },
@@ -132,7 +141,7 @@ export const useBookmarkAddActions = (channelId: string) => {
     }, [channelId, dispatch]);
 
     const handleCreateLink = useCallback(() => {
-        handleCreate();
+        handleCreate('link');
     }, [handleCreate]);
 
     const handleCreateFile = useCallback(() => {
@@ -144,7 +153,7 @@ export const useBookmarkAddActions = (channelId: string) => {
         input.addEventListener('change', () => {
             const file = input.files?.[0];
             if (file) {
-                handleCreate(file);
+                handleCreate('file', file);
             }
             input.remove();
         });
@@ -155,5 +164,9 @@ export const useBookmarkAddActions = (channelId: string) => {
         input.click();
     }, [handleCreate]);
 
-    return {handleCreateLink, handleCreateFile};
+    const handleCreateCommand = useCallback(() => {
+        handleCreate('command');
+    }, [handleCreate]);
+
+    return {handleCreateLink, handleCreateFile, handleCreateCommand};
 };
