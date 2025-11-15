@@ -74,6 +74,7 @@ function ChannelBookmarkCreateModal({
     const [parsedDisplayName, setParsedDisplayName] = useState<string | undefined>();
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
+    const [isInAppLink, setIsInAppLink] = useState(type === 'inapp_link');
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
         if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !showEmojiPicker) {
@@ -400,6 +401,19 @@ function ChannelBookmarkCreateModal({
                             addon={linkStatusIndicator}
                             customMessage={linkError ? {type: 'error', value: linkError} : {value: linkMessage}}
                         />
+                        <div className='checkbox'>
+                            <label>
+                                <input
+                                    type='checkbox'
+                                    checked={isInAppLink}
+                                    onChange={(e) => setIsInAppLink(e.target.checked)}
+                                />
+                                <FormattedMessage
+                                    id='channel_bookmarks.create.inapp_link'
+                                    defaultMessage='In-app link (opens within Mattermost)'
+                                />
+                            </label>
+                        </div>
                     </>
                 ) : (
                     <>
