@@ -92,6 +92,7 @@ linters:
       - linters:
           - errcheck
         path: "\
+          channels/store/localcachelayer/autotranslation_layer.go|\
           channels/store/localcachelayer/channel_layer.go|\
           channels/store/localcachelayer/channel_layer_test.go|\
           channels/store/localcachelayer/emoji_layer.go|\
