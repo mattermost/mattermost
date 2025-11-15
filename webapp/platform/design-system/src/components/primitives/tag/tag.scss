@@ -1,0 +1,167 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Unified Tag Component Styles
+// Consolidates styles from tag.tsx, alert_tag.tsx, and specialized tag variants
+
+.Tag {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    align-content: center;
+    align-self: center;
+    gap: 4px;
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    line-height: 16px;
+    text-transform: none;
+    transition: all 0.15s ease-out;
+
+    // Reset button styles and clickable state
+    &:is(button) {
+        border: none;
+        font: inherit;
+        outline: inherit;
+        cursor: pointer;
+        // Note: We do NOT reset padding, background, or color here because
+        // we want to keep the size and variant styling
+
+        &:hover {
+            opacity: 0.88;
+        }
+
+        &:active {
+            opacity: 0.8;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--sidebar-text-active-border);
+            outline-offset: 2px;
+        }
+    }
+
+    // Text transformation
+    &--uppercase {
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    // Size variants
+    &--xs {
+        height: 16px;
+        padding: 1px 4px;
+        font-size: 10px;
+        line-height: 12px;
+        gap: 3px;
+    }
+
+    &--sm {
+        height: 20px;
+        padding: 2px 6px;
+        font-size: 12px;
+        line-height: 16px;
+        gap: 4px;
+    }
+
+    &--md {
+        height: 24px;
+        padding: 2px 8px;
+        font-size: 14px;
+        line-height: 20px;
+        gap: 4px;
+    }
+
+    &--lg {
+        height: 28px;
+        padding: 3px 10px;
+        font-size: 16px;
+        line-height: 22px;
+        gap: 5px;
+    }
+
+    // Width variants
+    &--full-width {
+        width: 100%;
+        max-width: none;
+    }
+
+    // Color/Semantic variants - Default (Dim)
+    &--default {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+    }
+
+    // Primary variant (solid primary color)
+    &--primary {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+    }
+
+    // Secondary variant (solid secondary color)
+    &--secondary {
+        background: rgba(var(--sidebar-text-rgb), 0.08);
+        color: var(--sidebar-text);
+    }
+
+    // Info variant (solid info color) - Uses semantic-color-info
+    &--info {
+        background: rgb(var(--semantic-color-info));
+        color: #fff;
+    }
+
+    // Success variant (solid success color) - Uses semantic-color-success
+    &--success {
+        background: rgb(var(--semantic-color-success));
+        color: #fff;
+    }
+
+    // Warning variant (solid warning color) - Uses semantic-color-warning
+    &--warning {
+        background: rgb(var(--semantic-color-warning));
+        color: #fff;
+    }
+
+    // Danger variant (solid danger color) - Uses semantic-color-danger
+    &--danger {
+        background: rgb(var(--semantic-color-danger));
+        color: #fff;
+    }
+
+    // Danger Dim variant (transparent background)
+    &--dangerDim {
+        background: rgba(var(--semantic-color-danger), 0.08);
+        color: rgb(var(--semantic-color-danger));
+    }
+
+    // Tag text - handles overflow
+    &__text {
+        max-width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    // Tag icon container
+    &__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        line-height: 0;
+    }
+}
+
+// Tag Group Component
+// Container for displaying multiple tags with consistent spacing
+.TagGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+

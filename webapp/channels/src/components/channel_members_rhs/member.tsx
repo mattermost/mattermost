@@ -14,10 +14,10 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import ChannelMembersDropdown from 'components/channel_members_dropdown';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import GuestTag from 'components/guest_tag';
 import ProfilePicture from 'components/profile_picture';
 import ProfilePopover from 'components/profile_popover';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
 import type {ChannelMember as ChannelMemberType} from './member_list';
 

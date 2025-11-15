@@ -4,14 +4,14 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {BotTag} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import GuestTag from 'components/guest_tag';
 import AlertIcon from 'components/widgets/icons/alert_icon';
 import EmailIcon from 'components/widgets/icons/mail_icon';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {imageURLForUser, getLongDisplayName} from 'utils/utils';

@@ -23,7 +23,7 @@ exports[`components/threading/global_threads/thread_item should report total num
       <div
         className="ThreadItem__tags"
       >
-        <Memo(Tag)
+        <Tag
           onClick={[Function]}
           text="Team name"
         />
@@ -177,7 +177,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       <div
         className="ThreadItem__tags"
       >
-        <Memo(Tag)
+        <Tag
           onClick={[Function]}
           text="Team name"
         />
@@ -329,7 +329,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
       <div
         className="ThreadItem__tags"
       >
-        <Memo(Tag)
+        <Tag
           onClick={[Function]}
           text="Team name"
         />

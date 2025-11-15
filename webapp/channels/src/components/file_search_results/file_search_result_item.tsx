@@ -4,6 +4,7 @@
 import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Tag} from '@mattermost/design-system';
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
@@ -13,7 +14,6 @@ import FilePreviewModal from 'components/file_preview_modal';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Tag from 'components/widgets/tag/tag';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers} from 'utils/constants';

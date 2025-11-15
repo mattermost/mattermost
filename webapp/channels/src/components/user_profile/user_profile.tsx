@@ -4,12 +4,13 @@
 import type {ReactNode} from 'react';
 import React, {useEffect} from 'react';
 
+import {BotTag} from '@mattermost/design-system';
+
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import GuestTag from 'components/guest_tag';
 import ProfilePopover from 'components/profile_popover';
 import SharedUserIndicator from 'components/shared_user_indicator';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {imageURLForUser, getUsername} from 'utils/utils';
 
