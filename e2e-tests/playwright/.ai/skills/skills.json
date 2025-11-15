@@ -1,0 +1,16 @@
+{
+  "name": "e2e-test-creation",
+  "description": "Automatically generates E2E tests for Mattermost frontend changes using Playwright agents",
+  "trigger_patterns": [
+    "webapp changes",
+    "frontend component",
+    "UI modification",
+    "new feature",
+    "React component"
+  ],
+  "files": [
+    "guidelines.md",
+    "examples.md",
+    "mattermost-patterns.md"
+  ]
+}
