@@ -26,6 +26,7 @@ import {
     getAdminClient,
     initSetup,
     isOutsideRemoteUserHour,
+    makeClient,
     mergeWithOnPremServerConfig,
 } from './server';
 import {
@@ -102,6 +103,7 @@ export class PlaywrightExtended {
     // ./server
     readonly createNewUserProfile;
     readonly isOutsideRemoteUserHour;
+    readonly makeClient;
 
     // ./visual
     readonly matchSnapshot;
@@ -165,6 +167,7 @@ export class PlaywrightExtended {
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;
+        this.makeClient = makeClient;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;

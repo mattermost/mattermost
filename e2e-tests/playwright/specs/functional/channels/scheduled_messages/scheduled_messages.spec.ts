@@ -300,7 +300,7 @@ test(
 
         // # Initialize test setup with main user and create a second user
         const {user, team, adminClient} = await pw.initSetup();
-        const otherUser = await adminClient.createUser(pw.random.user(), '', '');
+        const otherUser = await adminClient.createUser(await pw.random.user(), '', '');
 
         // # Login as first user and navigate to DM channel with second user
         const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(user);

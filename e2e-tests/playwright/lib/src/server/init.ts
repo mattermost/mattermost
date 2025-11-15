@@ -33,10 +33,10 @@ export async function initSetup({
         const adminConfig = await adminClient.updateConfig(getOnPremServerConfig() as any);
 
         // Create new team
-        const team = await adminClient.createTeam(createRandomTeam(teamPrefix.name, teamPrefix.displayName));
+        const team = await adminClient.createTeam(await createRandomTeam(teamPrefix.name, teamPrefix.displayName));
 
         // Create new user and add to newly created team
-        const randomUser = createRandomUser(userPrefix);
+        const randomUser = await createRandomUser(userPrefix);
         const user = await adminClient.createUser(randomUser, '', '');
         user.password = randomUser.password;
         await adminClient.addToTeam(team.id, user.id);

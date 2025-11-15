@@ -38,10 +38,20 @@ export class TestBrowser {
         const scheduledPostsPage = new pages.ScheduledPostsPage(page);
         const draftsPage = new pages.DraftsPage(page);
         const threadsPage = new pages.ThreadsPage(page);
+        const contentReviewPage = new pages.ContentReviewPage(page);
 
         this.context = context;
 
-        return {context, page, channelsPage, systemConsolePage, scheduledPostsPage, draftsPage, threadsPage};
+        return {
+            context,
+            page,
+            channelsPage,
+            systemConsolePage,
+            scheduledPostsPage,
+            draftsPage,
+            threadsPage,
+            contentReviewPage,
+        };
     }
 
     async close() {
