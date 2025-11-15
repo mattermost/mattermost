@@ -1,0 +1,44 @@
+- dialog "Notification Preferences Off-Topic":
+  - document:
+    - heading "Notification Preferences Off-Topic" [level=1]:
+      - heading "Notification Preferences Off-Topic" [level=2]
+    - button "Close"
+    - main:
+      - group "Mute or ignore":
+        - heading "Mute or ignore" [level=4]
+        - checkbox "Mute channel"
+        - paragraph: Turns off notifications for this channel. You’ll still see badges if you’re mentioned.
+        - checkbox "Ignore mentions for @channel, @here and @all"
+        - text: Ignore mentions for @channel, @here and @all
+        - paragraph: When enabled, @channel, @here and @all will not trigger mentions or mention notifications in this channel
+      - heading "Desktop Notifications" [level=4]
+      - paragraph: Available on Chrome, Edge, Firefox, and the Mattermost Desktop App.
+      - heading "Notify me about…" [level=4]
+      - group "Notify me about…":
+        - radio "All new messages"
+        - text: All new messages
+        - radio "Mentions, direct messages, and keywords only (default)" [checked]
+        - text: Mentions, direct messages, and keywords only (default)
+        - radio "Nothing"
+      - heading "Thread reply notifications" [level=4]
+      - checkbox "Notify me about replies to threads I’m following" [checked]
+      - text: Notify me about replies to threads I’m following
+      - heading "Sounds" [level=4]
+      - group:
+        - checkbox "Message notification sounds" [checked]
+        - text: Message notification sounds
+      - group:
+        - log
+        - text: Bing
+        - combobox
+      - heading "Mobile Notifications" [level=4]
+      - paragraph: Notification alerts are pushed to your mobile device when there is activity in Mattermost.
+      - checkbox "Use the same notification settings as desktop" [checked]
+      - text: Use the same notification settings as desktop
+      - heading "Follow all threads in this channel" [level=4]
+      - paragraph: When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.
+      - checkbox "Automatically follow threads in this channel"
+      - text: Automatically follow threads in this channel
+    - contentinfo:
+      - button "Cancel"
+      - button "Save"
