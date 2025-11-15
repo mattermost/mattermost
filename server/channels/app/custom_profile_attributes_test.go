@@ -60,7 +60,7 @@ func TestGetCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
-		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs["visibility"])
+		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs.Visibility)
 	})
 
 	t.Run("should initialize default attrs when field has nil Attrs", func(t *testing.T) {
@@ -77,9 +77,8 @@ func TestGetCPAField(t *testing.T) {
 		// GetCPAField should initialize Attrs with defaults
 		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
 		require.Nil(t, appErr)
-		require.NotNil(t, fetchedField.Attrs)
-		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
-		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs.Visibility)
+		require.Equal(t, float64(0), fetchedField.Attrs.SortOrder)
 	})
 
 	t.Run("should initialize default attrs when field has empty Attrs", func(t *testing.T) {
@@ -96,9 +95,8 @@ func TestGetCPAField(t *testing.T) {
 		// GetCPAField should add missing default attrs
 		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
 		require.Nil(t, appErr)
-		require.NotNil(t, fetchedField.Attrs)
-		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
-		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs.Visibility)
+		require.Equal(t, float64(0), fetchedField.Attrs.SortOrder)
 	})
 
 	t.Run("should validate LDAP/SAML synced fields", func(t *testing.T) {
@@ -227,11 +225,62 @@ func TestListCPAFields(t *testing.T) {
 		// Find our test fields and verify default attrs are set
 		for _, field := range fields {
 			if field.Name == "Field with nil attrs" || field.Name == "Field with empty attrs" {
-				require.NotNil(t, field.Attrs)
-				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
-				require.Equal(t, float64(0), field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, field.Attrs.Visibility)
+				require.Equal(t, float64(0), field.Attrs.SortOrder)
 			}
 		}
+	})
+
+	t.Run("list fields should return defaults for fields created without visibility and sort_order", func(t *testing.T) {
+		// Create a field with minimal attrs (no visibility or sort_order)
+		fieldMinimal, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name:  "Field Without Defaults",
+			Type:  model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{}, // Empty attrs - no visibility or sort_order
+		})
+		require.NoError(t, err)
+		createdFieldMinimal, appErr := th.App.CreateCPAField(fieldMinimal)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdFieldMinimal)
+
+		// Create another field to ensure we test list results with explicit values
+		fieldNormal, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: "Normal Field",
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityAlways,
+				model.CustomProfileAttributesPropertyAttrsSortOrder:  5.0,
+			},
+		})
+		require.NoError(t, err)
+		createdFieldNormal, appErr := th.App.CreateCPAField(fieldNormal)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdFieldNormal)
+
+		// List all fields
+		fields, appErr := th.App.ListCPAFields()
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		// Find our test fields and verify defaults
+		foundMinimal := false
+		foundNormal := false
+		for _, f := range fields {
+			if f.ID == createdFieldMinimal.ID {
+				foundMinimal = true
+				// Verify defaults are set for field created without them
+				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, f.Attrs.Visibility, "visibility should have default value")
+				require.Equal(t, float64(0), f.Attrs.SortOrder, "sort_order should default to 0")
+			}
+			if f.ID == createdFieldNormal.ID {
+				foundNormal = true
+				// Verify createdFieldNormal are preserved
+				require.Equal(t, model.CustomProfileAttributesVisibilityAlways, f.Attrs.Visibility)
+				require.Equal(t, float64(5), f.Attrs.SortOrder)
+			}
+		}
+		require.True(t, foundMinimal, "should have found createdFieldMinimal in list")
+		require.True(t, foundNormal, "should have found createdFieldNormal in list")
 	})
 }
 
@@ -277,7 +326,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
-		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, createdField.Attrs["visibility"])
+		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, createdField.Attrs.Visibility)
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
 		require.NoError(t, gErr)
@@ -421,7 +470,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, updatedField.ID)
 		require.Equal(t, "Patched name", updatedField.Name)
-		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs.Visibility)
 		require.Empty(t, updatedField.TargetID, "CPA should not allow to patch the field's target ID")
 		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
 		require.Greater(t, updatedField.UpdateAt, createdField.UpdateAt)
@@ -452,7 +501,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the original option IDs
-		options := createdSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+		options := createdSelectField.Attrs.Options
 		require.Len(t, options, 2)
 		originalID1 := options[0].ID
 		originalID2 := options[1].ID
@@ -484,7 +533,7 @@ func TestPatchCPAField(t *testing.T) {
 		updatedSelectField, appErr := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
 		require.Nil(t, appErr)
 
-		updatedOptions := updatedSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+		updatedOptions := updatedSelectField.Attrs.Options
 		require.Len(t, updatedOptions, 3)
 
 		// Verify the options were updated while preserving IDs
@@ -523,11 +572,8 @@ func TestPatchCPAField(t *testing.T) {
 		createdField, appErr := th.App.CreateCPAField(field)
 		require.Nil(t, appErr)
 
-		// Get the option IDs by converting back to CPA field
-		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
-		require.NoError(t, err)
-
-		options := cpaField.Attrs.Options
+		// Get the option IDs
+		options := createdField.Attrs.Options
 		require.Len(t, options, 2)
 		optionID := options[0].ID
 		require.NotEmpty(t, optionID)
@@ -594,11 +640,8 @@ func TestPatchCPAField(t *testing.T) {
 		createdField, appErr := th.App.CreateCPAField(field)
 		require.Nil(t, appErr)
 
-		// Get the option IDs by converting back to CPA field
-		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
-		require.NoError(t, err)
-
-		options := cpaField.Attrs.Options
+		// Get the option IDs
+		options := createdField.Attrs.Options
 		require.Len(t, options, 2)
 		optionID := options[0].ID
 		require.NotEmpty(t, optionID)
@@ -978,7 +1021,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	otherUserID := model.NewId()
 
 	// Create multiple fields and values for the user
-	var createdFields []*model.PropertyField
+	var createdFields []*model.CPAField
 	for i := 1; i <= 3; i++ {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaGroupID,

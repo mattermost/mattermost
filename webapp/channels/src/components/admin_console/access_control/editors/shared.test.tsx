@@ -3,9 +3,11 @@
 
 import React from 'react';
 
+import type {UserPropertyField} from '@mattermost/types/properties';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {TestButton} from './shared';
+import {TestButton, hasUsableAttributes} from './shared';
 
 describe('TestButton', () => {
     const baseProps = {
@@ -164,5 +166,180 @@ describe('TestButton', () => {
 
         // Undefined tooltip should not show tooltip
         expect(button.parentElement).not.toHaveAttribute('data-testid', 'tooltip-wrapper');
+    });
+});
+
+describe('hasUsableAttributes', () => {
+    test('should return true when EnableUserManagedAttributes is true and attributes exist', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, true)).toBe(true);
+    });
+
+    test('should return true when attributes are LDAP synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    ldap: 'ldap_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are SAML synced', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    saml: 'saml_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return true when attributes are admin-managed', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    managed: 'admin',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return false when attributes exist but are not usable (not LDAP/SAML/admin and EnableUserManagedAttributes is false)', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(false);
+    });
+
+    test('should return false when no attributes exist', () => {
+        const userAttributes: UserPropertyField[] = [];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(false);
+        expect(hasUsableAttributes(userAttributes, true)).toBe(false);
+    });
+
+    test('should return false when attributes have spaces in their names', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department name',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    ldap: 'ldap_department',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(false);
+    });
+
+    test('should return true when at least one attribute is usable (mixed attributes)', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department name',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+            {
+                id: 'attr2',
+                name: 'location',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    ldap: 'ldap_location',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
     });
 });

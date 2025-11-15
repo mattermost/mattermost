@@ -61,6 +61,11 @@ type Props = {
      */
     enablePostIconOverride: boolean;
 
+    /**
+     * Whether the user can bypass the channel lock requirement.
+     */
+    canBypassChannelLock?: boolean;
+
     actions: {
 
         /**
@@ -139,6 +144,7 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
                 loading={messages.loading}
                 enablePostUsernameOverride={this.props.enablePostUsernameOverride}
                 enablePostIconOverride={this.props.enablePostIconOverride}
+                canBypassChannelLock={this.props.canBypassChannelLock}
                 action={this.editIncomingHook}
                 serverError={this.state.serverError}
                 initialHook={this.props.hook}

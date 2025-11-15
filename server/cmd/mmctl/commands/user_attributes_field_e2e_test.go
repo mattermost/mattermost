@@ -119,7 +119,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 		s.Require().Len(fields, 1)
 		s.Require().Equal("Department", fields[0].Name)
 		s.Require().Equal(model.PropertyFieldTypeText, fields[0].Type)
-		s.Require().Equal("admin", fields[0].Attrs["managed"])
+		s.Require().Equal("admin", fields[0].Attrs.Managed)
 	})
 
 	s.RunForSystemAdminAndLocal("Create multiselect field with options", func(c client.Client) {
@@ -156,16 +156,12 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 		s.Require().Equal("Skills", fields[0].Name)
 		s.Require().Equal(model.PropertyFieldTypeMultiselect, fields[0].Type)
 
-		// Convert to CPAField for easier option inspection
-		cpaField, err := model.NewCPAFieldFromPropertyField(fields[0])
-		s.Require().Nil(err)
-
 		// Verify the options were created
-		s.Require().Len(cpaField.Attrs.Options, 3)
+		s.Require().Len(fields[0].Attrs.Options, 3)
 
 		// Extract option names to verify they match what we set
 		var optionNames []string
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range fields[0].Attrs.Options {
 			optionNames = append(optionNames, option.Name)
 		}
 		s.Require().Contains(optionNames, "Go")
@@ -245,13 +241,11 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Equal("Programming Languages", updatedField.Name)
 
-		// Convert to CPAField to check options
-		cpaField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-		s.Require().Len(cpaField.Attrs.Options, 2)
+		// Check options
+		s.Require().Len(updatedField.Attrs.Options, 2)
 
 		var optionNames []string
-		for _, option := range cpaField.Attrs.Options {
+		for _, option := range updatedField.Attrs.Options {
 			optionNames = append(optionNames, option.Name)
 		}
 		s.Require().Contains(optionNames, "Go")
@@ -296,12 +290,8 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		updatedField, appErr := s.th.App.GetCPAField(createdField.ID)
 		s.Require().Nil(appErr)
 
-		// Convert to CPAField to check attrs
-		cpaField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-
 		// Verify that managed flag was set correctly
-		s.Require().Equal("admin", cpaField.Attrs.Managed)
+		s.Require().Equal("admin", updatedField.Attrs.Managed)
 	})
 
 	s.RunForSystemAdminAndLocal("Edit field by name", func(c client.Client) {
@@ -350,10 +340,8 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Equal("Team", updatedField.Name)
 
-		// Convert to CPAField to check managed status
-		cpaField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-		s.Require().Equal("admin", cpaField.Attrs.Managed)
+		// Check managed status
+		s.Require().Equal("admin", updatedField.Attrs.Managed)
 	})
 
 	s.RunForSystemAdminAndLocal("Edit multiselect field with option preservation", func(c client.Client) {
@@ -379,13 +367,11 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		s.Require().Nil(appErr)
 
 		// Get the original option IDs to verify they are preserved
-		originalCPAField, err := model.NewCPAFieldFromPropertyField(createdField)
-		s.Require().Nil(err)
-		s.Require().Len(originalCPAField.Attrs.Options, 2)
+		s.Require().Len(createdField.Attrs.Options, 2)
 
 		originalGoID := ""
 		originalPythonID := ""
-		for _, option := range originalCPAField.Attrs.Options {
+		for _, option := range createdField.Attrs.Options {
 			switch option.Name {
 			case "Go":
 				originalGoID = option.ID
@@ -403,7 +389,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		cmd.Flags().String("attrs", "", "")
 		cmd.Flags().StringSlice("option", []string{}, "")
 
-		err = cmd.Flags().Set("option", "Go")
+		err := cmd.Flags().Set("option", "Go")
 		s.Require().Nil(err)
 		err = cmd.Flags().Set("option", "Python")
 		s.Require().Nil(err)
@@ -423,17 +409,15 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		updatedField, appErr := s.th.App.GetCPAField(createdField.ID)
 		s.Require().Nil(appErr)
 
-		// Convert to CPAField to check options
-		updatedCPAField, err := model.NewCPAFieldFromPropertyField(updatedField)
-		s.Require().Nil(err)
-		s.Require().Len(updatedCPAField.Attrs.Options, 3)
+		// Check options
+		s.Require().Len(updatedField.Attrs.Options, 3)
 
 		// Verify the first two options preserved their original IDs and the third is new
 		foundGo := false
 		foundPython := false
 		foundReact := false
 
-		for _, option := range updatedCPAField.Attrs.Options {
+		for _, option := range updatedField.Attrs.Options {
 			switch option.Name {
 			case "Go":
 				s.Require().Equal(originalGoID, option.ID, "Go option should preserve its original ID")

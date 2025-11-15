@@ -7,13 +7,20 @@ import {Grid} from '@giphy/react-components';
 import React, {memo, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
+import {
+    getGiphyFetchInstance,
+    getGiphyLanguageCode,
+} from 'selectors/views/gif_picker';
+
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 
-import {getGiphyFetchInstance} from '../selectors';
-
 const GUTTER_BETWEEN_GIFS = 8;
 const NUM_OF_GIFS_COLUMNS = 2;
+const RATING_GENERAL = 'g';
+const NUM_OF_RESULTS_PER_PAGE = 10;
+const RESULTS_TYPE = 'gifs';
+const SORT_BY = 'relevant';
 
 interface Props {
     width: number;
@@ -23,21 +30,37 @@ interface Props {
 
 function GifPickerItems(props: Props) {
     const giphyFetch = useSelector(getGiphyFetchInstance);
+    const giphyLanguageCode = useSelector(getGiphyLanguageCode);
 
-    const fetchGifs = useCallback(async (offset: number) => {
-        if (!giphyFetch) {
-            return {} as GifsResult;
-        }
+    const fetchGifs = useCallback(
+        async (offset: number) => {
+            if (!giphyFetch) {
+                return {} as GifsResult;
+            }
 
-        // We dont have to throttled the fetching as the library does it for us
-        if (props.filter.length > 0) {
-            const filteredResult = await giphyFetch.search(props.filter, {offset, limit: 10});
-            return filteredResult;
-        }
+            // We dont have to throttled the fetching as the library does it for us
+            if (props.filter.length > 0) {
+                const filteredResult = await giphyFetch.search(props.filter, {
+                    offset,
+                    lang: giphyLanguageCode,
+                    sort: SORT_BY,
+                    limit: NUM_OF_RESULTS_PER_PAGE,
+                    rating: RATING_GENERAL,
+                    type: RESULTS_TYPE,
+                });
+                return filteredResult;
+            }
 
-        const trendingResult = await giphyFetch.trending({offset, limit: 10});
-        return trendingResult;
-    }, [props.filter, giphyFetch]);
+            const trendingResult = await giphyFetch.trending({
+                offset,
+                limit: NUM_OF_RESULTS_PER_PAGE,
+                rating: RATING_GENERAL,
+                type: RESULTS_TYPE,
+            });
+            return trendingResult;
+        },
+        [props.filter, giphyLanguageCode, giphyFetch],
+    );
 
     return (
         <div className='emoji-picker__items gif-picker__items'>

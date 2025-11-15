@@ -110,6 +110,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "validateExpressionAgainstRequester": [MockFunction],
               }
             }
+            disabled={false}
             enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}
@@ -324,6 +325,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "validateExpressionAgainstRequester": [MockFunction],
               }
             }
+            disabled={false}
             enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}

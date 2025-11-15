@@ -13,7 +13,7 @@ let mockCanPopout = true;
 
 jest.mock('utils/popouts/popout_windows', () => ({
     __esModule: true,
-    get canPopout() {
+    canPopout: () => {
         return mockCanPopout;
     },
 }));
