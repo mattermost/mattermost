@@ -12,8 +12,8 @@ import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {selectChannelBannerEnabled} from 'mattermost-redux/selectors/entities/channel_banner';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -24,6 +24,7 @@ import {isChannelAccessControlEnabled} from 'selectors/general';
 
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -57,7 +58,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId)) as Channel;
-    const channelBannerEnabled = useSelector(selectChannelBannerEnabled);
+    const channelBannerEnabled = isMinimumEnterpriseAdvancedLicense(useSelector(getLicense));
 
     const canManagePublicChannelBanner = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_PUBLIC_CHANNEL_BANNER),

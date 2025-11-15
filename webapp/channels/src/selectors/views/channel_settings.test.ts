@@ -69,7 +69,6 @@ describe('Selectors.Views.ChannelSettings', () => {
     beforeEach(() => {
         // Create a spy on the original function
         jest.spyOn(require('mattermost-redux/selectors/entities/roles'), 'haveIChannelPermission').mockImplementation(() => false);
-        jest.spyOn(require('mattermost-redux/selectors/entities/channel_banner'), 'selectChannelBannerEnabled').mockImplementation(() => true);
     });
 
     afterEach(() => {
