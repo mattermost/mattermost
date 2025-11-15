@@ -30,9 +30,11 @@ func RenderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition) (
 func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, isTightList bool) (result string) {
 	switch v := block.(type) {
 	case *Document:
+		var resultSb strings.Builder
 		for _, block := range v.Children {
-			result += RenderBlockHTML(block, referenceDefinitions)
+			resultSb.WriteString(RenderBlockHTML(block, referenceDefinitions))
 		}
+		result += resultSb.String()
 	case *Paragraph:
 		if len(v.Text) == 0 {
 			return
@@ -40,9 +42,11 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		if !isTightList {
 			result += "<p>"
 		}
+		var resultSb strings.Builder
 		for _, inline := range v.ParseInlines(referenceDefinitions) {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
+		result += resultSb.String()
 		if !isTightList {
 			result += "</p>"
 		}
@@ -56,9 +60,11 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		} else {
 			result += "<ul>"
 		}
+		var resultSb strings.Builder
 		for _, block := range v.Children {
-			result += renderBlockHTML(block, referenceDefinitions, !v.IsLoose)
+			resultSb.WriteString(renderBlockHTML(block, referenceDefinitions, !v.IsLoose))
 		}
+		result += resultSb.String()
 		if v.IsOrdered {
 			result += "</ol>"
 		} else {
@@ -66,15 +72,19 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		}
 	case *ListItem:
 		result += "<li>"
+		var resultSb strings.Builder
 		for _, block := range v.Children {
-			result += renderBlockHTML(block, referenceDefinitions, isTightList)
+			resultSb.WriteString(renderBlockHTML(block, referenceDefinitions, isTightList))
 		}
+		result += resultSb.String()
 		result += "</li>"
 	case *BlockQuote:
 		result += "<blockquote>"
+		var resultSb strings.Builder
 		for _, block := range v.Children {
-			result += RenderBlockHTML(block, referenceDefinitions)
+			resultSb.WriteString(RenderBlockHTML(block, referenceDefinitions))
 		}
+		result += resultSb.String()
 		result += "</blockquote>"
 	case *FencedCode:
 		if info := v.Info(); info != "" {
@@ -142,9 +152,11 @@ func RenderInlineHTML(inline Inline) (result string) {
 			result += ` title="` + htmlEscaper.Replace(title) + `"`
 		}
 		result += `>`
+		var resultSb strings.Builder
 		for _, inline := range v.Children {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
+		result += resultSb.String()
 		result += "</a>"
 	case *ReferenceLink:
 		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `"`
@@ -152,15 +164,19 @@ func RenderInlineHTML(inline Inline) (result string) {
 			result += ` title="` + htmlEscaper.Replace(title) + `"`
 		}
 		result += `>`
+		var resultSb strings.Builder
 		for _, inline := range v.Children {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
+		result += resultSb.String()
 		result += "</a>"
 	case *Autolink:
 		result += `<a href="` + htmlEscaper.Replace(escapeURL(v.Destination())) + `">`
+		var resultSb strings.Builder
 		for _, inline := range v.Children {
-			result += RenderInlineHTML(inline)
+			resultSb.WriteString(RenderInlineHTML(inline))
 		}
+		result += resultSb.String()
 		result += "</a>"
 	case *Emoji:
 		escapedName := htmlEscaper.Replace(v.Name)
@@ -173,9 +189,11 @@ func RenderInlineHTML(inline Inline) (result string) {
 }
 
 func renderImageAltText(children []Inline) (result string) {
+	var resultSb strings.Builder
 	for _, inline := range children {
-		result += renderImageChildAltText(inline)
+		resultSb.WriteString(renderImageChildAltText(inline))
 	}
+	result += resultSb.String()
 	return
 }
 
@@ -184,13 +202,17 @@ func renderImageChildAltText(inline Inline) (result string) {
 	case *Text:
 		return v.Text
 	case *InlineImage:
+		var resultSb strings.Builder
 		for _, inline := range v.Children {
-			result += renderImageChildAltText(inline)
+			resultSb.WriteString(renderImageChildAltText(inline))
 		}
+		result += resultSb.String()
 	case *InlineLink:
+		var resultSb strings.Builder
 		for _, inline := range v.Children {
-			result += renderImageChildAltText(inline)
+			resultSb.WriteString(renderImageChildAltText(inline))
 		}
+		result += resultSb.String()
 	}
 	return
 }

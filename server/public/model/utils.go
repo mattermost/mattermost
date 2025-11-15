@@ -712,7 +712,7 @@ var (
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
 
-	hashtagString := ""
+	var hashtagStringSb strings.Builder
 	var plainString strings.Builder
 	for _, word := range words {
 		// trim off surrounding punctuation
@@ -723,11 +723,12 @@ func ParseHashtags(text string) (string, string) {
 		word = hashtagStart.ReplaceAllString(word, "#")
 
 		if validHashtag.MatchString(word) {
-			hashtagString += " " + word
+			hashtagStringSb.WriteString(" " + word)
 		} else {
 			plainString.WriteString(" " + word)
 		}
 	}
+	hashtagString := hashtagStringSb.String()
 
 	if len(hashtagString) > 1000 {
 		hashtagString = hashtagString[:999]

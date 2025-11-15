@@ -20,9 +20,11 @@ type IndentedCode struct {
 }
 
 func (b *IndentedCode) Code() (result string) {
+	var resultSb strings.Builder
 	for _, code := range b.RawCode {
-		result += strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End]
+		resultSb.WriteString(strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End])
 	}
+	result += resultSb.String()
 	return
 }
 
