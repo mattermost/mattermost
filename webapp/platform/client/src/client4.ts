@@ -147,6 +147,8 @@ import type {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/t
 import type {
     AuthChangeResponse,
     UserAccessToken,
+    UserAuthUpdate,
+    UserAuthResponse,
     UserProfile,
     UsersStats,
     UserStatus,
@@ -648,6 +650,13 @@ export default class Client4 {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(user.id)}`,
             {method: 'put', body: JSON.stringify(user)},
+        );
+    };
+
+    updateUserAuth = (userId: string, userAuth: UserAuthUpdate) => {
+        return this.doFetch<UserAuthResponse>(
+            `${this.getUserRoute(userId)}/auth`,
+            {method: 'put', body: JSON.stringify(userAuth)},
         );
     };
 

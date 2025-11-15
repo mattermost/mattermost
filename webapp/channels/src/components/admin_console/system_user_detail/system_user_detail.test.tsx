@@ -3,6 +3,7 @@
 
 import '@testing-library/jest-dom';
 
+import {fireEvent} from '@testing-library/react';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -18,7 +19,7 @@ import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 // Mock user profile data
-const user = Object.assign(TestHelper.getUserMock(), {auth_service: Constants.EMAIL_SERVICE}) as UserProfile;
+const user = Object.assign(TestHelper.getUserMock(), {auth_service: ''}) as UserProfile;
 const ldapUser = {...user, auth_service: Constants.LDAP_SERVICE} as UserProfile;
 
 // Mock getUser action result
@@ -32,6 +33,7 @@ describe('SystemUserDetail', () => {
         mfaEnabled: false,
         customProfileAttributeFields: [],
         patchUser: jest.fn(),
+        updateUserAuth: jest.fn(),
         updateUserMfa: jest.fn(),
         getUser: getUserMock,
         updateUserActive: jest.fn(),
@@ -108,7 +110,6 @@ describe('SystemUserDetail', () => {
         const props = {
             ...defaultProps,
             getUser: getLdapUserMock,
-            isLoading: false,
         };
 
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
@@ -131,6 +132,291 @@ describe('SystemUserDetail', () => {
         await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
+    });
+
+    describe('change detection', () => {
+        test('should detect email changes and enable save', async () => {
+            const setNavigationBlockedMock = jest.fn();
+            const props = {
+                ...defaultProps,
+                setNavigationBlocked: setNavigationBlockedMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const emailInputs = screen.getAllByDisplayValue(user.email);
+            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+
+            if (emailInput) {
+                fireEvent.change(emailInput, {target: {value: 'newemail@example.com'}});
+                expect(setNavigationBlockedMock).toHaveBeenCalledWith(true);
+            }
+        });
+
+        test('should detect username changes and enable save', async () => {
+            const setNavigationBlockedMock = jest.fn();
+            const props = {
+                ...defaultProps,
+                setNavigationBlocked: setNavigationBlockedMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const usernameInputs = screen.getAllByDisplayValue(user.username);
+            const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
+
+            if (usernameInput) {
+                fireEvent.change(usernameInput, {target: {value: 'newusername'}});
+                expect(setNavigationBlockedMock).toHaveBeenCalledWith(true);
+            }
+        });
+    });
+
+    describe('email validation', () => {
+        test('should handle email validation and still set navigation blocking', async () => {
+            const setNavigationBlockedMock = jest.fn();
+            const props = {
+                ...defaultProps,
+                setNavigationBlocked: setNavigationBlockedMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const emailInputs = screen.getAllByDisplayValue(user.email);
+            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+
+            if (emailInput) {
+                fireEvent.change(emailInput, {target: {value: 'invalid-email'}});
+
+                // Navigation should still be blocked even with invalid email
+                expect(setNavigationBlockedMock).toHaveBeenCalledWith(true);
+            }
+        });
+
+        test('should not show validation error for valid email', async () => {
+            const props = {
+                ...defaultProps,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const emailInputs = screen.getAllByDisplayValue(user.email);
+            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+
+            if (emailInput) {
+                fireEvent.change(emailInput, {target: {value: 'valid@email.com'}});
+
+                await waitFor(() => {
+                    expect(screen.queryByText('Invalid email address')).not.toBeInTheDocument();
+                });
+            }
+        });
+
+        test('should show validation error for empty email', async () => {
+            const props = {
+                ...defaultProps,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const emailInputs = screen.getAllByDisplayValue(user.email);
+            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+
+            if (emailInput) {
+                fireEvent.change(emailInput, {target: {value: '  '}});
+
+                await waitFor(() => {
+                    expect(screen.getByText('Email cannot be empty')).toBeInTheDocument();
+                });
+            }
+        });
+    });
+
+    describe('username validation', () => {
+        test('should show validation error for empty username', async () => {
+            const props = {
+                ...defaultProps,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const usernameInputs = screen.getAllByDisplayValue(user.username);
+            const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
+
+            if (usernameInput) {
+                fireEvent.change(usernameInput, {target: {value: '  '}});
+
+                await waitFor(() => {
+                    expect(screen.getByText('Username cannot be empty')).toBeInTheDocument();
+                });
+            }
+        });
+    });
+
+    describe('authData validation', () => {
+        const samlUser = {...user, auth_service: Constants.SAML_SERVICE, auth_data: 'test-auth-data'} as UserProfile;
+        const getSamlUserMock = jest.fn().mockResolvedValue({data: samlUser, error: null});
+
+        test('should show validation error for empty authData', async () => {
+            const props = {
+                ...defaultProps,
+                getUser: getSamlUserMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const authDataInput = screen.getByPlaceholderText('Enter auth data');
+
+            if (authDataInput) {
+                fireEvent.change(authDataInput, {target: {value: '  '}});
+
+                await waitFor(() => {
+                    expect(screen.getByText('Auth Data cannot be empty')).toBeInTheDocument();
+                });
+            }
+        });
+
+        test('should show validation error for authData exceeding 128 characters', async () => {
+            const props = {
+                ...defaultProps,
+                getUser: getSamlUserMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const authDataInput = screen.getByPlaceholderText('Enter auth data');
+
+            if (authDataInput) {
+                const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
+                fireEvent.change(authDataInput, {target: {value: longAuthData}});
+
+                await waitFor(() => {
+                    expect(screen.getByText('Auth Data must be 128 characters or less')).toBeInTheDocument();
+                });
+            }
+        });
+
+        test('should not show validation error for valid authData', async () => {
+            const props = {
+                ...defaultProps,
+                getUser: getSamlUserMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const authDataInput = screen.getByPlaceholderText('Enter auth data');
+
+            if (authDataInput) {
+                const validAuthData = 'a'.repeat(128); // Exactly 128 characters
+                fireEvent.change(authDataInput, {target: {value: validAuthData}});
+
+                await waitFor(() => {
+                    expect(screen.queryByText('Auth Data must be 128 characters or less')).not.toBeInTheDocument();
+                    expect(screen.queryByText('Auth Data cannot be empty')).not.toBeInTheDocument();
+                });
+            }
+        });
+    });
+
+    describe('error handling', () => {
+        test('should handle getUser error correctly', async () => {
+            // Suppress expected console errors
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            const getUserErrorMock = jest.fn().mockResolvedValue({
+                data: null,
+                error: {message: 'User not found'},
+            });
+
+            const props = {
+                ...defaultProps,
+                getUser: getUserErrorMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitFor(() => {
+                expect(screen.getByText('Cannot load User')).toBeInTheDocument();
+            });
+
+            consoleSpy.mockRestore();
+        });
+
+        test('should handle updateUserActive error correctly', async () => {
+            // Suppress expected console errors
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            const updateUserActiveMock = jest.fn().mockResolvedValue({
+                data: null,
+                error: {message: 'Activation failed'},
+            });
+            const getUserDeactivatedMock = jest.fn().mockResolvedValue({
+                data: {...user, delete_at: 123456789}, // Deactivated user
+                error: null,
+            });
+
+            const props = {
+                ...defaultProps,
+                getUser: getUserDeactivatedMock,
+                updateUserActive: updateUserActiveMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            // Find and click activate button
+            const activateButton = screen.getByText('Activate');
+            fireEvent.click(activateButton);
+
+            await waitFor(() => {
+                expect(screen.getByText('Activation failed')).toBeInTheDocument();
+            });
+
+            consoleSpy.mockRestore();
+        });
     });
 });
 

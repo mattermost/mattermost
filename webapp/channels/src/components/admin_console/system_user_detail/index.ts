@@ -9,7 +9,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
-import {updateUserActive, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
+import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
 import {getConfig, getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
@@ -36,6 +36,7 @@ function mapStateToProps(state: GlobalState) {
 const mapDispatchToProps = {
     getUser,
     patchUser,
+    updateUserAuth,
     updateUserActive,
     updateUserMfa,
     addUserToTeam,
