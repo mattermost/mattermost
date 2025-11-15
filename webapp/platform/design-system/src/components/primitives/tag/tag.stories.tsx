@@ -5,7 +5,8 @@ import type {Meta, StoryObj} from '@storybook/react';
 import React from 'react';
 
 import Tag from './tag';
-import TagGroup from './tag_group';
+ import TagGroup from './tag_group';
+import {BetaTag, BotTag, GuestTag} from './tag_presets';
 
 import WithTooltip from '../with_tooltip';
 
@@ -24,11 +25,6 @@ const meta: Meta<typeof Tag> = {
         text: {
             control: 'text',
             description: 'The text content of the tag',
-        },
-        preset: {
-            control: 'select',
-            options: ['custom', 'beta', 'bot', 'guest'],
-            description: 'Predefined tag type',
         },
         variant: {
             control: 'select',
@@ -135,38 +131,38 @@ export const AllVariants: Story = {
 };
 
 // Preset Tags
-export const BetaTag: Story = {
+export const BetaTagStory: Story = {
     name: 'Preset: Beta',
     render: () => (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-            <Tag preset='beta' size='xs'/>
-            <Tag preset='beta' size='sm'/>
-            <Tag preset='beta' size='md'/>
-            <Tag preset='beta' size='lg'/>
+            <BetaTag size='xs'/>
+            <BetaTag size='sm'/>
+            <BetaTag size='md'/>
+            <BetaTag size='lg'/>
         </div>
     ),
 };
 
-export const BotTag: Story = {
+export const BotTagStory: Story = {
     name: 'Preset: Bot',
     render: () => (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-            <Tag preset='bot' size='xs'/>
-            <Tag preset='bot' size='sm'/>
-            <Tag preset='bot' size='md'/>
-            <Tag preset='bot' size='lg'/>
+            <BotTag size='xs'/>
+            <BotTag size='sm'/>
+            <BotTag size='md'/>
+            <BotTag size='lg'/>
         </div>
     ),
 };
 
-export const GuestTag: Story = {
+export const GuestTagStory: Story = {
     name: 'Preset: Guest',
     render: () => (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-            <Tag preset='guest' size='xs'/>
-            <Tag preset='guest' size='sm'/>
-            <Tag preset='guest' size='md'/>
-            <Tag preset='guest' size='lg'/>
+            <GuestTag size='xs'/>
+            <GuestTag size='sm'/>
+            <GuestTag size='md'/>
+            <GuestTag size='lg'/>
         </div>
     ),
 };
@@ -175,10 +171,10 @@ export const GuestTag: Story = {
 export const WithIcon: Story = {
     render: () => (
         <div style={{display: 'flex', gap: '12px', flexDirection: 'column', alignItems: 'flex-start'}}>
-            <Tag text='With Icon' icon={<MockIcon/>} variant='success' size='xs'/>
-            <Tag text='With Icon' icon={<MockIcon/>} variant='success' size='sm'/>
-            <Tag text='With Icon' icon={<MockIcon/>} variant='info' size='md'/>
-            <Tag text='With Icon' icon={<MockIcon/>} variant='warning' size='lg'/>
+            <Tag text='With Icon' icon={<MockIcon size={12}/>} variant='success' size='xs'/>
+            <Tag text='With Icon' icon={<MockIcon size={16}/>} variant='success' size='sm'/>
+            <Tag text='With Icon' icon={<MockIcon size={18}/>} variant='info' size='md'/>
+            <Tag text='With Icon' icon={<MockIcon size={20}/>} variant='warning' size='lg'/>
         </div>
     ),
 };
@@ -198,7 +194,7 @@ export const Clickable: Story = {
                 />
                 <Tag
                     text='Clickable with Icon'
-                    icon={<MockIcon/>}
+                    icon={<MockIcon size={18}/>}
                     variant='success'
                     size='md'
                     uppercase={true}
@@ -216,21 +212,21 @@ export const WithTooltipStory: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
             <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap'}}>
-                <Tag
-                    text='Hover Me'
-                    variant='info'
-                    size='md'
-                    uppercase={true}
-                    tooltip='This is additional information about the tag'
-                    TooltipComponent={WithTooltip}
-                />
-                <Tag
-                    text='User Info'
-                    variant='success'
-                    size='sm'
-                    tooltip='Additional user context information'
-                    TooltipComponent={WithTooltip}
-                />
+                <WithTooltip title='This is additional information about the tag'>
+                    <Tag
+                        text='Hover Me'
+                        variant='info'
+                        size='md'
+                        uppercase={true}
+                    />
+                </WithTooltip>
+                <WithTooltip title='Additional user context information'>
+                    <Tag
+                        text='User Info'
+                        variant='success'
+                        size='sm'
+                    />
+                </WithTooltip>
             </div>
         </div>
     ),
@@ -267,9 +263,9 @@ export const FullWidth: Story = {
 export const TagGroupExample: Story = {
     render: () => (
         <TagGroup>
-            <Tag preset='beta' size='sm'/>
-            <Tag preset='bot' size='sm'/>
-            <Tag preset='guest' size='sm'/>
+            <BetaTag size='sm'/>
+            <BotTag size='sm'/>
+            <GuestTag size='sm'/>
             <Tag text='Custom' variant='warning' size='sm' uppercase={true}/>
         </TagGroup>
     ),
@@ -278,9 +274,9 @@ export const TagGroupExample: Story = {
 export const TagGroupWithIcons: Story = {
     render: () => (
         <TagGroup>
-            <Tag text='Active' icon={<MockIcon/>} variant='success' size='sm'/>
-            <Tag text='Pending' icon={<MockIcon/>} variant='warning' size='sm'/>
-            <Tag text='Error' icon={<MockIcon/>} variant='danger' size='sm'/>
+            <Tag text='Active' icon={<MockIcon size={16}/>} variant='success' size='sm'/>
+            <Tag text='Pending' icon={<MockIcon size={16}/>} variant='warning' size='sm'/>
+            <Tag text='Error' icon={<MockIcon size={16}/>} variant='danger' size='sm'/>
         </TagGroup>
     ),
 };
@@ -303,9 +299,9 @@ export const StatusIndicators: Story = {
     render: () => (
         <div style={{padding: '20px'}}>
             <TagGroup>
-                <Tag text='Online' icon={<MockIcon/>} variant='success' size='sm'/>
-                <Tag text='Away' icon={<MockIcon/>} variant='warning' size='sm'/>
-                <Tag text='Do Not Disturb' icon={<MockIcon/>} variant='danger' size='sm'/>
+                <Tag text='Online' icon={<MockIcon size={16}/>} variant='success' size='sm'/>
+                <Tag text='Away' icon={<MockIcon size={16}/>} variant='warning' size='sm'/>
+                <Tag text='Do Not Disturb' icon={<MockIcon size={16}/>} variant='danger' size='sm'/>
                 <Tag text='Offline' variant='default' size='sm'/>
             </TagGroup>
         </div>
@@ -346,26 +342,26 @@ export const UserBadges: Story = {
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>john.doe</span>
                     <TagGroup>
-                        <Tag preset='bot' size='xs'/>
+                        <BotTag size='xs'/>
                         <Tag text='Admin' variant='primary' size='xs' uppercase={true}/>
                     </TagGroup>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>jane.smith</span>
                     <TagGroup>
-                        <Tag preset='guest' size='xs'/>
+                        <GuestTag size='xs'/>
                     </TagGroup>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>assistant</span>
                     <TagGroup>
-                        <Tag preset='bot' size='xs'/>
+                        <BotTag size='xs'/>
                     </TagGroup>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>new-feature</span>
                     <TagGroup>
-                        <Tag preset='beta' size='xs'/>
+                        <BetaTag size='xs'/>
                     </TagGroup>
                 </div>
             </div>
@@ -385,7 +381,7 @@ export const MessageActions: Story = {
                 Hey team, the new authentication system is ready for testing!
             </div>
             <TagGroup>
-                <Tag text='Pinned' icon={<MockIcon/>} variant='info' size='xs'/>
+                <Tag text='Pinned' icon={<MockIcon size={12}/>} variant='info' size='xs'/>
                 <Tag text='Edited' variant='default' size='xs'/>
             </TagGroup>
         </div>
@@ -402,7 +398,7 @@ export const FeatureFlags: Story = {
                         <div style={{fontWeight: 'bold', marginBottom: '4px'}}>AI Assistant</div>
                         <div style={{fontSize: '12px', color: '#888'}}>Enable AI-powered chat assistance</div>
                     </div>
-                    <Tag preset='beta' size='sm'/>
+                    <BetaTag size='sm'/>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', border: '1px solid #ddd', borderRadius: '4px'}}>
                     <div>

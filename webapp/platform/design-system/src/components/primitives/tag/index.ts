@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 export {default as Tag} from './tag';
-export type {TagProps, TagSize, TagVariant, TagPreset} from './tag';
+export type {TagProps, TagSize, TagVariant} from './tag';
 
 export {default as TagGroup} from './tag_group';
 export type {TagGroupProps} from './tag_group';

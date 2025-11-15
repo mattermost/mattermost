@@ -6,6 +6,7 @@ import React from 'react';
 import {IntlProvider} from 'react-intl';
 
 import Tag from './tag';
+import {BetaTag, BotTag, GuestTag} from './tag_presets';
 import TagGroup from './tag_group';
 
 // Test wrapper with IntlProvider
@@ -62,9 +63,9 @@ describe('TagGroup', () => {
     it('should render multiple tags', () => {
         renderWithIntl(
             <TagGroup>
-                <Tag preset='beta'/>
-                <Tag preset='bot'/>
-                <Tag preset='guest'/>
+                <BetaTag/>
+                <BotTag/>
+                <GuestTag/>
                 <Tag text='Custom' variant='info'/>
             </TagGroup>,
         );

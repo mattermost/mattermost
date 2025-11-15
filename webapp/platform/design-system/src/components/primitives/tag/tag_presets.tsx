@@ -2,116 +2,94 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import Tag from './tag';
-import type {TagSize, TagVariant} from './tag';
+import type {TagProps} from './tag';
+
+type BetaTagProps = Omit<TagProps, 'text'>;
 
 /**
- * Internationalized Beta Tag
- * Replacement for beta_tag.tsx with i18n support
+ * Beta tag for indicating beta features.
  */
-interface BetaTagProps {
-    className?: string;
-    size?: TagSize;
-    variant?: TagVariant;
-}
-
 export const BetaTag: React.FC<BetaTagProps> = ({
     className = '',
     size = 'xs',
     variant = 'info',
+    ...rest
 }) => {
+    const {formatMessage} = useIntl();
+
     return (
         <Tag
-            preset='beta'
+            text={formatMessage({
+                id: 'tag.default.beta',
+                defaultMessage: 'BETA',
+            })}
+            uppercase={true}
             size={size}
             variant={variant}
             className={className}
+            {...rest}
         />
     );
 };
 
-/**
- * Internationalized Bot Tag
- * Replacement for bot_tag.tsx with i18n support
- */
-interface BotTagProps {
-    className?: string;
-    size?: TagSize;
-}
+type BotTagProps = Omit<TagProps, 'text'>;
 
+/**
+ * Bot tag for indicating bot accounts.
+ */
 export const BotTag: React.FC<BotTagProps> = ({
     className = '',
     size = 'xs',
+    ...rest
 }) => {
+    const {formatMessage} = useIntl();
+
     return (
         <Tag
-            preset='bot'
+            text={formatMessage({
+                id: 'tag.default.bot',
+                defaultMessage: 'BOT',
+            })}
+            uppercase={true}
             size={size}
             className={className}
+            {...rest}
         />
     );
 };
 
-/**
- * Pure Guest Tag Component
- *
- * This is a pure presentation component without Redux dependencies.
- * For automatic config-based hiding, use the container component from:
- * `webapp/channels/src/components/guest_tag`
- *
- * This component is part of the design system and should remain pure and reusable.
- *
- * @example
- * ```tsx
- * // Direct usage (you control visibility)
- * <GuestTag size="sm" hide={shouldHide} />
- *
- * // Or use the Redux-connected container (automatic hiding based on config)
- * import GuestTag from 'components/guest_tag';
- * <GuestTag size="sm" />
- * ```
- */
-interface GuestTagProps {
-    className?: string;
-    size?: TagSize;
-
-    /** Whether to hide the tag. Defaults to false. */
+type GuestTagProps = Omit<TagProps, 'text'> & {
     hide?: boolean;
-}
+};
 
+/**
+ * Guest tag for indicating guest user accounts.
+ */
 export const GuestTag: React.FC<GuestTagProps> = ({
     className = '',
     size = 'xs',
     hide = false,
+    ...rest
 }) => {
+    const {formatMessage} = useIntl();
+
+    if (hide) {
+        return null;
+    }
+
     return (
         <Tag
-            preset='guest'
+            text={formatMessage({
+                id: 'tag.default.guest',
+                defaultMessage: 'GUEST',
+            })}
+            uppercase={false}
             size={size}
             className={className}
-            hide={hide}
+            {...rest}
         />
     );
 };
-
-/**
- * NOTE: For custom internationalized tags, use the Tag component directly with useIntl():
- *
- * @example
- * const MyCustomTag = () => {
- *     const {formatMessage} = useIntl();
- *     return (
- *         <Tag
- *             text={formatMessage({
- *                 id: 'my.custom.tag',
- *                 defaultMessage: 'Custom Tag'
- *             })}
- *             variant="info"
- *         />
- *     );
- * };
- *
- * This approach ensures babel-plugin-formatjs can statically analyze messages for extraction.
- */
-

@@ -29,6 +29,7 @@ import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {sortUsersAndGroups} from 'utils/utils';
@@ -668,12 +669,15 @@ const ChannelInviteModalComponent = (props: Props) => {
                                 <TagGroup>
                                     {structuredAttributes.flatMap((attribute) =>
                                         attribute.values.map((value) => (
-                                            <Tag
+                                            <WithTooltip
                                                 key={`${attribute.name}-${value}`}
-                                                tooltipTitle={formatAttributeName(attribute.name)}
-                                                text={value}
-                                                size='sm'
-                                            />
+                                                title={formatAttributeName(attribute.name)}
+                                            >
+                                                <Tag
+                                                    text={value}
+                                                    size='sm'
+                                                />
+                                            </WithTooltip>
                                         )),
                                     )}
                                 </TagGroup>

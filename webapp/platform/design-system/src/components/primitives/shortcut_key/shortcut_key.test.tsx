@@ -1,22 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
+import {shallow} from 'enzyme';
 import React from 'react';
 
 import {ShortcutKey, ShortcutKeyVariant} from './shortcut_key';
 
 describe('components/ShortcutKey', () => {
-    test('should render regular key', () => {
-        const {container} = render(<ShortcutKey>{'Shift'}</ShortcutKey>);
-        expect(container.firstChild).toHaveClass('shortcut-key');
-        expect(container.textContent).toBe('Shift');
+    test('should match snapshot for regular key', () => {
+        const wrapper = shallow(<ShortcutKey>{'Shift'}</ShortcutKey>);
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should render contrast key', () => {
-        const {container} = render(<ShortcutKey variant={ShortcutKeyVariant.Contrast}>{'Shift'}</ShortcutKey>);
-        expect(container.firstChild).toHaveClass('shortcut-key');
-        expect(container.firstChild).toHaveClass('shortcut-key--contrast');
-        expect(container.textContent).toBe('Shift');
+    test('should match snapshot for contrast key', () => {
+        const wrapper = shallow(<ShortcutKey variant={ShortcutKeyVariant.Contrast}>{'Shift'}</ShortcutKey>);
+        expect(wrapper).toMatchSnapshot();
     });
 });

@@ -26,7 +26,7 @@ export default function NotificationPermissionTitleTag() {
             <Tag
                 size='sm'
                 variant='danger'
-                icon={<AlertOutlineIcon/>}
+                icon={<AlertOutlineIcon size={16}/>}
                 text={formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.noPermissionIssueTag',
                     defaultMessage: 'Not supported',
@@ -44,7 +44,7 @@ export default function NotificationPermissionTitleTag() {
             <Tag
                 size='sm'
                 variant='dangerDim'
-                icon={<AlertOutlineIcon/>}
+                icon={<AlertOutlineIcon size={16}/>}
                 text={formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionIssueTag',
                     defaultMessage: 'Permission required',

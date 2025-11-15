@@ -22,13 +22,27 @@
     text-transform: none;
     transition: all 0.15s ease-out;
 
-    // Reset button styles when using button element
+    // Reset button styles and clickable state
     &:is(button) {
         border: none;
         font: inherit;
         outline: inherit;
+        cursor: pointer;
         // Note: We do NOT reset padding, background, or color here because
         // we want to keep the size and variant styling
+
+        &:hover {
+            opacity: 0.88;
+        }
+
+        &:active {
+            opacity: 0.8;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--sidebar-text-active-border);
+            outline-offset: 2px;
+        }
     }
 
     // Text transformation
@@ -122,24 +136,6 @@
     &--dangerDim {
         background: rgba(var(--semantic-color-danger), 0.08);
         color: rgb(var(--semantic-color-danger));
-    }
-
-    // Clickable state
-    &--clickable {
-        cursor: pointer;
-
-        &:hover {
-            opacity: 0.88;
-        }
-
-        &:active {
-            opacity: 0.8;
-        }
-
-        &:focus-visible {
-            outline: 2px solid var(--sidebar-text-active-border);
-            outline-offset: 2px;
-        }
     }
 
     // Tag text - handles overflow

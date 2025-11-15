@@ -572,7 +572,7 @@ describe('components/channel_invite_modal', () => {
         // Check that the AlertBanner is shown
         expect(wrapper.find('AlertBanner').exists()).toBe(true);
 
-        // Check that no tags are shown (using unified Tag component)
+        // Check that no tags are shown
         expect(wrapper.find('Tag').exists()).toBe(false);
     });
 
@@ -604,7 +604,7 @@ describe('components/channel_invite_modal', () => {
         // Check that the AlertBanner is shown
         expect(wrapper.find('AlertBanner').exists()).toBe(true);
 
-        // Check that no tags are shown (using unified Tag component)
+        // Check that no tags are shown
         expect(wrapper.find('Tag').exists()).toBe(false);
     });
 

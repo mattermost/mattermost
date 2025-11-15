@@ -7,7 +7,7 @@ import React, {useMemo} from 'react';
 import Tag from './tag';
 import type {TagSize} from './tag';
 
-// License SKU types - duplicated from utils/constants to avoid circular dependency
+// License SKU types - duplicated from utils/constants to avoid import issues
 export enum LicenseSkus {
     E10 = 'E10',
     E20 = 'E20',

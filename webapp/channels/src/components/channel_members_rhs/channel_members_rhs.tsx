@@ -17,6 +17,7 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
 import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
@@ -248,12 +249,15 @@ export default function ChannelMembersRHS({
                             <TagGroup>
                                 {structuredAttributes.flatMap((attribute) =>
                                     attribute.values.map((value) => (
-                                        <Tag
+                                        <WithTooltip
                                             key={`${attribute.name}-${value}`}
-                                            tooltipTitle={formatAttributeName(attribute.name)}
-                                            text={value}
-                                            size='sm'
-                                        />
+                                            title={formatAttributeName(attribute.name)}
+                                        >
+                                            <Tag
+                                                text={value}
+                                                size='sm'
+                                            />
+                                        </WithTooltip>
                                     )),
                                 )}
                             </TagGroup>
