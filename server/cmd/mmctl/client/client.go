@@ -173,4 +173,5 @@ type Client interface {
 	ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
+	GetPostsForReporting(ctx context.Context, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error)
 }
