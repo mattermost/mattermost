@@ -11,6 +11,7 @@ func (api *API) InitAccessControlPolicyLocal() {
 	}
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APILocal(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APILocal(searchAccessControlPolicies)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APILocal(setActiveStatus)).Methods(http.MethodPut)
 
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APILocal(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APILocal(testExpression)).Methods(http.MethodPost)

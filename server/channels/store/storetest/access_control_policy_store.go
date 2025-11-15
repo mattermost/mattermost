@@ -16,6 +16,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("Save", func(t *testing.T) { testAccessControlPolicyStoreSaveAndGet(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testAccessControlPolicyStoreDelete(t, rctx, ss) })
 	t.Run("SetActive", func(t *testing.T) { testAccessControlPolicyStoreSetActive(t, rctx, ss) })
+	t.Run("SetActiveMultiple", func(t *testing.T) { testAccessControlPolicyStoreSetActiveMultiple(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
 }
 
@@ -401,5 +402,79 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
+}
+
+func testAccessControlPolicyStoreSetActiveMultiple(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("Set active status for multiple policies", func(t *testing.T) {
+		policy1 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Policy1",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   false,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action1"},
+					Expression: "user.properties.program == \"engineering\"",
+				},
+			},
+		}
+
+		policy2 := &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "Policy2",
+			Type:     model.AccessControlPolicyTypeParent,
+			Active:   false,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{"action2"},
+					Expression: "user.properties.department == \"sales\"",
+				},
+			},
+		}
+
+		policy1, err := ss.AccessControlPolicy().Save(rctx, policy1)
+		require.NoError(t, err)
+		require.NotNil(t, policy1)
+
+		policy2, err = ss.AccessControlPolicy().Save(rctx, policy2)
+		require.NoError(t, err)
+		require.NotNil(t, policy2)
+
+		t.Cleanup(func() {
+			err = ss.AccessControlPolicy().Delete(rctx, policy1.ID)
+			require.NoError(t, err)
+			err = ss.AccessControlPolicy().Delete(rctx, policy2.ID)
+			require.NoError(t, err)
+		})
+
+		updates := []model.AccessControlPolicyActiveUpdate{
+			{ID: policy1.ID, Active: true},
+			{ID: policy2.ID, Active: true},
+		}
+
+		updatedPolicies, err := ss.AccessControlPolicy().SetActiveStatusMultiple(rctx, updates)
+		require.NoError(t, err)
+		require.Len(t, updatedPolicies, 2)
+
+		for _, p := range updatedPolicies {
+			require.True(t, p.Active)
+		}
+
+		p1, err := ss.AccessControlPolicy().Get(rctx, policy1.ID)
+		require.NoError(t, err)
+		require.NotNil(t, p1)
+		require.True(t, p1.Active)
+
+		p2, err := ss.AccessControlPolicy().Get(rctx, policy2.ID)
+		require.NoError(t, err)
+		require.NotNil(t, p2)
+		require.True(t, p2.Active)
 	})
 }
