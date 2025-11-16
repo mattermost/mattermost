@@ -20,8 +20,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 
 	t.Run("rejected", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
@@ -91,8 +90,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 
 	t.Run("allowed", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
@@ -156,8 +154,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 
 	t.Run("multiple plugins - first rejects", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		var mockAPI1 plugintest.API
 		mockAPI1.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
@@ -245,8 +242,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 
 	t.Run("no plugins installed", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// No plugins - hook should return empty
 

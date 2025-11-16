@@ -3,8 +3,8 @@
 
 /* eslint-disable max-lines */
 
-import {batchActions} from 'redux-batched-actions';
 import React from 'react';
+import {batchActions} from 'redux-batched-actions';
 
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import {FileDownloadTypes} from '@mattermost/types/files';
@@ -134,9 +134,8 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
-import {getSiteURL} from 'utils/url';
-import * as Utils from 'utils/utils';
 import {getIntl} from 'utils/i18n';
+import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
 
@@ -2004,21 +2003,21 @@ export function handleContentFlaggingReportValueChanged(msg) {
 
 export function handleFileDownloadRejected(msg) {
     return (dispatch, getState) => {
-        const {file_id, file_name, rejection_reason, channel_id, post_id, download_type} = msg.data;
-        
+        const {file_id: fileId, file_name: fileName, rejection_reason: rejectionReason, channel_id: channelId, post_id: postId, download_type: downloadType} = msg.data;
+
         // Store the rejected file ID in Redux state
         dispatch({
             type: FileTypes.FILE_DOWNLOAD_REJECTED,
             data: {
-                file_id,
-                file_name,
-                rejection_reason,
-                channel_id,
-                post_id,
-                download_type,
+                file_id: fileId,
+                file_name: fileName,
+                rejection_reason: rejectionReason,
+                channel_id: channelId,
+                post_id: postId,
+                download_type: downloadType,
             },
         });
-        
+
         // Handle different download types appropriately:
         // - Thumbnail: Small preview in message list, loaded automatically, no modal, no toast
         // - Preview: Can be either:
@@ -2026,49 +2025,48 @@ export function handleFileDownloadRejected(msg) {
         //   b) Full-screen modal view - user clicked, modal open, close it WITH toast
         // - File: User clicked download button, close modal WITH toast
         // - Public: User requested public link, close modal WITH toast
-        
-        if (download_type === FileDownloadTypes.THUMBNAIL) {
+
+        if (downloadType === FileDownloadTypes.THUMBNAIL) {
             // Thumbnails are loaded automatically in the background
             // No modal to close, no toast to show
             return;
         }
-        
-        if (download_type === FileDownloadTypes.PREVIEW) {
+
+        if (downloadType === FileDownloadTypes.PREVIEW) {
             // Check if the file preview modal is actually open
             const state = getState();
             const isModalOpen = state.views?.modals?.modalState?.[ModalIdentifiers.FILE_PREVIEW_MODAL]?.open;
-            
+
             if (!isModalOpen) {
                 // Preview was loaded in channel list (SingleImageView), not in modal
                 // This is an automatic background load, no toast needed
                 return;
             }
-            
+
             // Modal is open, so user clicked to view the preview
             // Close the modal and show toast to explain why
             // Continue to close modal and show toast below
         }
-        
+
         // Close the file preview modal for preview (when open), file, and public rejections
         dispatch(closeModal(ModalIdentifiers.FILE_PREVIEW_MODAL));
-        
+
         // Show a toast notification to explain why the modal was closed
         // Use normalized message format for all file types
         const intl = getIntl();
-        let displayMessage;
-        
-        displayMessage = intl.formatMessage(
+
+        const displayMessage = intl.formatMessage(
             {id: 'file_download.rejected.file', defaultMessage: 'File access blocked: {reason}'},
-            {reason: rejection_reason},
+            {reason: rejectionReason},
         );
-        
+
         // Show toast notification using the existing InfoToast system
         dispatch(openModal({
             modalId: ModalIdentifiers.INFO_TOAST,
             dialogType: InfoToast,
             dialogProps: {
                 content: {
-                    icon: React.createElement(AlertCircleOutlineIcon, { size: 18 }),
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
                     message: displayMessage,
                 },
                 position: 'bottom-center',

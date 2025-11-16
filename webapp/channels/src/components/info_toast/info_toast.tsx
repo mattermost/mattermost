@@ -25,10 +25,10 @@ type Props = {
 
 function InfoToast({content, onExited, className, position = DEFAULT_POSITION}: Props): JSX.Element {
     const {formatMessage} = useIntl();
-    
+
     // Validate position and fallback to default if invalid
     const validatedPosition = VALID_POSITIONS.includes(position) ? position : DEFAULT_POSITION;
-    
+
     const closeToast = useCallback(() => {
         onExited();
     }, [onExited]);

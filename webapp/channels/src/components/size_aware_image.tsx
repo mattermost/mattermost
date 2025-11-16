@@ -413,7 +413,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             const width = (dimensions?.width ?? 0) * ratio;
 
             // Don't show mini preview (blurred thumbnail) if the file is rejected
-            const miniPreview = !this.props.isFileRejected ? getFileMiniPreviewUrl(fileInfo) : null;
+            const miniPreview = this.props.isFileRejected ? null : getFileMiniPreviewUrl(fileInfo);
 
             if (miniPreview) {
                 fallback = (

@@ -37,33 +37,81 @@
     &--top-left {
         top: 16px;
         left: 16px;
+
+        &.toast-appear {
+            transform: translateY(-150px);
+        }
+
+        &.toast-appear-active {
+            transform: translateY(0);
+        }
     }
 
     &--top-center {
         top: 16px;
         left: 50%;
         transform: translateX(-50%);
+
+        &.toast-appear {
+            transform: translate(-50%, -150px);
+        }
+
+        &.toast-appear-active {
+            transform: translate(-50%, 0);
+        }
     }
 
     &--top-right {
         top: 16px;
         right: 16px;
+
+        &.toast-appear {
+            transform: translateY(-150px);
+        }
+
+        &.toast-appear-active {
+            transform: translateY(0);
+        }
     }
 
     &--bottom-left {
         bottom: 16px;
         left: 16px;
+
+        &.toast-appear {
+            transform: translateY(150px);
+        }
+
+        &.toast-appear-active {
+            transform: translateY(0);
+        }
     }
 
     &--bottom-center {
         bottom: 16px;
         left: 50%;
         transform: translateX(-50%);
+
+        &.toast-appear {
+            transform: translate(-50%, 150px);
+        }
+
+        &.toast-appear-active {
+            transform: translate(-50%, 0);
+        }
     }
 
     &--bottom-right {
         right: 16px;
         bottom: 16px;
+
+        &.toast-appear {
+            transform: translateY(150px);
+        }
+
+        &.toast-appear-active {
+            transform: translateY(0);
+        }
     }
 }
 
@@ -91,52 +139,4 @@
 .toast-appear-active {
     opacity: 1;
     transition: all 500ms ease;
-}
-
-// Bottom positions slide from bottom
-.info-toast--bottom-left,
-.info-toast--bottom-center,
-.info-toast--bottom-right {
-    &.toast-appear {
-        transform: translateY(150px);
-    }
-
-    &.toast-appear-active {
-        transform: translateY(0);
-    }
-}
-
-// Center bottom position needs to account for centering transform
-.info-toast--bottom-center {
-    &.toast-appear {
-        transform: translate(-50%, 150px);
-    }
-
-    &.toast-appear-active {
-        transform: translate(-50%, 0);
-    }
-}
-
-// Top positions slide from top
-.info-toast--top-left,
-.info-toast--top-center,
-.info-toast--top-right {
-    &.toast-appear {
-        transform: translateY(-150px);
-    }
-
-    &.toast-appear-active {
-        transform: translateY(0);
-    }
-}
-
-// Center top position needs to account for centering transform
-.info-toast--top-center {
-    &.toast-appear {
-        transform: translate(-50%, -150px);
-    }
-
-    &.toast-appear-active {
-        transform: translate(-50%, 0);
-    }
 }

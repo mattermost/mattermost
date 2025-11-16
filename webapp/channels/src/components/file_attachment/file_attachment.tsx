@@ -85,14 +85,14 @@ export default function FileAttachment(props: Props) {
             // So skip trying to load.
             return;
         }
-        
+
         // If file is rejected, don't try to load thumbnail - just mark as loaded
         // so it shows the file icon instead
         if (props.isFileRejected) {
             setLoaded(true);
             return;
         }
-        
+
         const fileType = getFileType(fileInfo.extension);
 
         if (!props.disableThumbnail) {

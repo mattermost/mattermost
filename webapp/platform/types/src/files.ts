@@ -10,12 +10,16 @@ export type FileDownloadType = 'file' | 'thumbnail' | 'preview' | 'public';
  * FileDownloadTypes contains constants for the different types of file downloads.
  */
 export const FileDownloadTypes = {
+
     /** Full file download request */
     FILE: 'file' as FileDownloadType,
+
     /** Thumbnail image request */
     THUMBNAIL: 'thumbnail' as FileDownloadType,
+
     /** Preview image request */
     PREVIEW: 'preview' as FileDownloadType,
+
     /** Public link access (unauthenticated) */
     PUBLIC: 'public' as FileDownloadType,
 } as const;

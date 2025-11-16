@@ -232,10 +232,10 @@ function filePublicLink(state: {link: string} = {link: ''}, action: MMReduxActio
 export function rejectedFiles(state: Set<string> = new Set(), action: MMReduxAction) {
     switch (action.type) {
     case FileTypes.FILE_DOWNLOAD_REJECTED: {
-        const {file_id} = action.data;
-        if (file_id) {
+        const {file_id: fileId} = action.data;
+        if (fileId) {
             const nextState = new Set(state);
-            nextState.add(file_id);
+            nextState.add(fileId);
             return nextState;
         }
         return state;

@@ -43,6 +43,7 @@ function File({
         if (!hasPreviewImage || isFileRejected) {
             return undefined;
         }
+
         // Don't show blurred preview for rejected files
         if (miniPreview && !isFileRejected) {
             return `data:${mimeType};base64,${miniPreview}`;
