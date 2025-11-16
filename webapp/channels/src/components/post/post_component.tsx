@@ -11,11 +11,12 @@ import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Posts} from 'mattermost-redux/constants/index';
+import {Posts, Preferences} from 'mattermost-redux/constants/index';
 import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
+import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -26,6 +27,7 @@ import PostAcknowledgements from 'components/post_view/acknowledgements';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import BurnOnReadBadge from 'components/post_view/burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from 'components/post_view/burn_on_read_concealed_placeholder';
+import BurnOnReadTimerChip from 'components/post_view/burn_on_read_timer_chip';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
@@ -100,6 +102,9 @@ export type Props = {
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
         revealBurnOnReadPost: (postId: string) => void;
+        burnPostNow?: (postId: string) => void;
+        handlePostExpired?: (postId: string) => void;
+        savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -122,6 +127,8 @@ export type Props = {
     pluginActions: PostActionComponent[];
     shouldDisplayBurnOnReadConcealed?: boolean;
     isBurnOnReadEnabled?: boolean;
+    burnOnReadDurationMinutes: number;
+    burnOnReadSkipConfirmation?: boolean;
 };
 
 function PostComponent(props: Props) {
@@ -143,6 +150,8 @@ function PostComponent(props: Props) {
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
     const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
     const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
+    const [showBurnConfirmModal, setShowBurnConfirmModal] = useState(false);
+    const [burnDeleting, setBurnDeleting] = useState(false);
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -436,6 +445,51 @@ function PostComponent(props: Props) {
         }
     }, [props.actions, formatMessage]);
 
+    const handleTimerChipClick = useCallback(async () => {
+        // Skip modal if preference is set
+        if (props.burnOnReadSkipConfirmation) {
+            setBurnDeleting(true);
+            await props.actions.burnPostNow?.(post.id);
+            setBurnDeleting(false);
+            return;
+        }
+        setShowBurnConfirmModal(true);
+    }, [props.burnOnReadSkipConfirmation, props.actions, post.id]);
+
+    const handleBadgeClick = useCallback(() => {
+        // Always show modal for badge click (sender delete for everyone)
+        setShowBurnConfirmModal(true);
+    }, []);
+
+    const handleBurnConfirm = useCallback(async (skipConfirmation: boolean) => {
+        setBurnDeleting(true);
+        const result = await props.actions.burnPostNow?.(post.id) as any;
+        setBurnDeleting(false);
+
+        if (!result?.error) {
+            setShowBurnConfirmModal(false);
+
+            // Save preference if user checked "Do not ask me again"
+            if (skipConfirmation) {
+                const pref = {
+                    category: Preferences.CATEGORY_BURN_ON_READ,
+                    user_id: props.currentUserId,
+                    name: Preferences.BURN_ON_READ_SKIP_CONFIRMATION,
+                    value: 'true',
+                };
+                props.actions.savePreferences(props.currentUserId, [pref]);
+            }
+        }
+    }, [props.actions, props.currentUserId, post.id]);
+
+    const handleBurnCancel = useCallback(() => {
+        setShowBurnConfirmModal(false);
+    }, []);
+
+    const handlePostExpired = useCallback((postId: string) => {
+        props.actions.handlePostExpired?.(postId);
+    }, [props.actions]);
+
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
     let comment;
@@ -577,6 +631,20 @@ function PostComponent(props: Props) {
                 isSender={isSender}
                 revealed={revealed}
                 onReveal={handleRevealBurnOnRead}
+                onSenderDelete={handleBadgeClick}
+            />
+        );
+    }
+
+    let burnOnReadTimerChip;
+    if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.props?.expire_at) {
+        burnOnReadTimerChip = (
+            <BurnOnReadTimerChip
+                postId={post.id}
+                expireAt={typeof post.props.expire_at === 'number' ? post.props.expire_at : undefined}
+                durationMinutes={props.burnOnReadDurationMinutes}
+                onClick={handleTimerChipClick}
+                onExpire={handlePostExpired}
             />
         );
     }
@@ -665,6 +733,7 @@ function PostComponent(props: Props) {
                                 }
                                 {priority}
                                 {burnOnReadBadge}
+                                {burnOnReadTimerChip}
                                 {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
                                     typeof post.props.ai_generated_by === 'string' &&
                                     typeof post.props.ai_generated_by_username === 'string' && (
@@ -748,6 +817,13 @@ function PostComponent(props: Props) {
                     </div>
                 </div>
             </PostAriaLabelDiv>
+            <BurnOnReadConfirmationModal
+                show={showBurnConfirmModal}
+                onConfirm={handleBurnConfirm}
+                onCancel={handleBurnCancel}
+                loading={burnDeleting}
+                showCheckbox={post.user_id !== props.currentUserId}
+            />
         </>
     );
 }

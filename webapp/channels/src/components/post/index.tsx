@@ -9,7 +9,8 @@ import type {Dispatch} from 'redux';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
-import {General} from 'mattermost-redux/constants';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
@@ -22,10 +23,11 @@ import {
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
+import {burnPostNow, handlePostExpired} from 'actions/burn_on_read_deletion';
 import {revealBurnOnReadPost} from 'actions/burn_on_read_posts';
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
-import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
+import {isBurnOnReadEnabled, getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
@@ -223,6 +225,8 @@ function makeMapStateToProps() {
             pluginActions: state.plugins.components.PostAction,
             shouldDisplayBurnOnReadConcealed: shouldDisplayConcealedPlaceholder(state, post.id),
             isBurnOnReadEnabled: isBurnOnReadEnabled(state),
+            burnOnReadDurationMinutes: getBurnOnReadDurationMinutes(state),
+            burnOnReadSkipConfirmation: getBool(state, ReduxPreferences.CATEGORY_BURN_ON_READ, ReduxPreferences.BURN_ON_READ_SKIP_CONFIRMATION, false),
         };
     };
 }
@@ -239,6 +243,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             closeRightHandSide,
             selectPostCard,
             revealBurnOnReadPost,
+            burnPostNow,
+            handlePostExpired,
+            savePreferences,
         }, dispatch),
     };
 }

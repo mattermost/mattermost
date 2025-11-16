@@ -1,0 +1,59 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.BurnOnReadTimerChip {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: none;
+    border-radius: 12px;
+    margin-left: 8px;
+    background: rgba(210, 75, 78, 0.16);
+    color: #d24b4e;
+    cursor: pointer;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 20px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        opacity: 0.9;
+    }
+
+    &:focus {
+        outline: 2px solid rgba(210, 75, 78, 0.5);
+        outline-offset: 2px;
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        color: inherit;
+    }
+
+    &__time {
+        min-width: 38px;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.5px;
+        text-align: center;
+    }
+
+    &--warning {
+        animation: pulse 1s ease-in-out infinite;
+        background: #d24b4e;
+        color: #ffffff;
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.85;
+    }
+}

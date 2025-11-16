@@ -30,10 +30,28 @@ import TestHelper from '../../test/test_helper';
 import {Posts, Preferences} from '../constants';
 
 describe('makeFilterPostsAndAddSeparators', () => {
+    const realDateNow = Date.now.bind(global.Date);
+
+    beforeEach(() => {
+        // Mock Date.now to return consistent values in tests
+        // Use a realistic timestamp (Jan 1, 2024) to avoid timezone calculation issues
+        global.Date.now = jest.fn(() => 1704067200000);
+    });
+
+    afterEach(() => {
+        // Restore original Date.now
+        global.Date.now = realDateNow;
+    });
+
     it('filter join/leave posts', () => {
         const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
         const time = Date.now();
         const today = new Date(time);
+
+        // Calculate expected date line after timezone adjustment
+        // pushPostDateIfNeeded adjusts by (currentOffset - userTimezoneOffset)
+        const currentOffset = today.getTimezoneOffset() * 60 * 1000;
+        const expectedDateLine = time + currentOffset; // UTC user has 0 offset
 
         let state = {
             entities: {
@@ -54,7 +72,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -68,7 +86,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1002',
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
 
         // Show join/leave posts
@@ -94,7 +112,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1002',
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
 
         // Hide join/leave posts
@@ -119,7 +137,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
         expect(now).toEqual([
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
 
         // always show join/leave posts for the current user
@@ -142,14 +160,101 @@ describe('makeFilterPostsAndAddSeparators', () => {
         expect(now).toEqual([
             '1002',
             '1001',
-            'date-' + today.getTime(),
+            'date-' + expectedDateLine,
         ]);
+    });
+
+    it('should filter out already-expired burn-on-read posts', () => {
+        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
+        const now = Date.now();
+        const expiredTime = now - 60000; // 1 minute ago (expired)
+        const futureTime = now + 60000; // 1 minute from now (not expired)
+
+        const state = {
+            entities: {
+                general: {
+                    config: {},
+                },
+                posts: {
+                    posts: {
+                        1001: {id: '1001', create_at: now, type: '', user_id: 'user1'},
+                        1002: {id: '1002', create_at: now + 1, type: 'burn_on_read', props: {expire_at: expiredTime}, user_id: 'user2'},
+                        1003: {id: '1003', create_at: now + 2, type: 'burn_on_read', props: {expire_at: futureTime}, user_id: 'user3'},
+                        1004: {id: '1004', create_at: now + 3, type: '', user_id: 'user4'},
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const postIds = ['1004', '1003', '1002', '1001'];
+        const lastViewedAt = Number.POSITIVE_INFINITY;
+        const indicateNewMessages = false;
+
+        const result = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
+
+        // Should include: regular post 1004, non-expired burn post 1003, regular post 1001
+        // Should exclude: expired burn post 1002
+        expect(result).toContain('1001');
+        expect(result).toContain('1003');
+        expect(result).toContain('1004');
+        expect(result).not.toContain('1002');
+    });
+
+    it('should include burn-on-read posts without expire_at prop', () => {
+        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
+        const now = Date.now();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {},
+                },
+                posts: {
+                    posts: {
+                        1001: {id: '1001', create_at: now, type: 'burn_on_read', props: {}, user_id: 'user1'},
+                        1002: {id: '1002', create_at: now + 1, type: 'burn_on_read', user_id: 'user2'},
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const postIds = ['1002', '1001'];
+        const lastViewedAt = Number.POSITIVE_INFINITY;
+        const indicateNewMessages = false;
+
+        const result = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
+
+        // Both posts should be included (no expire_at to filter on)
+        expect(result).toContain('1001');
+        expect(result).toContain('1002');
     });
 
     it('new messages indicator', () => {
         const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
         const time = Date.now();
         const today = new Date(time);
+
+        // Calculate expected date line after timezone adjustment
+        const currentOffset = today.getTimezoneOffset() * 60 * 1000;
+        const expectedDateLine = time + 1000 + currentOffset; // UTC user has 0 offset
 
         const state = {
             entities: {
@@ -169,7 +274,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -183,7 +288,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         now = filterPostsAndAddSeparators(state, {postIds, indicateNewMessages: true, lastViewedAt: 0});
@@ -191,7 +296,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt: time + 999, indicateNewMessages: false});
@@ -199,7 +304,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         // Show new messages indicator before all posts
@@ -209,7 +314,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1005',
             '1000',
             START_OF_NEW_MESSAGES + (time + 999),
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         // Show indicator between posts
@@ -219,7 +324,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1005',
             START_OF_NEW_MESSAGES + (time + 1003),
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         now = filterPostsAndAddSeparators(state, {postIds, lastViewedAt: time + 1006, indicateNewMessages: true});
@@ -228,7 +333,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             START_OF_NEW_MESSAGES + (time + 1006),
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
 
         // Don't show indicator when all posts are read
@@ -237,7 +342,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
             '1010',
             '1005',
             '1000',
-            'date-' + (today.getTime() + 1000),
+            'date-' + expectedDateLine,
         ]);
     });
 });
@@ -260,7 +365,7 @@ describe('makeAddDateSeparatorsForSearchResults', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -292,7 +397,7 @@ describe('makeAddDateSeparatorsForSearchResults', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -351,7 +456,7 @@ describe('makeAddDateSeparatorsForSearchResults', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -379,7 +484,7 @@ describe('makeAddDateSeparatorsForSearchResults', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },
@@ -413,7 +518,7 @@ describe('makeAddDateSeparatorsForSearchResults', () => {
                 users: {
                     currentUserId: '1234',
                     profiles: {
-                        1234: {id: '1234', username: 'user'},
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
                     },
                 },
             },

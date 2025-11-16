@@ -13,6 +13,7 @@ type Props = {
     isSender: boolean;
     revealed: boolean;
     onReveal?: (postId: string) => void;
+    onSenderDelete?: () => void;
 };
 
 function BurnOnReadBadge({
@@ -20,6 +21,7 @@ function BurnOnReadBadge({
     isSender,
     revealed,
     onReveal,
+    onSenderDelete,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -28,19 +30,23 @@ function BurnOnReadBadge({
         e.stopPropagation();
         e.preventDefault();
 
+        // For sender, show delete confirmation modal
+        if (isSender && onSenderDelete) {
+            onSenderDelete();
+            return;
+        }
+
         // For recipients with unrevealed content, trigger reveal
         if (!isSender && !revealed && onReveal) {
             onReveal(postId);
         }
-    }, [isSender, revealed, onReveal, postId]);
+    }, [isSender, revealed, onReveal, onSenderDelete, postId]);
 
     const getTooltipContent = () => {
         if (isSender) {
-            // Sender always sees the informational tooltip
-            // TODO: In future PR, show read tracking: "Not read by X people"
             return formatMessage({
-                id: 'burn_on_read.badge.sender.info',
-                defaultMessage: 'Message will be deleted after all recipients have read it',
+                id: 'burn_on_read.badge.sender.delete',
+                defaultMessage: 'Click to delete message for everyone',
             });
         }
 
@@ -74,8 +80,8 @@ function BurnOnReadBadge({
                 data-testid={`burn-on-read-badge-${postId}`}
                 aria-label={tooltipContent}
                 onClick={handleClick}
-                role={!isSender && !revealed ? 'button' : undefined}
-                style={{cursor: !isSender && !revealed ? 'pointer' : 'default'}}
+                role={(isSender || (!isSender && !revealed)) ? 'button' : undefined}
+                style={{cursor: (isSender || (!isSender && !revealed)) ? 'pointer' : 'default'}}
             >
                 <i
                     className='icon icon-fire'

@@ -79,6 +79,14 @@ export function makeFilterPostsAndAddSeparators() {
                     continue;
                 }
 
+                // Filter out already-expired burn-on-read posts
+                if (post.type === 'burn_on_read' && post.props?.expire_at) {
+                    const expireAt = post.props.expire_at;
+                    if (typeof expireAt === 'number' && expireAt <= Date.now()) {
+                        continue;
+                    }
+                }
+
                 lastDate = pushPostDateIfNeeded(post, currentUser, out, lastDate);
 
                 if (

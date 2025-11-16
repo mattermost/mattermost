@@ -2290,6 +2290,13 @@ export default class Client4 {
         );
     };
 
+    burnPostNow = (postId: string) => {
+        return this.doFetch(
+            `${this.getPostRoute(postId)}/burn`,
+            {method: 'delete'},
+        );
+    };
+
     getPostThread = (postId: string, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
         // this is to ensure we have backwards compatibility for `getPostThread`
         return this.getPaginatedPostThread(postId, {fetchThreads, collapsedThreads, collapsedThreadsExtended});
