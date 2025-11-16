@@ -16,7 +16,6 @@ import type {LinkInfo} from './file_preview_modal/types';
 type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
-    className: string;
     getContent?: (code: string) => void;
 };
 
@@ -39,50 +38,10 @@ const CodePreview = ({
     const [prevFileUrl, setPrevFileUrl] = useState<string | undefined>();
 
     useEffect(() => {
-        if (fileUrl !== prevFileUrl) {
-            const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
+        const usedLanguage = SyntaxHighlighting.getLanguageFromFileExtension(fileInfo.extension);
 
-            if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
-                setCodeInfo((prevCodeInfo) => {
-                    return {...prevCodeInfo, code: '', lang: ''};
-                });
-
-                setStatus('fail');
-            } else {
-                setCodeInfo((prevCodeInfo) => {
-                    return {...prevCodeInfo, code: '', lang: usedLanguage};
-                });
-
-                setStatus('loading');
-            }
-
-            setPrevFileUrl(fileUrl);
-        }
-    }, [fileInfo.extension, fileInfo.size, fileUrl, prevFileUrl]);
-
-    const shouldNotGetCode = !codeInfo.lang || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE;
-
-    useEffect(() => {
-        const handleReceivedCode = async (data: string | Node) => {
-            let code = data as string;
-            const Data = data as Node;
-
-            if (Data.nodeName === '#document') {
-                code = new XMLSerializer().serializeToString(Data);
-            }
-
-            getContent?.(code);
-
-            setCodeInfo({
-                ...codeInfo,
-                code,
-                highlighted: await SyntaxHighlighting.highlight(codeInfo.lang, code),
-            });
-
-            setStatus('success');
-        };
-
-        const handleReceivedError = () => {
+        if (!usedLanguage || fileInfo.size > Constants.CODE_PREVIEW_MAX_FILE_SIZE) {
+            setCodeInfo({code: '', lang: '', highlighted: ''});
             setStatus('fail');
         };
 

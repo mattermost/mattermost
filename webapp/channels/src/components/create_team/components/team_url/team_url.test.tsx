@@ -67,9 +67,9 @@ describe('/components/create_team/components/display_name', () => {
         await waitFor(() => {
             expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
             expect(actions.createTeam).toHaveBeenCalledTimes(1);
-            expect(actions.createTeam).toBeCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
+            expect(actions.createTeam).toHaveBeenCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
             expect(props.history.push).toHaveBeenCalledTimes(1);
-            expect(props.history.push).toBeCalledWith('/test-team/channels/town-square');
+            expect(props.history.push).toHaveBeenCalledWith('/test-team/channels/town-square');
         });
     });
 

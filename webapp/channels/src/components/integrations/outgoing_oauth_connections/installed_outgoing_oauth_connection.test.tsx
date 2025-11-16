@@ -50,7 +50,7 @@ describe('components/integrations/InstalledOutgoingOAuthConnection', () => {
 
         expect(wrapper.find(DeleteIntegrationLink).exists()).toBe(true);
         wrapper.find(DeleteIntegrationLink).props().onDelete();
-        expect(newOnDelete).toBeCalled();
+        expect(newOnDelete).toHaveBeenCalled();
         expect(newOnDelete).toHaveBeenCalledWith(outgoingOAuthConnection);
     });
 });
