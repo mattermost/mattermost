@@ -45,8 +45,8 @@ describe('components/PostMarkdown', () => {
         isUserCanManageMembers: false,
         isEnterpriseOrCloudOrSKUStarterFree: true,
         isEnterpriseReady: false,
-        dispatch: jest.fn(),
         renderEmoticonsAsEmoji: true,
+        dispatch: jest.fn(),
     };
 
     const state = {entities: {
@@ -139,6 +139,8 @@ describe('components/PostMarkdown', () => {
         const props = {
             ...baseProps,
             message: 'See ~test',
+            channel: postChannel,
+            currentTeam: testTeam,
             post: TestHelper.getPostMock({
                 channel_id: postChannel.id,
                 message: 'See ~test',

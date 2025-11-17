@@ -1,22 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import React, {useMemo} from 'react';
+import {useSelector, shallowEqual} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {getChannelByNameAndTeamName} from 'mattermost-redux/actions/channels';
 import {Posts} from 'mattermost-redux/constants';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
+import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import Markdown from 'components/markdown';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {PostTypes} from 'utils/constants';
-import {extractChannelMentionsFromPost, type TextFormattingOptions} from 'utils/text_formatting';
-
-import type {GlobalState} from 'types/store';
+import {extractChannelMentionsFromPost, isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
 
 import {renderReminderSystemBotMessage, renderSystemMessage, renderWranglerSystemMessage} from './system_message_helpers';
 
@@ -80,97 +78,85 @@ const PostMarkdown: React.FC<Props> = (props) => {
         isRHS,
     } = props;
 
-    const dispatch = useDispatch();
+    // Get all channels and teams from redux store for building channel names map
+    // Use shallowEqual to prevent re-renders when unrelated channels/teams change
+    const allChannels = useSelector(getAllChannels, shallowEqual);
+    const allTeams = useSelector(getTeams, shallowEqual);
 
-    // Get all channels from redux store
-    const allChannels = useSelector((state: GlobalState) => state.entities.channels.channels);
-    const postChannelTeamId = useSelector((state: GlobalState) => {
-        if (!post) {
-            return null;
-        }
-        const postChannel = getChannel(state, post.channel_id);
-        return postChannel?.team_id || null;
-    });
-
-    // Extract channel mentions from post and determine which ones are missing
-    const {mentionsToFetch} = useMemo(() => {
-        if (!post) {
-            return {mentionsToFetch: []};
-        }
-
-        // Extract all mentions from post content (message + attachments)
-        const allMentions = extractChannelMentionsFromPost(post);
-
-        // Filter to find mentions not in redux store
-        const missing = allMentions.filter((channelName) => {
-            // Check if channel exists in redux store by name
-            const channelExists = Object.values(allChannels).some(
-                (ch) => ch.name.toLowerCase() === channelName && ch.team_id === postChannelTeamId,
-            );
-
-            return !channelExists;
-        });
-
-        return {mentionsToFetch: missing};
-    }, [post, allChannels, postChannelTeamId]);
-
-    // Get teams for building channel names map
-    const allTeams = useSelector((state: GlobalState) => state.entities.teams.teams);
-    const postTeam = useSelector((state: GlobalState) => {
-        if (!postChannelTeamId) {
-            return null;
-        }
-        return state.entities.teams.teams[postChannelTeamId] || null;
-    });
-
-    // Fetch missing channels
-    useEffect(() => {
-        if (mentionsToFetch.length === 0 || !postTeam) {
-            return;
-        }
-
-        // Dispatch fetch for each missing channel
-        mentionsToFetch.forEach((channelName) => {
-            dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch((error: Error) => {
-                // Channel might not exist or be private - this is expected, log for debugging
-                // eslint-disable-next-line no-console
-                console.debug(`Unable to fetch channel mention ${channelName}:`, error);
-            });
-        });
-    }, [mentionsToFetch, postTeam, dispatch]);
-
-    // Build enhanced channel names map with data from redux store
+    // Build channel names map by merging server-provided data (post.props.channel_mentions)
+    // with fresh data from Redux store. This supports:
+    // 1. Cross-team channel mentions in DMs (from server-side rendering)
+    // 2. Up-to-date channel names after renames (from Redux store)
     const channelNamesMap = useMemo(() => {
         if (!post) {
             return undefined;
         }
 
-        // Start with enhanced map
         const enhanced: {[key: string]: {display_name: string; team_name?: string}} = {};
 
-        // Add channels from redux store that we found
+        // Start with server-provided channel_mentions (trusted, supports cross-team in DMs)
+        if (isChannelNamesMap(post.props?.channel_mentions)) {
+            Object.entries(post.props.channel_mentions).forEach(([channelName, channelData]) => {
+                if (typeof channelData === 'string') {
+                    enhanced[channelName] = {display_name: channelData};
+                } else {
+                    enhanced[channelName] = channelData;
+                }
+            });
+        }
+
+        // Determine if this is a DM/GM (no team_id on channel)
+        const isDMorGM = !channel?.team_id;
+
+        // Default team to search: post's team or current viewing team
+        const defaultSearchTeamId = channel?.team_id || currentTeam?.id;
+
+        // Override with fresh data from Redux store (only from relevant team)
+        // This ensures up-to-date names while preventing wrong-team matches
         const allMentions = extractChannelMentionsFromPost(post);
         allMentions.forEach((channelName) => {
-            if (enhanced[channelName]) {
-                return; // Already have it
+            // Determine which team to search:
+            // 1. If server provided team_name for this channel, use that team (most specific)
+            // 2. Otherwise use default (post's team or current team)
+            let targetTeamId = defaultSearchTeamId;
+
+            const serverProvidedData = enhanced[channelName];
+            if (serverProvidedData?.team_name) {
+                // Find team by name from server data
+                const serverTeam = Object.values(allTeams).find(
+                    (t) => t.name === serverProvidedData.team_name,
+                );
+                if (serverTeam) {
+                    targetTeamId = serverTeam?.id;
+                }
             }
 
-            // Find channel in redux store
-            const matchingChannel = Object.values(allChannels).find(
-                (ch) => ch.name.toLowerCase() === channelName && ch.team_id === postChannelTeamId,
-            );
+            // Search Redux within the target team to get fresh data
+            if (targetTeamId) {
+                const matchingChannel = Object.values(allChannels).find(
+                    (ch) => ch.name.toLowerCase() === channelName && ch.team_id === targetTeamId,
+                );
 
-            if (matchingChannel) {
-                const channelTeam = allTeams[matchingChannel.team_id];
-                enhanced[channelName] = {
-                    display_name: matchingChannel.display_name,
-                    team_name: channelTeam?.name,
-                };
+                if (matchingChannel) {
+                    const channelTeam = allTeams[matchingChannel.team_id];
+
+                    // Override with fresh Redux data (even if server provided stale data)
+                    enhanced[channelName] = {
+                        display_name: matchingChannel.display_name,
+                        team_name: channelTeam?.name,
+                    };
+                } else if (!isDMorGM && serverProvidedData) {
+                    // For team channels: If not in Redux, remove server data (might be stale)
+                    // This prevents broken links when channels become private or move teams
+                    delete enhanced[channelName];
+                }
+
+                // For DMs: Keep server data (supports cross-team mentions we can't fetch)
             }
         });
 
         return Object.keys(enhanced).length > 0 ? enhanced : undefined;
-    }, [post, allChannels, postChannelTeamId, allTeams]);
+    }, [post, channel, currentTeam, allChannels, allTeams]);
 
     // Compute markdown options (must be before early returns due to React hooks rules)
     let mentionHighlight = options?.mentionHighlight;

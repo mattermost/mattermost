@@ -97,6 +97,7 @@ export type Props = {
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
+        fetchChannelsForPostIfNeeded: (post: Post) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -213,6 +214,12 @@ function PostComponent(props: Props) {
             document.removeEventListener('keyup', handleA11yKeyboardFocus);
         };
     }, [handleA11yKeyboardFocus]);
+
+    // Fetch channels mentioned in this post if they're not already in Redux store
+    // Only re-run when post ID changes or post is edited (not on reactions, replies, etc.)
+    useEffect(() => {
+        props.actions.fetchChannelsForPostIfNeeded(post);
+    }, [post.id, post.edit_at, props.actions.fetchChannelsForPostIfNeeded]);
 
     const hasSameRoot = (props: Props) => {
         if (props.isFirstReply) {

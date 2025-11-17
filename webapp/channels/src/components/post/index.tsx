@@ -22,7 +22,7 @@ import {
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {markPostAsUnread, emitShortcutReactToLastPostFrom, fetchChannelsForPostIfNeeded} from 'actions/post_actions';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
@@ -231,6 +231,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             removePost: removePostCloseRHSDeleteDraft,
             closeRightHandSide,
             selectPostCard,
+            fetchChannelsForPostIfNeeded,
         }, dispatch),
     };
 }

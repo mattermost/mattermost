@@ -10,7 +10,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
-import {getMyChannelMember} from 'mattermost-redux/actions/channels';
+import {getMyChannelMember, getChannelByNameAndTeamName} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {createSchedulePost} from 'mattermost-redux/actions/scheduled_posts';
 import * as ThreadActions from 'mattermost-redux/actions/threads';
@@ -19,7 +19,7 @@ import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
@@ -47,6 +47,7 @@ import {
 } from 'utils/constants';
 import {matchEmoticons} from 'utils/emoticons';
 import {makeGetIsReactionAlreadyAddedToPost, makeGetUniqueEmojiNameReactionsForPost} from 'utils/post_utils';
+import {extractChannelMentionsFromPost} from 'utils/text_formatting';
 
 import type {
     GlobalState,
@@ -515,5 +516,101 @@ export function emitShortcutReactToLastPostFrom(emittedFrom: keyof typeof Consta
     return {
         type: ActionTypes.EMITTED_SHORTCUT_REACT_TO_LAST_POST,
         payload: emittedFrom,
+    };
+}
+
+// Cache of in-flight channel fetch requests to prevent duplicate API calls
+// Key format: "teamName:channelName"
+// Automatically cleaned up when requests complete
+const pendingChannelFetches = new Map<string, Promise<any>>();
+
+/**
+ * Fetches channel data for any channel mentions in a post that are not already in the Redux store.
+ * This ensures that channel mentions (~channel-name) can be properly rendered as links in the post
+ * message and attachments.
+ *
+ * This function:
+ * - Extracts channel mentions from the post message and attachments
+ * - Filters to find channels not already in the Redux store
+ * - Fetches missing channels from the server
+ * - Deduplicates concurrent requests for the same channel
+ *
+ * Note: This currently fetches channels one at a time. In the future, this could be optimized
+ * with a batch API to fetch multiple channels in a single request.
+ *
+ * @param post The post to extract channel mentions from
+ * @returns A promise that resolves when all channel fetches are complete (or have failed)
+ */
+export function fetchChannelsForPostIfNeeded(post: Post): ThunkActionFunc<Promise<unknown>> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const allChannels = state.entities.channels.channels;
+
+        // Get the post's channel to determine the team
+        const postChannel = getChannel(state, post.channel_id);
+        if (!postChannel) {
+            return Promise.resolve();
+        }
+
+        const postTeamId = postChannel.team_id;
+        if (!postTeamId) {
+            // DMs/GMs don't have a team_id - channel mentions in these contexts
+            // should be handled by post.props.channel_mentions from the server
+            return Promise.resolve();
+        }
+
+        const postTeam = getTeam(state, postTeamId);
+        if (!postTeam) {
+            return Promise.resolve();
+        }
+
+        // Extract all channel mentions from post content (message + attachments)
+        const channelNames = extractChannelMentionsFromPost(post);
+
+        if (channelNames.length === 0) {
+            return Promise.resolve();
+        }
+
+        // Filter to find channels not already in Redux store
+        const channelsToFetch = channelNames.filter((channelName) => {
+            // Check if channel exists in redux store by name and team
+            const channelExists = Object.values(allChannels).some(
+                (ch) => ch.name.toLowerCase() === channelName && ch.team_id === postTeamId,
+            );
+            return !channelExists;
+        });
+
+        if (channelsToFetch.length === 0) {
+            return Promise.resolve();
+        }
+
+        // TODO: In the future, add a batch API to fetch multiple channels at once
+        // to reduce the number of HTTP requests when a post has many channel mentions.
+        // For now, fetch each channel individually with deduplication.
+        const promises = channelsToFetch.map((channelName) => {
+            const cacheKey = `${postTeam.name}:${channelName}`;
+
+            // Check if this channel is already being fetched
+            let fetchPromise = pendingChannelFetches.get(cacheKey);
+
+            if (!fetchPromise) {
+                // Not in flight - start new fetch
+                fetchPromise = dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true)).finally(() => {
+                    // Clean up when done (success or failure)
+                    pendingChannelFetches.delete(cacheKey);
+                });
+
+                // Store the promise to deduplicate concurrent requests
+                pendingChannelFetches.set(cacheKey, fetchPromise);
+            }
+
+            // Return the promise (either new or existing)
+            return fetchPromise.catch(() => {
+                // Channel might not exist, be private, or be archived - this is expected
+                // The mention will render as plain text instead of a link
+            });
+        });
+
+        return Promise.all(promises);
     };
 }
