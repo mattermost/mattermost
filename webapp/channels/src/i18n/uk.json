@@ -5323,7 +5323,7 @@
   "sidebar_right_menu.console": "Системна консоль",
   "sidebar_right_menu.flagged": "Збережені повідомлення",
   "sidebar_right_menu.recentMentions": "Нещодавні Згадки",
-  "signup.agreement": "Створюючи свій обліковий запис і використовуючи {siteName}, ви погоджуєтеся з нашими <a1>Умовами використання</a1> і <a2>Політикою конфіденційності</a2>.  Якщо ви не згодні, ви не можете використовувати {siteName}.",
+  "signup.agreement": "Створюючи свій обліковий запис і використовуючи {siteName}, ви погоджуєтеся з нашими <termsOfUseLink>Умовами використання</termsOfUseLink> і <privacyPolicyLink>Політикою конфіденційності</privacyPolicyLink>.  Якщо ви не згодні, ви не можете використовувати {siteName}.",
   "signup.ldap": "Облікові дані AD/LDAP",
   "signup_team.guest_without_channels": "Для вашого гостьового акаунта не призначено жодного каналу. Зверніться до адміністратора.",
   "signup_team.join_open": "Команди, до яких ви можете приєднатися: ",
