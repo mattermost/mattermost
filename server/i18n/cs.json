@@ -3568,10 +3568,6 @@
     "translation": "invalid_request: Špatný grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Chybí client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Špatné client_id."
   },
