@@ -65,7 +65,6 @@ export default class ChannelsSidebarLeft {
      * Toggles the unread filter on or off.
      */
     async toggleUnreadsFilter() {
-        await this.unreadChannelFilter.waitFor();
         await this.unreadChannelFilter.click();
     }
 
