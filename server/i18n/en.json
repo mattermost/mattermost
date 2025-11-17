@@ -7737,6 +7737,14 @@
     "translation": "Unable to mark all threads as read by channel"
   },
   {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Message is required"
+  },
+  {
+    "id": "app.toast.send_toast_message.user_id.app_error",
+    "translation": "User ID is required"
+  },
+  {
     "id": "app.update_error",
     "translation": "update error"
   },
