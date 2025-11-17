@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {IntlShape} from 'react-intl';
 import type {AnyAction} from 'redux';
 
 import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
@@ -76,7 +77,7 @@ export function handleBindingClick<Res=unknown>(binding: AppBinding, context: Ap
     };
 }
 
-export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
+export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: IntlShape): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
     return async () => {
         try {
             const call: AppCallRequest = {
