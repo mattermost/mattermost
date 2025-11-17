@@ -3122,10 +3122,6 @@
     "translation": "Không thể sao chép hình ảnh biểu tượng cảm xúc tùy chỉnh"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "không hợp lệ: thiếu client_secret"
-  },
-  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Loại hình ảnh proxy không hợp lệ. Phải là 'local' hoặc 'atmos / camo'."
   },
