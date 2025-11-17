@@ -10,7 +10,7 @@ import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 import Constants from 'utils/constants';
 
 export function isValidPassword(password: string, passwordConfig: PasswordConfig, intl?: IntlShape) {
-    let errorId = passwordErrors.passwordError.id;
+    let errorId: keyof typeof passwordErrors = 'passwordError';
     let valid = true;
     const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;
 
@@ -23,7 +23,7 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Lowercase';
+        errorId = `${errorId}Lowercase`;
     }
 
     if (passwordConfig.requireUppercase) {
@@ -31,7 +31,7 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Uppercase';
+        errorId = `${errorId}Uppercase`;
     }
 
     if (passwordConfig.requireNumber) {
@@ -39,7 +39,7 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Number';
+        errorId = `${errorId}Number`;
     }
 
     if (passwordConfig.requireSymbol) {
@@ -47,17 +47,14 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             valid = false;
         }
 
-        errorId += 'Symbol';
+        errorId = `${errorId}Symbol`;
     }
 
     let error;
     if (!valid) {
+        const passwordErrorMessage = passwordErrors[errorId];
         error = intl ? (
-            intl.formatMessage(
-                {
-                    id: errorId,
-                    defaultMessage: 'Must be {min}-{max} characters long.',
-                },
+            intl.formatMessage(passwordErrorMessage,
                 {
                     min: minimumLength,
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -65,8 +62,7 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
             )
         ) : (
             <FormattedMessage
-                id={errorId}
-                defaultMessage='Must be {min}-{max} characters long.'
+                {...passwordErrorMessage}
                 values={{
                     min: minimumLength,
                     max: Constants.MAX_PASSWORD_LENGTH,
