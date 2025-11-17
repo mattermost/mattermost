@@ -173,7 +173,7 @@ test('MM-T5520-5 should change the users email', async ({pw}) => {
     await updateEmail.click();
 
     // # Enter a random password and click Save
-    const emailInput = await systemConsolePage.page.locator('input[type="email"]');
+    const emailInput = systemConsolePage.page.locator('input[type="email"]');
     await emailInput.fill(newEmail);
     await systemConsolePage.clickResetButton();
 
