@@ -3193,6 +3193,40 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
                                     ),
                                 },
+                                {
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.BurnOnReadMaximumTimeToLiveDays',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.title', defaultMessage: 'Maximum time to live for burn-on-read messages'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.desc', defaultMessage: 'Sets the maximum duration that Burn-on-Read messages will be allowed to exist for after they are sent. The message will be deleted after the specified time after it is sent, even if it is not read by all recipients by then.'}),
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: '1',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.1day', defaultMessage: '1 day'}),
+                                        },
+                                        {
+                                            value: '3',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.3days', defaultMessage: '3 days'}),
+                                        },
+                                        {
+                                            value: '7',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.7days', defaultMessage: '7 days'}),
+                                        },
+                                        {
+                                            value: '14',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.14days', defaultMessage: '14 days'}),
+                                        },
+                                        {
+                                            value: '30',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.30days', defaultMessage: '30 days'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: any) => value ?? '7',
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
                             ],
                         },
                         {

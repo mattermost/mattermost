@@ -432,6 +432,7 @@ type ServiceSettings struct {
 	PersistentNotificationMaxRecipients               *int    `access:"site_posts"`
 	EnableBurnOnRead                                  *bool   `access:"site_posts"`
 	BurnOnReadDurationMinutes                         *string `access:"site_posts"`
+	BurnOnReadMaximumTimeToLiveDays                   *string `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -978,6 +979,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.BurnOnReadDurationMinutes == nil {
 		s.BurnOnReadDurationMinutes = NewPointer("10")
+	}
+
+	if s.BurnOnReadMaximumTimeToLiveDays == nil {
+		s.BurnOnReadMaximumTimeToLiveDays = NewPointer("7")
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
