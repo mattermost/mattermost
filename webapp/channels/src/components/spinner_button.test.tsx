@@ -1,76 +1,103 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount, shallow} from 'enzyme';
 import React from 'react';
 
 import SpinnerButton from 'components/spinner_button';
 
+import {withIntl} from 'tests/helpers/intl-test-helper';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
+
 describe('components/SpinnerButton', () => {
-    test('should match snapshot with required props', () => {
-        const wrapper = shallow(
-            <SpinnerButton
-                spinning={false}
-                spinningText='Test'
-            />,
+    test('should render button when not spinning', () => {
+        render(
+            withIntl(
+                <SpinnerButton
+                    spinning={false}
+                    spinningText='Test'
+                >
+                    {'Click me'}
+                </SpinnerButton>,
+            ),
         );
-        expect(wrapper).toMatchSnapshot();
+
+        const button = screen.getByRole('button', {name: 'Click me'});
+        expect(button).toBeInTheDocument();
+        expect(button).toBeEnabled();
     });
 
-    test('should match snapshot with spinning', () => {
-        const wrapper = shallow(
-            <SpinnerButton
-                spinning={true}
-                spinningText='Test'
-            />,
+    test('should show spinning text when spinning', () => {
+        render(
+            withIntl(
+                <SpinnerButton
+                    spinning={true}
+                    spinningText='Loading...'
+                />,
+            ),
         );
-        expect(wrapper).toMatchSnapshot();
+
+        const button = screen.getByRole('button');
+        expect(button).toBeInTheDocument();
+        expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
 
-    test('should match snapshot with children', () => {
-        const wrapper = shallow(
-            <SpinnerButton
-                spinning={false}
-                spinningText='Test'
-            >
-                <span id='child1'/>
-                <span id='child2'/>
-            </SpinnerButton>,
+    test('should render button with children', () => {
+        render(
+            withIntl(
+                <SpinnerButton
+                    spinning={false}
+                    spinningText='Test'
+                >
+                    <span>{'Save'}</span>
+                    <span>{'Changes'}</span>
+                </SpinnerButton>,
+            ),
         );
-        expect(wrapper).toMatchSnapshot();
+
+        const button = screen.getByRole('button');
+        expect(button).toBeInTheDocument();
+        expect(screen.getByText('Save')).toBeInTheDocument();
+        expect(screen.getByText('Changes')).toBeInTheDocument();
     });
 
-    test('should handle onClick', () => {
+    test('should call onClick when clicked', async () => {
         const onClick = jest.fn();
 
-        const wrapper = mount(
-            <SpinnerButton
-                spinning={false}
-                onClick={onClick}
-                spinningText='Test'
-            />,
+        render(
+            withIntl(
+                <SpinnerButton
+                    spinning={false}
+                    onClick={onClick}
+                    spinningText='Test'
+                >
+                    {'Click me'}
+                </SpinnerButton>,
+            ),
         );
 
-        wrapper.find('button').simulate('click');
+        const button = screen.getByRole('button', {name: 'Click me'});
+        await userEvent.click(button);
+
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
-    test('should add properties to underlying button', () => {
-        const wrapper = mount(
-            <SpinnerButton
-                id='my-button-id'
-                className='btn btn-success'
-                spinningText='Test'
-                spinning={false}
-            />,
+    test('should have id and custom classes when provided', () => {
+        render(
+            withIntl(
+                <SpinnerButton
+                    id='my-button-id'
+                    className='btn btn-success'
+                    spinningText='Test'
+                    spinning={false}
+                >
+                    {'Submit'}
+                </SpinnerButton>,
+            ),
         );
 
-        const button = wrapper.find('button');
-
-        expect(button).not.toBeUndefined();
-        expect(button.type()).toEqual('button');
-        expect(button.props().id).toEqual('my-button-id');
-        expect(button.hasClass('btn')).toBeTruthy();
-        expect(button.hasClass('btn-success')).toBeTruthy();
+        const button = screen.getByRole('button', {name: 'Submit'});
+        expect(button).toHaveAttribute('id', 'my-button-id');
+        expect(button).toHaveClass('btn');
+        expect(button).toHaveClass('btn-success');
     });
 });
