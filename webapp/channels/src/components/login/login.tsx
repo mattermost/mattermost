@@ -306,7 +306,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             },
             {siteName},
         );
-    }, [sessionExpired, siteName]);
+    }, [formatMessage, sessionExpired, siteName]);
 
     const showSessionExpiredNotificationIfNeeded = useCallback(() => {
         if (sessionExpired && !closeSessionExpiredNotification!.current) {
@@ -352,7 +352,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             closeSessionExpiredNotification.current();
             closeSessionExpiredNotification.current = undefined;
         }
-    }, [sessionExpired, siteName]);
+    }, [dispatch, formatMessage, sessionExpired, siteName]);
 
     const getAlertData = useCallback(() => {
         let mode;
@@ -458,7 +458,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 alternateLinkLabel={linkLabel}
             />
         );
-    }, [showSignup]);
+    }, [formatMessage, showSignup]);
 
     const onWindowResize = throttle(() => {
         setIsMobileView(window.innerWidth < MOBILE_SCREEN_WIDTH);

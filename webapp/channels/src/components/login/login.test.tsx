@@ -473,7 +473,10 @@ describe('components/login/Login', () => {
 
             // Mock the getUserLoginType to return 'magic_link'
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: 'guest_magic_link',
+                data: {
+                    auth_service: 'guest_magic_link',
+                    is_deactivated: false,
+                },
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
@@ -507,7 +510,10 @@ describe('components/login/Login', () => {
 
             // Mock the getUserLoginType to return empty string (requires password)
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: '',
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
@@ -577,7 +583,10 @@ describe('components/login/Login', () => {
 
             // Mock the getUserLoginType to return empty string (requires password)
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: '',
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
@@ -613,7 +622,10 @@ describe('components/login/Login', () => {
             });
 
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: '',
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
@@ -679,7 +691,10 @@ describe('components/login/Login', () => {
             });
 
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: '',
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
@@ -712,7 +727,10 @@ describe('components/login/Login', () => {
 
             // Mock the getUserLoginType to return empty string (requires password)
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: '',
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
