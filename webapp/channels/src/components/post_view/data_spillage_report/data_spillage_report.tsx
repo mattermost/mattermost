@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
 import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
@@ -13,7 +14,6 @@ import {Client4} from 'mattermost-redux/client';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import AtMention from 'components/at_mention';
-import {useChannel} from 'components/common/hooks/useChannel';
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
@@ -68,7 +68,18 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
 
     const [reportedPost, setReportedPost] = useState<Post>();
-    const channel = useChannel(reportedPost?.channel_id || '', true);
+    const [channel, setChannel] = useState<Channel | undefined>();
+
+    useEffect(() => {
+        const fetchChannel = async () => {
+            if (reportedPost && reportedPost.channel_id) {
+                const fetchedChannel = await getChannel(reportedPostId)(reportedPost.channel_id);
+                setChannel(fetchedChannel);
+            }
+        };
+
+        fetchChannel();
+    }, [reportedPost, reportedPostId]);
 
     useEffect(() => {
         const work = async () => {

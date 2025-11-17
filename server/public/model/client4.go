@@ -3510,6 +3510,23 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 	return DecodeJSONFromResponse[*ScheduledPost](r)
 }
 
+func (c *Client4) GetPostsForReporting(ctx context.Context, options ReportPostOptions, cursor ReportPostOptionsCursor) (*ReportPostListResponse, *Response, error) {
+	request := struct {
+		ReportPostOptions
+		ReportPostOptionsCursor
+	}{
+		ReportPostOptions:       options,
+		ReportPostOptionsCursor: cursor,
+	}
+
+	r, err := c.DoAPIPostJSON(ctx, c.reportsRoute()+"/posts", request)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ReportPostListResponse](r)
+}
+
 func (c *Client4) FlagPostForContentReview(ctx context.Context, postId string, flagRequest *FlagContentRequest) (*Response, error) {
 	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/post/%s/flag", c.contentFlaggingRoute(), postId), flagRequest)
 	if err != nil {
