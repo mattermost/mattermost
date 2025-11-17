@@ -41,7 +41,7 @@ func (s *OpensearchInterfaceTestSuite) SetupSuite() {
 		os.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", "opensearch")
 	}
 
-	s.th = api4.SetupEnterprise(s.T()).InitBasic()
+	s.th = api4.SetupEnterprise(s.T()).InitBasic(s.T())
 	s.CommonTestSuite.TH = s.th
 	s.CommonTestSuite.GetDocumentFn = func(index, documentID string) (bool, json.RawMessage, error) {
 		resp, err := s.client.Document.Get(s.ctx, opensearchapi.DocumentGetReq{

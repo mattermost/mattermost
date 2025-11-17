@@ -9,6 +9,7 @@ const (
 
 	MigrationKeyEmojiPermissionsSplit                  = "emoji_permissions_split"
 	MigrationKeyWebhookPermissionsSplit                = "webhook_permissions_split"
+	MigrationKeyIntegrationsOwnPermissions             = "integrations_own_permissions"
 	MigrationKeyListJoinPublicPrivateTeams             = "list_join_public_private_teams"
 	MigrationKeyRemovePermanentDeleteUser              = "remove_permanent_delete_user"
 	MigrationKeyAddBotPermissions                      = "add_bot_permissions"

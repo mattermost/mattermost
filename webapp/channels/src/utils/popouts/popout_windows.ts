@@ -5,17 +5,46 @@ import type {IntlShape} from 'react-intl';
 
 import type {PopoutViewProps} from '@mattermost/desktop-api';
 
+import {Client4} from 'mattermost-redux/client';
+
 import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';
 
-export function popoutThread(intl: IntlShape, threadId: string, teamName: string) {
-    return popout(
+import BrowserPopouts from './browser_popouts';
+import {
+    sendToParent as sendToParentBrowser,
+    onMessageFromParent as onMessageFromParentBrowser,
+} from './use_browser_popout';
+
+export const FOCUS_REPLY_POST = 'focus-reply-post';
+export async function popoutThread(
+    intl: IntlShape,
+    threadId: string,
+    teamName: string,
+    onFocusPost: (postId: string, returnTo: string) => void,
+) {
+    const popoutListeners = await popout(
         `/_popout/thread/${teamName}/${threadId}`,
         {
             isRHS: true,
-            titleTemplate: intl.formatMessage({id: 'thread_popout.title', defaultMessage: 'Thread - {channelName} - {teamName}'}),
+            titleTemplate: intl.formatMessage({
+                id: 'thread_popout.title',
+                defaultMessage: 'Thread - {channelName} - {teamName}',
+            }),
         },
     );
+
+    popoutListeners?.onMessageFromPopout?.((channel: string, ...args: unknown[]) => {
+        if (channel === FOCUS_REPLY_POST) {
+            const [postId, returnTo] = args;
+            onFocusPost(
+                postId as string,
+                returnTo as string,
+            );
+        }
+    });
+
+    return popoutListeners;
 }
 
 /**
@@ -24,33 +53,42 @@ export function popoutThread(intl: IntlShape, threadId: string, teamName: string
  */
 
 type PopoutListeners = {
-    send: (channel: string, ...args: unknown[]) => void;
-    message: (listener: (channel: string, ...args: unknown[]) => void) => void;
-    closed: (listener: () => void) => void;
+    sendToPopout: (channel: string, ...args: unknown[]) => void;
+    onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => void;
+    onClosePopout: (listener: () => void) => void;
 };
 
-async function popout(path: string, desktopProps?: PopoutViewProps): Promise<Partial<PopoutListeners>> {
+async function popout(
+    path: string,
+    desktopProps?: PopoutViewProps,
+): Promise<Partial<PopoutListeners>> {
     if (isDesktopApp()) {
         return DesktopApp.setupDesktopPopout(path, desktopProps);
     }
 
-    // Coming soon: browser popouts
-    return Promise.resolve({});
+    return Promise.resolve(BrowserPopouts.setupBrowserPopout(path));
 }
 
-export async function sendToParent(channel: string, ...args: unknown[]) {
+export function sendToParent(channel: string, ...args: unknown[]) {
     if (isDesktopApp()) {
-        DesktopApp.sendToParentWindow(channel, ...args);
+        return DesktopApp.sendToParentWindow(channel, ...args);
     }
 
-    // Coming soon: browser popouts
+    return sendToParentBrowser(channel, ...args);
 }
 
-export async function onMessageFromParent(listener: (channel: string, ...args: unknown[]) => void) {
+export function onMessageFromParent(listener: (channel: string, ...args: unknown[]) => void) {
     if (isDesktopApp()) {
-        DesktopApp.onMessageFromParentWindow(listener);
+        return DesktopApp.onMessageFromParentWindow(listener);
     }
 
-    // Coming soon: browser popouts
+    return onMessageFromParentBrowser(listener);
 }
 
+export function isPopoutWindow() {
+    return window.location.href.startsWith(`${Client4.getUrl()}/_popout/`);
+}
+
+export function canPopout() {
+    return Boolean(!isDesktopApp() || DesktopApp.canPopout());
+}
