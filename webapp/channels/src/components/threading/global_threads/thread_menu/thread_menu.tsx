@@ -17,6 +17,7 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import {focusPost} from 'components/permalink_view/actions';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
@@ -90,8 +91,10 @@ function ThreadMenu({
     // TODO: This should be in a reusable component but since this menu hasn't been
     // migrated to the new menu component yet, we'll leave it here for now.
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team);
-    }, [threadId, team, intl]);
+        popoutThread(intl, threadId, team, (postId, returnTo) => {
+            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+        });
+    }, [threadId, team, intl, dispatch, currentUserId]);
 
     return (
         <MenuWrapper
