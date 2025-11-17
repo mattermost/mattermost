@@ -7,6 +7,7 @@ import {useIntl} from 'react-intl';
 import {FireIcon} from '@mattermost/compass-icons/components';
 
 import WithTooltip from 'components/with_tooltip';
+import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
 
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';
 import {getAriaAnnouncementInterval, formatAriaAnnouncement} from 'utils/burn_on_read_timer_utils';
@@ -18,12 +19,12 @@ import './burn_on_read_timer_chip.scss';
 interface Props {
     postId: string;
     expireAt?: number;
+    maxExpireAt?: number;
     durationMinutes: number;
     onClick: () => void;
-    onExpire: (postId: string) => void;
 }
 
-const BurnOnReadTimerChip = ({postId, expireAt, durationMinutes, onClick, onExpire}: Props) => {
+const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, onClick}: Props) => {
     const {formatMessage} = useIntl();
     const [lastAnnouncement, setLastAnnouncement] = useState<number>(0);
 
@@ -36,13 +37,8 @@ const BurnOnReadTimerChip = ({postId, expireAt, durationMinutes, onClick, onExpi
         return Date.now() + (durationMinutes * 60 * 1000);
     }, [expireAt, durationMinutes]);
 
-    const handleExpire = useCallback(() => {
-        onExpire(postId);
-    }, [postId, onExpire]);
-
     const {displayText, remainingMs, isWarning} = useBurnOnReadTimer({
         expireAt: displayExpireAt,
-        onExpire: handleExpire,
     });
 
     const handleClick = useCallback((e: React.MouseEvent) => {
@@ -103,6 +99,13 @@ const BurnOnReadTimerChip = ({postId, expireAt, durationMinutes, onClick, onExpi
 
     return (
         <>
+            {/* Register with expiration scheduler */}
+            <BurnOnReadExpirationHandler
+                postId={postId}
+                expireAt={expireAt ?? null}
+                maxExpireAt={maxExpireAt ?? null}
+            />
+
             <WithTooltip title={tooltipContent}>
                 <button
                     className={`BurnOnReadTimerChip ${isWarning ? 'BurnOnReadTimerChip--warning' : ''}`}

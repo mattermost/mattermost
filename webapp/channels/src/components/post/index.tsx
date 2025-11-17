@@ -23,7 +23,7 @@ import {
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {burnPostNow, handlePostExpired} from 'actions/burn_on_read_deletion';
+import {burnPostNow} from 'actions/burn_on_read_deletion';
 import {revealBurnOnReadPost} from 'actions/burn_on_read_posts';
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
@@ -244,7 +244,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
             selectPostCard,
             revealBurnOnReadPost,
             burnPostNow,
-            handlePostExpired,
             savePreferences,
         }, dispatch),
     };

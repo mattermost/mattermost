@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useState, useRef} from 'react';
+import {useEffect, useState, useMemo} from 'react';
 
+import {timerTicker} from 'utils/burn_on_read_timer_ticker';
 import {
     calculateRemainingTime,
     formatTimeRemaining,
@@ -19,14 +20,14 @@ interface TimerState {
 
 interface UseBurnOnReadTimerOptions {
     expireAt: number | null;
-    onExpire?: () => void;
 }
 
 /**
- * Hook to manage burn-on-read countdown timer
- * Updates every second and triggers expiration callback
+ * Hook to display burn-on-read countdown timer
+ * Subscribes to global ticker for synchronized updates (O(1) intervals for all timers)
+ * Expiration handling is managed by the global BurnOnReadExpirationScheduler
  */
-export function useBurnOnReadTimer({expireAt, onExpire}: UseBurnOnReadTimerOptions): TimerState {
+export function useBurnOnReadTimer({expireAt}: UseBurnOnReadTimerOptions): TimerState {
     const [remainingMs, setRemainingMs] = useState<number>(() => {
         if (!expireAt) {
             return 0;
@@ -34,12 +35,7 @@ export function useBurnOnReadTimer({expireAt, onExpire}: UseBurnOnReadTimerOptio
         return calculateRemainingTime(expireAt);
     });
 
-    const onExpireRef = useRef(onExpire);
-    onExpireRef.current = onExpire;
-
-    const hasExpiredRef = useRef(false);
-
-    // Update timer every second
+    // Subscribe to global ticker for synchronized updates
     useEffect(() => {
         if (!expireAt) {
             return undefined;
@@ -49,39 +45,37 @@ export function useBurnOnReadTimer({expireAt, onExpire}: UseBurnOnReadTimerOptio
         const initialRemaining = calculateRemainingTime(expireAt);
         setRemainingMs(initialRemaining);
 
-        // Check if already expired
-        if (isTimerExpired(initialRemaining) && !hasExpiredRef.current) {
-            hasExpiredRef.current = true;
-            if (onExpireRef.current) {
-                onExpireRef.current();
-            }
+        // If already expired, no need to subscribe
+        if (isTimerExpired(initialRemaining)) {
             return undefined;
         }
 
-        // Set up interval
-        const interval = setInterval(() => {
+        // Track if we've already processed expiration
+        let hasExpired = false;
+
+        // Subscribe to global ticker (single setInterval for all timers)
+        const unsubscribe = timerTicker.subscribe(() => {
+            // Stop updating after expiration to avoid unnecessary renders
+            if (hasExpired) {
+                return;
+            }
+
             const newRemaining = calculateRemainingTime(expireAt);
             setRemainingMs(newRemaining);
 
-            // Trigger expiration callback
-            if (isTimerExpired(newRemaining) && !hasExpiredRef.current) {
-                hasExpiredRef.current = true;
-                clearInterval(interval);
-                if (onExpireRef.current) {
-                    onExpireRef.current();
-                }
+            // Mark as expired to stop future updates
+            if (isTimerExpired(newRemaining)) {
+                hasExpired = true;
             }
-        }, 1000);
+        });
 
-        return () => {
-            clearInterval(interval);
-        };
+        return unsubscribe;
     }, [expireAt]);
 
-    // Calculate derived state
-    const displayText = formatTimeRemaining(remainingMs);
-    const isExpired = isTimerExpired(remainingMs);
-    const isWarning = isTimerInWarningState(remainingMs);
+    // Memoize derived state to avoid recalculation on every render
+    const displayText = useMemo(() => formatTimeRemaining(remainingMs), [remainingMs]);
+    const isExpired = useMemo(() => isTimerExpired(remainingMs), [remainingMs]);
+    const isWarning = useMemo(() => isTimerInWarningState(remainingMs), [remainingMs]);
 
     return {
         remainingMs,

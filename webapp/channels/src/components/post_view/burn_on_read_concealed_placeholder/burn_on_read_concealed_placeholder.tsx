@@ -5,6 +5,7 @@ import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -17,6 +18,7 @@ type Props = {
     onReveal: (postId: string) => void;
     loading?: boolean;
     error?: string | null;
+    maxExpireAt?: number;
 };
 
 function BurnOnReadConcealedPlaceholder({
@@ -25,6 +27,7 @@ function BurnOnReadConcealedPlaceholder({
     onReveal,
     loading = false,
     error = null,
+    maxExpireAt,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -50,38 +53,47 @@ function BurnOnReadConcealedPlaceholder({
     );
 
     return (
-        <div
-            className={`BurnOnReadConcealedPlaceholder ${loading ? 'BurnOnReadConcealedPlaceholder--loading' : ''} ${error ? 'BurnOnReadConcealedPlaceholder--error' : ''}`}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-            role='button'
-            tabIndex={0}
-            aria-label={ariaLabel}
-            data-testid={`burn-on-read-concealed-${postId}`}
-        >
-            {loading ? (
-                <LoadingSpinner/>
-            ) : (
-                <div
-                    className='BurnOnReadConcealedPlaceholder__text'
-                    aria-hidden='true'
-                >
-                    {formatMessage({
-                        id: 'post.burn_on_read.concealed_placeholder',
-                        defaultMessage: 'This message is concealed and will be revealed when you click on it to view the content',
-                    })}
-                </div>
-            )}
+        <>
+            {/* Register with expiration scheduler for max_expire_at tracking */}
+            <BurnOnReadExpirationHandler
+                postId={postId}
+                expireAt={null}
+                maxExpireAt={maxExpireAt ?? null}
+            />
 
-            {error && (
-                <div
-                    className='BurnOnReadConcealedPlaceholder__error'
-                    role='alert'
-                >
-                    {error}
-                </div>
-            )}
-        </div>
+            <div
+                className={`BurnOnReadConcealedPlaceholder ${loading ? 'BurnOnReadConcealedPlaceholder--loading' : ''} ${error ? 'BurnOnReadConcealedPlaceholder--error' : ''}`}
+                onClick={handleClick}
+                onKeyDown={handleKeyDown}
+                role='button'
+                tabIndex={0}
+                aria-label={ariaLabel}
+                data-testid={`burn-on-read-concealed-${postId}`}
+            >
+                {loading ? (
+                    <LoadingSpinner/>
+                ) : (
+                    <div
+                        className='BurnOnReadConcealedPlaceholder__text'
+                        aria-hidden='true'
+                    >
+                        {formatMessage({
+                            id: 'post.burn_on_read.concealed_placeholder',
+                            defaultMessage: 'This message is concealed and will be revealed when you click on it to view the content',
+                        })}
+                    </div>
+                )}
+
+                {error && (
+                    <div
+                        className='BurnOnReadConcealedPlaceholder__error'
+                        role='alert'
+                    >
+                        {error}
+                    </div>
+                )}
+            </div>
+        </>
     );
 }
 

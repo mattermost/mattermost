@@ -11,6 +11,7 @@ import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
 import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 
+import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {temporarilySetPageLoadContext} from 'actions/telemetry_actions.jsx';
 import BrowserStore from 'stores/browser_store';
 
@@ -28,6 +29,7 @@ import Readout from 'components/readout/readout';
 import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import 'utils/a11y_controller_instance';
+import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
 import {PageLoadContext, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -278,6 +280,9 @@ export default class Root extends React.PureComponent<Props, State> {
 
         this.initiateMeRequests();
 
+        // Initialize burn-on-read expiration scheduler
+        expirationScheduler.initialize(this.props.dispatch);
+
         // Force logout of all tabs if one tab is logged out
         window.addEventListener('storage', this.handleLogoutLoginSignal);
 
@@ -288,6 +293,9 @@ export default class Root extends React.PureComponent<Props, State> {
     }
 
     componentWillUnmount() {
+        // Cleanup burn-on-read expiration scheduler
+        expirationScheduler.cleanup();
+
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
         document.removeEventListener('drop', this.handleDropEvent);
         document.removeEventListener('dragover', this.handleDragOverEvent);

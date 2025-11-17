@@ -103,7 +103,6 @@ export type Props = {
         setRhsExpanded: (rhsExpanded: boolean) => void;
         revealBurnOnReadPost: (postId: string) => void;
         burnPostNow?: (postId: string) => void;
-        handlePostExpired?: (postId: string) => void;
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
     };
     timestampProps?: Partial<TimestampProps>;
@@ -486,9 +485,6 @@ function PostComponent(props: Props) {
         setShowBurnConfirmModal(false);
     }, []);
 
-    const handlePostExpired = useCallback((postId: string) => {
-        props.actions.handlePostExpired?.(postId);
-    }, [props.actions]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -548,6 +544,7 @@ function PostComponent(props: Props) {
                 onReveal={handleRevealBurnOnRead}
                 loading={burnOnReadRevealing}
                 error={burnOnReadRevealError}
+                maxExpireAt={typeof post.props?.max_expire_at === 'number' ? post.props.max_expire_at : undefined}
             />
         );
     } else if (isSearchResultItem) {
@@ -642,9 +639,9 @@ function PostComponent(props: Props) {
             <BurnOnReadTimerChip
                 postId={post.id}
                 expireAt={typeof post.props.expire_at === 'number' ? post.props.expire_at : undefined}
+                maxExpireAt={typeof post.props.max_expire_at === 'number' ? post.props.max_expire_at : undefined}
                 durationMinutes={props.burnOnReadDurationMinutes}
                 onClick={handleTimerChipClick}
-                onExpire={handlePostExpired}
             />
         );
     }

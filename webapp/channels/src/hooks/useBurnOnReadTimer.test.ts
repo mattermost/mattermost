@@ -52,32 +52,34 @@ describe('useBurnOnReadTimer', () => {
         expect(result.current.displayText).toBe('01:00');
     });
 
-    it('should call onExpire callback when timer reaches zero', () => {
-        const onExpire = jest.fn();
+    it('should update display when timer reaches zero', () => {
         const expireAt = new Date('2025-01-01T00:00:03.000Z').getTime();
-        renderHook(() => useBurnOnReadTimer({expireAt, onExpire}));
+        const {result} = renderHook(() => useBurnOnReadTimer({expireAt}));
 
         act(() => {
             jest.advanceTimersByTime(3000);
         });
 
-        expect(onExpire).toHaveBeenCalledTimes(1);
+        expect(result.current.isExpired).toBe(true);
+        expect(result.current.displayText).toBe('00:00');
     });
 
-    it('should call onExpire only once', () => {
-        const onExpire = jest.fn();
+    it('should stop updating after expiration', () => {
         const expireAt = new Date('2025-01-01T00:00:02.000Z').getTime();
-        renderHook(() => useBurnOnReadTimer({expireAt, onExpire}));
+        const {result} = renderHook(() => useBurnOnReadTimer({expireAt}));
 
         act(() => {
             jest.advanceTimersByTime(2000);
         });
 
+        expect(result.current.isExpired).toBe(true);
+
         act(() => {
             jest.advanceTimersByTime(1000);
         });
 
-        expect(onExpire).toHaveBeenCalledTimes(1);
+        // Should still be expired, not update further
+        expect(result.current.isExpired).toBe(true);
     });
 
     it('should handle null expireAt', () => {
@@ -89,12 +91,11 @@ describe('useBurnOnReadTimer', () => {
     });
 
     it('should handle already expired timer', () => {
-        const onExpire = jest.fn();
         const expireAt = new Date('2024-12-31T23:00:00.000Z').getTime();
-        const {result} = renderHook(() => useBurnOnReadTimer({expireAt, onExpire}));
+        const {result} = renderHook(() => useBurnOnReadTimer({expireAt}));
 
         expect(result.current.isExpired).toBe(true);
-        expect(onExpire).toHaveBeenCalledTimes(1);
+        expect(result.current.displayText).toBe('00:00');
     });
 
     it('should update when expireAt prop changes', () => {
