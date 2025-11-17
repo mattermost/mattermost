@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {render, screen} from 'tests/react_testing_utils';
 
 import menuItem from './menu_item';
 
 describe('components/MenuItem', () => {
-    const TestComponent = menuItem(() => null);
+    const TestComponent = menuItem((props: any) => props.text || null);
 
     const defaultProps = {
         show: true,
@@ -16,62 +17,33 @@ describe('components/MenuItem', () => {
         otherProp: 'extra-prop',
     };
 
-    test('should match snapshot not shown', () => {
+    test('should not render when show is false', () => {
         const props = {...defaultProps, show: false};
-        const wrapper = shallow(<TestComponent {...props}/>);
+        render(<TestComponent {...props}/>);
 
-        expect(wrapper).toMatchInlineSnapshot('""');
+        expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
+        expect(screen.queryByText('test-text')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot shown with icon', () => {
+    test('should render menuitem with icon and text', () => {
         const props = {...defaultProps, icon: 'test-icon'};
-        const wrapper = shallow(<TestComponent {...props}/>);
+        render(<TestComponent {...props}/>);
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <li
-              className="MenuItem MenuItem--with-icon"
-              id="test-id"
-              role="menuitem"
-            >
-              <Component
-                ariaLabel="test-text"
-                id="test-id-button"
-                otherProp="extra-prop"
-                text={
-                  <React.Fragment>
-                    <span
-                      className="icon"
-                    >
-                      test-icon
-                    </span>
-                    <div
-                      className="text"
-                    >
-                      test-text
-                    </div>
-                  </React.Fragment>
-                }
-              />
-            </li>
-        `);
+        const menuItem = screen.getByRole('menuitem');
+        expect(menuItem).toBeInTheDocument();
+        expect(menuItem).toHaveAttribute('id', 'test-id');
+
+        expect(screen.getByText('test-icon')).toBeInTheDocument();
+        expect(screen.getByText('test-text')).toBeInTheDocument();
     });
 
-    test('should match snapshot shown without icon', () => {
-        const wrapper = shallow(<TestComponent {...defaultProps}/>);
+    test('should render menuitem with text only', () => {
+        render(<TestComponent {...defaultProps}/>);
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <li
-              className="MenuItem"
-              id="test-id"
-              role="menuitem"
-            >
-              <Component
-                ariaLabel="test-text"
-                id="test-id-button"
-                otherProp="extra-prop"
-                text="test-text"
-              />
-            </li>
-        `);
+        const menuItem = screen.getByRole('menuitem');
+        expect(menuItem).toBeInTheDocument();
+        expect(menuItem).toHaveAttribute('id', 'test-id');
+
+        expect(screen.getByText('test-text')).toBeInTheDocument();
     });
 });

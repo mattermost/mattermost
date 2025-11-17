@@ -1,35 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import MenuGroup from './menu_group';
 
-describe('components/MenuItem', () => {
-    test('should match snapshot with default divider', () => {
-        const wrapper = shallow(<MenuGroup>{'text'}</MenuGroup>);
+describe('components/MenuGroup', () => {
+    test('should render children with default separator', () => {
+        render(<MenuGroup>{'text'}</MenuGroup>);
 
-        expect(wrapper).toMatchInlineSnapshot(`
-<Fragment>
-  <li
-    className="MenuGroup menu-divider"
-    onClick={[Function]}
-    role="separator"
-  />
-  text
-</Fragment>
-`);
+        const separator = screen.getByRole('separator');
+        expect(separator).toBeInTheDocument();
+        expect(screen.getByText('text')).toBeInTheDocument();
     });
 
-    test('should match snapshot with custom divider', () => {
-        const wrapper = shallow(<MenuGroup divider='--'>{'text'}</MenuGroup>);
+    test('should render children with custom divider', () => {
+        render(<MenuGroup divider={<div>{'Custom Divider'}</div>}>{'text'}</MenuGroup>);
 
-        expect(wrapper).toMatchInlineSnapshot(`
-<Fragment>
-  --
-  text
-</Fragment>
-`);
+        expect(screen.queryByRole('separator')).not.toBeInTheDocument();
+        expect(screen.getByText('Custom Divider')).toBeInTheDocument();
+        expect(screen.getByText('text')).toBeInTheDocument();
+    });
+
+    test('should handle divider click without errors', async () => {
+        render(<MenuGroup>{'text'}</MenuGroup>);
+
+        const separator = screen.getByRole('separator');
+
+        // Clicking the separator should not cause any errors
+        await userEvent.click(separator);
+
+        // Separator should still be in the document
+        expect(separator).toBeInTheDocument();
+        expect(screen.getByText('text')).toBeInTheDocument();
     });
 });
