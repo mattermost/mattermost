@@ -4925,10 +4925,6 @@
     "translation": "अमान्य_अनुरोध: गलत अनुदान_प्रकार।"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "अमान्य_अनुरोध: अनुपलब्ध client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "अमान्य_अनुरोध: खराब क्लाइंट_आईडी।"
   },
