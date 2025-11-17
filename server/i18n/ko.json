@@ -1180,10 +1180,6 @@
     "translation": "invalid_request: 잘못된 client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: client_secret 값이 누락되었습니다."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: 잘못된 grant_type."
   },
