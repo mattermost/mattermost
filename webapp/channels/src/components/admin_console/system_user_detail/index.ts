@@ -10,7 +10,7 @@ import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general'
 import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
-import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {openModal} from 'actions/views/modals';
@@ -23,7 +23,7 @@ import SystemUserDetail from './system_user_detail';
 function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
     const config = getConfig(state);
-    const customProfileAttributeEnabled = isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true';
+    const customProfileAttributeEnabled = isEnterpriseLicense(license) && isCustomProfileAttributesEnabled(state);
     const customProfileAttributeFields = customProfileAttributeEnabled ? Object.values(getCustomProfileAttributes(state)) : [];
 
     const showManageUserSettings = getShowManageUserSettings(state);

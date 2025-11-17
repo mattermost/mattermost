@@ -83,7 +83,7 @@ import {
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -292,8 +292,7 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    const license = getLicense(state);
-    if (isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true') {
+    if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
         dispatch(getCustomProfileAttributeFields());
     }
 
