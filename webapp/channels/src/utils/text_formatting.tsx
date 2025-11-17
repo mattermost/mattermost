@@ -1162,6 +1162,12 @@ function fixedCharCodeAt(str: string, idx = 0) {
 const CHANNEL_MENTION_PATTERN = '[a-z0-9.\\-_]+';
 
 /**
+ * Compiled regex for extracting channel mentions.
+ * Note: This is a global regex, so lastIndex must be reset before each use.
+ */
+const CHANNEL_MENTION_REGEX = new RegExp(`\\B~(${CHANNEL_MENTION_PATTERN})`, 'gi');
+
+/**
  * Extracts all channel mentions from text content.
  * Returns unique channel names in lowercase (without the ~ prefix).
  */
@@ -1172,11 +1178,11 @@ export function extractChannelMentions(text: string): string[] {
 
     const mentions = new Set<string>();
 
-    // Create regex with pattern - must reset lastIndex each time since regex is global
-    const regex = new RegExp(`\\B~(${CHANNEL_MENTION_PATTERN})`, 'gi');
+    // Reset regex state before use (required for global regex reuse)
+    CHANNEL_MENTION_REGEX.lastIndex = 0;
     let match;
 
-    while ((match = regex.exec(text)) !== null) {
+    while ((match = CHANNEL_MENTION_REGEX.exec(text)) !== null) {
         const channelName = match[1].toLowerCase();
         if (channelName) {
             mentions.add(channelName);

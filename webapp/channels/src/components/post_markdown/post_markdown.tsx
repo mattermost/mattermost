@@ -242,4 +242,6 @@ const PostMarkdown: React.FC<Props> = (props) => {
     );
 };
 
-export default PostMarkdown;
+// Wrap with React.memo to preserve PureComponent shallow comparison behavior
+// PostMarkdown renders for every post on screen, so preventing unnecessary re-renders is critical
+export default React.memo(PostMarkdown);

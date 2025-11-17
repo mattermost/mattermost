@@ -519,10 +519,50 @@ export function emitShortcutReactToLastPostFrom(emittedFrom: keyof typeof Consta
     };
 }
 
-// Cache of in-flight channel fetch requests to prevent duplicate API calls
-// Key format: "teamName:channelName"
-// Automatically cleaned up when requests complete
-const pendingChannelFetches = new Map<string, Promise<any>>();
+/**
+ * Cache manager for in-flight channel fetch requests to prevent duplicate API calls.
+ * This class provides a clear interface for managing the cache and makes testing easier
+ * by allowing cache state to be cleared between tests.
+ */
+class ChannelFetchCache {
+    private cache = new Map<string, Promise<any>>();
+
+    /**
+     * Get a cached promise for a channel fetch.
+     * @param key Cache key in format "teamName:channelName"
+     * @returns The cached promise, or undefined if not cached
+     */
+    get(key: string): Promise<any> | undefined {
+        return this.cache.get(key);
+    }
+
+    /**
+     * Store a promise in the cache.
+     * @param key Cache key in format "teamName:channelName"
+     * @param promise The fetch promise to cache
+     */
+    set(key: string, promise: Promise<any>): void {
+        this.cache.set(key, promise);
+    }
+
+    /**
+     * Remove a promise from the cache (called when fetch completes).
+     * @param key Cache key in format "teamName:channelName"
+     */
+    delete(key: string): void {
+        this.cache.delete(key);
+    }
+
+    /**
+     * Clear all cached promises. Useful for testing.
+     */
+    clear(): void {
+        this.cache.clear();
+    }
+}
+
+// Export for testing purposes
+export const channelFetchCache = new ChannelFetchCache();
 
 /**
  * Fetches channel data for any channel mentions in a post that are not already in the Redux store.
@@ -591,17 +631,17 @@ export function fetchChannelsForPostIfNeeded(post: Post): ThunkActionFunc<Promis
             const cacheKey = `${postTeam.name}:${channelName}`;
 
             // Check if this channel is already being fetched
-            let fetchPromise = pendingChannelFetches.get(cacheKey);
+            let fetchPromise = channelFetchCache.get(cacheKey);
 
             if (!fetchPromise) {
                 // Not in flight - start new fetch
                 fetchPromise = dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true)).finally(() => {
                     // Clean up when done (success or failure)
-                    pendingChannelFetches.delete(cacheKey);
+                    channelFetchCache.delete(cacheKey);
                 });
 
                 // Store the promise to deduplicate concurrent requests
-                pendingChannelFetches.set(cacheKey, fetchPromise);
+                channelFetchCache.set(cacheKey, fetchPromise);
             }
 
             // Return the promise (either new or existing)
