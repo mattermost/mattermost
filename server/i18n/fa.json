@@ -7177,10 +7177,6 @@
     "translation": "invalid_request: بد grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: گم شده client_secret."
-  },
-  {
     "id": "api.command_invite.channel.app_error",
     "translation": "خطا در بازیابی کانال فعلی."
   },
