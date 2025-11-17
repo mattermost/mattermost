@@ -753,7 +753,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                 </div>,
             );
 
-            const extraInfo = (
+            let extraInfo: React.ReactNode = (
                 <span>
                     <FormattedMessage
                         id='user.settings.security.oneSignin'
@@ -761,6 +761,20 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                     />
                 </span>
             );
+
+            if (this.props.user.auth_service === Constants.GOOGLE_SERVICE) {
+                extraInfo = (
+                    <>
+                        {extraInfo}
+                        <span className='pt-2 d-block'>
+                            <FormattedMessage
+                                id='user.settings.security.ssoUsernameSyncNote'
+                                defaultMessage='Note: When using Google SSO, changes to your Google username or email do not automatically sync to Mattermost. To update your username, switch temporarily to email/password login, update your username, and then switch back to Google SSO.'
+                            />
+                        </span>
+                    </>
+                );
+            }
 
             max = (
                 <SettingItemMax
