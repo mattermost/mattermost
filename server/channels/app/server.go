@@ -1199,11 +1199,7 @@ func doReportUsageToAWSMeteringService(s *Server) {
 	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AwsMeteringReportInterval*time.Hour).UTC())
 
 	if err := awsMeter.ReportUserCategoryUsage(ctx, reports); err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			mlog.Error("Timeout while reporting usage to AWS Metering Service")
-		} else {
-			mlog.Error("Failed to report usage to AWS Metering Service", mlog.Err(err))
-		}
+		mlog.Error("Failed to report usage to AWS Metering Service", mlog.Err(err))
 	}
 }
 

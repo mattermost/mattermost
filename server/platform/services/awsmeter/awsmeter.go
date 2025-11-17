@@ -77,10 +77,6 @@ func newAWSMarketplaceMeteringService(ctx context.Context) (*marketplacemetering
 
 	_, err := creds.Retrieve(ctx)
 	if err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			return nil, errors.Wrap(err, "timeout while obtaining credentials")
-		}
-
 		return nil, errors.Wrap(err, "cannot obtain credentials")
 	}
 
