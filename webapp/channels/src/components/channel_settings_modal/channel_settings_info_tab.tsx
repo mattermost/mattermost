@@ -440,7 +440,7 @@ function ChannelSettingsInfoTab({
                 hasError={channelHeader.length > HEADER_MAX_LENGTH}
                 errorMessage={channelHeader.length > HEADER_MAX_LENGTH ? formatMessage({
                     id: 'edit_channel_header_modal.error',
-                    defaultMessage: 'The channel header exceeds the maximum character limit of {maxLength} characters.',
+                    defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
                 }, {
                     maxLength: HEADER_MAX_LENGTH,
                 }) : undefined
