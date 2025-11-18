@@ -164,7 +164,7 @@ export function getDefaultSelectedTeam(teamId: Team['id'] | string, label?: stri
             label: (
                 <FormattedMessage
                     id='admin.system_users.filters.team.allTeams'
-                    defaultMessage='All Teams'
+                    defaultMessage='All teams'
                 />
             ),
         };
@@ -174,7 +174,7 @@ export function getDefaultSelectedTeam(teamId: Team['id'] | string, label?: stri
             label: (
                 <FormattedMessage
                     id='admin.system_users.filters.team.noTeams'
-                    defaultMessage='No Teams'
+                    defaultMessage='No teams'
                 />
             ),
         };
