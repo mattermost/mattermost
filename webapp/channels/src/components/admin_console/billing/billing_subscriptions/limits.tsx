@@ -150,7 +150,7 @@ const Limits = (): JSX.Element | null => {
                         >
                             {intl.formatMessage({
                                 id: 'admin.license.trialCard.contactSales',
-                                defaultMessage: 'Contact sales',
+                                defaultMessage: 'Contact Sales',
                             })}
                         </button>
                     </>
