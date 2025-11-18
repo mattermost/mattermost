@@ -241,25 +241,91 @@ func (a *App) sanitizePostMetadataForUserAndChannel(rctx request.CTX, post *mode
 }
 
 func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
-	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
-		return post, nil
+	// Sanitize permalink embeds based on permissions
+	if post.Metadata != nil && len(post.Metadata.Embeds) > 0 {
+		previewPost := post.GetPreviewPost()
+		if previewPost != nil {
+			previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
+			if err != nil {
+				return nil, err
+			}
+
+			if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
+				removePermalinkMetadataFromPost(post)
+			}
+		}
 	}
 
-	previewPost := post.GetPreviewPost()
-	if previewPost == nil {
-		return post, nil
-	}
-
-	previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
-	if err != nil {
-		return nil, err
-	}
-
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
-	}
+	// Sanitize channel mentions based on permissions
+	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
 
 	return post, nil
+}
+
+// sanitizeChannelMentionsForUser filters channel mentions in post props based on the viewer's
+// permissions. Only channels the user has permission to read will be included in the returned post.
+// This prevents information disclosure of private channel names/metadata.
+func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string) *model.Post {
+	channelMentionsProp := post.GetProp(model.PostPropsChannelMentions)
+	if channelMentionsProp == nil {
+		return post
+	}
+
+	mentionsMap, ok := channelMentionsProp.(map[string]any)
+	if !ok {
+		return post
+	}
+
+	sanitized := make(map[string]any)
+
+	for channelName, data := range mentionsMap {
+		dataMap, ok := data.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		// Get team_name from the mention data
+		teamName, _ := dataMap["team_name"].(string)
+
+		if teamName == "" {
+			// No team information, skip this mention
+			continue
+		}
+
+		// Fetch the channel from database (gets fresh data)
+		channel, err := a.GetChannelByNameForTeamName(rctx, channelName, teamName, true)
+
+		if err != nil {
+			// Channel not found or error fetching, skip
+			continue
+		}
+
+		// Check if user has permission to read this channel
+		if a.HasPermissionToReadChannel(rctx, userID, channel) {
+			// User has permission - include in sanitized props with FRESH data from database
+			// This ensures display_name is current (handles renames) and team info is accurate
+			team, teamErr := a.Srv().Store().Team().Get(channel.TeamId)
+			if teamErr != nil {
+				rctx.Logger().Warn("Failed to get team for channel mention", mlog.String("channel_id", channel.Id), mlog.String("team_id", channel.TeamId), mlog.Err(teamErr))
+				continue
+			}
+
+			sanitized[channelName] = map[string]any{
+				"display_name": channel.DisplayName, // Fresh from database
+				"team_name":    team.Name,
+			}
+		}
+		// Otherwise, omit from props (no information disclosure)
+	}
+
+	// Update post props with sanitized mentions
+	if len(sanitized) > 0 {
+		post.AddProp(model.PostPropsChannelMentions, sanitized)
+	} else {
+		post.DelProp(model.PostPropsChannelMentions)
+	}
+
+	return post
 }
 
 func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {

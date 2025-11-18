@@ -473,7 +473,8 @@ func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID st
 //
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
 func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
-	channelMentions := post.ChannelMentions()
+	// Use ChannelMentionsAll to scan both message and attachments
+	channelMentions := post.ChannelMentionsAll()
 	channelMentionsProp := make(map[string]any)
 
 	if len(channelMentions) > 0 {
@@ -490,17 +491,17 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			return err
 		}
 
+		// Populate channel_mentions for ALL channel types (public, private, archived)
+		// Sanitization will filter based on viewer permissions before sending to client
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelTypeOpen {
-				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
-				if err != nil {
-					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
-					continue
-				}
-				channelMentionsProp[mentioned.Name] = map[string]any{
-					"display_name": mentioned.DisplayName,
-					"team_name":    team.Name,
-				}
+			team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
+			if err != nil {
+				rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+				continue
+			}
+			channelMentionsProp[mentioned.Name] = map[string]any{
+				"display_name": mentioned.DisplayName,
+				"team_name":    team.Name,
 			}
 		}
 	}
