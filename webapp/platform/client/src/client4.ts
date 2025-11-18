@@ -2285,8 +2285,8 @@ export default class Client4 {
 
     revealBurnOnReadPost = (postId: string) => {
         return this.doFetch<{post: Post; expire_at: number}>(
-            `${this.getPostRoute(postId)}/read`,
-            {method: 'post'},
+            `${this.getPostRoute(postId)}/reveal`,
+            {method: 'get'},
         );
     };
 

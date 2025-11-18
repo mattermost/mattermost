@@ -20,7 +20,7 @@ import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
 
-import {Locations, Constants, PostTypes} from 'utils/constants';
+import {Locations, Constants} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
 import type {PostActionComponent} from 'types/store/plugins';
@@ -55,7 +55,7 @@ type Props = {
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
-    isBurnOnReadEnabled?: boolean;
+    isBurnOnReadPost?: boolean;
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -121,7 +121,7 @@ const PostOptions = (props: Props): JSX.Element => {
 
     const isPostDeleted = post && post.state === Posts.POST_DELETED;
     const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu;
-    const isBurnOnReadPost = props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ;
+    const isBurnOnReadPost = props.isBurnOnReadPost || false;
     const showCommentIcon = !isBurnOnReadPost && (isFromAutoResponder || (!systemMessage && (isMobileView ||
             hoverLocal || (!post.root_id && Boolean(props.hasReplies)) ||
             props.isFirstReply) && props.location === Locations.CENTER));

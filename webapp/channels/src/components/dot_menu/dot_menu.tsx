@@ -38,7 +38,7 @@ import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
-import {Locations, ModalIdentifiers, Constants, PostTypes} from 'utils/constants';
+import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
@@ -136,6 +136,7 @@ type Props = {
     isFollowingThread?: boolean;
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
+    isBurnOnReadPost: boolean;
 }
 
 type State = {
@@ -415,7 +416,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
-        const isBurnOnReadPost = this.props.post.type === PostTypes.BURN_ON_READ;
+        const isBurnOnReadPost = this.props.isBurnOnReadPost;
 
         this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
 
