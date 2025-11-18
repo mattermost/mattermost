@@ -140,7 +140,7 @@ Use built-in page objects:
 
 ### Test Organization
 ```
-specs/
+e2e-tests/playwright/specs/
 ├── functional/          # Feature tests
 │   ├── channels/
 │   ├── messaging/
@@ -263,8 +263,8 @@ User says: "create comprehensive tests for post reactions with edge cases"
 - **Result:** Core business logic tested, costs saved
 
 See examples:
-- Over-generated: `specs/functional/channels/search/browse_channels_min_char_autocomplete.spec.ts` (5 tests)
-- Focused version: `specs/functional/channels/search/browse_channels_min_char_autocomplete_focused.spec.ts` (2 tests)
+- Over-generated: `e2e-tests/playwright/specs/functional/channels/search/browse_channels_min_char_autocomplete.spec.ts` (5 tests)
+- Focused version: `e2e-tests/playwright/specs/functional/channels/search/browse_channels_min_char_autocomplete_focused.spec.ts` (2 tests)
 
 ## Quality Standards
 
@@ -277,26 +277,3 @@ Generated tests must:
 - ✅ Handle async operations properly
 - ✅ Include descriptive comments
 - ✅ Follow Mattermost conventions
-
-## Cost and Time Efficiency
-
-**Default approach** (automatic generation):
-- **1-3 tests maximum** covering core business logic
-- Focus on positive flow + critical negative flows only
-- Saves AI costs and generation time
-
-**Comprehensive mode** (explicit user request):
-- User must explicitly say: "create comprehensive tests", "include edge cases", or "full coverage"
-- Only then generate 5+ tests with exhaustive scenarios
-
-## Support
-
-For detailed guidance, refer to:
-- `guidelines.md` - Comprehensive guidelines (692 lines)
-- `examples.md` - Real-world examples (760 lines)
-- `mattermost-patterns.md` - Mattermost patterns (700 lines)
-- Agent documentation in `agents/` directory
-
----
-
-**Result:** Developers contribute high-quality E2E tests automatically!

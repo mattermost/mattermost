@@ -76,9 +76,9 @@ e2e-tests/playwright/
   - `post_message.spec.ts`
   - `user_profile.spec.ts`
 - **Location**: Match feature area
-  - Channel features → `specs/functional/channels/`
-  - Messaging features → `specs/functional/messaging/`
-  - Visual tests → `specs/visual/{category}/`
+  - Channel features → `e2e-tests/playwright/specs/functional/channels/`
+  - Messaging features → `e2e-tests/playwright/specs/functional/messaging/`
+  - Visual tests → `e2e-tests/playwright/specs/visual/{category}/`
 
 ### Test Grouping
 - Use `test.describe()` for related tests
@@ -557,7 +557,7 @@ The Generator will:
 Execute the generated tests:
 ```bash
 # Run specific test file
-npx playwright test specs/functional/channels/channel_creation.spec.ts
+npx playwright test e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts
 
 # Run with UI mode (for debugging)
 npx playwright test --ui
@@ -569,7 +569,7 @@ npx playwright test --grep @channels
 #### 5. Heal if Needed
 If tests fail:
 ```
-@playwright-healer "Fix the failing test in channel_creation.spec.ts"
+@playwright-healer "Fix the failing test in e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts"
 ```
 
 The Healer will:
@@ -878,7 +878,7 @@ When you make a change, Claude Code will automatically:
 npx playwright test
 
 # Run specific test file
-npx playwright test specs/functional/channels/channel_creation.spec.ts
+npx playwright test e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts
 
 # Run tests matching pattern
 npx playwright test channel

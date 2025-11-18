@@ -52,8 +52,8 @@ Use appropriate tags for test organization:
 
 ### 1. File Organization
 - Place tests in: `e2e-tests/playwright/specs/[category]/[feature]/`
-- Visual tests: `specs/visual/[category]/`
-- Functional tests: `specs/functional/[category]/`
+- Visual tests: `e2e-tests/playwright/specs/visual/[category]/`
+- Functional tests: `e2e-tests/playwright/specs/functional/[category]/`
 - Use descriptive file names: `feature_name.spec.ts`
 
 ### 2. Test Structure Best Practices

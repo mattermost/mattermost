@@ -1,18 +1,17 @@
 # E2E Test Creation Skill
 
-## Status: ✅ Properly Configured
+## Overview
 
-This skill is now properly set up as a Claude Code skill and will be available after restarting Claude Code.
+The E2E Test Creation skill provides automated generation of Playwright end-to-end tests for Mattermost frontend changes. This skill integrates comprehensive guidelines, patterns, and examples to create robust, maintainable tests following Mattermost conventions.
 
-## What Was Created
+## Directory Structure
 
-### Directory Structure
 ```
 .claude/skills/e2e-test-creation/
 ├── SKILL.md                      # Main skill definition with YAML frontmatter
-├── guidelines.md                 # Complete test creation guidelines (25KB)
-├── examples.md                   # Real-world test examples (25KB)
-├── mattermost-patterns.md        # Mattermost-specific patterns (19KB)
+├── guidelines.md                 # Complete test creation guidelines
+├── examples.md                   # Real-world test examples
+├── mattermost-patterns.md        # Mattermost-specific patterns
 ├── README.md                     # This file
 └── agents/
     ├── planner.md                # Test planning guidance
@@ -20,129 +19,108 @@ This skill is now properly set up as a Claude Code skill and will be available a
     └── healer.md                 # Test healing strategies
 ```
 
-### Skill Configuration
+## Skill Configuration
 
 **Name:** `e2e-test-creation`
 
-**Description:** Automatically generates E2E Playwright tests for Mattermost frontend changes. Provides comprehensive guidelines, patterns, and examples for creating robust, maintainable tests following Mattermost conventions.
+**Type:** Project skill (managed)
 
-**Auto-activates when:**
-- You modify files in `webapp/`
-- You create or update React components
-- You add new user-facing features
+**Description:** Automatically generates E2E Playwright tests for Mattermost frontend changes with comprehensive guidelines, patterns, and examples.
 
-## How to Test
+**Activation Triggers:**
+- Modifications to files in `webapp/` directory
+- Creation or updates to React components
+- Addition of new user-facing features
 
-### 1. Restart Claude Code
-The skill won't be available until Claude Code restarts and picks up the new skill configuration.
+## Activation
 
-### 2. Verify Skill is Loaded
-After restart, you can check if the skill is available (exact command may vary):
-```bash
-# In Claude Code, the skill should appear in available skills
-# You can try invoking it to test
+### Automatic Activation
+The skill activates automatically when:
+- Files in the `webapp/` directory are modified
+- React components are created or updated
+- New user-facing features are added
+
+### Manual Activation
+Invoke the skill explicitly using the Skill tool:
+```typescript
+Skill({skill: "e2e-test-creation"})
 ```
 
-### 3. Test Automatic Activation
-Make a change to a webapp file and see if Claude automatically loads the skill:
-```bash
-# Example: Make a small change to any React component
-# Claude should detect it and activate the e2e-test-creation skill
+Or reference it in conversation:
+```
+"Create E2E tests for the channel sidebar feature"
 ```
 
-### 4. Manual Test
-You can also explicitly mention the skill or request E2E test generation:
-```
-"I need to create E2E tests for the channel sidebar feature"
-```
+## Features
 
-## What This Skill Provides
+### Three-Phase Workflow
 
-### Comprehensive Documentation
-- **77KB of documentation** across 7 files
-- Mattermost-specific patterns and conventions
-- Real-world examples
-- Three-phase workflow (Planning → Generation → Healing)
+1. **Planning Phase**: Analyzes features and creates focused test plans (1-3 core scenarios)
+2. **Generation Phase**: Transforms plans into executable Playwright tests
+3. **Healing Phase**: Automatically fixes flaky or broken tests
 
 ### Test Quality Standards
-- Uses Mattermost's `pw` fixture
-- Follows page object patterns
-- Semantic selectors (data-testid, ARIA)
-- Proper async handling
-- Test isolation and cleanup
 
-### Coverage
-- When to create E2E tests (and when not to)
-- Test organization and structure
-- Best practices for selectors, waits, assertions
-- Common patterns (real-time, modals, error handling)
-- Multi-user testing scenarios
+- Utilizes Mattermost's custom `pw` fixture
+- Implements page object patterns
+- Uses semantic selectors (data-testid, ARIA roles)
+- Handles async operations properly
+- Ensures test isolation and cleanup
+- Follows Mattermost documentation requirements (JSDoc, comment prefixes)
+
+### Documentation Coverage
+
+The skill includes comprehensive documentation covering:
+- Test creation guidelines and best practices
+- Mattermost-specific E2E patterns
+- Real-world test examples
+- Selector strategies and wait patterns
+- Multi-user and real-time testing
 - Visual regression testing
+- Test healing strategies
 
-## Integration with CLAUDE.md
+## Integration
 
-The root [CLAUDE.md](/Users/yasserkhan/Documents/mattermost/mattermost/CLAUDE.md) file has been updated to reference this skill and explain:
-- When the skill activates
-- The three-phase workflow
-- Example workflows
-- Quality standards
-- Skill documentation location
+This skill integrates with the project's root `CLAUDE.md` file, which contains:
+- Automatic test generation workflow
+- When to create E2E tests
+- Quality standards and requirements
+- CI/CD integration details
 
-## Company-Wide Deployment
+## Test Generation Defaults
 
-### Zero Setup Required
-✅ Just clone the repo and the skill works
-✅ No individual developer configuration needed
-✅ Version controlled with the codebase
-✅ Automatic updates via git pull
+**Default Mode (Cost-Efficient):**
+- Generates 1-3 tests maximum
+- Focuses on core business logic only
+- Tests happy path + critical error scenarios
 
-### Advantages Over Previous Setup
-- ✅ **Functional** - Actually works as a Claude Code skill
-- ✅ **Automatic** - Loads when needed without manual invocation
-- ✅ **Testable** - Can verify it's working
-- ✅ **Standard** - Uses official Claude Code skills system
-- ✅ **Maintainable** - Easy to update and extend
-- ✅ **Documented** - Clear structure and usage
+**Comprehensive Mode (Explicit Request Only):**
+- Generates 5+ tests with full coverage
+- Includes edge cases and multi-user scenarios
+- Activated only when explicitly requested by user
 
-### Migration Notes
-- Old documentation in `e2e-tests/playwright/.ai/` is preserved for reference
-- The active skill is in `.claude/skills/e2e-test-creation/`
-- All content has been migrated and properly structured
-- CLAUDE.md updated to point to new location
+## Documentation Files
 
-## Next Steps
+| File | Purpose | Size |
+|------|---------|------|
+| `SKILL.md` | Main skill definition | Primary |
+| `guidelines.md` | Complete test creation guidelines | ~25KB |
+| `examples.md` | Real-world test examples | ~25KB |
+| `mattermost-patterns.md` | Mattermost-specific patterns | ~19KB |
+| `agents/planner.md` | Test planning guidance | Agent |
+| `agents/generator.md` | Test generation patterns | Agent |
+| `agents/healer.md` | Test healing strategies | Agent |
 
-1. **Restart Claude Code** to load the skill
-2. **Test with a webapp change** to verify automatic activation
-3. **Share with team** - They just need to pull the latest code
-4. **Optional**: Add skill usage to onboarding docs
+## Usage Example
 
-## Troubleshooting
+When modifying `webapp/components/post/reactions/`, the skill:
 
-### Skill not loading?
-- Ensure Claude Code was restarted
-- Check that `.claude/skills/e2e-test-creation/SKILL.md` exists
-- Verify YAML frontmatter is valid
+1. **Plans**: Creates test plan for core reaction functionality (2 tests)
+   - Happy path: Adding a reaction
+   - Critical error: API failure handling
 
-### Skill not activating automatically?
-- Make sure you're modifying files in `webapp/`
-- Try explicitly mentioning "E2E tests" or "test generation"
-- Check Claude Code logs for skill loading
+2. **Generates**: Creates tests in `e2e-tests/playwright/specs/functional/messaging/post_reactions.spec.ts`
 
-### Need to update the skill?
-- Edit files in `.claude/skills/e2e-test-creation/`
-- Changes take effect after Claude Code restart
-- All team members get updates via git
+3. **Runs**: Executes tests with `npx playwright test`
 
-## Support
-
-For questions or issues:
-- Check this README
-- Review SKILL.md for overview
-- Read guidelines.md for detailed instructions
-- See examples.md for real-world patterns
-- Check mattermost-patterns.md for Mattermost specifics
-
----
-
-**Status:** Ready for company-wide use! 🚀
+4. **Heals**: Fixes any failures automatically
