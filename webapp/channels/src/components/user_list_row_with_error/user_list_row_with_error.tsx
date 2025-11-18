@@ -90,9 +90,9 @@ export default class UserListRowWithError extends React.PureComponent<Props, Sta
             email = (
                 <FormattedMessage
                     id='admin.user_item.email_title'
-                    defaultMessage='<b>Email:</b> {email}'
+                    defaultMessage='<strong>Email:</strong> {email}'
                     values={{
-                        b: (values: React.ReactNode) => <b>{values}</b>,
+                        strong: (values: React.ReactNode) => <strong>{values}</strong>,
                         email: this.props.user.email,
                     }}
                 />
