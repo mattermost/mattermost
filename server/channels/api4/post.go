@@ -1414,7 +1414,8 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		teamMember, appErr := c.App.GetTeamMember(c.AppContext, channel.TeamId, userID)
+		var teamMember *model.TeamMember
+		teamMember, appErr = c.App.GetTeamMember(c.AppContext, channel.TeamId, userID)
 		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 			c.Err = appErr
 			return
