@@ -43,9 +43,7 @@ export default class ConfigurationSettings {
     }
 
     async setChannelBannerTextColor(color: string) {
-        const colorInput = this.container.locator(
-            '#channel_banner_banner_background_color_picker-inputColorValue',
-        );
+        const colorInput = this.container.locator('#channel_banner_banner_background_color_picker-inputColorValue');
         await expect(colorInput).toBeVisible();
         await colorInput.fill(color);
         expect((await colorInput.inputValue()).replace('#', '')).toBe(color);
