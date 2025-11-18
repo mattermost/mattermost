@@ -26,11 +26,12 @@ type Props = {
     isBot: boolean;
     isSystemMessage: boolean;
     isMobileView: boolean;
+    location: string;
 };
 
 const PostUserProfile = (props: Props): JSX.Element | null => {
     const intl = useIntl();
-    const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames} = props;
+    const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames, location} = props;
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
 
@@ -42,8 +43,8 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
     if (props.compactDisplay) {
         colon = <strong className='colon'>{':'}</strong>;
 
-        // Add AI indicator in compact mode after username
-        if (hasAiGeneratedMetadata(post)) {
+        // Add AI indicator in compact mode after username, but not in RHS thread view (it goes after timestamp there)
+        if (hasAiGeneratedMetadata(post) && !(location === 'RHS_ROOT' || location === 'RHS_COMMENT')) {
             aiIndicator = (
                 <AiGeneratedIndicator
                     userId={post.props.ai_generated_by as string}
@@ -158,10 +159,10 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
 
     return (<div className='col col__name'>
         {userProfile}
-        {aiIndicator}
         {colon}
         {botIndicator}
         {customStatus}
+        {aiIndicator}
     </div>);
 };
 

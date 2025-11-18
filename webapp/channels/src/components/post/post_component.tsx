@@ -589,7 +589,7 @@ function PostComponent(props: Props) {
                                     />
                                 }
                                 {priority}
-                                {!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost) &&
+                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
                                     PostUtils.hasAiGeneratedMetadata(post) && (
                                     <AiGeneratedIndicator
                                         userId={post.props.ai_generated_by as string}
