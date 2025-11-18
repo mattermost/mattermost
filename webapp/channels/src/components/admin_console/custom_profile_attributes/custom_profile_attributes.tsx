@@ -27,7 +27,7 @@ const AttributeHelpText = memo(({attributeKey, attributeName, attributeType}: At
     <div className='help-text-container'>
         {attributeKey === 'ldap' && (
             <FormattedMessage
-                id='admin.customProfileAttribDesc'
+                id='admin.customProfileAttribDesc.ldap'
                 defaultMessage='(Optional) The attribute in the AD/LDAP server used to populate the {name} of users in Mattermost. When set, users cannot edit their {name}, since it is synchronized with the LDAP server. When left blank, users can set their {name} in <strong>Account Menu > Account Settings > Profile</strong>.'
                 values={{
                     name: attributeName,
@@ -37,7 +37,7 @@ const AttributeHelpText = memo(({attributeKey, attributeName, attributeType}: At
         )}
         {attributeKey === 'saml' && (
             <FormattedMessage
-                id='admin.customProfileAttribDesc'
+                id='admin.customProfileAttribDesc.saml'
                 defaultMessage='(Optional) The attribute in the SAML Assertion that will be used to populate the {name} of users in Mattermost.'
                 values={{
                     name: attributeName,
