@@ -683,7 +683,7 @@ const AdminDefinition: AdminDefinitionType = {
                                         userAttributes: (
                                             <a href='../system_attributes/user_attributes'>
                                                 <FormattedMessage
-                                                    id='admin.system_properties.user_properties.title'
+                                                    id='admin.accesscontrol.user_properties.link.label'
                                                     defaultMessage='User Attributes'
                                                 />
                                             </a>
