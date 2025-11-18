@@ -755,7 +755,7 @@ function createNotificationPreferencesButton(channel: Channel, currentUser: User
         <ToggleModalButton
             id='channelIntroNotificationPreferencesButton'
             modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
-            ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences', defaultMessage: 'Notification Preferences'})}
+            ariaLabel={Utils.localizeMessage({id: 'intro_messages.notificationPreferences.label', defaultMessage: 'Notification Preferences'})}
             className={'action-button'}
             dialogType={ChannelNotificationsModal}
             dialogProps={{channel, currentUser, focusOriginElement: 'channelIntroNotificationPreferencesButton'}}
