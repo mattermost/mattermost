@@ -62,7 +62,7 @@ const LatexBlock = ({
             >
                 <FormattedMessage
                     id='katex.error'
-                    defaultMessage={'Couldn\'t compile your Latex code. Please review the syntax and try again.'}
+                    defaultMessage="Couldn't compile your Latex code. Please review the syntax and try again."
                 />
             </div>
         );
