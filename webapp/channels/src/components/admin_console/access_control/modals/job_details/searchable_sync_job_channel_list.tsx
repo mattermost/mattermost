@@ -254,7 +254,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
                 clearable={true}
                 onClear={handleClear}
                 value={channelSearchValue}
-                aria-label={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search Channels'})}
+                aria-label={props.intl.formatMessage({id: 'filtered_channels_list.search.label', defaultMessage: 'Search Channels'})}
             />
         </div>
     );
