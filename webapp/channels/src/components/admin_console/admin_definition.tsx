@@ -734,7 +734,7 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 schema: {
                     id: 'AttributeBasedAccessControl',
-                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access (Beta)'}),
+                    name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
                     settings: [
                         {
                             type: 'custom',
