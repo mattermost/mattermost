@@ -5798,7 +5798,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'longtext',
                             key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
                             label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
-                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
+                            help_text: defineMessage({id: 'admin.log.AdvancedAuditLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
                             help_text_markdown: false,
                             help_text_values: {
                                 link: (msg: string) => (
