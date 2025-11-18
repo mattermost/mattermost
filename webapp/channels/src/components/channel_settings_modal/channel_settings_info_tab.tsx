@@ -408,7 +408,7 @@ function ChannelSettingsInfoTab({
                 hasError={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
                 errorMessage={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH ? formatMessage({
                     id: 'channel_settings.error_purpose_length',
-                    defaultMessage: 'The channel purpose exceeds the maximum character limit of {maxLength} characters.',
+                    defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
                 }, {
                     maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
                 }) : undefined
