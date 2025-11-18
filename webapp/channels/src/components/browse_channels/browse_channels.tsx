@@ -188,10 +188,6 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
     };
 
-    handleClearSearch = () => {
-        this.search('');
-    };
-
     search = (term: string) => {
         clearTimeout(this.searchTimeoutId);
 
@@ -368,36 +364,13 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             />
         );
 
-        const clearSearchButton = search && this.state.searchTerm ? (
-            <button
-                type='button'
-                data-testid='clear-search-button'
-                className='btn btn-tertiary btn-sm'
-                onClick={this.handleClearSearch}
-                aria-label={localizeMessage({id: 'browse_channels.clearSearch', defaultMessage: 'Clear Search'})}
-            >
-                <i className='icon-close'/>
-                <FormattedMessage
-                    id='browse_channels.clearSearch'
-                    defaultMessage='Clear Search'
-                />
-            </button>
-        ) : null;
-
-        const headerButtons = (
-            <div className='browse-channels-header-buttons'>
-                {clearSearchButton}
-                {createNewChannelButton('btn-secondary btn-sm')}
-            </div>
-        );
-
         return (
             <GenericModal
                 id='browseChannelsModal'
                 onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={headerButtons}
+                headerButton={createNewChannelButton('btn-secondary btn-sm')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}
