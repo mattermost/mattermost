@@ -567,8 +567,6 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 
 	editHistories, appErr := a.GetEditHistoryForPost(flaggedPost.Id)
 	if appErr != nil {
-		//editHistories = []*model.Post{}
-
 		if appErr.StatusCode != http.StatusNotFound {
 			rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to get edit history for flaggedPost", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		}
@@ -718,7 +716,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 
 	postHiddenByContentFlagging := contentFlaggingManaged != nil && string(contentFlaggingManaged.Value) == "true"
 
-	//if flaggedPost.DeleteAt > 0 {
 	if postHiddenByContentFlagging {
 		statusField, ok := mappedFields[ContentFlaggingPropertyNameStatus]
 		if !ok {
@@ -798,7 +795,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
 		appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
 		if appErr != nil {
-			rctx.Logger().Error("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
+			rctx.Logger().Warn("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		}
 		a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
 	}
