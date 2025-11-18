@@ -297,7 +297,7 @@ describe('components/BrowseChannels', () => {
             expect(wrapper.state('search')).toEqual(true);
             expect(wrapper.state('searching')).toEqual(false);
             expect(wrapper.state('searchedChannels')).toEqual([]);
-            expect(wrapper.instance().setSearchResults).not.toBeCalled();
+            expect(wrapper.instance().setSearchResults).not.toHaveBeenCalled();
             done();
         });
     });

@@ -1185,10 +1185,6 @@
     "translation": "invalid_request: Fehlerhafte client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: client_secret fehlt."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Fehlerhafter grant_type."
   },
@@ -11086,5 +11082,33 @@
   {
     "id": "app.content_flagging.set_thread_replies_properties.app_error",
     "translation": "Das Setzen von Eigenschaftswerten auf Antworten von Unterhaltungen für den markierten Beitrag ist fehlgeschlagen."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Kanälen ist nicht aktiviert. ServiceSettings.EnableAPIChannelDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Teams ist nicht aktiviert. ServiceSettings.EnableAPITeamDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Benutzern ist nicht aktiviert. ServiceSettings.EnableAPIUserDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Agenten konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge-Aufruf fehlgeschlagen."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM Dienste konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge-Aufruf fehlgeschlagen."
   }
 ]
