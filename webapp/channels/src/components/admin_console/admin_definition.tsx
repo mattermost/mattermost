@@ -771,7 +771,7 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'banner',
-                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            label: defineMessage({id: 'admin.info_banner.restart_required.desc', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
                             banner_type: 'info',
                         },
                         {
@@ -1665,7 +1665,7 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'banner',
-                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            label: defineMessage({id: 'admin.info_banner.restart_required.desc', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
                             banner_type: 'info',
                         },
                         {
@@ -5717,7 +5717,7 @@ const AdminDefinition: AdminDefinitionType = {
                     settings: [
                         {
                             type: 'banner',
-                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            label: defineMessage({id: 'admin.info_banner.restart_required.desc', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
                             banner_type: 'info',
                         },
                         {
