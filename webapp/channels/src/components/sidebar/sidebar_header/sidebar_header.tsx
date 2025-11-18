@@ -32,7 +32,7 @@ const SidebarHeader = (props: Props) => {
     }
 
     return (
-        <header className='sidebarHeaderContainer'>
+        <div className='sidebarHeaderContainer'>
             <SidebarTeamMenu currentTeam={currentTeam}/>
             {(props.canCreateChannel || props.canJoinPublicChannel) && (
                 <SidebarBrowseOrAddChannelMenu
@@ -48,7 +48,7 @@ const SidebarHeader = (props: Props) => {
                     onInvitePeopleClick={props.invitePeopleModal}
                 />
             )}
-        </header>
+        </div>
     );
 };
 

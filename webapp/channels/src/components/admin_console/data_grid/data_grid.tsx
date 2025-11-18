@@ -65,6 +65,7 @@ type Props = {
     };
 
     className?: string;
+    disabled?: boolean;
 };
 
 type State = {
@@ -207,6 +208,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                     term={this.props.term}
                     filterProps={this.props.filterProps}
                     extraComponent={this.props.extraComponent}
+                    disabled={this.props.disabled}
                 />
             );
         }
@@ -262,6 +264,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             }}
                         />
                         <button
+                            aria-label='Previous page'
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm ml-2 prev ' + (firstPage ? 'disabled' : '')}
                             onClick={prevPageFn}
@@ -270,6 +273,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                             <PreviousIcon/>
                         </button>
                         <button
+                            aria-label='Next page'
                             type='button'
                             className={'btn btn-quaternary btn-icon btn-sm next ' + (lastPage ? 'disabled' : '')}
                             onClick={nextPageFn}

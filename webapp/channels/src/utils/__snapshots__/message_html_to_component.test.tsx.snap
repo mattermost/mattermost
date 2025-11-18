@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`messageHtmlToComponent At mention 1`] = `
 <p>
@@ -112,6 +112,42 @@ exports[`messageHtmlToComponent Inline markdown image where image is link 1`] = 
     />
   </a>
 </div>
+`;
+
+exports[`messageHtmlToComponent Remote at mention 1`] = `
+<p>
+  <span
+    className="mention--highlight"
+  >
+    <span
+      data-mention="joram"
+    >
+      <Memo(Connect(Component))
+        disableGroupHighlight={false}
+        disableHighlight={false}
+        mentionName="joram"
+      >
+        @joram
+      </Memo(Connect(Component))>
+    </span>
+  </span>
+</p>
+`;
+
+exports[`messageHtmlToComponent Remote at mention 2`] = `
+<p>
+  <span
+    data-mention="joram"
+  >
+    <Memo(Connect(Component))
+      disableGroupHighlight={false}
+      disableHighlight={true}
+      mentionName="joram"
+    >
+      @joram
+    </Memo(Connect(Component))>
+  </span>
+</p>
 `;
 
 exports[`messageHtmlToComponent html 1`] = `

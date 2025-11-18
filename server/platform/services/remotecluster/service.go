@@ -290,7 +290,7 @@ func (rcs *Service) pause() {
 	rcs.server.Log().Debug("Remote Cluster Service inactive")
 }
 
-// SetActive forces the service to be active or inactive
+// SetActive forces the service to be active or inactive for testing
 func (rcs *Service) SetActive(active bool) {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()

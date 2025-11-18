@@ -4,28 +4,31 @@
 /* eslint-disable max-lines */
 
 import React from 'react';
-import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
-import type {CloudState, Product} from '@mattermost/types/cloud';
-import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
-import type {Job} from '@mattermost/types/jobs';
 
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
-    ldapTest, invalidateAllCaches, reloadConfig, testS3Connection,
-    removeIdpSamlCertificate, uploadIdpSamlCertificate,
-    removePrivateSamlCertificate, uploadPrivateSamlCertificate,
-    removePublicSamlCertificate, uploadPublicSamlCertificate,
-    removePrivateLdapCertificate, uploadPrivateLdapCertificate,
-    removePublicLdapCertificate, uploadPublicLdapCertificate,
-    invalidateAllEmailInvites, testSmtp, testSiteURL, getSamlMetadataFromIdp, setSamlIdpCertificateFromMetadata,
+    getSamlMetadataFromIdp,
+    invalidateAllCaches,
+    invalidateAllEmailInvites,
+    reloadConfig,
+    removeIdpSamlCertificate,
+    removePrivateSamlCertificate,
+    removePublicSamlCertificate,
+    setSamlIdpCertificateFromMetadata,
+    testS3Connection,
+    testSiteURL,
+    testSmtp,
+    uploadIdpSamlCertificate,
+    uploadPrivateSamlCertificate,
+    uploadPublicSamlCertificate,
 } from 'actions/admin_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import ContentFlaggingSettings from 'components/admin_console/content_flagging/content_flagging_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
@@ -34,10 +37,8 @@ import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/
 import TeamAnalytics from 'components/analytics/team_analytics';
 import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/analytics/team_analytics/team_analytics';
 import ExternalLink from 'components/external_link';
-import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks, CacheTypes, getLicenseTier} from 'utils/constants';
-import {isCloudLicense} from 'utils/license_utils';
+import {AboutLinks, CacheTypes, Constants, DeveloperLinks, DocLinks, LicenseSkus} from 'utils/constants';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';
 
@@ -45,6 +46,7 @@ import PolicyList from './access_control';
 import AccessControlPolicyJobs from './access_control/jobs';
 import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
+import {getRestrictedIndicator, it, usesLegacyOauth, validators} from './admin_definition_helpers';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
@@ -52,8 +54,8 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
@@ -67,26 +69,34 @@ import GlobalDataRetentionForm from './data_retention_settings/global_policy_for
 import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from './database_settings';
 import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
-    LDAPFeatureDiscovery,
-    SAMLFeatureDiscovery,
-    OpenIDFeatureDiscovery,
-    OpenIDCustomFeatureDiscovery,
     AnnouncementBannerFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataRetentionFeatureDiscovery,
-    GuestAccessFeatureDiscovery,
-    SystemRolesFeatureDiscovery,
+    GitLabFeatureDiscovery,
     GroupsFeatureDiscovery,
+    GuestAccessFeatureDiscovery,
+    LDAPFeatureDiscovery,
     MobileSecurityFeatureDiscovery,
+    OpenIDCustomFeatureDiscovery,
+    OpenIDFeatureDiscovery,
+    SAMLFeatureDiscovery,
+    SystemRolesFeatureDiscovery,
 } from './feature_discovery/features';
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
+import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
+import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
+import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
+import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
+import LicensedSectionContainer from './licensed_section_container';
+import AutoTranslation, {searchableStrings as autoTranslationSearchableStrings} from './localization/auto_translation';
+import Localization, {searchableStrings as localizationSearchableStrings} from './localization/localization';
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings, {searchableStrings as passwordSearchableStrings} from './password_settings';
@@ -111,9 +121,12 @@ import ChannelSettings from './team_channel_settings/channel';
 import ChannelDetails from './team_channel_settings/channel/details';
 import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
-import type {Check, AdminDefinition as AdminDefinitionType, ConsoleAccess} from './types';
+import type {AdminDefinition as AdminDefinitionType} from './types';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
+
+// Re-export for backward compatibility
+export {it};
 
 const FILE_STORAGE_DRIVER_LOCAL = 'local';
 const FILE_STORAGE_DRIVER_S3 = 'amazons3';
@@ -200,107 +213,6 @@ const SAML_SETTINGS_CANONICAL_ALGORITHM_C14N11 = 'Canonical1.1';
 //   - remove_action: An store action to remove the file.
 //   - fileType: A list of extensions separated by ",". E.g. ".jpg,.png,.gif".
 
-export const it = {
-    not: (func: Check) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
-        return typeof func === 'function' ? !func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : !func;
-    },
-    all: (...funcs: Check[]) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
-        for (const func of funcs) {
-            if (typeof func === 'function' ? !func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : !func) {
-                return false;
-            }
-        }
-        return true;
-    },
-    any: (...funcs: Check[]) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => {
-        for (const func of funcs) {
-            if (typeof func === 'function' ? func(config, state, license, enterpriseReady, consoleAccess, cloud, isSystemAdmin) : func) {
-                return true;
-            }
-        }
-        return false;
-    },
-    stateMatches: (key: string, regex: RegExp) => (config: Partial<AdminConfig>, state: any) => state[key].match(regex),
-    stateEquals: (key: string, value: any) => (config: Partial<AdminConfig>, state: any) => state[key] === value,
-    stateIsTrue: (key: string) => (config: Partial<AdminConfig>, state: any) => Boolean(state[key]),
-    stateIsFalse: (key: string) => (config: Partial<AdminConfig>, state: any) => !state[key],
-    configIsTrue: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]),
-    configIsFalse: (group: keyof Partial<AdminConfig>, setting: string) => (config: Partial<AdminConfig>) => !(config[group] as any)?.[setting],
-    configContains: (group: keyof Partial<AdminConfig>, setting: string, word: string) => (config: Partial<AdminConfig>) => Boolean((config[group] as any)?.[setting]?.includes(word)),
-    enterpriseReady: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean) => Boolean(enterpriseReady),
-    licensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => license?.IsLicensed === 'true',
-    cloudLicensed: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license)),
-    licensedForFeature: (feature: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
-    licensedForSku: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
-    minLicenseTier: (skuName: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && getLicenseTier(license.SkuShortName) >= getLicenseTier(skuName)),
-    licensedForCloudStarter: (config: Partial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
-    hidePaymentInfo: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
-        if (!cloud) {
-            return true;
-        }
-        const productId = cloud?.subscription?.product_id;
-        if (!productId) {
-            return false;
-        }
-        return cloud?.subscription?.is_free_trial === 'true';
-    },
-    userHasReadPermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
-    userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
-    userHasWritePermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.write as any)?.[key],
-    isSystemAdmin: (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isSystemAdmin?: boolean) => Boolean(isSystemAdmin),
-};
-
-export const validators = {
-    isRequired: (text: MessageDescriptor | string) => (value: string) => new ValidationResult(Boolean(value), text),
-    minValue: (min: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value >= min), text),
-    maxValue: (max: number, text: MessageDescriptor | string) => (value: number) => new ValidationResult((value <= max), text),
-};
-
-const usesLegacyOauth = (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
-    if (!config.GitLabSettings || !config.GoogleSettings || !config.Office365Settings) {
-        return false;
-    }
-
-    return it.any(
-        it.all(
-            it.not(it.configContains('GitLabSettings', 'Scope', 'openid')),
-            it.any(
-                it.configIsTrue('GitLabSettings', 'Id'),
-                it.configIsTrue('GitLabSettings', 'Secret'),
-            ),
-        ),
-        it.all(
-            it.not(it.configContains('GoogleSettings', 'Scope', 'openid')),
-            it.any(
-                it.configIsTrue('GoogleSettings', 'Id'),
-                it.configIsTrue('GoogleSettings', 'Secret'),
-            ),
-        ),
-        it.all(
-            it.not(it.configContains('Office365Settings', 'Scope', 'openid')),
-            it.any(
-                it.configIsTrue('Office365Settings', 'Id'),
-                it.configIsTrue('Office365Settings', 'Secret'),
-            ),
-        ),
-    )(config, state, license, enterpriseReady, consoleAccess, cloud);
-};
-
-const getRestrictedIndicator = (displayBlocked = false, minimumPlanRequiredForFeature = LicenseSkus.Professional) => ({
-    value: (cloud: CloudState) => (
-        <RestrictedIndicator
-            useModal={false}
-            blocked={displayBlocked || !(cloud?.subscription?.is_free_trial === 'true')}
-            minimumPlanRequiredForFeature={minimumPlanRequiredForFeature}
-            tooltipMessageBlocked={defineMessage({
-                id: 'admin.sidebar.restricted_indicator.tooltip.message.blocked',
-                defaultMessage: 'This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial',
-            })}
-        />
-    ),
-    shouldDisplay: (license: ClientLicense, subscriptionProduct: Product|undefined) => displayBlocked || (isCloudLicense(license) && subscriptionProduct?.sku === CloudProducts.STARTER),
-});
-
 const adminDefinitionMessages = defineMessages({
     data_retention_title: {id: 'admin.data_retention.title', defaultMessage: 'Data Retention Policy'},
     ip_filtering_title: {id: 'admin.sidebar.ip_filtering', defaultMessage: 'IP Filtering'},
@@ -323,6 +235,7 @@ const adminDefinitionMessages = defineMessages({
     redis_clientcache_title: {id: 'admin.cacheSettings.redisClientCache', defaultMessage: 'Disable Client Cache'},
     redis_clientcache_desc: {id: 'admin.cacheSettings.redisClientCacheDesc', defaultMessage: 'When true, client-side caching is disabled.'},
 });
+
 const AdminDefinition: AdminDefinitionType = {
     about: {
         icon: (
@@ -525,7 +438,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.groups', defaultMessage: 'Groups'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'Groups',
@@ -624,6 +536,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
+                    it.licensedForSku(LicenseSkus.Entry),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -637,6 +550,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
+                    it.licensedForSku(LicenseSkus.Entry),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -652,7 +566,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
@@ -678,10 +591,7 @@ const AdminDefinition: AdminDefinitionType = {
             />
         ),
         sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
-        isHidden: it.not(it.all(
-            it.minLicenseTier(LicenseSkus.Enterprise),
-            it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-        )),
+        isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.USER_MANAGEMENT)),
         subsections: {
             system_properties: {
                 url: 'system_attributes/user_attributes',
@@ -696,11 +606,33 @@ const AdminDefinition: AdminDefinitionType = {
                     component: SystemProperties,
                 },
             },
+            user_attributes_feature_discovery: {
+                url: 'system_attributes/user_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
+                ),
+                schema: {
+                    id: 'SystemProperties',
+                    name: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: UserAttributesFeatureDiscovery,
+                            key: 'UserAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
             access_control_policy_details_edit: {
                 url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.any(
@@ -716,7 +648,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control/edit_policy',
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
@@ -730,14 +662,13 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'AttributeBasedAccessControl',
-                    isBeta: true,
                     name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
                     sections: [
                         {
@@ -798,8 +729,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
-                    it.licensedForSku(LicenseSkus.EnterpriseAdvanced),
-                    it.not(it.enterpriseReady),
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 schema: {
@@ -2005,10 +1935,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     </ExternalLink>
                                 ),
                             },
-                            onConfigSave: (displayVal, previousVal) => {
-                                if (previousVal && previousVal !== displayVal) {
-                                    trackEvent('ui', 'diagnostics_disabled');
-                                }
+                            onConfigSave: (displayVal) => {
                                 return displayVal;
                             },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
@@ -2224,6 +2151,33 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
                             help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
                         },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileEnableSecureFilePreview',
+                            label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: 'Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app’s cache and cannot be exported or shared.'}),
+                            help_text_values: {
+                                mobileAllowDownloads: (
+                                    <a href='../site_config/file_sharing_downloads'>
+                                        <b>
+                                            <FormattedMessage
+                                                id='admin.mobileSecurity.mobileAllowDownloads'
+                                                defaultMessage='Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile'
+                                            />
+                                        </b>
+                                    </a>
+                                ),
+                            },
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.MobileAllowPdfLinkNavigation',
+                            label: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationTitle', defaultMessage: 'Allow Link Navigation in Secure PDFs:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationDescription', defaultMessage: 'Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app. Has no effect when Secure File Preview Mode is disabled.'}),
+                            isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                        },
                     ],
                 },
             },
@@ -2234,7 +2188,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
                     it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MobileSecurityFeatureDiscoverySettings',
@@ -2489,51 +2442,38 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/localization',
                 title: defineMessage({id: 'admin.sidebar.localization', defaultMessage: 'Localization'}),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                searchableStrings: localizationSearchableStrings.concat(autoTranslationSearchableStrings),
                 schema: {
                     id: 'LocalizationSettings',
                     name: defineMessage({id: 'admin.site.localization', defaultMessage: 'Localization'}),
                     settings: [
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.DefaultServerLocale',
-                            label: defineMessage({id: 'admin.general.localization.serverLocaleTitle', defaultMessage: 'Default Server Language:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.serverLocaleDescription', defaultMessage: 'Default language for system messages.'}),
+                            type: 'custom',
+                            key: 'LocalizationSettings',
+                            component: Localization,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                         },
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.DefaultClientLocale',
-                            label: defineMessage({id: 'admin.general.localization.clientLocaleTitle', defaultMessage: 'Default Client Language:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.clientLocaleDescription', defaultMessage: 'Default language for newly created users and pages where the user hasn\'t logged in.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                            type: 'custom',
+                            key: 'AutoTranslationSettings',
+                            component: AutoTranslation,
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            ),
                         },
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.AvailableLocales',
-                            label: defineMessage({id: 'admin.general.localization.availableLocalesTitle', defaultMessage: 'Available Languages:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.availableLocalesDescription', defaultMessage: 'Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you\'re manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.'}),
-                            help_text_markdown: false,
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='http://translate.mattermost.com/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
+                            type: 'custom',
+                            key: 'auto-translation-discovery',
+                            component: AutoTranslationFeatureDiscovery,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                            isHidden: it.any(
+                                it.all(
+                                    it.configIsTrue('FeatureFlags', 'AutoTranslation'),
+                                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                                 ),
-                                strong: (msg: string) => <strong>{msg}</strong>,
-                            },
-                            multiple: true,
-                            no_result: defineMessage({id: 'admin.general.localization.availableLocalesNoResults', defaultMessage: 'No results found'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'LocalizationSettings.EnableExperimentalLocales',
-                            label: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesTitle', defaultMessage: 'Enable Experimental Locales:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesDescription', defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
+                            ),
                         },
                     ],
                 },
@@ -2573,7 +2513,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'TeamSettings.RestrictDirectMessage',
                             label: defineMessage({id: 'admin.team.restrictDirectMessage', defaultMessage: 'Enable users to open Direct Message channels with:'}),
-                            help_text: defineMessage({id: 'admin.team.restrictDirectMessageDesc', defaultMessage: '"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability in the Direct Messages "More" menu to only open Direct Message channels with users who are in the same team. Note: This setting only affects the UI, not permissions on the server.'}),
+                            help_text: defineMessage({id: 'admin.team.restrictDirectMessageDesc', defaultMessage: '"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability in the Direct Messages "More" menu to only open Direct Message channels with users who are in the same team.'}),
                             options: [
                                 {
                                     value: 'any',
@@ -2617,14 +2557,6 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             isHidden: it.not(it.licensedForFeature('LockTeammateNameDisplay')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'TeamSettings.ExperimentalViewArchivedChannels',
-                            label: defineMessage({id: 'admin.viewArchivedChannelsTitle', defaultMessage: 'Allow users to view archived channels: '}),
-                            help_text: defineMessage({id: 'admin.viewArchivedChannelsHelpText', defaultMessage: 'When true, allows users to view, share and search for content of channels that have been archived. Users can only view the content in channels of which they were a member before the channel was archived.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
-                            isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
                             type: 'bool',
@@ -2934,7 +2866,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
@@ -2982,334 +2913,505 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'PostSettings',
                     name: defineMessage({id: 'admin.site.posts', defaultMessage: 'Posts'}),
-                    settings: [
+                    sections: [
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.ThreadAutoFollow',
-                            label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ServiceSettings.CollapsedThreads',
-                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
-                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
-                            help_text_values: {
-                                linkKnownIssues: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://support.mattermost.com/hc/en-us/articles/4413183568276'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                                linkCommunityChannel: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://community-daily.mattermost.com/core/channels/folded-reply-threads'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            options: [
+                            key: 'PostSettings.Threads',
+                            title: 'Threads',
+                            description: defineMessage({id: 'admin.posts.sections.threads.description', defaultMessage: 'Configure threaded discussions and auto-follow defaults.'}),
+                            settings: [
                                 {
-                                    value: 'disabled',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.off', defaultMessage: 'Disabled'}),
+                                    type: 'bool',
+                                    key: 'ServiceSettings.ThreadAutoFollow',
+                                    label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
+                                    help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
+                                    help_text_markdown: true,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                    isHidden: it.licensedForFeature('Cloud'),
                                 },
                                 {
-                                    value: 'default_off',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_off', defaultMessage: 'Enabled (Default Off)'}),
-                                },
-                                {
-                                    value: 'default_on',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_on', defaultMessage: 'Enabled (Default On)'}),
-                                },
-                                {
-                                    value: 'always_on',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.always_on', defaultMessage: 'Always On'}),
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.CollapsedThreads',
+                                    label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
+                                    help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
+                                    help_text_values: {
+                                        linkKnownIssues: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://support.mattermost.com/hc/en-us/articles/4413183568276'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                        linkCommunityChannel: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://community-daily.mattermost.com/core/channels/folded-reply-threads'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: 'disabled',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.off', defaultMessage: 'Disabled'}),
+                                        },
+                                        {
+                                            value: 'default_off',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_off', defaultMessage: 'Enabled (Default Off)'}),
+                                        },
+                                        {
+                                            value: 'default_on',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_on', defaultMessage: 'Enabled (Default On)'}),
+                                        },
+                                        {
+                                            value: 'always_on',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.always_on', defaultMessage: 'Always On'}),
+                                        },
+                                    ],
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 },
                             ],
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.PostPriority',
-                            label: defineMessage({id: 'admin.posts.postPriority.title', defaultMessage: 'Message Priority'}),
-                            help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate messages that are important or urgent. Learn more about message priority in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
+                            key: 'PostSettings.Drafts',
+                            title: 'Drafts and Scheduled Posts',
+                            description: defineMessage({id: 'admin.posts.sections.drafts.description', defaultMessage: 'Control draft syncing and scheduled sending.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowSyncedDrafts',
+                                    label: defineMessage({id: 'admin.customization.allowSyncedDrafts', defaultMessage: 'Enable server syncing of message drafts:'}),
+                                    help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
+                                    help_text_markdown: false,
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.ScheduledPosts',
+                                    label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
+                                    help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.not(it.licensed),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Priority',
+                            title: 'Priority & Urgent Notifications',
+                            description: defineMessage({id: 'admin.posts.sections.priority.description', defaultMessage: 'Set message priority and repeating notifications for urgent delivery.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.PostPriority',
+                                    label: defineMessage({id: 'admin.posts.postPriority.title', defaultMessage: 'Message Priority'}),
+                                    help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate messages that are important or urgent. Learn more about message priority in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowPersistentNotifications',
+                                    label: defineMessage({id: 'admin.posts.persistentNotifications.title', defaultMessage: 'Persistent Notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotifications.desc', defaultMessage: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationMaxRecipients',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.title', defaultMessage: 'Maximum number of recipients for persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.desc', defaultMessage: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsInterval.title', defaultMessage: 'Frequency of persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                    validate: validators.minValue(2, defineMessage({id: 'admin.posts.persistentNotificationsInterval.minValue', defaultMessage: 'Frequency cannot not be set to less than 2 minutes'})),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationMaxCount',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notification per post'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.desc', defaultMessage: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsGuests.title', defaultMessage: 'Allow guests to send persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsGuests.desc', defaultMessage: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('GuestAccountsSettings', 'Enable'),
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.BurnOnRead',
+                            title: 'Self-Deleting Messages',
+                            description: defineMessage({id: 'admin.posts.sections.burnOnRead.description', defaultMessage: 'Controls for messages that delete automatically a certain time after being sent or read.'}),
+                            license_sku: LicenseSkus.EnterpriseAdvanced,
+                            component: LicensedSectionContainer,
+                            componentProps: {
+                                requiredSku: LicenseSkus.EnterpriseAdvanced,
+                                featureDiscoveryConfig: {
+                                    featureName: 'burn_on_read',
+                                    title: defineMessage({id: 'admin.burn_on_read_feature_discovery.title', defaultMessage: 'Send burn-on-read messages that are automatically deleted after being read'}),
+                                    description: defineMessage({id: 'admin.burn_on_read_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, users can send transient messages that are automatically deleted a fixed time after they are read by a recipient.'}),
+                                    learnMoreURL: 'https://docs.mattermost.com/deployment/burn-on-read-messages.html',
+                                    svgImage: BurnOnReadSVG,
+                                },
                             },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowPersistentNotifications',
-                            label: defineMessage({id: 'admin.posts.persistentNotifications.title', defaultMessage: 'Persistent Notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotifications.desc', defaultMessage: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.ScheduledPosts',
-                            label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
-                            help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.not(it.licensed),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationMaxRecipients',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.title', defaultMessage: 'Maximum number of recipients for persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.desc', defaultMessage: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsInterval.title', defaultMessage: 'Frequency of persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                            validate: validators.minValue(2, defineMessage({id: 'admin.posts.persistentNotificationsInterval.minValue', defaultMessage: 'Frequency cannot not be set to less than 2 minutes'})),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationMaxCount',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notification per post'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.desc', defaultMessage: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsGuests.title', defaultMessage: 'Allow guests to send persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsGuests.desc', defaultMessage: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableLinkPreviews',
-                            label: defineMessage({id: 'admin.customization.enableLinkPreviewsTitle', defaultMessage: 'Enable website link previews:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableLinkPreviewsDesc', defaultMessage: 'Display a preview of website content, image links and YouTube links below the message when available. The server must be connected to the internet and have access through the firewall (if applicable) to the websites from which previews are expected. Users can disable these previews from Settings > Display > Website Link Previews.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ServiceSettings.RestrictLinkPreviews',
-                            label: defineMessage({id: 'admin.customization.restrictLinkPreviewsTitle', defaultMessage: 'Disable website link previews from these domains:'}),
-                            help_text: defineMessage({id: 'admin.customization.restrictLinkPreviewsDesc', defaultMessage: 'Link previews and image link previews will not be shown for the above list of comma-separated domains.'}),
-                            placeholder: defineMessage({id: 'admin.customization.restrictLinkPreviewsExample', defaultMessage: 'E.g.: "internal.mycompany.com, images.example.com"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.configIsFalse('ServiceSettings', 'EnableLinkPreviews'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnablePermalinkPreviews',
-                            label: defineMessage({id: 'admin.customization.enablePermalinkPreviewsTitle', defaultMessage: 'Enable message link previews:'}),
-                            help_text: defineMessage({id: 'admin.customization.enablePermalinkPreviewsDesc', defaultMessage: 'When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.SHARE_LINKS_TO_MESSAGES}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableSVGs',
-                            label: defineMessage({id: 'admin.customization.enableSVGsTitle', defaultMessage: 'Enable SVGs:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableSVGsDesc', defaultMessage: 'Enable previews for SVG file attachments and allow them to appear in messages. Enabling SVGs is not recommended in environments where not all users are trusted.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableLatex',
-                            label: defineMessage({id: 'admin.customization.enableLatexTitle', defaultMessage: 'Enable Latex Rendering:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableLatexDesc', defaultMessage: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only. Enabling Latex is not recommended in environments where not all users are trusted.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableInlineLatex',
-                            label: defineMessage({id: 'admin.customization.enableInlineLatexTitle', defaultMessage: 'Enable Inline Latex Rendering:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.FORMAT_MESSAGES}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.stateIsFalse('ServiceSettings.EnableLatex'),
-                            ),
-                        },
-                        {
-                            type: 'custom',
-                            component: CustomURLSchemesSetting,
-                            key: 'DisplaySettings.CustomURLSchemes',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'DisplaySettings.MaxMarkdownNodes',
-                            label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Max Markdown Nodes:'}),
-                            help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ServiceSettings.GoogleDeveloperKey',
-                            label: defineMessage({id: 'admin.service.googleTitle', defaultMessage: 'Google API Key:'}),
-                            placeholder: defineMessage({id: 'admin.service.googleExample', defaultMessage: 'E.g.: "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'}),
-                            help_text: defineMessage({id: 'admin.service.googleDescription', defaultMessage: 'Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <link>Google Developers Tutorial</link> for instructions on how to obtain a key and add YouTube Data API v3 as a service to your key.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://www.youtube.com/watch?v=Im69kzhpR3I'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowSyncedDrafts',
-                            label: defineMessage({id: 'admin.customization.allowSyncedDrafts', defaultMessage: 'Enable server syncing of message drafts:'}),
-                            help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
-                            help_text_markdown: false,
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
-                            label: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost', defaultMessage: 'Unique Emoji Reaction Limit:'}),
-                            placeholder: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder', defaultMessage: 'E.g.: 25'}),
-                            help_text: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostDesc', defaultMessage: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.'}),
-                            help_text_markdown: false,
-                            validate: (value) => {
-                                const maxResult = validators.maxValue(
-                                    500,
-                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.maxValue', defaultMessage: 'Cannot increase the limit to a value above 500.'}),
-                                )(value);
-                                if (!maxResult.isValid()) {
-                                    return maxResult;
-                                }
-                                const minResult = validators.minValue(
-                                    0,
-                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.minValue', defaultMessage: 'Cannot decrease the limit below 0.'}),
-                                )(value);
-                                if (!minResult.isValid()) {
-                                    return minResult;
-                                }
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableBurnOnRead',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.enable.title', defaultMessage: 'Enable Burn-on-Read Messages'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.enable.desc', defaultMessage: 'When enabled, users are allowed to send burn-on-read messages in channels, direct messages, and group messages. If disabled, the option to send a Burn-on-Read message will not be available.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.BurnOnReadDurationMinutes',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.duration.title', defaultMessage: 'Burn-on-Read Duration'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.duration.desc', defaultMessage: 'Sets the countdown duration for Burn-on-Read messages once they are revealed. After a recipient clicks to reveal a BoR message, the message will delete itself for that user after the specified duration. This setting applies to all Burn-on-Read messages.'}),
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: '1',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1min', defaultMessage: '1 minute'}),
+                                        },
+                                        {
+                                            value: '5',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.5min', defaultMessage: '5 minutes'}),
+                                        },
+                                        {
+                                            value: '10',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.10min', defaultMessage: '10 minutes'}),
+                                        },
+                                        {
+                                            value: '30',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.30min', defaultMessage: '30 minutes'}),
+                                        },
+                                        {
+                                            value: '60',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1hour', defaultMessage: '1 hour'}),
+                                        },
+                                        {
+                                            value: '480',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.8hours', defaultMessage: '8 hours'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: any) => value ?? '10',
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
+                                {
+                                    type: 'radio',
+                                    key: 'ServiceSettings.BurnOnReadAllowedUsers',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.title', defaultMessage: 'Users Allowed to Send Burn-on-Read Messages'}),
+                                    options: [
+                                        {
+                                            value: 'all',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.all', defaultMessage: 'Allow for all users'}),
+                                        },
+                                        {
+                                            value: 'allow_selected',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.allowSelected', defaultMessage: 'Allow selected users'}),
+                                        },
+                                        {
+                                            value: 'block_selected',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.blockSelected', defaultMessage: 'Block selected users'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: any) => value ?? 'all',
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'ServiceSettings.BurnOnReadAllowedUsersList',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Selected users and groups'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Choose users or groups that will be allowed or blocked from sending burn-on-read messages, depending on your selection above.'}),
+                                    component: BurnOnReadUserGroupSelector,
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                    isHidden: it.any(
+                                        it.stateEqualsOrDefault('ServiceSettings.BurnOnReadAllowedUsers', 'all', 'all'),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                    validate: (value) => {
+                                        const isEmpty = !value ||
+                                            (typeof value === 'string' && value.trim() === '') ||
+                                            (Array.isArray(value) && value.length === 0);
 
-                                return new ValidationResult(true, '');
-                            },
+                                        if (isEmpty) {
+                                            return new ValidationResult(
+                                                false,
+                                                defineMessage({
+                                                    id: 'admin.posts.burnOnRead.usersList.required',
+                                                    defaultMessage: 'At least one user or group must be selected.',
+                                                }),
+                                            );
+                                        }
+
+                                        return new ValidationResult(true, '');
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Previews',
+                            title: 'Content & Previews',
+                            description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews and how advanced formatting renders.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableLinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.enableLinkPreviewsTitle', defaultMessage: 'Enable website link previews:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableLinkPreviewsDesc', defaultMessage: 'Display a preview of website content, image links and YouTube links below the message when available. The server must be connected to the internet and have access through the firewall (if applicable) to the websites from which previews are expected. Users can disable these previews from Settings > Display > Website Link Previews.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'ServiceSettings.RestrictLinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.restrictLinkPreviewsTitle', defaultMessage: 'Disable website link previews from these domains:'}),
+                                    help_text: defineMessage({id: 'admin.customization.restrictLinkPreviewsDesc', defaultMessage: 'Link previews and image link previews will not be shown for the above list of comma-separated domains.'}),
+                                    placeholder: defineMessage({id: 'admin.customization.restrictLinkPreviewsExample', defaultMessage: 'E.g.: "internal.mycompany.com, images.example.com"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.configIsFalse('ServiceSettings', 'EnableLinkPreviews'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnablePermalinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.enablePermalinkPreviewsTitle', defaultMessage: 'Enable message link previews:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enablePermalinkPreviewsDesc', defaultMessage: 'When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href={DocLinks.SHARE_LINKS_TO_MESSAGES}
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableSVGs',
+                                    label: defineMessage({id: 'admin.customization.enableSVGsTitle', defaultMessage: 'Enable SVGs:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableSVGsDesc', defaultMessage: 'Enable previews for SVG file attachments and allow them to appear in messages. Enabling SVGs is not recommended in environments where not all users are trusted.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableLatex',
+                                    label: defineMessage({id: 'admin.customization.enableLatexTitle', defaultMessage: 'Enable Latex Rendering:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableLatexDesc', defaultMessage: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only. Enabling Latex is not recommended in environments where not all users are trusted.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableInlineLatex',
+                                    label: defineMessage({id: 'admin.customization.enableInlineLatexTitle', defaultMessage: 'Enable Inline Latex Rendering:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href={DocLinks.FORMAT_MESSAGES}
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableLatex'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    component: CustomURLSchemesSetting,
+                                    key: 'DisplaySettings.CustomURLSchemes',
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'ServiceSettings.GoogleDeveloperKey',
+                                    label: defineMessage({id: 'admin.service.googleTitle', defaultMessage: 'Google API Key:'}),
+                                    placeholder: defineMessage({id: 'admin.service.googleExample', defaultMessage: 'E.g.: "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'}),
+                                    help_text: defineMessage({id: 'admin.service.googleDescription', defaultMessage: 'Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <link>Google Developers Tutorial</link> for instructions on how to obtain a key and add YouTube Data API v3 as a service to your key.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://www.youtube.com/watch?v=Im69kzhpR3I'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Performance',
+                            title: 'Performance & Limits',
+                            description: defineMessage({id: 'admin.posts.sections.performance.description', defaultMessage: 'Configure limits that protect client performance and rendering.'}),
+                            settings: [
+                                {
+                                    type: 'number',
+                                    key: 'DisplaySettings.MaxMarkdownNodes',
+                                    label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Max Markdown Nodes:'}),
+                                    help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
+                                    label: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost', defaultMessage: 'Unique Emoji Reaction Limit:'}),
+                                    placeholder: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder', defaultMessage: 'E.g.: 25'}),
+                                    help_text: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostDesc', defaultMessage: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.'}),
+                                    help_text_markdown: false,
+                                    validate: (value) => {
+                                        const maxResult = validators.maxValue(
+                                            500,
+                                            defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.maxValue', defaultMessage: 'Cannot increase the limit to a value above 500.'}),
+                                        )(value);
+                                        if (!maxResult.isValid()) {
+                                            return maxResult;
+                                        }
+                                        const minResult = validators.minValue(
+                                            0,
+                                            defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.minValue', defaultMessage: 'Cannot decrease the limit below 0.'}),
+                                        )(value);
+                                        if (!minResult.isValid()) {
+                                            return minResult;
+                                        }
+
+                                        return new ValidationResult(true, '');
+                                    },
+                                },
+                            ],
                         },
                     ],
+                },
+            },
+            content_flagging: {
+                url: 'site_config/content_flagging',
+                title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'ContentFlagging'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+                schema: {
+                    id: 'ContentFlaggingSettings',
+                    component: ContentFlaggingSettings,
                 },
             },
             wrangler: {
@@ -3722,715 +3824,9 @@ const AdminDefinition: AdminDefinitionType = {
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                 ),
                 schema: {
-                    id: 'LdapSettings',
-                    name: defineMessage({id: 'admin.authentication.ldap', defaultMessage: 'AD/LDAP'}),
-                    sections: [
-                        {
-                            key: 'admin.authentication.ldap.connection',
-                            title: 'Connection',
-                            subtitle: 'Connection and security level to your AD/LDAP server.',
-                            settings: [
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.Enable',
-                                    label: defineMessage({id: 'admin.ldap.enableTitle', defaultMessage: 'Enable sign-in with AD/LDAP:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.enableDesc', defaultMessage: 'When true, Mattermost allows login using AD/LDAP'}),
-                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.EnableSync',
-                                    label: defineMessage({id: 'admin.ldap.enableSyncTitle', defaultMessage: 'Enable Synchronization with AD/LDAP:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.enableSyncDesc', defaultMessage: 'When true, Mattermost periodically synchronizes users from AD/LDAP. When false, user attributes are updated from AD/LDAP during user login only.'}),
-                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LoginFieldName',
-                                    label: defineMessage({id: 'admin.ldap.loginNameTitle', defaultMessage: 'Login Field Name:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.loginNameEx', defaultMessage: 'E.g.: "AD/LDAP Username"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.loginNameDesc', defaultMessage: 'The placeholder text that appears in the login field on the login page. Defaults to "AD/LDAP Username".'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.MaximumLoginAttempts',
-                                    label: defineMessage({id: 'admin.ldap.maximumLoginAttemptsTitle', defaultMessage: 'Maximum Login Attempts:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.maximumLoginAttemptsDesc', defaultMessage: 'The maximum number of login attempts before the Mattermost account is locked. You can unlock the account in system console on the users page. Setting this value lower than your LDAP maximum login attempts ensures that the users won\'t be locked out of your LDAP server because of failed login attempts in Mattermost.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LdapServer',
-                                    label: defineMessage({id: 'admin.ldap.serverTitle', defaultMessage: 'AD/LDAP Server:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.serverDesc', defaultMessage: 'The domain or IP address of AD/LDAP server.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.serverEx', defaultMessage: 'E.g.: "10.0.0.23"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.LdapPort',
-                                    label: defineMessage({id: 'admin.ldap.portTitle', defaultMessage: 'AD/LDAP Port:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.portDesc', defaultMessage: 'The port Mattermost will use to connect to the AD/LDAP server. Default is 389.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.portEx', defaultMessage: 'E.g.: "389"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'dropdown',
-                                    key: 'LdapSettings.ConnectionSecurity',
-                                    label: defineMessage({id: 'admin.connectionSecurityTitle', defaultMessage: 'Connection Security:'}),
-                                    help_text: DefinitionConstants.CONNECTION_SECURITY_HELP_TEXT_LDAP,
-                                    options: [
-                                        {
-                                            value: '',
-                                            display_name: defineMessage({id: 'admin.connectionSecurityNone', defaultMessage: 'None'}),
-                                        },
-                                        {
-                                            value: 'TLS',
-                                            display_name: defineMessage({id: 'admin.connectionSecurityTls', defaultMessage: 'TLS (Recommended)'}),
-                                        },
-                                        {
-                                            value: 'STARTTLS',
-                                            display_name: defineMessage({id: 'admin.connectionSecurityStart', defaultMessage: 'STARTTLS'}),
-                                        },
-                                    ],
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.SkipCertificateVerification',
-                                    label: defineMessage({id: 'admin.ldap.skipCertificateVerification', defaultMessage: 'Skip Certificate Verification:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.skipCertificateVerificationDesc', defaultMessage: 'Skips the certificate verification step for TLS or STARTTLS connections. Skipping certificate verification is not recommended for production environments where TLS is required.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.ConnectionSecurity'),
-                                    ),
-                                },
-                                {
-                                    type: 'fileupload',
-                                    key: 'LdapSettings.PrivateKeyFile',
-                                    label: defineMessage({id: 'admin.ldap.privateKeyFileTitle', defaultMessage: 'Private Key:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.privateKeyFileFileDesc', defaultMessage: 'The private key file for TLS Certificate. If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
-                                    remove_help_text: defineMessage({id: 'admin.ldap.privateKeyFileFileRemoveDesc', defaultMessage: 'Remove the private key file for TLS Certificate.'}),
-                                    remove_button_text: defineMessage({id: 'admin.ldap.remove.privKey', defaultMessage: 'Remove TLS Certificate Private Key'}),
-                                    removing_text: defineMessage({id: 'admin.ldap.removing.privKey', defaultMessage: 'Removing Private Key...'}),
-                                    uploading_text: defineMessage({id: 'admin.ldap.uploading.privateKey', defaultMessage: 'Uploading Private Key...'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                    fileType: '.key',
-                                    upload_action: uploadPrivateLdapCertificate,
-                                    remove_action: removePrivateLdapCertificate,
-                                },
-                                {
-                                    type: 'fileupload',
-                                    key: 'LdapSettings.PublicCertificateFile',
-                                    label: defineMessage({id: 'admin.ldap.publicCertificateFileTitle', defaultMessage: 'Public Certificate:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.publicCertificateFileDesc', defaultMessage: 'The public certificate file for TLS Certificate. If using TLS client certificates as primary authentication mechanism. This will be provided by your LDAP Authentication Provider.'}),
-                                    remove_help_text: defineMessage({id: 'admin.ldap.publicCertificateFileRemoveDesc', defaultMessage: 'Remove the public certificate file for TLS Certificate.'}),
-                                    remove_button_text: defineMessage({id: 'admin.ldap.remove.sp_certificate', defaultMessage: 'Remove Service Provider Certificate'}),
-                                    removing_text: defineMessage({id: 'admin.ldap.removing.certificate', defaultMessage: 'Removing Certificate...'}),
-                                    uploading_text: defineMessage({id: 'admin.ldap.uploading.certificate', defaultMessage: 'Uploading Certificate...'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                    fileType: '.crt,.cer',
-                                    upload_action: uploadPublicLdapCertificate,
-                                    remove_action: removePublicLdapCertificate,
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.BindUsername',
-                                    label: defineMessage({id: 'admin.ldap.bindUserTitle', defaultMessage: 'Bind Username:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.bindUserDesc', defaultMessage: 'The username used to perform the AD/LDAP search. This should typically be an account created specifically for use with Mattermost. It should have access limited to read the portion of the AD/LDAP tree specified in the Base DN field.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.BindPassword',
-                                    label: defineMessage({id: 'admin.ldap.bindPwdTitle', defaultMessage: 'Bind Password:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.bindPwdDesc', defaultMessage: 'Password of the user given in "Bind Username".'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.dn_and_filters',
-                            title: 'Base DN & Filters',
-                            settings: [
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.BaseDN',
-                                    label: defineMessage({id: 'admin.ldap.baseTitle', defaultMessage: 'Base DN:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.baseDesc', defaultMessage: 'The Base DN is the Distinguished Name of the location where Mattermost should start its search for user and group objects in the AD/LDAP tree.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.baseEx', defaultMessage: 'E.g.: "ou=Unit Name,dc=corp,dc=example,dc=com"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.UserFilter',
-                                    label: defineMessage({id: 'admin.ldap.userFilterTitle', defaultMessage: 'User Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.userFilterDisc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for user objects. Only the users selected by the query will be able to access Mattermost. For Active Directory, the query to filter out disabled users is (&(objectCategory=Person)(!(UserAccountControl:1.2.840.113556.1.4.803:=2))).'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.userFilterEx', defaultMessage: 'Ex. "(objectClass=user)"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GroupFilter',
-                                    label: defineMessage({id: 'admin.ldap.groupFilterTitle', defaultMessage: 'Group Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use when searching for group objects. Only the groups selected by the query will be available to Mattermost. From [User Management > Groups]({siteURL}/admin_console/user_management/groups), select which AD/LDAP groups should be linked and configured.'}),
-                                    help_text_markdown: true,
-                                    help_text_values: {siteURL: getSiteURL()},
-                                    placeholder: defineMessage({id: 'admin.ldap.groupFilterEx', defaultMessage: 'E.g.: "(objectClass=group)"'}),
-                                    isHidden: it.not(it.licensedForFeature('LDAPGroups')),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.EnableAdminFilter',
-                                    label: defineMessage({id: 'admin.ldap.enableAdminFilterTitle', defaultMessage: 'Enable Admin Filter:'}),
-                                    isDisabled: it.any(
-                                        it.not(it.isSystemAdmin),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.AdminFilter',
-                                    label: defineMessage({id: 'admin.ldap.adminFilterTitle', defaultMessage: 'Admin Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.adminFilterFilterDesc', defaultMessage: '(Optional) Enter an AD/LDAP filter to use for designating System Admins. The users selected by the query will have access to your Mattermost server as System Admins. By default, System Admins have complete access to the Mattermost System Console. Existing members that are identified by this attribute will be promoted from member to System Admin upon next login. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to members in **System Console > User Management** to ensure access is restricted immediately. Note: If this filter is removed/changed, System Admins that were promoted via this filter will be demoted to members and will not retain access to the System Console. When this filter is not in use, System Admins can be manually promoted/demoted in **System Console > User Management**.'}),
-                                    help_text_markdown: true,
-                                    placeholder: defineMessage({id: 'admin.ldap.adminFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.isSystemAdmin),
-                                        it.stateIsFalse('LdapSettings.EnableAdminFilter'),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GuestFilter',
-                                    label: defineMessage({id: 'admin.ldap.guestFilterTitle', defaultMessage: 'Guest Filter:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.guestFilterFilterDesc', defaultMessage: '(Optional) Requires Guest Access to be enabled before being applied. Enter an AD/LDAP filter to use when searching for guest objects. Only the users selected by the query will be able to access Mattermost as Guests. Guests are prevented from accessing teams or channels upon logging in until they are assigned a team and at least one channel. Note: If this filter is removed/changed, active guests will not be promoted to a member and will retain their Guest role. Guests can be promoted in **System Console > User Management**. Existing members that are identified by this attribute as a guest will be demoted from a member to a guest when they are asked to login next. The next login is based upon Session lengths set in **System Console > Session Lengths**. It is highly recommend to manually demote users to guests in **System Console > User Management ** to ensure access is restricted immediately.'}),
-                                    help_text_markdown: true,
-                                    placeholder: defineMessage({id: 'admin.ldap.guestFilterEx', defaultMessage: 'E.g.: "(objectClass=user)"'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.account_synchronization',
-                            title: 'Account Synchronization',
-                            settings: [
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.IdAttribute',
-                                    label: defineMessage({id: 'admin.ldap.idAttrTitle', defaultMessage: 'ID Attribute: '}),
-                                    placeholder: defineMessage({id: 'admin.ldap.idAttrEx', defaultMessage: 'E.g.: "objectGUID" or "uid"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.idAttrDesc', defaultMessage: "The attribute in the AD/LDAP server used as a unique identifier in Mattermost. It should be an AD/LDAP attribute with a value that does not change such as `uid` for LDAP or `objectGUID` for Active Directory. If a user's ID Attribute changes, it will create a new Mattermost account unassociated with their old one. If you need to change this field after users have already logged in, use the <link>mattermost ldap idmigrate</link> CLI tool."}),
-                                    help_text_markdown: false,
-                                    help_text_values: {
-                                        link: (msg: string) => (
-                                            <ExternalLink
-                                                location='admin_console'
-                                                href='https://docs.mattermost.com/manage/command-line-tools.html#mattermost-ldap-idmigrate'
-                                            >
-                                                {msg}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateEquals('LdapSettings.Enable', false),
-                                            it.stateEquals('LdapSettings.EnableSync', false),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LoginIdAttribute',
-                                    label: defineMessage({id: 'admin.ldap.loginAttrTitle', defaultMessage: 'Login ID Attribute: '}),
-                                    placeholder: defineMessage({id: 'admin.ldap.loginIdAttrEx', defaultMessage: 'E.g.: "sAMAccountName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.loginAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to log in to Mattermost. Normally this attribute is the same as the "Username Attribute" field above. If your team typically uses domain/username to log in to other services with AD/LDAP, you may enter domain/username in this field to maintain consistency between sites.'}),
-                                    help_text_markdown: false,
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.UsernameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.usernameAttrTitle', defaultMessage: 'Username Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.usernameAttrEx', defaultMessage: 'E.g.: "sAMAccountName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.usernameAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the username field in Mattermost. This may be the same as the Login ID Attribute.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.EmailAttribute',
-                                    label: defineMessage({id: 'admin.ldap.emailAttrTitle', defaultMessage: 'Email Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.emailAttrEx', defaultMessage: 'E.g.: "mail" or "userPrincipalName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.emailAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the email address field in Mattermost.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.FirstNameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.firstnameAttrTitle', defaultMessage: 'First Name Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.firstnameAttrEx', defaultMessage: 'E.g.: "givenName"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.firstnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the first name of users in Mattermost. When set, users cannot edit their first name, since it is synchronized with the LDAP server. When left blank, users can set their first name in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.LastNameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.lastnameAttrTitle', defaultMessage: 'Last Name Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.lastnameAttrEx', defaultMessage: 'E.g.: "sn"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.lastnameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the last name of users in Mattermost. When set, users cannot edit their last name, since it is synchronized with the LDAP server. When left blank, users can set their last name in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.NicknameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.nicknameAttrTitle', defaultMessage: 'Nickname Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.nicknameAttrEx', defaultMessage: 'E.g.: "nickname"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.nicknameAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the nickname of users in Mattermost. When set, users cannot edit their nickname, since it is synchronized with the LDAP server. When left blank, users can set their nickname in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.PositionAttribute',
-                                    label: defineMessage({id: 'admin.ldap.positionAttrTitle', defaultMessage: 'Position Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.positionAttrEx', defaultMessage: 'E.g.: "title"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.positionAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the position field in Mattermost. When set, users cannot edit their position, since it is synchronized with the LDAP server. When left blank, users can set their position in <strong>Account Menu > Account Settings > Profile</strong>.'}),
-                                    help_text_values: {
-                                        strong: (msg: string) => <strong>{msg}</strong>,
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.PictureAttribute',
-                                    label: defineMessage({id: 'admin.ldap.pictureAttrTitle', defaultMessage: 'Profile Picture Attribute:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.pictureAttrEx', defaultMessage: 'E.g.: "thumbnailPhoto" or "jpegPhoto"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.pictureAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the profile picture in Mattermost.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'custom',
-                                    key: 'LdapSettings.CustomProfileAttributes',
-                                    component: CustomProfileAttributes,
-                                    isHidden: it.not(it.all(
-                                        it.minLicenseTier(LicenseSkus.Enterprise),
-                                        it.configIsTrue('FeatureFlags', 'CustomProfileAttributes'),
-                                    )),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.group_synchronization',
-                            title: 'Group Synchronization',
-                            settings: [
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GroupDisplayNameAttribute',
-                                    label: defineMessage({id: 'admin.ldap.groupDisplayNameAttributeTitle', defaultMessage: 'Group Display Name Attribute:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupDisplayNameAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the group display names.'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.groupDisplayNameAttributeEx', defaultMessage: 'E.g.: "cn"'}),
-                                    isHidden: it.not(it.licensedForFeature('LDAPGroups')),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                },
-                                {
-                                    type: 'text',
-                                    key: 'LdapSettings.GroupIdAttribute',
-                                    label: defineMessage({id: 'admin.ldap.groupIdAttributeTitle', defaultMessage: 'Group ID Attribute:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.groupIdAttributeDesc', defaultMessage: 'The attribute in the AD/LDAP server used as a unique identifier for Groups. This should be a AD/LDAP attribute with a value that does not change such as `entryUUID` for LDAP or `objectGUID` for Active Directory.'}),
-                                    help_text_markdown: true,
-                                    placeholder: defineMessage({id: 'admin.ldap.groupIdAttributeEx', defaultMessage: 'E.g.: "objectGUID" or "entryUUID"'}),
-                                    isHidden: it.not(it.licensedForFeature('LDAPGroups')),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.synchronization_performance',
-                            title: 'Synchronization Performance',
-                            settings: [
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.SyncIntervalMinutes',
-                                    label: defineMessage({id: 'admin.ldap.syncIntervalTitle', defaultMessage: 'Synchronization Interval (minutes):'}),
-                                    help_text: defineMessage({id: 'admin.ldap.syncIntervalHelpText', defaultMessage: 'AD/LDAP Synchronization updates Mattermost user information to reflect updates on the AD/LDAP server. For example, when a user\'s name changes on the AD/LDAP server, the change updates in Mattermost when synchronization is performed. Accounts removed from or disabled in the AD/LDAP server have their Mattermost accounts set to "Inactive" and have their account sessions revoked. Mattermost performs synchronization on the interval entered. For example, if 60 is entered, Mattermost synchronizes every 60 minutes.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'bool',
-                                    key: 'LdapSettings.ReAddRemovedMembers',
-                                    label: defineMessage({id: 'admin.ldap.reAddRemovedMembersTitle', defaultMessage: 'Re-add removed members on sync:'}),
-                                    help_text: defineMessage({id: 'admin.ldap.reAddRemovedMembersDesc', defaultMessage: 'When enabled, members who were previously removed from group-synced teams or channels will be re-added during LDAP synchronization if they are still a member of the LDAP group.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.MaxPageSize',
-                                    label: defineMessage({id: 'admin.ldap.maxPageSizeTitle', defaultMessage: 'Maximum Page Size:'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.maxPageSizeEx', defaultMessage: 'E.g.: "2000"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.maxPageSizeHelpText', defaultMessage: 'The maximum number of users the Mattermost server will request from the AD/LDAP server at one time. 0 is unlimited.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'number',
-                                    key: 'LdapSettings.QueryTimeout',
-                                    label: defineMessage({id: 'admin.ldap.queryTitle', defaultMessage: 'Query Timeout (seconds):'}),
-                                    placeholder: defineMessage({id: 'admin.ldap.queryEx', defaultMessage: 'E.g.: "60"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.queryDesc', defaultMessage: 'The timeout value for queries to the AD/LDAP server. Increase if you are getting timeout errors caused by a slow AD/LDAP server.'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                                {
-                                    type: 'button',
-                                    action: ldapTest,
-                                    key: 'LdapSettings.LdapTest',
-                                    label: defineMessage({id: 'admin.ldap.ldap_test_button', defaultMessage: 'AD/LDAP Test'}),
-                                    help_text: defineMessage({id: 'admin.ldap.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the AD/LDAP server specified. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
-                                    help_text_values: {
-                                        link: (msg: string) => (
-                                            <ExternalLink
-                                                location='admin_console'
-                                                href={DocLinks.CONFIGURE_AD_LDAP_QUERY_TIMEOUT}
-                                            >
-                                                {msg}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                    help_text_markdown: false,
-                                    error_message: defineMessage({id: 'admin.ldap.testFailure', defaultMessage: 'AD/LDAP Test Failure: {error}'}),
-                                    success_message: defineMessage({id: 'admin.ldap.testSuccess', defaultMessage: 'AD/LDAP Test Successful'}),
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.all(
-                                            it.stateIsFalse('LdapSettings.Enable'),
-                                            it.stateIsFalse('LdapSettings.EnableSync'),
-                                        ),
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'admin.authentication.ldap.synchronization_history',
-                            title: 'Synchronization History',
-                            subtitle: 'See the table below for the status of each synchronization',
-                            settings: [
-                                {
-                                    type: 'jobstable',
-                                    job_type: Constants.JobTypes.LDAP_SYNC,
-                                    label: defineMessage({id: 'admin.ldap.sync_button', defaultMessage: 'AD/LDAP Synchronize Now'}),
-                                    help_text: defineMessage({id: 'admin.ldap.syncNowHelpText', defaultMessage: 'Initiates an AD/LDAP synchronization immediately. See the table below for status of each synchronization. Please review "System Console > Logs" and <link>documentation</link> to troubleshoot errors.'}),
-                                    help_text_markdown: false,
-                                    help_text_values: {
-                                        link: (msg: string) => (
-                                            <ExternalLink
-                                                location='admin_console'
-                                                href={DocLinks.SETUP_LDAP}
-                                            >
-                                                {msg}
-                                            </ExternalLink>
-                                        ),
-                                    },
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
-                                        it.stateIsFalse('LdapSettings.EnableSync'),
-                                    ),
-                                    render_job: (job: Job) => {
-                                        if (job.status === 'pending') {
-                                            return <span>{'--'}</span>;
-                                        }
-
-                                        let ldapUsers = 0;
-                                        let deleteCount = 0;
-                                        let updateCount = 0;
-                                        let linkedLdapGroupsCount; // Deprecated.
-                                        let totalLdapGroupsCount = 0;
-                                        let groupDeleteCount = 0;
-                                        let groupMemberDeleteCount = 0;
-                                        let groupMemberAddCount = 0;
-
-                                        if (job && job.data) {
-                                            if (job.data.ldap_users_count && job.data.ldap_users_count.length > 0) {
-                                                ldapUsers = job.data.ldap_users_count;
-                                            }
-
-                                            if (job.data.delete_count && job.data.delete_count.length > 0) {
-                                                deleteCount = job.data.delete_count;
-                                            }
-
-                                            if (job.data.update_count && job.data.update_count.length > 0) {
-                                                updateCount = job.data.update_count;
-                                            }
-
-                                            // Deprecated groups count representing the number of linked LDAP groups.
-                                            if (job.data.ldap_groups_count) {
-                                                linkedLdapGroupsCount = job.data.ldap_groups_count;
-                                            }
-
-                                            // Groups count representing the total number of LDAP groups available based on
-                                            // the configured based DN and groups filter.
-                                            if (job.data.total_ldap_groups_count) {
-                                                totalLdapGroupsCount = job.data.total_ldap_groups_count;
-                                            }
-
-                                            if (job.data.group_delete_count) {
-                                                groupDeleteCount = job.data.group_delete_count;
-                                            }
-
-                                            if (job.data.group_member_delete_count) {
-                                                groupMemberDeleteCount = job.data.group_member_delete_count;
-                                            }
-
-                                            if (job.data.group_member_add_count) {
-                                                groupMemberAddCount = job.data.group_member_add_count;
-                                            }
-                                        }
-
-                                        return (
-                                            <span>
-                                                <FormattedMessage
-                                                    id={linkedLdapGroupsCount ? 'admin.ldap.jobExtraInfo' : 'admin.ldap.jobExtraInfoTotal'}
-                                                    defaultMessage={linkedLdapGroupsCount ? 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} linked groups.' : 'Scanned {ldapUsers, number} LDAP users and {ldapGroups, number} groups.'}
-                                                    values={{
-                                                        ldapUsers,
-                                                        ldapGroups: linkedLdapGroupsCount || totalLdapGroupsCount, // Show the old count for jobs records containing the old JSON key.
-                                                    }}
-                                                />
-                                                <ul>
-                                                    {updateCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.updatedUsers'
-                                                            defaultMessage='Updated {updateCount, number} users.'
-                                                            values={{
-                                                                updateCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {deleteCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.deactivatedUsers'
-                                                            defaultMessage='Deactivated {deleteCount, number} users.'
-                                                            values={{
-                                                                deleteCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {groupDeleteCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.deletedGroups'
-                                                            defaultMessage='Deleted {groupDeleteCount, number} groups.'
-                                                            values={{
-                                                                groupDeleteCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {groupMemberDeleteCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.deletedGroupMembers'
-                                                            defaultMessage='Deleted {groupMemberDeleteCount, number} group members.'
-                                                            values={{
-                                                                groupMemberDeleteCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                    {groupMemberAddCount > 0 &&
-                                                    <li>
-                                                        <FormattedMessage
-                                                            id='admin.ldap.jobExtraInfo.addedGroupMembers'
-                                                            defaultMessage='Added {groupMemberAddCount, number} group members.'
-                                                            values={{
-                                                                groupMemberAddCount,
-                                                            }}
-                                                        />
-                                                    </li>
-                                                    }
-                                                </ul>
-                                            </span>
-                                        );
-                                    },
-                                },
-                            ],
-                        },
-                    ],
+                    id: 'LdapWizard',
+                    component: LDAPWizard,
                 },
-                restrictedIndicator: getRestrictedIndicator(),
             },
             ldap_feature_discovery: {
                 url: 'authentication/ldap',
@@ -4438,7 +3834,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAP'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'LdapSettings',
@@ -4916,7 +4311,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.saml', defaultMessage: 'SAML 2.0'}),
                 isHidden: it.any(
                     it.licensedForFeature('SAML'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SamlSettings',
@@ -4931,112 +4325,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true),
-            },
-            gitlab: {
-                url: 'authentication/gitlab',
-                title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
-                isHidden: it.any(
-                    it.licensed,
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                ),
-                schema: {
-                    id: 'GitLabSettings',
-                    name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
-                    onConfigLoad: (config) => {
-                        const newState: {'GitLabSettings.Url'?: string} = {};
-                        newState['GitLabSettings.Url'] = config.GitLabSettings?.UserAPIEndpoint?.replace('/api/v4/user', '');
-                        return newState;
-                    },
-                    onConfigSave: (config) => {
-                        const newConfig = {...config};
-                        newConfig.GitLabSettings.UserAPIEndpoint = config.GitLabSettings.Url.replace(/\/$/, '') + '/api/v4/user';
-                        return newConfig;
-                    },
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'GitLabSettings.Enable',
-                            label: defineMessage({id: 'admin.gitlab.enableTitle', defaultMessage: 'Enable authentication with GitLab: '}),
-                            help_text: defineMessage({id: 'admin.gitlab.enableDescription', defaultMessage: 'When true, Mattermost allows team creation and account signup using GitLab OAuth.{lineBreak} {lineBreak}1. Log in to your GitLab account and go to Profile Settings -> Applications.{lineBreak}2. Enter Redirect URIs "<loginUrlChunk>your-mattermost-url</loginUrlChunk>" (example: http://localhost:8065/login/gitlab/complete) and "<signupUrlChunk>your-mattermost-url</signupUrlChunk>".\n3. Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.\n4. Complete the Endpoint URLs below.'}),
-                            help_text_values: {
-                                lineBreak: '\n',
-                                loginUrlChunk: (chunk: string) => `<${chunk}>/login/gitlab/complete"`,
-                                signupUrlChunk: (chunk: string) => `<${chunk}>/signup/gitlab/complete"`,
-                            },
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Id',
-                            label: defineMessage({id: 'admin.gitlab.clientIdTitle', defaultMessage: 'Application ID:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.clientIdDescription', defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.clientIdExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Secret',
-                            label: defineMessage({id: 'admin.gitlab.clientSecretTitle', defaultMessage: 'Application Secret Key:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.clientSecretDescription', defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.clientSecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Url',
-                            label: defineMessage({id: 'admin.gitlab.siteUrl', defaultMessage: 'GitLab Site URL:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.siteUrlDescription', defaultMessage: 'Enter the URL of your GitLab instance, e.g. https://example.com:3000. If your GitLab instance is not set up with SSL, start the URL with http:// instead of https://.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.siteUrlExample', defaultMessage: 'E.g.: https://'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.UserAPIEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.userTitle', defaultMessage: 'User API Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/api/v4/user';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.AuthEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.authTitle', defaultMessage: 'Auth Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/oauth/authorize';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.TokenEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.tokenTitle', defaultMessage: 'Token Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/oauth/token';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                    ],
-                },
             },
             oauth: {
                 url: 'authentication/oauth',
@@ -5056,7 +4344,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'OAuthSettings',
                     name: defineMessage({id: 'admin.authentication.oauth', defaultMessage: 'OAuth 2.0'}),
                     onConfigLoad: (config) => {
-                        const newState: {oauthType?: string; 'GitLabSettings.Url'?: string} = {};
+                        const newState: { oauthType?: string; 'GitLabSettings.Url'?: string } = {};
                         if (config.GitLabSettings?.Enable) {
                             newState.oauthType = Constants.GITLAB_SERVICE;
                         }
@@ -5380,7 +4668,7 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'OpenIdSettings',
                     name: defineMessage({id: 'admin.authentication.openid', defaultMessage: 'OpenID Connect'}),
                     onConfigLoad: (config) => {
-                        const newState: {openidType?: string; 'GitLabSettings.Url'?: string} = {};
+                        const newState: { openidType?: string; 'GitLabSettings.Url'?: string } = {};
                         if (config.Office365Settings?.Enable) {
                             newState.openidType = Constants.OFFICE365_SERVICE;
                         }
@@ -5716,7 +5004,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.openid', defaultMessage: 'OpenID Connect'}),
                 isHidden: it.any(
                     it.any(it.licensedForFeature('OpenId'), it.cloudLicensed),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'OpenIdSettings',
@@ -5726,6 +5013,27 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             component: OpenIDFeatureDiscovery,
                             key: 'OpenIDFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true),
+            },
+            gitlab_feature_discovery: {
+                url: 'authentication/gitlab',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
+                isHidden: it.any(
+                    it.licensedForFeature('OpenId'),
+                ),
+                schema: {
+                    id: 'GitLabSettings',
+                    name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: GitLabFeatureDiscovery,
+                            key: 'GitLabFeatureDiscovery',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                         },
                     ],
@@ -5819,7 +5127,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
                 isHidden: it.any(
                     it.licensedForFeature('GuestAccounts'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'GuestAccountsSettings',
@@ -5973,6 +5280,18 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDynamicClientRegistration',
+                            label: defineMessage({id: 'admin.oauth.dcrTitle', defaultMessage: 'Enable OAuth 2.0 Dynamic Client Registration: '}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrDescription', defaultMessage: 'When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
@@ -6201,7 +5520,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -6214,7 +5533,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/data_retention_settings/custom_policy',
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -6259,7 +5578,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.dataRetentionPolicy', defaultMessage: 'Data Retention Policy'}),
                 isHidden: it.any(
                     it.licensedForFeature('DataRetention'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'DataRetentionSettings',
@@ -6296,7 +5614,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.complianceExport', defaultMessage: 'Compliance Export'}),
                 isHidden: it.any(
                     it.licensedForFeature('MessageExport'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MessageExportSettings',
@@ -6386,6 +5703,149 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            audit_logging: {
+                url: 'compliance/audit_logging',
+                title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                    it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                ),
+                schema: {
+                    id: 'ExperimentalAuditSettings',
+                    name: 'Audit logging (Beta)',
+                    settings: [
+                        {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.rate.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'}),
+                            banner_type: 'info',
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalAuditSettings.FileEnabled',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.title', defaultMessage: 'File Enabled'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.help_text', defaultMessage: 'Choose whether audit logs are written locally to a file or not.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ExperimentalAuditSettings.FileName',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxSizeMB',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.title', defaultMessage: 'Max File Size (MB)'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'Maximum size, in megabytes (MB), the log file can grow before it gets rotated.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxAgeDays',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.title', defaultMessage: 'Max File Age (Days)'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'Maximum number of days to retain old log files. 0 disables the removal of old log files.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxBackups',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.title', defaultMessage: 'Maximum File Backups'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'Maximum number of old log files to retain. 0 retains all old log files. Note: Configuring Max File Age can result in old log files being deleted regardless of this configuration value.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalAuditSettings.FileCompress',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_compress.title', defaultMessage: 'File Compression'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_compress.help_text', defaultMessage: 'Choose whether enable or disable file compression.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ExperimentalAuditSettings.FileMaxQueueSize',
+                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.title', defaultMessage: 'Maximum File Queue'}),
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.help_text', defaultMessage: 'The maximum number of files to be retained in the queue.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'longtext',
+                            key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
+                            label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
+                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
+                            help_text_markdown: false,
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console.experimental_audit_settings'
+                                        href={DocLinks.ADVANCED_LOGGING}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            validate: (value) => {
+                                const valid = new ValidationResult(true, '');
+                                if (!value) {
+                                    return valid;
+                                }
+                                try {
+                                    JSON.parse(value);
+                                    return valid;
+                                } catch (error) {
+                                    return new ValidationResult(false, error.message);
+                                }
+                            },
+                            onConfigLoad: (configVal) => JSON.stringify(configVal, null, '  '),
+                            onConfigSave: (displayVal) => {
+                                // Handle case where field is empty
+                                if (!displayVal) {
+                                    return {undefined};
+                                }
+
+                                return JSON.parse(displayVal);
+                            },
+                        },
+                        {
+                            type: 'custom',
+                            component: AuditLoggingCertificateUploadSetting,
+                            label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Certificate'}),
+                            key: 'ExperimentalAuditSettings.Certificate',
+                            help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.help_text', defaultMessage: 'The certificate file used for audit logging encryption.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isHidden: it.not(it.licensedForFeature('Cloud')),
+                        },
+                    ],
+                },
+            },
             custom_terms_of_service: {
                 url: 'compliance/custom_terms_of_service',
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
@@ -6407,7 +5867,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
                 isHidden: it.any(
                     it.licensedForFeature('CustomTermsOfService'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'TermsOfServiceSettings',
@@ -6556,47 +6015,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.enableChannelViewedMessages.desc', defaultMessage: 'This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.ClientSideCertEnable',
-                            label: defineMessage({id: 'admin.experimental.clientSideCertEnable.title', defaultMessage: 'Enable Client-Side Certification:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertEnable.desc', defaultMessage: 'Enables client-side certification for your Mattermost server. See <link>documentation</link> to learn more.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.ENABLE_CLIENT_SIDE_CERTIFICATION}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ExperimentalSettings.ClientSideCertCheck',
-                            label: defineMessage({id: 'admin.experimental.clientSideCertCheck.title', defaultMessage: 'Client-Side Certification Login Method:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: "When **primary**, after the client side certificate is verified, user's email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user's email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials."}),
-                            help_text_markdown: true,
-                            options: [
-                                {
-                                    value: 'primary',
-                                    display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.primary', defaultMessage: 'primary'}),
-                                },
-                                {
-                                    value: 'secondary',
-                                    display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.secondary', defaultMessage: 'secondary'}),
-                                },
-                            ],
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalSettings.ClientSideCertEnable'),
-                            ),
                         },
                         {
                             type: 'bool',
@@ -6843,140 +6261,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'Feature Flags',
                     component: FeatureFlags,
-                },
-            },
-            bleve: {
-                url: 'experimental/blevesearch',
-                title: defineMessage({id: 'admin.sidebar.blevesearch', defaultMessage: 'Bleve'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                searchableStrings: bleveSearchableStrings,
-                schema: {
-                    id: 'BleveSettings',
-                    component: BleveSettings,
-                },
-            },
-            audit_logging: {
-                url: 'experimental/audit_logging',
-                title: defineMessage({id: 'admin.sidebar.audit_logging_experimental', defaultMessage: 'Audit Logging'}),
-                isHidden: it.any(
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                    it.configIsFalse('FeatureFlags', 'ExperimentalAuditSettingsSystemConsoleUI'),
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                ),
-                schema: {
-                    id: 'ExperimentalAuditSettings',
-                    name: 'Audit Log Settings (Experimental)',
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalAuditSettings.FileEnabled',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.title', defaultMessage: 'File Enabled'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.help_text', defaultMessage: 'Choose whether audit logs are written locally to a file or not.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ExperimentalAuditSettings.FileName',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to. NOTE: If ExperimentalAuditSettings.FileEnabled is set to TRUE, this field is required.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxSizeMB',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.title', defaultMessage: 'Max File Size (MB)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_size.help_text', defaultMessage: 'The maximum size of a single exported file, in MB.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxAgeDays',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.title', defaultMessage: 'Max File Age (Days)'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_age.help_text', defaultMessage: 'The maximum age of an exported file, in days.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxBackups',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.title', defaultMessage: 'Maximum File Backups'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_backups.help_text', defaultMessage: 'The maximum number of backup files to retain'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalAuditSettings.FileCompress',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_compress.title', defaultMessage: 'File Compression'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_compress.help_text', defaultMessage: 'Choose whether enable or disable file compression.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ExperimentalAuditSettings.FileMaxQueueSize',
-                            label: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.title', defaultMessage: 'Maximum File Queue'}),
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.file_max_queue_size.help_text', defaultMessage: 'The maximum number of files to be retained in the queue.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'longtext',
-                            key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
-                            label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
-                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}),
-                            help_text_markdown: false,
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console.experimental_audit_settings'
-                                        href={DocLinks.ADVANCED_LOGGING}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            validate: (value) => {
-                                const valid = new ValidationResult(true, '');
-                                if (!value) {
-                                    return valid;
-                                }
-                                try {
-                                    JSON.parse(value);
-                                    return valid;
-                                } catch (error) {
-                                    return new ValidationResult(false, error.message);
-                                }
-                            },
-                            onConfigLoad: (configVal) => JSON.stringify(configVal, null, '  '),
-                            onConfigSave: (displayVal) => {
-                                // Handle case where field is empty
-                                if (!displayVal) {
-                                    return {undefined};
-                                }
-
-                                return JSON.parse(displayVal);
-                            },
-                        },
-                        {
-                            type: 'custom',
-                            component: AuditLoggingCertificateUploadSetting,
-                            label: defineMessage({id: 'admin.audit_logging_experimental.certificate.title', defaultMessage: 'Certificate'}),
-                            key: 'ExperimentalAuditSettings.Certificate',
-                            help_text: defineMessage({id: 'admin.audit_logging_experimental.certificate.help_text', defaultMessage: 'The certificate file used for audit logging encryption.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.not(it.licensedForFeature('Cloud')),
-                        },
-                    ],
                 },
             },
         },

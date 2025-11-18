@@ -30,7 +30,7 @@ const USERS_PER_PAGE = 10;
 // - improve search
 
 export const SyncedUserList = ({userIds, noResultsMessageId, noResultsDefaultMessage, actions}: SyncedUserListProps): JSX.Element => {
-    const dispatch = useDispatch<any>();
+    const dispatch = useDispatch();
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
 

@@ -20,8 +20,6 @@ describe('DND Status - Setting Your Own DND Status', () => {
     ];
 
     before(() => {
-        cy.shouldHaveFeatureFlag('TimedDND', true);
-
         // # Login as test user and visit channel
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);
@@ -77,13 +75,13 @@ describe('DND Status - Setting Your Own DND Status', () => {
         cy.get(`.SubMenuItemContainer li#${dndTimes[4]}`).click();
 
         // # Click on DayPicker input field
-        cy.get('.DayPickerInput input').click();
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that DayPicker overlay is visible
-        cy.get('.DayPickerInput-Overlay').should('be.visible');
+        cy.get('.date-picker__popper').should('be.visible');
 
         // # Click on tomorrow's day
-        cy.get('.DayPickerInput-Overlay').find('.DayPicker-Day--today').next('.DayPicker-Day').click();
+        cy.get('.date-picker__popper').find('.rdp-day_today').next('.rdp-day').click();
 
         // # Click 'Disable Notification' button
         cy.get('.DndModal__footer span').should('have.text', 'Disable Notifications').click();
@@ -105,13 +103,13 @@ describe('DND Status - Setting Your Own DND Status', () => {
         cy.get(`.SubMenuItemContainer li#${dndTimes[4]}`).click();
 
         // # Click on time picker input field
-        cy.get('.MenuWrapper .DndModal__input').click();
+        cy.get('.dateTime__time .date-time-input').click();
 
         // * Verify that time picker menu is visible
-        cy.get('ul.Menu__content.dropdown-menu').should('be.visible');
+        cy.get('#expiryTimeMenu').should('be.visible');
 
         // # Click on last time available in list
-        cy.get('ul.Menu__content.dropdown-menu').last('.MenuItem').click();
+        cy.get('#expiryTimeMenu li').last().click();
 
         // # Click 'Disable Notification' button
         cy.get('.DndModal__footer span').should('have.text', 'Disable Notifications').click();
@@ -133,22 +131,22 @@ describe('DND Status - Setting Your Own DND Status', () => {
         cy.get(`.SubMenuItemContainer li#${dndTimes[4]}`).click();
 
         // # Click on DayPicker input field
-        cy.get('.DayPickerInput input').click();
+        cy.get('.dateTime__date .date-time-input').click();
 
         // * Verify that DayPicker overlay is visible
-        cy.get('.DayPickerInput-Overlay').should('be.visible');
+        cy.get('.date-picker__popper').should('be.visible');
 
         // # Click on tomorrow's day
-        cy.get('.DayPickerInput-Overlay').find('.DayPicker-Day--today').next('.DayPicker-Day').click();
+        cy.get('.date-picker__popper').find('.rdp-day_today').next('.rdp-day').click();
 
         // # Click on time picker input field
-        cy.get('.MenuWrapper .DndModal__input').click();
+        cy.get('.dateTime__time .date-time-input').click();
 
         // * Verify that time picker menu is visible
-        cy.get('ul.Menu__content.dropdown-menu').should('be.visible');
+        cy.get('#expiryTimeMenu').should('be.visible');
 
         // # Click on last time available in list
-        cy.get('ul.Menu__content.dropdown-menu').last('.MenuItem').click();
+        cy.get('#expiryTimeMenu li').last().click();
 
         // # Click 'Disable Notification' button
         cy.get('.DndModal__footer span').should('have.text', 'Disable Notifications').click();

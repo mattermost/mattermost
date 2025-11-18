@@ -3,13 +3,15 @@
 mmctl completion
 ----------------
 
-Generates autocompletion scripts for bash and zsh
+Generate the autocompletion script for the specified shell
 
 Synopsis
 ~~~~~~~~
 
 
-Generates autocompletion scripts for bash and zsh
+Generate the autocompletion script for mmctl for the specified shell.
+See each sub-command's help for details on how to use the generated script.
+
 
 Options
 ~~~~~~~
@@ -37,6 +39,8 @@ SEE ALSO
 ~~~~~~~~
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
-* `mmctl completion bash <mmctl_completion_bash.rst>`_ 	 - Generates the bash autocompletion scripts
-* `mmctl completion zsh <mmctl_completion_zsh.rst>`_ 	 - Generates the zsh autocompletion scripts
+* `mmctl completion bash <mmctl_completion_bash.rst>`_ 	 - Generate the autocompletion script for bash
+* `mmctl completion fish <mmctl_completion_fish.rst>`_ 	 - Generate the autocompletion script for fish
+* `mmctl completion powershell <mmctl_completion_powershell.rst>`_ 	 - Generate the autocompletion script for powershell
+* `mmctl completion zsh <mmctl_completion_zsh.rst>`_ 	 - Generate the autocompletion script for zsh
 

@@ -4,12 +4,14 @@
 import type {AnyAction} from 'redux';
 
 import AdminTypes from './admin';
+import AgentTypes from './agents';
 import AppsTypes from './apps';
 import BotTypes from './bots';
 import ChannelBookmarkTypes from './channel_bookmarks';
 import ChannelCategoryTypes from './channel_categories';
 import ChannelTypes from './channels';
 import CloudTypes from './cloud';
+import ContentFlaggingTypes from './content_flagging';
 import DraftTypes from './drafts';
 import EmojiTypes from './emojis';
 import ErrorTypes from './errors';
@@ -28,6 +30,7 @@ import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
 import SearchTypes from './search';
+import SharedChannelTypes from './shared_channels';
 import TeamTypes from './teams';
 import ThreadTypes from './threads';
 import UserTypes from './users';
@@ -61,6 +64,9 @@ export {
     PlaybookType,
     ChannelBookmarkTypes,
     ScheduledPostTypes,
+    SharedChannelTypes,
+    ContentFlaggingTypes,
+    AgentTypes,
 };
 
 /**

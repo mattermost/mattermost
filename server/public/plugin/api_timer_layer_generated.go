@@ -12,6 +12,7 @@ import (
 	timePkg "time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type apiTimerLayer struct {
@@ -1533,10 +1534,24 @@ func (api *apiTimerLayer) DeletePropertyField(groupID, fieldID string) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (api *apiTimerLayer) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SearchPropertyFields(groupID, targetID, opts)
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyFields(groupID, opts)
 	api.recordTime(startTime, "SearchPropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CountPropertyFields(groupID, includeDeleted)
+	api.recordTime(startTime, "CountPropertyFields", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CountPropertyFieldsForTarget(groupID, targetType, targetID, includeDeleted)
+	api.recordTime(startTime, "CountPropertyFieldsForTarget", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
@@ -1582,9 +1597,9 @@ func (api *apiTimerLayer) DeletePropertyValue(groupID, valueID string) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (api *apiTimerLayer) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.SearchPropertyValues(groupID, targetID, opts)
+	_returnsA, _returnsB := api.apiImpl.SearchPropertyValues(groupID, opts)
 	api.recordTime(startTime, "SearchPropertyValues", _returnsB == nil)
 	return _returnsA, _returnsB
 }
@@ -1643,4 +1658,16 @@ func (api *apiTimerLayer) DeletePropertyValuesForField(groupID, fieldID string) 
 	_returnsA := api.apiImpl.DeletePropertyValuesForField(groupID, fieldID)
 	api.recordTime(startTime, "DeletePropertyValuesForField", _returnsA == nil)
 	return _returnsA
+}
+
+func (api *apiTimerLayer) LogAuditRec(rec *model.AuditRecord) {
+	startTime := timePkg.Now()
+	api.apiImpl.LogAuditRec(rec)
+	api.recordTime(startTime, "LogAuditRec", true)
+}
+
+func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	startTime := timePkg.Now()
+	api.apiImpl.LogAuditRecWithLevel(rec, level)
+	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }

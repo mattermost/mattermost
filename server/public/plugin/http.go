@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -55,9 +56,17 @@ func (w *httpResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct
 			delete(dest, k)
 		}
 	}
-	for k, v := range args {
-		dest[k] = v
+	maps.Copy(dest, args)
+	return nil
+}
+
+func (w *httpResponseWriterRPCServer) Flush(args struct{}, reply *struct{}) error {
+	// Type assert to http.Flusher and flush if supported
+	if flusher, ok := w.w.(http.Flusher); ok {
+		flusher.Flush()
 	}
+	// If the underlying writer doesn't support Flusher, silently ignore
+	// This matches the HTTP spec's "best effort" semantics
 	return nil
 }
 
@@ -67,6 +76,7 @@ type httpResponseWriterRPCClient struct {
 }
 
 var _ http.ResponseWriter = (*httpResponseWriterRPCClient)(nil)
+var _ http.Flusher = (*httpResponseWriterRPCClient)(nil)
 
 func (w *httpResponseWriterRPCClient) Header() http.Header {
 	if w.header == nil {
@@ -90,6 +100,12 @@ func (w *httpResponseWriterRPCClient) WriteHeader(statusCode int) {
 		return
 	}
 	w.client.Call("Plugin.WriteHeader", statusCode, nil)
+}
+
+// Flush implements http.Flusher interface
+func (w *httpResponseWriterRPCClient) Flush() {
+	// Best-effort flush - ignore errors per HTTP spec
+	w.client.Call("Plugin.Flush", struct{}{}, nil)
 }
 
 func (w *httpResponseWriterRPCClient) Close() error {

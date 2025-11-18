@@ -22,7 +22,7 @@ export {
 export {
     components,
     GlobalHeader,
-    SearchPopover,
+    SearchBox,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
@@ -31,6 +31,7 @@ export {
     ChannelsPostCreate,
     ChannelsPostEdit,
     ChannelsPost,
+    ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
     DeletePostModal,

@@ -35,6 +35,7 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
     showTitle?: boolean;
     component: Component;
     label?: string | MessageDescriptor;
+    validate?: Validator;
 }
 
 type AdminDefinitionSettingBase = {
@@ -99,7 +100,7 @@ type AdminDefinitionSettingDropdown = AdminDefinitionSettingBase & {
     isHelpHidden?: Check;
 }
 
-type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
+export type AdminDefinitionSettingFileUpload = AdminDefinitionSettingBase & {
     type: 'fileupload';
     remove_help_text: string | MessageDescriptor;
     remove_button_text: string | MessageDescriptor;
@@ -124,7 +125,7 @@ type AdminDefinitionSettingLanguage = AdminDefinitionSettingBase & {
     no_result?: string | MessageDescriptor;
 }
 
-type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
+export type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
     type: 'button';
     action: (success: (data?: any) => void, error: (error: {message: string; detailed_error?: string}) => void, siteUrl: string) => void;
     loading?: string | MessageDescriptor;
@@ -154,15 +155,21 @@ type AdminDefinitionSettingRadio = AdminDefinitionSettingBase & {
     default?: string;
 }
 
+type AdminDefinitionSettingExpandable = AdminDefinitionSettingBase & {
+    type: typeof Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING;
+    settings: AdminDefinitionSetting[];
+}
+
 export type AdminDefinitionSetting = AdminDefinitionSettingCustom |
 AdminDefinitionSettingInput | AdminDefinitionSettingGenerated |
 AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
 AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
 AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage |
 AdminDefinitionSettingUsername | AdminDefinitionSettingPermission |
-AdminDefinitionSettingRadio | AdminDefinitionSettingRole;
+AdminDefinitionSettingRadio | AdminDefinitionSettingRole |
+AdminDefinitionSettingExpandable;
 
-type AdminDefinitionConfigSchemaSettings = {
+export type AdminDefinitionConfigSchemaSettings = {
     id: string;
     name: string | MessageDescriptor;
     isBeta?: boolean;
@@ -179,10 +186,13 @@ export type AdminDefinitionConfigSchemaSection = {
     key: string;
     title?: string;
     subtitle?: string;
+    description?: string | MessageDescriptor;
+    license_sku?: string;
     settings: AdminDefinitionSetting[];
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
     component?: Component;
+    componentProps?: any;
     isHidden?: Check;
 }
 

@@ -10,18 +10,19 @@ import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 
 import {DangerText} from './controls';
-
 import './user_properties_values.scss';
-import BlockableLink from '../blockable_link';
+import {useAttributeLinkModal} from './user_properties_dot_menu';
 
 type Props = {
     field: UserPropertyField;
     updateField: (field: UserPropertyField) => void;
+    autoFocus?: boolean;
 }
 
 type Option = {label: string; id: string; value: string};
@@ -30,10 +31,13 @@ type SelectProps = CreatableProps<Option, true, GroupBase<Option>>;
 const UserPropertyValues = ({
     field,
     updateField,
+    autoFocus,
 }: Props) => {
     const {formatMessage} = useIntl();
 
     const [query, setQuery] = React.useState('');
+    const {promptEditLdapLink, promptEditSamlLink} = useAttributeLinkModal(field, updateField);
+
     const isQueryValid = useMemo(() => !checkForDuplicates(field.attrs.options, query.trim()), [field?.attrs?.options, query]);
 
     const addOption = (name: string) => {
@@ -80,53 +84,69 @@ const UserPropertyValues = ({
         const syncedProperties = [
 
             field.attrs.ldap && (
-                <BlockableLink
+                <a
                     className='user-property-field-values__chip-link'
-                    to={`/admin_console/authentication/ldap#custom_profile_attribute-${field.name}`}
                     key={`${field.name}-ldap`}
                     data-testid={`user-property-field-values__ldap-${field.name}`}
+                    onClick={() => promptEditLdapLink()}
+                    onKeyDown={(e) => {
+                        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+                            promptEditLdapLink();
+                        }
+                    }}
+                    role='button'
+                    tabIndex={0}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.ldap'
                         defaultMessage='AD/LDAP: {propertyName}'
                         values={{propertyName: field.attrs.ldap}}
                     />
-                </BlockableLink>
+                </a>
             ),
             field.attrs.saml && (
-                <BlockableLink
+                <a
                     className='user-property-field-values__chip-link'
-                    to={`/admin_console/authentication/saml#custom_profile_attribute-${field.name}`}
                     key={`${field.name}-saml`}
                     data-testid={`user-property-field-values__saml-${field.name}`}
+                    onClick={() => promptEditSamlLink()}
+                    onKeyDown={(e) => {
+                        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+                            promptEditSamlLink();
+                        }
+                    }}
+                    role='button'
+                    tabIndex={0}
                 >
                     <FormattedMessage
                         id='admin.system_properties.user_properties.table.values.synced_with.saml'
                         defaultMessage='SAML: {propertyName}'
                         values={{propertyName: field.attrs.saml}}
                     />
-                </BlockableLink>
+                </a>
             ),
 
         ].filter(Boolean);
 
         return (
-            <span className='user-property-field-values'>
-                <SyncIcon size={18}/>
-                <FormattedMessage
-                    id='admin.system_properties.user_properties.table.values.synced_with'
-                    defaultMessage='Synced with: {syncedProperties}'
-                    values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
-                />
-            </span>
+            <>
+                <span className='user-property-field-values'>
+                    <SyncIcon size={18}/>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.synced_with'
+                        defaultMessage='Synced with: {syncedProperties}'
+                        values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
+                    />
+                </span>
+            </>
         );
     }
 
-    if (field.type !== 'multiselect' && field.type !== 'select') {
+    if (!supportsOptions(field)) {
         return (
-            <>
+            <span className='user-property-field-values'>
                 {'-'}
-            </>
+            </span>
         );
     }
 
@@ -149,6 +169,7 @@ const UserPropertyValues = ({
                 value={field.attrs.options?.map((option) => ({label: option.name, value: option.name, id: option.id}))}
                 menuPortalTarget={document.body}
                 styles={styles}
+                autoFocus={autoFocus}
             />
             {!isQueryValid && (
                 <FormattedMessage

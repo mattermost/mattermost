@@ -7,6 +7,7 @@ import type {ListChildComponentProps} from 'react-window';
 import {VariableSizeList} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
+import {AccountMultipleOutlineIcon, ArchiveOutlineIcon, RestoreIcon} from '@mattermost/compass-icons/components';
 import type {Group, GroupPermissions} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -137,7 +138,7 @@ const UserGroupsList = (props: Props) => {
                     <span className='group-display-name'>
                         {
                             group.delete_at > 0 &&
-                            <i className='icon icon-archive-outline'/>
+                            <ArchiveOutlineIcon size={16}/>
                         }
                         {group.display_name}
                     </span>
@@ -179,7 +180,7 @@ const UserGroupsList = (props: Props) => {
                                         defaultMessage='View Group'
                                     />
                                 }
-                                leadingElement={<i className='icon-account-multiple-outline'/>}
+                                leadingElement={<AccountMultipleOutlineIcon size={18}/>}
                             />
                             <Menu.Separator/>
                             {groupPermissionsMap[group.id].can_delete && (
@@ -194,7 +195,7 @@ const UserGroupsList = (props: Props) => {
                                             defaultMessage='Archive Group'
                                         />
                                     }
-                                    leadingElement={<i className='icon-archive-outline'/>}
+                                    leadingElement={<ArchiveOutlineIcon size={18}/>}
                                     isDestructive={true}
                                 />
                             )}
@@ -210,7 +211,7 @@ const UserGroupsList = (props: Props) => {
                                             defaultMessage='Restore Group'
                                         />
                                     }
-                                    leadingElement={<i className='icon-restore'/>}
+                                    leadingElement={<RestoreIcon size={18}/>}
                                 />
                             )}
                         </Menu.Container>

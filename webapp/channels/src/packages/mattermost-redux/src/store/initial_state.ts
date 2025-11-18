@@ -7,6 +7,9 @@ import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
 const state: GlobalState = {
     entities: {
+        agents: {
+            agents: [],
+        },
         general: {
             config: {},
             license: {},
@@ -50,6 +53,7 @@ const state: GlobalState = {
             stats: {},
             groupsAssociatedToTeam: {},
             totalCount: 0,
+            contentFlaggingStatus: {},
         },
         channels: {
             currentChannelId: '',
@@ -66,6 +70,7 @@ const state: GlobalState = {
             channelMemberCountsByGroup: {},
             messageCounts: {},
             channelsMemberCount: {},
+            restrictedDMs: {},
         },
         channelBookmarks: {
             byChannelId: {},
@@ -222,6 +227,7 @@ const state: GlobalState = {
             errorsByTeamId: {},
             byChannelOrThreadId: {},
         },
+        contentFlagging: {},
     },
     errors: [],
     requests: {

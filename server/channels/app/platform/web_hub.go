@@ -28,8 +28,9 @@ const (
 type SuiteIFace interface {
 	GetSession(token string) (*model.Session, *model.AppError)
 	RolesGrantPermission(roleNames []string, permissionId string) bool
-	HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool
-	UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) bool
+	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
+	MFARequired(rctx request.CTX) *model.AppError
 }
 
 type webConnActivityMessage struct {
@@ -65,6 +66,8 @@ type webConnCountMessage struct {
 	result chan int
 }
 
+var hubSemaphoreCount = runtime.NumCPU() * 4
+
 // Hub is the central place to manage all websocket connections in the server.
 // It handles different websocket events and sending messages to individual
 // user connections.
@@ -87,6 +90,9 @@ type Hub struct {
 	checkConn       chan *webConnCheckMessage
 	connCount       chan *webConnCountMessage
 	broadcastHooks  map[string]BroadcastHook
+
+	// Hub-specific semaphore for limiting concurrent goroutines
+	hubSemaphore chan struct{}
 }
 
 // newWebHub creates a new Hub.
@@ -104,6 +110,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
+		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -117,7 +124,7 @@ func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
 
 	hubs := make([]*Hub, numberOfHubs)
 
-	for i := 0; i < numberOfHubs; i++ {
+	for i := range numberOfHubs {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
 		hubs[i].broadcastHooks = broadcastHooks
@@ -469,10 +476,39 @@ func (h *Hub) SendMessage(conn *WebConn, msg model.WebSocketMessage) {
 	}
 }
 
+// ProcessAsync executes a function with hub-specific concurrency control
+func (h *Hub) ProcessAsync(f func()) {
+	h.hubSemaphore <- struct{}{}
+	go func() {
+		defer func() {
+			<-h.hubSemaphore
+		}()
+
+		// Add timeout protection
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			f()
+		}()
+
+		select {
+		case <-done:
+			// Function completed normally
+		case <-time.After(5 * time.Second):
+			h.platform.Log().Warn("ProcessAsync function timed out after 5 seconds")
+		}
+	}()
+}
+
 // Stop stops the hub.
 func (h *Hub) Stop() {
 	close(h.stop)
 	<-h.didStop
+	// Ensure that all remaining elements are processed
+	// before shutting down.
+	for range hubSemaphoreCount {
+		h.hubSemaphore <- struct{}{}
+	}
 }
 
 // Start starts the hub.
@@ -537,7 +573,7 @@ func (h *Hub) Start() {
 				}
 				atomic.StoreInt64(&h.connectionCount, int64(connIndex.AllActive()))
 
-				if webConnReg.conn.IsAuthenticated() && webConnReg.conn.reuseCount == 0 {
+				if webConnReg.conn.IsBasicAuthenticated() && webConnReg.conn.reuseCount == 0 {
 					// The hello message should only be sent when the reuseCount is 0.
 					// i.e in server restart, or long timeout, or fresh connection case.
 					// In case of seq number not found in dead queue, it is handled by
@@ -561,7 +597,7 @@ func (h *Hub) Start() {
 				// which is intentional.
 				if areAllInactive(conns) {
 					userID := webConn.UserId
-					h.platform.Go(func() {
+					h.ProcessAsync(func() {
 						// If this is an HA setup, get count for this user
 						// from other nodes.
 						var clusterCnt int
@@ -580,7 +616,7 @@ func (h *Hub) Start() {
 						// Only set to offline if there are no
 						// active connections in other nodes as well.
 						if clusterCnt == 0 {
-							h.platform.SetStatusOffline(userID, false, false)
+							h.platform.QueueSetStatusOffline(userID, false)
 						}
 					})
 					continue

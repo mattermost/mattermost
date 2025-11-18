@@ -29,7 +29,7 @@ type State = {
     ClusterName: string;
     OverrideHostname: string;
     UseIPAddress: boolean;
-    EnableExperimentalGossipEncryption: boolean;
+    EnableGossipEncryption: boolean;
     EnableGossipCompression: boolean;
     GossipPort: number;
     showWarning: boolean;
@@ -46,8 +46,8 @@ const messages = defineMessages({
     overrideHostnameDesc: {id: 'admin.cluster.OverrideHostnameDesc', defaultMessage: "The default value of '<blank>' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed."},
     useIPAddress: {id: 'admin.cluster.UseIPAddress', defaultMessage: 'Use IP Address:'},
     useIPAddressDesc: {id: 'admin.cluster.UseIPAddressDesc', defaultMessage: 'When true, the cluster will attempt to communicate via IP Address vs using the hostname.'},
-    enableExperimentalGossipEncryption: {id: 'admin.cluster.EnableExperimentalGossipEncryption', defaultMessage: 'Enable Experimental Gossip encryption:'},
-    enableExperimentalGossipEncryptionDesc: {id: 'admin.cluster.EnableExperimentalGossipEncryptionDesc', defaultMessage: 'When true, all communication through the gossip protocol will be encrypted.'},
+    enableGossipEncryption: {id: 'admin.cluster.EnableGossipEncryption', defaultMessage: 'Enable Gossip encryption:'},
+    enableGossipEncryptionDesc: {id: 'admin.cluster.EnableGossipEncryptionDesc', defaultMessage: 'When true, all communication through the gossip protocol will be encrypted.'},
     enableGossipCompression: {id: 'admin.cluster.EnableGossipCompression', defaultMessage: 'Enable Gossip compression:'},
     enableGossipCompressionDesc: {id: 'admin.cluster.EnableGossipCompressionDesc', defaultMessage: 'When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.'},
     gossipPort: {id: 'admin.cluster.GossipPort', defaultMessage: 'Gossip Port:'},
@@ -65,8 +65,8 @@ export const searchableStrings = [
     messages.overrideHostnameDesc,
     messages.useIPAddress,
     messages.useIPAddressDesc,
-    messages.enableExperimentalGossipEncryption,
-    messages.enableExperimentalGossipEncryptionDesc,
+    messages.enableGossipEncryption,
+    messages.enableGossipEncryptionDesc,
     messages.enableGossipCompression,
     messages.enableGossipCompressionDesc,
     messages.gossipPort,
@@ -79,7 +79,7 @@ export default class ClusterSettings extends OLDAdminSettings<Props, State> {
         config.ClusterSettings.ClusterName = this.state.ClusterName;
         config.ClusterSettings.OverrideHostname = this.state.OverrideHostname;
         config.ClusterSettings.UseIPAddress = this.state.UseIPAddress;
-        config.ClusterSettings.EnableExperimentalGossipEncryption = this.state.EnableExperimentalGossipEncryption;
+        config.ClusterSettings.EnableGossipEncryption = this.state.EnableGossipEncryption;
         config.ClusterSettings.EnableGossipCompression = this.state.EnableGossipCompression;
         config.ClusterSettings.GossipPort = this.parseIntNonZero(this.state.GossipPort, 8074);
         return config;
@@ -93,7 +93,7 @@ export default class ClusterSettings extends OLDAdminSettings<Props, State> {
             ClusterName: settings.ClusterName,
             OverrideHostname: settings.OverrideHostname,
             UseIPAddress: settings.UseIPAddress,
-            EnableExperimentalGossipEncryption: settings.EnableExperimentalGossipEncryption,
+            EnableGossipEncryption: settings.EnableGossipEncryption,
             EnableGossipCompression: settings.EnableGossipCompression,
             GossipPort: settings.GossipPort,
             showWarning: false,
@@ -241,12 +241,12 @@ export default class ClusterSettings extends OLDAdminSettings<Props, State> {
                     disabled={this.props.isDisabled}
                 />
                 <BooleanSetting
-                    id='EnableExperimentalGossipEncryption'
-                    label={<FormattedMessage {...messages.enableExperimentalGossipEncryption}/>}
-                    helpText={<FormattedMessage {...messages.enableExperimentalGossipEncryptionDesc}/>}
-                    value={this.state.EnableExperimentalGossipEncryption}
+                    id='EnableGossipEncryption'
+                    label={<FormattedMessage {...messages.enableGossipEncryption}/>}
+                    helpText={<FormattedMessage {...messages.enableGossipEncryptionDesc}/>}
+                    value={this.state.EnableGossipEncryption}
                     onChange={this.overrideHandleChange}
-                    setByEnv={this.isSetByEnv('ClusterSettings.EnableExperimentalGossipEncryption')}
+                    setByEnv={this.isSetByEnv('ClusterSettings.EnableGossipEncryption')}
                     disabled={this.props.isDisabled}
                 />
                 <BooleanSetting

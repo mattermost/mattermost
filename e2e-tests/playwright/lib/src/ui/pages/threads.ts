@@ -35,6 +35,7 @@ export default class ThreadsPage {
     }
 
     async toNotHaveThreadSelected() {
+        await this.noThreadSelected.waitFor({state: 'visible'});
         await expect(this.noThreadSelected).toBeVisible();
     }
 

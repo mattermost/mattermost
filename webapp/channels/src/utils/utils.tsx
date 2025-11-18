@@ -27,8 +27,7 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences, General} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {Preferences} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -42,9 +41,9 @@ import {
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {searchForTerm} from 'actions/post_actions';
 import {addUserToTeam} from 'actions/team_actions';
@@ -57,7 +56,9 @@ import type {TextboxElement} from 'components/textbox';
 import {getHistory} from 'utils/browser_history';
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import * as Keyboard from 'utils/keyboard';
+import {FOCUS_REPLY_POST, isPopoutWindow, sendToParent} from 'utils/popouts/popout_windows';
 import * as UserAgent from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
@@ -354,6 +355,8 @@ export function toRgbValues(hexStr: string): string {
 }
 
 export function applyTheme(theme: Theme) {
+    DesktopApp.updateTheme({...theme, isUsingSystemTheme: false});
+
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.75));
@@ -380,15 +383,14 @@ export function applyTheme(theme: Theme) {
         changeCss('.app__body .search-item-container', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('.app__body .modal .custom-textarea:focus', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .channel-intro, .app__body hr, .app__body .modal .settings-modal .settings-table .settings-content .appearance-section .theme-elements__header, .app__body .user-settings .authorized-app:not(:last-child)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
-        changeCss('.app__body .post.post--comment.other--root.current--user .post-comment, .app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.4));
+        changeCss('.app__body pre', 'background:' + changeOpacity(theme.centerChannelColor, 0.05));
+        changeCss('.app__body .more-modal__list .more-modal__row, .app__body .member-div:first-child, .app__body .member-div, .app__body .access-history__table .access__report, .app__body .activity-log__table', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.1));
         changeCss('@media(max-width: 1800px){.app__body .inner-wrap.move--left .post.post--comment.same--root', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .post.post--hovered', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'background:' + changeOpacity(theme.centerChannelColor, 0.08));
         changeCss('.app__body .attachment__body__wrap.btn-close', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('@media(min-width: 768px){.app__body .post.a11y--active, .app__body .modal .settings-modal .settings-table .settings-content .section-min:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.04));
         changeCss('@media(min-width: 768px){.app__body .post.post--editing', 'background:' + changeOpacity(theme.buttonBg, 0.08));
-        changeCss('@media(min-width: 768px){.app__body .post.current--user:hover .post__body ', 'background: transparent;');
         changeCss('.app__body .more-modal__row.more-modal__row--selected, .app__body .date-separator.hovered--before:after, .app__body .date-separator.hovered--after:before, .app__body .new-separator.hovered--after:before, .app__body .new-separator.hovered--before:after', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('@media(min-width: 768px){.app__body .dropdown-menu>li>a:focus, .app__body .dropdown-menu>li>a:hover', 'background:' + changeOpacity(theme.centerChannelColor, 0.15));
         changeCss('.app__body .form-control[disabled], .app__body .form-control[readonly], .app__body fieldset[disabled] .form-control', 'background:' + changeOpacity(theme.centerChannelColor, 0.1));
@@ -397,7 +399,6 @@ export function applyTheme(theme: Theme) {
         changeCss('body', 'scrollbar-arrow-color:' + theme.centerChannelColor);
         changeCss('.app__body .post.post--compact .post-image__column .post-image__details svg, .app__body .modal .about-modal .about-modal__logo svg, .app__body .status svg, .app__body .edit-post__actions .icon svg', 'fill:' + theme.centerChannelColor);
         changeCss('.app__body .post-list__new-messages-below', 'background:' + changeColor(theme.centerChannelColor, 0.5));
-        changeCss('.app__body .post.post--comment.current--user .post__body', 'border-color:' + changeOpacity(theme.buttonBg, 0.24));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__search-icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.4));
@@ -949,6 +950,20 @@ function changeColor(colourIn: string, amt: number): string {
     return rgb;
 }
 
+export function getUsername(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteUsername) {
+        return user.props.RemoteUsername;
+    }
+    return user.username;
+}
+
+export function getEmail(user: UserProfile) {
+    if (user.remote_id && user.props?.RemoteEmail) {
+        return user.props?.RemoteEmail;
+    }
+    return user.email;
+}
+
 export function getFullName(user: UserProfile) {
     if (user.first_name && user.last_name) {
         return user.first_name + ' ' + user.last_name;
@@ -1275,7 +1290,7 @@ function isChannelOrPermalink(link: string) {
     return match;
 }
 
-export async function handleFormattedTextClick(e: React.MouseEvent, currentRelativeTeamUrl = '') {
+export async function handleFormattedTextClick(e: React.UIEvent, currentRelativeTeamUrl = '') {
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
     const channelMentionAttribute = (e.target as any).getAttributeNode('data-channel-mention');
@@ -1287,7 +1302,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
     } else if (linkAttribute) {
         const MIDDLE_MOUSE_BUTTON = 1;
 
-        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+        if (!isMouseEvent(e) || !(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
             e.preventDefault();
 
             const state = store.getState();
@@ -1297,65 +1312,63 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
 
             let isReply = false;
 
-            if (isSystemAdmin(user.roles)) {
-                if (match) {
-                    // Get team by name
-                    const {teamName} = match;
-                    let team = getTeamByName(state, teamName);
-                    if (!team) {
-                        const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
-                        team = teamData;
-                    }
-                    if (team && team.delete_at === 0) {
-                        let channel;
+            if (match) {
+                // Get team by name
+                const {teamName} = match;
+                let team = getTeamByName(state, teamName);
+                if (!team) {
+                    const {data: teamData} = await store.dispatch(getTeamByNameAction(teamName));
+                    team = teamData;
+                }
+                if (team && team.delete_at === 0) {
+                    let channel;
 
-                        // Handle channel url - Get channel data from channel name
-                        if (match.type === 'channel') {
-                            const {channelName} = match;
-                            channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                    // Handle channel url - Get channel data from channel name
+                    if (match.type === 'channel') {
+                        const {channelName} = match;
+                        channel = getChannelsNameMapInTeam(state, team.id)[channelName as string];
+                        if (!channel) {
+                            const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                            channel = channelData;
+                        }
+                    } else { // Handle permalink - Get channel data from post
+                        const {postId} = match;
+                        let post = getPost(state, postId!);
+                        if (!post) {
+                            const {data: postData} = await store.dispatch(getPostAction(match.postId!));
+                            post = postData!;
+                        }
+                        if (post) {
+                            isReply = Boolean(post.root_id);
+
+                            channel = getChannel(state, post.channel_id);
                             if (!channel) {
-                                const {data: channelData} = await store.dispatch(getChannelByNameAndTeamName(teamName, channelName!, true));
+                                const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
                                 channel = channelData;
                             }
-                        } else { // Handle permalink - Get channel data from post
-                            const {postId} = match;
-                            let post = getPost(state, postId!);
-                            if (!post) {
-                                const {data: postData} = await store.dispatch(getPostAction(match.postId!));
-                                post = postData!;
-                            }
-                            if (post) {
-                                isReply = Boolean(post.root_id);
-
-                                channel = getChannel(state, post.channel_id);
-                                if (!channel) {
-                                    const {data: channelData} = await store.dispatch(getChannelAction(post.channel_id));
-                                    channel = channelData;
-                                }
+                        }
+                    }
+                    if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
+                        let member = getMyChannelMemberships(state)[channel.id];
+                        if (!member) {
+                            const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
+                            if ('data' in membership) {
+                                member = membership.data!;
                             }
                         }
-                        if (channel && channel.type === Constants.PRIVATE_CHANNEL) {
-                            let member = getMyChannelMemberships(state)[channel.id];
-                            if (!member) {
-                                const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
-                                if ('data' in membership) {
-                                    member = membership.data!;
+                        if (!member) {
+                            const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
+                            if (data!.join) {
+                                let error = false;
+                                if (!getTeamMemberships(state)[team.id]) {
+                                    const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
+                                    error = joinTeamResult.error;
                                 }
-                            }
-                            if (!member) {
-                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
-                                if (data!.join) {
-                                    let error = false;
-                                    if (!getTeamMemberships(state)[team.id]) {
-                                        const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));
-                                        error = joinTeamResult.error;
-                                    }
-                                    if (!error) {
-                                        await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
-                                    }
-                                } else {
-                                    return;
+                                if (!error) {
+                                    await store.dispatch(joinChannel(user.id, team.id, channel.id, channel.name));
                                 }
+                            } else {
+                                return;
                             }
                         }
                     }
@@ -1365,7 +1378,11 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
             e.stopPropagation();
 
             if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
-                store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
+                if (isPopoutWindow()) {
+                    sendToParent(FOCUS_REPLY_POST, match.postId ?? '', linkAttribute.value);
+                } else {
+                    store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
+                }
             } else {
                 getHistory().push(linkAttribute.value);
             }
@@ -1374,6 +1391,10 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
         e.preventDefault();
         getHistory().push(currentRelativeTeamUrl + '/channels/' + channelMentionAttribute.value);
     }
+}
+
+function isMouseEvent(e: React.UIEvent): e is React.MouseEvent {
+    return 'button' in e;
 }
 
 export function isEmptyObject(object: any) {
@@ -1576,47 +1597,6 @@ export function numberToFixedDynamic(num: number, places: number): string {
     return str.slice(0, indexToExclude);
 }
 
-const TrackFlowRoles: Record<string, string> = {
-    fa: Constants.FIRST_ADMIN_ROLE,
-    sa: General.SYSTEM_ADMIN_ROLE,
-    su: General.SYSTEM_USER_ROLE,
-};
-
-export function getTrackFlowRole(state: GlobalState) {
-    let trackFlowRole = 'su';
-
-    if (isFirstAdmin(state)) {
-        trackFlowRole = 'fa';
-    } else if (isSystemAdmin(getCurrentUser(state).roles)) {
-        trackFlowRole = 'sa';
-    }
-
-    return trackFlowRole;
-}
-
-export const getRoleForTrackFlow = createSelector(
-    'getRoleForTrackFlow',
-    getTrackFlowRole,
-    (trackFlowRole) => {
-        const startedByRole = TrackFlowRoles[trackFlowRole];
-
-        return {started_by_role: startedByRole};
-    },
-);
-
-export function getSbr() {
-    const params = new URLSearchParams(window.location.search);
-    const sbr = params.get('sbr') ?? '';
-    return sbr;
-}
-
-export function getRoleFromTrackFlow() {
-    const sbr = getSbr();
-    const startedByRole = TrackFlowRoles[sbr] ?? '';
-
-    return {started_by_role: startedByRole};
-}
-
 export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Record<string, Locale>) {
     if (locale && locale !== 'en' && !loadedLocales[locale]) {
         try {
@@ -1629,32 +1609,6 @@ export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Re
     }
 
     return loadedLocales;
-}
-
-export function getMediumFromTrackFlow() {
-    const params = new URLSearchParams(window.location.search);
-    const source = params.get('md') ?? '';
-
-    return {source};
-}
-
-const TrackFlowSources: Record<string, string> = {
-    wd: 'webapp-desktop',
-    wm: 'webapp-mobile',
-    d: 'desktop-app',
-};
-
-function getTrackFlowSource() {
-    if (UserAgent.isMobile()) {
-        return TrackFlowSources.wm;
-    } else if (UserAgent.isDesktopApp()) {
-        return TrackFlowSources.d;
-    }
-    return TrackFlowSources.wd;
-}
-
-export function getSourceForTrackFlow() {
-    return {source: getTrackFlowSource()};
 }
 
 export function a11yFocus(element: HTMLElement | null | undefined, keyboardOnly = true) {

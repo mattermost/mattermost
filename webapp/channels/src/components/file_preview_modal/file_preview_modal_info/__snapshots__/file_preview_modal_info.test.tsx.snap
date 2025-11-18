@@ -1,13 +1,15 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/FilePreviewModalInfo should match snapshot 1`] = `
 <div
   className="file-preview-modal__info"
 >
   <Memo(Avatar)
+    alt=""
     className="file-preview-modal__avatar"
     size="lg"
     url="/api/v4/users/user_id/image?_=0"
+    username="some-user"
   />
   <div
     className="file-preview-modal__info-details"

@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"reflect"
 	"testing"
@@ -34,8 +35,8 @@ func TestConfigDefaults(t *testing.T) {
 			if v.Type().Kind() == reflect.Ptr {
 				// Ignoring these 2 settings.
 				// TODO: remove them completely in v8.0.
-				if name == "config.BleveSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" {
+				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
+					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
 					return
 				}
 
@@ -1402,6 +1403,8 @@ func TestLdapSettingsIsValid(t *testing.T) {
 }
 
 func TestLogSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
 	for name, test := range map[string]struct {
 		LogSettings LogSettings
 		ExpectError bool
@@ -1560,15 +1563,19 @@ func TestConfigSanitize(t *testing.T) {
 }
 
 func TestPluginSettingsSanitize(t *testing.T) {
-	plugins := map[string]map[string]any{
-		"plugin.id": {
-			"somesetting":  "some value",
-			"secrettext":   "a secret",
-			"secretnumber": 123,
-		},
-		"another.plugin": {
-			"somesetting": 456,
-		},
+	const (
+		pluginID1 = "plugin.id"
+		pluginID2 = "another.plugin"
+	)
+	settingsPlugin1 := map[string]any{
+		"someoldsettings": "some old value",
+		"somesetting":     "some value",
+		"secrettext":      "a secret",
+		"secretnumber":    123,
+	}
+
+	settingsPlugin2 := map[string]any{
+		"somesetting": 456,
 	}
 
 	for name, tc := range map[string]struct {
@@ -1577,34 +1584,66 @@ func TestPluginSettingsSanitize(t *testing.T) {
 	}{
 		"nil list of manifests": {
 			manifests: nil,
-			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  FakeSetting,
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
-				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
-				},
-			},
+			expected:  map[string]map[string]any{},
 		},
 		"empty list of manifests": {
 			manifests: []*Manifest{},
-			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  FakeSetting,
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
+			expected:  map[string]map[string]any{},
+		},
+		"one plugin installed without settings schema": {
+			manifests: []*Manifest{
+				{
+					Id:             pluginID1,
+					SettingsSchema: nil,
 				},
-				"another.plugin": {
-					"somesetting": FakeSetting,
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
+				},
+			},
+		},
+		"one plugin installed empty settings schema": {
+			manifests: []*Manifest{
+				{
+					Id:             pluginID1,
+					SettingsSchema: &PluginSettingsSchema{},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
+				},
+			},
+		},
+		"one plugin installed empty settings list": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
 				},
 			},
 		},
 		"one plugin installed": {
 			manifests: []*Manifest{
 				{
-					Id: "plugin.id",
+					Id: pluginID1,
 					SettingsSchema: &PluginSettingsSchema{
 						Settings: []*PluginSetting{
 							{
@@ -1627,17 +1666,18 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 			},
 			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  "some value",
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
 			},
 		},
 		"two plugins installed": {
 			manifests: []*Manifest{
 				{
-					Id: "plugin.id",
+					Id: pluginID1,
 					SettingsSchema: &PluginSettingsSchema{
 						Settings: []*PluginSetting{
 							{
@@ -1659,7 +1699,7 @@ func TestPluginSettingsSanitize(t *testing.T) {
 					},
 				},
 				{
-					Id: "another.plugin",
+					Id: pluginID2,
 					SettingsSchema: &PluginSettingsSchema{
 						Settings: []*PluginSetting{
 							{
@@ -1672,25 +1712,26 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 			},
 			expected: map[string]map[string]any{
-				"plugin.id": {
-					"somesetting":  "some value",
-					"secrettext":   FakeSetting,
-					"secretnumber": FakeSetting,
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
-				"another.plugin": {
+				pluginID2: {
 					"somesetting": 456,
 				},
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if name != "one plugin installed" {
-				return
-			}
-
 			c := PluginSettings{}
 			c.SetDefaults(*NewLogSettings())
-			c.Plugins = plugins
+
+			c.Plugins[pluginID1] = make(map[string]any)
+			maps.Copy(c.Plugins[pluginID1], settingsPlugin1)
+			c.Plugins[pluginID2] = make(map[string]any)
+			maps.Copy(c.Plugins[pluginID2], settingsPlugin2)
 
 			c.Sanitize(tc.manifests)
 
@@ -1723,24 +1764,6 @@ func TestSanitizeDataSource(t *testing.T) {
 			},
 		}
 		driver := DatabaseDriverPostgres
-		for _, tc := range testCases {
-			out, err := SanitizeDataSource(driver, tc.Original)
-			require.NoError(t, err)
-			assert.Equal(t, tc.Sanitized, out)
-		}
-	})
-
-	t.Run(DatabaseDriverMysql, func(t *testing.T) {
-		testCases := []struct {
-			Original  string
-			Sanitized string
-		}{
-			{
-				"mmuser:mostest@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
-				SanitizedPassword + ":" + SanitizedPassword + "@tcp(localhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
-			},
-		}
-		driver := DatabaseDriverMysql
 		for _, tc := range testCases {
 			out, err := SanitizeDataSource(driver, tc.Original)
 			require.NoError(t, err)
@@ -2163,6 +2186,115 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 	})
 }
 
+func TestExperimentalAuditSettingsIsValid(t *testing.T) {
+	t.Parallel()
+
+	for name, test := range map[string]struct {
+		ExperimentalAuditSettings ExperimentalAuditSettings
+		ExpectError               bool
+	}{
+		"empty settings": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{},
+			ExpectError:               false,
+		},
+		"file enabled with empty filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer(""),
+			},
+			ExpectError: true,
+		},
+		"file enabled with valid filename": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(1000),
+			},
+			ExpectError: false,
+		},
+		"invalid file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:   NewPointer(true),
+				FileName:      NewPointer("audit.log"),
+				FileMaxSizeMB: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"negative file max age": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(-5),
+			},
+			ExpectError: true,
+		},
+		"negative file max backups": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:    NewPointer(true),
+				FileName:       NewPointer("audit.log"),
+				FileMaxSizeMB:  NewPointer(100),
+				FileMaxAgeDays: NewPointer(5),
+				FileMaxBackups: NewPointer(-10),
+			},
+			ExpectError: true,
+		},
+		"zero file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(0),
+			},
+			ExpectError: true,
+		},
+		"negative file max queue size": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				FileEnabled:      NewPointer(true),
+				FileName:         NewPointer("audit.log"),
+				FileMaxSizeMB:    NewPointer(100),
+				FileMaxAgeDays:   NewPointer(5),
+				FileMaxBackups:   NewPointer(10),
+				FileMaxQueueSize: NewPointer(-1000),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has JSON error ": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ExperimentalAuditSettings.SetDefaults()
+
+			appErr := test.ExperimentalAuditSettings.isValid()
+			if test.ExpectError {
+				require.NotNil(t, appErr)
+			} else {
+				require.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestFilterConfig(t *testing.T) {
 	t.Run("should clear default values", func(t *testing.T) {
 		cfg := &Config{}
@@ -2341,4 +2473,118 @@ func TestFilterConfig(t *testing.T) {
 		_, ok = m["SqlSettings"]
 		require.False(t, ok)
 	})
+}
+
+func TestAutoTranslationSettingsDefaults(t *testing.T) {
+	t.Run("should set default values", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		require.False(t, *c.AutoTranslationSettings.Enable)
+		require.Equal(t, "", *c.AutoTranslationSettings.Provider)
+		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
+		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
+		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
+		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
+		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
+		// TODO: Enable Agents provider in future release
+		// require.Equal(t, "", *c.AutoTranslationSettings.Agents.BotUserId)
+	})
+}
+
+func TestAutoTranslationSettingsIsValid(t *testing.T) {
+	testCases := []struct {
+		name        string
+		settings    AutoTranslationSettings
+		expectError bool
+		errorId     string
+	}{
+		{
+			name: "disabled settings should be valid",
+			settings: AutoTranslationSettings{
+				Enable: NewPointer(false),
+			},
+			expectError: false,
+		},
+		{
+			name: "enabled with no provider should fail",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: nil,
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.autotranslation.provider.app_error",
+		},
+		{
+			name: "enabled with unsupported provider should fail",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("unsupported"),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+		},
+		{
+			name: "libretranslate without URL should fail",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL: NewPointer(""),
+				},
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+		},
+		// TODO: Enable Agents provider in future release
+		// {
+		// 	name: "agents without bot user ID should fail",
+		// 	settings: AutoTranslationSettings{
+		// 		Enable:   NewPointer(true),
+		// 		Provider: NewPointer("agents"),
+		// 		Agents: &AgentsProviderSettings{
+		// 			BotUserId: NewPointer(""),
+		// 		},
+		// 	},
+		// 	expectError: true,
+		// 	errorId:     "model.config.is_valid.autotranslation.agents.bot_user_id.app_error",
+		// },
+		{
+			name: "valid libretranslate settings",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: false,
+		},
+		// TODO: Enable Agents provider in future release
+		// {
+		// 	name: "valid agents settings",
+		// 	settings: AutoTranslationSettings{
+		// 		Enable:   NewPointer(true),
+		// 		Provider: NewPointer("agents"),
+		// 		Agents: &AgentsProviderSettings{
+		// 			BotUserId: NewPointer("bot123"),
+		// 		},
+		// 	},
+		// 	expectError: false,
+		// },
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.settings.SetDefaults()
+			err := tc.settings.isValid()
+			if tc.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tc.errorId, err.Id)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
 }

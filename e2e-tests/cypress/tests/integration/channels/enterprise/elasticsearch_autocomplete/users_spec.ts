@@ -11,9 +11,11 @@
 // Group: @channels @enterprise @elasticsearch @autocomplete @not_cloud
 
 import {Team} from '@mattermost/types/teams';
+
 import {getRandomLetter} from '../../../../utils';
 import {doTestDMChannelSidebar, doTestUserChannelSection} from '../../autocomplete/common_test';
 import {createSearchData, SimpleUser} from '../../autocomplete/helpers';
+
 import {enableElasticSearch} from './helpers';
 
 describe('Autocomplete with Elasticsearch - Users', () => {

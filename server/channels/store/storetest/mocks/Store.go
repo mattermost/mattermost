@@ -5,8 +5,6 @@
 package mocks
 
 import (
-	context "context"
-
 	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
 
@@ -269,20 +267,20 @@ func (_m *Store) Compliance() store.ComplianceStore {
 	return r0
 }
 
-// Context provides a mock function with no fields
-func (_m *Store) Context() context.Context {
+// ContentFlagging provides a mock function with no fields
+func (_m *Store) ContentFlagging() store.ContentFlaggingStore {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for Context")
+		panic("no return value specified for ContentFlagging")
 	}
 
-	var r0 context.Context
-	if rf, ok := ret.Get(0).(func() context.Context); ok {
+	var r0 store.ContentFlaggingStore
+	if rf, ok := ret.Get(0).(func() store.ContentFlaggingStore); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(context.Context)
+			r0 = ret.Get(0).(store.ContentFlaggingStore)
 		}
 	}
 
@@ -517,6 +515,36 @@ func (_m *Store) GetLocalSchemaVersion() (int, error) {
 		r0 = rf()
 	} else {
 		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSchemaDefinition provides a mock function with no fields
+func (_m *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSchemaDefinition")
+	}
+
+	var r0 *model.SupportPacketDatabaseSchema
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (*model.SupportPacketDatabaseSchema, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() *model.SupportPacketDatabaseSchema); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SupportPacketDatabaseSchema)
+		}
 	}
 
 	if rf, ok := ret.Get(1).(func() error); ok {
@@ -1077,11 +1105,6 @@ func (_m *Store) Session() store.SessionStore {
 	}
 
 	return r0
-}
-
-// SetContext provides a mock function with given fields: _a0
-func (_m *Store) SetContext(_a0 context.Context) {
-	_m.Called(_a0)
 }
 
 // SharedChannel provides a mock function with no fields

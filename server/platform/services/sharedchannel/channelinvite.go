@@ -89,6 +89,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			RemoteId:          rc.RemoteId,
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: false,
+			LastMembersSyncAt: 0,
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
@@ -134,6 +135,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		}
 
 		curTime := model.GetMillis()
+		var sharedChannelRemote *model.SharedChannelRemote
 		if existingScr != nil {
 			if existingScr.DeleteAt == 0 && existingScr.IsInviteConfirmed {
 				// the shared channel remote exists and is not
@@ -153,6 +155,7 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, sErr))
 				return
 			}
+			sharedChannelRemote = existingScr
 		} else {
 			// the shared channel remote doesn't exists, so we create it
 			scr := &model.SharedChannelRemote{
@@ -163,15 +166,26 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				IsInviteConfirmed: true,
 				LastPostCreateAt:  curTime,
 				LastPostUpdateAt:  curTime,
+				LastMembersSyncAt: 0,
 			}
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 				return
 			}
+			sharedChannelRemote = scr
 		}
 
 		scs.NotifyChannelChanged(sc.ChannelId)
 		scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("`%s` has been added to channel.", rc.DisplayName))
+
+		// Sync all channel members to the remote now that the remote entry exists
+		if syncErr := scs.SyncAllChannelMembers(sc.ChannelId, rc.RemoteId, sharedChannelRemote); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync channel members after invite confirmation",
+				mlog.String("channel_id", sc.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
+		}
 	}
 
 	if rc.IsPlugin() {
@@ -311,6 +325,15 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		if _, err := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); err != nil {
 			return fmt.Errorf("cannot restore deleted shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
+
+		// Sync local channel members to the remote after restoring the shared channel
+		if syncErr := scs.SyncAllChannelMembers(channel.Id, rc.RemoteId, existingScr); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync local channel members after restoring shared channel",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
+		}
 	} else {
 		creatorID := channel.CreatorId
 		if creatorID == "" {
@@ -325,6 +348,7 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			RemoteId:          rc.RemoteId,
 			LastPostCreateAt:  model.GetMillis(),
 			LastPostUpdateAt:  model.GetMillis(),
+			LastMembersSyncAt: 0,
 		}
 
 		if _, err := scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
@@ -335,6 +359,15 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 			}
 			scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
 			return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
+		}
+
+		// Sync local channel members to the remote after accepting the invitation
+		if syncErr := scs.SyncAllChannelMembers(channel.Id, rc.RemoteId, scr); syncErr != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Failed to sync local channel members after accepting invitation",
+				mlog.String("channel_id", channel.Id),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.Err(syncErr),
+			)
 		}
 	}
 	return nil
@@ -526,7 +559,7 @@ func (scs *Service) createGroupChannel(invite channelInviteMsg, rc *model.Remote
 		return nil, false, fmt.Errorf("cannot create group channel `%s` there are no local users", invite.ChannelId)
 	}
 
-	// check if this DM already exists.
+	// check if this GM already exists.
 	channelName := model.GetGroupNameFromUserIds(invite.DirectParticipantIDs)
 	channelExists, err := scs.server.GetStore().Channel().GetByName("", channelName, true)
 	if err != nil && !isNotFoundError(err) {

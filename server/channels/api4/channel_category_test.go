@@ -19,8 +19,7 @@ import (
 
 func TestCreateCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should silently prevent the user from creating a category with an invalid channel ID", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -98,12 +97,55 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 	t.Run("should not crash with null input", func(t *testing.T) {
 		require.NotPanics(t, func() {
 			user, client := setupUserForSubtest(t, th)
-			payload := []byte(`null`)
+			payload := `null`
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories", user.Id, th.BasicTeam.Id)
-			r, err := client.DoAPIPostBytes(context.Background(), route, payload)
+			r, err := client.DoAPIPost(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
+	})
+
+	t.Run("should return error when user tries to create a category for a team they're not a member of", func(t *testing.T) {
+		// Create a user
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		// Create a team and add the user to it
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(t, user, team)
+
+		// Create a client and log in
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Now remove the user from the team
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Attempt to create a category for the team the user is no longer a member of
+		category := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      user.Id,
+				TeamId:      team.Id,
+				DisplayName: "test category",
+			},
+		}
+
+		_, resp, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, category)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
 	t.Run("should publish expected WS payload", func(t *testing.T) {
@@ -166,8 +208,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 
 func TestUpdateCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should update the channel order of the Channels category", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -443,19 +484,70 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 
 			dmsCategory := categories.Categories[2]
 
-			payload := []byte(`null`)
+			payload := `null`
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/%s", user.Id, th.BasicTeam.Id, dmsCategory.Id)
-			r, err := client.DoAPIPutBytes(context.Background(), route, payload)
+			r, err := client.DoAPIPut(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
+	})
+
+	t.Run("should return error when user tries to update a category for a team they're not a member of", func(t *testing.T) {
+		// Create a user
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		// Create a team and add the user to it
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(t, user, team)
+
+		// Create a client and log in
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Get categories to have valid category IDs
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, categories.Categories)
+
+		// Store a category to use after team membership is revoked
+		categoryToUpdate := &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				Id:          categories.Categories[0].Id,
+				UserId:      user.Id,
+				TeamId:      team.Id,
+				DisplayName: "Updated Category",
+				Type:        categories.Categories[0].Type,
+			},
+			Channels: categories.Categories[0].Channels,
+		}
+
+		// Remove the user from the team
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Attempt to update a category for the team after being removed
+		_, resp, err := client.UpdateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, categoryToUpdate.Id, categoryToUpdate)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 }
 
 func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should silently prevent the user from adding an invalid channel ID", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -548,12 +640,65 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		_, _, err = client.UpdateSidebarCategoryOrderForTeamForUser(context.Background(), user.Id, th.BasicTeam.Id, []string{categories.Order[1], categories.Order[0], "asd"})
 		require.Error(t, err)
 	})
+
+	t.Run("should return error when user tries to update categories for a team they're not a member of", func(t *testing.T) {
+		// Create a user
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		// Create a team and add the user to it
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(t, user, team)
+
+		// Create a client and log in
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Get categories to have valid category IDs
+		existingCategories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, existingCategories.Categories)
+
+		// Prepare categories to update after team membership is revoked
+		categoriesToUpdate := []*model.SidebarCategoryWithChannels{
+			{
+				SidebarCategory: model.SidebarCategory{
+					Id:          existingCategories.Categories[0].Id,
+					UserId:      user.Id,
+					TeamId:      team.Id,
+					DisplayName: "Updated Category",
+					Type:        existingCategories.Categories[0].Type,
+				},
+				Channels: existingCategories.Categories[0].Channels,
+			},
+		}
+
+		// Remove the user from the team
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Attempt to update categories for the team after being removed
+		_, resp, err := client.UpdateSidebarCategoriesForTeamForUser(context.Background(), user.Id, team.Id, categoriesToUpdate)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }
 
 func TestGetCategoriesForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should return categories when user has permission", func(t *testing.T) {
 		// Get categories for the basic user
@@ -583,6 +728,34 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
+	t.Run("should return error for a team the user is not a member of", func(t *testing.T) {
+		// Create a new user and team
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		// Log in as the new user
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Attempt to get categories for a team the user is not a member of
+		_, resp, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team.Id, "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
 	t.Run("should return error with invalid user id", func(t *testing.T) {
 		_, resp, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), "invalid_user_id", th.BasicTeam.Id, "")
 		require.Error(t, err)
@@ -605,8 +778,7 @@ func TestGetCategoriesForTeamForUser(t *testing.T) {
 
 func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should return category order when user has permission", func(t *testing.T) {
 		// Get categories first to ensure order exists
@@ -660,12 +832,50 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 	})
+
+	t.Run("should return error when user tries to get category order for a team they're not a member of", func(t *testing.T) {
+		// Create a user
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		// Create a team and add the user to it
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(t, user, team)
+
+		// Create a client and log in
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Verify the user can access categories initially
+		_, _, err = client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team.Id, "")
+		require.NoError(t, err)
+
+		// Remove the user from the team
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Attempt to get the category order for the team after being removed
+		_, resp, err := client.GetSidebarCategoryOrderForTeamForUser(context.Background(), user.Id, team.Id, "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }
 
 func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should update order", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -772,19 +982,58 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 	t.Run("should not crash with null input", func(t *testing.T) {
 		require.NotPanics(t, func() {
 			user, client := setupUserForSubtest(t, th)
-			payload := []byte(`null`)
+			payload := `null`
 			route := fmt.Sprintf("/users/%s/teams/%s/channels/categories/order", user.Id, th.BasicTeam.Id)
-			r, err := client.DoAPIPutBytes(context.Background(), route, payload)
+			r, err := client.DoAPIPut(context.Background(), route, payload)
 			require.Error(t, err)
 			closeBody(r)
 		})
+	})
+
+	t.Run("should return error when user tries to update category order for a team they're not a member of", func(t *testing.T) {
+		// Create a user
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		// Create a team and add the user to it
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(t, user, team)
+
+		// Create a client and log in
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Get categories to have a valid order
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, categories.Order)
+
+		// Remove the user from the team
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Attempt to update the category order for the team after being removed
+		_, resp, err := client.UpdateSidebarCategoryOrderForTeamForUser(context.Background(), user.Id, team.Id, categories.Order)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 }
 
 func TestGetCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should return category when user has permission", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
@@ -878,12 +1127,54 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 			closeBody(r)
 		})
 	})
+
+	t.Run("should return error when user tries to get category for a team they're not a member of", func(t *testing.T) {
+		// Create a user
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		// Create a team and add the user to it
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(t, user, team)
+
+		// Create a client and log in
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Get categories to have valid category IDs
+		categories, _, err := client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team.Id, "")
+		require.NoError(t, err)
+		require.NotEmpty(t, categories.Categories)
+
+		// Store a category ID to use after team membership is revoked
+		categoryID := categories.Categories[0].Id
+
+		// Remove the user from the team
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Attempt to get a category for the team after being removed
+		_, resp, err := client.GetSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, categoryID, "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }
 
 func TestValidateSidebarCategory(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a test context with logger once for all subtests
 	c := &Context{
@@ -1005,8 +1296,7 @@ func TestValidateSidebarCategory(t *testing.T) {
 
 func TestValidateSidebarCategoryChannels(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a test context with logger once for all subtests
 	c := &Context{
@@ -1091,8 +1381,7 @@ func TestValidateSidebarCategoryChannels(t *testing.T) {
 
 func TestDeleteCategoryForTeamForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	t.Run("should move channels to default categories when custom category is deleted", func(t *testing.T) {
 		user, client := setupUserForSubtest(t, th)
 
@@ -1259,6 +1548,53 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("should return error when user tries to delete a category for a team they're not a member of", func(t *testing.T) {
+		// Create a user
+		user, appErr := th.App.CreateUser(th.Context, &model.User{
+			Email:    th.GenerateTestEmail(),
+			Username: "user_" + model.NewId(),
+			Password: "password",
+		})
+		require.Nil(t, appErr)
+
+		// Create a team and add the user to it
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team for testing",
+			Name:        "test-team-" + model.NewId(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, appErr)
+
+		th.LinkUserToTeam(t, user, team)
+
+		// Create a client and log in
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), user.Email, "password")
+		require.NoError(t, err)
+
+		// Create a custom category
+		customCategory, _, err := client.CreateSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      user.Id,
+				TeamId:      team.Id,
+				DisplayName: "Custom Category",
+				Type:        model.SidebarCategoryCustom,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, customCategory)
+
+		// Remove the user from the team
+		appErr = th.App.RemoveUserFromTeam(th.Context, team.Id, user.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Attempt to delete the category for the team after being removed
+		resp, err := client.DeleteSidebarCategoryForTeamForUser(context.Background(), user.Id, team.Id, customCategory.Id)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }
 
 func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Client4) {
@@ -1270,10 +1606,10 @@ func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Clie
 	})
 	require.Nil(t, appErr)
 
-	th.LinkUserToTeam(user, th.BasicTeam)
-	th.AddUserToChannel(user, th.BasicChannel)
-	th.AddUserToChannel(user, th.BasicChannel2)
-	th.AddUserToChannel(user, th.BasicPrivateChannel)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	th.AddUserToChannel(t, user, th.BasicChannel)
+	th.AddUserToChannel(t, user, th.BasicChannel2)
+	th.AddUserToChannel(t, user, th.BasicPrivateChannel)
 
 	client := th.CreateClient()
 	user, _, err := client.Login(context.Background(), user.Email, password)

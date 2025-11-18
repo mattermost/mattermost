@@ -18,9 +18,9 @@ type MockAppIface struct {
 	mock.Mock
 }
 
-// AddUserToChannel provides a mock function with given fields: c, user, channel, skipTeamMemberIntegrityCheck
-func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
-	ret := _m.Called(c, user, channel, skipTeamMemberIntegrityCheck)
+// AddUserToChannel provides a mock function with given fields: rctx, user, channel, skipTeamMemberIntegrityCheck
+func (_m *MockAppIface) AddUserToChannel(rctx request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(rctx, user, channel, skipTeamMemberIntegrityCheck)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddUserToChannel")
@@ -29,10 +29,10 @@ func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channe
 	var r0 *model.ChannelMember
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel, bool) (*model.ChannelMember, *model.AppError)); ok {
-		return rf(c, user, channel, skipTeamMemberIntegrityCheck)
+		return rf(rctx, user, channel, skipTeamMemberIntegrityCheck)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.Channel, bool) *model.ChannelMember); ok {
-		r0 = rf(c, user, channel, skipTeamMemberIntegrityCheck)
+		r0 = rf(rctx, user, channel, skipTeamMemberIntegrityCheck)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
@@ -40,7 +40,7 @@ func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channe
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.Channel, bool) *model.AppError); ok {
-		r1 = rf(c, user, channel, skipTeamMemberIntegrityCheck)
+		r1 = rf(rctx, user, channel, skipTeamMemberIntegrityCheck)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -50,9 +50,9 @@ func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channe
 	return r0, r1
 }
 
-// AddUserToTeamByTeamId provides a mock function with given fields: c, teamId, user
-func (_m *MockAppIface) AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError {
-	ret := _m.Called(c, teamId, user)
+// AddUserToTeamByTeamId provides a mock function with given fields: rctx, teamId, user
+func (_m *MockAppIface) AddUserToTeamByTeamId(rctx request.CTX, teamId string, user *model.User) *model.AppError {
+	ret := _m.Called(rctx, teamId, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddUserToTeamByTeamId")
@@ -60,7 +60,7 @@ func (_m *MockAppIface) AddUserToTeamByTeamId(c request.CTX, teamId string, user
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.User) *model.AppError); ok {
-		r0 = rf(c, teamId, user)
+		r0 = rf(rctx, teamId, user)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -70,9 +70,9 @@ func (_m *MockAppIface) AddUserToTeamByTeamId(c request.CTX, teamId string, user
 	return r0
 }
 
-// CreateChannelWithUser provides a mock function with given fields: c, channel, userId
-func (_m *MockAppIface) CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
-	ret := _m.Called(c, channel, userId)
+// CreateChannelWithUser provides a mock function with given fields: rctx, channel, userId
+func (_m *MockAppIface) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
+	ret := _m.Called(rctx, channel, userId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateChannelWithUser")
@@ -81,10 +81,10 @@ func (_m *MockAppIface) CreateChannelWithUser(c request.CTX, channel *model.Chan
 	var r0 *model.Channel
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, string) (*model.Channel, *model.AppError)); ok {
-		return rf(c, channel, userId)
+		return rf(rctx, channel, userId)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, string) *model.Channel); ok {
-		r0 = rf(c, channel, userId)
+		r0 = rf(rctx, channel, userId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -92,7 +92,7 @@ func (_m *MockAppIface) CreateChannelWithUser(c request.CTX, channel *model.Chan
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, string) *model.AppError); ok {
-		r1 = rf(c, channel, userId)
+		r1 = rf(rctx, channel, userId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -102,14 +102,14 @@ func (_m *MockAppIface) CreateChannelWithUser(c request.CTX, channel *model.Chan
 	return r0, r1
 }
 
-// CreateGroupChannel provides a mock function with given fields: c, userIDs, creatorId, channelOptions
-func (_m *MockAppIface) CreateGroupChannel(c request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+// CreateGroupChannel provides a mock function with given fields: rctx, userIDs, creatorId, channelOptions
+func (_m *MockAppIface) CreateGroupChannel(rctx request.CTX, userIDs []string, creatorId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	_va := make([]interface{}, len(channelOptions))
 	for _i := range channelOptions {
 		_va[_i] = channelOptions[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, c, userIDs, creatorId)
+	_ca = append(_ca, rctx, userIDs, creatorId)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -120,10 +120,10 @@ func (_m *MockAppIface) CreateGroupChannel(c request.CTX, userIDs []string, crea
 	var r0 *model.Channel
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)); ok {
-		return rf(c, userIDs, creatorId, channelOptions...)
+		return rf(rctx, userIDs, creatorId, channelOptions...)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, []string, string, ...model.ChannelOption) *model.Channel); ok {
-		r0 = rf(c, userIDs, creatorId, channelOptions...)
+		r0 = rf(rctx, userIDs, creatorId, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -131,7 +131,7 @@ func (_m *MockAppIface) CreateGroupChannel(c request.CTX, userIDs []string, crea
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, []string, string, ...model.ChannelOption) *model.AppError); ok {
-		r1 = rf(c, userIDs, creatorId, channelOptions...)
+		r1 = rf(rctx, userIDs, creatorId, channelOptions...)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -141,9 +141,9 @@ func (_m *MockAppIface) CreateGroupChannel(c request.CTX, userIDs []string, crea
 	return r0, r1
 }
 
-// CreatePost provides a mock function with given fields: c, post, channel, flags
-func (_m *MockAppIface) CreatePost(c request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (*model.Post, *model.AppError) {
-	ret := _m.Called(c, post, channel, flags)
+// CreatePost provides a mock function with given fields: rctx, post, channel, flags
+func (_m *MockAppIface) CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (*model.Post, *model.AppError) {
+	ret := _m.Called(rctx, post, channel, flags)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreatePost")
@@ -152,10 +152,10 @@ func (_m *MockAppIface) CreatePost(c request.CTX, post *model.Post, channel *mod
 	var r0 *model.Post
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) (*model.Post, *model.AppError)); ok {
-		return rf(c, post, channel, flags)
+		return rf(rctx, post, channel, flags)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) *model.Post); ok {
-		r0 = rf(c, post, channel, flags)
+		r0 = rf(rctx, post, channel, flags)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -163,7 +163,7 @@ func (_m *MockAppIface) CreatePost(c request.CTX, post *model.Post, channel *mod
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.Channel, model.CreatePostFlags) *model.AppError); ok {
-		r1 = rf(c, post, channel, flags)
+		r1 = rf(rctx, post, channel, flags)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -173,9 +173,9 @@ func (_m *MockAppIface) CreatePost(c request.CTX, post *model.Post, channel *mod
 	return r0, r1
 }
 
-// CreateUploadSession provides a mock function with given fields: c, us
-func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
-	ret := _m.Called(c, us)
+// CreateUploadSession provides a mock function with given fields: rctx, us
+func (_m *MockAppIface) CreateUploadSession(rctx request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError) {
+	ret := _m.Called(rctx, us)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUploadSession")
@@ -184,10 +184,10 @@ func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSessi
 	var r0 *model.UploadSession
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.UploadSession) (*model.UploadSession, *model.AppError)); ok {
-		return rf(c, us)
+		return rf(rctx, us)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.UploadSession) *model.UploadSession); ok {
-		r0 = rf(c, us)
+		r0 = rf(rctx, us)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UploadSession)
@@ -195,7 +195,7 @@ func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSessi
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.UploadSession) *model.AppError); ok {
-		r1 = rf(c, us)
+		r1 = rf(rctx, us)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -205,9 +205,29 @@ func (_m *MockAppIface) CreateUploadSession(c request.CTX, us *model.UploadSessi
 	return r0, r1
 }
 
-// DeletePost provides a mock function with given fields: c, postID, deleteByID
-func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID string) (*model.Post, *model.AppError) {
-	ret := _m.Called(c, postID, deleteByID)
+// DeleteAcknowledgementForPostWithModel provides a mock function with given fields: rctx, acknowledgement
+func (_m *MockAppIface) DeleteAcknowledgementForPostWithModel(rctx request.CTX, acknowledgement *model.PostAcknowledgement) *model.AppError {
+	ret := _m.Called(rctx, acknowledgement)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAcknowledgementForPostWithModel")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PostAcknowledgement) *model.AppError); ok {
+		r0 = rf(rctx, acknowledgement)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// DeletePost provides a mock function with given fields: rctx, postID, deleteByID
+func (_m *MockAppIface) DeletePost(rctx request.CTX, postID string, deleteByID string) (*model.Post, *model.AppError) {
+	ret := _m.Called(rctx, postID, deleteByID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeletePost")
@@ -216,10 +236,10 @@ func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID stri
 	var r0 *model.Post
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (*model.Post, *model.AppError)); ok {
-		return rf(c, postID, deleteByID)
+		return rf(rctx, postID, deleteByID)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.Post); ok {
-		r0 = rf(c, postID, deleteByID)
+		r0 = rf(rctx, postID, deleteByID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -227,7 +247,7 @@ func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID stri
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(c, postID, deleteByID)
+		r1 = rf(rctx, postID, deleteByID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -237,9 +257,9 @@ func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID stri
 	return r0, r1
 }
 
-// DeleteReactionForPost provides a mock function with given fields: c, reaction
-func (_m *MockAppIface) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
-	ret := _m.Called(c, reaction)
+// DeleteReactionForPost provides a mock function with given fields: rctx, reaction
+func (_m *MockAppIface) DeleteReactionForPost(rctx request.CTX, reaction *model.Reaction) *model.AppError {
+	ret := _m.Called(rctx, reaction)
 
 	if len(ret) == 0 {
 		panic("no return value specified for DeleteReactionForPost")
@@ -247,7 +267,7 @@ func (_m *MockAppIface) DeleteReactionForPost(c request.CTX, reaction *model.Rea
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) *model.AppError); ok {
-		r0 = rf(c, reaction)
+		r0 = rf(rctx, reaction)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -289,14 +309,46 @@ func (_m *MockAppIface) FileReader(path string) (filestore.ReadCloseSeeker, *mod
 	return r0, r1
 }
 
-// GetOrCreateDirectChannel provides a mock function with given fields: c, userId, otherUserId, channelOptions
-func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+// GetAcknowledgementsForPost provides a mock function with given fields: postID
+func (_m *MockAppIface) GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAcknowledgementsForPost")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(postID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.PostAcknowledgement); ok {
+		r0 = rf(postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetOrCreateDirectChannel provides a mock function with given fields: rctx, userId, otherUserId, channelOptions
+func (_m *MockAppIface) GetOrCreateDirectChannel(rctx request.CTX, userId string, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
 	_va := make([]interface{}, len(channelOptions))
 	for _i := range channelOptions {
 		_va[_i] = channelOptions[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, c, userId, otherUserId)
+	_ca = append(_ca, rctx, userId, otherUserId)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -307,10 +359,10 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, o
 	var r0 *model.Channel
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string, ...model.ChannelOption) (*model.Channel, *model.AppError)); ok {
-		return rf(c, userId, otherUserId, channelOptions...)
+		return rf(rctx, userId, otherUserId, channelOptions...)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string, ...model.ChannelOption) *model.Channel); ok {
-		r0 = rf(c, userId, otherUserId, channelOptions...)
+		r0 = rf(rctx, userId, otherUserId, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
@@ -318,7 +370,7 @@ func (_m *MockAppIface) GetOrCreateDirectChannel(c request.CTX, userId string, o
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string, ...model.ChannelOption) *model.AppError); ok {
-		r1 = rf(c, userId, otherUserId, channelOptions...)
+		r1 = rf(rctx, userId, otherUserId, channelOptions...)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -367,9 +419,9 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	return r0, r1, r2
 }
 
-// MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
-func (_m *MockAppIface) MentionsToTeamMembers(c request.CTX, message string, teamID string) model.UserMentionMap {
-	ret := _m.Called(c, message, teamID)
+// MentionsToTeamMembers provides a mock function with given fields: rctx, message, teamID
+func (_m *MockAppIface) MentionsToTeamMembers(rctx request.CTX, message string, teamID string) model.UserMentionMap {
+	ret := _m.Called(rctx, message, teamID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MentionsToTeamMembers")
@@ -377,7 +429,7 @@ func (_m *MockAppIface) MentionsToTeamMembers(c request.CTX, message string, tea
 
 	var r0 model.UserMentionMap
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) model.UserMentionMap); ok {
-		r0 = rf(c, message, teamID)
+		r0 = rf(rctx, message, teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.UserMentionMap)
@@ -456,9 +508,9 @@ func (_m *MockAppIface) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.Re
 	return r0, r1
 }
 
-// PatchChannelModerationsForChannel provides a mock function with given fields: c, channel, channelModerationsPatch
-func (_m *MockAppIface) PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
-	ret := _m.Called(c, channel, channelModerationsPatch)
+// PatchChannelModerationsForChannel provides a mock function with given fields: rctx, channel, channelModerationsPatch
+func (_m *MockAppIface) PatchChannelModerationsForChannel(rctx request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
+	ret := _m.Called(rctx, channel, channelModerationsPatch)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PatchChannelModerationsForChannel")
@@ -467,10 +519,10 @@ func (_m *MockAppIface) PatchChannelModerationsForChannel(c request.CTX, channel
 	var r0 []*model.ChannelModeration
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)); ok {
-		return rf(c, channel, channelModerationsPatch)
+		return rf(rctx, channel, channelModerationsPatch)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, []*model.ChannelModerationPatch) []*model.ChannelModeration); ok {
-		r0 = rf(c, channel, channelModerationsPatch)
+		r0 = rf(rctx, channel, channelModerationsPatch)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.ChannelModeration)
@@ -478,7 +530,7 @@ func (_m *MockAppIface) PatchChannelModerationsForChannel(c request.CTX, channel
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, []*model.ChannelModerationPatch) *model.AppError); ok {
-		r1 = rf(c, channel, channelModerationsPatch)
+		r1 = rf(rctx, channel, channelModerationsPatch)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -488,9 +540,9 @@ func (_m *MockAppIface) PatchChannelModerationsForChannel(c request.CTX, channel
 	return r0, r1
 }
 
-// PermanentDeleteChannel provides a mock function with given fields: c, channel
-func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError {
-	ret := _m.Called(c, channel)
+// PermanentDeleteChannel provides a mock function with given fields: rctx, channel
+func (_m *MockAppIface) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *model.AppError {
+	ret := _m.Called(rctx, channel)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PermanentDeleteChannel")
@@ -498,10 +550,30 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel) *model.AppError); ok {
-		r0 = rf(c, channel)
+		r0 = rf(rctx, channel)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// PreparePostForClient provides a mock function with given fields: rctx, post, opts
+func (_m *MockAppIface) PreparePostForClient(rctx request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	ret := _m.Called(rctx, post, opts)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PreparePostForClient")
+	}
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.PreparePostForClientOpts) *model.Post); ok {
+		r0 = rf(rctx, post, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
@@ -513,34 +585,49 @@ func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
 	_m.Called(message)
 }
 
-// SaveAndBroadcastStatus provides a mock function with given fields: status
-func (_m *MockAppIface) SaveAndBroadcastStatus(status *model.Status) {
-	_m.Called(status)
-}
-
-// SaveReactionForPost provides a mock function with given fields: c, reaction
-func (_m *MockAppIface) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
-	ret := _m.Called(c, reaction)
+// RemoveUserFromChannel provides a mock function with given fields: rctx, userID, removerUserId, channel
+func (_m *MockAppIface) RemoveUserFromChannel(rctx request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError {
+	ret := _m.Called(rctx, userID, removerUserId, channel)
 
 	if len(ret) == 0 {
-		panic("no return value specified for SaveReactionForPost")
+		panic("no return value specified for RemoveUserFromChannel")
 	}
 
-	var r0 *model.Reaction
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) (*model.Reaction, *model.AppError)); ok {
-		return rf(c, reaction)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) *model.Reaction); ok {
-		r0 = rf(c, reaction)
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *model.Channel) *model.AppError); ok {
+		r0 = rf(rctx, userID, removerUserId, channel)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Reaction)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, *model.Reaction) *model.AppError); ok {
-		r1 = rf(c, reaction)
+	return r0
+}
+
+// SaveAcknowledgementForPostWithModel provides a mock function with given fields: rctx, acknowledgement
+func (_m *MockAppIface) SaveAcknowledgementForPostWithModel(rctx request.CTX, acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(rctx, acknowledgement)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementForPostWithModel")
+	}
+
+	var r0 *model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PostAcknowledgement) (*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(rctx, acknowledgement)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PostAcknowledgement) *model.PostAcknowledgement); ok {
+		r0 = rf(rctx, acknowledgement)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.PostAcknowledgement) *model.AppError); ok {
+		r1 = rf(rctx, acknowledgement)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -550,9 +637,78 @@ func (_m *MockAppIface) SaveReactionForPost(c request.CTX, reaction *model.React
 	return r0, r1
 }
 
-// SendEphemeralPost provides a mock function with given fields: c, userId, post
-func (_m *MockAppIface) SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post {
-	ret := _m.Called(c, userId, post)
+// SaveAcknowledgementsForPost provides a mock function with given fields: rctx, postID, userIDs
+func (_m *MockAppIface) SaveAcknowledgementsForPost(rctx request.CTX, postID string, userIDs []string) ([]*model.PostAcknowledgement, *model.AppError) {
+	ret := _m.Called(rctx, postID, userIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveAcknowledgementsForPost")
+	}
+
+	var r0 []*model.PostAcknowledgement
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) ([]*model.PostAcknowledgement, *model.AppError)); ok {
+		return rf(rctx, postID, userIDs)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) []*model.PostAcknowledgement); ok {
+		r0 = rf(rctx, postID, userIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostAcknowledgement)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, []string) *model.AppError); ok {
+		r1 = rf(rctx, postID, userIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SaveAndBroadcastStatus provides a mock function with given fields: status
+func (_m *MockAppIface) SaveAndBroadcastStatus(status *model.Status) {
+	_m.Called(status)
+}
+
+// SaveReactionForPost provides a mock function with given fields: rctx, reaction
+func (_m *MockAppIface) SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	ret := _m.Called(rctx, reaction)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveReactionForPost")
+	}
+
+	var r0 *model.Reaction
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) (*model.Reaction, *model.AppError)); ok {
+		return rf(rctx, reaction)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) *model.Reaction); ok {
+		r0 = rf(rctx, reaction)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Reaction)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Reaction) *model.AppError); ok {
+		r1 = rf(rctx, reaction)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SendEphemeralPost provides a mock function with given fields: rctx, userId, post
+func (_m *MockAppIface) SendEphemeralPost(rctx request.CTX, userId string, post *model.Post) *model.Post {
+	ret := _m.Called(rctx, userId, post)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendEphemeralPost")
@@ -560,7 +716,7 @@ func (_m *MockAppIface) SendEphemeralPost(c request.CTX, userId string, post *mo
 
 	var r0 *model.Post
 	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Post) *model.Post); ok {
-		r0 = rf(c, userId, post)
+		r0 = rf(rctx, userId, post)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -570,9 +726,9 @@ func (_m *MockAppIface) SendEphemeralPost(c request.CTX, userId string, post *mo
 	return r0
 }
 
-// UpdatePost provides a mock function with given fields: c, post, updatePostOptions
-func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
-	ret := _m.Called(c, post, updatePostOptions)
+// UpdatePost provides a mock function with given fields: rctx, post, updatePostOptions
+func (_m *MockAppIface) UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, *model.AppError) {
+	ret := _m.Called(rctx, post, updatePostOptions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpdatePost")
@@ -581,10 +737,10 @@ func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, updatePostOp
 	var r0 *model.Post
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.UpdatePostOptions) (*model.Post, *model.AppError)); ok {
-		return rf(c, post, updatePostOptions)
+		return rf(rctx, post, updatePostOptions)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.UpdatePostOptions) *model.Post); ok {
-		r0 = rf(c, post, updatePostOptions)
+		r0 = rf(rctx, post, updatePostOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
@@ -592,7 +748,7 @@ func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, updatePostOp
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.UpdatePostOptions) *model.AppError); ok {
-		r1 = rf(c, post, updatePostOptions)
+		r1 = rf(rctx, post, updatePostOptions)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -602,9 +758,9 @@ func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, updatePostOp
 	return r0, r1
 }
 
-// UserCanSeeOtherUser provides a mock function with given fields: c, userID, otherUserId
-func (_m *MockAppIface) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
-	ret := _m.Called(c, userID, otherUserId)
+// UserCanSeeOtherUser provides a mock function with given fields: rctx, userID, otherUserId
+func (_m *MockAppIface) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
+	ret := _m.Called(rctx, userID, otherUserId)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UserCanSeeOtherUser")
@@ -613,16 +769,16 @@ func (_m *MockAppIface) UserCanSeeOtherUser(c request.CTX, userID string, otherU
 	var r0 bool
 	var r1 *model.AppError
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (bool, *model.AppError)); ok {
-		return rf(c, userID, otherUserId)
+		return rf(rctx, userID, otherUserId)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
-		r0 = rf(c, userID, otherUserId)
+		r0 = rf(rctx, userID, otherUserId)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(c, userID, otherUserId)
+		r1 = rf(rctx, userID, otherUserId)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

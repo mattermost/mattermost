@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import SettingItemMax from 'components/setting_item_max';
 
-import Constants from 'utils/constants';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 describe('components/SettingItemMax', () => {
     const baseProps = {
@@ -24,134 +23,82 @@ describe('components/SettingItemMax', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<SettingItemMax {...baseProps}/>);
+        const {asFragment} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 
     test('should match snapshot, without submit', () => {
         const props = {...baseProps, submit: null};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
+        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 
     test('should match snapshot, on clientError', () => {
         const props = {...baseProps, clientError: 'clientError'};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
+        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 
     test('should match snapshot, on serverError', () => {
         const props = {...baseProps, serverError: 'serverError'};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
+        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should have called updateSection on handleUpdateSection with section', () => {
-        const updateSection = jest.fn();
-        const props = {...baseProps, updateSection};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
-        const instance = wrapper.instance() as SettingItemMax;
-        const event = {
-            preventDefault: jest.fn(),
-        } as unknown as React.MouseEvent<HTMLButtonElement>;
+    test('should have called updateSection on handleUpdateSection with section after clicking cancel button', async () => {
+        const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
-        instance.handleUpdateSection(event);
+        await userEvent.click(getByTestId('cancelButton'));
 
-        expect(updateSection).toHaveBeenCalled();
-        expect(updateSection).toHaveBeenCalledWith('section');
+        expect(baseProps.updateSection).toHaveBeenCalled();
+        expect(baseProps.updateSection).toHaveBeenCalledWith(baseProps.section);
     });
 
-    test('should have called updateSection on handleUpdateSection with empty string', () => {
-        const updateSection = jest.fn();
-        const props = {...baseProps, updateSection, section: ''};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
+    test('should have called submit on handleSubmit with setting after clicking save button', async () => {
+        const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
-        const instance = wrapper.instance() as SettingItemMax;
-        const event = {
-            preventDefault: jest.fn(),
-        } as unknown as React.MouseEvent<HTMLButtonElement>;
+        await userEvent.click(getByTestId('saveSetting'));
 
-        instance.handleUpdateSection(event);
-
-        expect(updateSection).toHaveBeenCalled();
-        expect(updateSection).toHaveBeenCalledWith('');
-    });
-
-    test('should have called submit on handleSubmit with setting', () => {
-        const submit = jest.fn();
-        const props = {...baseProps, submit};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
-        const instance = wrapper.instance() as SettingItemMax;
-        const event = {
-            preventDefault: jest.fn(),
-        } as unknown as React.MouseEvent<HTMLButtonElement>;
-
-        instance.handleSubmit(event);
-
-        expect(submit).toHaveBeenCalled();
-        expect(submit).toHaveBeenCalledWith('setting');
-    });
-
-    test('should have called submit on handleSubmit with empty string', () => {
-        const submit = jest.fn();
-        const props = {...baseProps, submit, setting: ''};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
-        const instance = wrapper.instance() as SettingItemMax;
-        const event = {
-            preventDefault: jest.fn(),
-        } as unknown as React.MouseEvent<HTMLButtonElement>;
-
-        instance.handleSubmit(event);
-
-        expect(submit).toHaveBeenCalled();
-        expect(submit).toHaveBeenCalledWith();
-    });
-
-    it('should have called submit on handleSubmit onKeyDown ENTER', () => {
-        const submit = jest.fn();
-        const props = {...baseProps, submit};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
-        const instance = wrapper.instance() as SettingItemMax;
-
-        instance.onKeyDown({
-            preventDefault: jest.fn(),
-            key: Constants.KeyCodes.ENTER[0],
-            target: {
-                tagName: 'SELECT',
-                classList: {contains: jest.fn()},
-                parentElement: {className: 'react-select__input'},
-            },
-        } as unknown as KeyboardEvent);
-
-        expect(submit).toHaveBeenCalledTimes(0);
-
-        instance.settingList = {
-            current: {
-                contains: jest.fn(() => true),
-            } as unknown as HTMLDivElement,
-        };
-        instance.onKeyDown({
-            preventDefault: jest.fn(),
-            key: Constants.KeyCodes.ENTER[0],
-            target: {
-                tagName: '',
-                classList: {contains: jest.fn()},
-                parentElement: {className: ''},
-            },
-        } as unknown as KeyboardEvent);
-
-        expect(submit).toHaveBeenCalledTimes(1);
-        expect(submit).toHaveBeenCalledWith('setting');
+        expect(baseProps.submit).toHaveBeenCalled();
+        expect(baseProps.submit).toHaveBeenCalledWith(baseProps.setting);
     });
 
     test('should match snapshot, with new saveTextButton', () => {
         const props = {...baseProps, saveButtonText: 'CustomText'};
-        const wrapper = shallow(<SettingItemMax {...props}/>);
+        const {asFragment} = renderWithContext(<SettingItemMax {...props}/>);
 
-        expect(wrapper).toMatchSnapshot();
+        expect(asFragment()).toMatchSnapshot();
+    });
+
+    test('should have called submit on handleSubmit onKeyDown ENTER', async () => {
+        const props = {
+            ...baseProps,
+            inputs: [
+                <select
+                    key={0}
+                    data-testid='select'
+                />,
+                <input
+                    key={1}
+                    type='radio'
+                />,
+            ],
+        };
+
+        const {getByRole, getByTestId} = renderWithContext(<SettingItemMax {...props}/>);
+
+        await userEvent.click(getByTestId('select'));
+
+        await userEvent.keyboard('{enter}');
+        expect(baseProps.submit).toHaveBeenCalledTimes(0);
+
+        await userEvent.click(getByRole('radio'));
+
+        await userEvent.keyboard('{enter}');
+        expect(baseProps.submit).toHaveBeenCalledTimes(1);
     });
 });

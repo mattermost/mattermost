@@ -8,21 +8,11 @@ import type {UsersState} from '@mattermost/types/users';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import type {GlobalState} from 'types/store';
 
 import AddChannelsCtaButton from './add_channels_cta_button';
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
 
 const mockDispatch = jest.fn();
 let mockState: GlobalState;
@@ -161,18 +151,6 @@ describe('components/new_channel_modal', () => {
         expect(mockDispatch).toHaveBeenCalled();
     });
 
-    test('should fire trackEvent to send telemetry when button is clicked', () => {
-        const wrapper = mountWithIntl(
-            <AddChannelsCtaButton/>,
-        );
-
-        const button = wrapper.find('.AddChannelsCtaDropdown button');
-        expect(mockDispatch).not.toHaveBeenCalled();
-        button.simulate('click');
-
-        expect(trackEvent).toHaveBeenCalledWith('ui', 'add_channels_cta_button_clicked');
-    });
-
     test('should not display as a Cta Dropdown when user only has permissions to join channels ', () => {
         const userWithJoinChannelsPermission = {
             currentUserId: 'current_user_id',
@@ -199,7 +177,6 @@ describe('components/new_channel_modal', () => {
         button.simulate('click');
 
         // when clicked show the browse channels modal
-        expect(trackEvent).toHaveBeenCalledWith('ui', 'browse_channels_button_is_clicked');
     });
 
     test('should still display as a Cta Dropdown when user has permissions to create at least one form of channel', () => {

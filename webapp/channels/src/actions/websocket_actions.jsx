@@ -22,6 +22,7 @@ import {
     HostedCustomerTypes,
     ChannelBookmarkTypes,
     ScheduledPostTypes,
+    ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -40,6 +41,7 @@ import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
@@ -89,7 +91,6 @@ import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selec
 import {
     getTeamIdByChannelId,
     getMyTeams,
-    getCurrentRelativeTeamUrl,
     getCurrentTeamId,
     getCurrentTeamUrl,
     getTeam,
@@ -120,7 +121,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
-import InteractiveDialog from 'components/interactive_dialog';
+import DialogRouter from 'components/dialog_router';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -646,6 +647,9 @@ export function handleEvent(msg) {
     case SocketEvents.CPA_FIELD_DELETED:
         dispatch(handleCustomAttributesDeleted(msg));
         break;
+    case SocketEvents.CONTENT_FLAGGING_REPORT_VALUE_CHANGED:
+        dispatch(handleContentFlaggingReportValueChanged(msg));
+        break;
     default:
     }
 
@@ -914,6 +918,11 @@ export function handleLeaveTeamEvent(msg) {
         });
     }
 
+    const config = getConfig(state);
+    if (config.RestrictDirectMessage === 'team') {
+        actions.push({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
+    }
+
     dispatch(batchActions(actions));
     const currentUser = getCurrentUser(state);
 
@@ -1069,6 +1078,10 @@ function handleUserAddedEvent(msg) {
         // This event is fired when a user first joins the server, so refresh analytics to see if we're now over the user limit
         if (license.Cloud === 'true' && isCurrentUserSystemAdmin(doGetState())) {
             doDispatch(getStandardAnalytics());
+        }
+
+        if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
+            dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
     };
 }
@@ -1263,25 +1276,11 @@ function handleChannelCreatedEvent(msg) {
 }
 
 function handleChannelDeletedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-    if (getCurrentChannelId(state) === msg.data.channel_id && !viewArchivedChannels) {
-        const teamUrl = getCurrentRelativeTeamUrl(state);
-        const currentTeamId = getCurrentTeamId(state);
-        const redirectChannel = getRedirectChannelNameForTeam(state, currentTeamId);
-        getHistory().push(teamUrl + '/channels/' + redirectChannel);
-    }
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
 function handleChannelUnarchivedEvent(msg) {
-    const state = getState();
-    const config = getConfig(state);
-    const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-
-    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels}});
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
 function handlePreferenceChangedEvent(msg) {
@@ -1422,6 +1421,9 @@ function handleConfigChanged(msg) {
 
 function handleLicenseChanged(msg) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
+    // Refresh server limits when license changes since limits may have changed
+    dispatch(getServerLimits());
 }
 
 function handlePluginStatusesChangedEvent(msg) {
@@ -1440,7 +1442,7 @@ function handleOpenDialogEvent(msg) {
         return;
     }
 
-    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: InteractiveDialog}));
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
 function handleGroupUpdatedEvent(msg) {
@@ -1976,5 +1978,12 @@ export function handleCustomAttributesDeleted(msg) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
         data: msg.data.field_id,
+    };
+}
+
+export function handleContentFlaggingReportValueChanged(msg) {
+    return {
+        type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
+        data: msg.data,
     };
 }

@@ -134,7 +134,7 @@ func fixInvalidLocales(cfg *model.Config) bool {
 
 	if *cfg.LocalizationSettings.AvailableLocales != "" {
 		isDefaultClientLocaleInAvailableLocales := false
-		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
+		for word := range strings.SplitSeq(*cfg.LocalizationSettings.AvailableLocales, ",") {
 			if _, ok := locales[word]; !ok {
 				*cfg.LocalizationSettings.AvailableLocales = ""
 				isDefaultClientLocaleInAvailableLocales = true

@@ -31,7 +31,7 @@ const FormFieldLabel = styled.label`
     }
 `;
 
-export const SectionHeader = styled.header.attrs({className: 'header'})<{$borderless?: boolean}>`
+export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
     &&& {
         padding: 24px 32px;
         ${({$borderless}) => !$borderless && css`
@@ -132,7 +132,7 @@ export const Input = styled.input.attrs({className: 'form-control secure-connect
 type FormFieldProps = {
     label?: string;
     children: ReactNode | ReactNode[];
-    helpText?: string;
+    helpText?: string | ReactNode;
 }
 
 export const FormField = ({label, children, helpText}: FormFieldProps) => {

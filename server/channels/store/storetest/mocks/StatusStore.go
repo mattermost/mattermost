@@ -138,6 +138,24 @@ func (_m *StatusStore) SaveOrUpdate(status *model.Status) error {
 	return r0
 }
 
+// SaveOrUpdateMany provides a mock function with given fields: statuses
+func (_m *StatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+	ret := _m.Called(statuses)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SaveOrUpdateMany")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(map[string]*model.Status) error); ok {
+		r0 = rf(statuses)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateExpiredDNDStatuses provides a mock function with no fields
 func (_m *StatusStore) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	ret := _m.Called()

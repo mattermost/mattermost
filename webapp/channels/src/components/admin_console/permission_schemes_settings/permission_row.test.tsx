@@ -85,7 +85,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
             />,
         );
         wrapper.find('div').first().simulate('click');
-        expect(onChange).toBeCalledWith('id');
+        expect(onChange).toHaveBeenCalledWith('id');
     });
 
     test('shouldn\'t call onChange function on click when is read-only', () => {
@@ -98,6 +98,6 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
             />,
         );
         wrapper.find('div').first().simulate('click');
-        expect(onChange).not.toBeCalled();
+        expect(onChange).not.toHaveBeenCalled();
     });
 });

@@ -49,7 +49,7 @@ func configForLdap(th *api4.TestHelper) {
 }
 
 func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 	configForLdap(s.th)
 
 	s.Run("MM-T3971 Should not allow regular user to start LDAP sync job", func() {
@@ -86,7 +86,7 @@ func (s *MmctlE2ETestSuite) TestLdapSyncCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 	configForLdap(s.th)
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LdapSettings.IdAttribute = "uid" })
 
@@ -129,7 +129,7 @@ func (s *MmctlE2ETestSuite) TestLdapIDMigrateCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestLdapJobListCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 	configForLdap(s.th)
 
 	s.Run("Should not allow regular user to list LDAP groups", func() {
@@ -194,7 +194,7 @@ func (s *MmctlE2ETestSuite) TestLdapJobListCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 	configForLdap(s.th)
 
 	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
@@ -209,6 +209,15 @@ func (s *MmctlE2ETestSuite) TestLdapJobShowCmdF() {
 
 		err := ldapJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job.Id})
 		s.Require().EqualError(err, "failed to get LDAP sync job: You do not have the appropriate permissions.")
+		s.Require().Empty(printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
+	s.RunForSystemAdminAndLocal("no args", func(c client.Client) {
+		printer.Clean()
+
+		err := ldapJobShowCmdF(c, &cobra.Command{}, []string{})
+		s.Require().EqualError(err, "expected at least one argument (ldapJobID). See help text for details")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})

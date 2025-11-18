@@ -25,6 +25,9 @@ type FeatureFlags struct {
 	// Enable plugins in shared channels.
 	EnableSharedChannelsPlugins bool
 
+	// Enable synchronization of channel members in shared channels
+	EnableSharedChannelsMemberSync bool
+
 	// Enable syncing all users for remote clusters in shared channels
 	EnableSyncAllUsersForRemoteCluster bool
 
@@ -65,6 +68,26 @@ type FeatureFlags struct {
 	CustomProfileAttributes bool
 
 	AttributeBasedAccessControl bool
+
+	ContentFlagging bool
+
+	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
+	InteractiveDialogAppsForm bool
+
+	EnableMattermostEntry bool
+
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
+
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
+	// Enable auto-translation feature for messages in channels
+	AutoTranslation bool
+
+	// Enable burn-on-read messages that automatically delete after viewing
+	BurnOnRead bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
+	EnableAIPluginBridge bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -72,6 +95,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
+	f.EnableSharedChannelsMemberSync = false
 	f.EnableSyncAllUsersForRemoteCluster = false
 	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
@@ -89,16 +113,29 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = false
+	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.ContentFlagging = true
+	f.InteractiveDialogAppsForm = true
+	f.EnableMattermostEntry = true
+
+	f.MobileSSOCodeExchange = true
+
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
+	f.AutoTranslation = false
+
+	f.BurnOnRead = false
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
+	f.EnableAIPluginBridge = false
 }
 
 // ToMap returns the feature flags as a map[string]string
 // Supports boolean and string feature flags.
 func (f *FeatureFlags) ToMap() map[string]string {
 	refStructVal := reflect.ValueOf(*f)
-	refStructType := reflect.TypeOf(*f)
+	refStructType := reflect.TypeFor[FeatureFlags]()
 	ret := make(map[string]string)
 	for i := 0; i < refStructVal.NumField(); i++ {
 		refFieldVal := refStructVal.Field(i)
