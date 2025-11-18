@@ -28,3 +28,13 @@ describe('configureStore', () => {
         });
     });
 });
+
+test('should mark store as hydrated', async () => {
+    const store = configureStore();
+
+    expect(store.getState().storage.initialized).toBe(false);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(store.getState().storage.initialized).toBe(true);
+});
