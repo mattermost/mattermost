@@ -11,8 +11,8 @@ services:
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
-     - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
-     - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql"
+     - "./docker/postgres.conf:/etc/postgresql/postgresql.conf:Z"
+     - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql:Z"
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost" ]
       interval: 5s
@@ -99,12 +99,12 @@ services:
       KC_HOSTNAME_STRICT_HTTPS: 'false'
       KC_HTTP_ENABLED: 'true'
     volumes:
-     - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json"
+     - "./docker/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:Z"
   prometheus:
     image: "prom/prometheus:v2.46.0"
     user: root
     volumes:
-      - "./docker/prometheus.yml:/etc/prometheus/prometheus.yml"
+      - "./docker/prometheus.yml:/etc/prometheus/prometheus.yml:Z"
       - "/var/run/docker.sock:/var/run/docker.sock"
     networks:
       - mm-test
@@ -113,9 +113,9 @@ services:
   grafana:
     image: "grafana/grafana:10.4.2"
     volumes:
-      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
-      - "./docker/grafana/provisioning:/etc/grafana/provisioning"
-      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards"
+      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini:Z"
+      - "./docker/grafana/provisioning:/etc/grafana/provisioning:Z"
+      - "./docker/grafana/dashboards:/var/lib/grafana/dashboards:Z"
     networks:
       - mm-test
   loki:
@@ -125,10 +125,10 @@ services:
   promtail:
     image: "grafana/promtail:3.0.0"
     volumes:
-      - "./docker/promtail/promtail-local-config.yaml:/etc/promtail/docker-config.yaml"
+      - "./docker/promtail/promtail-local-config.yaml:/etc/promtail/docker-config.yaml:Z"
       - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "../logs:/logs"
+      - "../logs:/logs:Z"
     command: -config.file=/etc/promtail/docker-config.yaml
     networks:
       - mm-test

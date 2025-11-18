@@ -1188,10 +1188,6 @@
     "translation": "invalid_request: Niepoprawny client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Brakujący client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Niepoprawny grant_type."
   },
@@ -11090,5 +11086,33 @@
   {
     "id": "app.content_flagging.set_thread_replies_properties.app_error",
     "translation": "Nie udało się ustawić wartości właściwości w odpowiedziach wątku dla oflagowanego postu."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Funkcja trwałego usuwania kanałów nie jest włączona. ServiceSettings.EnableAPIChannelDeletion musi mieć wartość true, aby można było użyć tego polecenia. Więcej informacji znajdziesz na stronie https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Funkcja trwałego usunięcia zespołu nie jest włączona. ServiceSettings.EnableAPITeamDeletion musi mieć wartość true, aby można było użyć tego polecenia. Więcej informacji znajdziesz na stronie https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Funkcja trwałego usunięcia użytkownika nie jest włączona. ServiceSettings.EnableAPIUserDeletion musi być ustawione na true, aby móc korzystać z tego polecenia. Więcej informacji znajdziesz na stronie https://mattermost.com/pl/environment-configuration-settings."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Nie udało się pozyskać agentów."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Połączenie mostkowe nie powiodło się."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Nie udało się uzyskać usług LLM."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Połączenie mostkowe nie powiodło się."
   }
 ]

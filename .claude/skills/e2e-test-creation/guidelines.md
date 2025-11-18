@@ -76,9 +76,9 @@ e2e-tests/playwright/
   - `post_message.spec.ts`
   - `user_profile.spec.ts`
 - **Location**: Match feature area
-  - Channel features → `specs/functional/channels/`
-  - Messaging features → `specs/functional/messaging/`
-  - Visual tests → `specs/visual/{category}/`
+  - Channel features → `e2e-tests/playwright/specs/functional/channels/`
+  - Messaging features → `e2e-tests/playwright/specs/functional/messaging/`
+  - Visual tests → `e2e-tests/playwright/specs/visual/{category}/`
 
 ### Test Grouping
 - Use `test.describe()` for related tests
@@ -91,7 +91,12 @@ e2e-tests/playwright/
 
 ### The Three-Agent System
 
-Claude will use a three-agent workflow to create and maintain E2E tests automatically:
+Claude will use a three-agent workflow to create and maintain E2E tests automatically.
+
+**⚠️ IMPORTANT - Cost and Time Efficiency:**
+- **Default mode:** Generate 1-3 tests maximum (core business logic only)
+- **Comprehensive mode:** Only when user explicitly requests "comprehensive tests", "edge cases", or "full coverage"
+- This saves AI costs and generation time while ensuring critical functionality is tested
 
 #### 1. **Planner Agent** (`@playwright-planner`)
 **Purpose**: Explores the application and creates comprehensive test plans
@@ -102,23 +107,30 @@ Claude will use a three-agent workflow to create and maintain E2E tests automati
 - When updating existing features
 
 **What It Does**:
-- Analyzes the feature's user-facing functionality
-- Identifies all possible user interactions
-- Maps out test scenarios including edge cases
-- Creates detailed test plans in markdown
+- Analyzes the feature's **core business logic only**
+- Identifies **primary** user interactions (not all)
+- Maps out **1-3 essential test scenarios** (happy path + critical errors)
+- Creates **concise** test plans in markdown
+
+**Default output:** 1-3 scenarios only
+**Comprehensive mode:** Only when explicitly requested by user
 
 **Example Invocation**:
 ```
 @playwright-planner "Create test plan for channel creation feature"
 ```
 
-**Output**: Detailed test plan with:
+**Output**: **Concise** test plan with:
 - Feature overview
-- Prerequisites
-- Test scenarios (happy path, edge cases, errors)
+- **1-3 core test scenarios** (happy path + critical errors only)
 - Expected results
 - Selector suggestions
-- Potential flakiness areas
+
+**Skip by default** (unless user explicitly requests):
+- Edge cases
+- Multi-user scenarios
+- Exhaustive error conditions
+- Performance testing
 
 #### 2. **Generator Agent** (`@playwright-generator`)
 **Purpose**: Transforms test plans into executable Playwright tests
@@ -128,23 +140,27 @@ Claude will use a three-agent workflow to create and maintain E2E tests automati
 - When you have a manual test plan to implement
 
 **What It Does**:
-- Converts test plan to executable code
+- Converts test plan to **minimal** executable code (1-3 tests only)
 - Uses proper Mattermost patterns (pw fixture, page objects)
 - Includes appropriate assertions
 - Follows code conventions
 - Adds proper tags and comments
+
+**Generates:** 1-3 tests maximum by default
 
 **Example Invocation**:
 ```
 @playwright-generator "Generate tests from the channel creation test plan"
 ```
 
-**Output**: Complete `.spec.ts` files with:
+**Output**: **Minimal** `.spec.ts` files with:
 - Copyright headers
 - Proper imports
-- Test implementation
+- **1-3 test implementations** (core business logic only)
 - Setup and cleanup
 - Descriptive comments
+
+**Important:** Do NOT over-generate tests. Keep it minimal (1-3 tests) unless user explicitly requests comprehensive coverage.
 
 #### 3. **Healer Agent** (`@playwright-healer`)
 **Purpose**: Automatically fixes flaky or broken tests
@@ -541,7 +557,7 @@ The Generator will:
 Execute the generated tests:
 ```bash
 # Run specific test file
-npx playwright test specs/functional/channels/channel_creation.spec.ts
+npx playwright test e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts
 
 # Run with UI mode (for debugging)
 npx playwright test --ui
@@ -553,7 +569,7 @@ npx playwright test --grep @channels
 #### 5. Heal if Needed
 If tests fail:
 ```
-@playwright-healer "Fix the failing test in channel_creation.spec.ts"
+@playwright-healer "Fix the failing test in e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts"
 ```
 
 The Healer will:
@@ -862,7 +878,7 @@ When you make a change, Claude Code will automatically:
 npx playwright test
 
 # Run specific test file
-npx playwright test specs/functional/channels/channel_creation.spec.ts
+npx playwright test e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts
 
 # Run tests matching pattern
 npx playwright test channel
