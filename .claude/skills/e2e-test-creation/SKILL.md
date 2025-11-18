@@ -277,3 +277,67 @@ Generated tests must:
 - ✅ Handle async operations properly
 - ✅ Include descriptive comments
 - ✅ Follow Mattermost conventions
+
+## Test Documentation Requirements
+
+Every test MUST include:
+- **JSDoc with `@objective`** (required) - Describes what the test verifies
+- **`@precondition`** (optional) - Only for special setup requirements
+- **Action-oriented test titles** - Start with verb, include context and outcome
+- **Comment prefixes** - `// #` for actions, `// *` for verifications
+- **Single tag string** - `{tag: '@feature-area'}` not array
+- **Standalone tests** - No `test.describe()` blocks
+
+## Key Patterns
+
+### Pattern 1: Basic Test Structure
+```typescript
+/**
+ * @objective Verify user can create a channel
+ */
+test('creates public channel and posts first message', {tag: '@channels'}, async ({pw}) => {
+    const {adminClient, user, team} = await pw.initSetup();
+
+    // # Login as user
+    const {channelsPage} = await pw.testBrowser.login(user);
+
+    // # Navigate and perform action
+    await channelsPage.goto();
+    await channelsPage.page.click('[data-testid="create-channel"]');
+
+    // * Verify expected result
+    await expect(channelsPage.page.locator('[data-testid="new-channel"]')).toBeVisible();
+});
+```
+
+### Pattern 2: System Console Tests
+```typescript
+test('searches users by first name in system console', {tag: '@system_console'}, async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+
+    // # Login as admin
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    // # Navigate to Users section
+    await systemConsolePage.goto();
+    await systemConsolePage.sidebar.goToItem('Users');
+
+    // * Verify search works
+    await systemConsolePage.systemUsers.enterSearchText(user.first_name);
+    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user.email);
+});
+```
+
+## Activation
+
+This skill automatically activates when changes are detected in `webapp/` directory. You can also manually invoke it by requesting E2E test generation in conversation.
+
+## Cost Efficiency
+
+**Default behavior saves costs:**
+- Generates 1-3 tests instead of 5+ tests
+- Focuses on business value, not edge cases
+- Reduces AI generation time by 50%+
+- Only expands when explicitly requested
+
+This approach ensures comprehensive coverage of critical functionality while minimizing unnecessary test generation.
