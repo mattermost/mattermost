@@ -2,18 +2,25 @@
 // See LICENSE.txt for license information.
 
 /**
- * Formats milliseconds into MM:SS format for countdown timer display
+ * Formats milliseconds into HH:MM:SS or MM:SS format for countdown timer display
  * @param ms - Milliseconds remaining
- * @returns Formatted string like "10:00", "05:30", "00:15"
+ * @returns Formatted string like "10:00", "05:30", "1:30:00"
  */
 export function formatTimeRemaining(ms: number): string {
     // Ensure non-negative
     const remaining = Math.max(0, ms);
 
     const totalSeconds = Math.ceil(remaining / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
+    // If >= 1 hour, show HH:MM:SS format
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Otherwise show MM:SS format
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 

@@ -23,8 +23,7 @@
     }
 
     &:focus {
-        outline: 2px solid rgba(210, 75, 78, 0.5);
-        outline-offset: 2px;
+        outline: none;
     }
 
     &__icon {
