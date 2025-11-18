@@ -79,7 +79,12 @@ function BurnOnReadBadge({
                         totalRecipients: readReceipt.totalRecipients,
                     },
                 );
-                return `${readReceiptText}\n${deleteText}`;
+                return (
+                    <div className='BurnOnReadBadge__tooltip-content'>
+                        <div className='primary-text'>{deleteText}</div>
+                        <div className='secondary-text'>{readReceiptText}</div>
+                    </div>
+                );
             }
 
             return deleteText;
@@ -104,16 +109,47 @@ function BurnOnReadBadge({
         return null;
     }
 
+    // Get plain text for aria-label
+    const getAriaLabel = () => {
+        if (isSender) {
+            const deleteText = formatMessage({
+                id: 'burn_on_read.badge.sender.delete',
+                defaultMessage: 'Click to delete message for everyone',
+            });
+            if (readReceipt) {
+                const readReceiptText = formatMessage(
+                    {
+                        id: 'burn_on_read.badge.read_receipt',
+                        defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
+                    },
+                    {
+                        revealedCount: readReceipt.revealedCount,
+                        totalRecipients: readReceipt.totalRecipients,
+                    },
+                );
+                return `${deleteText}. ${readReceiptText}`;
+            }
+            return deleteText;
+        }
+        if (!isSender && !revealed) {
+            return formatMessage({
+                id: 'burn_on_read.badge.recipient.click_to_reveal',
+                defaultMessage: 'Click to Reveal',
+            });
+        }
+        return '';
+    };
+
     return (
         <WithTooltip
             id={`burn-on-read-tooltip-${postId}`}
-            title={<div style={{whiteSpace: 'pre-line'}}>{tooltipContent}</div>}
+            title={tooltipContent}
             isVertical={true}
         >
             <span
                 className='BurnOnReadBadge'
                 data-testid={`burn-on-read-badge-${postId}`}
-                aria-label={tooltipContent}
+                aria-label={getAriaLabel()}
                 onClick={handleClick}
                 role={(isSender || (!isSender && !revealed)) ? 'button' : undefined}
                 style={{cursor: (isSender || (!isSender && !revealed)) ? 'pointer' : 'default'}}
