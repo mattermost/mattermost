@@ -2451,11 +2451,13 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 
 		_, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), addCreatePosts)
 		require.Nil(t, appErr)
-		require.True(t, th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
+		ok, _ := th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost)
+		require.True(t, ok)
 
 		_, appErr = th.App.PatchChannelModerationsForChannel(th.Context, channel.DeepCopy(), removeCreatePosts)
 		require.Nil(t, appErr)
-		require.False(t, th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost))
+		ok, _ = th.App.SessionHasPermissionToChannel(th.Context, mockSession, channel.Id, model.PermissionCreatePost)
+		require.False(t, ok)
 	})
 }
 

@@ -505,13 +505,13 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if channelID != "" {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOwnOutgoingWebhooks) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOwnOutgoingWebhooks); !ok {
 			c.SetPermissionError(model.PermissionManageOwnOutgoingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOthersOutgoingWebhooks) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOthersOutgoingWebhooks); ok {
 			userID = ""
 		}
 

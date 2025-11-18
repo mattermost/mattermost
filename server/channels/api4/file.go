@@ -142,7 +142,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
@@ -316,7 +316,7 @@ NextPart:
 		if c.Err != nil {
 			return nil
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return nil
 		}
@@ -429,7 +429,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile); !ok {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
@@ -550,10 +550,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	web.WriteFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 
 	if !isMember {
-		auditRec := c.MakeAuditRecord(model.AuditEventViewedFileWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRec(auditRec)
-		auditRec.AddMeta("reason", "get_file")
-		auditRec.AddMeta("file_id", c.Params.FileId)
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 }
 
@@ -637,7 +634,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	perm, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -651,6 +648,10 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	if info.PostId == "" && info.CreatorId != model.BookmarkFileOwner {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	resp := make(map[string]string)

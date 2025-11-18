@@ -2345,82 +2345,12 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	}
 }
 
-func (a *App) GetPostInfo(rctx request.CTX, postID string) (*model.PostInfo, *model.AppError) {
-	userID := rctx.Session().UserId
-	post, appErr := a.GetSinglePost(rctx, postID, false)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	channel, appErr := a.GetChannel(rctx, post.ChannelId)
-	if appErr != nil {
-		return nil, appErr
-	}
-
-	notFoundError := model.NewAppError("GetPostInfo", "app.post.get.app_error", nil, "", http.StatusNotFound)
-
-	var team *model.Team
-	hasPermissionToAccessTeam := false
-	if channel.TeamId != "" {
-		team, appErr = a.GetTeam(channel.TeamId)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		teamMember, appErr := a.GetTeamMember(rctx, channel.TeamId, userID)
-		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
-			return nil, appErr
-		}
-
-		if appErr == nil {
-			if teamMember.DeleteAt == 0 {
-				hasPermissionToAccessTeam = true
-			}
-		}
-
-		if !hasPermissionToAccessTeam {
-			if team.AllowOpenInvite {
-				hasPermissionToAccessTeam = a.HasPermissionToTeam(rctx, userID, team.Id, model.PermissionJoinPublicTeams)
-			} else {
-				hasPermissionToAccessTeam = a.HasPermissionToTeam(rctx, userID, team.Id, model.PermissionJoinPrivateTeams)
-			}
-		}
-	} else {
-		// This happens in case of DMs and GMs.
-		hasPermissionToAccessTeam = true
-	}
-
-	if !hasPermissionToAccessTeam {
-		return nil, notFoundError
-	}
-
-	hasPermissionToAccessChannel := false
-
-	_, channelMemberErr := a.GetChannelMember(rctx, channel.Id, userID)
-
-	if channelMemberErr == nil {
-		hasPermissionToAccessChannel = true
-	}
-
-	if !hasPermissionToAccessChannel {
-		if channel.Type == model.ChannelTypeOpen {
-			hasPermissionToAccessChannel = true
-		} else if channel.Type == model.ChannelTypePrivate {
-			hasPermissionToAccessChannel, _ = a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
-		} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-			hasPermissionToAccessChannel, _ = a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent)
-		}
-	}
-
-	if !hasPermissionToAccessChannel {
-		return nil, notFoundError
-	}
-
+func (a *App) GetPostInfo(rctx request.CTX, postID string, channel *model.Channel, team *model.Team, userID string, hasJoinedChannel bool, hasJoinedTeam bool) (*model.PostInfo, *model.AppError) {
 	info := model.PostInfo{
 		ChannelId:          channel.Id,
 		ChannelType:        channel.Type,
 		ChannelDisplayName: channel.DisplayName,
-		HasJoinedChannel:   channelMemberErr == nil,
+		HasJoinedChannel:   hasJoinedChannel,
 	}
 	if team != nil {
 		teamMember, teamMemberErr := a.GetTeamMember(rctx, team.Id, userID)

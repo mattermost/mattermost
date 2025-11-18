@@ -72,7 +72,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+		if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
