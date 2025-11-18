@@ -165,7 +165,7 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
 
 test('MM-T5520-5 should change the users email', async ({pw}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw);
-    const newEmail = `${pw.random.id()}@example.com`;
+    const newEmail = `${await pw.random.id()}@example.com`;
 
     // # Open menu and click Update Email
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
