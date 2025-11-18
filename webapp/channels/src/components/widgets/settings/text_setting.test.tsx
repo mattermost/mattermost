@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
+
+import {render, screen} from 'tests/react_testing_utils';
 
 import TextSetting from './text_setting';
 
 describe('components/widgets/settings/TextSetting', () => {
-    test('render component with required props', () => {
+    test('should render component with required props', () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        render(
             <TextSetting
                 id='string.id'
                 label='some label'
@@ -18,12 +20,18 @@ describe('components/widgets/settings/TextSetting', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('some label')).toBeInTheDocument();
+
+        const input = screen.getByTestId('string.idinput');
+        expect(input).toBeInTheDocument();
+        expect(input).toHaveValue('some value');
+        expect(input).toHaveAttribute('type', 'text');
+        expect(input).toHaveClass('form-control');
     });
 
-    test('render with textarea type', () => {
+    test('should render with textarea type', () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        render(
             <TextSetting
                 id='string.id'
                 label='some label'
@@ -33,12 +41,18 @@ describe('components/widgets/settings/TextSetting', () => {
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByText('some label')).toBeInTheDocument();
+
+        const textarea = screen.getByTestId('string.idinput');
+        expect(textarea).toBeInTheDocument();
+        expect(textarea.tagName).toBe('TEXTAREA');
+        expect(textarea).toHaveValue('some value');
+        expect(textarea).toHaveClass('form-control');
     });
 
-    test('onChange', () => {
+    test('should call onChange when input value changes', async () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        render(
             <TextSetting
                 id='string.id'
                 label='some label'
@@ -47,9 +61,12 @@ describe('components/widgets/settings/TextSetting', () => {
             />,
         );
 
-        wrapper.find('input').simulate('change', {target: {value: 'somenewvalue'}});
+        const input = screen.getByTestId('string.idinput');
+
+        // Type a single character to trigger onChange
+        await userEvent.type(input, 'x');
 
         expect(onChange).toHaveBeenCalledTimes(1);
-        expect(onChange).toHaveBeenCalledWith('string.id', 'somenewvalue');
+        expect(onChange).toHaveBeenCalledWith('string.id', 'some valuex');
     });
 });

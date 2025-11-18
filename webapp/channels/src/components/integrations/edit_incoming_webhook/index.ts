@@ -8,7 +8,9 @@ import type {Dispatch} from 'redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getIncomingHook, updateIncomingHook} from 'mattermost-redux/actions/integrations';
+import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import EditIncomingWebhook from './edit_incoming_webhook';
 
@@ -22,6 +24,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
     const enablePostIconOverride = config.EnablePostIconOverride === 'true';
     const hookId = (new URLSearchParams(ownProps.location.search)).get('id') || '';
+    const canBypassChannelLock = haveICurrentTeamPermission(state, Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK);
 
     return {
         hookId,
@@ -29,6 +32,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         enableIncomingWebhooks,
         enablePostUsernameOverride,
         enablePostIconOverride,
+        canBypassChannelLock,
     };
 }
 

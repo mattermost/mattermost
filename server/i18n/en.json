@@ -732,6 +732,10 @@
     "translation": "Email invite(s) sent"
   },
   {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "No permission to move command"
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams."
   },
@@ -2757,6 +2761,10 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Channel not found"
   },
   {
     "id": "api.post.move_thread.disabled.app_error",
@@ -5435,6 +5443,10 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Unable to patch Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Unable to convert the property field to a custom profile attribute field"
   },
@@ -7001,6 +7013,18 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Unable to retrieve posts for reporting."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Unable to retrieve posts for reporting. Invalid input."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Your license does not support reporting on posts."
   },
   {
     "id": "app.post.get_posts_since.app_error",
@@ -10557,6 +10581,34 @@
     "translation": "Channel notifications are disabled in {{.ChannelName}}. The {{.Mention}} did not trigger any notifications."
   },
   {
+    "id": "model.post.decode_cursor.invalid_base64",
+    "translation": "Invalid cursor format: unable to decode base64."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_exclude_system_posts",
+    "translation": "Invalid cursor format: exclude_system_posts must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_format",
+    "translation": "Invalid cursor format: expected 8 parts."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_include_deleted",
+    "translation": "Invalid cursor format: include_deleted must be a boolean."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_timestamp",
+    "translation": "Invalid cursor format: timestamp must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.invalid_version",
+    "translation": "Invalid cursor format: version must be an integer."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Unsupported cursor version."
+  },
+  {
     "id": "model.post.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -10607,6 +10659,22 @@
   {
     "id": "model.post.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Invalid cursor id."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Invalid sort direction."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Invalid time field."
   },
   {
     "id": "model.preference.is_valid.category.app_error",

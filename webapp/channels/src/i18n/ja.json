@@ -5678,7 +5678,7 @@
   "sidebar_right_menu.console": "システムコンソール",
   "sidebar_right_menu.flagged": "保存済みのメッセージ",
   "sidebar_right_menu.recentMentions": "最近のメンション",
-  "signup.agreement": "アカウントを作成し{siteName}を使用すると、我々の <a1>利用規約</a1> と <a2>プライバシーポリシー</a2> に同意したことになります。  同意しない場合、{siteName}を利用できません。",
+  "signup.agreement": "アカウントを作成し{siteName}を使用すると、我々の <termsOfUseLink>利用規約</termsOfUseLink> と <privacyPolicyLink>プライバシーポリシー</privacyPolicyLink> に同意したことになります。  同意しない場合、{siteName}を利用できません。",
   "signup.ldap": "AD/LDAP認証情報",
   "signup.title": "アカウント作成 | {siteName}",
   "signup_team.guest_without_channels": "あなたのゲストアカウントはどのチャンネルにも所属していません。管理者に連絡してください。",
