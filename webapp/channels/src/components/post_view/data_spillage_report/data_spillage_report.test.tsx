@@ -21,6 +21,9 @@ jest.mock('components/common/hooks/useChannel');
 jest.mock('components/common/hooks/usePost');
 jest.mock('mattermost-redux/actions/posts');
 jest.mock('components/common/hooks/useContentFlaggingFields');
+jest.mock('components/common/hooks/usePropertyCardViewChannelLoader');
+jest.mock('components/common/hooks/usePropertyCardViewTeamLoader');
+jest.mock('components/common/hooks/usePropertyCardViewPostLoader');
 
 const mockedUseUser = require('components/common/hooks/useUser').useUser as jest.MockedFunction<any>;
 const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
@@ -29,6 +32,9 @@ const mockedUsePost = require('components/common/hooks/usePost').usePost as jest
 const mockGetPost = require('mattermost-redux/actions/posts').getPost as jest.MockedFunction<any>;
 const useContentFlaggingFields = require('components/common/hooks/useContentFlaggingFields').useContentFlaggingFields as jest.MockedFunction<any>;
 const usePostContentFlaggingValues = require('components/common/hooks/useContentFlaggingFields').usePostContentFlaggingValues as jest.MockedFunction<any>;
+const usePropertyCardViewChannelLoader = require('components/common/hooks/usePropertyCardViewChannelLoader').usePropertyCardViewChannelLoader as jest.MockedFunction<any>;
+const usePropertyCardViewTeamLoader = require('components/common/hooks/usePropertyCardViewTeamLoader').usePropertyCardViewTeamLoader as jest.MockedFunction<any>;
+const usePropertyCardViewPostLoader = require('components/common/hooks/usePropertyCardViewPostLoader').usePropertyCardViewPostLoader as jest.MockedFunction<any>;
 
 describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     const reportingUser = TestHelper.getUserMock({
@@ -52,6 +58,11 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         username: 'reported_post_author',
     });
 
+    const reviewerUser = TestHelper.getUserMock({
+        id: 'reviewer_user_id',
+        username: 'reviewer_user',
+    });
+
     const reportedPost = TestHelper.getPostMock({
         id: 'reported_post_id',
         message: 'Hello, world!',
@@ -72,6 +83,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
                 profiles: {
                     [reportingUser.id]: reportingUser,
                     [reportedPostAuthor.id]: reportedPostAuthor,
+                    [reviewerUser.id]: reviewerUser,
                 },
             },
             channels: {
@@ -191,7 +203,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
             name: 'reviewer_user_id',
             type: 'user',
-            attrs: null,
+            attrs: {editable: true},
             target_id: '',
             target_type: '',
             create_at: 1756788661624,
@@ -237,7 +249,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_id: 'i93oo5gb4tygixs4g8atqyjryy',
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
-            field_id: 'kd9n7tf9n3ynjczqpkpjkbzgoh',
+            field_id: contentFlaggingFields.status.id,
             value: 'Pending',
             create_at: 1756790533486,
             update_at: 1756790533486,
@@ -248,7 +260,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_id: 'i93oo5gb4tygixs4g8atqyjryy',
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
-            field_id: '5knyqectdfbi98rab3zz4hsyhh',
+            field_id: contentFlaggingFields.reporting_reason.id,
             value: 'Sensitive data',
             create_at: 1756790533487,
             update_at: 1756790533487,
@@ -259,7 +271,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_id: 'i93oo5gb4tygixs4g8atqyjryy',
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
-            field_id: '1is7ir68bp8nup3rr1pp6d7fsr',
+            field_id: contentFlaggingFields.reporting_user_id.id,
             value: reportingUser.id,
             create_at: 1756790533487,
             update_at: 1756790533487,
@@ -270,7 +282,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_id: 'i93oo5gb4tygixs4g8atqyjryy',
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
-            field_id: '5cib5g3ag3gs3gxyg7awjd6csh',
+            field_id: contentFlaggingFields.reporting_time.id,
             value: 1756790533486,
             create_at: 1756790533488,
             update_at: 1756790533488,
@@ -281,10 +293,21 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_id: 'i93oo5gb4tygixs4g8atqyjryy',
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
-            field_id: 'sx7h53tdsbfb985edkmze71j3c',
+            field_id: contentFlaggingFields.reporting_comment.id,
             value: 'Please review this post for potential violations',
             create_at: 1756790533488,
             update_at: 1756790533488,
+            delete_at: 0,
+        },
+        {
+            id: '7azuir6wcf8n5gbmruyat1g7xh',
+            target_id: 'oxjt9atahbrjugqrd8rgorps6h',
+            target_type: 'post',
+            group_id: 'kykzwf98njrbzp89r9s4ey15kh',
+            field_id: contentFlaggingFields.reviewer_user_id.id,
+            value: reviewerUser.id,
+            create_at: 1759732888594,
+            update_at: 1759743763772,
             delete_at: 0,
         },
     ];
@@ -309,8 +332,12 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         useContentFlaggingFields.mockReturnValue(contentFlaggingFields);
         usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
+        usePropertyCardViewChannelLoader.mockReturnValue(reportedPostChannel);
+        usePropertyCardViewTeamLoader.mockReturnValue(reportedPostTeam);
+        usePropertyCardViewPostLoader.mockReturnValue(reportedPost);
 
         Client4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
+        Client4.getChannel = jest.fn().mockResolvedValue(reportedPostChannel);
     });
 
     it('should render selected fields when not in RHS', async () => {

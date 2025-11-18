@@ -586,7 +586,7 @@ describe('components/SwitchChannelProvider', () => {
             'channel_other_user1',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
             terms: expectedOrder,
         }));
     });
@@ -669,7 +669,7 @@ describe('components/SwitchChannelProvider', () => {
             'other_gm_channel',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
             terms: expectedOrder,
         }));
     });
@@ -756,7 +756,7 @@ describe('components/SwitchChannelProvider', () => {
             'other_gm_channel',
             'channel_other_user1',
         ];
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
             terms: expectedOrder,
         }));
     });
@@ -905,7 +905,7 @@ describe('components/SwitchChannelProvider', () => {
             'channel_1',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
             terms: channelsFromActiveTeams,
         }));
     });
@@ -991,7 +991,7 @@ describe('components/SwitchChannelProvider', () => {
             'thread_gm_channel',
         ];
 
-        expect(resultsCallback).toBeCalledWith(expect.objectContaining({
+        expect(resultsCallback).toHaveBeenCalledWith(expect.objectContaining({
             terms: expectedOrder,
         }));
     });

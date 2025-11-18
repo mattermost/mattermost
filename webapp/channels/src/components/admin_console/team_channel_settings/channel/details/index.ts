@@ -7,12 +7,13 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+import {getAccessControlPolicy, deleteAccessControlPolicy, assignChannelsToAccessControlPolicy, searchAccessControlPolicies, unassignChannelsFromAccessControlPolicy, createAccessControlPolicy, getAccessControlFields, getVisualAST, validateExpressionAgainstRequester, updateAccessControlPolicyActive, searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import {
     addChannelMember,
     deleteChannel,
     getChannel as fetchChannel,
     getChannelModerations as fetchChannelModerations,
+    getChannelMembers,
     membersMinusGroupMembers,
     patchChannel,
     patchChannelModerations,
@@ -27,8 +28,10 @@ import {
     patchGroupSyncable,
     unlinkGroupSyncable,
 } from 'mattermost-redux/actions/groups';
+import {createJob} from 'mattermost-redux/actions/jobs';
 import {getScheme as loadScheme} from 'mattermost-redux/actions/schemes';
 import {getTeam as fetchTeam} from 'mattermost-redux/actions/teams';
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getChannel, getChannelModerations} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroups, getGroupsAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
@@ -117,6 +120,17 @@ function mapDispatchToProps(dispatch: Dispatch) {
             unassignChannelsFromAccessControlPolicy,
             deleteAccessControlPolicy,
             searchPolicies: searchAccessControlPolicies,
+
+            // Channel-level access rules actions
+            getAccessControlFields,
+            getVisualAST,
+            saveChannelAccessPolicy: createAccessControlPolicy,
+            validateChannelExpression: validateExpressionAgainstRequester,
+            createAccessControlSyncJob: createJob,
+            updateAccessControlPolicyActive,
+            searchUsersForExpression,
+            getChannelMembers,
+            getProfilesByIds,
         }, dispatch),
     };
 }

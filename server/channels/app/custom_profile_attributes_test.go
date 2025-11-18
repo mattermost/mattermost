@@ -16,8 +16,7 @@ import (
 
 func TestGetCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -61,7 +60,43 @@ func TestGetCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
-		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs["visibility"])
+		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs.Visibility)
+	})
+
+	t.Run("should initialize default attrs when field has nil Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs directly via property service (bypassing CPA validation)
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should initialize Attrs with defaults
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs.Visibility)
+		require.Equal(t, float64(0), fetchedField.Attrs.SortOrder)
+	})
+
+	t.Run("should initialize default attrs when field has empty Attrs", func(t *testing.T) {
+		// Create a field with empty Attrs directly via property service
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should add missing default attrs
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs.Visibility)
+		require.Equal(t, float64(0), fetchedField.Attrs.SortOrder)
 	})
 
 	t.Run("should validate LDAP/SAML synced fields", func(t *testing.T) {
@@ -121,8 +156,7 @@ func TestGetCPAField(t *testing.T) {
 
 func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -161,11 +195,98 @@ func TestListCPAFields(t *testing.T) {
 		require.Equal(t, "Field 3", fields[0].Name)
 		require.Equal(t, "Field 1", fields[1].Name)
 	})
+
+	t.Run("should initialize default attrs for fields with nil or empty Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs
+		fieldWithNilAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		_, err := th.App.Srv().propertyService.CreatePropertyField(fieldWithNilAttrs)
+		require.NoError(t, err)
+
+		// Create a field with empty Attrs
+		fieldWithEmptyAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		_, err = th.App.Srv().propertyService.CreatePropertyField(fieldWithEmptyAttrs)
+		require.NoError(t, err)
+
+		// ListCPAFields should initialize Attrs with defaults
+		fields, appErr := th.App.ListCPAFields()
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		// Find our test fields and verify default attrs are set
+		for _, field := range fields {
+			if field.Name == "Field with nil attrs" || field.Name == "Field with empty attrs" {
+				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, field.Attrs.Visibility)
+				require.Equal(t, float64(0), field.Attrs.SortOrder)
+			}
+		}
+	})
+
+	t.Run("list fields should return defaults for fields created without visibility and sort_order", func(t *testing.T) {
+		// Create a field with minimal attrs (no visibility or sort_order)
+		fieldMinimal, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name:  "Field Without Defaults",
+			Type:  model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{}, // Empty attrs - no visibility or sort_order
+		})
+		require.NoError(t, err)
+		createdFieldMinimal, appErr := th.App.CreateCPAField(fieldMinimal)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdFieldMinimal)
+
+		// Create another field to ensure we test list results with explicit values
+		fieldNormal, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: "Normal Field",
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityAlways,
+				model.CustomProfileAttributesPropertyAttrsSortOrder:  5.0,
+			},
+		})
+		require.NoError(t, err)
+		createdFieldNormal, appErr := th.App.CreateCPAField(fieldNormal)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdFieldNormal)
+
+		// List all fields
+		fields, appErr := th.App.ListCPAFields()
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		// Find our test fields and verify defaults
+		foundMinimal := false
+		foundNormal := false
+		for _, f := range fields {
+			if f.ID == createdFieldMinimal.ID {
+				foundMinimal = true
+				// Verify defaults are set for field created without them
+				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, f.Attrs.Visibility, "visibility should have default value")
+				require.Equal(t, float64(0), f.Attrs.SortOrder, "sort_order should default to 0")
+			}
+			if f.ID == createdFieldNormal.ID {
+				foundNormal = true
+				// Verify createdFieldNormal are preserved
+				require.Equal(t, model.CustomProfileAttributesVisibilityAlways, f.Attrs.Visibility)
+				require.Equal(t, float64(5), f.Attrs.SortOrder)
+			}
+		}
+		require.True(t, foundMinimal, "should have found createdFieldMinimal in list")
+		require.True(t, foundNormal, "should have found createdFieldNormal in list")
+	})
 }
 
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -205,7 +326,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotZero(t, createdField.ID)
 		require.Equal(t, cpaGroupID, createdField.GroupID)
-		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, createdField.Attrs["visibility"])
+		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, createdField.Attrs.Visibility)
 
 		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
 		require.NoError(t, gErr)
@@ -242,12 +363,8 @@ func TestCreateCPAField(t *testing.T) {
 		require.Zero(t, fetchedField.DeleteAt, "DeleteAt should be 0 in database")
 	})
 
-	// reset the server at this point to avoid polluting the state
-	th.TearDown()
-
 	t.Run("CPA should honor the field limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		t.Run("should not be able to create CPA fields above the limit", func(t *testing.T) {
 			// we create the rest of the fields required to reach the limit
@@ -301,8 +418,7 @@ func TestCreateCPAField(t *testing.T) {
 
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -354,7 +470,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, updatedField.ID)
 		require.Equal(t, "Patched name", updatedField.Name)
-		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs.Visibility)
 		require.Empty(t, updatedField.TargetID, "CPA should not allow to patch the field's target ID")
 		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
 		require.Greater(t, updatedField.UpdateAt, createdField.UpdateAt)
@@ -385,7 +501,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the original option IDs
-		options := createdSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+		options := createdSelectField.Attrs.Options
 		require.Len(t, options, 2)
 		originalID1 := options[0].ID
 		originalID2 := options[1].ID
@@ -417,7 +533,7 @@ func TestPatchCPAField(t *testing.T) {
 		updatedSelectField, appErr := th.App.PatchCPAField(createdSelectField.ID, selectPatch)
 		require.Nil(t, appErr)
 
-		updatedOptions := updatedSelectField.Attrs[model.PropertyFieldAttributeOptions].(model.PropertyOptions[*model.CustomProfileAttributesSelectOption])
+		updatedOptions := updatedSelectField.Attrs.Options
 		require.Len(t, updatedOptions, 3)
 
 		// Verify the options were updated while preserving IDs
@@ -456,11 +572,8 @@ func TestPatchCPAField(t *testing.T) {
 		createdField, appErr := th.App.CreateCPAField(field)
 		require.Nil(t, appErr)
 
-		// Get the option IDs by converting back to CPA field
-		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
-		require.NoError(t, err)
-
-		options := cpaField.Attrs.Options
+		// Get the option IDs
+		options := createdField.Attrs.Options
 		require.Len(t, options, 2)
 		optionID := options[0].ID
 		require.NotEmpty(t, optionID)
@@ -527,11 +640,8 @@ func TestPatchCPAField(t *testing.T) {
 		createdField, appErr := th.App.CreateCPAField(field)
 		require.Nil(t, appErr)
 
-		// Get the option IDs by converting back to CPA field
-		cpaField, err := model.NewCPAFieldFromPropertyField(createdField)
-		require.NoError(t, err)
-
-		options := cpaField.Attrs.Options
+		// Get the option IDs
+		options := createdField.Attrs.Options
 		require.Len(t, options, 2)
 		optionID := options[0].ID
 		require.NotEmpty(t, optionID)
@@ -564,8 +674,7 @@ func TestPatchCPAField(t *testing.T) {
 
 func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -645,8 +754,7 @@ func TestDeleteCPAField(t *testing.T) {
 
 func TestGetCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -723,8 +831,7 @@ func TestListCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -779,8 +886,7 @@ func TestListCPAValues(t *testing.T) {
 
 func TestPatchCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -906,8 +1012,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -916,7 +1021,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	otherUserID := model.NewId()
 
 	// Create multiple fields and values for the user
-	var createdFields []*model.PropertyField
+	var createdFields []*model.CPAField
 	for i := 1; i <= 3; i++ {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaGroupID,

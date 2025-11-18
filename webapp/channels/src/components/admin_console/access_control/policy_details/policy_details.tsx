@@ -30,6 +30,7 @@ import {getHistory} from 'utils/browser_history';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
+import {hasUsableAttributes} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -88,6 +89,9 @@ function PolicyDetails({
     const {formatMessage} = useIntl();
 
     const abacActions = useChannelAccessControlActions();
+
+    // Check if there are any usable attributes for ABAC
+    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
 
     useEffect(() => {
         loadPage();
@@ -176,6 +180,7 @@ function PolicyDetails({
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -186,6 +191,7 @@ function PolicyDetails({
         });
 
         if (!currentPolicyId || !success) {
+            setShowConfirmationModal(false);
             return;
         }
 
@@ -197,6 +203,7 @@ function PolicyDetails({
                 id: 'admin.access_control.policy.edit_policy.error.update_active_status',
                 defaultMessage: 'Error updating policy active status: {error}',
             }, {error: error.message}));
+            setShowConfirmationModal(false);
             success = false;
             return;
         }
@@ -217,6 +224,7 @@ function PolicyDetails({
                     id: 'admin.access_control.policy.edit_policy.error.assign_channels',
                     defaultMessage: 'Error assigning channels: {error}',
                 }, {error: error.message}));
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -233,6 +241,7 @@ function PolicyDetails({
                     id: 'admin.access_control.policy.edit_policy.error.create_job',
                     defaultMessage: 'Error creating job: {error}',
                 }, {error: error.message}));
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -386,7 +395,7 @@ function PolicyDetails({
                             }
                         />
                     </div>
-                    {attributesLoaded && autocompleteResult.length === 0 && (<div className='admin-console__warning-notice'>
+                    {noUsableAttributes && (<div className='admin-console__warning-notice'>
                         <SectionNotice
                             type='warning'
                             title={
@@ -442,15 +451,22 @@ function PolicyDetails({
                                     )
                                 }
                                 onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
-                                isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
-                                tooltipText={
-                                    editorMode === 'cel' && !isSimpleExpression(expression) ?
-                                        formatMessage({
+                                isDisabled={noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression))}
+                                tooltipText={(() => {
+                                    if (noUsableAttributes) {
+                                        return formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.no_usable_attributes_tooltip',
+                                            defaultMessage: 'Please configure user attributes to use the editor.',
+                                        });
+                                    }
+                                    if (editorMode === 'cel' && !isSimpleExpression(expression)) {
+                                        return formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
                                             defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
-                                        }) :
-                                        undefined
-                                }
+                                        });
+                                    }
+                                    return undefined;
+                                })()}
                             />
                         </Card.Header>
                         <Card.Body>
@@ -463,12 +479,15 @@ function PolicyDetails({
                                         actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
+                                    disabled={noUsableAttributes}
                                     userAttributes={autocompleteResult.
                                         filter((attr) => {
                                             if (accessControlSettings.EnableUserManagedAttributes) {
                                                 return true;
                                             }
-                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isAdminManaged = attr.attrs?.managed === 'admin';
+                                            return isSynced || isAdminManaged;
                                         }).
                                         map((attr) => ({
                                             attribute: attr.name,
@@ -484,6 +503,7 @@ function PolicyDetails({
                                         actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
+                                    disabled={noUsableAttributes}
                                     userAttributes={autocompleteResult}
                                     onParseError={() => {
                                         setEditorMode('cel');
