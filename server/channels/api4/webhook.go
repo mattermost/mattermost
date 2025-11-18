@@ -294,7 +294,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		restrictedChannel = !hasChannelPermission
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageIncomingWebhooks) || restrictedChannel {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOwnIncomingWebhooks) || restrictedChannel {
 		c.LogAudit("fail - bad permissions")
 		c.SetPermissionError(model.PermissionManageOwnIncomingWebhooks)
 		return
@@ -354,7 +354,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		restrictedChannel = !hasChannelPermission
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageIncomingWebhooks) || restrictedChannel {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOwnIncomingWebhooks) || restrictedChannel {
 		c.LogAudit("fail - bad permissions")
 		c.SetPermissionError(model.PermissionManageOwnIncomingWebhooks)
 		return
