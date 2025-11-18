@@ -3,8 +3,13 @@
 
 import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import WithTooltip from 'components/with_tooltip';
+
+import {getBurnOnReadReadReceipt} from 'selectors/burn_on_read_read_receipts';
+
+import type {GlobalState} from 'types/store';
 
 import './burn_on_read_badge.scss';
 
@@ -25,6 +30,19 @@ function BurnOnReadBadge({
 }: Props) {
     const {formatMessage} = useIntl();
 
+    // Get read receipt data from Redux store (real-time updated via WebSocket)
+    let readReceipt = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
+
+    // TODO: REMOVE THIS - Mock data for testing the tooltip display
+    if (isSender && !readReceipt) {
+        readReceipt = {
+            postId,
+            revealedCount: 4,
+            totalRecipients: 48,
+            lastUpdated: Date.now(),
+        };
+    }
+
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Stop propagation to prevent opening RHS or other post click handlers
         e.stopPropagation();
@@ -44,10 +62,27 @@ function BurnOnReadBadge({
 
     const getTooltipContent = () => {
         if (isSender) {
-            return formatMessage({
+            // Show read receipts for sender with delete instruction
+            const deleteText = formatMessage({
                 id: 'burn_on_read.badge.sender.delete',
                 defaultMessage: 'Click to delete message for everyone',
             });
+
+            if (readReceipt) {
+                const readReceiptText = formatMessage(
+                    {
+                        id: 'burn_on_read.badge.read_receipt',
+                        defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
+                    },
+                    {
+                        revealedCount: readReceipt.revealedCount,
+                        totalRecipients: readReceipt.totalRecipients,
+                    },
+                );
+                return `${readReceiptText}\n${deleteText}`;
+            }
+
+            return deleteText;
         }
 
         if (!isSender && !revealed) {

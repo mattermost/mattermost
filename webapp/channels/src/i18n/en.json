@@ -3554,6 +3554,7 @@
   "bots.token.confirm": "Delete",
   "bots.token.confirm_text": "Are you sure you want to delete the token?",
   "bots.token.delete": "Delete Token",
+  "burn_on_read.badge.read_receipt": "Read by {revealedCount} of {totalRecipients} recipients",
   "burn_on_read.badge.recipient.click_to_reveal": "Click to Reveal",
   "burn_on_read.badge.sender.delete": "Click to delete message for everyone",
   "burn_on_read.button.tooltip": "Burn-on-read: Message will be deleted for a recipient {duration} minutes after they open it",
