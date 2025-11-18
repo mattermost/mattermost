@@ -31,6 +31,149 @@ const path = require('path');
 const EN_JSON_PATH = path.join(__dirname, '../src/i18n/en.json');
 const TEMP_EXTRACT = '/tmp/en.json.new';
 
+// Cache for git log lookups
+const gitLogCache = new Map();
+const codeFileCache = new Map();
+
+/**
+ * Get the last modification date for a message ID in en.json
+ */
+function getEnJsonLastModified(id) {
+    if (gitLogCache.has(`en:${id}`)) {
+        return gitLogCache.get(`en:${id}`);
+    }
+
+    try {
+        const result = execSync(
+            `git log -1 --format="%ai | %h | %s" -S '"${id}"' -- src/i18n/en.json`,
+            {encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore']}
+        ).trim();
+
+        const info = result || 'Unknown';
+        gitLogCache.set(`en:${id}`, info);
+        return info;
+    } catch {
+        return 'Unknown';
+    }
+}
+
+/**
+ * Find which code file contains a message ID
+ */
+function findCodeFile(id) {
+    if (codeFileCache.has(id)) {
+        return codeFileCache.get(id);
+    }
+
+    try {
+        // Escape dots in the ID for grep regex
+        const escapedId = id.replace(/\./g, '\\.');
+        // Match both id= (JSX props) and id: (object literals)
+        const result = execSync(
+            `grep -r "id[=:].*${escapedId}" src --include="*.tsx" --include="*.ts" --include="*.jsx" --include="*.js" | grep -v test | grep -v ".snap" | head -1`,
+            {encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore']}
+        ).trim();
+
+        const file = result ? result.split(':')[0] : null;
+        codeFileCache.set(id, file);
+        return file;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Get the last modification date for a code file
+ */
+function getCodeLastModified(file) {
+    if (!file) return 'Unknown';
+
+    if (gitLogCache.has(`code:${file}`)) {
+        return gitLogCache.get(`code:${file}`);
+    }
+
+    try {
+        const result = execSync(
+            `git log -1 --format="%ai | %h | %s" -- "${file}"`,
+            {encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore']}
+        ).trim();
+
+        const info = result || 'Unknown';
+        gitLogCache.set(`code:${file}`, info);
+        return info;
+    } catch {
+        return 'Unknown';
+    }
+}
+
+/**
+ * Generate detailed diff analysis including GitHub-style preview and word/char differences
+ */
+function generateDetailedDiff(current, extracted) {
+    const lines = [];
+
+    // GitHub-style diff preview (show spaces as dots for visibility)
+    lines.push('   ╔═══ Diff Preview ═══');
+    lines.push(`   ║ - ${current.replace(/ /g, '·')}`);
+    lines.push(`   ║ + ${extracted.replace(/ /g, '·')}`);
+    lines.push('   ╚════════════════════');
+
+    // Whitespace analysis
+    if (current.trimEnd() !== current) {
+        lines.push('   🔍 Current has trailing whitespace');
+    }
+    if (current.trimStart() !== current) {
+        lines.push('   🔍 Current has leading whitespace');
+    }
+    if (extracted.trimEnd() !== extracted) {
+        lines.push('   🔍 Extracted has trailing whitespace');
+    }
+    if (extracted.trimStart() !== extracted) {
+        lines.push('   🔍 Extracted has leading whitespace');
+    }
+
+    // Word-level diff
+    const currentWords = current.split(/\s+/).filter(Boolean);
+    const extractedWords = extracted.split(/\s+/).filter(Boolean);
+
+    const addedWords = extractedWords.filter(w => !currentWords.includes(w));
+    const removedWords = currentWords.filter(w => !extractedWords.includes(w));
+
+    if (addedWords.length > 0 && addedWords.length <= 10) {
+        lines.push(`   ➕ Added words: [${addedWords.join(', ')}]`);
+    } else if (addedWords.length > 10) {
+        lines.push(`   ➕ Added ${addedWords.length} words`);
+    }
+
+    if (removedWords.length > 0 && removedWords.length <= 10) {
+        lines.push(`   ➖ Removed words: [${removedWords.join(', ')}]`);
+    } else if (removedWords.length > 10) {
+        lines.push(`   ➖ Removed ${removedWords.length} words`);
+    }
+
+    // Character-level diff for relatively short strings
+    if (current.length < 150 && extracted.length < 150) {
+        const charDiffs = [];
+        const maxLen = Math.max(current.length, extracted.length);
+
+        for (let i = 0; i < maxLen; i++) {
+            if (current[i] !== extracted[i]) {
+                const curChar = current[i] === ' ' ? '␣' : (current[i] || '∅');
+                const extChar = extracted[i] === ' ' ? '␣' : (extracted[i] || '∅');
+                charDiffs.push(`@${i}: '${curChar}'→'${extChar}'`);
+            }
+        }
+
+        if (charDiffs.length > 0 && charDiffs.length <= 8) {
+            lines.push(`   🔤 Character changes: ${charDiffs.join(', ')}`);
+        } else if (charDiffs.length > 8) {
+            lines.push(`   🔤 ${charDiffs.length} character changes`);
+        }
+    }
+
+    return lines.length > 4 ? lines.join('\n') : null;
+}
+
 // Extract to temp file
 console.log('Running formatjs extraction...\n');
 try {
@@ -83,6 +226,17 @@ if (conflicts.length > 0) {
         console.log(`\n📝 ID: ${id}`);
         console.log(`   Current (en.json):  "${currentMsg}"`);
         console.log(`   Extracted (code):   "${extractedMsg}"`);
+
+        // Git history metadata
+        const enJsonModified = getEnJsonLastModified(id);
+        const codeFile = findCodeFile(id);
+        const codeModified = getCodeLastModified(codeFile);
+
+        console.log(`   📅 en.json:  ${enJsonModified}`);
+        console.log(`   📅 code:     ${codeModified}`);
+        if (codeFile) {
+            console.log(`   📂 file:     ${codeFile}`);
+        }
 
         // Analyze differences
         const analysis = [];
