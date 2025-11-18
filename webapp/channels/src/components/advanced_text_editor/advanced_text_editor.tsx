@@ -19,7 +19,6 @@ import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDis
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
-import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
@@ -560,7 +559,6 @@ const AdvancedTextEditor = ({
         setShowPreview(false);
         setServerError(null);
     }, [channelId, rootId]);
-
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {
