@@ -6,8 +6,8 @@ import {useIntl} from 'react-intl';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
 
-import WithTooltip from 'components/with_tooltip';
 import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
+import WithTooltip from 'components/with_tooltip';
 
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';
 import {getAriaAnnouncementInterval, formatAriaAnnouncement} from 'utils/burn_on_read_timer_utils';
@@ -33,6 +33,7 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
         if (expireAt) {
             return expireAt;
         }
+
         // Fallback: calculate from current time + duration
         return Date.now() + (durationMinutes * 60 * 1000);
     }, [expireAt, durationMinutes]);

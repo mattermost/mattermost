@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
+
+import type {DispatchFunc} from 'types/store';
 
 /**
  * Hybrid Expiration Scheduler for Burn-on-Read messages.

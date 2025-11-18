@@ -4,8 +4,8 @@
 import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';

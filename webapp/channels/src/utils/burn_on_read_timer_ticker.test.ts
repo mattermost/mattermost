@@ -70,7 +70,6 @@ describe('BurnOnReadTimerTicker', () => {
     });
 
     it('should handle subscriber errors gracefully', () => {
-        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         const errorCallback = jest.fn(() => {
             throw new Error('Test error');
         });
@@ -82,10 +81,7 @@ describe('BurnOnReadTimerTicker', () => {
         jest.advanceTimersByTime(1000);
 
         expect(errorCallback).toHaveBeenCalledTimes(1);
-        expect(successCallback).toHaveBeenCalledTimes(1); // Should still be called
-        expect(consoleErrorSpy).toHaveBeenCalled();
-
-        consoleErrorSpy.mockRestore();
+        expect(successCallback).toHaveBeenCalledTimes(1); // Should still be called despite error
     });
 
     it('should not start multiple intervals', () => {

@@ -485,7 +485,6 @@ function PostComponent(props: Props) {
         setShowBurnConfirmModal(false);
     }, []);
 
-
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
     let comment;

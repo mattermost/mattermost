@@ -60,7 +60,7 @@ class BurnOnReadTimerTicker {
                     callback();
                 } catch (error) {
                     // Prevent one component's error from breaking all timers
-                    console.error('Error in timer tick callback:', error);
+                    // Error is silently caught to maintain timer stability
                 }
             });
         }, this.tickInterval);
