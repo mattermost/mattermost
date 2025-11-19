@@ -157,12 +157,41 @@ export class ZephyrAPI {
      * @param customFields - Custom fields to update
      */
     async updateCustomFields(testCaseKey: string, customFields: Record<string, any>): Promise<void> {
-        // Zephyr Scale Cloud API v2 endpoint
-        const url = `${this.baseUrl}/testcases/${testCaseKey}`;
+        // Zephyr Scale Cloud API v2 endpoint - need to fetch existing test case first
+        const getUrl = `${this.baseUrl}/testcases/${testCaseKey}`;
+        const existingTestCase = await this.makeRequest(getUrl, 'GET');
 
-        await this.makeRequest(url, 'PUT', {
-            customFields,
-        });
+        // Merge existing custom fields with new ones
+        const updatedCustomFields = {
+            ...existingTestCase.customFields,
+            ...customFields,
+        };
+
+        // Update test case with required fields plus updated custom fields
+        const updateUrl = `${this.baseUrl}/testcases/${testCaseKey}`;
+        const payload: any = {
+            projectKey: existingTestCase.project.key,
+            name: existingTestCase.name,
+            priority: existingTestCase.priority?.name || 'Normal',
+            status: existingTestCase.status?.name || 'Draft',
+            customFields: updatedCustomFields,
+        };
+
+        // Add optional fields only if they exist
+        if (existingTestCase.objective) {
+            payload.objective = existingTestCase.objective;
+        }
+        if (existingTestCase.precondition) {
+            payload.precondition = existingTestCase.precondition;
+        }
+        if (existingTestCase.labels && existingTestCase.labels.length > 0) {
+            payload.labels = existingTestCase.labels;
+        }
+        if (existingTestCase.folder?.id) {
+            payload.folderId = existingTestCase.folder.id;
+        }
+
+        await this.makeRequest(updateUrl, 'PUT', payload);
     }
 
     /**
@@ -171,13 +200,54 @@ export class ZephyrAPI {
      * @param e2eFilePath - Path to E2E test file
      */
     async markAsAutomated(testCaseKey: string, e2eFilePath: string): Promise<void> {
-        const customFields: Record<string, any> = {};
-        customFields[zephyrCustomFields.playwright] = 'Automated';
-        customFields[zephyrCustomFields.e2eFilePath] = e2eFilePath;
-        customFields[zephyrCustomFields.automatedDate] = new Date().toISOString();
-        customFields[zephyrCustomFields.automatedBy] = 'claude-automation';
+        // Fetch existing test case first
+        const getUrl = `${this.baseUrl}/testcases/${testCaseKey}`;
+        const existingTestCase = await this.makeRequest(getUrl, 'GET');
 
-        await this.updateCustomFields(testCaseKey, customFields);
+        // Prepare custom fields - keep all existing custom fields as-is
+        // Don't try to modify custom fields as they have complex validation rules
+        const customFields: Record<string, any> = {
+            ...existingTestCase.customFields,
+        };
+
+        // Prepare labels - add 'playwright-automated' if not already present
+        const existingLabels = existingTestCase.labels || [];
+        const labels = existingLabels.includes('playwright-automated')
+            ? existingLabels
+            : [...existingLabels, 'playwright-automated'];
+
+        // Update test case with Active status, labels, and custom fields
+        // The API requires objects for status, priority, and project (not just names)
+        // Active status ID is 890281 (discovered from MM-T5928 which already has it)
+        const activeStatusId = 890281;
+
+        const updateUrl = `${this.baseUrl}/testcases/${testCaseKey}`;
+        const payload: any = {
+            key: existingTestCase.key,
+            id: existingTestCase.id,
+            project: existingTestCase.project,
+            name: existingTestCase.name,
+            status: {
+                id: activeStatusId,
+                self: `https://api.zephyrscale.smartbear.com/v2/statuses/${activeStatusId}`
+            },
+            priority: existingTestCase.priority,
+            labels,
+            customFields, // Must include ALL custom fields when updating
+        };
+
+        // Add optional fields only if they exist
+        if (existingTestCase.objective) {
+            payload.objective = existingTestCase.objective;
+        }
+        if (existingTestCase.precondition) {
+            payload.precondition = existingTestCase.precondition;
+        }
+        if (existingTestCase.folder) {
+            payload.folder = existingTestCase.folder;
+        }
+
+        await this.makeRequest(updateUrl, 'PUT', payload);
     }
 
     /**
@@ -194,6 +264,74 @@ export class ZephyrAPI {
         // For now, we'll silently skip adding comments
         console.log(`Comment functionality not yet implemented for Zephyr Scale Cloud API v2`);
         console.log(`Would add comment to ${testCaseKey}: ${comment}`);
+    }
+
+    /**
+     * Create a new test case in Zephyr
+     * @param testCase - Test case data
+     * @returns Created test case with key and ID
+     */
+    async createTestCase(testCase: {
+        name: string;
+        objective: string;
+        steps: Array<{description: string; expectedResult: string}>;
+        folder?: string;
+        priority?: string;
+        labels?: string[];
+    }): Promise<{key: string; id: number}> {
+        const url = `${this.baseUrl}/testcases`;
+
+        const body: any = {
+            projectKey: this.projectKey,
+            name: testCase.name,
+            objective: testCase.objective,
+            priority: testCase.priority || 'Normal',
+            status: 'Draft',
+            labels: testCase.labels || ['automated', 'e2e'],
+        };
+
+        // Add folder if specified
+        if (testCase.folder) {
+            body.folderId = testCase.folder;
+        }
+
+        const response = await this.makeRequest(url, 'POST', body);
+
+        // Now add test steps if provided
+        if (testCase.steps && testCase.steps.length > 0) {
+            await this.createTestSteps(response.key, testCase.steps);
+        }
+
+        return {
+            key: response.key,
+            id: response.id,
+        };
+    }
+
+    /**
+     * Create test steps for a test case
+     * @param testCaseKey - Test case key
+     * @param steps - Test steps to create
+     */
+    async createTestSteps(
+        testCaseKey: string,
+        steps: Array<{description: string; expectedResult: string}>
+    ): Promise<void> {
+        const url = `${this.baseUrl}/testcases/${testCaseKey}/teststeps`;
+
+        // Create all steps in one call using OVERWRITE mode
+        const testSteps = steps.map((step, index) => ({
+            index: index + 1,
+            inline: {
+                description: step.description,
+                expectedResult: step.expectedResult,
+            },
+        }));
+
+        await this.makeRequest(url, 'POST', {
+            mode: 'OVERWRITE',
+            items: testSteps,
+        });
     }
 
     /**

@@ -1,6 +1,6 @@
 ---
 name: e2e-test-creation
-description: Automatically generates E2E Playwright tests for Mattermost frontend changes. Provides comprehensive guidelines, patterns, and examples for creating robust, maintainable tests following Mattermost conventions.
+description: Automatically generates E2E Playwright tests for Mattermost frontend changes. Bridges manual test cases with E2E automation. Provides comprehensive guidelines, patterns, and examples for creating robust, maintainable tests following Mattermost conventions.
 ---
 
 # E2E Test Creation Skill for Mattermost
@@ -15,6 +15,9 @@ This skill is automatically activated when:
 - You add new user-facing features
 - You make changes to critical user flows (messaging, channels, auth)
 - You explicitly invoke test generation
+- You need to analyze test coverage gaps
+- You want to convert manual test cases to E2E tests
+- You work with Zephyr test management system (MM-T test cases)
 
 ## What This Skill Does
 
@@ -48,6 +51,13 @@ Automatically fixes flaky or broken tests by:
 - Improving wait strategies
 - Fixing timing issues
 - Strengthening assertions
+
+### 4. Zephyr Test Automation
+Automates test creation and syncs with Zephyr test management:
+- **3-Stage Pipeline** - Plan → Skeleton Files → Zephyr Creation + Full Code
+- **Automate Existing Tests** - Convert existing Zephyr test cases (MM-T format) to Playwright
+- **Bi-directional Sync** - Create tests in Zephyr and update with automation details
+- **Step Generation** - Automatically generate or refine test steps for Zephyr cases
 
 ## Three-Agent Workflow
 
@@ -199,12 +209,28 @@ test('multi-user chat', async ({browser}) => {
 
 This skill includes comprehensive documentation:
 
+### Core Guidelines
 - **guidelines.md** - Complete test creation guidelines
 - **examples.md** - Real-world test examples
 - **mattermost-patterns.md** - Mattermost-specific patterns
+
+### Zephyr Test Automation
+- **ZEPHYR_AUTOMATION_SUMMARY.md** - Complete implementation overview
+- **QUICK_START.md** - 5-minute quick start guide
+- **workflows/README.md** - Zephyr workflows overview
+- **workflows/main-workflow.md** - 3-Stage pipeline (Plan → Skeleton → Zephyr + Code)
+- **workflows/automate-existing.md** - Automate existing Zephyr test cases
+- **tools/zephyr-api.md** - Zephyr API integration
+- **tools/placeholder-replacer.md** - Placeholder replacement utility
+- **scripts/** - Utility scripts for Zephyr integration (check, convert, pull, push)
+
+### Specialized Agents
 - **agents/planner.md** - Test planning guidance
 - **agents/generator.md** - Test generation patterns
 - **agents/healer.md** - Test healing strategies
+- **agents/skeleton-generator.md** - Generate skeleton test files
+- **agents/zephyr-sync.md** - Zephyr sync orchestration
+- **agents/test-automator.md** - Automate existing test cases
 
 ## Running Tests
 
