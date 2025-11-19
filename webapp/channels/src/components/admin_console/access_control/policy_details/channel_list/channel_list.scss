@@ -29,7 +29,7 @@
             width: 16px;
             height: 16px;
             padding: 0;
-            border: 1px solid var(--button-bg);
+            border: 1px solid var(--center-channel-color);
             border-radius: 2px;
             appearance: none;
             background: none;
@@ -93,7 +93,7 @@
         }
 
         .ChannelList__autoAddInfoIcon {
-            margin-left: 4px;
+            margin-left: -6px;
             color: rgba(var(--sys-center-channel-color-rgb), 0.56);
             font-size: 16px;
 
@@ -116,7 +116,7 @@
             width: 16px;
             height: 16px;
             padding: 0;
-            border: 1px solid var(--button-bg);
+            border: 1px solid var(--center-channel-color);
             border-radius: 2px;
             appearance: none;
             background: none;
