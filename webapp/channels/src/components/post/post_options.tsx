@@ -143,9 +143,13 @@ const PostOptions = (props: Props): JSX.Element => {
 
     let showRecentReactions: ReactNode;
     if (showRecentlyUsedReactions) {
+        const threadViewContainer = document.getElementById('sidebar-right');
+        const followingThreadContainer = document.getElementById('thread-pane-container');
+        const containerWidth = (threadViewContainer ?? followingThreadContainer)?.getBoundingClientRect().width ?? 0;
+
         const showMoreReactions = props.isExpanded ||
             props.location === 'CENTER' ||
-            (document.getElementById('sidebar-right')?.getBoundingClientRect().width ?? 0) > Constants.SIDEBAR_MINIMUM_WIDTH;
+            containerWidth > Constants.SIDEBAR_MINIMUM_WIDTH;
 
         showRecentReactions = (
             <PostRecentReactions
