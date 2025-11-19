@@ -18,11 +18,13 @@ Automates an existing Zephyr test case by fetching its details, generating/updat
 1. ✅ Fetch test case details from Zephyr using provided key
 2. ✅ Validate test case exists and has required fields
 3. ✅ Generate or refine test steps if missing/incomplete
-4. ✅ Update Zephyr with generated test steps
+4. ✅ Update Zephyr with generated test steps (keep status as Draft)
 5. ✅ Generate full Playwright automation code
-6. ✅ Write/update local `.spec.ts` file
-7. ✅ (Optional) Execute test to verify it passes
-8. ✅ Update Zephyr with automation metadata
+6. ✅ Write/update local `.spec.ts` file in `ai-assisted/` directory
+7. ✅ **MANDATORY: Execute test with Chrome** (`--project=chrome`)
+8. ✅ **MANDATORY: Invoke healer if test fails** (fix until passing)
+9. ✅ **MANDATORY: Update Zephyr status to "Active"** (only after test passes)
+10. ✅ Add automation metadata (file path, timestamp, framework)
 
 ## Workflow Steps
 
@@ -32,7 +34,6 @@ Automates an existing Zephyr test case by fetching its details, generating/updat
 interface AutomationRequest {
   testKey: string;
   options?: {
-    skipExecution?: boolean;
     overwriteExisting?: boolean;
   };
 }
@@ -53,11 +54,12 @@ function parseAutomationRequest(userInput: string): AutomationRequest {
   return {
     testKey: match[0].toUpperCase(),
     options: {
-      skipExecution: false,
       overwriteExisting: true
     }
   };
 }
+
+// Note: Test execution is ALWAYS mandatory - no skip option
 ```
 
 ### Step 2: Fetch Test Case from Zephyr
@@ -646,3 +648,302 @@ if (userInput.includes('automate') && userInput.match(/MM-T\d+/)) {
   await fullWorkflow(feature);
 }
 ```
+
+---
+
+## Step 7: Execute Test (MANDATORY)
+
+After generating the automation code, test MUST be executed:
+
+```typescript
+async function executeTest(filePath: string): Promise<{passed: boolean, output: string}> {
+  const {exec} = require('child_process');
+  const {promisify} = require('util');
+  const execAsync = promisify(exec);
+
+  console.log(`\n🧪 Executing test: ${filePath}`);
+  
+  try {
+    const {stdout, stderr} = await execAsync(
+      `npx playwright test ${filePath} --project=chrome`,
+      {cwd: 'e2e-tests/playwright', timeout: 120000}
+    );
+    
+    console.log(stdout);
+    
+    // Check if test passed
+    if (stdout.includes('passed') && !stdout.includes('failed')) {
+      console.log(`✅ Test passed: ${filePath}`);
+      return {passed: true, output: stdout};
+    } else {
+      console.log(`❌ Test failed: ${filePath}`);
+      return {passed: false, output: stdout + '\n' + stderr};
+    }
+  } catch (error) {
+    console.error(`❌ Test execution failed: ${error.message}`);
+    return {passed: false, output: error.stdout + '\n' + error.stderr};
+  }
+}
+```
+
+---
+
+## Step 8: Heal Test Until Passing (if needed)
+
+If test fails, invoke healer and retry:
+
+```typescript
+async function healTestUntilPassing(
+  filePath: string,
+  maxAttempts: number = 3
+): Promise<boolean> {
+  let attempt = 0;
+  
+  while (attempt < maxAttempts) {
+    attempt++;
+    console.log(`\n🔧 Attempt ${attempt}/${maxAttempts}`);
+    
+    // Execute test
+    const result = await executeTest(filePath);
+    
+    if (result.passed) {
+      console.log('✅ Test passing!');
+      return true;
+    }
+    
+    if (attempt >= maxAttempts) {
+      console.error('❌ Failed to heal test after max attempts');
+      throw new Error(`Test ${filePath} still failing after ${maxAttempts} heal attempts. Manual intervention required.`);
+    }
+    
+    // Invoke healer agent
+    console.log('🔧 Invoking Healer Agent...');
+    await invokeHealerAgent(filePath, result.output);
+  }
+  
+  return false;
+}
+
+async function invokeHealerAgent(filePath: string, errorOutput: string): Promise<void> {
+  // Use Task tool to invoke healer agent
+  console.log('Healer Agent analyzing failure...');
+  
+  // Healer will:
+  // 1. Analyze error logs
+  // 2. Use MCP to inspect live browser state
+  // 3. Fix selector/timing/assertion issues
+  // 4. Update test file with fixes
+}
+```
+
+---
+
+## Step 9: Update Zephyr Status to "Active"
+
+**ONLY after test passes**, update Zephyr status:
+
+```typescript
+async function updateZephyrToActive(
+  testKey: string,
+  filePath: string,
+  config: ZephyrConfig
+): Promise<void> {
+  console.log(`\n✅ Test passing - Updating ${testKey} to Active...\n`);
+  
+  const updatePayload = {
+    status: 'Active',
+    labels: ['playwright-automated', 'ai-generated'],
+    customFields: {
+      'Automation Status': 'Automated',
+      'Automation File Path': filePath,
+      'Automation Framework': 'Playwright',
+      'Automated On': new Date().toISOString(),
+      'Automated By': 'Claude AI'
+    }
+  };
+  
+  // Write to temp file
+  const payloadFile = `/tmp/zephyr-update-${testKey}.json`;
+  fs.writeFileSync(payloadFile, JSON.stringify(updatePayload, null, 2));
+  
+  try {
+    // Call Zephyr API
+    await callZephyrAPI(
+      config,
+      'update',
+      testKey,
+      payloadFile
+    );
+    
+    console.log(`✅ Updated ${testKey} status to Active`);
+    
+    // Clean up
+    fs.unlinkSync(payloadFile);
+  } catch (error) {
+    console.error(`⚠️  Failed to update ${testKey}:`, error.message);
+    // Don't throw - test is still valid locally
+  }
+}
+```
+
+---
+
+## Complete Orchestration
+
+The main function that ties everything together:
+
+```typescript
+async function automateExistingTestCase(testKey: string): Promise<void> {
+  try {
+    console.log(`\n🚀 Starting automation for ${testKey}...\n`);
+    
+    // Step 1: Load config
+    const config = loadZephyrConfig();
+    
+    // Step 2: Fetch from Zephyr
+    console.log('📥 Fetching test case from Zephyr...');
+    const testCase = await fetchTestCaseFromZephyr(testKey, config);
+    
+    // Step 3: Check/generate test steps
+    if (!testCase.testScript?.steps || testCase.testScript.steps.length === 0) {
+      console.log('⚠️  Test steps missing - generating...');
+      testCase.testScript = await generateTestSteps(testCase);
+      
+      // Step 4: Update Zephyr with steps
+      console.log('📝 Updating Zephyr with test steps...');
+      await updateZephyrTestSteps(testCase, config);
+    }
+    
+    // Step 5: Generate Playwright code
+    console.log('\n💻 Generating Playwright automation code...');
+    const automation = await generateAutomationCode(testCase);
+    
+    // Step 6: Write file
+    console.log('\n📝 Writing test file...');
+    const filePath = await writeAutomationFile(testCase, automation);
+    console.log(`✓ File created: ${filePath}`);
+    
+    // Step 7-8: Execute and heal (MANDATORY)
+    console.log('\n🧪 Executing test (mandatory)...');
+    const testPassing = await healTestUntilPassing(filePath, 3);
+    
+    if (!testPassing) {
+      throw new Error('Could not get test to pass. Manual intervention required.');
+    }
+    
+    // Step 9: Update Zephyr to Active
+    await updateZephyrToActive(testKey, filePath, config);
+    
+    console.log('\n✅ ===== AUTOMATION COMPLETE =====');
+    console.log(`✅ Test case: ${testKey}`);
+    console.log(`✅ File: ${filePath}`);
+    console.log(`✅ Test status: Passing`);
+    console.log(`✅ Zephyr status: Active`);
+    
+  } catch (error) {
+    console.error('\n❌ Automation failed:', error.message);
+    console.error('\nPartial state may exist:');
+    console.error(`- Zephyr test case: ${testKey} (may be in Draft status)`);
+    console.error('- Local test file (may be incomplete or failing)');
+    throw error;
+  }
+}
+```
+
+---
+
+## Usage Examples
+
+### Example 1: Basic Usage
+
+```
+User: Automate MM-T5928
+
+Agent:
+🚀 Starting automation for MM-T5928...
+
+📥 Fetching test case from Zephyr...
+✓ Fetched: MM-T5928 - Enable content flagging in system console
+
+💻 Generating Playwright automation code...
+✓ Generated 145 lines of code
+
+📝 Writing test file...
+✓ File created: specs/functional/ai-assisted/system_console/enable_content_flagging.spec.ts
+
+🧪 Executing test (mandatory)...
+npx playwright test specs/functional/ai-assisted/system_console/enable_content_flagging.spec.ts --project=chrome
+
+Running 1 test using 1 worker
+  ✓ MM-T5928 should enable content flagging (2.5s)
+
+  1 passed (2.5s)
+
+✅ Test passing - Updating MM-T5928 to Active...
+✅ Updated MM-T5928 status to Active
+
+✅ ===== AUTOMATION COMPLETE =====
+✅ Test case: MM-T5928
+✅ File: specs/functional/ai-assisted/system_console/enable_content_flagging.spec.ts
+✅ Test status: Passing
+✅ Zephyr status: Active
+```
+
+### Example 2: With Test Healing
+
+```
+User: Automate MM-T5929
+
+Agent:
+🚀 Starting automation for MM-T5929...
+
+📥 Fetching test case from Zephyr...
+✓ Fetched: MM-T5929 - Configure flagging reasons
+
+⚠️  Test steps missing - generating...
+📝 Updating Zephyr with test steps...
+✓ Test steps updated in Zephyr
+
+💻 Generating Playwright automation code...
+✓ Generated 178 lines of code
+
+📝 Writing test file...
+✓ File created: specs/functional/ai-assisted/system_console/configure_flagging_reasons.spec.ts
+
+🧪 Executing test (mandatory)...
+❌ Test failed: Selector not found [data-testid="reason-input-1"]
+
+🔧 Attempt 1/3
+🔧 Invoking Healer Agent...
+Healer Agent analyzing failure...
+✓ Fixed selector: [data-testid="flagging-reason-1"]
+✓ Test file updated
+
+🧪 Executing test...
+  ✓ MM-T5929 should configure flagging reasons (3.1s)
+
+✅ Test passing - Updating MM-T5929 to Active...
+✅ Updated MM-T5929 status to Active
+
+✅ ===== AUTOMATION COMPLETE =====
+✅ Test case: MM-T5929
+✅ File: specs/functional/ai-assisted/system_console/configure_flagging_reasons.spec.ts
+✅ Test status: Passing (after 1 heal)
+✅ Zephyr status: Active
+```
+
+---
+
+## Key Validation Rules
+
+Before updating Zephyr to "Active", validate:
+
+1. ✅ Test file exists
+2. ✅ Test contains actual MM-T key (not placeholder)
+3. ✅ Test executed successfully
+4. ✅ Exit code was 0
+5. ✅ No "failed" in output
+6. ✅ Zephyr API is reachable
+
+**Only when ALL validations pass → Update status to "Active"**
+
