@@ -189,10 +189,11 @@ func TestSendMailPlainText(t *testing.T) {
 
 			var resultsMailbox JSONMessageHeaderInbucket
 			err = RetryInbucket(5, func() error {
-				var err error
-				resultsMailbox, err = GetMailBox(emailTo)
-				return err
+				var err2 error
+				resultsMailbox, err2 = GetMailBox(emailTo)
+				return err2
 			})
+
 			if err != nil {
 				t.Log(err)
 				t.Log("No email was received, maybe due load on the server. Skipping this verification")
