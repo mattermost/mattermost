@@ -34,9 +34,13 @@ For EACH test you create:
 3. Add `@zephyr MM-TXXXX` to test JSDoc
 
 **After E2E Passes:**
-4. Update Zephyr test case to:
-   - Status: **Active** (890281)
-   - Keep all other fields unchanged
+4. Update Zephyr test case to **Active** status using the helper:
+   ```bash
+   cd e2e-tests/playwright && npx ts-node zephyr-helpers/update-test-status.ts MM-TXXXX specs/path/to/test.spec.ts
+   ```
+   - This script uses the existing `ZephyrAPI.markAsAutomated()` method
+   - Requires `ZEPHYR_TOKEN` or `ZEPHYR_API_TOKEN` in `e2e-tests/playwright/.env`
+   - Automatically updates status to Active (890281) and adds automation metadata
 
 ### Rule 3: Run Tests in Headed Chrome Only
 - ALWAYS run with: `--headed --project=chrome`
