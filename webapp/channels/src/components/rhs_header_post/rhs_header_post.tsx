@@ -5,10 +5,12 @@ import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import PopoutButton from 'components/popout_button';
 import FollowButton from 'components/threading/common/follow_button';
 import CRTThreadsPaneTutorialTip
     from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
@@ -16,6 +18,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
+import {popoutThread} from 'utils/popouts/popout_windows';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -28,7 +31,7 @@ type Props = WrappedComponentProps & {
     channel: Channel;
     isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
-    currentTeamId: string;
+    currentTeam?: Team;
     showThreadsTutorialTip: boolean;
     currentUserId: string;
     setRhsExpanded: (b: boolean) => void;
@@ -40,6 +43,7 @@ type Props = WrappedComponentProps & {
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+    focusPost: (postId: string, returnTo: string, currentUserId: string, option?: {skipRedirectReplyPermalink: boolean}) => Promise<void>;
 };
 
 class RhsHeaderPost extends React.PureComponent<Props> {
@@ -69,8 +73,21 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     };
 
     handleFollowChange = () => {
-        const {currentTeamId, currentUserId, rootPostId, isFollowingThread} = this.props;
-        this.props.setThreadFollow(currentUserId, currentTeamId, rootPostId, !isFollowingThread);
+        const {currentTeam, currentUserId, rootPostId, isFollowingThread} = this.props;
+        if (!currentTeam) {
+            return;
+        }
+        this.props.setThreadFollow(currentUserId, currentTeam.id, rootPostId, !isFollowingThread);
+    };
+
+    popout = async () => {
+        const {currentTeam, intl, rootPostId, focusPost, currentUserId} = this.props;
+        if (!currentTeam) {
+            return;
+        }
+        await popoutThread(intl, rootPostId, currentTeam.name, (postId, returnTo) => {
+            focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
+        });
     };
 
     render() {
@@ -193,7 +210,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             onClick={this.handleFollowChange}
                         />
                     ) : null}
-
+                    <PopoutButton onClick={this.popout}/>
                     <WithTooltip
                         title={rhsHeaderTooltipContent}
                     >

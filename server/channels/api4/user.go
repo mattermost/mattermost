@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -63,6 +65,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/mfa/generate", api.APISessionRequiredMfa(generateMfaSecret)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Users.Handle("/login", api.APIHandler(login)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/sso/code-exchange", api.APIHandler(loginSSOCodeExchange)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
@@ -108,6 +111,102 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods(http.MethodPost)
+}
+
+// loginSSOCodeExchange exchanges a short-lived login_code for session tokens (mobile SAML code exchange)
+func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.MobileSSOCodeExchange {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "feature disabled", http.StatusBadRequest)
+		return
+	}
+	props := model.MapFromJSON(r.Body)
+	loginCode := props["login_code"]
+	codeVerifier := props["code_verifier"]
+	state := props["state"]
+
+	if loginCode == "" || codeVerifier == "" || state == "" {
+		c.SetInvalidParam("login_code | code_verifier | state")
+		return
+	}
+
+	// Consume one-time code atomically
+	token, appErr := c.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, loginCode)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check token expiration as fallback to cleanup process
+	if token.IsExpired() {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "token expired", http.StatusBadRequest)
+		return
+	}
+
+	// Parse extra JSON
+	extra := model.MapFromJSON(strings.NewReader(token.Extra))
+	userID := extra["user_id"]
+	codeChallenge := extra["code_challenge"]
+	method := strings.ToUpper(extra["code_challenge_method"])
+	expectedState := extra["state"]
+
+	if userID == "" || codeChallenge == "" || expectedState == "" {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if state != expectedState {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "state mismatch", http.StatusBadRequest)
+		return
+	}
+
+	// Verify SAML challenge
+	var computed string
+	switch strings.ToUpper(method) {
+	case "S256":
+		sum := sha256.Sum256([]byte(codeVerifier))
+		computed = base64.RawURLEncoding.EncodeToString(sum[:])
+	case "":
+		computed = codeVerifier
+	case "PLAIN":
+		// Explicitly reject plain method for security
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "plain SAML challenge method not supported",
+			http.StatusBadRequest)
+		return
+	default:
+		// Reject unknown methods
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "unsupported SAML challenge method", http.StatusBadRequest)
+		return
+	}
+
+	if computed != codeChallenge {
+		c.Err = model.NewAppError("loginSSOCodeExchange", "api.oauth.get_access_token.bad_request.app_error", nil, "SAML challenge mismatch", http.StatusBadRequest)
+		return
+	}
+
+	// Create session for this user
+	user, err := c.App.GetUser(userID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	isMobile := utils.IsMobileRequest(r)
+	session, err2 := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	if err2 != nil {
+		c.Err = err2
+		return
+	}
+	c.AppContext = c.AppContext.WithSession(session)
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	// Respond with tokens for mobile client to set
+	resp := map[string]string{
+		"token": session.Token,
+		"csrf":  session.GetCSRF(),
+	}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -811,20 +910,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		etag     string
 	)
 
-	if inChannelId != "" {
-		if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-			channel, cErr := c.App.GetChannel(c.AppContext, inChannelId)
-			if cErr != nil {
-				c.Err = cErr
-				return
-			}
-			if channel.DeleteAt != 0 {
-				c.Err = model.NewAppError("Api4.getUsersInChannel", "api.user.view_archived_channels.get_users_in_channel.app_error", nil, "", http.StatusForbidden)
-				return
-			}
-		}
-	}
-
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListUsersWithoutTeam) {
@@ -983,7 +1068,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	options.ViewRestrictions = restrictions
 
-	users, appErr := c.App.GetUsersByIds(userIDs, options)
+	users, appErr := c.App.GetUsersByIds(c.AppContext, userIDs, options)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1449,7 +1534,13 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPIUserDeletion {
 			err = c.App.PermanentDeleteUser(c.AppContext, user)
 		} else {
-			err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			loggedUser, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			if usrErr == nil && loggedUser != nil && loggedUser.IsSystemAdmin() {
+				// More verbose error message for system admins
+				err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.for_admin.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			} else {
+				err = model.NewAppError("deleteUser", "api.user.delete_user.not_enabled.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+			}
 		}
 	} else {
 		_, err = c.App.UpdateActive(c.AppContext, user, false)
@@ -1917,25 +2008,6 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
 
-	if *c.App.Config().ExperimentalSettings.ClientSideCertEnable {
-		if license := c.App.Channels().License(); license == nil || !*license.Features.FutureFeatures {
-			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
-		c.Logger.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
-
-		if certPem == "" || certEmail == "" {
-			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
-
-		if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.ClientSideCertCheckPrimaryAuth {
-			loginId = certEmail
-			password = "certificate"
-		}
-	}
-
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
@@ -2100,11 +2172,6 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := *c.App.Config().ServiceSettings.SiteURL
 	if campaign != "" {
 		if url, ok := campaignToURL[campaign]; ok {
-			properties := map[string]any{
-				"category":    "acquisition",
-				"redirect_to": strings.TrimSuffix(url, "/"),
-			}
-			c.App.Srv().GetTelemetryService().SendTelemetry("product_start_redirect", properties)
 			redirectURL += url
 		}
 	}
@@ -3028,6 +3095,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 	c.LogAudit("user verified")
 
+	c.App.SanitizeProfile(user, true)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -3128,6 +3196,12 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 			return
 		}
 
+		// Sanitize members for current user
+		currentUserId := c.AppContext.Session().UserId
+		for i := range members {
+			members[i].SanitizeForCurrentUser(currentUserId)
+		}
+
 		if err := json.NewEncoder(w).Encode(members); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
@@ -3161,7 +3235,10 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 			return
 		}
 
+		currentUserId := c.AppContext.Session().UserId
 		for _, member := range members {
+			// Sanitize each member before encoding in the stream
+			member.SanitizeForCurrentUser(currentUserId)
 			if err := enc.Encode(member); err != nil {
 				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
@@ -3315,7 +3392,7 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	thread, err := c.App.GetThreadForUser(threadMembership, extended)
+	thread, err := c.App.GetThreadForUser(c.AppContext, threadMembership, extended)
 	if err != nil {
 		c.Err = err
 		return
@@ -3392,7 +3469,7 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	options.Unread, _ = strconv.ParseBool(unreadStr)
 	options.Extended, _ = strconv.ParseBool(extendedStr)
 
-	threads, err := c.App.GetThreadsForUser(c.Params.UserId, c.Params.TeamId, options)
+	threads, err := c.App.GetThreadsForUser(c.AppContext, c.Params.UserId, c.Params.TeamId, options)
 	if err != nil {
 		c.Err = err
 		return

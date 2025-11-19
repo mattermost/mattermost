@@ -7,14 +7,18 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
-import type {UserThread} from '@mattermost/types/threads';
+import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
+import {focusPost} from 'components/permalink_view/actions';
+import PopoutButton from 'components/popout_button';
 import Header from 'components/widgets/header';
 import WithTooltip from 'components/with_tooltip';
+
+import {popoutThread} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
 
@@ -29,7 +33,7 @@ const getChannel = makeGetChannel();
 const getPostsForThread = makeGetPostsForThread();
 
 type Props = {
-    thread: UserThread;
+    thread: UserThread | UserThreadSynthetic;
     children?: ReactNode;
 };
 
@@ -37,9 +41,13 @@ const ThreadPane = ({
     thread,
     children,
 }: Props) => {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const dispatch = useDispatch();
     const {
+        params: {
+            team,
+        },
         currentTeamId,
         currentUserId,
         goToInChannel,
@@ -73,6 +81,12 @@ const ThreadPane = ({
     const followHandler = useCallback(() => {
         dispatch(setThreadFollow(currentUserId, currentTeamId, threadId, !isFollowing));
     }, [dispatch, currentUserId, currentTeamId, threadId, isFollowing]);
+
+    const popout = useCallback(() => {
+        popoutThread(intl, threadId, team, (postId, returnTo) => {
+            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+        });
+    }, [threadId, team, intl, dispatch, currentUserId]);
 
     return (
         <div
@@ -110,13 +124,13 @@ const ThreadPane = ({
                     <>
                         <FollowButton
                             isFollowing={isFollowing}
-                            disabled={isFollowing == null}
                             onClick={followHandler}
                         />
+                        <PopoutButton onClick={popout}/>
                         <ThreadMenu
                             threadId={threadId}
                             isFollowing={isFollowing}
-                            hasUnreads={Boolean(thread.unread_replies || thread.unread_mentions)}
+                            hasUnreads={isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions)}
                             unreadTimestamp={unreadTimestamp}
                         >
                             <WithTooltip

@@ -35,8 +35,8 @@ func (*PurposeProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comm
 	}
 }
 
-func (*PurposeProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	channel, err := a.GetChannel(c, args.ChannelId)
+func (*PurposeProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	channel, err := a.GetChannel(rctx, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_purpose.channel.app_error"),
@@ -46,14 +46,14 @@ func (*PurposeProvider) DoCommand(a *app.App, c request.CTX, args *model.Command
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
+		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_purpose.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
+		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_purpose.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
@@ -78,7 +78,7 @@ func (*PurposeProvider) DoCommand(a *app.App, c request.CTX, args *model.Command
 	}
 	*patch.Purpose = message
 
-	_, err = a.PatchChannel(c, channel, patch, args.UserId)
+	_, err = a.PatchChannel(rctx, channel, patch, args.UserId)
 	if err != nil {
 		text := args.T("api.command_channel_purpose.update_channel.app_error")
 		if err.Id == "model.channel.is_valid.purpose.app_error" {

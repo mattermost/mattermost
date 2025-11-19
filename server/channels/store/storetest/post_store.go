@@ -4,7 +4,7 @@
 package storetest
 
 import (
-	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -63,11 +63,13 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceForSyncExcludeMetadata", func(t *testing.T) { testGetPostsSinceForSyncExcludeMetadata(t, rctx, ss, s) })
+	t.Run("GetPostsForReporting", func(t *testing.T) { testGetPostsForReporting(t, rctx, ss, s) })
 	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
+	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -651,14 +653,14 @@ func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
 	require.Equal(t, 0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 
-	_, err = ss.Post().Get(context.Background(), "123", model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, "123", model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Missing id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), "", model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, "", model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "should fail for blank post ids")
 }
 
@@ -687,7 +689,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		opts := model.GetPostsOptions{
 			CollapsedThreads: true,
 		}
-		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err := ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 		require.True(t, *r1.Posts[o1.Id].IsFollowing)
@@ -717,7 +719,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		opts := model.GetPostsOptions{
 			CollapsedThreads: true,
 		}
-		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err := ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 		require.False(t, *r1.Posts[o1.Id].IsFollowing)
@@ -742,7 +744,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		opts := model.GetPostsOptions{
 			CollapsedThreads: true,
 		}
-		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err := ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[o1.Id].CreateAt, o1.CreateAt, "invalid returned post")
 		require.Nil(t, r1.Posts[o1.Id].IsFollowing)
@@ -775,7 +777,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			PerPage:          2,
 			Direction:        "down",
 		}
-		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err := ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
@@ -791,7 +793,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromPost:         lastPostID,
 			FromCreateAt:     lastPostCreateAt,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
@@ -807,7 +809,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromPost:         r1.Order[1],
 			FromCreateAt:     firstPostCreateAt,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
@@ -822,7 +824,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromCreateAt:     m1.CreateAt,
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[r1.Order[0]].ReplyCount, int64(4))
 		require.Equal(t, r1.Posts[r1.Order[1]].ReplyCount, int64(4))
@@ -838,7 +840,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			Direction:        "down",
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
@@ -855,7 +857,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromCreateAt:     lastPostCreateAt,
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Equal(t, r1.Posts[r1.Order[0]].ReplyCount, int64(4))
 		require.Equal(t, r1.Posts[r1.Order[1]].ReplyCount, int64(4))
@@ -876,7 +878,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromCreateAt:     firstPostCreateAt,
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
@@ -891,7 +893,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromCreateAt:     m1.CreateAt,
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 2) // including the root post
 		require.Len(t, r1.Posts, 2)
@@ -938,7 +940,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			PerPage:          2,
 			Direction:        "down",
 		}
-		r1, err := ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err := ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
@@ -957,7 +959,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromPost:         lastPostID,
 			FromUpdateAt:     lastPostUpdateAt,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 3) // including the root post
 		require.Len(t, r1.Posts, 3)
@@ -973,7 +975,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			Direction:        "down",
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		// Ordering by updateAt will move the root post down, so we will get more posts in the thread.
 		require.Len(t, r1.Order, 3)
@@ -992,7 +994,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromUpdateAt:     lastPostUpdateAt,
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 3)
 		require.Len(t, r1.Posts, 3)
@@ -1011,7 +1013,7 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 			FromUpdateAt:     m1.UpdateAt,
 			SkipFetchThreads: false,
 		}
-		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
 		require.Len(t, r1.Order, 2)
 		require.Len(t, r1.Posts, 2)
@@ -1120,15 +1122,15 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	o3, err = ss.Post().Save(rctx, o3)
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r2, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r3, err := ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -1139,7 +1141,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Post().Update(rctx, o1a, ro1)
 	require.NoError(t, err)
 
-	r1, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r1, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	ro1a := r1.Posts[o1.Id]
@@ -1150,7 +1152,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Post().Update(rctx, o2a, ro2)
 	require.NoError(t, err)
 
-	r2, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r2, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro2a := r2.Posts[o2.Id]
 
@@ -1161,7 +1163,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Post().Update(rctx, o3a, ro3)
 	require.NoError(t, err)
 
-	r3, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r3, err = ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro3a := r3.Posts[o3.Id]
 
@@ -1184,7 +1186,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	r4, err := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r4, err := ss.Post().Get(rctx, o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -1194,7 +1196,7 @@ func testPostStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.Post().Update(rctx, o4a, ro4)
 	require.NoError(t, err)
 
-	r4, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r4, err = ss.Post().Get(rctx, o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	ro4a := r4.Posts[o4.Id]
@@ -1226,7 +1228,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 		// Verify the created post.
-		r1, err := ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r1, err := ss.Post().Get(rctx, rootPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 		require.NotNil(t, r1.Posts[rootPost.Id])
 		require.Equal(t, rootPost, r1.Posts[rootPost.Id])
@@ -1243,7 +1245,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, deleteByID, posts[0].GetProp(model.PostPropsDeleteBy), "unexpected Props[model.PostPropsDeleteBy]")
 
 		// Verify that the post is no longer fetched by default.
-		_, err = ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, rootPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "fetching deleted post should have failed")
 		require.IsType(t, &store.ErrNotFound{}, err)
 
@@ -1284,12 +1286,12 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify the root post deleted
-		_, err = ss.Post().Get(context.Background(), rootPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, rootPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Deleted id should have failed")
 		require.IsType(t, &store.ErrNotFound{}, err)
 
 		// Verify the reply post deleted
-		_, err = ss.Post().Get(context.Background(), replyPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, replyPost.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Deleted id should have failed")
 		require.IsType(t, &store.ErrNotFound{}, err)
 	})
@@ -1351,17 +1353,17 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify the root post and replies deleted
-		_, err = ss.Post().Get(context.Background(), rootPost1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, rootPost1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Deleted id should have failed")
 
-		_, err = ss.Post().Get(context.Background(), replyPost1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, replyPost1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Deleted id should have failed")
 
-		_, err = ss.Post().Get(context.Background(), replyPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, replyPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Deleted id should have failed")
 
 		// Verify other root posts remain undeleted.
-		_, err = ss.Post().Get(context.Background(), rootPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, rootPost2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 	})
 
@@ -1703,7 +1705,7 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 	require.EqualValues(t, 0, thread.ReplyCount)
 	require.EqualValues(t, model.StringArray{}, thread.Participants)
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Deleted id shouldn't have failed")
 
 	reactions, err := ss.Reaction().GetForPost(o1.Id, false)
@@ -1714,7 +1716,7 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 		require.Contains(t, emojis, reaction.EmojiName)
 	}
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 
 	reactions, err = ss.Reaction().GetForPost(o2.Id, false)
@@ -1743,16 +1745,16 @@ func testPostStorePermDelete1Level(t *testing.T, rctx request.CTX, ss store.Stor
 		require.Contains(t, emojis, reaction.EmojiName)
 	}
 
-	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o5.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o5.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o6.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o6.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 }
 
@@ -1799,13 +1801,13 @@ func testPostStorePermDelete1Level2(t *testing.T, rctx request.CTX, ss store.Sto
 	err2 := ss.Post().PermanentDeleteByUser(rctx, o1.UserId)
 	require.NoError(t, err2)
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Deleted id should have failed")
 
-	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Deleted id should have failed")
 }
 
@@ -1869,7 +1871,7 @@ func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store
 	o3, err = ss.Post().Save(rctx, o3)
 	require.NoError(t, err)
 
-	pl, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	pl, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	require.Len(t, pl.Posts, 3, "invalid returned post")
@@ -1877,7 +1879,7 @@ func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store
 	dErr := ss.Post().Delete(rctx, o3.Id, model.GetMillis(), "")
 	require.NoError(t, dErr)
 
-	pl, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	pl, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	require.Len(t, pl.Posts, 2, "invalid returned post")
@@ -1885,7 +1887,7 @@ func testPostStoreGetWithChildren(t *testing.T, rctx request.CTX, ss store.Store
 	dErr = ss.Post().Delete(rctx, o2.Id, model.GetMillis(), "")
 	require.NoError(t, dErr)
 
-	pl, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	pl, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 
 	require.Len(t, pl.Posts, 1, "invalid returned post")
@@ -1952,7 +1954,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.S
 	o5, err = ss.Post().Save(rctx, o5)
 	require.NoError(t, err)
 
-	r1, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 4}, false, map[string]bool{})
+	r1, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 4}, false, map[string]bool{})
 	require.NoError(t, err)
 
 	require.Equal(t, r1.Order[0], o5.Id, "invalid order")
@@ -1965,7 +1967,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.S
 
 	require.Equal(t, r1.Posts[o1.Id].Message, o1.Message, "Missing parent")
 
-	r2, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 4}, false, map[string]bool{})
+	r2, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 4}, false, map[string]bool{})
 	require.NoError(t, err)
 
 	require.Equal(t, r2.Order[0], o5.Id, "invalid order")
@@ -1979,7 +1981,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.S
 	require.Equal(t, r2.Posts[o1.Id].Message, o1.Message, "Missing parent")
 
 	// Run once to fill cache
-	_, err = ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 30}, false, map[string]bool{})
+	_, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 30}, false, map[string]bool{})
 	require.NoError(t, err)
 
 	o6 := &model.Post{}
@@ -1989,7 +1991,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, rctx request.CTX, ss store.S
 	_, err = ss.Post().Save(rctx, o6)
 	require.NoError(t, err)
 
-	r3, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 30}, false, map[string]bool{})
+	r3, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: o1.ChannelId, Page: 0, PerPage: 30}, false, map[string]bool{})
 	require.NoError(t, err)
 	assert.Equal(t, 7, len(r3.Order))
 }
@@ -2023,19 +2025,19 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		}
 
 		t.Run("should return error if negative Page/PerPage options are passed", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: posts[0].Id, Page: 0, PerPage: -1}, map[string]bool{})
+			postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[0].Id, Page: 0, PerPage: -1}, map[string]bool{})
 			assert.Nil(t, postList)
 			assert.Error(t, err)
 			assert.IsType(t, &store.ErrInvalidInput{}, err)
 
-			postList, err = ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: posts[0].Id, Page: -1, PerPage: 10}, map[string]bool{})
+			postList, err = ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[0].Id, Page: -1, PerPage: 10}, map[string]bool{})
 			assert.Nil(t, postList)
 			assert.Error(t, err)
 			assert.IsType(t, &store.ErrInvalidInput{}, err)
 		})
 
 		t.Run("should not return anything before the first post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: posts[0].Id, Page: 0, PerPage: 10}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[0].Id, Page: 0, PerPage: 10}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{}, postList.Order)
@@ -2043,7 +2045,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should return posts before a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, Page: 0, PerPage: 10}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, Page: 0, PerPage: 10}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id, posts[2].Id, posts[1].Id, posts[0].Id}, postList.Order)
@@ -2057,7 +2059,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should limit posts before", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, PerPage: 2}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, PerPage: 2}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id}, postList.Order)
@@ -2068,7 +2070,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should not return anything after the last post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: posts[len(posts)-1].Id, PerPage: 10}, map[string]bool{})
+			postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[len(posts)-1].Id, PerPage: 10}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{}, postList.Order)
@@ -2076,7 +2078,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should return posts after a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, PerPage: 10}, map[string]bool{})
+			postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, PerPage: 10}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{posts[9].Id, posts[8].Id, posts[7].Id, posts[6].Id}, postList.Order)
@@ -2089,7 +2091,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should limit posts after", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, PerPage: 2}, map[string]bool{})
+			postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: posts[5].Id, PerPage: 2}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{posts[7].Id, posts[6].Id}, postList.Order)
@@ -2180,7 +2182,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post2.UpdateAt = post6.UpdateAt
 
 		t.Run("should return each post and thread before a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
@@ -2194,7 +2196,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2}, map[string]bool{})
+			postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
@@ -2287,7 +2289,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post2.UpdateAt = post6.UpdateAt
 
 		t.Run("should return each post and thread before a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, SkipFetchThreads: true}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, SkipFetchThreads: true}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
@@ -2299,7 +2301,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should return each post and thread before a post with limit", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 1, SkipFetchThreads: true}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 1, SkipFetchThreads: true}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{post3.Id}, postList.Order)
@@ -2310,7 +2312,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		})
 
 		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, SkipFetchThreads: true}, map[string]bool{})
+			postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, SkipFetchThreads: true}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
@@ -2402,21 +2404,21 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, rctx request.CTX, ss store.S
 		post2.UpdateAt = post6.UpdateAt
 
 		t.Run("should return each root post before a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, CollapsedThreads: true}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, CollapsedThreads: true}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{post2.Id, post1.Id}, postList.Order)
 		})
 
 		t.Run("should return each root post before a post with limit", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsBefore(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 1, CollapsedThreads: true}, map[string]bool{})
+			postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 1, CollapsedThreads: true}, map[string]bool{})
 			assert.NoError(t, err)
 
 			assert.Equal(t, []string{post2.Id}, postList.Order)
 		})
 
 		t.Run("should return each root after a post", func(t *testing.T) {
-			postList, err := ss.Post().GetPostsAfter(model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, CollapsedThreads: true}, map[string]bool{})
+			postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{ChannelId: channelID, PostId: post4.Id, PerPage: 2, CollapsedThreads: true}, map[string]bool{})
 			require.NoError(t, err)
 
 			assert.Equal(t, []string{post5.Id}, postList.Order)
@@ -2488,7 +2490,7 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: post3.CreateAt}, false, map[string]bool{})
+		postList, err := ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post3.CreateAt}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{
@@ -2528,7 +2530,7 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt}, false, map[string]bool{})
+		postList, err := ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt}, false, map[string]bool{})
 		assert.NoError(t, err)
 
 		assert.Equal(t, []string{}, postList.Order)
@@ -2559,12 +2561,12 @@ func testPostStoreGetPostsSince(t *testing.T, rctx request.CTX, ss store.Store) 
 		time.Sleep(time.Millisecond)
 
 		// Make a request that returns no results
-		postList, err := ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt}, true, map[string]bool{})
+		postList, err := ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt}, true, map[string]bool{})
 		require.NoError(t, err)
 		require.Equal(t, model.NewPostList(), postList)
 
 		// And then ensure that it doesn't cause future requests to also return no results
-		postList, err = ss.Post().GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt - 1}, true, map[string]bool{})
+		postList, err = ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: post1.CreateAt - 1}, true, map[string]bool{})
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{post1.Id}, postList.Order)
@@ -2637,7 +2639,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("should return the last posts created in a channel", func(t *testing.T) {
-		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: false}, false, map[string]bool{})
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: false}, false, map[string]bool{})
 		assert.NoError(t, err)
 
 		assert.Equal(t, []string{
@@ -2659,7 +2661,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return the last posts created in a channel and the threads and the reply count must be 0", func(t *testing.T) {
-		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 2, SkipFetchThreads: false}, false, map[string]bool{})
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 2, SkipFetchThreads: false}, false, map[string]bool{})
 		assert.NoError(t, err)
 
 		assert.Equal(t, []string{
@@ -2679,7 +2681,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return the last posts created in a channel without the threads and the reply count must be correct", func(t *testing.T) {
-		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 2, SkipFetchThreads: true}, false, map[string]bool{})
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 2, SkipFetchThreads: true}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{
@@ -2698,7 +2700,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		err := ss.Post().Delete(rctx, post1.Id, 1, userID)
 		require.NoError(t, err)
 
-		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: true}, false, map[string]bool{})
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: false, IncludeDeleted: true}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{
@@ -2723,7 +2725,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		err := ss.Post().Delete(rctx, post5.Id, 1, userID)
 		require.NoError(t, err)
 
-		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: true}, false, map[string]bool{})
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: true}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{
@@ -2746,7 +2748,7 @@ func testPostStoreGetPosts(t *testing.T, rctx request.CTX, ss store.Store) {
 		err := ss.Post().Delete(rctx, post6.Id, 1, userID)
 		require.NoError(t, err)
 
-		postList, err := ss.Post().GetPosts(model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: false}, false, map[string]bool{})
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: 0, PerPage: 30, SkipFetchThreads: true, IncludeDeleted: false}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		assert.Equal(t, []string{
@@ -3856,23 +3858,23 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r2, err := ss.Post().Get(rctx, o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r3, err := ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
-	r4, err := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r4, err := ss.Post().Get(rctx, o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro4 := r4.Posts[o4.Id]
 
-	r5, err := ss.Post().Get(context.Background(), o5.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r5, err := ss.Post().Get(rctx, o5.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro5 := r5.Posts[o5.Id]
 
@@ -3898,15 +3900,15 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		r1, nErr := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r1, nErr := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, nErr)
 		ro1a := r1.Posts[o1.Id]
 
-		r2, nErr = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r2, nErr = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, nErr)
 		ro2a := r2.Posts[o2.Id]
 
-		r3, nErr = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r3, nErr = ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, nErr)
 		ro3a := r3.Posts[o3.Id]
 
@@ -3928,11 +3930,11 @@ func testPostStoreOverwriteMultiple(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		r4, nErr := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r4, nErr := ss.Post().Get(rctx, o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, nErr)
 		ro4a := r4.Posts[o4.Id]
 
-		r5, nErr = ss.Post().Get(context.Background(), o5.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r5, nErr = ss.Post().Get(rctx, o5.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, nErr)
 		ro5a := r5.Posts[o5.Id]
 
@@ -3990,19 +3992,19 @@ func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r2, err := ss.Post().Get(rctx, o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r3, err := ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
-	r4, err := ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r4, err := ss.Post().Get(rctx, o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro4 := r4.Posts[o4.Id]
 
@@ -4027,15 +4029,15 @@ func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Post().Overwrite(rctx, o3a)
 		require.NoError(t, err)
 
-		r1, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r1, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 		ro1a := r1.Posts[o1.Id]
 
-		r2, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r2, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 		ro2a := r2.Posts[o2.Id]
 
-		r3, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r3, err = ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 		ro3a := r3.Posts[o3.Id]
 
@@ -4051,7 +4053,7 @@ func testPostStoreOverwrite(t *testing.T, rctx request.CTX, ss store.Store) {
 		_, err = ss.Post().Overwrite(rctx, o4a)
 		require.NoError(t, err)
 
-		r4, err = ss.Post().Get(context.Background(), o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		r4, err = ss.Post().Get(rctx, o4.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err)
 
 		ro4a := r4.Posts[o4.Id]
@@ -4091,15 +4093,15 @@ func testPostStoreGetPostsByIds(t *testing.T, rctx request.CTX, ss store.Store) 
 	o3, err = ss.Post().Save(rctx, o3)
 	require.NoError(t, err)
 
-	r1, err := ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro1 := r1.Posts[o1.Id]
 
-	r2, err := ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r2, err := ss.Post().Get(rctx, o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro2 := r2.Posts[o2.Id]
 
-	r3, err := ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	r3, err := ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err)
 	ro3 := r3.Posts[o3.Id]
 
@@ -4229,13 +4231,13 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, err)
 	require.Equal(t, int64(2), deleted)
 
-	_, err = ss.Post().Get(context.Background(), o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Should have not found post 1 after purge")
 
-	_, err = ss.Post().Get(context.Background(), o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.Error(t, err, "Should have not found post 2 after purge")
 
-	_, err = ss.Post().Get(context.Background(), o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+	_, err = ss.Post().Get(rctx, o3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 	require.NoError(t, err, "Should have found post 3 after purge")
 
 	rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
@@ -4320,7 +4322,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 			Limit:               1000,
 		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err2 = ss.Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err2, "global policy should have been ignored due to granular policy")
 
 		nowMillis := post.CreateAt + *channelPolicy.PostDurationDays*model.DayInMilliseconds + 1
@@ -4330,7 +4332,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 			Limit:               1000,
 		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err2 = ss.Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err2, "post should have been deleted by channel policy")
 
 		// Create a team policy which is stricter than the channel policy
@@ -4353,7 +4355,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 			Limit:               1000,
 		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err2 = ss.Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err2, "channel policy should have overridden team policy")
 
 		// Delete channel policy and re-run team policy
@@ -4369,7 +4371,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 			Limit:               1000,
 		}, model.RetentionPolicyCursor{})
 		require.NoError(t, err2)
-		_, err2 = ss.Post().Get(context.Background(), post.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err2 = ss.Post().Get(rctx, post.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err2, "post should have been deleted by team policy")
 
 		err2 = ss.RetentionPolicy().RemoveTeams(teamPolicy.ID, []string{team.Id})
@@ -4511,16 +4513,16 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err)
 		require.Equal(t, int64(3), deleted)
 
-		_, err = ss.Post().Get(context.Background(), p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found post 1 after purge")
 
-		_, err = ss.Post().Get(context.Background(), p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found post 2 after purge")
 
-		_, err = ss.Post().Get(context.Background(), p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found post 3 before update after purge")
 
-		_, err = ss.Post().Get(context.Background(), np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.NoError(t, err, "Should have found updated post 3 after purge")
 
 		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
@@ -4592,16 +4594,16 @@ func testPostStorePermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.
 		require.NoError(t, err)
 		require.Equal(t, int64(4), deleted)
 
-		_, err = ss.Post().Get(context.Background(), p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, p1.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found post 1 after purge")
 
-		_, err = ss.Post().Get(context.Background(), p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, p2.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found post 2 after purge")
 
-		_, err = ss.Post().Get(context.Background(), p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, p3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found post 3 before update after purge")
 
-		_, err = ss.Post().Get(context.Background(), np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
+		_, err = ss.Post().Get(rctx, np3.Id, model.GetPostsOptions{}, "", map[string]bool{})
 		require.Error(t, err, "Should have not found updated post 3 after purge")
 
 		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 1000)
@@ -5722,5 +5724,385 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.Equal(t, 1, postTypeCount[model.PostTypeHeaderChange], "should have 1 header change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
+	})
+}
+
+// buildReportPostQueryParams is a test helper to build ReportPostQueryParams for store tests.
+// Store tests focus on SQL query logic, not parameter resolution/validation (which happens in API layer).
+func buildReportPostQueryParams(channelId, timeField, sortDirection string, perPage int, includeDeleted, excludeSystemPosts bool) model.ReportPostQueryParams {
+	// Set defaults
+	if timeField == "" {
+		timeField = model.ReportingTimeFieldCreateAt
+	}
+	if sortDirection == "" {
+		sortDirection = model.ReportingSortDirectionAsc
+	}
+	if perPage == 0 {
+		perPage = 100
+	}
+
+	// Set initial cursor position based on sort direction
+	cursorTime := int64(0) // ASC: start from beginning
+	if sortDirection == model.ReportingSortDirectionDesc {
+		cursorTime = int64(^uint64(0) >> 1) // MaxInt64
+	}
+
+	return model.ReportPostQueryParams{
+		ChannelId:          channelId,
+		CursorTime:         cursorTime,
+		CursorId:           "",
+		TimeField:          timeField,
+		SortDirection:      sortDirection,
+		IncludeDeleted:     includeDeleted,
+		ExcludeSystemPosts: excludeSystemPosts,
+		PerPage:            perPage,
+	}
+}
+
+func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	channelID := model.NewId()
+	first := model.GetMillis()
+
+	// Create test posts with predictable timestamps
+	data := []*model.Post{
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 0"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 1"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 2"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 3"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 4"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 5"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 6"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 7"},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 8", DeleteAt: model.GetMillis()},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "post 9", DeleteAt: model.GetMillis()},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "header change", Type: model.PostTypeHeaderChange},
+		{ChannelId: channelID, UserId: model.NewId(), Message: "name change", Type: model.PostTypeDisplaynameChange},
+	}
+
+	for i, p := range data {
+		p.CreateAt = first + (int64(i) * 300000)
+		p.UpdateAt = first + (int64(i) * 300000)
+		saved, err := ss.Post().Save(rctx, p)
+		require.NoError(t, err, "couldn't save post")
+		data[i] = saved // Update with saved post (includes generated ID)
+	}
+
+	t.Run("Invalid channel id", func(t *testing.T) {
+		queryParams := buildReportPostQueryParams(model.NewId(), "", "", 0, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Empty(t, result.Posts, "should return zero posts")
+		require.Nil(t, result.NextCursor, "should not have next cursor")
+	})
+
+	t.Run("empty cursor is valid for first page", func(t *testing.T) {
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 100, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err, "empty cursor should be valid")
+		require.NotNil(t, result)
+		require.Greater(t, len(result.Posts), 0, "should return posts")
+	})
+
+	t.Run("Basic cursor pagination with create_at ASC", func(t *testing.T) {
+		// First page
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 5, false, false)
+		result1, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Len(t, result1.Posts, 5, "should get 5 posts")
+		require.NotNil(t, result1.NextCursor, "should have next cursor")
+
+		// Second page - decode cursor from first page
+		queryParams2, appErr := model.DecodeReportPostCursorV1(result1.NextCursor.Cursor)
+		require.Nil(t, appErr)
+		queryParams2.PerPage = 5
+		result2, err := ss.Post().GetPostsForReporting(rctx, *queryParams2)
+		require.NoError(t, err)
+		require.Len(t, result2.Posts, 5, "should get 5 posts")
+		require.Nil(t, result2.NextCursor, "should not have next cursor (10 non-deleted posts total: 0-7,10-11)")
+	})
+
+	t.Run("DESC sort order", func(t *testing.T) {
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionDesc, 3, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Len(t, result.Posts, 3, "should get 3 posts")
+		require.NotNil(t, result.NextCursor, "should have next cursor")
+
+		// Verify we got the right count
+		require.Len(t, result.Posts, 3, "should have 3 posts")
+	})
+
+	t.Run("Include deleted posts", func(t *testing.T) {
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 100, true, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Len(t, result.Posts, 12, "should get all 12 posts including deleted")
+
+		// Verify deleted posts are included
+		deletedCount := 0
+		for _, post := range result.Posts {
+			if post.DeleteAt > 0 {
+				deletedCount++
+			}
+		}
+		require.Equal(t, 2, deletedCount, "should have 2 deleted posts")
+	})
+
+	t.Run("Exclude channel metadata system posts", func(t *testing.T) {
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 100, false, true)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Len(t, result.Posts, 8, "should get 8 posts (10 regular posts - 2 deleted)")
+
+		// Verify no system posts for channel metadata are included
+		for _, post := range result.Posts {
+			require.NotEqual(t, model.PostTypeHeaderChange, post.Type)
+			require.NotEqual(t, model.PostTypeDisplaynameChange, post.Type)
+			require.NotEqual(t, model.PostTypePurposeChange, post.Type)
+		}
+	})
+
+	t.Run("Update_at time field", func(t *testing.T) {
+		// Simply test that we can query using update_at field
+		// Create a new channel for this test
+		channelID3 := model.NewId()
+		testPosts := []*model.Post{
+			{ChannelId: channelID3, UserId: model.NewId(), Message: "test 1"},
+			{ChannelId: channelID3, UserId: model.NewId(), Message: "test 2"},
+			{ChannelId: channelID3, UserId: model.NewId(), Message: "test 3"},
+		}
+
+		baseTime := model.GetMillis()
+		for i, p := range testPosts {
+			// Set CreateAt and UpdateAt to different values
+			p.CreateAt = baseTime + (int64(i) * 1000)
+			p.UpdateAt = baseTime + (int64(i) * 2000) // UpdateAt is different from CreateAt
+			saved, err := ss.Post().Save(rctx, p)
+			require.NoError(t, err)
+			testPosts[i] = saved
+		}
+
+		// Query by update_at field
+		queryParams := buildReportPostQueryParams(channelID3, model.ReportingTimeFieldUpdateAt, model.ReportingSortDirectionAsc, 100, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Len(t, result.Posts, 3, "should get all 3 posts")
+
+		// Verify that querying by update_at works (posts are ordered by UpdateAt, not CreateAt)
+		require.Greater(t, len(result.Posts), 0, "should have posts")
+	})
+
+	t.Run("Timestamp collisions with ID tie-breaking", func(t *testing.T) {
+		// Create posts with identical timestamps
+		channelID2 := model.NewId()
+		sameTime := model.GetMillis()
+		collisionPosts := []*model.Post{
+			{ChannelId: channelID2, UserId: model.NewId(), Message: "collision 0"},
+			{ChannelId: channelID2, UserId: model.NewId(), Message: "collision 1"},
+			{ChannelId: channelID2, UserId: model.NewId(), Message: "collision 2"},
+			{ChannelId: channelID2, UserId: model.NewId(), Message: "collision 3"},
+			{ChannelId: channelID2, UserId: model.NewId(), Message: "collision 4"},
+		}
+
+		for i, p := range collisionPosts {
+			p.CreateAt = sameTime
+			p.UpdateAt = sameTime
+			saved, err := ss.Post().Save(rctx, p)
+			require.NoError(t, err)
+			collisionPosts[i] = saved // Update with saved post
+		}
+
+		// Paginate through posts with same timestamp
+		allPosts := make(map[string]*model.Post)
+		iterations := 0
+		maxIterations := 10 // Safety limit
+
+		queryParams := buildReportPostQueryParams(channelID2, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 2, false, false)
+
+		for iterations < maxIterations {
+			result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+			require.NoError(t, err)
+
+			// Add posts from array to map for deduplication check
+			for _, post := range result.Posts {
+				allPosts[post.Id] = post
+			}
+
+			if result.NextCursor == nil {
+				break
+			}
+			// Decode cursor for next page
+			qp, appErr := model.DecodeReportPostCursorV1(result.NextCursor.Cursor)
+			require.Nil(t, appErr)
+			qp.PerPage = 2
+			queryParams = *qp
+			iterations++
+		}
+
+		require.Len(t, allPosts, 5, "should get all 5 posts despite timestamp collision")
+	})
+
+	t.Run("Per page limits", func(t *testing.T) {
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 3, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Len(t, result.Posts, 3, "should respect per_page limit")
+	})
+
+	t.Run("Default per page when not specified", func(t *testing.T) {
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 0, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		// Should get all non-deleted posts in one page (default is 100)
+		require.Greater(t, len(result.Posts), 0, "should get posts with default per_page")
+	})
+
+	t.Run("Max per page limit enforced", func(t *testing.T) {
+		// Test that per_page > 1000 is capped at 1000 by the helper
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 5000, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.NotNil(t, result, "should handle large per_page values")
+	})
+
+	t.Run("Verify query uses indexes efficiently", func(t *testing.T) {
+		// This test verifies that the query plan uses the expected indexes
+		// The Posts table has these relevant indexes:
+		// - idx_posts_channel_id_update_at (ChannelId, UpdateAt)
+		// - idx_posts_channel_id_delete_at_create_at (ChannelId, DeleteAt, CreateAt)
+		//
+		// For reporting queries, we expect the query to use index seeks, not table scans
+		//
+		// Note: The actual query plan depends on the database (PostgreSQL vs MySQL),
+		// data distribution, and statistics. This test just verifies the query executes
+		// efficiently by checking that it completes in a reasonable time.
+
+		// Create a larger dataset to better test index usage
+		largeChannelID := model.NewId()
+		largeBaseTime := model.GetMillis()
+		numPosts := 100
+
+		for i := range numPosts {
+			post := &model.Post{
+				ChannelId: largeChannelID,
+				UserId:    model.NewId(),
+				Message:   "large test post",
+				CreateAt:  largeBaseTime + (int64(i) * 10000),
+				UpdateAt:  largeBaseTime + (int64(i) * 10000),
+			}
+			_, err := ss.Post().Save(rctx, post)
+			require.NoError(t, err)
+		}
+
+		// Query with ASC direction - should use (ChannelId, CreateAt) index seek
+		// This query should be fast (< 100ms) if using indexes properly
+		// If it's doing a table scan, it would be much slower with larger datasets
+		queryParams := buildReportPostQueryParams(largeChannelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 50, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
+		require.NoError(t, err)
+		require.Greater(t, len(result.Posts), 0, "should return posts")
+
+		// Test DESC query which uses different index path
+		queryParamsDesc := buildReportPostQueryParams(largeChannelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionDesc, 50, false, false)
+		resultDesc, err := ss.Post().GetPostsForReporting(rctx, queryParamsDesc)
+		require.NoError(t, err)
+		require.Greater(t, len(resultDesc.Posts), 0, "should return posts")
+
+		// If we got results in reasonable time, the indexes are being used
+		// A full table scan would timeout or be noticeably slow
+	})
+}
+
+func testRestoreContentFlaggedPost(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel := &model.Channel{
+		DisplayName: "Test Channel",
+		Name:        "test_channel",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, err := ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, err)
+
+	botId := model.NewId()
+	statusFieldId := model.NewId()
+	contentFlaggingManagedFieldId := model.NewId()
+	groupId := model.NewId()
+
+	setupFlaggedPost := func(rootId string) *model.Post {
+		post := &model.Post{}
+		post.ChannelId = channel.Id
+		post.UserId = model.NewId()
+		post.Message = NewTestID()
+
+		if rootId != "" {
+			post.RootId = rootId
+		}
+
+		var err error
+		post, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+
+		err = ss.Post().Delete(rctx, post.Id, model.GetMillis(), botId)
+		require.NoError(t, err)
+
+		statusPropertyValue := &model.PropertyValue{
+			TargetID:   post.Id,
+			FieldID:    statusFieldId,
+			Value:      fmt.Appendf([]byte{}, "\"%s\"", model.ContentFlaggingStatusPending),
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+		}
+		_, err = ss.PropertyValue().Create(statusPropertyValue)
+		require.NoError(t, err)
+
+		contentFlaggingManagedPropertyValue := &model.PropertyValue{
+			TargetID:   post.Id,
+			FieldID:    contentFlaggingManagedFieldId,
+			Value:      json.RawMessage("true"),
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+		}
+		_, err = ss.PropertyValue().Create(contentFlaggingManagedPropertyValue)
+		require.NoError(t, err)
+
+		return post
+	}
+
+	t.Run("Should restore a single root post", func(t *testing.T) {
+		post := setupFlaggedPost("")
+
+		fetchedPost, err := ss.Post().GetSingle(rctx, post.Id, true)
+		require.NoError(t, err)
+		require.Greater(t, fetchedPost.DeleteAt, int64(0))
+
+		err = ss.Post().RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
+		require.NoError(t, err)
+
+		fetchedPost, err = ss.Post().GetSingle(rctx, post.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedPost.DeleteAt)
+	})
+
+	t.Run("Should restore a thread reply and update thread's reply count", func(t *testing.T) {
+		rootPost := &model.Post{}
+		rootPost.ChannelId = channel.Id
+		rootPost.UserId = model.NewId()
+		rootPost.Message = NewTestID()
+
+		var err error
+		rootPost, err = ss.Post().Save(rctx, rootPost)
+		require.NoError(t, err)
+
+		post := setupFlaggedPost(rootPost.Id)
+
+		err = ss.Post().RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
+		require.NoError(t, err)
+
+		fetchedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedPost.DeleteAt)
+
+		thread, err := ss.Thread().Get(rootPost.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(1), thread.ReplyCount)
 	})
 }

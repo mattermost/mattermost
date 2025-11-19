@@ -21,7 +21,7 @@ func TestBatchWorkerRace(t *testing.T) {
 
 	th := Setup(t)
 
-	worker := jobs.MakeBatchWorker(th.Server.Jobs, th.Server.Store(), 1*time.Second, func(rctx *request.Context, job *model.Job) bool {
+	worker := jobs.MakeBatchWorker(th.Server.Jobs, th.Server.Store(), 1*time.Second, func(rctx request.CTX, job *model.Job) bool {
 		return false
 	})
 
@@ -32,7 +32,7 @@ func TestBatchWorkerRace(t *testing.T) {
 func TestBatchWorker(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	createBatchWorker := func(t *testing.T, th *TestHelper, doBatch func(rctx *request.Context, job *model.Job) bool) (*jobs.BatchWorker, *model.Job) {
+	createBatchWorker := func(t *testing.T, th *TestHelper, doBatch func(rctx request.CTX, job *model.Job) bool) (*jobs.BatchWorker, *model.Job) {
 		t.Helper()
 
 		worker := jobs.MakeBatchWorker(th.Server.Jobs, th.Server.Store(), 1*time.Second, doBatch)
@@ -67,7 +67,7 @@ func TestBatchWorker(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
-		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
+		worker, job := createBatchWorker(t, th, func(rctx request.CTX, job *model.Job) bool {
 			batchNumber := getBatchNumberFromData(t, job.Data)
 
 			require.Equal(t, 1, batchNumber, "only batch 1 should have run")
@@ -95,7 +95,7 @@ func TestBatchWorker(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
-		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
+		worker, job := createBatchWorker(t, th, func(rctx request.CTX, job *model.Job) bool {
 			batchNumber := getBatchNumberFromData(t, job.Data)
 
 			require.LessOrEqual(t, batchNumber, 2, "only batches 1 and 2 should have run")
@@ -123,7 +123,7 @@ func TestBatchWorker(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
-		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
+		worker, job := createBatchWorker(t, th, func(rctx request.CTX, job *model.Job) bool {
 			batchNumber := getBatchNumberFromData(t, job.Data)
 			require.Equal(t, 1, batchNumber, "only batch 1 should have run")
 
@@ -148,7 +148,7 @@ func TestBatchWorker(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		var worker *jobs.BatchWorker
-		worker, job := createBatchWorker(t, th, func(rctx *request.Context, job *model.Job) bool {
+		worker, job := createBatchWorker(t, th, func(rctx request.CTX, job *model.Job) bool {
 			batchNumber := getBatchNumberFromData(t, job.Data)
 			require.LessOrEqual(t, batchNumber, 3, "only 3 batches should have run")
 

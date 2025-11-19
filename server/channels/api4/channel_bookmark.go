@@ -416,13 +416,6 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !*c.App.Config().TeamSettings.ExperimentalViewArchivedChannels {
-		if channel.DeleteAt != 0 {
-			c.Err = model.NewAppError("listChannelBookmarksForChannel", "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-	}
-
 	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return

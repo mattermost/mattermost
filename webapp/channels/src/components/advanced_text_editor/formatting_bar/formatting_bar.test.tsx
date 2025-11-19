@@ -63,7 +63,7 @@ describe('FormattingBar', () => {
         expect(screen.queryByLabelText('show hidden formatting options')).not.toBeInTheDocument();
     });
 
-    test('MM-56705 should not submit form when clicking on hidden formatting button', () => {
+    test('MM-56705 should not submit form when clicking on hidden formatting button', async () => {
         jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'narrow', ...splitFormattingBarControls('narrow')});
 
         const onSubmit = jest.fn();
@@ -76,13 +76,13 @@ describe('FormattingBar', () => {
 
         expect(screen.queryByLabelText('heading')).toBe(null);
 
-        userEvent.click(screen.getByLabelText('show hidden formatting options'));
+        await userEvent.click(screen.getByLabelText('show hidden formatting options'));
 
         expect(screen.queryByLabelText('heading')).toBeVisible();
         expect(onSubmit).not.toHaveBeenCalled();
     });
 
-    test('should disable tooltip when hidden controls are shown', () => {
+    test('should disable tooltip when hidden controls are shown', async () => {
         jest.spyOn(Hooks, 'useFormattingBarControls').mockReturnValue({wideMode: 'narrow', ...splitFormattingBarControls('narrow')});
 
         const {container} = renderWithContext(
@@ -92,7 +92,7 @@ describe('FormattingBar', () => {
         const hiddenControlsButton = screen.getByLabelText('show hidden formatting options');
 
         // Click to show hidden controls
-        userEvent.click(hiddenControlsButton);
+        await userEvent.click(hiddenControlsButton);
 
         // Find the WithTooltip component and verify it has disabled prop
         const tooltipWrapper = container.querySelector('.tooltipContainer');

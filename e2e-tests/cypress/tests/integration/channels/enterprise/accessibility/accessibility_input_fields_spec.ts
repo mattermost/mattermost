@@ -12,6 +12,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {
@@ -71,7 +72,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     it('MM-T1457 Verify Accessibility Support in Search Autocomplete', () => {
         // # Adding at least five other users in the channel
         for (let i = 0; i < 5; i++) {
-            cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+            cy.apiCreateUser().then(({user}) => {
                 cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                     cy.apiAddUserToChannel(testChannel.id, user.id);
                 });
@@ -109,11 +110,11 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.uiGetSearchBox().clear().type('in:').wait(TIMEOUTS.ONE_SEC).type('{downarrow}{downarrow}');
 
         // * Verify Accessibility Support in search autocomplete
-        verifySearchAutocomplete(2, 'channel');
+        verifySearchAutocomplete(2);
 
         // # Press Up arrow and verify if focus changes
         cy.focused().type('{uparrow}{uparrow}');
-        verifySearchAutocomplete(0, 'channel');
+        verifySearchAutocomplete(0);
     });
 
     it('MM-T1455 Verify Accessibility Support in Message Autocomplete', () => {
@@ -281,30 +282,12 @@ describe('Verify Accessibility Support in different input fields', () => {
     });
 });
 
-function getUserMentionAriaLabel(displayName) {
-    return displayName.
-        replace('(you)', '').
-        replace(/[@()]/g, '').
-        toLowerCase().
-        trim();
-}
-
-function verifySearchAutocomplete(index, type = 'user') {
-    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected').within((el) => {
-        if (type === 'user') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const usernameLength = 12;
-                const displayName = text.substring(1, usernameLength) + ' ' + text.substring(usernameLength, text.length);
-                const userAriaLabel = getUserMentionAriaLabel(displayName);
-                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', userAriaLabel);
-            });
-        } else if (type === 'channel') {
-            cy.get('.suggestion-list__ellipsis').invoke('text').then((text) => {
-                const channel = text.split('~')[1].toLowerCase().trim();
-                cy.wrap(el).parents('#searchBox').find('.sr-only').should('have.attr', 'aria-live', 'polite').and('contain.text', channel);
-            });
-        }
-    });
+function verifySearchAutocomplete(index) {
+    cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').
+        and('have.class', 'suggestion--selected').
+        invoke('attr', 'id').then((suggestionId) => {
+            cy.get('#searchBox').find('[role="searchbox"]').should('have.attr', 'aria-activedescendant', suggestionId);
+        });
 }
 
 function verifyMessageAutocomplete(index) {

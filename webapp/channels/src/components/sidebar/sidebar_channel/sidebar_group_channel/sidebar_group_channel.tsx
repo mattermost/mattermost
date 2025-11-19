@@ -8,8 +8,6 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
 
 import {getHistory} from 'utils/browser_history';
@@ -41,8 +39,6 @@ const SidebarGroupChannel = ({
         const category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
 
         actions.savePreferences(currentUserId, [{user_id: currentUserId, category, name: id, value: 'false'}]).then(callback);
-
-        trackEvent('ui', 'ui_direct_channel_x_button_clicked');
 
         if (active) {
             getHistory().push(`/${currentTeamName}/channels/${redirectChannel}`);

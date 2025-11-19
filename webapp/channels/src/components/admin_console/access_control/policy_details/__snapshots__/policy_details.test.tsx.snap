@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/access_control/policy_details/PolicyDetails should match snapshot with existing policy 1`] = `
 <div
@@ -97,9 +97,20 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "createAccessControlSyncJob": [MockFunction],
+                "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
+                "getAccessControlFields": [MockFunction],
+                "getChannelMembers": [MockFunction],
+                "getChannelPolicy": [MockFunction],
                 "getVisualAST": [MockFunction],
+                "saveChannelPolicy": [MockFunction],
+                "searchUsers": [MockFunction],
+                "updateAccessControlPolicyActive": [MockFunction],
+                "validateExpressionAgainstRequester": [MockFunction],
               }
             }
+            disabled={false}
             enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}
@@ -301,9 +312,20 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           <TableEditor
             actions={
               Object {
+                "createAccessControlSyncJob": [MockFunction],
+                "createJob": [MockFunction],
+                "deleteChannelPolicy": [MockFunction],
+                "getAccessControlFields": [MockFunction],
+                "getChannelMembers": [MockFunction],
+                "getChannelPolicy": [MockFunction],
                 "getVisualAST": [MockFunction],
+                "saveChannelPolicy": [MockFunction],
+                "searchUsers": [MockFunction],
+                "updateAccessControlPolicyActive": [MockFunction],
+                "validateExpressionAgainstRequester": [MockFunction],
               }
             }
+            disabled={false}
             enableUserManagedAttributes={false}
             onChange={[Function]}
             onParseError={[Function]}

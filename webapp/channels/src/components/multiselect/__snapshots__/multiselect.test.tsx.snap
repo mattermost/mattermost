@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/multiselect/multiselect MultiSelectList should match snapshot when custom no option message is defined 1`] = `
 <Fragment>
@@ -6,7 +6,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
     className="filtered-user-list"
   >
     <div
-      className="filter-row filter-row--full"
+      className="filter-row"
     >
       <div
         className="multi-select__container react-select"
@@ -192,7 +192,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
     className="filtered-user-list"
   >
     <div
-      className="filter-row filter-row--full"
+      className="filter-row"
     >
       <div
         className="multi-select__container react-select"
@@ -369,7 +369,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
     className="filtered-user-list"
   >
     <div
-      className="filter-row filter-row--full"
+      className="filter-row"
     >
       <div
         className="multi-select__container react-select"

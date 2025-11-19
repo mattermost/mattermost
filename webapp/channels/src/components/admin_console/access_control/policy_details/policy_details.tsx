@@ -24,12 +24,13 @@ import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
-import {JobTypes} from 'utils/constants';
 
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
+import {hasUsableAttributes} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -45,10 +46,8 @@ interface PolicyActions {
     setNavigationBlocked: (blocked: boolean) => void;
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
-    getAccessControlFields: (after: string, limit: number) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
-    getVisualAST: (expression: string) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
@@ -89,6 +88,11 @@ function PolicyDetails({
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const {formatMessage} = useIntl();
 
+    const abacActions = useChannelAccessControlActions();
+
+    // Check if there are any usable attributes for ABAC
+    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+
     useEffect(() => {
         loadPage();
     }, [policyId]);
@@ -101,10 +105,12 @@ function PolicyDetails({
 
         // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
         // or user.attributes.X.startsWith/endsWith/contains("Y")
+        // or ["Y", "Z"] in user.attributes.X (for multiselect attributes)
         return expr.split('&&').every((condition) => {
             const trimmed = condition.trim();
             return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
                    trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
                    trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
@@ -113,7 +119,7 @@ function PolicyDetails({
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
-        const fieldsPromise = actions.getAccessControlFields('', 100).then((result) => {
+        const fieldsPromise = abacActions.getAccessControlFields('', 100).then((result) => {
             if (result.data) {
                 setAutocompleteResult(result.data);
             }
@@ -170,10 +176,11 @@ function PolicyDetails({
             name: policyName,
             rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
             type: 'parent',
-            version: 'v0.1',
+            version: 'v0.2',
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -184,6 +191,7 @@ function PolicyDetails({
         });
 
         if (!currentPolicyId || !success) {
+            setShowConfirmationModal(false);
             return;
         }
 
@@ -195,6 +203,7 @@ function PolicyDetails({
                 id: 'admin.access_control.policy.edit_policy.error.update_active_status',
                 defaultMessage: 'Error updating policy active status: {error}',
             }, {error: error.message}));
+            setShowConfirmationModal(false);
             success = false;
             return;
         }
@@ -215,6 +224,7 @@ function PolicyDetails({
                     id: 'admin.access_control.policy.edit_policy.error.assign_channels',
                     defaultMessage: 'Error assigning channels: {error}',
                 }, {error: error.message}));
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -223,16 +233,15 @@ function PolicyDetails({
         // --- Step 4: Create Job if necessary ---
         if (apply) {
             try {
-                const job: JobTypeBase & { data: any } = {
-                    type: JobTypes.ACCESS_CONTROL_SYNC,
-                    data: {parent_id: currentPolicyId},
-                };
-                await actions.createJob(job);
+                await abacActions.createAccessControlSyncJob({
+                    policy_id: currentPolicyId,
+                });
             } catch (error) {
                 setServerError(formatMessage({
                     id: 'admin.access_control.policy.edit_policy.error.create_job',
                     defaultMessage: 'Error creating job: {error}',
                 }, {error: error.message}));
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -355,6 +364,7 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setPolicyName(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
@@ -374,6 +384,7 @@ function PolicyDetails({
                             onChange={(_, value) => {
                                 setAutoSyncMembership(value);
                                 setSaveNeeded(true);
+                                actions.setNavigationBlocked(true);
                             }}
                             setByEnv={false}
                             helpText={
@@ -384,7 +395,7 @@ function PolicyDetails({
                             }
                         />
                     </div>
-                    {attributesLoaded && autocompleteResult.length === 0 && (<div className='admin-console__warning-notice'>
+                    {noUsableAttributes && (<div className='admin-console__warning-notice'>
                         <SectionNotice
                             type='warning'
                             title={
@@ -440,15 +451,22 @@ function PolicyDetails({
                                     )
                                 }
                                 onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
-                                isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
-                                tooltipText={
-                                    editorMode === 'cel' && !isSimpleExpression(expression) ?
-                                        formatMessage({
+                                isDisabled={noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression))}
+                                tooltipText={(() => {
+                                    if (noUsableAttributes) {
+                                        return formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.no_usable_attributes_tooltip',
+                                            defaultMessage: 'Please configure user attributes to use the editor.',
+                                        });
+                                    }
+                                    if (editorMode === 'cel' && !isSimpleExpression(expression)) {
+                                        return formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
                                             defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
-                                        }) :
-                                        undefined
-                                }
+                                        });
+                                    }
+                                    return undefined;
+                                })()}
                             />
                         </Card.Header>
                         <Card.Body>
@@ -458,14 +476,18 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
+                                    disabled={noUsableAttributes}
                                     userAttributes={autocompleteResult.
                                         filter((attr) => {
                                             if (accessControlSettings.EnableUserManagedAttributes) {
                                                 return true;
                                             }
-                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isAdminManaged = attr.attrs?.managed === 'admin';
+                                            return isSynced || isAdminManaged;
                                         }).
                                         map((attr) => ({
                                             attribute: attr.name,
@@ -478,16 +500,16 @@ function PolicyDetails({
                                     onChange={(value) => {
                                         setExpression(value);
                                         setSaveNeeded(true);
+                                        actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
+                                    disabled={noUsableAttributes}
                                     userAttributes={autocompleteResult}
                                     onParseError={() => {
                                         setEditorMode('cel');
                                     }}
                                     enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
-                                    actions={{
-                                        getVisualAST: actions.getVisualAST,
-                                    }}
+                                    actions={abacActions}
                                 />
                             )}
                         </Card.Body>
@@ -581,7 +603,6 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeAccessControlPolicyEnforced={true}
                     excludeTypes={['O', 'D', 'G']}
                 />
             )}

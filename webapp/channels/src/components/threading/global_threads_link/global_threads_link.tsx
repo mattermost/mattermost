@@ -15,7 +15,6 @@ import {
     getThreadCountsInCurrentTeam, getThreadsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/threads';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
@@ -64,10 +63,8 @@ const GlobalThreadsLink = () => {
     const rhsOpen = useSelector(getIsRhsOpen);
     const rhsState = useSelector(getRhsState);
     const showTutorialTrigger = isFeatureEnabled && crtTutorialTrigger === Constants.CrtTutorialTriggerSteps.START && !appHaveOpenModal && Boolean(counts) && counts.total >= 1;
-    const openThreads = useCallback((e) => {
+    const openThreads = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
-
-        trackEvent('crt', 'go_to_global_threads');
 
         performance.mark(Mark.GlobalThreadsLinkClicked);
 

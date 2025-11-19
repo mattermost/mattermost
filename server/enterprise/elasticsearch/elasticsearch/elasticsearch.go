@@ -43,8 +43,9 @@ type ElasticsearchInterfaceImpl struct {
 	fullVersion string
 	plugins     []string
 
-	bulkProcessor *Bulk
-	Platform      *platform.PlatformService
+	bulkProcessor     BulkClient
+	syncBulkProcessor BulkClient
+	Platform          *platform.PlatformService
 }
 
 func getJSONOrErrorStr(obj any) string {
@@ -128,10 +129,39 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 
 	ctx := context.Background()
 
-	if *es.Platform.Config().ElasticsearchSettings.LiveIndexingBatchSize > 1 {
-		es.bulkProcessor = NewBulk(es.Platform.Config().ElasticsearchSettings,
-			es.Platform.Log(),
-			es.client)
+	esSettings := es.Platform.Config().ElasticsearchSettings
+	if *esSettings.LiveIndexingBatchSize > 1 {
+		es.bulkProcessor, err = NewBulk(
+			common.BulkSettings{
+				FlushBytes:    0,
+				FlushInterval: common.BulkFlushInterval,
+				FlushNumReqs:  *esSettings.LiveIndexingBatchSize,
+			},
+			es.client,
+			time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+			es.Platform.Log())
+		if err != nil {
+			return model.NewAppError("elasticsearch.start",
+				"ent.elasticsearch.create_processor.bulk_processor_create_failed",
+				nil, "",
+				http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	es.syncBulkProcessor, err = NewBulk(
+		common.BulkSettings{
+			FlushBytes:    common.BulkFlushBytes,
+			FlushInterval: 0,
+			FlushNumReqs:  0,
+		},
+		es.client,
+		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
+		es.Platform.Log())
+	if err != nil {
+		return model.NewAppError("elasticsearch.start",
+			"ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+			nil, "",
+			http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Set up posts index template.
@@ -555,9 +585,9 @@ func (es *ElasticsearchInterfaceImpl) SearchPosts(channels model.ChannelList, se
 			Query:     query,
 			Highlight: highlight,
 		}).
-		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
+		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		})).
+		}}).
 		From(page * perPage).
 		Size(perPage)
 
@@ -744,6 +774,49 @@ func (es *ElasticsearchInterfaceImpl) IndexChannel(rctx request.CTX, channel *mo
 	metrics := es.Platform.Metrics()
 	if metrics != nil {
 		metrics.IncrementChannelIndexCounter()
+	}
+
+	return nil
+}
+
+func (es *ElasticsearchInterfaceImpl) SyncBulkIndexChannels(rctx request.CTX, channels []*model.Channel, getUserIDsForChannel func(channel *model.Channel) ([]string, error), teamMemberIDs []string) *model.AppError {
+	if len(channels) == 0 {
+		return nil
+	}
+
+	es.mutex.RLock()
+	defer es.mutex.RUnlock()
+
+	if atomic.LoadInt32(&es.ready) == 0 {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", "ent.elasticsearch.not_started.error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError)
+	}
+
+	indexName := *es.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels
+	metrics := es.Platform.Metrics()
+
+	for _, channel := range channels {
+		userIDs, err := getUserIDsForChannel(channel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		searchChannel := common.ESChannelFromChannel(channel, userIDs, teamMemberIDs)
+
+		err = es.syncBulkProcessor.IndexOp(types.IndexOperation{
+			Index_: model.NewPointer(indexName),
+			Id_:    model.NewPointer(searchChannel.Id),
+		}, searchChannel)
+		if err != nil {
+			return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		if metrics != nil {
+			metrics.IncrementChannelIndexCounter()
+		}
+	}
+
+	if err := es.syncBulkProcessor.Flush(); err != nil {
+		return model.NewAppError("Elasticsearch.SyncBulkIndexChannels", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -1277,7 +1350,8 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 	}
 
 	indexPrefix := *es.Platform.Config().ElasticsearchSettings.IndexPrefix
-	indexesToDelete := indexPrefix + "*"
+	var indexesToDelete strings.Builder
+	indexesToDelete.WriteString(indexPrefix + "*")
 
 	if ignorePurgeIndexes := *es.Platform.Config().ElasticsearchSettings.IgnoredPurgeIndexes; ignorePurgeIndexes != "" {
 		// we are checking if provided indexes exist. If an index doesn't exist,
@@ -1292,14 +1366,14 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 				rctx.Logger().Warn("Elasticsearch index get error", mlog.String("index", ignorePurgeIndex), mlog.Err(err))
 				continue
 			}
-			indexesToDelete += ",-" + strings.TrimSpace(ignorePurgeIndex)
+			indexesToDelete.WriteString(",-" + strings.TrimSpace(ignorePurgeIndex))
 		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 	defer cancel()
 
-	_, err := es.client.Indices.Delete(indexesToDelete).Do(ctx)
+	_, err := es.client.Indices.Delete(indexesToDelete.String()).Do(ctx)
 	if err != nil {
 		rctx.Logger().Error("Elastic Search PurgeIndexes Error", mlog.Err(err))
 		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.purge_index.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1663,9 +1737,9 @@ func (es *ElasticsearchInterfaceImpl) SearchFiles(channels model.ChannelList, se
 		Request(&search.Request{
 			Query: query,
 		}).
-		Sort(NewSortOptions().SortOptions(map[string]types.FieldSort{
+		Sort(types.SortOptions{SortOptions: map[string]types.FieldSort{
 			"create_at": {Order: &sortorder.Desc},
-		})).
+		}}).
 		From(page * perPage).
 		Size(perPage)
 

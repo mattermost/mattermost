@@ -364,6 +364,7 @@ function ChannelSettingsInfoTab({
                 urlError={internalUrlError}
                 currentUrl={channelUrl}
                 readOnly={!canManageChannelProperties}
+                isEditingExistingChannel={true}
             />
 
             {/* Channel Type Section*/}

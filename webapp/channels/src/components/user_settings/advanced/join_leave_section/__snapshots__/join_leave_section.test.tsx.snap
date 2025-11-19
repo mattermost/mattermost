@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/advanced/JoinLeaveSection should match snapshot 1`] = `
 <SettingItemMin
@@ -14,9 +14,7 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
 `;
 
 exports[`components/user_settings/advanced/JoinLeaveSection should match snapshot 2`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
+<Memo(SettingItemMax)
   inputs={
     Array [
       <fieldset>
@@ -77,8 +75,6 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
       </fieldset>,
     ]
   }
-  saving={false}
-  section=""
   setting="joinLeave"
   submit={[Function]}
   title={

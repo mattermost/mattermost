@@ -9,9 +9,12 @@
 
 // Group: @channels @enterprise @system_console @group_mentions
 
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {Group} from '@mattermost/types/groups';
+
 import ldapUsers from '../../../../fixtures/ldap_users.json';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {
     disablePermission,
     enablePermission,
@@ -21,9 +24,6 @@ import {
 import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/constants';
 
 import {enableGroupMention} from './helpers';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Group} from '@mattermost/types/groups';
 
 describe('Group Mentions', () => {
     let groupID: string;
@@ -134,7 +134,7 @@ describe('Group Mentions', () => {
         // # Create a new team and channel as a sysadmin
         cy.apiCreateTeam('team', 'Test NoMember').then(({team}) => {
             cy.apiCreateChannel(team.id, 'group-mention', 'Group Mentions').then(({channel}) => {
-                cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+                cy.apiCreateUser().then(({user}) => {
                     // # Add user to the team and channel
                     cy.apiAddUserToTeam(team.id, user.id).then(() => {
                         cy.apiAddUserToChannel(channel.id, user.id);
@@ -178,7 +178,7 @@ describe('Group Mentions', () => {
 
         // # Create a new channel as a sysadmin
         cy.apiCreateChannel(testTeam.id, 'group-mention', 'Group Mentions').then(({channel}) => {
-            cy.apiCreateUser().then(({user}) => { // eslint-disable-line
+            cy.apiCreateUser().then(({user}) => {
                 // # Add user to the team and channel
                 cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                     cy.apiAddUserToChannel(channel.id, user.id);

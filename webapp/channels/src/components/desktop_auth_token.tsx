@@ -11,6 +11,7 @@ import {useHistory, useLocation} from 'react-router-dom';
 import {loginWithDesktopToken} from 'actions/views/login';
 
 import DesktopApp from 'utils/desktop_api';
+import {isDesktopApp} from 'utils/user_agent';
 
 import './desktop_auth_token.scss';
 
@@ -98,7 +99,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         if (serverToken) {
             if (storedClientToken) {
                 tryDesktopLogin();
-            } else {
+            } else if (!isDesktopApp()) {
                 forwardToDesktopApp();
             }
             return;
