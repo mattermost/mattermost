@@ -216,7 +216,6 @@ This skill includes comprehensive documentation:
 - **mattermost-patterns.md** - Mattermost-specific patterns
 
 ### Zephyr Test Automation
-- **ZEPHYR_AUTOMATION_SUMMARY.md** - Complete implementation overview
 - **QUICK_START.md** - 5-minute quick start guide
 - **workflows/README.md** - Zephyr workflows overview
 - **workflows/main-workflow.md** - 3-Stage pipeline (Plan → Skeleton → Zephyr + Code)

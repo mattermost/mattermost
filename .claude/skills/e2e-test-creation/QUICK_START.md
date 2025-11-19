@@ -394,7 +394,6 @@ Claude: [Processes all three scenarios through 3-stage pipeline]
 
 ### Learn More
 
-- **Complete Overview**: Read [`ZEPHYR_AUTOMATION_SUMMARY.md`](./ZEPHYR_AUTOMATION_SUMMARY.md)
 - **Main Workflow Details**: Read [`workflows/main-workflow.md`](./workflows/main-workflow.md)
 - **Automate Existing Details**: Read [`workflows/automate-existing.md`](./workflows/automate-existing.md)
 - **Reverse Workflow Details**: Read [`agents/e2e-to-zephyr-sync.md`](./agents/e2e-to-zephyr-sync.md)
@@ -444,9 +443,9 @@ Claude: [Processes all three scenarios through 3-stage pipeline]
 ## Support
 
 For issues or questions:
-1. Check [`ZEPHYR_AUTOMATION_SUMMARY.md`](./ZEPHYR_AUTOMATION_SUMMARY.md) for complete documentation
-2. Review workflow-specific docs in [`workflows/`](./workflows/)
-3. Check examples in [`examples/zephyr-automation/`](./examples/zephyr-automation/)
+1. Review workflow-specific docs in [`workflows/`](./workflows/)
+2. Check examples in [`examples/zephyr-automation/`](./examples/zephyr-automation/)
+3. See agent documentation in [`agents/`](./agents/)
 
 ## Summary
 
