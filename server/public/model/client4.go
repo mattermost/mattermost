@@ -676,6 +676,10 @@ func (c *Client4) accessControlPolicyRoute(policyID string) clientRoute {
 	return c.accessControlPoliciesRoute().JoinSegments(url.PathEscape(policyID))
 }
 
+func (c *Client4) logsRoute() clientRoute {
+	return newClientRoute("logs")
+}
+
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
 	return c.doAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
@@ -3470,14 +3474,20 @@ func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) 
 
 // SearchAllChannelsForUser search in all the channels for a regular user.
 func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (ChannelListWithTeamData, *Response, error) {
+	values := url.Values{}
+	values.Set("system_console", "false")
+
 	search := &ChannelSearch{
 		Term: term,
 	}
-	route, err := c.channelsRoute().JoinSegments("search?system_console=false").String()
+
+	routeURL, err := c.channelsRoute().JoinSegments("search").URL()
 	if err != nil {
 		return nil, nil, err
 	}
-	r, err := c.DoAPIPostJSON(ctx, route, search)
+	routeURL.RawQuery = values.Encode()
+
+	r, err := c.DoAPIPostJSON(ctx, routeURL.String(), search)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5182,11 +5192,16 @@ func (c *Client4) GetEnvironmentConfig(ctx context.Context) (map[string]any, *Re
 // GetOldClientLicense will retrieve the parts of the server license needed by the
 // client, formatted in the old format.
 func (c *Client4) GetOldClientLicense(ctx context.Context, etag string) (map[string]string, *Response, error) {
-	route, err := c.licenseRoute().JoinSegments("client?format=old").String()
+	values := url.Values{}
+	values.Set("format", "old")
+
+	routeURL, err := c.licenseRoute().JoinSegments("client").URL()
 	if err != nil {
 		return nil, nil, err
 	}
-	r, err := c.DoAPIGet(ctx, route, etag)
+	routeURL.RawQuery = values.Encode()
+
+	r, err := c.DoAPIGet(ctx, routeURL.String(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6283,7 +6298,14 @@ func (c *Client4) GetAudits(ctx context.Context, page int, perPage int, etag str
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
-	r, err := c.DoAPIGet(ctx, "/audits?"+values.Encode(), etag)
+
+	routeURL, err := newClientRoute("audits").URL()
+	if err != nil {
+		return nil, nil, err
+	}
+	routeURL.RawQuery = values.Encode()
+
+	r, err := c.DoAPIGet(ctx, routeURL.String(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6362,7 +6384,14 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("logs_per_page", strconv.Itoa(perPage))
-	r, err := c.DoAPIGet(ctx, "/logs?"+values.Encode(), "")
+
+	routeURL, err := c.logsRoute().URL()
+	if err != nil {
+		return nil, nil, err
+	}
+	routeURL.RawQuery = values.Encode()
+
+	r, err := c.DoAPIGet(ctx, routeURL.String(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6372,7 +6401,12 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 
 // Download logs as mattermost.log file
 func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
-	r, err := c.DoAPIGet(ctx, "/logs/download", "")
+	route, err := c.logsRoute().JoinSegments("download").String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	r, err := c.DoAPIGet(ctx, route, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6383,7 +6417,12 @@ func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
 // the server-side logs. For example we typically log javascript error messages
 // into the server-side. It returns the log message if the logging was successful.
 func (c *Client4) PostLog(ctx context.Context, message map[string]string) (map[string]string, *Response, error) {
-	r, err := c.DoAPIPostJSON(ctx, "/logs", message)
+	route, err := c.logsRoute().String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	r, err := c.DoAPIPostJSON(ctx, route, message)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

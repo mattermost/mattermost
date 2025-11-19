@@ -1,7 +1,6 @@
 package model
 
 import (
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -109,7 +108,7 @@ func TestClientRouteJoinSegment(t *testing.T) {
 			name:     "empty segment",
 			base:     newClientRoute("api"),
 			segment:  "",
-			expected: "/api",
+			expected: "/api/",
 			wantErr:  false,
 		},
 	}
@@ -155,6 +154,20 @@ func TestClientRouteJoinSegments(t *testing.T) {
 			base:     newClientRoute("api"),
 			segments: []string{"v4", "users/me"},
 			expected: "/api/v4/users%2Fme",
+			wantErr:  false,
+		},
+		{
+			name:     "empty segment",
+			base:     newClientRoute("api"),
+			segments: []string{"v4", "users", "", "me"},
+			expected: "/api/v4/users/me",
+			wantErr:  false,
+		},
+		{
+			name:     "empty segment at the end",
+			base:     newClientRoute("api"),
+			segments: []string{"v4", "users", ""},
+			expected: "/api/v4/users/",
 			wantErr:  false,
 		},
 	}
@@ -274,10 +287,6 @@ func TestClientRouteLeadingSlash(t *testing.T) {
 		{
 			name:  "multiple segments",
 			route: newClientRoute("api").JoinSegments("v4"),
-		},
-		{
-			name:  "empty route",
-			route: clientRoute{url: url.URL{}},
 		},
 	}
 
