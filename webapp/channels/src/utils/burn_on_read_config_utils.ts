@@ -6,8 +6,31 @@
  * and backend storage format (seconds) for Burn-on-Read configuration.
  */
 
-const SECONDS_PER_MINUTE = 60;
-const SECONDS_PER_DAY = 86400;
+// Base time unit constants
+export const SECONDS_PER_MINUTE = 60;
+export const SECONDS_PER_HOUR = 3600;
+export const SECONDS_PER_DAY = 86400;
+
+// Duration options (time after opening before message is deleted)
+export const BURN_ON_READ_DURATION_1_MINUTE = Number(SECONDS_PER_MINUTE); // 60
+export const BURN_ON_READ_DURATION_5_MINUTES = 5 * SECONDS_PER_MINUTE; // 300
+export const BURN_ON_READ_DURATION_10_MINUTES = 10 * SECONDS_PER_MINUTE; // 600
+export const BURN_ON_READ_DURATION_30_MINUTES = 30 * SECONDS_PER_MINUTE; // 1800
+export const BURN_ON_READ_DURATION_1_HOUR = Number(SECONDS_PER_HOUR); // 3600
+export const BURN_ON_READ_DURATION_8_HOURS = 8 * SECONDS_PER_HOUR; // 28800
+
+// Default duration value (10 minutes)
+export const BURN_ON_READ_DURATION_DEFAULT = BURN_ON_READ_DURATION_10_MINUTES;
+
+// Maximum time-to-live options (max time message can exist before being opened)
+export const BURN_ON_READ_MAX_TTL_1_DAY = Number(SECONDS_PER_DAY); // 86400
+export const BURN_ON_READ_MAX_TTL_3_DAYS = 3 * SECONDS_PER_DAY; // 259200
+export const BURN_ON_READ_MAX_TTL_7_DAYS = 7 * SECONDS_PER_DAY; // 604800
+export const BURN_ON_READ_MAX_TTL_14_DAYS = 14 * SECONDS_PER_DAY; // 1209600
+export const BURN_ON_READ_MAX_TTL_30_DAYS = 30 * SECONDS_PER_DAY; // 2592000
+
+// Default maximum time-to-live value (7 days)
+export const BURN_ON_READ_MAX_TTL_DEFAULT = BURN_ON_READ_MAX_TTL_7_DAYS;
 
 /**
  * Convert minutes to seconds for backend storage

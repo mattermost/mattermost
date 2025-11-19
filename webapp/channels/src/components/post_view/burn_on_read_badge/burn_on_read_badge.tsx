@@ -5,9 +5,9 @@ import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import WithTooltip from 'components/with_tooltip';
-
 import {getBurnOnReadReadReceipt} from 'selectors/burn_on_read_read_receipts';
+
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
@@ -31,17 +31,7 @@ function BurnOnReadBadge({
     const {formatMessage} = useIntl();
 
     // Get read receipt data from Redux store (real-time updated via WebSocket)
-    let readReceipt = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
-
-    // TODO: REMOVE THIS - Mock data for testing the tooltip display
-    if (isSender && !readReceipt) {
-        readReceipt = {
-            postId,
-            revealedCount: 4,
-            totalRecipients: 48,
-            lastUpdated: Date.now(),
-        };
-    }
+    const readReceipt = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Stop propagation to prevent opening RHS or other post click handlers

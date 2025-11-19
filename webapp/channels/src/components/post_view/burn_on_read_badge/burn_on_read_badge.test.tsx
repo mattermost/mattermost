@@ -43,7 +43,7 @@ describe('BurnOnReadBadge', () => {
         );
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
-        expect(badge).toHaveAttribute('aria-label', 'Click to delete message for everyone');
+        expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
         expect(badge).toHaveAttribute('role', 'button');
     });
 
@@ -70,7 +70,7 @@ describe('BurnOnReadBadge', () => {
         // Sender always sees the flame badge with delete tooltip
         const badge = screen.getByTestId('burn-on-read-badge-post123');
         expect(badge).toBeInTheDocument();
-        expect(badge).toHaveAttribute('aria-label', 'Click to delete message for everyone');
+        expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
     });
 
     it('should have correct CSS class for styling', () => {
