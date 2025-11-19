@@ -11,6 +11,7 @@ const (
 	AuditEventDeleteAccessControlPolicy = "deleteAccessControlPolicy" // delete access control policy
 	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
+	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 )
 
 // Audit & Certificates
