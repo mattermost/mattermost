@@ -440,6 +440,12 @@ func (a *App) addPostPreviewProp(rctx request.CTX, post *model.Post) (*model.Pos
 }
 
 func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppError {
+	if len(post.FileIds) > 0 {
+		if !a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUploadFile) {
+			return model.MakePermissionErrorForUser(post.UserId, []*model.Permission{model.PermissionUploadFile})
+		}
+	}
+
 	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, post.FileIds)
 
 	if len(post.FileIds) != len(attachedIds) {
