@@ -60,6 +60,46 @@ Automates test creation and syncs with Zephyr test management:
 - **Bi-directional Sync** - Create tests in Zephyr and update with automation details
 - **Step Generation** - Automatically generate or refine test steps for Zephyr cases
 
+## Playwright MCP Integration
+
+### Live Browser Exploration
+
+This skill integrates with **Playwright MCP** (Model Context Protocol) for live browser interaction:
+
+**What it does:**
+- 🔍 Launches real browser (Chrome/Firefox)
+- 🖱️ Interacts with live Mattermost application
+- 📸 Takes screenshots during exploration
+- 🎯 Discovers actual selectors from DOM (no guessing!)
+- ⏱️ Observes timing and async behavior
+
+**Setup Required:**
+
+Add to `~/.config/claude-code/config.json`:
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp-server@latest"]
+    }
+  }
+}
+```
+
+**Restart Claude Code** after adding this configuration.
+
+### MCP Agents Location
+
+MCP browser automation agents are in: `e2e-tests/playwright/.claude/agents/`
+
+These agents use Playwright MCP tools to:
+- Navigate live Mattermost UI
+- Inspect real DOM elements
+- Discover data-testid attributes and ARIA labels
+- Validate selectors work correctly
+- Debug test failures with live inspection
+
 ## Three-Agent Workflow
 
 This skill guides you through a three-phase approach:
@@ -259,7 +299,7 @@ When you add a new "Post Reactions" feature:
    - Happy path: User adds reaction to post
    - Critical error: API failure when adding reaction
    - (SKIP: Multi-user, edge cases, etc.)
-3. **Generate phase**: Create 1-2 tests in `e2e-tests/playwright/specs/functional/messaging/post_reactions.spec.ts`
+3. **Generate phase**: Create 1-2 tests in `e2e-tests/playwright/specs/functional/ai-assisted/messaging/post_reactions.spec.ts`
 4. **Run tests**: `npx playwright test post_reactions`
 5. **Heal phase** (if needed): Fix any failures automatically
 
@@ -290,8 +330,8 @@ User says: "create comprehensive tests for post reactions with edge cases"
 - **Result:** Core business logic tested, costs saved
 
 See examples:
-- Over-generated: `e2e-tests/playwright/specs/functional/channels/search/browse_channels_min_char_autocomplete.spec.ts` (5 tests)
-- Focused version: `e2e-tests/playwright/specs/functional/channels/search/browse_channels_min_char_autocomplete_focused.spec.ts` (2 tests)
+- Over-generated: `e2e-tests/playwright/specs/functional/ai-assisted/channels/browse_channels_min_char_autocomplete.spec.ts` (5 tests)
+- Focused version: `e2e-tests/playwright/specs/functional/ai-assisted/channels/browse_channels_min_char_autocomplete_focused.spec.ts` (2 tests)
 
 ## Quality Standards
 

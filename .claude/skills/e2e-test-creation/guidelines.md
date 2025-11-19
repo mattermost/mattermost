@@ -52,10 +52,14 @@
 ```
 e2e-tests/playwright/
 ├── specs/
-│   ├── functional/          # Functional behavior tests
-│   │   ├── channels/
-│   │   ├── messaging/
-│   │   ├── authentication/
+│   ├── functional/
+│   │   ├── ai-assisted/     # AI-generated tests (this skill)
+│   │   │   ├── channels/
+│   │   │   ├── messaging/
+│   │   │   ├── system_console/
+│   │   │   └── ...
+│   │   ├── channels/        # Manual tests
+│   │   ├── messaging/       # Manual tests
 │   │   └── ...
 │   ├── visual/              # Visual regression tests
 │   │   ├── common/
@@ -63,9 +67,8 @@ e2e-tests/playwright/
 │   │   └── ...
 │   └── accessibility/        # Accessibility tests
 ├── lib/                      # Shared library code
-├── .ai/
-│   ├── agents/              # Playwright agents
-│   └── skills/              # Claude skills
+├── .claude/
+│   └── agents/              # Playwright MCP agents
 └── playwright.config.ts
 ```
 
@@ -75,10 +78,16 @@ e2e-tests/playwright/
   - `channel_creation.spec.ts`
   - `post_message.spec.ts`
   - `user_profile.spec.ts`
-- **Location**: Match feature area
-  - Channel features → `e2e-tests/playwright/specs/functional/channels/`
-  - Messaging features → `e2e-tests/playwright/specs/functional/messaging/`
+- **Location**: AI-generated tests go in `specs/functional/ai-assisted/{category}/`
+  - Channel features → `e2e-tests/playwright/specs/functional/ai-assisted/channels/`
+  - Messaging features → `e2e-tests/playwright/specs/functional/ai-assisted/messaging/`
+  - System Console → `e2e-tests/playwright/specs/functional/ai-assisted/system_console/`
   - Visual tests → `e2e-tests/playwright/specs/visual/{category}/`
+
+**Why `ai-assisted/`?**
+- Easy to track AI-generated vs manual tests
+- Can run separately: `npx playwright test specs/functional/ai-assisted/`
+- Clear attribution for quality metrics and reviews
 
 ### Test Grouping
 - Use `test.describe()` for related tests
@@ -557,7 +566,7 @@ The Generator will:
 Execute the generated tests:
 ```bash
 # Run specific test file
-npx playwright test e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts
+npx playwright test e2e-tests/playwright/specs/functional/ai-assisted/channels/channel_creation.spec.ts
 
 # Run with UI mode (for debugging)
 npx playwright test --ui
@@ -569,7 +578,7 @@ npx playwright test --grep @channels
 #### 5. Heal if Needed
 If tests fail:
 ```
-@playwright-healer "Fix the failing test in e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts"
+@playwright-healer "Fix the failing test in e2e-tests/playwright/specs/functional/ai-assisted/channels/channel_creation.spec.ts"
 ```
 
 The Healer will:
@@ -878,7 +887,7 @@ When you make a change, Claude Code will automatically:
 npx playwright test
 
 # Run specific test file
-npx playwright test e2e-tests/playwright/specs/functional/channels/channel_creation.spec.ts
+npx playwright test e2e-tests/playwright/specs/functional/ai-assisted/channels/channel_creation.spec.ts
 
 # Run tests matching pattern
 npx playwright test channel
