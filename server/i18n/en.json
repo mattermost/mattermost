@@ -6759,6 +6759,10 @@
     "translation": "Could not unassign access control policy from channels."
   },
   {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Could not update active status of access control policies."
+  },
+  {
     "id": "app.pap.update_access_control_policy_active.app_error",
     "translation": "Could not change active status of access control policy."
   },
