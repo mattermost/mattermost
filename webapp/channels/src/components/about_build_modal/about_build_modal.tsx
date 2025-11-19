@@ -137,18 +137,15 @@ export default function AboutBuildModal(props: Props) {
                 <div>
                     <FormattedMessage
                         id='about.enterpriseEditionLearn'
-                        defaultMessage='Learn more about Enterprise Edition at {link}'
-                        values={{
-                            link: (
-                                <ExternalLink
-                                    location='about_build_modal'
-                                    href='https://mattermost.com/'
-                                >
-                                    {'mattermost.com'}
-                                </ExternalLink>
-                            )}
-                        }
+                        defaultMessage='Learn more about Mattermost {planName} at '
+                        values={{planName: skuName}}
                     />
+                    <ExternalLink
+                        location='about_build_modal'
+                        href='https://mattermost.com/'
+                    >
+                        {'mattermost.com'}
+                    </ExternalLink>
                 </div>
             );
             licensee = (
@@ -165,19 +162,14 @@ export default function AboutBuildModal(props: Props) {
                 <div>
                     <FormattedMessage
                         id='about.enterpriseEditionLearn'
-                        defaultMessage='Learn more about Enterprise Edition at {link}'
-                        values={{
-                            link: (
-                                <ExternalLink
-                                    location='about_build_modal'
-                                    href='https://mattermost.com/'
-                                >
-                                    {'mattermost.com'}
-                                </ExternalLink>
-                            )}
-                        }
+                        defaultMessage='Learn more about Enterprise Edition at '
                     />
-
+                    <ExternalLink
+                        location='about_build_modal'
+                        href='https://mattermost.com/'
+                    >
+                        {'mattermost.com'}
+                    </ExternalLink>
                 </div>
             );
         }
