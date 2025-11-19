@@ -27,7 +27,7 @@ const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
         <div className='BurnOnReadLabel'>
             <div className='BurnOnReadLabel__badge'>
                 <FireIcon
-                    size={16}
+                    size={10}
                     className='BurnOnReadLabel__icon'
                 />
                 <span className='BurnOnReadLabel__text'>
