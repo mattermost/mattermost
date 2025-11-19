@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitCommand() {
@@ -36,17 +35,33 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCommand", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateCommand, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
-		c.SetPermissionError(model.PermissionManageSlashCommands)
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOwnSlashCommands) {
+		c.SetPermissionError(model.PermissionManageOwnSlashCommands)
 		return
 	}
 
-	cmd.CreatorId = c.AppContext.Session().UserId
+	userId := c.AppContext.Session().UserId
+	if cmd.CreatorId != "" && cmd.CreatorId != userId {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOthersSlashCommands) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PermissionManageOthersSlashCommands)
+			return
+		}
+
+		if _, err := c.App.GetUser(cmd.CreatorId); err != nil {
+			c.Err = err
+			return
+		}
+
+		userId = cmd.CreatorId
+	}
+
+	cmd.CreatorId = userId
 
 	rcmd, err := c.App.CreateCommand(&cmd)
 	if err != nil {
@@ -77,14 +92,14 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCommand", audit.Fail)
-	audit.AddEventParameterAuditable(auditRec, "command", &cmd)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCommand, model.AuditStatusFail)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+		model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
@@ -95,7 +110,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), oldCmd.TeamId, model.PermissionManageSlashCommands) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), oldCmd.TeamId, model.PermissionManageOwnSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
 		// here we return Not_found instead of a permissions error so we don't leak the existence of
 		// a command to someone without permissions for the team it belongs to.
@@ -137,8 +152,8 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveCommand", audit.Fail)
-	audit.AddEventParameter(auditRec, "command_move_request", cmr.TeamId)
+	auditRec := c.MakeAuditRecord(model.AuditEventMoveCommand, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -147,11 +162,11 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	audit.AddEventParameterAuditable(auditRec, "team", newTeam)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "team", newTeam)
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), newTeam.Id, model.PermissionManageSlashCommands) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), newTeam.Id, model.PermissionManageOwnSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PermissionManageSlashCommands)
+		c.SetPermissionError(model.PermissionManageOwnSlashCommands)
 		return
 	}
 
@@ -162,11 +177,25 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(cmd)
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOwnSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
 		// here we return Not_found instead of a permissions error so we don't leak the existence of
 		// a command to someone without permissions for the team it belongs to.
 		c.SetCommandNotFoundError()
+		return
+	}
+
+	if c.AppContext.Session().UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOthersSlashCommands) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PermissionManageOthersSlashCommands)
+		return
+	}
+
+	// Verify that the command creator has permission to the new team
+	// This prevents moving a command to a team where its creator doesn't have access
+	if !c.App.HasPermissionToTeam(c.AppContext, cmd.CreatorId, newTeam.Id, model.PermissionManageOwnSlashCommands) {
+		c.LogAudit("fail - command creator does not have permission to new team")
+		c.Err = model.NewAppError("moveCommand", "api.command.move_command.creator_no_permission.app_error", nil, "creator_id="+cmd.CreatorId+" team_id="+newTeam.Id, http.StatusBadRequest)
 		return
 	}
 
@@ -189,8 +218,8 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCommand", audit.Fail)
-	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteCommand, model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -201,7 +230,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(cmd)
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOwnSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
 		// here we return Not_found instead of a permissions error so we don't leak the existence of
 		// a command to someone without permissions for the team it belongs to.
@@ -245,25 +274,38 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	var commands []*model.Command
 	var err *model.AppError
 	if customOnly {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageSlashCommands) {
-			c.SetPermissionError(model.PermissionManageSlashCommands)
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnSlashCommands) {
+			c.SetPermissionError(model.PermissionManageOwnSlashCommands)
 			return
 		}
-		commands, err = c.App.ListTeamCommands(teamId)
+
+		// Filter to only commands the user can manage
+		userIdFilter := c.AppContext.Session().UserId
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands) {
+			userIdFilter = "" // Empty means return all commands
+		}
+
+		commands, err = c.App.ListTeamCommandsByUser(teamId, userIdFilter)
 		if err != nil {
 			c.Err = err
 			return
 		}
 	} else {
 		//User with no permission should see only system commands
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageSlashCommands) {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnSlashCommands) {
 			commands, err = c.App.ListAutocompleteCommands(teamId, c.AppContext.T)
 			if err != nil {
 				c.Err = err
 				return
 			}
 		} else {
-			commands, err = c.App.ListAllCommands(teamId, c.AppContext.T)
+			// Filter custom commands to only those the user can manage
+			userIdFilter := c.AppContext.Session().UserId
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands) {
+				userIdFilter = "" // Empty means return all commands
+			}
+
+			commands, err = c.App.ListAllCommandsByUser(teamId, userIdFilter, c.AppContext.T)
 			if err != nil {
 				c.Err = err
 				return
@@ -297,8 +339,13 @@ func getCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetCommandNotFoundError()
 		return
 	}
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOwnSlashCommands) {
 		// again, return not_found to ensure id existence does not leak.
+		c.SetCommandNotFoundError()
+		return
+	}
+
+	if c.AppContext.Session().UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOthersSlashCommands) {
 		c.SetCommandNotFoundError()
 		return
 	}
@@ -319,9 +366,9 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("executeCommand", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventExecuteCommand, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "command_args", &commandArgs)
+	model.AddEventParameterAuditableToAuditRec(auditRec, "command_args", &commandArgs)
 
 	// Checks that user is a member of the specified channel, and that they have permission to create a post in it.
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), commandArgs.ChannelId, model.PermissionCreatePost) {
@@ -345,6 +392,17 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		// some other team can't be run against this one
 		commandArgs.TeamId = channel.TeamId
 	} else {
+		restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+		if appErr != nil {
+			c.Err = err
+			return
+		}
+
+		if restrictDM {
+			c.Err = model.NewAppError("createPost", "api.command.execute_command.restricted_dm.error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
 		// they can't just execute slash commands against arbitrary teams
 		if c.AppContext.Session().GetTeamByTeamId(commandArgs.TeamId) == nil {
@@ -450,20 +508,20 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenCommandToken", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRegenCommandToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
 	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
-		audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+		model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 		c.SetCommandNotFoundError()
 		return
 	}
 	auditRec.AddEventPriorState(cmd)
-	audit.AddEventParameter(auditRec, "command_id", c.Params.CommandId)
+	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageSlashCommands) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOwnSlashCommands) {
 		c.LogAudit("fail - inappropriate permissions")
 		// here we return Not_found instead of a permissions error so we don't leak the existence of
 		// a command to someone without permissions for the team it belongs to.

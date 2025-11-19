@@ -8,6 +8,8 @@ import (
 	io "io"
 	http "net/http"
 
+	logr "github.com/mattermost/logr/v2"
+
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost/server/public/model"
@@ -141,6 +143,62 @@ func (_m *API) CopyFileInfos(userID string, fileIds []string) ([]string, *model.
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
 		}
+	}
+
+	return r0, r1
+}
+
+// CountPropertyFields provides a mock function with given fields: groupID, includeDeleted
+func (_m *API) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	ret := _m.Called(groupID, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountPropertyFields")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool) (int64, error)); ok {
+		return rf(groupID, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool) int64); ok {
+		r0 = rf(groupID, includeDeleted)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(groupID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CountPropertyFieldsForTarget provides a mock function with given fields: groupID, targetType, targetID, includeDeleted
+func (_m *API) CountPropertyFieldsForTarget(groupID string, targetType string, targetID string, includeDeleted bool) (int64, error) {
+	ret := _m.Called(groupID, targetType, targetID, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountPropertyFieldsForTarget")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) (int64, error)); ok {
+		return rf(groupID, targetType, targetID, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) int64); ok {
+		r0 = rf(groupID, targetType, targetID, includeDeleted)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, bool) error); ok {
+		r1 = rf(groupID, targetType, targetID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -4312,6 +4370,16 @@ func (_m *API) LoadPluginConfiguration(dest interface{}) error {
 	return r0
 }
 
+// LogAuditRec provides a mock function with given fields: rec
+func (_m *API) LogAuditRec(rec *model.AuditRecord) {
+	_m.Called(rec)
+}
+
+// LogAuditRecWithLevel provides a mock function with given fields: rec, level
+func (_m *API) LogAuditRecWithLevel(rec *model.AuditRecord, level logr.Level) {
+	_m.Called(rec, level)
+}
+
 // LogDebug provides a mock function with given fields: msg, keyValuePairs
 func (_m *API) LogDebug(msg string, keyValuePairs ...interface{}) {
 	var _ca []interface{}
@@ -4951,9 +5019,9 @@ func (_m *API) SearchPostsInTeamForUser(teamID string, userID string, searchPara
 	return r0, r1
 }
 
-// SearchPropertyFields provides a mock function with given fields: groupID, targetID, opts
-func (_m *API) SearchPropertyFields(groupID string, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	ret := _m.Called(groupID, targetID, opts)
+// SearchPropertyFields provides a mock function with given fields: groupID, opts
+func (_m *API) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	ret := _m.Called(groupID, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SearchPropertyFields")
@@ -4961,19 +5029,19 @@ func (_m *API) SearchPropertyFields(groupID string, targetID string, opts model.
 
 	var r0 []*model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)); ok {
-		return rf(groupID, targetID, opts)
+	if rf, ok := ret.Get(0).(func(string, model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)); ok {
+		return rf(groupID, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, model.PropertyFieldSearchOpts) []*model.PropertyField); ok {
-		r0 = rf(groupID, targetID, opts)
+	if rf, ok := ret.Get(0).(func(string, model.PropertyFieldSearchOpts) []*model.PropertyField); ok {
+		r0 = rf(groupID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, model.PropertyFieldSearchOpts) error); ok {
-		r1 = rf(groupID, targetID, opts)
+	if rf, ok := ret.Get(1).(func(string, model.PropertyFieldSearchOpts) error); ok {
+		r1 = rf(groupID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -4981,9 +5049,9 @@ func (_m *API) SearchPropertyFields(groupID string, targetID string, opts model.
 	return r0, r1
 }
 
-// SearchPropertyValues provides a mock function with given fields: groupID, targetID, opts
-func (_m *API) SearchPropertyValues(groupID string, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	ret := _m.Called(groupID, targetID, opts)
+// SearchPropertyValues provides a mock function with given fields: groupID, opts
+func (_m *API) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	ret := _m.Called(groupID, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SearchPropertyValues")
@@ -4991,19 +5059,19 @@ func (_m *API) SearchPropertyValues(groupID string, targetID string, opts model.
 
 	var r0 []*model.PropertyValue
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)); ok {
-		return rf(groupID, targetID, opts)
+	if rf, ok := ret.Get(0).(func(string, model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)); ok {
+		return rf(groupID, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, model.PropertyValueSearchOpts) []*model.PropertyValue); ok {
-		r0 = rf(groupID, targetID, opts)
+	if rf, ok := ret.Get(0).(func(string, model.PropertyValueSearchOpts) []*model.PropertyValue); ok {
+		r0 = rf(groupID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyValue)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, model.PropertyValueSearchOpts) error); ok {
-		r1 = rf(groupID, targetID, opts)
+	if rf, ok := ret.Get(1).(func(string, model.PropertyValueSearchOpts) error); ok {
+		r1 = rf(groupID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

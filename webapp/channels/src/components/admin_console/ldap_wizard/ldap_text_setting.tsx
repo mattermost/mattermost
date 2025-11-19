@@ -210,11 +210,11 @@ function isGroupAttributeTest(testResult: LdapDiagnosticResult | null) {
 const ldapTestMessages = defineMessages({
     filterTestSuccess: {
         id: 'admin.ldap.filterTestSuccess',
-        defaultMessage: 'Filter test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found{showTestValue, select, true {. Value used: {testValue}} other {}}',
+        defaultMessage: 'Filter test successful: {countReturned, number} {countReturned, plural, one {result} other {results}} found{showTestValue, select, true {. Value used: {testValue}} other {}}',
     },
     attributeTestSuccess: {
         id: 'admin.ldap.attributeTestSuccess',
-        defaultMessage: 'Attribute test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found out of {totalCount} user{totalCount, plural, one {} other {s}} returned by the user filter',
+        defaultMessage: 'Attribute test successful: {countReturned, number} {countReturned, plural, one {result} other {results}} found out of {totalCount} {totalCount, plural, one {user} other {users}} returned by the user filter',
     },
     filterTestWarning: {
         id: 'admin.ldap.filterTestWarning',
@@ -222,7 +222,7 @@ const ldapTestMessages = defineMessages({
     },
     attributeTestWarning: {
         id: 'admin.ldap.attributeTestWarning',
-        defaultMessage: 'The attribute was not found in any of the {totalCount} user{totalCount, plural, one {} other {s}} returned by the user filter',
+        defaultMessage: 'The attribute was not found in any of the {totalCount} {totalCount, plural, one {user} other {users}} returned by the user filter',
     },
     filterTestFailed: {
         id: 'admin.ldap.filterTestFailed',
@@ -234,11 +234,11 @@ const ldapTestMessages = defineMessages({
     },
     groupAttributeTestSuccess: {
         id: 'admin.ldap.groupAttributeTestSuccess',
-        defaultMessage: 'Group attribute test successful: {countReturned, number} result{countReturned, plural, one {} other {s}} found out of {totalCount} group{totalCount, plural, one {} other {s}} returned by the group filter',
+        defaultMessage: 'Group attribute test successful: {countReturned, number} {countReturned, plural, one {result} other {results}} found out of {totalCount} {totalCount, plural, one {group} other {groups}} returned by the group filter',
     },
     groupAttributeTestWarning: {
         id: 'admin.ldap.groupAttributeTestWarning',
-        defaultMessage: 'The group attribute was not found in any of the {totalCount} group{totalCount, plural, one {} other {s}} returned by the group filter',
+        defaultMessage: 'The group attribute was not found in any of the {totalCount} {totalCount, plural, one {group} other {groups}} returned by the group filter',
     },
     groupAttributeTestFailed: {
         id: 'admin.ldap.groupAttributeTestFailed',

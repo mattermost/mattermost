@@ -31,6 +31,22 @@ const getTeamAndPostIdFromLink = (link: string) => {
     return match?.params;
 };
 
+const getElementClassName = (element: EventTarget | null): string => {
+    if (!element || !(element instanceof Element)) {
+        return '';
+    }
+
+    if (typeof element.className === 'object' && 'baseVal' in element.className) {
+        return (element.className as any).baseVal;
+    }
+
+    if (typeof element.className === 'string') {
+        return element.className;
+    }
+
+    return '';
+};
+
 const PostAttachmentContainer = (props: Props) => {
     const {children, className, link, preventClickAction} = props;
     const history = useHistory();
@@ -44,15 +60,17 @@ const PostAttachmentContainer = (props: Props) => {
     const post = useSelector((state: GlobalState) => getPost(state, params?.postId ?? ''));
     const crtEnabled = useSelector(isCollapsedThreadsEnabled);
 
-    const handleOnClick = useCallback((e) => {
-        const {tagName} = e.target;
+    const handleOnClick = useCallback((e: React.MouseEvent) => {
+        const target = e.target as HTMLDivElement;
+        const {tagName} = target;
         e.stopPropagation();
         const elements = ['A', 'IMG', 'BUTTON', 'I'];
+        const targetClassName = getElementClassName(target);
 
         if (
             !elements.includes(tagName) &&
-                e.target.getAttribute('role') !== 'button' &&
-                e.target.className !== `attachment attachment--${className}`
+                target.getAttribute('role') !== 'button' &&
+                targetClassName !== `attachment attachment--${className}`
         ) {
             const classNames = [
                 'icon icon-menu-down',
@@ -65,7 +83,7 @@ const PostAttachmentContainer = (props: Props) => {
                 dispatch(focusPost(params.postId, link, currentUserId, {skipRedirectReplyPermalink: true}));
                 return;
             }
-            if (!classNames.some((className) => e.target.className.includes(className)) && e.target.id !== 'image-name-text') {
+            if (!classNames.some((className) => targetClassName.includes(className)) && target.id !== 'image-name-text') {
                 history.push(link);
             }
         }

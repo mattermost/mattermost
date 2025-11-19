@@ -24,7 +24,7 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 	ContentType := "text/html; utf-8"
 
 	b.Run("with converting", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			r := forceHTMLEncodingToUTF8(strings.NewReader(HTML), ContentType)
 
 			og := opengraph.NewOpenGraph()
@@ -34,7 +34,7 @@ func BenchmarkForceHTMLEncodingToUTF8(b *testing.B) {
 	})
 
 	b.Run("without converting", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			og := opengraph.NewOpenGraph()
 			err := og.ProcessHTML(strings.NewReader(HTML))
 			require.NoError(b, err)

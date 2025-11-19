@@ -21,7 +21,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions';
 import {login} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -50,6 +49,7 @@ import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {t} from 'utils/i18n';
+import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
@@ -307,26 +307,44 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const showSessionExpiredNotificationIfNeeded = useCallback(() => {
         if (sessionExpired && !closeSessionExpiredNotification!.current) {
-            dispatch(showNotification({
-                title: siteName,
-                body: formatMessage({
-                    id: 'login.session_expired.notification',
-                    defaultMessage: 'Session Expired: Please sign in to continue receiving notifications.',
-                }),
-                requireInteraction: true,
-                silent: false,
-                onClick: () => {
-                    window.focus();
-                    if (closeSessionExpiredNotification.current) {
-                        closeSessionExpiredNotification.current();
-                        closeSessionExpiredNotification.current = undefined;
-                    }
-                },
-            })).then(({callback: closeNotification}) => {
-                closeSessionExpiredNotification.current = closeNotification;
-            }).catch(() => {
-                // Ignore the failure to display the notification.
-            });
+            if (isDesktopApp()) {
+                DesktopApp.dispatchNotification(
+                    formatMessage({
+                        id: 'login.session_expired.notification.title',
+                        defaultMessage: 'Session Expired',
+                    }),
+                    formatMessage({
+                        id: 'login.session_expired.notification.body',
+                        defaultMessage: 'Please sign in to continue receiving notifications.',
+                    }),
+                    '',
+                    '',
+                    false, // silent
+                    DesktopNotificationSounds.BING,
+                    `${Client4.getUrl()}/login`,
+                );
+            } else {
+                dispatch(showNotification({
+                    title: siteName,
+                    body: formatMessage({
+                        id: 'login.session_expired.notification',
+                        defaultMessage: 'Session Expired: Please sign in to continue receiving notifications.',
+                    }),
+                    requireInteraction: true,
+                    silent: false,
+                    onClick: () => {
+                        window.focus();
+                        if (closeSessionExpiredNotification.current) {
+                            closeSessionExpiredNotification.current();
+                            closeSessionExpiredNotification.current = undefined;
+                        }
+                    },
+                })).then(({callback: closeNotification}) => {
+                    closeSessionExpiredNotification.current = closeNotification;
+                }).catch(() => {
+                    // Ignore the failure to display the notification.
+                });
+            }
         } else if (!sessionExpired && closeSessionExpiredNotification!.current) {
             closeSessionExpiredNotification.current();
             closeSessionExpiredNotification.current = undefined;
@@ -411,9 +429,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             id: 'login.noAccount',
             defaultMessage: 'Don\'t have an account?',
         });
-        const handleClick = () => {
-            trackEvent('signup', 'click_login_no_account');
-        };
         if (showSignup) {
             return (
                 <AlternateLinkLayout
@@ -428,7 +443,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 className='login-body-alternate-link'
                 alternateLinkPath={'/access_problem'}
                 alternateLinkLabel={linkLabel}
-                onClick={handleClick}
             />
         );
     }, [showSignup]);
@@ -446,11 +460,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     useEffect(() => {
         if (onCustomizeHeader) {
             onCustomizeHeader({
-                onBackButtonClick: showMfa ? handleHeaderBackButtonOnClick : undefined,
+                onBackButtonClick: (showMfa || desktopLoginLink) ? handleHeaderBackButtonOnClick : undefined,
                 alternateLink: isMobileView ? getAlternateLink() : undefined,
             });
         }
-    }, [onCustomizeHeader, search, showMfa, isMobileView, getAlternateLink]);
+    }, [onCustomizeHeader, search, showMfa, desktopLoginLink, isMobileView, getAlternateLink]);
 
     useEffect(() => {
         // We don't want to redirect outside of this route if we're doing Desktop App auth
@@ -840,15 +854,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             );
         }
 
-        if (!enableBaseLogin && !enableExternalSignup) {
-            return (
-                <ColumnLayout
-                    title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
-                    message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
-                />
-            );
-        }
-
+        // Handle redirect before checking configs. This is to support the Pre-Authentication header flow.
         if (desktopLoginLink || query.get('server_token')) {
             return (
                 <Route
@@ -859,6 +865,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             onLogin={postSubmit}
                         />
                     )}
+                />
+            );
+        }
+
+        if (!enableBaseLogin && !enableExternalSignup) {
+            return (
+                <ColumnLayout
+                    title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
+                    message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
                 />
             );
         }

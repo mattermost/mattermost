@@ -5,12 +5,12 @@ package app
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -26,7 +26,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
-	filesStoreMocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -51,7 +50,6 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 func TestDoUploadFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	teamID := model.NewId()
 	channelID := model.NewId()
@@ -122,8 +120,7 @@ func TestDoUploadFile(t *testing.T) {
 
 func TestUploadFile(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channelID := th.BasicChannel.Id
 	filename := "test"
@@ -153,8 +150,7 @@ func TestUploadFile(t *testing.T) {
 
 func TestParseOldFilenames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	fileID := model.NewId()
 
@@ -251,8 +247,7 @@ func TestParseOldFilenames(t *testing.T) {
 
 func TestGetInfoForFilename(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	post := th.BasicPost
 	teamID := th.BasicTeam.Id
@@ -263,8 +258,7 @@ func TestGetInfoForFilename(t *testing.T) {
 
 func TestFindTeamIdForFilename(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	teamID := th.App.findTeamIdForFilename(th.Context, th.BasicPost, "someid", "somefile.png")
 	assert.Equal(t, th.BasicTeam.Id, teamID)
@@ -278,8 +272,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 
 func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	post := th.BasicPost
 	infos := th.App.MigrateFilenamesToFileInfos(th.Context, post)
@@ -311,67 +304,105 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	assert.Equal(t, 0, len(infos))
 }
 
-func TestCreateZipFileAndAddFiles(t *testing.T) {
+func TestWriteZipFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
-
-	const (
-		zipName   = "zip-file-name-to-heaven.zip"
-		directory = "directory-to-heaven"
-	)
-
-	t.Run("write file fails", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), errors.New("only those who dare to fail greatly can ever achieve greatly"))
-
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
-
-		require.Error(t, err)
-		require.Equal(t, err.Error(), "failed to write zip file to file backend at path directory-to-heaven/zip-file-name-to-heaven.zip: only those who dare to fail greatly can ever achieve greatly")
-	})
 
 	t.Run("write no file", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil)
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{}, zipName, directory)
+		buf := new(bytes.Buffer)
+		err := th.App.WriteZipFile(buf, []model.FileData{})
 		require.NoError(t, err)
+
+		// Verify it's a valid zip file
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 0)
 	})
 
 	t.Run("write one file", func(t *testing.T) {
-		mockBackend := filesStoreMocks.FileBackend{}
-		mockBackend.On("WriteFile", mock.Anything, path.Join(directory, zipName)).Return(int64(666), nil).Run(func(args mock.Arguments) {
-			r, err := zip.OpenReader(zipName)
-			require.NoError(t, err)
-			require.Len(t, r.File, 1)
-
-			file := r.File[0]
-			assert.Equal(t, "file1", file.Name)
-			now := time.Now().Truncate(time.Second) // Files are stored with a second precision
-			// Confirm that the file was created in the last 10 seconds
-			assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
-			assert.GreaterOrEqual(t, now, file.Modified)
-
-			fr, err := file.Open()
-			require.NoError(t, err)
-			b, err := io.ReadAll(fr)
-			require.NoError(t, err)
-			assert.Equal(t, []byte("content1"), b)
-		})
-		err := th.App.CreateZipFileAndAddFiles(&mockBackend, []model.FileData{
+		buf := new(bytes.Buffer)
+		err := th.App.WriteZipFile(buf, []model.FileData{
 			{
-				Filename: "file1",
+				Filename: "file1.txt",
 				Body:     []byte("content1"),
 			},
-		}, zipName, directory)
+		})
 		require.NoError(t, err)
+
+		// Verify the zip contents
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 1)
+
+		file := z.File[0]
+		assert.Equal(t, "file1.txt", file.Name)
+
+		now := time.Now().Truncate(time.Second) // Files are stored with a second precision
+		// Confirm that the file was created in the last 10 seconds
+		assert.GreaterOrEqual(t, file.Modified, now.Add(-10*time.Second))
+		assert.GreaterOrEqual(t, now, file.Modified)
+
+		// Check file content
+		fr, err := file.Open()
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			err = fr.Close()
+			require.NoError(t, err)
+		})
+
+		content, err := io.ReadAll(fr)
+		require.NoError(t, err)
+		assert.Equal(t, []byte("content1"), content)
+	})
+
+	t.Run("write multiple files", func(t *testing.T) {
+		buf := new(bytes.Buffer)
+		fileDatas := []model.FileData{
+			{
+				Filename: "file1.txt",
+				Body:     []byte("content1"),
+			},
+			{
+				Filename: "file2.txt",
+				Body:     []byte("content2"),
+			},
+			{
+				Filename: "dir/file3.txt",
+				Body:     []byte("content3"),
+			},
+		}
+
+		err := th.App.WriteZipFile(buf, fileDatas)
+		require.NoError(t, err)
+
+		// Verify the zip contents
+		reader := bytes.NewReader(buf.Bytes())
+		z, err := zip.NewReader(reader, int64(buf.Len()))
+		require.NoError(t, err)
+		require.Len(t, z.File, 3)
+
+		// Check each file
+		for i, zf := range z.File {
+			assert.Equal(t, fileDatas[i].Filename, zf.Name)
+
+			fr, err := zf.Open()
+			require.NoError(t, err)
+
+			content, err := io.ReadAll(fr)
+			require.NoError(t, err)
+			assert.Equal(t, fileDatas[i].Body, content)
+
+			err = fr.Close()
+			require.NoError(t, err)
+		}
 	})
 }
 
 func TestCopyFileInfos(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	teamID := model.NewId()
 	channelID := model.NewId()
@@ -407,7 +438,7 @@ func TestGenerateThumbnailImage(t *testing.T) {
 	t.Run("test generating thumbnail image", func(t *testing.T) {
 		// given
 		th := Setup(t)
-		defer th.TearDown()
+
 		img := createDummyImage()
 		dataPath := *th.App.Config().FileSettings.Directory
 		thumbnailName := "thumb.jpg"
@@ -438,7 +469,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 	searchTerm := "searchTerm"
 
 	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.FileInfo) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		fileInfos := make([]*model.FileInfo, 7)
 		for i := 0; i < cap(fileInfos); i++ {
@@ -477,7 +508,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 	t.Run("should return everything as first page of fileInfos from database", func(t *testing.T) {
 		th, fileInfos := setup(t, false)
-		defer th.TearDown()
 
 		page := 0
 
@@ -498,7 +528,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 	t.Run("should not return later pages of fileInfos from database", func(t *testing.T) {
 		th, _ := setup(t, false)
-		defer th.TearDown()
 
 		page := 1
 
@@ -511,7 +540,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 	t.Run("should return first page of fileInfos from ElasticSearch", func(t *testing.T) {
 		th, fileInfos := setup(t, true)
-		defer th.TearDown()
 
 		page := 0
 		resultsPage := []string{
@@ -542,7 +570,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 	t.Run("should return later pages of fileInfos from ElasticSearch", func(t *testing.T) {
 		th, fileInfos := setup(t, true)
-		defer th.TearDown()
 
 		page := 1
 		resultsPage := []string{
@@ -570,7 +597,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
 		th, fileInfos := setup(t, true)
-		defer th.TearDown()
 
 		page := 0
 
@@ -603,7 +629,6 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
 		th, _ := setup(t, true)
-		defer th.TearDown()
 
 		page := 1
 
@@ -640,7 +665,6 @@ func TestExtractContentFromFileInfo(t *testing.T) {
 func TestGetLastAccessibleFileTime(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	r, err := th.App.GetLastAccessibleFileTime()
 	require.Nil(t, err)
@@ -675,7 +699,6 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Updates the time, if cloud limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -704,7 +727,6 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 	t.Run("Removes the time, if cloud limit is not applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -733,8 +755,7 @@ func TestComputeLastAccessibleFileTime(t *testing.T) {
 
 func TestSetFileSearchableContent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 		&model.FileInfo{
@@ -762,8 +783,7 @@ func TestSetFileSearchableContent(t *testing.T) {
 
 func TestPermanentDeleteFilesByPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should delete files for post", func(t *testing.T) {
 		// Create a post with a file attachment.

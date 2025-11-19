@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func getCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -61,7 +60,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoryCreateRequest model.SidebarCategoryWithChannels
@@ -139,7 +138,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoryOrderForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body)
@@ -217,7 +216,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoriesForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoriesForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
@@ -331,7 +330,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoryUpdateRequest model.SidebarCategoryWithChannels
@@ -382,7 +381,7 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCategoryForTeamForUser", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	appErr := c.App.DeleteSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)

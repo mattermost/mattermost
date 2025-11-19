@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
@@ -371,10 +372,8 @@ func validateAuthService(authService *string) *model.AppError {
 	if authService == nil {
 		return nil
 	}
-	for _, valid := range validAuthServices {
-		if *authService == valid {
-			return nil
-		}
+	if slices.Contains(validAuthServices, *authService) {
+		return nil
 	}
 
 	return model.NewAppError("BulkImport", "app.import.validate_user_teams_import_data.invalid_auth_service.error", map[string]any{"AuthService": *authService}, "", http.StatusBadRequest)
@@ -490,7 +489,6 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			reaction := reaction
 			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
 				return err
 			}
@@ -535,7 +533,6 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			reaction := reaction
 			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
 				return err
 			}
@@ -544,7 +541,6 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			reply := reply
 			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
 				return err
 			}
@@ -559,6 +555,14 @@ func ValidatePostImportData(data *PostImportData, maxPostSize int) *model.AppErr
 		for _, attachment := range *data.Attachments {
 			if err := ValidateAttachmentImportData(&attachment); err != nil {
 				return model.NewAppError("BulkImport", "app.import.validate_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
+	if data.ThreadFollowers != nil {
+		for _, follower := range *data.ThreadFollowers {
+			if err := ValidateThreadFollowerImportData(&follower); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_post_import_data.thread_follower.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -601,11 +605,8 @@ func ValidateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 				}
 			}
 			if data.Members != nil {
-				for _, member := range *data.Members {
-					if favoriter == member {
-						found = true
-						break
-					}
+				if slices.Contains(*data.Members, favoriter) {
+					found = true
 				}
 			}
 			if !found {
@@ -648,13 +649,7 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 	if data.FlaggedBy != nil {
 		for _, flagger := range *data.FlaggedBy {
-			found := false
-			for _, member := range *data.ChannelMembers {
-				if flagger == member {
-					found = true
-					break
-				}
-			}
+			found := slices.Contains(*data.ChannelMembers, flagger)
 			if !found {
 				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]any{"Username": flagger}, "", http.StatusBadRequest)
 			}
@@ -663,7 +658,6 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 	if data.Reactions != nil {
 		for _, reaction := range *data.Reactions {
-			reaction := reaction
 			if err := ValidateReactionImportData(&reaction, *data.CreateAt); err != nil {
 				return err
 			}
@@ -672,7 +666,6 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 
 	if data.Replies != nil {
 		for _, reply := range *data.Replies {
-			reply := reply
 			if err := ValidateReplyImportData(&reply, *data.CreateAt, maxPostSize); err != nil {
 				return err
 			}
@@ -683,6 +676,14 @@ func ValidateDirectPostImportData(data *DirectPostImportData, maxPostSize int) *
 		for _, attachment := range *data.Attachments {
 			if err := ValidateAttachmentImportData(&attachment); err != nil {
 				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.attachment.error", nil, "", http.StatusNotFound).Wrap(err)
+			}
+		}
+	}
+
+	if data.ThreadFollowers != nil {
+		for _, follower := range *data.ThreadFollowers {
+			if err := ValidateThreadFollowerImportData(&follower); err != nil {
+				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.thread_follower.error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		}
 	}
@@ -712,6 +713,18 @@ func ValidateEmojiImportData(data *EmojiImportData) *model.AppError {
 
 	if err := model.IsValidEmojiName(*data.Name); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func ValidateThreadFollowerImportData(data *ThreadFollowerImportData) *model.AppError {
+	if data == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_thread_follower_data.empty.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.User == nil || *data.User == "" {
+		return model.NewAppError("BulkImport", "app.import.validate_thread_follower_data.user_missing.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -763,16 +776,17 @@ func isValidGuestRoles(data UserImportData) bool {
 				gtc++
 			}
 
-			if *team.Channels != nil {
-				for _, channel := range *team.Channels {
-					if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
-						ctc++
-					}
+			if team.Channels == nil {
+				continue
+			}
+			for _, channel := range *team.Channels {
+				if channel.Roles != nil && model.IsInRole(*channel.Roles, model.ChannelGuestRoleId) {
+					ctc++
 				}
+			}
 
-				if ctc == len(*team.Channels) {
-					isChannelGuest = true
-				}
+			if ctc == len(*team.Channels) {
+				isChannelGuest = true
 			}
 		}
 		if gtc == len(*data.Teams) {

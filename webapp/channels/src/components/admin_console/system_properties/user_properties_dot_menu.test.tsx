@@ -139,7 +139,7 @@ describe('UserPropertyDotMenu', () => {
         expect(screen.queryByText('Link attribute to SAML')).not.toBeInTheDocument();
     });
 
-    it('shows "Edit link with" text when LDAP attribute is linked', async () => {
+    it('shows "Edit LDAP link" text when LDAP attribute is linked', async () => {
         const linkedField = {
             ...baseField,
             attrs: {
@@ -154,12 +154,11 @@ describe('UserPropertyDotMenu', () => {
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
         fireEvent.click(menuButton);
 
-        // Verify the LDAP link text shows the linked property
-        expect(screen.getByText('Edit link with:')).toBeInTheDocument();
-        expect(screen.getByText('AD/LDAP: employeeID')).toBeInTheDocument();
+        // Verify the LDAP link text shows the edit option
+        expect(screen.getByText('Edit LDAP link')).toBeInTheDocument();
     });
 
-    it('shows "Edit link with" text when SAML attribute is linked', async () => {
+    it('shows "Edit SAML link" text when SAML attribute is linked', async () => {
         const linkedField = {
             ...baseField,
             attrs: {
@@ -174,9 +173,8 @@ describe('UserPropertyDotMenu', () => {
         const menuButton = screen.getByTestId(`user-property-field_dotmenu-${linkedField.id}`);
         fireEvent.click(menuButton);
 
-        // Verify the SAML link text shows the linked property
-        expect(screen.getByText('Edit link with:')).toBeInTheDocument();
-        expect(screen.getByText('SAML: position')).toBeInTheDocument();
+        // Verify the SAML link text shows the edit option
+        expect(screen.getByText('Edit SAML link')).toBeInTheDocument();
     });
 
     it('handles field duplication', async () => {

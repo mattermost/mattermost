@@ -11,16 +11,17 @@ import (
 	"path"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	semocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
@@ -28,7 +29,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -39,17 +39,13 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
-		*cfg.NotificationLogSettings.FileLocation = dir
 	})
 
 	logLocation := config.GetLogFileLocation(dir)
-	notificationsLogLocation := config.GetNotificationsLogFileLocation(dir)
 
 	genMockLogFiles := func() {
 		d1 := []byte("hello\ngo\n")
 		genErr := os.WriteFile(logLocation, d1, 0600)
-		require.NoError(t, genErr)
-		genErr = os.WriteFile(notificationsLogLocation, d1, 0600)
 		require.NoError(t, genErr)
 	}
 	genMockLogFiles()
@@ -73,10 +69,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		"goroutines",
 	}
 
-	expectedFileNamesWithLogs := append(expectedFileNames, []string{
-		"mattermost.log",
-		"notifications.log",
-	}...)
+	expectedFileNamesWithLogs := append(expectedFileNames, "mattermost.log")
 
 	var fileDatas []model.FileData
 
@@ -102,8 +95,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 
 	t.Run("remove the log files and ensure that an error is returned", func(t *testing.T) {
 		err = os.Remove(logLocation)
-		require.NoError(t, err)
-		err = os.Remove(notificationsLogLocation)
 		require.NoError(t, err)
 		t.Cleanup(genMockLogFiles)
 
@@ -169,8 +160,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Setenv(envVarInstallType, "docker")
 
@@ -244,6 +234,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.LDAP.ServerName)
 		assert.Empty(t, d.LDAP.ServerVersion)
 
+		/* SAML */
+		assert.Empty(t, d.SAML.ProviderType)
+
 		/* Elastic Search */
 		assert.Empty(t, d.ElasticSearch.ServerVersion)
 		assert.Empty(t, d.ElasticSearch.ServerPlugins)
@@ -265,6 +258,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
 		ldapMock := &emocks.LdapDiagnosticInterface{}
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -287,6 +284,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunTest",
 			mock.AnythingOfType("*request.Context"),
 		).Return(nil)
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -307,6 +308,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunTest",
 			mock.AnythingOfType("*request.Context"),
 		).Return(nil)
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -327,6 +332,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunTest",
 			mock.AnythingOfType("*request.Context"),
 		).Return(model.NewAppError("", "some error", nil, "", 0))
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+		})
 		th.Service.ldapDiagnostic = ldapMock
 
 		packet := getDiagnostics(t)
@@ -336,13 +345,148 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "unknown", packet.LDAP.ServerName)
 		assert.Equal(t, "unknown", packet.LDAP.ServerVersion)
 	})
+
+	t.Run("SAML disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(false)
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Empty(t, packet.SAML.ProviderType)
+	})
+
+	t.Run("SAML enabled with Keycloak provider", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "Keycloak", packet.SAML.ProviderType)
+	})
+
+	t.Run("SAML enabled with ADFS provider", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("https://adfs.company.com/adfs/ls")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("https://adfs.company.com/adfs/services/trust")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "ADFS", packet.SAML.ProviderType)
+	})
+
+	t.Run("SAML enabled with unknown provider", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("https://custom-saml.example.com/sso/login")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("https://custom-saml.example.com/sso")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "unknown", packet.SAML.ProviderType)
+	})
+
+	t.Run("Elasticsearch config test when indexing disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(false)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("7.10.0")
+		esMock.On("GetPlugins").Return([]string{"plugin1", "plugin2"})
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
+		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
+		assert.Empty(t, packet.ElasticSearch.Error)
+	})
+
+	t.Run("Elasticsearch config test when indexing enabled and config valid", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsOSBackend)
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("2.5.0")
+		esMock.On("GetPlugins").Return([]string{"opensearch-plugin"})
+		esMock.On("TestConfig", mock.AnythingOfType("*request.Context"), mock.Anything).Return(nil)
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.ElasticsearchSettingsOSBackend, packet.ElasticSearch.Backend)
+		assert.Equal(t, "2.5.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"opensearch-plugin"}, packet.ElasticSearch.ServerPlugins)
+		assert.Empty(t, packet.ElasticSearch.Error)
+	})
+
+	t.Run("Elasticsearch config test when indexing enabled and config invalid", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("7.10.0")
+		esMock.On("GetPlugins").Return([]string{"plugin1", "plugin2"})
+		esMock.On("TestConfig", mock.AnythingOfType("*request.Context"), mock.Anything).Return(
+			model.NewAppError("TestConfig", "ent.elasticsearch.test_config.connection_failed", nil, "connection refused", 500))
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
+		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
+		assert.Equal(t, "TestConfig: ent.elasticsearch.test_config.connection_failed, connection refused", packet.ElasticSearch.Error)
+	})
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
 	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
@@ -376,7 +520,6 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 
 func TestGetCPUProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getCPUProfile(th.Context)
 	require.NoError(t, err)
@@ -386,7 +529,6 @@ func TestGetCPUProfile(t *testing.T) {
 
 func TestGetHeapProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getHeapProfile(th.Context)
 	require.NoError(t, err)
@@ -396,10 +538,115 @@ func TestGetHeapProfile(t *testing.T) {
 
 func TestGetGoroutineProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getGoroutineProfile(th.Context)
 	require.NoError(t, err)
 	assert.Equal(t, "goroutines", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
+}
+
+func TestDetectSAMLProviderType(t *testing.T) {
+	tests := []struct {
+		name             string
+		idpDescriptorURL string
+		expectedProvider string
+	}{
+		{
+			name:             "Keycloak provider",
+			idpDescriptorURL: "http://localhost:8484/realms/mattermost",
+			expectedProvider: "Keycloak",
+		},
+		{
+			name:             "ADFS provider",
+			idpDescriptorURL: "https://localhost/adfs/services/trust",
+			expectedProvider: "ADFS",
+		},
+		{
+			name:             "Azure AD provider with login.microsoftonline.com",
+			idpDescriptorURL: "https://login.microsoftonline.com/12345/saml2",
+			expectedProvider: "Azure AD",
+		},
+		{
+			name:             "Azure AD provider with sts.windows.net",
+			idpDescriptorURL: "https://sts.windows.net/12345/",
+			expectedProvider: "Azure AD",
+		},
+		{
+			name:             "Okta provider",
+			idpDescriptorURL: "https://company.okta.com/app/mattermost/saml",
+			expectedProvider: "Okta",
+		},
+		{
+			name:             "Okta preview provider",
+			idpDescriptorURL: "https://company.oktapreview.com/app/mattermost/saml",
+			expectedProvider: "Okta",
+		},
+		{
+			name:             "Auth0 provider",
+			idpDescriptorURL: "https://company.auth0.com/samlp/12345",
+			expectedProvider: "Auth0",
+		},
+		{
+			name:             "OneLogin provider",
+			idpDescriptorURL: "https://app.onelogin.com/saml/metadata/12345",
+			expectedProvider: "OneLogin",
+		},
+		{
+			name:             "Google provider",
+			idpDescriptorURL: "https://accounts.google.com/o/saml2?idpid=12345",
+			expectedProvider: "Google Workspace",
+		},
+		{
+			name:             "JumpCloud provider",
+			idpDescriptorURL: "https://sso.jumpcloud.com/saml2/example",
+			expectedProvider: "JumpCloud",
+		},
+		{
+			name:             "Duo provider",
+			idpDescriptorURL: "https://sso.duo.com/saml2/sp/12345",
+			expectedProvider: "Duo",
+		},
+		{
+			name:             "Centrify provider",
+			idpDescriptorURL: "https://company.centrify.com/saml2",
+			expectedProvider: "Centrify",
+		},
+		{
+			name:             "Shibboleth provider with shibboleth.net",
+			idpDescriptorURL: "https://idp.shibboleth.net/idp/shibboleth",
+			expectedProvider: "Shibboleth",
+		},
+		{
+			name:             "Shibboleth provider with /idp/shibboleth path",
+			idpDescriptorURL: "https://university.edu/idp/shibboleth",
+			expectedProvider: "Shibboleth",
+		},
+		{
+			name:             "Case insensitive - Azure AD",
+			idpDescriptorURL: "https://LOGIN.MICROSOFTONLINE.COM/12345/saml2",
+			expectedProvider: "Azure AD",
+		},
+		{
+			name:             "Case insensitive - Okta",
+			idpDescriptorURL: "https://COMPANY.OKTA.COM/app/mattermost/saml",
+			expectedProvider: "Okta",
+		},
+		{
+			name:             "Unknown provider",
+			idpDescriptorURL: "https://custom-saml.example.com/sso",
+			expectedProvider: "unknown",
+		},
+		{
+			name:             "Empty URL",
+			idpDescriptorURL: "",
+			expectedProvider: "unknown",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := detectSAMLProviderType(tt.idpDescriptorURL)
+			assert.Equal(t, tt.expectedProvider, result)
+		})
+	}
 }

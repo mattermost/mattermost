@@ -29,6 +29,8 @@ describe('components/actions_menu/ActionsMenu on mobile view', () => {
         const baseProps: Omit<Props, 'intl'> = {
             post: TestHelper.getPostMock({id: 'post_id_1'}),
             teamId: 'team_id_1',
+            handleDropdownOpened: jest.fn(),
+            isMenuOpen: true,
             actions: {
                 openModal: jest.fn(),
                 openAppsModal: jest.fn(),

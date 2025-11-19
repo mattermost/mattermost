@@ -21,7 +21,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
 
@@ -105,10 +104,6 @@ func encodableError(err error) error {
 		return err
 	}
 
-	if _, ok := err.(*mysql.MySQLError); ok {
-		return err
-	}
-
 	ret := &ErrorString{
 		Err: err.Error(),
 	}
@@ -162,7 +157,6 @@ func init() {
 	gob.Register(map[string]any{})
 	gob.Register(&model.AppError{})
 	gob.Register(&pq.Error{})
-	gob.Register(&mysql.MySQLError{})
 	gob.Register(&ErrorString{})
 	gob.Register(&model.AutocompleteDynamicListArg{})
 	gob.Register(&model.AutocompleteStaticListArg{})
@@ -195,9 +189,9 @@ func (g *hooksRPCClient) Implemented() (impl []string, err error) {
 
 // Implemented replies with the names of the hooks that are implemented.
 func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
-	ifaceType := reflect.TypeOf((*Hooks)(nil)).Elem()
+	ifaceType := reflect.TypeFor[Hooks]()
 	implType := reflect.TypeOf(s.impl)
-	selfType := reflect.TypeOf(s)
+	selfType := reflect.TypeFor[*hooksRPCServer]()
 	var methods []string
 	for i := 0; i < ifaceType.NumMethod(); i++ {
 		method := ifaceType.Method(i)
@@ -494,6 +488,10 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 	return nil
 }
 
+// PluginHTTPStream - Streaming version of PluginHTTP that uses MuxBroker for streaming request/response bodies.
+// This avoids buffering large payloads in memory.
+
+// Legacy buffered structs (kept for backward compatibility with old servers)
 type Z_PluginHTTPArgs struct {
 	Request     *HTTPRequestSubset
 	RequestBody []byte
@@ -504,7 +502,116 @@ type Z_PluginHTTPReturns struct {
 	ResponseBody []byte
 }
 
+// New streaming structs
+type Z_PluginHTTPStreamArgs struct {
+	ResponseBodyStream uint32
+	Request            *HTTPRequestSubset
+	RequestBodyStream  uint32
+}
+
+type Z_PluginHTTPStreamReturns struct {
+	StatusCode int
+	Header     http.Header
+}
+
 func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
+	// Try to use the streaming version first (if server supports it)
+	// Fall back to buffered version if not available (signaled by nil)
+	response, err := g.pluginHTTPStream(request)
+	if err != nil {
+		// If we error for some other reason other than stream not being
+		// implemented just report and fail
+		log.Print(err.Error())
+		return nil
+	}
+	if response != nil {
+		return response
+	}
+
+	// Fallback to buffered version
+	return g.pluginHTTPBuffered(request)
+}
+
+// pluginHTTPStream attempts to use the new streaming endpoint
+func (g *apiRPCClient) pluginHTTPStream(request *http.Request) (*http.Response, error) {
+	// Set up request body stream
+	requestBodyStreamId := uint32(0)
+	if request.Body != nil {
+		requestBodyStreamId = g.muxBroker.NextId()
+		go func() {
+			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			if err != nil {
+				log.Printf("Plugin failed to accept request body connection for PluginHTTPStream: %s", err.Error())
+				return
+			}
+			defer bodyConnection.Close()
+			serveIOReader(request.Body, bodyConnection)
+		}()
+	}
+
+	// Set up response body stream
+	responseBodyStreamId := g.muxBroker.NextId()
+	responsePipe := make(chan io.ReadCloser, 1)
+
+	go func() {
+		connection, err := g.muxBroker.Accept(responseBodyStreamId)
+		if err != nil {
+			log.Printf("Plugin failed to accept response body connection for PluginHTTPStream: %s", err.Error())
+			responsePipe <- nil
+			return
+		}
+		// Don't close connection here - it will be closed when response body is read
+		responsePipe <- connectIOReader(connection)
+	}()
+
+	forwardedRequest := &HTTPRequestSubset{
+		Method:     request.Method,
+		URL:        request.URL,
+		Proto:      request.Proto,
+		ProtoMajor: request.ProtoMajor,
+		ProtoMinor: request.ProtoMinor,
+		Header:     request.Header,
+		Host:       request.Host,
+		RemoteAddr: request.RemoteAddr,
+		RequestURI: request.RequestURI,
+	}
+
+	_args := &Z_PluginHTTPStreamArgs{
+		ResponseBodyStream: responseBodyStreamId,
+		Request:            forwardedRequest,
+		RequestBodyStream:  requestBodyStreamId,
+	}
+
+	_returns := &Z_PluginHTTPStreamReturns{}
+	if err := g.client.Call("Plugin.PluginHTTPStream", _args, _returns); err != nil {
+		// If the method doesn't exist, return nil to trigger fallback
+		if err.Error() == "rpc: can't find method Plugin.PluginHTTPStream" {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", err)
+	}
+
+	// Wait for response body reader
+	responseBody := <-responsePipe
+	if responseBody == nil {
+		return nil, fmt.Errorf("Failed to get response body stream for PluginHTTPStream")
+	}
+
+	// Create response with streamed body
+	response := &http.Response{
+		StatusCode: _returns.StatusCode,
+		Header:     _returns.Header,
+		Body:       responseBody,
+		Proto:      request.Proto,
+		ProtoMajor: request.ProtoMajor,
+		ProtoMinor: request.ProtoMinor,
+	}
+
+	return response, nil
+}
+
+// pluginHTTPBuffered is the original buffered implementation
+func (g *apiRPCClient) pluginHTTPBuffered(request *http.Request) *http.Response {
 	forwardedRequest := &HTTPRequestSubset{
 		Method:     request.Method,
 		URL:        request.URL,
@@ -544,6 +651,56 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 	return _returns.Response
 }
 
+func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z_PluginHTTPStreamReturns) error {
+	responseConnection, err := s.muxBroker.Dial(args.ResponseBodyStream)
+	if err != nil {
+		return encodableError(fmt.Errorf("can't connect to remote response body stream: %w", err))
+	}
+
+	// Connect to request body stream
+	r := args.Request
+	if args.RequestBodyStream != 0 {
+		requestConnection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		if err != nil {
+			return encodableError(fmt.Errorf("can't connect to remote request body stream: %w", err))
+		}
+		r.Body = connectIOReader(requestConnection)
+	} else {
+		r.Body = io.NopCloser(&bytes.Buffer{})
+	}
+	defer r.Body.Close()
+
+	httpReq := r.GetHTTPRequest()
+
+	// Call the PluginHTTP implementation
+	if hook, ok := s.impl.(interface {
+		PluginHTTP(request *http.Request) *http.Response
+	}); ok {
+		response := hook.PluginHTTP(httpReq)
+		if response != nil {
+			returns.StatusCode = response.StatusCode
+			returns.Header = response.Header
+
+			// Connect to response body stream and stream the response body
+			go func() {
+				if response.Body != nil {
+					// Stream the response body through the connection
+					if _, err := io.Copy(responseConnection, response.Body); err != nil {
+						log.Printf("error streaming response body: %s", err.Error())
+					}
+					response.Body.Close()
+				}
+				responseConnection.Close()
+			}()
+		}
+	} else {
+		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))
+	}
+
+	return nil
+}
+
+// Server-side handler for old buffered PluginHTTP (for backward compatibility)
 func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
 	args.Request.Body = io.NopCloser(bytes.NewBuffer(args.RequestBody))
 
@@ -878,6 +1035,62 @@ func (s *apiRPCServer) LogError(args *Z_LogErrorArgs, returns *Z_LogErrorReturns
 		hook.LogError(args.A, args.B...)
 	} else {
 		return encodableError(fmt.Errorf("API LogError called but not implemented"))
+	}
+	return nil
+}
+
+type Z_LogAuditRecArgs struct {
+	A *model.AuditRecord
+}
+
+type Z_LogAuditRecReturns struct {
+}
+
+// Custom audit logging methods with gob safety checks
+func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord) {
+	gobSafeRec := makeAuditRecordGobSafe(*rec)
+	_args := &Z_LogAuditRecArgs{&gobSafeRec}
+	_returns := &Z_LogAuditRecReturns{}
+	if err := g.client.Call("Plugin.LogAuditRec", _args, _returns); err != nil {
+		log.Printf("RPC call to LogAuditRec API failed: %s", err.Error())
+	}
+}
+
+func (s *apiRPCServer) LogAuditRec(args *Z_LogAuditRecArgs, returns *Z_LogAuditRecReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogAuditRec(rec *model.AuditRecord)
+	}); ok {
+		hook.LogAuditRec(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API LogAuditRec called but not implemented"))
+	}
+	return nil
+}
+
+type Z_LogAuditRecWithLevelArgs struct {
+	A *model.AuditRecord
+	B mlog.Level
+}
+
+type Z_LogAuditRecWithLevelReturns struct {
+}
+
+func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	gobSafeRec := makeAuditRecordGobSafe(*rec)
+	_args := &Z_LogAuditRecWithLevelArgs{&gobSafeRec, level}
+	_returns := &Z_LogAuditRecWithLevelReturns{}
+	if err := g.client.Call("Plugin.LogAuditRecWithLevel", _args, _returns); err != nil {
+		log.Printf("RPC call to LogAuditRecWithLevel API failed: %s", err.Error())
+	}
+}
+
+func (s *apiRPCServer) LogAuditRecWithLevel(args *Z_LogAuditRecWithLevelArgs, returns *Z_LogAuditRecWithLevelReturns) error {
+	if hook, ok := s.impl.(interface {
+		LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+	}); ok {
+		hook.LogAuditRecWithLevel(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API LogAuditRecWithLevel called but not implemented"))
 	}
 	return nil
 }

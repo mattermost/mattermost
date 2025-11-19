@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/admin_console/content_flagging/user_multiselector/UserProfilePill should render user profile pill with avatar and display name 1`] = `
+<div>
+  <div
+    class="UserProfilePill"
+  >
+    <img
+      alt="testuser profile image"
+      class="Avatar Avatar-xxs"
+      loading="lazy"
+      src="/api/v4/users/user-id-1/image?_=0"
+    />
+    Test User
+    <div
+      class="Remove"
+    >
+      <span>
+        <svg
+          aria-label="Close Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 16 16"
+          width="16px"
+        >
+          <path
+            d="m 8,0 c 4.424,0 8,3.576 8,8 0,4.424 -3.576,8 -8,8 C 3.576,16 0,12.424 0,8 0,3.576 3.576,0 8,0 Z M 10.872,4 8,6.872 5.128,4 4,5.128 6.872,8 4,10.872 5.128,12 8,9.128 10.872,12 12,10.872 9.128,8 12,5.128 Z"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
+</div>
+`;

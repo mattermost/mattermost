@@ -9,13 +9,13 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
 func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getSharedChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/remote_info/{remote_id:[A-Za-z0-9]+}", api.APISessionRequired(getRemoteClusterInfo)).Methods(http.MethodGet)
 	api.BaseRoutes.SharedChannels.Handle("/{channel_id:[A-Za-z0-9]+}/remotes", api.APISessionRequired(getSharedChannelRemotes)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannels.Handle("/users/{user_id:[A-Za-z0-9]+}/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(canUserDirectMessage)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
@@ -171,11 +171,11 @@ func inviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("inviteRemoteClusterToChannel", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventInviteRemoteClusterToChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
-	audit.AddEventParameter(auditRec, "user_id", c.AppContext.Session().UserId)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.AppContext.Session().UserId)
 
 	if err := c.App.InviteRemoteToChannel(c.Params.ChannelId, c.Params.RemoteId, c.AppContext.Session().UserId, true); err != nil {
 		if appErr, ok := err.(*model.AppError); ok {
@@ -222,10 +222,10 @@ func uninviteRemoteClusterToChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("uninviteRemoteClusterToChannel", audit.Fail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUninviteRemoteClusterToChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameter(auditRec, "remote_id", c.Params.RemoteId)
-	audit.AddEventParameter(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
 	hasRemote, err := c.App.HasRemote(c.Params.ChannelId, c.Params.RemoteId)
 	if err != nil {
@@ -293,5 +293,59 @@ func getSharedChannelRemotes(c *Context, w http.ResponseWriter, r *http.Request)
 
 	if err := json.NewEncoder(w).Encode(remoteInfos); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireOtherUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Check if the user can see the other user at all
+	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if !canSee {
+		result := map[string]bool{"can_dm": false}
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
+		}
+		return
+	}
+
+	canDM := true
+
+	// Get shared channel sync service for remote user checks
+	scs := c.App.Srv().GetSharedChannelSyncService()
+	if scs != nil {
+		otherUser, otherErr := c.App.GetUser(c.Params.OtherUserId)
+		if otherErr != nil {
+			canDM = false
+		} else {
+			originalRemoteId := otherUser.GetOriginalRemoteID()
+
+			// Check if the other user is from a remote cluster
+			if otherUser.IsRemote() {
+				// If original remote ID is unknown, fall back to current RemoteId as best guess
+				if originalRemoteId == model.UserOriginalRemoteIdUnknown {
+					originalRemoteId = otherUser.GetRemoteID()
+				}
+
+				// For DMs, we require a direct connection to the ORIGINAL remote cluster
+				isDirectlyConnected := scs.IsRemoteClusterDirectlyConnected(originalRemoteId)
+
+				if !isDirectlyConnected {
+					canDM = false
+				}
+			}
+		}
+	}
+
+	result := map[string]bool{"can_dm": canDM}
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
 	}
 }

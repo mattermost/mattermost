@@ -6,9 +6,8 @@ import {BrowserRouter} from 'react-router-dom';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {
+    act,
     renderWithContext,
     screen,
     waitFor,
@@ -18,14 +17,6 @@ import {ModalIdentifiers} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import StartTrialFormModal from '.';
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: jest.fn(),
-    };
-});
 
 describe('components/start_trial_form_modal/start_trial_form_modal', () => {
     const state: DeepPartial<GlobalState> = {
@@ -74,39 +65,41 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
     };
 
     test('should match snapshot', async () => {
-        const wrapper = await waitFor(() => {
-            return renderWithContext(
-                <BrowserRouter>
-                    <StartTrialFormModal {...props}/>
-                </BrowserRouter>,
-                state,
-            );
-        });
-        expect(wrapper!).toMatchSnapshot();
+        const wrapper = renderWithContext(
+            <BrowserRouter>
+                <StartTrialFormModal {...props}/>
+            </BrowserRouter>,
+            state,
+        );
+
+        await act(() => {});
+
+        expect(wrapper).toMatchSnapshot();
     });
 
-    test('should pre-fill email, fire trackEvent', () => {
-        waitFor(() => {
-            renderWithContext(
-                <BrowserRouter>
-                    <StartTrialFormModal {...props}/>
-                </BrowserRouter>,
-                state,
-            );
+    test('should pre-fill email', async () => {
+        renderWithContext(
+            <BrowserRouter>
+                <StartTrialFormModal {...props}/>
+            </BrowserRouter>,
+            state,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByDisplayValue('test@mattermost.com')).toBeInTheDocument();
         });
-        expect(screen.getByDisplayValue('test@mattermost.com')).toBeInTheDocument();
-        expect(trackEvent).toHaveBeenCalled();
     });
 
-    test('Start trial button should be disabled on load', () => {
-        waitFor(() => {
-            renderWithContext(
-                <BrowserRouter>
-                    <StartTrialFormModal {...props}/>
-                </BrowserRouter>,
-                state,
-            );
+    test('Start trial button should be disabled on load', async () => {
+        renderWithContext(
+            <BrowserRouter>
+                <StartTrialFormModal {...props}/>
+            </BrowserRouter>,
+            state,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Start trial'})).toBeDisabled();
         });
-        expect(screen.getByRole('button', {name: 'Start trial'})).toBeDisabled();
     });
 });

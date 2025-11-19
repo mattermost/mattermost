@@ -19,14 +19,16 @@ type Props = {
 };
 
 const AdminPanelTogglable = ({
-    className,
-    open,
+    className = '',
+    open = true,
     subtitle,
     title,
     children,
     id,
     onToggle,
 }: Props) => {
+    // The content is rendered in two divs: an outer one that uses CSS grid to trick the browser into animating height
+    // and an inner one to prevent the content from overflowing the grid.
     return (
         <AdminPanel
             className={'AdminPanelTogglable ' + className + (open ? '' : ' closed')}
@@ -36,14 +38,13 @@ const AdminPanelTogglable = ({
             onHeaderClick={onToggle}
             button={<AccordionToggleIcon/>}
         >
-            {children}
+            <div className='AdminPanelTogglableContent'>
+                <div className='AdminPanelTogglableContentInner'>
+                    {children}
+                </div>
+            </div>
         </AdminPanel>
     );
-};
-
-AdminPanelTogglable.defaultProps = {
-    className: '',
-    open: true,
 };
 
 export default AdminPanelTogglable;

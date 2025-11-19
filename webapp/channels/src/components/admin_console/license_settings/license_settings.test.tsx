@@ -43,7 +43,6 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         enterpriseReady: true,
         totalUsers: 10,
         environmentConfig: {},
-        isMySql: false,
         actions: {
             getLicenseConfig: jest.fn(),
             uploadLicense: jest.fn(),
@@ -57,6 +56,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             openModal: jest.fn(),
             getFilteredUsersStats: jest.fn(),
             getServerLimits: jest.fn(),
+            isAllowedToUpgradeToEnterprise: jest.fn().mockImplementation(() => Promise.resolve({})),
         },
     };
 
@@ -106,17 +106,20 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
     });
 
     test('upgrade to enterprise click', async () => {
+        const promise = Promise.resolve({});
         const actions = {
             ...defaultProps.actions,
             getLicenseConfig: jest.fn(),
             upgradeToE0: jest.fn(),
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
+            isAllowedToUpgradeToEnterprise: jest.fn().mockImplementation(() => promise),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
         const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
+        await promise;
 
-        expect(actions.getLicenseConfig).toBeCalledTimes(1);
-        expect(actions.upgradeToE0Status).toBeCalledTimes(1);
+        expect(actions.getLicenseConfig).toHaveBeenCalledTimes(1);
+        expect(actions.upgradeToE0Status).toHaveBeenCalledTimes(1);
         actions.upgradeToE0Status = jest.fn().mockImplementation(() => Promise.resolve({percentage: 1, error: null}));
 
         const instance = wrapper.instance();
@@ -126,8 +129,8 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         expect(wrapper.state('upgradingPercentage')).toBe(0);
 
         await instance.handleUpgrade({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLButtonElement>);
-        expect(actions.upgradeToE0).toBeCalledTimes(1);
-        expect(actions.upgradeToE0Status).toBeCalledTimes(1);
+        expect(actions.upgradeToE0).toHaveBeenCalledTimes(1);
+        expect(actions.upgradeToE0Status).toHaveBeenCalledTimes(1);
         wrapper.update();
         expect(wrapper.update().state('upgradingPercentage')).toBe(1);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
