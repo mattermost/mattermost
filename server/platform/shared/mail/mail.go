@@ -15,7 +15,11 @@ import (
 	"slices"
 	"time"
 
-	"github.com/jaytaylor/html2text"
+	"github.com/JohannesKaufmann/html-to-markdown/v2/converter"
+	"github.com/JohannesKaufmann/html-to-markdown/v2/plugin/base"
+	"github.com/JohannesKaufmann/html-to-markdown/v2/plugin/commonmark"
+	"github.com/JohannesKaufmann/html-to-markdown/v2/plugin/strikethrough"
+	"github.com/JohannesKaufmann/html-to-markdown/v2/plugin/table"
 	"github.com/pkg/errors"
 	gomail "gopkg.in/mail.v2"
 
@@ -293,10 +297,10 @@ func sendMail(c smtpClient, mail mailData, date time.Time, config *SMTPConfig) e
 	mlog.Info("sending mail", mlog.String("to", mail.smtpTo), mlog.String("subject", mail.subject))
 
 	htmlMessage := mail.htmlBody
-
-	txtBody, err := html2text.FromString(mail.htmlBody)
+	conv := converter.NewConverter(converter.WithPlugins(base.NewBasePlugin(), commonmark.NewCommonmarkPlugin(), table.NewTablePlugin(), strikethrough.NewStrikethroughPlugin()))
+	txtBody, err := conv.ConvertString(htmlMessage)
 	if err != nil {
-		mlog.Warn("Unable to convert html body to text", mlog.Err(err))
+		mlog.Warn("Unable to convert html body to markdown", mlog.Err(err))
 		txtBody = ""
 	}
 
