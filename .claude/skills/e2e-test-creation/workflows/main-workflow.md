@@ -1,15 +1,23 @@
-# Main Workflow: 3-Stage Pipeline
+# Main Workflow: Strict 10-Step Pipeline with Mandatory Zephyr
 
 ## Overview
 
-This workflow creates new E2E tests from scratch, syncs them with Zephyr test management, and generates full Playwright automation code.
+This workflow creates new E2E tests from scratch with **mandatory** Zephyr synchronization. All 10 steps must be completed - no optional steps.
+
+**Key Principles:**
+- ❌ **NO optional steps** - All steps are mandatory
+- ❌ **NO skipping test execution** - Tests must pass before proceeding
+- ❌ **NO Zephyr bypass** - Zephyr sync is required
+- ✅ **Strict validation** - Each stage validates before proceeding
+- ✅ **Auto-healing** - Tests are fixed until they pass
+- ✅ **Status updates** - Zephyr updated to "Active" only after tests pass
 
 ## Trigger
 
 User requests to create new E2E tests for a feature:
-- "Create tests for login feature"
-- "Generate E2E tests for channel creation"
-- "I need tests for the messaging functionality"
+- "Create tests for post reactions"
+- "Create E2E tests for channel sidebar"
+- "Generate tests for login feature"
 
 ## Workflow Diagram
 
@@ -67,12 +75,20 @@ User requests to create new E2E tests for a feature:
 │  │  Step 3D: Update Files                                     │  │
 │  │    - Overwrite skeleton files with full code               │  │
 │  │                                                             │  │
-│  │  Step 3E: (Optional) Execute Tests                         │  │
-│  │    - Run tests locally                                     │  │
-│  │    - Verify they pass                                      │  │
+│  │  Step 3E: EXECUTE TESTS (MANDATORY)                        │  │
+│  │    - Run: npx playwright test <file> --project=chrome     │  │
+│  │    - MUST verify tests pass                               │  │
+│  │    - If failing → invoke Healer Agent                     │  │
 │  │                                                             │  │
-│  │  Step 3F: Update Zephyr Metadata                           │  │
-│  │    - Mark as "Automated"                                   │  │
+│  │  Step 3F: HEAL TESTS UNTIL PASSING (if needed)            │  │
+│  │    - Analyze failures                                      │  │
+│  │    - Fix selector/timing/assertion issues                 │  │
+│  │    - Re-run tests                                          │  │
+│  │    - Repeat until ALL tests pass                          │  │
+│  │                                                             │  │
+│  │  Step 3G: UPDATE ZEPHYR STATUS TO "ACTIVE"                │  │
+│  │    - Update status: "Active"                               │  │
+│  │    - Add automation metadata                               │  │
 │  │    - Add file path                                         │  │
 │  │    - Add timestamp                                         │  │
 │  └────────────────────────────────────────────────────────────┘  │
@@ -396,11 +412,12 @@ Summary:
 - **Invalid file path**: Fallback to default location
 
 ### Stage 3 Errors
-- **Zephyr API failure**: Retry with exponential backoff (3 attempts)
-- **Placeholder replacement fails**: Rollback and report
-- **Code generation fails**: Report error for specific test, continue with others
-- **Test execution fails**: Log failure but continue (don't block)
-- **Zephyr update fails**: Warn but consider operation successful
+- **Zephyr API failure**: Retry with exponential backoff (3 attempts), then abort
+- **Placeholder replacement fails**: Rollback and report error, abort workflow
+- **Code generation fails**: Report error, attempt fix, retry once, then abort if still failing
+- **Test execution fails**: ⚠️ **MANDATORY** - Invoke Healer Agent, fix issues, re-run until passing
+- **Healing fails after 3 attempts**: Report to user, request manual intervention
+- **Zephyr update fails**: Retry 3 times, then warn user but tests remain valid locally
 
 ## Configuration Requirements
 
@@ -444,3 +461,203 @@ This workflow extends the existing `e2e-test-creation` skill without modifying i
 
 ```
 User: Create tests for the login feature
+---
+
+## Detailed 10-Step Process
+
+### Step 1: Launch Browser via MCP
+- Use Playwright MCP to launch real browser
+- Navigate to Mattermost application
+- Take screenshots for documentation
+
+### Step 2: Explore UI
+- Interact with feature UI
+- Discover actual selectors from DOM
+- Identify data-testid attributes, ARIA labels
+- Document timing and async behavior
+
+### Step 3: Discover Actual Selectors
+- Inspect DOM elements
+- Extract data-testid, aria-label, role attributes
+- Validate selectors work correctly
+- Document all discovered selectors
+
+### Step 4: Create Skeleton Tests
+- Generate .spec.ts files (one per scenario)
+- Include JSDoc with @objective and @test steps
+- Use MM-TXXX placeholder in test title
+- Leave test body empty (implementation comes later)
+
+**Example Skeleton:**
+```typescript
+/**
+ * @objective Verify user can add reaction to post
+ * @test steps
+ *  1. Navigate to channel with existing post
+ *  2. Hover over post to reveal reaction button
+ *  3. Click reaction button
+ *  4. Select emoji from picker
+ *  5. Verify reaction appears on post
+ */
+test('MM-TXXX user can add reaction to post', {tag: '@messaging'}, async ({pw}) => {
+  // implementation to be generated after Zephyr sync
+});
+```
+
+### Step 5: User Confirmation
+- Show generated skeleton files to user
+- Ask: "Should I create Zephyr Test Cases for these scenarios now?"
+- Wait for explicit "yes" confirmation
+- If "no", stop here - files remain with MM-TXXX
+
+### Step 6: Push to Zephyr (Create Test Cases)
+- For each skeleton file, create test case in Zephyr
+- Use Zephyr API to create cases
+- Retrieve actual test keys (MM-T1234, MM-T1235, etc.)
+- Store mapping: skeleton file → Zephyr key
+
+**Zephyr Test Case Fields:**
+- Name: From test title (without MM-TXXX)
+- Objective: From @objective JSDoc
+- Test Steps: From @test steps JSDoc
+- Status: Draft (not Active yet - tests haven't passed)
+- Folder: From configuration
+- Labels: playwright-e2e, ai-generated
+
+### Step 7: Generate Full Playwright Code
+- Use existing Generator Agent
+- Apply Mattermost patterns (pw fixture, page objects)
+- Use discovered selectors from Step 3
+- Generate complete test implementation
+- Replace empty test body with full code
+
+**Example Full Code:**
+```typescript
+/**
+ * @objective Verify user can add reaction to post
+ * @test steps
+ *  1. Navigate to channel with existing post
+ *  2. Hover over post to reveal reaction button
+ *  3. Click reaction button
+ *  4. Select emoji from picker
+ *  5. Verify reaction appears on post
+ * @zephyr MM-T5928
+ */
+test('MM-T5928 user can add reaction to post', {tag: '@messaging'}, async ({pw}) => {
+    const {user, team} = await pw.initSetup();
+    const {channelsPage} = await pw.testBrowser.login(user);
+    
+    // # Navigate to channel
+    await channelsPage.goto(team.name);
+    
+    // # Create a test post
+    const postText = 'Test post for reactions';
+    await channelsPage.postMessage(postText);
+    
+    // # Hover over post to reveal actions
+    const post = channelsPage.page.locator(`text=${postText}`).locator('..');
+    await post.hover();
+    
+    // # Click reaction button
+    await post.locator('[data-testid="post-reaction-button"]').click();
+    
+    // # Select emoji
+    await channelsPage.page.locator('[data-testid="emoji-picker"]').waitFor();
+    await channelsPage.page.locator('[data-emoji-name="thumbsup"]').click();
+    
+    // * Verify reaction appears
+    await expect(post.locator('[data-testid="reaction-thumbsup"]')).toBeVisible();
+    await expect(post.locator('[data-testid="reaction-count"]')).toHaveText('1');
+});
+```
+
+### Step 8: Place in ai-assisted Directory
+- Write files to: `specs/functional/ai-assisted/{category}/`
+- Category based on feature area:
+  - channels/ - Channel-related tests
+  - messaging/ - Message, post, thread tests
+  - system_console/ - Admin console tests
+- Use descriptive filenames: `{feature}_{action}.spec.ts`
+
+### Step 9: Run Tests with Chrome
+- Execute: `npx playwright test <file> --project=chrome`
+- Capture output (stdout, stderr)
+- Check exit code
+- If exit code !== 0, tests failed → go to Step 10
+
+**Example Execution:**
+```bash
+npx playwright test specs/functional/ai-assisted/messaging/post_reactions.spec.ts --project=chrome
+
+Running 2 tests using 1 worker
+  ✓ MM-T5928 user can add reaction to post (3.2s)
+  ✓ MM-T5929 user can remove reaction from post (2.8s)
+
+  2 passed (6s)
+```
+
+### Step 10: Fix Tests Until Passing
+**IF tests fail:**
+- Invoke Healer Agent
+- Analyze failure logs
+- Common issues:
+  - Selector not found → Use MCP to discover updated selector
+  - Timing issue → Add proper waits
+  - Assertion failed → Fix expected value
+- Apply fixes
+- Re-run tests
+- Repeat until all tests pass (max 3 heal attempts)
+- If still failing after 3 attempts → alert user
+
+**THEN once all tests pass:**
+- Update Zephyr status to "Active"
+- Add automation metadata:
+  - automationStatus: "Automated"
+  - automationFilePath: "specs/functional/ai-assisted/..."
+  - automatedOn: timestamp
+  - automationFramework: "Playwright"
+- Add label: `playwright-automated`
+
+---
+
+## Success Criteria
+
+A workflow is considered successful when:
+1. ✅ All 10 steps completed
+2. ✅ All generated tests pass
+3. ✅ Zephyr cases created with actual MM-T keys
+4. ✅ Files contain full implementation (not skeletons)
+5. ✅ Zephyr status updated to "Active"
+6. ✅ All tests run with `--project=chrome`
+
+---
+
+## Validation Checkpoints
+
+### After Step 4:
+- [ ] Skeleton files exist
+- [ ] Files contain JSDoc with @objective and @test steps
+- [ ] Test titles use MM-TXXX placeholder
+- [ ] Test bodies are empty or have comment
+
+### After Step 6:
+- [ ] Zephyr API returned test keys
+- [ ] Mapping file created (skeleton → Zephyr key)
+- [ ] All MM-TXXX replaced with actual keys
+
+### After Step 7:
+- [ ] Files contain full Playwright code
+- [ ] Tests use pw fixture
+- [ ] Tests use discovered selectors
+- [ ] Tests follow Mattermost patterns
+
+### After Step 9:
+- [ ] Tests executed successfully
+- [ ] Exit code = 0
+- [ ] All tests marked as passed
+
+### After Step 10:
+- [ ] Zephyr status = "Active"
+- [ ] Automation metadata added
+- [ ] File paths correct in Zephyr
+

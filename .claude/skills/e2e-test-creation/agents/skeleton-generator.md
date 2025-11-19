@@ -50,8 +50,10 @@ Test plan from existing planner agent:
 
 ### File Structure
 
+**IMPORTANT**: All AI-generated tests must go in `specs/functional/ai-assisted/{category}/`
+
 ```
-e2e-tests/playwright/specs/functional/auth/
+e2e-tests/playwright/specs/functional/ai-assisted/auth/
 ├── login_success.spec.ts
 └── login_failure.spec.ts
 ```
