@@ -782,9 +782,9 @@ test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw,
 });
 
 /**
- * @objective Verify that creating an 11th level page fails due to max depth limit
+ * @objective Verify that creating a 12th level page fails due to max depth limit (max depth is 10, allowing levels 1-11)
  */
-test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('enforces max hierarchy depth - 12th level fails', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
@@ -794,7 +794,7 @@ test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async (
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Max Depth Wiki ${pw.random.id()}`);
 
-    // # Create 10-level hierarchy through UI (maximum allowed)
+    // # Create 11-level hierarchy through UI (maximum allowed - depth 0-10)
     const level1 = await createPageThroughUI(page, 'Level 1', 'Level 1 content');
     const level2 = await createChildPageThroughContextMenu(page, level1.id!, 'Level 2', 'Level 2 content');
     const level3 = await createChildPageThroughContextMenu(page, level2.id!, 'Level 3', 'Level 3 content');
@@ -805,20 +805,21 @@ test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async (
     const level8 = await createChildPageThroughContextMenu(page, level7.id!, 'Level 8', 'Level 8 content');
     const level9 = await createChildPageThroughContextMenu(page, level8.id!, 'Level 9', 'Level 9 content');
     const level10 = await createChildPageThroughContextMenu(page, level9.id!, 'Level 10', 'Level 10 content');
+    const level11 = await createChildPageThroughContextMenu(page, level10.id!, 'Level 11', 'Level 11 content');
 
-    // # Attempt to create 11th level through UI (should fail on publish due to server-side validation)
-    const level10Node = page.locator(`[data-testid="page-tree-node"][data-page-id="${level10.id}"]`);
-    const menuButton = level10Node.locator('[data-testid="page-tree-node-menu-button"]');
+    // # Attempt to create 12th level through UI (should fail on publish due to server-side validation)
+    const level11Node = page.locator(`[data-testid="page-tree-node"][data-page-id="${level11.id}"]`);
+    const menuButton = level11Node.locator('[data-testid="page-tree-node-menu-button"]');
     await menuButton.click();
 
     const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
     await addChildButton.click();
-    await fillCreatePageModal(page, 'Level 11');
+    await fillCreatePageModal(page, 'Level 12');
 
     // # Wait for draft editor to appear
     const editor = await getEditorAndWait(page);
     await editor.click();
-    await page.keyboard.type('Level 11 content');
+    await page.keyboard.type('Level 12 content');
 
     // # Attempt to publish (server should reject due to max depth)
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
@@ -1147,6 +1148,7 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
+
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki through UI
@@ -1190,7 +1192,7 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
         await titleButton.click();
 
         // Wait for navigation
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(1000);
 
         // * Verify order is still the same
         const currentOrder = await getPageOrder();

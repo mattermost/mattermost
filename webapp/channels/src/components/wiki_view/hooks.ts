@@ -27,6 +27,26 @@ type UseWikiPageDataResult = {
 };
 
 /**
+ * Extracts and builds additionalProps from a draft's props, preserving important metadata
+ * that must persist across autosaves (page_parent_id, page_status, original_page_update_at).
+ */
+function extractDraftAdditionalProps(draft: PostDraft): Record<string, any> | undefined {
+    const additionalProps: Record<string, any> = {};
+
+    if (draft.props?.page_parent_id) {
+        additionalProps.page_parent_id = draft.props.page_parent_id;
+    }
+    if (draft.props?.page_status) {
+        additionalProps.page_status = draft.props.page_status;
+    }
+    if (draft.props?.original_page_update_at) {
+        additionalProps.original_page_update_at = draft.props.original_page_update_at;
+    }
+
+    return Object.keys(additionalProps).length > 0 ? additionalProps : undefined;
+}
+
+/**
  * Loads page or draft data for the wiki view and handles navigation
  * Phase 1 Refactor: Removed editingDraftId state - now using draftId from route params only
  */
@@ -178,6 +198,15 @@ type UseWikiPageActionsResult = {
     handleTitleChange: (title: string) => void;
     handleContentChange: (content: string) => void;
     handleDraftStatusChange: (status: string) => void;
+    conflictModal: {
+        show: boolean;
+        currentPage: Post | null;
+        draftContent: string;
+        onViewChanges: () => void;
+        onCopyContent: () => void;
+        onOverwrite: () => void;
+        onCancel: () => void;
+    };
 };
 
 /**
@@ -202,6 +231,11 @@ export function useWikiPageActions(
     const previousDraftRef = useRef<PostDraft | null>(null);
     const draftGenerationRef = useRef(0);
     const currentDraftIdRef = useRef<string | null>(null);
+
+    // Conflict modal state
+    const [showConflictModal, setShowConflictModal] = useState(false);
+    const [conflictPageData, setConflictPageData] = useState<Post | null>(null);
+    const conflictContentRef = useRef<string>('');
 
     // Initialize refs when draft changes. We deliberately use `useLayoutEffect`
     // instead of `useEffect` so that any pending changes to the **previous**
@@ -237,16 +271,7 @@ export function useWikiPageActions(
             const prevContent = latestContentRef.current;
             const prevTitle = latestTitleRef.current;
             const pageIdFromDraft = prevDraft.props?.page_id as string | undefined;
-            const pageParentIdFromDraft = prevDraft.props?.page_parent_id;
-            const pageStatusFromDraft = prevDraft.props?.page_status as string | undefined;
-
-            const additionalProps: Record<string, any> = {};
-            if (pageParentIdFromDraft) {
-                additionalProps.page_parent_id = pageParentIdFromDraft;
-            }
-            if (pageStatusFromDraft) {
-                additionalProps.page_status = pageStatusFromDraft;
-            }
+            const additionalProps = extractDraftAdditionalProps(prevDraft);
 
             dispatch(savePageDraft(
                 channelId,
@@ -255,7 +280,7 @@ export function useWikiPageActions(
                 prevContent,
                 prevTitle,
                 pageIdFromDraft,
-                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
+                additionalProps,
             ));
         } else if (autosaveTimeoutRef.current && !currentDraft) {
             // Transitioning to null (draft deleted/published) - just cancel the timeout
@@ -288,7 +313,15 @@ export function useWikiPageActions(
             return;
         }
 
-        dispatch(openPageInEditMode(channelId, wikiId, currentPage, history, location));
+        const result = await dispatch(openPageInEditMode(channelId, wikiId, currentPage, history, location));
+
+        // Check if unsaved draft was detected
+        if (result.error && result.error.id === 'api.page.edit.unsaved_draft_exists') {
+            // Return error data to trigger modal in component
+            return result;
+        }
+
+        return result;
     }, [channelId, pageId, wikiId, currentPage, dispatch, history, location]);
 
     const handleTitleChange = useCallback((newTitle: string) => {
@@ -307,8 +340,7 @@ export function useWikiPageActions(
         const draftId = currentDraft.rootId;
         const content = latestContentRef.current || currentDraft.message || '';
         const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
-        const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
-        const pageStatusFromDraft = currentDraft.props?.page_status as string | undefined;
+        const additionalProps = extractDraftAdditionalProps(currentDraft);
         const capturedTitle = newTitle;
         const capturedGeneration = draftGenerationRef.current;
 
@@ -318,14 +350,6 @@ export function useWikiPageActions(
                 return;
             }
 
-            const additionalProps: Record<string, any> = {};
-            if (pageParentIdFromDraft) {
-                additionalProps.page_parent_id = pageParentIdFromDraft;
-            }
-            if (pageStatusFromDraft) {
-                additionalProps.page_status = pageStatusFromDraft;
-            }
-
             dispatch(savePageDraft(
                 channelId,
                 wikiId,
@@ -333,7 +357,7 @@ export function useWikiPageActions(
                 content,
                 capturedTitle,
                 pageIdFromDraft,
-                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
+                additionalProps,
             ));
         }, 500);
     }, [channelId, wikiId, currentDraft, dispatch]);
@@ -368,8 +392,7 @@ export function useWikiPageActions(
         const draftId = capturedDraft.rootId;
         const title = latestTitleRef.current || capturedDraft.props?.title || '';
         const pageIdFromDraft = capturedDraft.props?.page_id as string | undefined;
-        const pageParentIdFromDraft = capturedDraft.props?.page_parent_id;
-        const pageStatusFromDraft = capturedDraft.props?.page_status as string | undefined;
+        const additionalProps = extractDraftAdditionalProps(capturedDraft);
         const capturedContent = newContent;
         const capturedChannelId = channelIdRef.current;
         const capturedWikiId = wikiIdRef.current;
@@ -381,14 +404,6 @@ export function useWikiPageActions(
                 return;
             }
 
-            const additionalProps: Record<string, any> = {};
-            if (pageParentIdFromDraft) {
-                additionalProps.page_parent_id = pageParentIdFromDraft;
-            }
-            if (pageStatusFromDraft) {
-                additionalProps.page_status = pageStatusFromDraft;
-            }
-
             dispatchRef.current(savePageDraft(
                 capturedChannelId,
                 capturedWikiId,
@@ -396,7 +411,7 @@ export function useWikiPageActions(
                 capturedContent,
                 title,
                 pageIdFromDraft,
-                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
+                additionalProps,
             ));
         }, 500);
     }, []); // Empty deps - stable function reference
@@ -454,6 +469,13 @@ export function useWikiPageActions(
             ));
 
             if (result.error) {
+                // Check if it's a conflict error
+                if (result.error.id === 'api.page.publish_draft.conflict') {
+                    conflictContentRef.current = content;
+                    setConflictPageData(result.error.data.currentPage);
+                    setShowConflictModal(true);
+                    return;
+                }
                 return;
             }
 
@@ -499,11 +521,92 @@ export function useWikiPageActions(
         ));
     }, [channelId, wikiId, draftId, currentDraft, dispatch]);
 
+    // Conflict modal handlers
+    const handleConflictViewChanges = useCallback(() => {
+        if (conflictPageData) {
+            const teamName = getTeamNameFromPath(location.pathname);
+            const pageUrl = getWikiUrl(teamName, channelId, wikiId, conflictPageData.id);
+            window.open(pageUrl, '_blank');
+        }
+    }, [conflictPageData, channelId, wikiId, location.pathname]);
+
+    const handleConflictCopyContent = useCallback(() => {
+        if (conflictContentRef.current) {
+            navigator.clipboard.writeText(conflictContentRef.current);
+        }
+        setShowConflictModal(false);
+    }, []);
+
+    const handleConflictOverwrite = useCallback(async () => {
+        try {
+            // eslint-disable-next-line no-console
+            console.log('[handleConflictOverwrite] START');
+            setShowConflictModal(false);
+
+            if (!wikiId || !currentDraft) {
+                // eslint-disable-next-line no-console
+                console.log('[handleConflictOverwrite] Missing wikiId or currentDraft');
+                return;
+            }
+
+            const content = conflictContentRef.current || latestContentRef.current || currentDraft.message || '';
+            const title = latestTitleRef.current || currentDraft.props?.title || '';
+            const pageStatus = latestStatusRef.current === null ? (currentDraft.props?.page_status as string | undefined) : latestStatusRef.current;
+            const draftRootId = currentDraft.rootId;
+            const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
+
+            // eslint-disable-next-line no-console
+            console.log('[handleConflictOverwrite] Publishing with force=true', {wikiId, draftRootId, title});
+
+            // Retry publish with force flag
+            const result = await dispatch(publishPageDraft(
+                wikiId,
+                draftRootId,
+                pageParentIdFromDraft || '',
+                title,
+                '',
+                content,
+                pageStatus,
+                true, // force = true
+            ));
+
+            // eslint-disable-next-line no-console
+            console.log('[handleConflictOverwrite] Publish result:', {hasData: !!result.data, hasError: !!result.error, error: result.error});
+
+            if (result.data) {
+                const teamName = getTeamNameFromPath(location.pathname);
+                const redirectUrl = getWikiUrl(teamName, channelId, wikiId, result.data.id);
+                // eslint-disable-next-line no-console
+                console.log('[handleConflictOverwrite] Navigating to:', redirectUrl);
+                history.replace(redirectUrl);
+            } else {
+                // eslint-disable-next-line no-console
+                console.error('[handleConflictOverwrite] Publish FAILED with error:', JSON.stringify(result.error, null, 2));
+            }
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('[handleConflictOverwrite] EXCEPTION:', error);
+        }
+    }, [wikiId, currentDraft, channelId, location.pathname, history, dispatch]);
+
+    const handleConflictCancel = useCallback(() => {
+        setShowConflictModal(false);
+    }, []);
+
     return {
         handleEdit,
         handlePublish,
         handleTitleChange,
         handleContentChange,
         handleDraftStatusChange,
+        conflictModal: {
+            show: showConflictModal,
+            currentPage: conflictPageData,
+            draftContent: conflictContentRef.current,
+            onViewChanges: handleConflictViewChanges,
+            onCopyContent: handleConflictCopyContent,
+            onOverwrite: handleConflictOverwrite,
+            onCancel: handleConflictCancel,
+        },
     };
 }

@@ -52,6 +52,7 @@ export const getPageAncestors = createSelector(
 );
 
 // Get all pages for a wiki (for hierarchy panel)
+// Filters out pages marked as deleted (post.state === 'DELETED')
 export const getPages = createSelector(
     'getPages',
     (state: GlobalState) => state.entities.posts.posts,
@@ -59,7 +60,7 @@ export const getPages = createSelector(
     (posts, pageIds) => {
         return pageIds.
             map((id) => posts[id]).
-            filter((post) => Boolean(post) && post.type === PostTypes.PAGE);
+            filter((post) => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED');
     },
 );
 

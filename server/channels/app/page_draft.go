@@ -4,7 +4,9 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -13,6 +15,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// SavePageDraftWithMetadata saves a page draft using the hybrid two-table approach:
+// - Metadata (FileIds, Props) stored in Drafts table with WikiId
+// - Content (Title, TipTap JSON) stored in PageDraftContents table
 func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftId, contentJSON, title, pageId string, props map[string]any) (*model.PageDraft, *model.AppError) {
 	rctx.Logger().Trace("Saving page draft with metadata",
 		mlog.String("user_id", userId),
@@ -35,69 +40,171 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
-	pageDraft := &model.PageDraft{
+	// Step 1: Save content to PageDraftContents table
+	pageDraftContent := &model.PageDraftContent{
 		UserId:  userId,
 		WikiId:  wikiId,
 		DraftId: draftId,
 		Title:   title,
 	}
 
-	if err := pageDraft.SetDocumentJSON(contentJSON); err != nil {
+	if err := pageDraftContent.SetDocumentJSON(contentJSON); err != nil {
 		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.invalid_content.app_error",
 			nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	savedContent, err := a.Srv().Store().PageDraftContent().Upsert(pageDraftContent)
+	if err != nil {
+		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page_content.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Step 2: Save metadata to Drafts table
 	if props == nil {
 		props = make(map[string]any)
 	}
 	if pageId != "" {
 		props["page_id"] = pageId
 	}
-	pageDraft.SetProps(props)
 
-	draft, err := a.Srv().Store().PageDraft().Upsert(pageDraft)
-	if err != nil {
-		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
+	// DEBUG: Log props before and after setting
+	rctx.Logger().Debug("[APP SavePageDraftWithMetadata] Props received", mlog.Any("props", props))
+	if originalUpdateAt, ok := props["original_page_update_at"]; ok {
+		rctx.Logger().Debug("[APP] original_page_update_at present in props", mlog.Any("value", originalUpdateAt))
+	} else {
+		rctx.Logger().Debug("[APP] original_page_update_at NOT present in props")
 	}
 
-	return draft, nil
+	draft := &model.Draft{
+		UserId:    userId,
+		WikiId:    wikiId,
+		ChannelId: channel.Id,
+		RootId:    draftId,
+		Message:   "", // Page drafts store content in PageDraftContents, not Message
+		FileIds:   []string{},
+	}
+	draft.SetProps(props)
+
+	// DEBUG: Log draft props after SetProps
+	draftProps := draft.GetProps()
+	rctx.Logger().Debug("[APP] Draft props after SetProps", mlog.Any("props", draftProps))
+	if originalUpdateAt, ok := draftProps["original_page_update_at"]; ok {
+		rctx.Logger().Debug("[APP] original_page_update_at in draft", mlog.Any("value", originalUpdateAt))
+	} else {
+		rctx.Logger().Debug("[APP] original_page_update_at NOT in draft")
+	}
+
+	savedDraft, draftErr := a.Srv().Store().Draft().UpsertPageDraft(draft)
+	if draftErr != nil {
+		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page_metadata.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(draftErr)
+	}
+
+	// Step 3: Return combined PageDraft
+	combinedDraft := &model.PageDraft{
+		UserId:    savedDraft.UserId,
+		WikiId:    savedDraft.WikiId,
+		ChannelId: savedDraft.ChannelId,
+		DraftId:   savedDraft.RootId,
+		FileIds:   savedDraft.FileIds,
+		Props:     savedDraft.GetProps(),
+		CreateAt:  savedDraft.CreateAt,
+		UpdateAt:  savedDraft.UpdateAt,
+		Title:     savedContent.Title,
+		Content:   savedContent.Content,
+	}
+
+	return combinedDraft, nil
 }
 
+// GetPageDraft fetches a page draft from both Drafts and PageDraftContents tables
 func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, draftId string) (*model.PageDraft, *model.AppError) {
 	rctx.Logger().Debug("Getting page draft",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
 		mlog.String("draft_id", draftId))
 
-	draft, err := a.Srv().Store().PageDraft().Get(userId, wikiId, draftId)
+	// Fetch wiki to get channelId
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	}
+
+	// Fetch content from PageDraftContents table
+	content, err := a.Srv().Store().PageDraftContent().Get(userId, wikiId, draftId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page.not_found",
+			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.not_found",
 				nil, "", http.StatusNotFound).Wrap(err)
 		}
-		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page.app_error",
+		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return draft, nil
+	// Fetch metadata from Drafts table using channelId
+	draft, draftErr := a.Srv().Store().Draft().Get(userId, wiki.ChannelId, draftId, false)
+	if draftErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(draftErr, &nfErr) {
+			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft_metadata.not_found",
+				nil, "", http.StatusNotFound).Wrap(draftErr)
+		}
+		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft_metadata.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(draftErr)
+	}
+
+	// Combine into PageDraft
+	combinedDraft := &model.PageDraft{
+		UserId:    draft.UserId,
+		WikiId:    draft.WikiId,
+		ChannelId: draft.ChannelId,
+		DraftId:   draft.RootId,
+		FileIds:   draft.FileIds,
+		Props:     draft.GetProps(),
+		CreateAt:  draft.CreateAt,
+		UpdateAt:  draft.UpdateAt,
+		Title:     content.Title,
+		Content:   content.Content,
+	}
+
+	return combinedDraft, nil
 }
 
+// DeletePageDraft deletes a page draft from both Drafts and PageDraftContents tables
 func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) *model.AppError {
 	rctx.Logger().Debug("Deleting page draft",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
 		mlog.String("draft_id", draftId))
 
-	if err := a.Srv().Store().PageDraft().Delete(userId, wikiId, draftId); err != nil {
-		return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
+	// Fetch wiki to get channelId
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		return model.NewAppError("DeletePageDraft", "app.draft.delete_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	}
+
+	// Delete from PageDraftContents table
+	if err := a.Srv().Store().PageDraftContent().Delete(userId, wikiId, draftId); err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
+				nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return model.NewAppError("DeletePageDraft", "app.draft.delete_page_content.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Delete from Drafts table using channelId
+	if err := a.Srv().Store().Draft().Delete(userId, wiki.ChannelId, draftId); err != nil {
+		return model.NewAppError("DeletePageDraft", "app.draft.delete_page_metadata.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
 }
 
+// GetPageDraftsForWiki fetches all page drafts for a wiki from both tables
 func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*model.PageDraft, *model.AppError) {
 	rctx.Logger().Debug("Getting page drafts for wiki",
 		mlog.String("user_id", userId),
@@ -117,20 +224,479 @@ func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*
 		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
-	drafts, err := a.Srv().Store().PageDraft().GetForWiki(userId, wikiId)
+	// Fetch content from PageDraftContents table
+	contents, err := a.Srv().Store().PageDraftContent().GetForWiki(userId, wikiId)
 	if err != nil {
-		rctx.Logger().Error("Failed to get page drafts for wiki",
+		rctx.Logger().Error("Failed to get page draft contents for wiki",
 			mlog.String("user_id", userId),
 			mlog.String("wiki_id", wikiId),
 			mlog.Err(err))
-		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.app_error",
+		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts_content.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Extract all draft IDs for batch fetching
+	draftIds := make([]string, len(contents))
+	for i, content := range contents {
+		draftIds[i] = content.DraftId
+	}
+
+	// Batch fetch all draft metadata in one query
+	drafts, draftErr := a.Srv().Store().Draft().GetManyByRootIds(userId, channel.Id, draftIds, false)
+	if draftErr != nil {
+		rctx.Logger().Error("Failed to get draft metadata",
+			mlog.String("user_id", userId),
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(draftErr))
+		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts_metadata.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(draftErr)
+	}
+
+	// Create map for efficient lookup
+	draftMap := make(map[string]*model.Draft, len(drafts))
+	for _, draft := range drafts {
+		draftMap[draft.RootId] = draft
+	}
+
+	// Combine contents with drafts
+	var combinedDrafts []*model.PageDraft
+	for _, content := range contents {
+		draft, found := draftMap[content.DraftId]
+		if !found {
+			rctx.Logger().Warn("Draft metadata not found for content, skipping",
+				mlog.String("draft_id", content.DraftId))
+			continue
+		}
+
+		combinedDraft := &model.PageDraft{
+			UserId:    draft.UserId,
+			WikiId:    draft.WikiId,
+			ChannelId: draft.ChannelId,
+			DraftId:   draft.RootId,
+			FileIds:   draft.FileIds,
+			Props:     draft.GetProps(),
+			CreateAt:  draft.CreateAt,
+			UpdateAt:  draft.UpdateAt,
+			Title:     content.Title,
+			Content:   content.Content,
+		}
+
+		combinedDrafts = append(combinedDrafts, combinedDraft)
 	}
 
 	rctx.Logger().Debug("Got page drafts for wiki",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
-		mlog.Int("count", len(drafts)))
+		mlog.Int("count", len(combinedDrafts)))
 
-	return drafts, nil
+	return combinedDrafts, nil
+}
+
+func (a *App) resolveDraftContent(draft *model.PageDraft, providedMessage string) (string, *model.AppError) {
+	if providedMessage != "" {
+		return providedMessage, nil
+	}
+
+	content, err := draft.GetDocumentJSON()
+	if err != nil {
+		return "", model.NewAppError("resolveDraftContent", "app.draft.publish_page.content_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return content, nil
+}
+
+func (a *App) validateDraftPermissions(rctx request.CTX, draft *model.PageDraft, channel *model.Channel) *model.AppError {
+	session := rctx.Session()
+	pageId, isUpdate := draft.Props["page_id"].(string)
+
+	if isUpdate && pageId != "" {
+		existingPage, err := a.GetSinglePost(rctx, pageId, false)
+		if err != nil {
+			return model.NewAppError("validateDraftPermissions", "app.draft.publish_page.get_existing_error",
+				nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return a.HasPermissionToModifyPage(rctx, session, existingPage, PageOperationEdit, "validateDraftPermissions")
+	}
+
+	return a.checkPageCreatePermission(rctx, session, channel)
+}
+
+func (a *App) checkPageCreatePermission(rctx request.CTX, session *model.Session, channel *model.Channel) *model.AppError {
+	switch channel.Type {
+	case model.ChannelTypeOpen, model.ChannelTypePrivate:
+		permission := getPagePermission(channel.Type, PageOperationCreate)
+		if permission == nil {
+			return model.NewAppError("checkPageCreatePermission", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
+		}
+		if !a.HasPermissionToChannel(rctx, session.UserId, channel.Id, permission) {
+			return model.NewAppError("checkPageCreatePermission", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		if _, err := a.GetChannelMember(rctx, channel.Id, session.UserId); err != nil {
+			return model.NewAppError("checkPageCreatePermission", "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
+		}
+		user, err := a.GetUser(session.UserId)
+		if err != nil {
+			return err
+		}
+		if user.IsGuest() {
+			return model.NewAppError("checkPageCreatePermission", "api.page.permission.guest_cannot_modify", nil, "", http.StatusForbidden)
+		}
+
+	default:
+		return model.NewAppError("checkPageCreatePermission", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
+	}
+
+	return nil
+}
+
+func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.Wiki) *model.AppError {
+	if parentId == "" {
+		return nil
+	}
+
+	parentPage, err := a.GetSinglePost(rctx, parentId, false)
+	if err != nil {
+		return model.NewAppError("validateParentPage", "api.page.publish.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	if parentPage.Type != model.PostTypePage {
+		return model.NewAppError("validateParentPage", "api.page.publish.parent_not_page.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if parentPage.ChannelId != wiki.ChannelId {
+		return model.NewAppError("validateParentPage", "api.page.publish.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draftId, parentId, message string) (*model.PageDraft, *model.Wiki, *model.Channel, *model.AppError) {
+	draft, err := a.GetPageDraft(rctx, userId, wikiId, draftId)
+	if err != nil {
+		return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.not_found",
+			nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	content, contentErr := a.resolveDraftContent(draft, message)
+	if contentErr != nil {
+		return nil, nil, nil, contentErr
+	}
+
+	rctx.Logger().Debug("Draft content before validation",
+		mlog.String("provided_message", message),
+		mlog.Int("provided_length", len(message)),
+		mlog.Int("resolved_content_length", len(content)),
+		mlog.Int("file_ids_count", len(draft.FileIds)),
+		mlog.Any("props", draft.Props))
+
+	wiki, err := a.GetWiki(rctx, wikiId)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	channel, err := a.GetChannel(rctx, wiki.ChannelId)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	if err := a.validateDraftPermissions(rctx, draft, channel); err != nil {
+		return nil, nil, nil, err
+	}
+
+	if err := a.validateParentPage(rctx, parentId, wiki); err != nil {
+		return nil, nil, nil, err
+	}
+
+	return draft, wiki, channel, nil
+}
+
+func (a *App) validateCircularReference(rctx request.CTX, pageId, parentId string) *model.AppError {
+	if parentId == "" {
+		return nil
+	}
+
+	ancestors, err := a.GetPageAncestors(rctx, parentId)
+	if err != nil {
+		return err
+	}
+
+	if _, exists := ancestors.Posts[pageId]; exists {
+		return model.NewAppError("validateCircularReference", "api.page.publish.circular_reference.app_error",
+			nil, "pageId="+pageId+", parentId="+parentId, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *model.PageDraft, isUpdate bool) {
+	statusValue, hasStatus := draft.Props["page_status"].(string)
+	if !hasStatus || statusValue == "" {
+		return
+	}
+
+	if err := a.SetPageStatus(rctx, page.Id, statusValue); err != nil {
+		logLevel := mlog.LvlWarn
+		if isUpdate {
+			logLevel = mlog.LvlError
+		}
+		rctx.Logger().Log(logLevel, "Failed to set page status from draft props",
+			mlog.String("page_id", page.Id),
+			mlog.String("status", statusValue),
+			mlog.Err(err))
+	}
+}
+
+func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, title, content, searchText string) (*model.Post, *model.AppError) {
+	rctx.Logger().Debug("Updating existing page from draft",
+		mlog.String("page_id", pageId),
+		mlog.String("wiki_id", wikiId))
+
+	existingPost, err := a.GetSinglePost(rctx, pageId, false)
+	if err != nil {
+		return nil, model.NewAppError("updatePageFromDraft", "app.draft.publish_page.get_existing_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if err := a.validateCircularReference(rctx, pageId, parentId); err != nil {
+		return nil, err
+	}
+
+	updatedPost, err := a.UpdatePage(rctx, pageId, title, content, searchText)
+	if err != nil {
+		return nil, err
+	}
+
+	if parentId != existingPost.PageParentId {
+		if err := a.ChangePageParent(rctx, pageId, parentId); err != nil {
+			return nil, err
+		}
+		updatedPost, err = a.GetSinglePost(rctx, pageId, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	rctx.Logger().Info("Page updated from draft",
+		mlog.String("page_id", updatedPost.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("parent_id", parentId))
+
+	return updatedPost, nil
+}
+
+func (a *App) createPageFromDraft(rctx request.CTX, wikiId, parentId, title, content, searchText, userId string) (*model.Post, *model.AppError) {
+	rctx.Logger().Debug("Creating new page from draft",
+		mlog.String("wiki_id", wikiId))
+
+	createdPost, err := a.CreateWikiPage(rctx, wikiId, parentId, title, content, userId, searchText)
+	if err != nil {
+		return nil, err
+	}
+
+	rctx.Logger().Info("Page created from draft",
+		mlog.String("page_id", createdPost.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("parent_id", parentId))
+
+	return createdPost, nil
+}
+
+func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId, parentId, title, searchText, message, userId string) (*model.Post, *model.AppError) {
+	content, err := a.resolveDraftContent(draft, message)
+	if err != nil {
+		return nil, err
+	}
+
+	pageId, isUpdate := draft.Props["page_id"].(string)
+
+	var page *model.Post
+	if isUpdate && pageId != "" {
+		page, err = a.updatePageFromDraft(rctx, pageId, wikiId, parentId, title, content, searchText)
+	} else {
+		page, err = a.createPageFromDraft(rctx, wikiId, parentId, title, content, searchText, userId)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	a.applyDraftPageStatus(rctx, page, draft, isUpdate)
+
+	return page, nil
+}
+
+func (a *App) broadcastPagePublished(page *model.Post, wikiId, channelId, draftId, userId string) {
+	mlog.Info("Broadcasting page published event",
+		mlog.String("page_id", page.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("channel_id", channelId),
+		mlog.String("draft_id", draftId),
+		mlog.String("user_id", userId))
+
+	pageJSON, jsonErr := page.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode page to JSON", mlog.Err(jsonErr))
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPagePublished, "", channelId, "", nil, "")
+	message.Add("page_id", page.Id)
+	message.Add("wiki_id", wikiId)
+	message.Add("draft_id", draftId)
+	message.Add("user_id", userId)
+	message.Add("page", pageJSON)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId: channelId,
+	})
+
+	mlog.Info("Publishing message to websocket", mlog.String("event_type", string(model.WebsocketEventPagePublished)))
+	a.Publish(message)
+	mlog.Info("Message published to websocket")
+}
+
+// PublishPageDraft publishes a draft as a page
+func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText, message, pageStatus string) (*model.Post, *model.AppError) {
+	rctx.Logger().Debug("Publishing page draft",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("draft_id", draftId),
+		mlog.Int("message_length", len(message)))
+
+	draft, wiki, _, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId, message)
+	if err != nil {
+		return nil, err
+	}
+
+	if pageStatus != "" {
+		if draft.Props == nil {
+			draft.Props = make(map[string]any)
+		}
+		draft.Props["page_status"] = pageStatus
+	}
+
+	savedPost, err := a.applyDraftToPage(rctx, draft, wikiId, parentId, title, searchText, message, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Delete draft from both tables
+	if deleteErr := a.DeletePageDraft(rctx, userId, wikiId, draftId); deleteErr != nil {
+		rctx.Logger().Warn("Failed to delete draft after successful publish - orphaned draft will remain",
+			mlog.String("user_id", userId),
+			mlog.String("wiki_id", wikiId),
+			mlog.String("draft_id", draftId),
+			mlog.String("page_id", savedPost.Id),
+			mlog.Err(deleteErr))
+	} else {
+		rctx.Logger().Info("Draft deleted successfully, now updating child draft references",
+			mlog.String("deleted_draft_id", draftId),
+			mlog.String("published_page_id", savedPost.Id))
+	}
+
+	if updateErr := a.updateChildDraftParentReferences(rctx, userId, wikiId, draftId, savedPost.Id); updateErr != nil {
+		rctx.Logger().Error("Failed to update child draft parent references after publish",
+			mlog.String("wiki_id", wikiId),
+			mlog.String("published_draft_id", draftId),
+			mlog.String("new_page_id", savedPost.Id),
+			mlog.Err(updateErr))
+	}
+
+	pageWithContent, getErr := a.GetPage(rctx, savedPost.Id)
+	if getErr != nil {
+		rctx.Logger().Warn("Failed to fetch published page with content", mlog.String("page_id", savedPost.Id), mlog.Err(getErr))
+		a.broadcastPagePublished(savedPost, wikiId, wiki.ChannelId, draftId, userId)
+		return savedPost, nil
+	}
+
+	a.broadcastPagePublished(pageWithContent, wikiId, wiki.ChannelId, draftId, userId)
+
+	return pageWithContent, nil
+}
+
+func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId, oldDraftId, newPageId string) *model.AppError {
+	rctx.Logger().Info("=== updateChildDraftParentReferences CALLED ===",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("old_draft_id", oldDraftId),
+		mlog.String("new_page_id", newPageId))
+
+	drafts, err := a.GetPageDraftsForWiki(rctx, userId, wikiId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get drafts for wiki", mlog.Err(err))
+		return err
+	}
+
+	rctx.Logger().Info("Found drafts in wiki", mlog.Int("draft_count", len(drafts)))
+
+	for _, childDraft := range drafts {
+		draftId := childDraft.DraftId
+		rctx.Logger().Info("Checking draft",
+			mlog.String("draft_id", draftId),
+			mlog.Any("props", childDraft.Props))
+
+		parentIdProp, hasParent := childDraft.Props["page_parent_id"]
+		if !hasParent {
+			rctx.Logger().Info("Draft has NO page_parent_id prop", mlog.String("draft_id", draftId))
+			continue
+		}
+
+		parentId, ok := parentIdProp.(string)
+		if !ok {
+			rctx.Logger().Info("page_parent_id is NOT a string",
+				mlog.String("draft_id", draftId),
+				mlog.Any("parent_id_prop", parentIdProp))
+			continue
+		}
+
+		rctx.Logger().Info("Comparing parent IDs",
+			mlog.String("draft_id", draftId),
+			mlog.String("draft_parent_id", parentId),
+			mlog.String("looking_for_draft_id", oldDraftId),
+			mlog.Bool("match", parentId == oldDraftId))
+
+		if parentId != oldDraftId {
+			continue
+		}
+
+		rctx.Logger().Info("=== FOUND CHILD DRAFT TO UPDATE ===",
+			mlog.String("child_draft_id", draftId),
+			mlog.String("old_parent_draft_id", oldDraftId),
+			mlog.String("new_parent_page_id", newPageId))
+
+		updatedProps := maps.Clone(childDraft.Props)
+		updatedProps["page_parent_id"] = newPageId
+
+		rctx.Logger().Info("About to update draft props only",
+			mlog.String("child_draft_id", draftId),
+			mlog.Any("updated_props", updatedProps))
+
+		updateErr := a.Srv().Store().Draft().UpdatePropsOnly(userId, wikiId, draftId, updatedProps, childDraft.UpdateAt)
+		if updateErr != nil {
+			rctx.Logger().Warn("Skipping child draft update due to concurrent modification",
+				mlog.String("child_draft_id", draftId),
+				mlog.Err(updateErr))
+		} else {
+			rctx.Logger().Info("=== SUCCESSFULLY UPDATED CHILD DRAFT PROPS ===",
+				mlog.String("child_draft_id", draftId),
+				mlog.String("new_parent_id", newPageId))
+
+			childDraft.Props = updatedProps
+			childDraft.UpdateAt = model.GetMillis()
+
+			message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", childDraft.ChannelId, userId, nil, "")
+			draftJSON, jsonErr := json.Marshal(childDraft)
+			if jsonErr != nil {
+				rctx.Logger().Warn("Failed to encode updated draft to JSON", mlog.Err(jsonErr))
+			} else {
+				message.Add("draft", string(draftJSON))
+				a.Publish(message)
+				rctx.Logger().Info("Sent websocket event for updated child draft", mlog.String("child_draft_id", draftId))
+			}
+		}
+	}
+
+	rctx.Logger().Info("=== updateChildDraftParentReferences COMPLETED ===")
+	return nil
 }

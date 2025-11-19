@@ -234,6 +234,8 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -244,6 +246,8 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("concurrent page moves do not corrupt hierarchy", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser.Id
+
 		parentDraftId := model.NewId()
 		parentContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Parent"}]}]}`
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, parentDraftId, parentContent, "Parent", "", nil)
@@ -306,6 +310,8 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 	})
 
 	t.Run("prevent circular references during concurrent moves", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser.Id
+
 		parent1DraftId := model.NewId()
 		parent1Content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Parent 1"}]}]}`
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, parent1DraftId, parent1Content, "Parent 1", "", nil)
@@ -335,9 +341,12 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPagePrivateChannel.Id, model.ChannelUserRoleId)
 
 	privateChannel := th.CreatePrivateChannel(t)
 	th.AddUserToChannel(t, th.BasicUser, privateChannel)
+	th.Context.Session().UserId = th.BasicUser.Id
 
 	privateWiki := &model.Wiki{
 		ChannelId:   privateChannel.Id,
@@ -360,7 +369,7 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 
 		_, appErr := th.App.GetPage(th.Context, privatePage.Id)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.page.get_page.permissions.app_error", appErr.Id)
+		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
 	})
 
 	t.Run("user2 can access after being added to private channel", func(t *testing.T) {
@@ -379,6 +388,6 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser2.Id
 		_, appErr = th.App.GetPage(th.Context, privatePage.Id)
 		require.NotNil(t, appErr)
-		assert.Equal(t, "app.page.get_page.permissions.app_error", appErr.Id)
+		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
 	})
 }

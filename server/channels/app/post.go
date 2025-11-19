@@ -2874,6 +2874,45 @@ func (a *App) RewriteMessage(
 	action model.RewriteAction,
 	customPrompt string,
 ) (*model.RewriteResponse, *model.AppError) {
+	// Get agent and service details to log model information
+	var serviceID string
+	var serviceType string
+	var serviceName string
+
+	agents, agentsErr := a.GetAgents(rctx, rctx.Session().UserId)
+	if agentsErr == nil {
+		for _, agent := range agents {
+			if agent.ID == agentID {
+				serviceID = agent.ServiceID
+				serviceType = agent.ServiceType
+				break
+			}
+		}
+	}
+
+	// Get service details to find the model name
+	if serviceID != "" {
+		services, servicesErr := a.GetLLMServices(rctx, rctx.Session().UserId)
+		if servicesErr == nil {
+			for _, service := range services {
+				if service.ID == serviceID {
+					serviceName = service.Name
+					break
+				}
+			}
+		}
+	}
+
+	rctx.Logger().Info("AI Rewrite request received",
+		mlog.String("agent_id", agentID),
+		mlog.String("service_id", serviceID),
+		mlog.String("service_type", serviceType),
+		mlog.String("service_name", serviceName),
+		mlog.String("action", string(action)),
+		mlog.Int("message_length", len(message)),
+		mlog.Bool("has_custom_prompt", customPrompt != ""),
+	)
+
 	userPrompt := getRewritePromptForAction(action, message, customPrompt)
 	if userPrompt == "" {
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
@@ -2888,14 +2927,33 @@ func (a *App) RewriteMessage(
 		},
 	}
 
-	completion, err := client.AgentCompletion(agentID, completionRequest)
-	if err != nil {
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
+	rctx.Logger().Info("Calling AI agent",
+		mlog.String("agent_id", agentID),
+		mlog.String("service_id", serviceID),
+		mlog.String("service_type", serviceType),
+		mlog.String("service_name", serviceName),
+		mlog.Int("system_prompt_length", len(model.RewriteSystemPrompt)),
+		mlog.Int("user_prompt_length", len(userPrompt)),
+	)
+
+	completion, completionErr := client.AgentCompletion(agentID, completionRequest)
+	if completionErr != nil {
+		rctx.Logger().Error("AI agent call failed",
+			mlog.String("agent_id", agentID),
+			mlog.String("service_type", serviceType),
+			mlog.Err(completionErr),
+		)
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, completionErr.Error(), 500)
 	}
+
+	rctx.Logger().Info("AI agent call succeeded",
+		mlog.String("agent_id", agentID),
+		mlog.Int("response_length", len(completion)),
+	)
 
 	var response model.RewriteResponse
 	if err := json.Unmarshal([]byte(completion), &response); err != nil {
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.parse_response_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.parse_response_failed", nil, "", 500).Wrap(err)
 	}
 
 	if response.RewrittenText == "" {

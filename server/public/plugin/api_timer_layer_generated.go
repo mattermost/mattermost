@@ -1671,3 +1671,10 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	api.apiImpl.LogAuditRecWithLevel(rec, level)
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }
+
+func (api *apiTimerLayer) LinkPageToFirstWiki(pageID, channelID string) *model.AppError {
+	startTime := timePkg.Now()
+	result := api.apiImpl.LinkPageToFirstWiki(pageID, channelID)
+	api.recordTime(startTime, "LinkPageToFirstWiki", true)
+	return result
+}

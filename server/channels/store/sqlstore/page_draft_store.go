@@ -5,8 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
-	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -15,47 +13,41 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-type SqlPageDraftStore struct {
+type SqlPageDraftContentStore struct {
 	*SqlStore
 }
 
-func newSqlPageDraftStore(sqlStore *SqlStore) store.PageDraftStore {
-	return &SqlPageDraftStore{
+func newSqlPageDraftContentStore(sqlStore *SqlStore) store.PageDraftContentStore {
+	return &SqlPageDraftContentStore{
 		SqlStore: sqlStore,
 	}
 }
 
-func (s *SqlPageDraftStore) Upsert(pageDraft *model.PageDraft) (*model.PageDraft, error) {
-	pageDraft.PreSave()
+func (s *SqlPageDraftContentStore) Upsert(content *model.PageDraftContent) (*model.PageDraftContent, error) {
+	content.PreSave()
 
-	if err := pageDraft.IsValid(); err != nil {
+	if err := content.IsValid(); err != nil {
 		return nil, err
 	}
 
-	contentJSON, err := pageDraft.GetDocumentJSON()
+	contentJSON, err := content.GetDocumentJSON()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to serialize PageDraft content")
+		return nil, errors.Wrap(err, "failed to serialize PageDraftContent content")
 	}
 
-	propsJSON := model.StringInterfaceToJSON(pageDraft.GetProps())
-	fileIdsJSON := model.ArrayToJSON(pageDraft.FileIds)
-
-	builder := s.getQueryBuilder().Insert("PageDrafts").
-		Columns("UserId", "WikiId", "DraftId", "Title", "Content", "FileIds", "Props", "CreateAt", "UpdateAt").
-		Values(pageDraft.UserId, pageDraft.WikiId, pageDraft.DraftId, pageDraft.Title, contentJSON, fileIdsJSON, propsJSON, pageDraft.CreateAt, pageDraft.UpdateAt).
-		SuffixExpr(sq.Expr("ON CONFLICT (userid, wikiid, draftid) DO UPDATE SET Title = ?, Content = ?, FileIds = ?, Props = ?, UpdateAt = ? RETURNING UserId, WikiId, DraftId, Title, Content, FileIds, Props, CreateAt, UpdateAt",
-			pageDraft.Title, contentJSON, fileIdsJSON, propsJSON, pageDraft.UpdateAt))
+	builder := s.getQueryBuilder().Insert("PageDraftContents").
+		Columns("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
+		Values(content.UserId, content.WikiId, content.DraftId, content.Title, contentJSON, content.CreateAt, content.UpdateAt).
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, wikiid, draftid) DO UPDATE SET Title = ?, Content = ?, UpdateAt = ? RETURNING UserId, WikiId, DraftId, Title, Content, CreateAt, UpdateAt",
+			content.Title, contentJSON, content.UpdateAt))
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_upsert_tosql")
+		return nil, errors.Wrap(err, "page_draft_content_upsert_tosql")
 	}
 
-	// Use QueryRow with RETURNING to get the actual database row
-	var result model.PageDraft
+	var result model.PageDraftContent
 	var resultContentJSON string
-	var resultFileIdsJSON sql.NullString
-	var resultPropsJSON sql.NullString
 
 	err = s.GetMaster().QueryRow(query, args...).Scan(
 		&result.UserId,
@@ -63,41 +55,24 @@ func (s *SqlPageDraftStore) Upsert(pageDraft *model.PageDraft) (*model.PageDraft
 		&result.DraftId,
 		&result.Title,
 		&resultContentJSON,
-		&resultFileIdsJSON,
-		&resultPropsJSON,
 		&result.CreateAt,
 		&result.UpdateAt,
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to upsert PageDraft with userId=%s, wikiId=%s, draftId=%s", pageDraft.UserId, pageDraft.WikiId, pageDraft.DraftId)
+		return nil, errors.Wrapf(err, "failed to upsert PageDraftContent with userId=%s, wikiId=%s, draftId=%s", content.UserId, content.WikiId, content.DraftId)
 	}
 
-	// Deserialize JSON fields
 	if err := result.SetDocumentJSON(resultContentJSON); err != nil {
 		return nil, errors.Wrap(err, "failed to deserialize returned content")
-	}
-
-	if resultFileIdsJSON.Valid && resultFileIdsJSON.String != "" && resultFileIdsJSON.String != "null" {
-		if err := json.Unmarshal([]byte(resultFileIdsJSON.String), &result.FileIds); err != nil {
-			return nil, errors.Wrap(err, "failed to deserialize returned file IDs")
-		}
-	}
-
-	if resultPropsJSON.Valid && resultPropsJSON.String != "" && resultPropsJSON.String != "null" {
-		var props map[string]any
-		if err := json.Unmarshal([]byte(resultPropsJSON.String), &props); err != nil {
-			return nil, errors.Wrap(err, "failed to deserialize returned props")
-		}
-		result.SetProps(props)
 	}
 
 	return &result, nil
 }
 
-func (s *SqlPageDraftStore) Get(userId, wikiId, draftId string) (*model.PageDraft, error) {
+func (s *SqlPageDraftContentStore) Get(userId, wikiId, draftId string) (*model.PageDraftContent, error) {
 	query := s.getQueryBuilder().
-		Select("UserId", "WikiId", "DraftId", "Title", "Content", "FileIds", "Props", "CreateAt", "UpdateAt").
-		From("PageDrafts").
+		Select("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
+		From("PageDraftContents").
 		Where(sq.Eq{
 			"UserId":  userId,
 			"WikiId":  wikiId,
@@ -106,85 +81,55 @@ func (s *SqlPageDraftStore) Get(userId, wikiId, draftId string) (*model.PageDraf
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_get_tosql")
+		return nil, errors.Wrap(err, "page_draft_content_get_tosql")
 	}
 
-	var pageDraft model.PageDraft
+	var content model.PageDraftContent
 	var contentJSON string
-	var fileIdsJSON sql.NullString
-	var propsJSON sql.NullString
 
 	if err := s.GetReplica().QueryRow(queryString, args...).Scan(
-		&pageDraft.UserId,
-		&pageDraft.WikiId,
-		&pageDraft.DraftId,
-		&pageDraft.Title,
+		&content.UserId,
+		&content.WikiId,
+		&content.DraftId,
+		&content.Title,
 		&contentJSON,
-		&fileIdsJSON,
-		&propsJSON,
-		&pageDraft.CreateAt,
-		&pageDraft.UpdateAt,
+		&content.CreateAt,
+		&content.UpdateAt,
 	); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("PageDraft", draftId)
+			return nil, store.NewErrNotFound("PageDraftContent", draftId)
 		}
-		return nil, errors.Wrapf(err, "failed to get PageDraft with userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
+		return nil, errors.Wrapf(err, "failed to get PageDraftContent with userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
 	}
 
-	if err := pageDraft.SetDocumentJSON(contentJSON); err != nil {
-		return nil, errors.Wrap(err, "failed to parse PageDraft content")
+	if err := content.SetDocumentJSON(contentJSON); err != nil {
+		return nil, errors.Wrap(err, "failed to parse PageDraftContent content")
 	}
 
-	if fileIdsJSON.Valid && fileIdsJSON.String != "" {
-		pageDraft.FileIds = model.ArrayFromJSON(strings.NewReader(fileIdsJSON.String))
-	}
-
-	if propsJSON.Valid && propsJSON.String != "" {
-		var props map[string]any
-		if err := json.Unmarshal([]byte(propsJSON.String), &props); err != nil {
-			return nil, errors.Wrap(err, "failed to parse PageDraft props")
-		}
-		pageDraft.SetProps(props)
-	}
-
-	return &pageDraft, nil
+	return &content, nil
 }
 
-func (s *SqlPageDraftStore) Delete(userId, wikiId, draftId string) error {
+func (s *SqlPageDraftContentStore) Delete(userId, wikiId, draftId string) error {
 	query := s.getQueryBuilder().
-		Delete("PageDrafts").
+		Delete("PageDraftContents").
 		Where(sq.Eq{
 			"UserId":  userId,
 			"WikiId":  wikiId,
 			"DraftId": draftId,
 		})
 
-	queryString, args, err := query.ToSql()
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return errors.Wrap(err, "page_draft_delete_tosql")
+		return errors.Wrapf(err, "failed to delete PageDraftContent with userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
 	}
 
-	result, err := s.GetMaster().Exec(queryString, args...)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete PageDraft with userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to get rows affected")
-	}
-
-	if rowsAffected == 0 {
-		return store.NewErrNotFound("PageDraft", draftId)
-	}
-
-	return nil
+	return s.checkRowsAffected(result, "PageDraftContent", draftId)
 }
 
-func (s *SqlPageDraftStore) GetForWiki(userId, wikiId string) ([]*model.PageDraft, error) {
+func (s *SqlPageDraftContentStore) GetForWiki(userId, wikiId string) ([]*model.PageDraftContent, error) {
 	query := s.getQueryBuilder().
-		Select("UserId", "WikiId", "DraftId", "Title", "Content", "FileIds", "Props", "CreateAt", "UpdateAt").
-		From("PageDrafts").
+		Select("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
+		From("PageDraftContents").
 		Where(sq.Eq{
 			"UserId": userId,
 			"WikiId": wikiId,
@@ -193,64 +138,47 @@ func (s *SqlPageDraftStore) GetForWiki(userId, wikiId string) ([]*model.PageDraf
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_get_for_wiki_tosql")
+		return nil, errors.Wrap(err, "page_draft_content_get_for_wiki_tosql")
 	}
 
 	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get PageDrafts for userId=%s, wikiId=%s", userId, wikiId)
+		return nil, errors.Wrapf(err, "failed to get PageDraftContents for userId=%s, wikiId=%s", userId, wikiId)
 	}
 	defer rows.Close()
 
-	var drafts []*model.PageDraft
+	contents := []*model.PageDraftContent{}
 
 	for rows.Next() {
-		var pageDraft model.PageDraft
+		var content model.PageDraftContent
 		var contentJSON sql.NullString
-		var fileIdsJSON sql.NullString
-		var propsJSON sql.NullString
 
 		err = rows.Scan(
-			&pageDraft.UserId,
-			&pageDraft.WikiId,
-			&pageDraft.DraftId,
-			&pageDraft.Title,
+			&content.UserId,
+			&content.WikiId,
+			&content.DraftId,
+			&content.Title,
 			&contentJSON,
-			&fileIdsJSON,
-			&propsJSON,
-			&pageDraft.CreateAt,
-			&pageDraft.UpdateAt,
+			&content.CreateAt,
+			&content.UpdateAt,
 		)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan PageDraft row")
+			return nil, errors.Wrap(err, "failed to scan PageDraftContent row")
 		}
 
 		if contentJSON.Valid && contentJSON.String != "" {
-			err = pageDraft.SetDocumentJSON(contentJSON.String)
+			err = content.SetDocumentJSON(contentJSON.String)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to parse PageDraft content")
+				return nil, errors.Wrap(err, "failed to parse PageDraftContent content")
 			}
 		}
 
-		if fileIdsJSON.Valid && fileIdsJSON.String != "" {
-			pageDraft.FileIds = model.ArrayFromJSON(strings.NewReader(fileIdsJSON.String))
-		}
-
-		if propsJSON.Valid && propsJSON.String != "" {
-			var props map[string]any
-			err = json.Unmarshal([]byte(propsJSON.String), &props)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to parse PageDraft props")
-			}
-			pageDraft.SetProps(props)
-		}
-
-		drafts = append(drafts, &pageDraft)
+		contents = append(contents, &content)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error iterating PageDraft rows")
+		return nil, errors.Wrap(err, "error iterating PageDraftContent rows")
 	}
 
-	return drafts, nil
+	return contents, nil
 }

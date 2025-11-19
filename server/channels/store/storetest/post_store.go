@@ -6155,7 +6155,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			Message:   "First inline comment",
 			Props: model.StringInterface{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "paragraph-123",
 					"offset": 10,
@@ -6173,7 +6173,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			Message:   "Second inline comment",
 			Props: model.StringInterface{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "heading-456",
 					"offset": 0,
@@ -6214,7 +6214,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			Message:   "Inline comment",
 			Props: model.StringInterface{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "paragraph-789",
 					"offset": 5,
@@ -6268,7 +6268,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			Message:   "Inline comment to be deleted",
 			Props: model.StringInterface{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "paragraph-111",
 					"offset": 15,
@@ -6308,7 +6308,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			Message:   "Another inline comment to be deleted",
 			Props: model.StringInterface{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "paragraph-222",
 					"offset": 20,
@@ -6389,7 +6389,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			Message:   "First comment",
 			Props: model.StringInterface{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "para-1",
 					"offset": 0,
@@ -6407,7 +6407,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			Message:   "Second comment",
 			Props: model.StringInterface{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "para-2",
 					"offset": 0,
@@ -6461,7 +6461,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		originalUpdateAt := page.UpdateAt
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, page.Id, "New Title", "", "")
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "New Title", "", "")
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
@@ -6485,7 +6485,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content"}]}]}`
 		searchText := "Test content"
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, page.Id, "", contentJSON, searchText)
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "", contentJSON, searchText)
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
@@ -6515,7 +6515,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		contentJSON := `{"type":"doc","content":[{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"New Heading"}]}]}`
 		searchText := "New Heading"
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, page.Id, "Updated Title", contentJSON, searchText)
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "Updated Title", contentJSON, searchText)
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
@@ -6533,7 +6533,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("fails for non-existent pageID", func(t *testing.T) {
 		nonExistentPageID := model.NewId()
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, nonExistentPageID, "Title", "", "")
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, nonExistentPageID, "Title", "", "")
 		require.Error(t, updateErr)
 		require.Nil(t, updatedPost)
 	})
@@ -6553,7 +6553,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		invalidJSON := `{"type":"doc","content":["invalid structure`
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, page.Id, "", invalidJSON, "")
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "", invalidJSON, "")
 		require.Error(t, updateErr)
 		require.Nil(t, updatedPost)
 	})
@@ -6577,7 +6577,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First content"}]}]}`
 		searchText := "First content"
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, page.Id, "", contentJSON, searchText)
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "", contentJSON, searchText)
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
@@ -6618,7 +6618,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		updatedContentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
 		updatedSearchText := "Updated content"
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, page.Id, "", updatedContentJSON, updatedSearchText)
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "", updatedContentJSON, updatedSearchText)
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
@@ -6648,7 +6648,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"New content"}]}]}`
 
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, page.Id, "New Title", contentJSON, "New content")
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, page.Id, "New Title", contentJSON, "New content")
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
@@ -6660,7 +6660,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("fails with empty pageID", func(t *testing.T) {
-		updatedPost, updateErr := ss.Post().UpdatePageWithContent(rctx, "", "Title", "", "")
+		updatedPost, updateErr := ss.Page().UpdatePageWithContent(rctx, "", "Title", "", "")
 		require.Error(t, updateErr)
 		require.Nil(t, updatedPost)
 	})

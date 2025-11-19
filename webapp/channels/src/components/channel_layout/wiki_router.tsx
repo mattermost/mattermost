@@ -42,6 +42,7 @@ class WikiRouter extends React.PureComponent<Props> {
 
     componentDidUpdate(prevProps: Props) {
         const {channelId, wikiId} = this.props.match.params;
+
         if (prevProps.match.params.channelId !== channelId && this.props.channelExists) {
             this.props.selectChannel(channelId);
         }

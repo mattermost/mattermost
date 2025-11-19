@@ -11,6 +11,19 @@ import {copyToClipboard} from 'utils/utils';
 
 import './page_context_menu.scss';
 
+export const MENU_OPTION_IDS = {
+    NEW_CHILD: 'new-child',
+    SHOW_OUTLINE: 'show-outline',
+    RENAME: 'rename',
+    COPY_LINK: 'copy-link',
+    MOVE: 'move',
+    BOOKMARK_IN_CHANNEL: 'bookmark-in-channel',
+    DUPLICATE: 'duplicate',
+    VERSION_HISTORY: 'version-history',
+    DELETE: 'delete',
+    OPEN_NEW_WINDOW: 'open-new-window',
+} as const;
+
 type MenuOption = {
     id: string;
     label: string;
@@ -30,6 +43,7 @@ type Props = {
     onRename?: () => void;
     onDuplicate?: () => void;
     onMove?: () => void;
+    onBookmarkInChannel?: () => void;
     onDelete?: () => void;
     onVersionHistory?: () => void;
     isDraft?: boolean;
@@ -47,6 +61,7 @@ const PageContextMenu = ({
     onRename,
     onDuplicate,
     onMove,
+    onBookmarkInChannel,
     onDelete,
     onVersionHistory,
     isDraft = false,
@@ -104,7 +119,7 @@ const PageContextMenu = ({
 
     const menuOptions: MenuOption[] = [
         {
-            id: 'new-child',
+            id: MENU_OPTION_IDS.NEW_CHILD,
             label: 'New subpage',
             icon: 'icon-plus',
             action: () => {
@@ -114,13 +129,13 @@ const PageContextMenu = ({
         },
         {separator: true, id: 'sep1', label: '', icon: '', action: () => {}},
         {
-            id: 'show-outline',
+            id: MENU_OPTION_IDS.SHOW_OUTLINE,
             label: isOutlineVisible ? 'Hide outline' : 'Show outline',
             icon: 'icon-format-list-bulleted',
             action: handleShowOutline,
         },
         {
-            id: 'rename',
+            id: MENU_OPTION_IDS.RENAME,
             label: 'Rename',
             icon: 'icon-pencil-outline',
             action: () => {
@@ -129,13 +144,13 @@ const PageContextMenu = ({
             },
         },
         {
-            id: 'copy-link',
+            id: MENU_OPTION_IDS.COPY_LINK,
             label: 'Copy link',
             icon: 'icon-link-variant',
             action: handleCopyLink,
         },
         {
-            id: 'move',
+            id: MENU_OPTION_IDS.MOVE,
             label: 'Move to...',
             icon: 'icon-folder-move-outline',
             action: () => {
@@ -144,7 +159,16 @@ const PageContextMenu = ({
             },
         },
         {
-            id: 'duplicate',
+            id: MENU_OPTION_IDS.BOOKMARK_IN_CHANNEL,
+            label: 'Bookmark in channel...',
+            icon: 'icon-bookmark-outline',
+            action: () => {
+                onBookmarkInChannel?.();
+                onClose();
+            },
+        },
+        {
+            id: MENU_OPTION_IDS.DUPLICATE,
             label: 'Duplicate page',
             icon: 'icon-content-copy',
             action: () => {
@@ -154,7 +178,7 @@ const PageContextMenu = ({
         },
         {separator: true, id: 'sep2', label: '', icon: '', action: () => {}},
         {
-            id: 'version-history',
+            id: MENU_OPTION_IDS.VERSION_HISTORY,
             label: 'Version History',
             icon: 'icon-clock-outline',
             action: () => {
@@ -163,7 +187,7 @@ const PageContextMenu = ({
             },
         },
         {
-            id: 'delete',
+            id: MENU_OPTION_IDS.DELETE,
             label: isDraft ? 'Delete draft' : 'Delete page',
             icon: 'icon-trash-can-outline',
             action: () => {
@@ -174,12 +198,20 @@ const PageContextMenu = ({
         },
         {separator: true, id: 'sep3', label: '', icon: '', action: () => {}},
         {
-            id: 'open-new-window',
+            id: MENU_OPTION_IDS.OPEN_NEW_WINDOW,
             label: 'Open in new window',
             icon: 'icon-open-in-new',
             action: handleOpenInNewWindow,
         },
     ];
+
+    // Filter out bookmark option for drafts (can't bookmark unpublished pages)
+    const filteredOptions = menuOptions.filter((option) => {
+        if (isDraft && option.id === MENU_OPTION_IDS.BOOKMARK_IN_CHANNEL) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <div
@@ -192,7 +224,7 @@ const PageContextMenu = ({
             onClick={(e) => e.stopPropagation()}
             data-testid='page-context-menu'
         >
-            {menuOptions.map((option) => {
+            {filteredOptions.map((option) => {
                 if (option.separator) {
                     return (
                         <div

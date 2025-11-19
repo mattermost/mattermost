@@ -80,6 +80,8 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     const [availableWikis, setAvailableWikis] = useState<any[]>([]);
     const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
     const [creatingPage, setCreatingPage] = useState(false);
+    const [showBookmarkModal, setShowBookmarkModal] = useState(false);
+    const [pageToBookmark, setPageToBookmark] = useState<{pageId: string; pageTitle: string} | null>(null);
 
     const getDescendantCount = useCallback((pageId: string): number => {
         const children = allPages.filter((p) => p.page_parent_id === pageId);
@@ -229,17 +231,26 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
         try {
             if (isDraft) {
-                await dispatch(removePageDraft(wikiId, page.id));
+                const result = await dispatch(removePageDraft(wikiId, page.id));
+                if ((result as any).error) {
+                    return;
+                }
                 onPageSelect?.('');
             } else {
                 if (deleteChildren) {
                     const descendantIds = getAllDescendantIds(page.id);
                     for (const descendantId of descendantIds.reverse()) {
                         // eslint-disable-next-line no-await-in-loop
-                        await dispatch(deletePage(descendantId, wikiId));
+                        const result = await dispatch(deletePage(descendantId, wikiId));
+                        if ((result as any).error) {
+                            return;
+                        }
                     }
                 }
-                await dispatch(deletePage(page.id, wikiId));
+                const result = await dispatch(deletePage(page.id, wikiId));
+                if ((result as any).error) {
+                    return;
+                }
 
                 const parentId = page.page_parent_id || '';
                 onPageSelect?.(parentId);
@@ -253,6 +264,42 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     const handleDeleteCancel = useCallback(() => {
         setShowDeleteModal(false);
         setPageToDelete(null);
+    }, []);
+
+    const handleBookmarkInChannel = useCallback((pageId: string) => {
+        const page = allPages.find((p) => p.id === pageId);
+        if (!page) {
+            return;
+        }
+
+        // Check if this is a draft
+        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
+        if (isDraft) {
+            // If it's a draft editing an existing page, use the actual page ID
+            const actualPageId = page.props?.page_id as string | undefined;
+            if (actualPageId) {
+                // Find the actual published page
+                const actualPage = pages.find((p) => p.id === actualPageId);
+                if (actualPage) {
+                    const pageTitle = actualPage.props?.title || actualPage.message || 'Untitled';
+                    setPageToBookmark({pageId: actualPageId, pageTitle: String(pageTitle)});
+                    setShowBookmarkModal(true);
+                    return;
+                }
+            }
+
+            // Can't bookmark unpublished drafts - show error or just return
+            return;
+        }
+
+        const pageTitle = page.props?.title || page.message || 'Untitled';
+        setPageToBookmark({pageId, pageTitle: String(pageTitle)});
+        setShowBookmarkModal(true);
+    }, [allPages, pages]);
+
+    const handleBookmarkCancel = useCallback(() => {
+        setShowBookmarkModal(false);
+        setPageToBookmark(null);
     }, []);
 
     const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
@@ -277,6 +324,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         handleDuplicate,
         handleMove,
         handleDelete,
+        handleBookmarkInChannel,
 
         // Modal state
         showCreatePageModal,
@@ -285,12 +333,15 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setShowMoveModal,
         showDeleteModal,
         setShowDeleteModal,
+        showBookmarkModal,
+        setShowBookmarkModal,
 
         // Modal data
         createPageParent,
         pageToMove,
         pageToDelete,
         availableWikis,
+        pageToBookmark,
 
         // Modal handlers
         handleConfirmCreatePage,
@@ -299,6 +350,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         handleMoveCancel,
         handleDeleteConfirm,
         handleDeleteCancel,
+        handleBookmarkCancel,
 
         // Helper
         fetchPagesForWiki,

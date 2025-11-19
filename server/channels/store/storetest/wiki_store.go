@@ -601,7 +601,7 @@ func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
 			}
 		}
 
-		// Verify pages are sorted by CreateAt DESC, then by Id ASC
+		// Verify pages are sorted by CreateAt ASC, then by Id ASC
 		pages, _ := ss.Wiki().GetPages(wiki.Id, 0, 100)
 		for i := 1; i < len(pages); i++ {
 			prev := pages[i-1]
@@ -613,10 +613,10 @@ func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
 					"Pages with same CreateAt should be sorted by Id ASC: %s should come before %s",
 					prev.Id, curr.Id)
 			}
-			// Otherwise, CreateAt should be descending
+			// Otherwise, CreateAt should be ascending
 			if prev.CreateAt != curr.CreateAt {
-				assert.True(t, prev.CreateAt > curr.CreateAt,
-					"Pages should be sorted by CreateAt DESC: %d should be greater than %d",
+				assert.True(t, prev.CreateAt < curr.CreateAt,
+					"Pages should be sorted by CreateAt ASC: %d should be less than %d",
 					prev.CreateAt, curr.CreateAt)
 			}
 		}
@@ -933,7 +933,7 @@ func testCreateWikiWithDefaultPage(t *testing.T, rctx request.CTX, ss store.Stor
 		assert.Equal(t, wiki.Title, savedWiki.Title)
 		assert.Equal(t, wiki.Description, savedWiki.Description)
 
-		pageDrafts, err := ss.PageDraft().GetForWiki(user.Id, savedWiki.Id)
+		pageDrafts, err := ss.PageDraftContent().GetForWiki(user.Id, savedWiki.Id)
 		require.NoError(t, err)
 		require.Len(t, pageDrafts, 1)
 		assert.Equal(t, user.Id, pageDrafts[0].UserId)
@@ -1049,7 +1049,29 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, err = ss.PropertyValue().Create(page2Prop)
 	require.NoError(t, err)
 
-	pageDraft := &model.PageDraft{
+	page1Content := &model.PageContent{
+		PageId: page1.Id,
+		Content: model.TipTapDocument{
+			Type:    "doc",
+			Content: []map[string]any{},
+		},
+		SearchText: "Test page 1 content",
+	}
+	_, err = ss.PageContent().Save(page1Content)
+	require.NoError(t, err)
+
+	page2Content := &model.PageContent{
+		PageId: page2.Id,
+		Content: model.TipTapDocument{
+			Type:    "doc",
+			Content: []map[string]any{},
+		},
+		SearchText: "Test page 2 content",
+	}
+	_, err = ss.PageContent().Save(page2Content)
+	require.NoError(t, err)
+
+	pageDraft := &model.PageDraftContent{
 		UserId:   user.Id,
 		WikiId:   wiki.Id,
 		DraftId:  model.NewId(),
@@ -1061,7 +1083,7 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	if err != nil {
 		require.NoError(t, err)
 	}
-	_, err = ss.PageDraft().Upsert(pageDraft)
+	_, err = ss.PageDraftContent().Upsert(pageDraft)
 	require.NoError(t, err)
 
 	t.Run("delete all pages and drafts for wiki", func(t *testing.T) {
@@ -1096,7 +1118,25 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		assert.Len(t, page2Props, 0)
 
-		pageDrafts, err := ss.PageDraft().GetForWiki(user.Id, wiki.Id)
+		page1ContentDeleted, err := ss.PageContent().Get(page1.Id)
+		assert.Nil(t, page1ContentDeleted)
+		assert.Error(t, err)
+
+		page2ContentDeleted, err := ss.PageContent().Get(page2.Id)
+		assert.Nil(t, page2ContentDeleted)
+		assert.Error(t, err)
+
+		page1ContentWithDeleted, err := ss.PageContent().GetWithDeleted(page1.Id)
+		require.NoError(t, err)
+		assert.NotNil(t, page1ContentWithDeleted)
+		assert.NotEqual(t, int64(0), page1ContentWithDeleted.DeleteAt)
+
+		page2ContentWithDeleted, err := ss.PageContent().GetWithDeleted(page2.Id)
+		require.NoError(t, err)
+		assert.NotNil(t, page2ContentWithDeleted)
+		assert.NotEqual(t, int64(0), page2ContentWithDeleted.DeleteAt)
+
+		pageDrafts, err := ss.PageDraftContent().GetForWiki(user.Id, wiki.Id)
 		require.NoError(t, err)
 		assert.Len(t, pageDrafts, 0)
 	})
@@ -1320,17 +1360,29 @@ func testMoveWikiToChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	comment, err = ss.Post().Save(rctx, comment)
 	require.NoError(t, err)
 
-	draft := &model.PageDraft{
+	inlineComment := &model.Post{
+		ChannelId: sourceChannel.Id,
+		UserId:    user.Id,
+		Message:   "Inline comment",
+		Type:      model.PostTypePageComment,
+		RootId:    "",
+		Props: model.StringInterface{
+			"page_id": rootPage.Id,
+		},
+	}
+	inlineComment, err = ss.Post().Save(rctx, inlineComment)
+	require.NoError(t, err)
+
+	draft := &model.PageDraftContent{
 		UserId:   user.Id,
 		WikiId:   wiki.Id,
 		DraftId:  model.NewId(),
 		Title:    "Draft Title",
 		Content:  model.TipTapDocument{Type: "doc"},
-		FileIds:  model.StringArray{},
 		CreateAt: model.GetMillis(),
 		UpdateAt: model.GetMillis(),
 	}
-	_, err = ss.PageDraft().Upsert(draft)
+	_, err = ss.PageDraftContent().Upsert(draft)
 	require.NoError(t, err)
 
 	t.Run("successfully move wiki with nested pages to new channel", func(t *testing.T) {
@@ -1358,6 +1410,14 @@ func testMoveWikiToChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 		updatedComment, err := ss.Post().GetSingle(rctx, comment.Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, targetChannel.Id, updatedComment.ChannelId)
+	})
+
+	t.Run("move updates inline comments for all pages", func(t *testing.T) {
+		updatedInlineComment, err := ss.Post().GetSingle(rctx, inlineComment.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, targetChannel.Id, updatedInlineComment.ChannelId)
+		assert.Equal(t, "", updatedInlineComment.RootId, "inline comment should have empty RootId")
+		assert.Equal(t, rootPage.Id, updatedInlineComment.Props["page_id"], "inline comment should have page_id in Props")
 	})
 
 	t.Run("move with non-existent wiki fails", func(t *testing.T) {

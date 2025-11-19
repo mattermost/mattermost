@@ -104,29 +104,26 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 	draftId := model.NewId()
 	now := model.GetMillis()
 
-	defaultPageDraft := &model.PageDraft{
-		UserId:  userId,
-		WikiId:  savedWiki.Id,
-		DraftId: draftId,
-		Title:   "Untitled page",
-		Content: model.TipTapDocument{
-			Type:    "doc",
-			Content: []map[string]any{},
-		},
-		CreateAt: now,
-		UpdateAt: now,
+	contentJSON := `{"type":"doc","content":[]}`
+
+	// Insert into PageDraftContents table (content only)
+	contentBuilder := s.getQueryBuilder().
+		Insert("PageDraftContents").
+		Columns("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
+		Values(userId, savedWiki.Id, draftId, "Untitled page", contentJSON, now, now)
+
+	if _, err = transaction.ExecBuilder(contentBuilder); err != nil {
+		return nil, errors.Wrap(err, "create_default_draft_content")
 	}
 
-	contentJSON := `{"type":"doc","content":[]}`
-	propsJSON := model.StringInterfaceToJSON(defaultPageDraft.GetProps())
+	// Insert into Drafts table (metadata)
+	draftBuilder := s.getQueryBuilder().
+		Insert("Drafts").
+		Columns("CreateAt", "UpdateAt", "DeleteAt", "UserId", "ChannelId", "RootId", "WikiId", "Message", "Props", "FileIds").
+		Values(now, now, 0, userId, savedWiki.ChannelId, draftId, savedWiki.Id, "", "{}", "[]")
 
-	builder := s.getQueryBuilder().
-		Insert("PageDrafts").
-		Columns("UserId", "WikiId", "DraftId", "Title", "Content", "Props", "CreateAt", "UpdateAt").
-		Values(defaultPageDraft.UserId, defaultPageDraft.WikiId, defaultPageDraft.DraftId, defaultPageDraft.Title, contentJSON, propsJSON, defaultPageDraft.CreateAt, defaultPageDraft.UpdateAt)
-
-	if _, err = transaction.ExecBuilder(builder); err != nil {
-		return nil, errors.Wrap(err, "create_default_draft")
+	if _, err = transaction.ExecBuilder(draftBuilder); err != nil {
+		return nil, errors.Wrap(err, "create_default_draft_metadata")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -158,7 +155,7 @@ func (s *SqlWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*
 
 	builder = builder.OrderBy("CreateAt DESC")
 
-	var wikis []*model.Wiki
+	wikis := []*model.Wiki{}
 	if err := s.GetReplica().SelectBuilder(&wikis, builder); err != nil {
 		return nil, errors.Wrap(err, "unable_to_get_wikis_for_channel")
 	}
@@ -197,12 +194,8 @@ func (s *SqlWikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
 		return nil, errors.Wrap(err, "unable_to_update_wiki")
 	}
 
-	count, err := result.RowsAffected()
-	if err != nil {
-		return nil, errors.Wrap(err, "wiki_update_rowsaffected")
-	}
-	if count == 0 {
-		return nil, store.NewErrNotFound("Wiki", existing.Id)
+	if err := s.checkRowsAffected(result, "Wiki", existing.Id); err != nil {
+		return nil, err
 	}
 
 	return existing, nil
@@ -219,36 +212,17 @@ func (s *SqlWikiStore) Delete(id string, hard bool) error {
 			return errors.Wrap(err, "unable_to_delete_wiki")
 		}
 
-		count, err := result.RowsAffected()
-		if err != nil {
-			return errors.Wrap(err, "wiki_hard_delete_rowsaffected")
-		}
-		if count == 0 {
-			return store.NewErrNotFound("Wiki", id)
-		}
-
-		return nil
+		return s.checkRowsAffected(result, "Wiki", id)
 	}
 
-	builder := s.getQueryBuilder().
-		Update("Wikis").
-		Set("DeleteAt", model.GetMillis()).
-		Where(sq.Eq{"Id": id, "DeleteAt": 0})
+	query := s.buildSoftDeleteQuery("Wikis", "Id", id, false)
 
-	result, err := s.GetMaster().ExecBuilder(builder)
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return errors.Wrap(err, "unable_to_delete_wiki")
 	}
 
-	count, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "wiki_soft_delete_rowsaffected")
-	}
-	if count == 0 {
-		return store.NewErrNotFound("Wiki", id)
-	}
-
-	return nil
+	return s.checkRowsAffected(result, "Wiki", id)
 }
 
 func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post, error) {
@@ -278,24 +252,21 @@ func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post
 			"p.DeleteAt": 0,
 		}).
 		Where("v.Value = to_jsonb(?::text)", wikiId).
-		OrderBy("p.CreateAt DESC, p.Id ASC").
+		OrderBy("p.CreateAt ASC, p.Id ASC").
 		Offset(uint64(offset))
 
 	if limit > 0 {
 		builder = builder.Limit(uint64(limit))
 	}
 
-	var posts []*model.Post
+	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, builder); err != nil {
 		return nil, errors.Wrap(err, "unable_to_get_wiki_pages")
 	}
 
 	// Debug logging
 	for _, p := range posts {
-		title := ""
-		if t, ok := p.Props["title"].(string); ok {
-			title = t
-		}
+		title := p.GetPageTitle()
 		mlog.Debug("GetPages loaded post from DB", mlog.String("post_id", p.Id), mlog.String("page_parent_id", p.PageParentId), mlog.String("title", title))
 	}
 
@@ -423,7 +394,7 @@ func (s *SqlWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error
 		OrderBy("p.UpdateAt ASC").
 		Limit(100)
 
-	var posts []*model.Post
+	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get abandoned pages")
 	}
@@ -496,15 +467,37 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 		if _, err = transaction.ExecBuilder(propertyValuesUpdateQuery); err != nil {
 			return errors.Wrap(err, "failed to soft delete property values for wiki")
 		}
+
+		// Soft delete page contents
+		pageContentsUpdateQuery := s.getQueryBuilder().
+			Update("PageContents").
+			Set("DeleteAt", deleteAt).
+			Where(sq.Eq{
+				"PageId":   postIDs,
+				"DeleteAt": 0,
+			})
+
+		if _, err = transaction.ExecBuilder(pageContentsUpdateQuery); err != nil {
+			return errors.Wrap(err, "failed to soft delete page contents for wiki")
+		}
 	}
 
-	// Delete page drafts associated with this wiki
-	pageDraftsDeleteQuery := s.getQueryBuilder().
-		Delete("PageDrafts").
+	// Delete page draft contents associated with this wiki
+	pageDraftContentsDeleteQuery := s.getQueryBuilder().
+		Delete("PageDraftContents").
 		Where(sq.Eq{"WikiId": wikiId})
 
-	if _, err = transaction.ExecBuilder(pageDraftsDeleteQuery); err != nil {
-		return errors.Wrap(err, "failed to delete page drafts for wiki")
+	if _, err = transaction.ExecBuilder(pageDraftContentsDeleteQuery); err != nil {
+		return errors.Wrap(err, "failed to delete page draft contents for wiki")
+	}
+
+	// Delete page draft metadata from Drafts table
+	draftsDeleteQuery := s.getQueryBuilder().
+		Delete("Drafts").
+		Where(sq.Eq{"WikiId": wikiId})
+
+	if _, err = transaction.ExecBuilder(draftsDeleteQuery); err != nil {
+		return errors.Wrap(err, "failed to delete page draft metadata for wiki")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -751,7 +744,7 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 		}
 		mlog.Debug("MoveWikiToChannel: Pages updated successfully")
 
-		mlog.Debug("MoveWikiToChannel: Updating comments")
+		mlog.Debug("MoveWikiToChannel: Updating regular comments")
 		updateCommentsQuery := s.getQueryBuilder().
 			Update("Posts").
 			Set("ChannelId", targetChannelId).
@@ -766,7 +759,29 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 			mlog.Error("MoveWikiToChannel: Failed to update comments channel", mlog.Err(err))
 			return nil, errors.Wrap(err, "failed to update comments channel")
 		}
-		mlog.Debug("MoveWikiToChannel: Comments updated successfully")
+		mlog.Debug("MoveWikiToChannel: Regular comments updated successfully")
+
+		mlog.Debug("MoveWikiToChannel: Updating inline comments")
+		for _, pageID := range pageIDs {
+			updateInlineCommentsQuery := s.getQueryBuilder().
+				Update("Posts").
+				Set("ChannelId", targetChannelId).
+				Set("UpdateAt", timestamp).
+				Where(sq.And{
+					sq.Eq{"Type": model.PostTypePageComment},
+					sq.Eq{"RootId": ""},
+					sq.Expr("Props->>'page_id' = ?", pageID),
+					sq.Eq{"DeleteAt": 0},
+				})
+
+			if _, err = transaction.ExecBuilder(updateInlineCommentsQuery); err != nil {
+				mlog.Error("MoveWikiToChannel: Failed to update inline comments",
+					mlog.Err(err),
+					mlog.String("page_id", pageID))
+				return nil, errors.Wrap(err, "failed to update inline comments")
+			}
+		}
+		mlog.Debug("MoveWikiToChannel: Inline comments updated successfully")
 	}
 
 	if err = transaction.Commit(); err != nil {

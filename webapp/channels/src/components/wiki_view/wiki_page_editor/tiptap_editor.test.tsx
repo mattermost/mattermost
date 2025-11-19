@@ -4,6 +4,7 @@
 // TRUE ZERO-MOCK VERSION - Uses real API and real channels
 
 import {render, fireEvent, waitFor} from '@testing-library/react';
+import Image from '@tiptap/extension-image';
 import {Table} from '@tiptap/extension-table';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
@@ -402,5 +403,127 @@ describe('TipTapEditor - Page Linking (Ctrl+K and Modal)', () => {
     test('generates correct URL format for page links', () => {
         const expectedUrl = '/engineering/wiki/channel1/wiki1/page1';
         expect(expectedUrl).toMatch(/^\/[\w-]+\/wiki\/[\w-]+\/[\w-]+\/[\w-]+$/);
+    });
+});
+
+describe('TipTapEditor - Image Preview in View Mode', () => {
+    const mockDispatch = jest.fn();
+    const mockOpenModal = jest.fn();
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockDispatch.mockImplementation((action) => {
+            if (typeof action === 'function') {
+                return action(mockDispatch, jest.fn());
+            }
+            if (action && typeof action === 'object' && action.type === 'MODAL_OPEN') {
+                mockOpenModal(action);
+            }
+            return action;
+        });
+    });
+
+    const TestImagePreviewEditor = ({editable = false}: {editable?: boolean}) => {
+        const editor = useEditor({
+            extensions: [
+                StarterKit,
+                Image.configure({
+                    HTMLAttributes: {
+                        class: 'wiki-image',
+                    },
+                }),
+            ],
+            content: {
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [
+                            {
+                                type: 'image',
+                                attrs: {
+                                    src: '/api/v4/files/TEST123ABC',
+                                    alt: 'test-image.png',
+                                    title: 'test-image.png',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+            editable,
+        });
+
+        if (!editor) {
+            return null;
+        }
+
+        return (
+            <div>
+                <EditorContent
+                    editor={editor}
+                    data-testid='image-preview-editor'
+                />
+            </div>
+        );
+    };
+
+    it('should render image in view mode', () => {
+        const {getByTestId} = render(<TestImagePreviewEditor editable={false}/>);
+
+        const editor = getByTestId('image-preview-editor');
+        const image = editor.querySelector('img');
+
+        expect(image).toBeInTheDocument();
+        expect(image).toHaveAttribute('src', '/api/v4/files/TEST123ABC');
+        expect(image).toHaveAttribute('alt', 'test-image.png');
+    });
+
+    it('should have correct attributes for image preview', () => {
+        const {getByTestId} = render(<TestImagePreviewEditor editable={false}/>);
+
+        const editor = getByTestId('image-preview-editor');
+        const image = editor.querySelector('img');
+
+        expect(image).toHaveAttribute('src', '/api/v4/files/TEST123ABC');
+        expect(image).toHaveAttribute('alt', 'test-image.png');
+        expect(image).toHaveAttribute('title', 'test-image.png');
+    });
+
+    it('should extract correct file extension from filename', () => {
+        const filename = 'test-image.png';
+        const lastDotIndex = filename.lastIndexOf('.');
+        const extension = lastDotIndex !== -1 && lastDotIndex < filename.length - 1 ?
+            filename.substring(lastDotIndex + 1).toLowerCase() : 'png';
+
+        expect(extension).toBe('png');
+    });
+
+    it('should handle different image extensions', () => {
+        const testCases = [
+            {filename: 'photo.jpg', expected: 'jpg'},
+            {filename: 'graphic.jpeg', expected: 'jpeg'},
+            {filename: 'icon.gif', expected: 'gif'},
+            {filename: 'diagram.webp', expected: 'webp'},
+            {filename: 'vector.svg', expected: 'svg'},
+            {filename: 'no-extension', expected: 'png'}, // default fallback
+        ];
+
+        testCases.forEach(({filename, expected}) => {
+            const lastDotIndex = filename.lastIndexOf('.');
+            const extension = lastDotIndex !== -1 && lastDotIndex < filename.length - 1 ?
+                filename.substring(lastDotIndex + 1).toLowerCase() : 'png';
+
+            expect(extension).toBe(expected);
+        });
+    });
+
+    it('should render image in edit mode', () => {
+        const {getByTestId} = render(<TestImagePreviewEditor editable={true}/>);
+
+        const editor = getByTestId('image-preview-editor');
+        const image = editor.querySelector('img');
+
+        expect(image).toBeInTheDocument();
     });
 });

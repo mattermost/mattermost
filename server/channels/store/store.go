@@ -100,7 +100,7 @@ type Store interface {
 	Wiki() WikiStore
 	PageContent() PageContentStore
 	Page() PageStore
-	PageDraft() PageDraftStore
+	PageDraftContent() PageDraftContentStore
 }
 
 type RetentionPolicyStore interface {
@@ -405,7 +405,6 @@ type PostStore interface {
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetEditHistoryForPost(postID string) ([]*model.Post, error)
 	GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error)
-	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
@@ -1055,7 +1054,9 @@ type PostPriorityStore interface {
 
 type DraftStore interface {
 	Upsert(d *model.Draft) (*model.Draft, error)
+	UpsertPageDraft(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
+	GetManyByRootIds(userID, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	DeleteDraftsAssociatedWithPost(channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
@@ -1063,18 +1064,14 @@ type DraftStore interface {
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
-	GetPageDraft(userId, wikiId, draftId string) (*model.Draft, error)
-	UpsertPageDraft(userId, wikiId, draftId, message string) (*model.Draft, error)
-	UpsertPageDraftWithMetadata(userId, wikiId, draftId, message, title, pageId string, props map[string]any) (*model.Draft, error)
-	DeletePageDraft(userId, wikiId, draftId string) error
-	GetPageDraftsForWiki(userId, wikiId string) ([]*model.Draft, error)
+	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
 }
 
-type PageDraftStore interface {
-	Upsert(pageDraft *model.PageDraft) (*model.PageDraft, error)
-	Get(userId, wikiId, draftId string) (*model.PageDraft, error)
+type PageDraftContentStore interface {
+	Upsert(content *model.PageDraftContent) (*model.PageDraftContent, error)
+	Get(userId, wikiId, draftId string) (*model.PageDraftContent, error)
 	Delete(userId, wikiId, draftId string) error
-	GetForWiki(userId, wikiId string) ([]*model.PageDraft, error)
+	GetForWiki(userId, wikiId string) ([]*model.PageDraftContent, error)
 }
 
 type PostAcknowledgementStore interface {

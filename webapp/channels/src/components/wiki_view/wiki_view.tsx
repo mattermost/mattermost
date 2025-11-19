@@ -6,10 +6,11 @@ import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadPageDraftsForWiki} from 'actions/page_drafts';
+import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
 import {loadPages} from 'actions/pages';
 import {openPagesPanel, closePagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
@@ -19,6 +20,7 @@ import {getPage, getPages, getPagesLastInvalidated, getDraftsLastInvalidated} fr
 import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
+import ConflictWarningModal from 'components/conflict_warning_modal';
 import LoadingScreen from 'components/loading_screen';
 import MovePageModal from 'components/move_page_modal';
 import PageVersionHistoryModal from 'components/page_version_history';
@@ -26,8 +28,10 @@ import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
 import DeletePageModal from 'components/pages_hierarchy_panel/delete_page_modal';
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/use_page_menu_handlers';
 import TextInputModal from 'components/text_input_modal';
+import UnsavedDraftModal from 'components/unsaved_draft_modal';
 
 import {isEditingExistingPage, getPublishedPageIdFromDraft} from 'utils/page_utils';
+import {canEditPage} from 'utils/post_utils';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -63,6 +67,10 @@ const WikiView = () => {
     // Version history modal state
     const [showVersionHistory, setShowVersionHistory] = React.useState(false);
     const [versionHistoryPageId, setVersionHistoryPageId] = React.useState<string | null>(null);
+
+    // Unsaved draft modal state
+    const [showUnsavedDraftModal, setShowUnsavedDraftModal] = React.useState(false);
+    const [unsavedDraftData, setUnsavedDraftData] = React.useState<any>(null);
 
     // Toggle fullscreen
     const toggleFullscreen = React.useCallback(() => {
@@ -205,6 +213,25 @@ const WikiView = () => {
     // Phase 1 Refactor: isDraft now derived from route - draftId in URL means we're editing a draft
     const isDraft = Boolean(draftId) || (!pageId && !draftId && (Boolean(currentDraft) || !currentPage));
 
+    // Get the current channel for permission checks
+    const currentChannel = useSelector((state: GlobalState) => getChannel(state, actualChannelId));
+
+    // Check if user can edit the current page (only applies to published pages, not drafts)
+    const canEdit = useSelector((state: GlobalState) => {
+        // For drafts, always allow editing (the header shows Publish button instead of Edit anyway)
+        if (!pageId || isDraft) {
+            return true;
+        }
+
+        // For published pages, check permissions if we have the data
+        if (currentPage && currentChannel) {
+            return canEditPage(state, currentPage, currentChannel);
+        }
+
+        // Default to false while loading to prevent showing Edit button prematurely
+        return false;
+    });
+
     // Single source of truth for empty state (no drafts, no pages)
     const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0 && allPages.length === 0;
 
@@ -281,7 +308,7 @@ const WikiView = () => {
     // draft id in local state.
     // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
 
-    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange} = useWikiPageActions(
+    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, conflictModal} = useWikiPageActions(
         channelId,
         pageId,
         draftId,
@@ -291,6 +318,43 @@ const WikiView = () => {
         location,
         history,
     );
+
+    // Check handleEdit result for unsaved draft error
+    const onEdit = React.useCallback(async () => {
+        const result = await handleEdit();
+        if (result?.error?.id === 'api.page.edit.unsaved_draft_exists') {
+            setUnsavedDraftData(result.error.data);
+            setShowUnsavedDraftModal(true);
+        }
+    }, [handleEdit]);
+
+    // Unsaved draft modal: Resume existing draft
+    const handleResumeDraft = React.useCallback(() => {
+        setShowUnsavedDraftModal(false);
+        if (pageId && wikiId) {
+            const teamName = getTeamNameFromPath(location.pathname);
+            const draftPath = getWikiUrl(teamName, channelId, wikiId, pageId, true);
+            history.push(draftPath);
+        }
+    }, [pageId, wikiId, channelId, history, location]);
+
+    // Unsaved draft modal: Discard existing draft and create new one from published content
+    const handleDiscardDraft = React.useCallback(async () => {
+        setShowUnsavedDraftModal(false);
+        if (pageId && wikiId) {
+            // Delete the existing draft
+            await dispatch(removePageDraft(wikiId, pageId));
+
+            // Create a fresh draft from published content by calling handleEdit
+            // This will trigger openPageInEditMode which creates a new draft
+            await handleEdit();
+        }
+    }, [pageId, wikiId, dispatch, handleEdit]);
+
+    const handleCancelUnsavedDraft = React.useCallback(() => {
+        setShowUnsavedDraftModal(false);
+        setUnsavedDraftData(null);
+    }, []);
 
     const handleToggleComments = () => {
         if (isWikiRhsOpen) {
@@ -308,6 +372,16 @@ const WikiView = () => {
     };
 
     const handlePageSelect = (selectedPageId: string) => {
+        if (!wikiId || !channelId) {
+            return;
+        }
+
+        // BUGFIX: When navigating to wiki root (empty pageId), clear lastViewedPageId
+        // to prevent auto-select from navigating back to a deleted page
+        if (!selectedPageId && wikiId) {
+            dispatch(setLastViewedPage(wikiId, ''));
+        }
+
         const isSelectedIdDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId);
         const teamName = getTeamNameFromPath(location.pathname);
         const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isSelectedIdDraft);
@@ -323,8 +397,8 @@ const WikiView = () => {
                 if (publishedPageId) {
                     dispatch(openWikiRhs(publishedPageId, wikiId || '', undefined));
                 }
-            } else {
-                // For published pages, use the page ID directly
+            } else if (selectedPageId) {
+                // For published pages, use the page ID directly (only if not empty)
                 dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
             }
         }
@@ -428,7 +502,7 @@ const WikiView = () => {
                                     isExistingPage={isExistingPage}
                                     parentPageId={effectiveParentId}
                                     draftTitle={effectiveTitle}
-                                    onEdit={handleEdit}
+                                    onEdit={onEdit}
                                     onPublish={handlePublish}
                                     onToggleComments={handleToggleComments}
                                     isFullscreen={isFullscreen}
@@ -440,6 +514,7 @@ const WikiView = () => {
                                     onDelete={() => currentPageIdForHeader && menuHandlers.handleDelete(currentPageIdForHeader)}
                                     onVersionHistory={() => currentPageIdForHeader && handleVersionHistory(currentPageIdForHeader)}
                                     pageLink={pageLink}
+                                    canEdit={canEdit}
                                 />
                             );
                         })()}
@@ -554,6 +629,28 @@ const WikiView = () => {
                             />
                         );
                     })()}
+
+                    {/* Conflict warning modal */}
+                    {conflictModal.show && conflictModal.currentPage && (
+                        <ConflictWarningModal
+                            show={conflictModal.show}
+                            currentPage={conflictModal.currentPage}
+                            draftContent={conflictModal.draftContent}
+                            onViewChanges={conflictModal.onViewChanges}
+                            onCopyContent={conflictModal.onCopyContent}
+                            onOverwrite={conflictModal.onOverwrite}
+                            onCancel={conflictModal.onCancel}
+                        />
+                    )}
+
+                    {/* Unsaved draft warning modal */}
+                    <UnsavedDraftModal
+                        show={showUnsavedDraftModal}
+                        draftCreateAt={unsavedDraftData?.draftCreateAt}
+                        onResumeDraft={handleResumeDraft}
+                        onDiscardDraft={handleDiscardDraft}
+                        onCancel={handleCancelUnsavedDraft}
+                    />
                 </>
             )}
         </div>

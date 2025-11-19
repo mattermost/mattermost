@@ -1,5 +1,5 @@
 import {expect, test} from './pages_test_fixture';
-import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel, enterEditMode, waitForEditModeReady, clearEditorContent} from './test_helpers';
 
 /**
  * Test outline with navigation - does navigating away and back cause the issue?
@@ -25,16 +25,15 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
     await page1Node.click();
     await page.waitForLoadState('networkidle');
 
-    const editButton1 = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
-    await editButton1.click();
-    await page.waitForTimeout(500);
+    // # Enter edit mode using helper
+    await enterEditMode(page);
+    await waitForEditModeReady(page);
 
-    const editor1 = page.locator('.ProseMirror').first();
-    await editor1.click();
-    await page.keyboard.press('Control+A');
-    await page.keyboard.press('Backspace');
+    // # Clear existing content and add heading
+    await clearEditorContent(page);
     await addHeadingToEditor(page, 1, 'Page 1 Heading');
 
+    // # Publish the page
     const publishButton1 = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton1.click();
     await page.waitForLoadState('networkidle');

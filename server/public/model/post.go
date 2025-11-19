@@ -94,6 +94,9 @@ const (
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
+	PostPropsCommentType              = "comment_type"
+
+	PageCommentTypeInline = "inline"
 
 	PostPriorityUrgent = "urgent"
 )
@@ -1107,6 +1110,16 @@ func (o *Post) GetPreviewedPostProp() string {
 		return val
 	}
 	return ""
+}
+
+func (o *Post) GetPageTitle() string {
+	if o.Type != PostTypePage {
+		return ""
+	}
+	if title, ok := o.GetProp("title").(string); ok && title != "" {
+		return title
+	}
+	return "Untitled page"
 }
 
 func (o *Post) GetPriority() *PostPriority {

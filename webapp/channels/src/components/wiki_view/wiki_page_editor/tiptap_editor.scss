@@ -175,6 +175,25 @@
             margin: 1em 0;
         }
 
+        // Add cursor pointer for images in view mode
+        &.ProseMirror[contenteditable="false"] img.wiki-image {
+            cursor: pointer;
+
+            &:hover {
+                opacity: 0.9;
+            }
+        }
+
+        // Make ImageResize wrapper clickable in view mode
+        &.ProseMirror[contenteditable="false"] [data-type="resizableMedia"],
+        &.ProseMirror[contenteditable="false"] div[style*="position: relative"]:has(img.wiki-image) {
+            cursor: pointer;
+
+            &:hover img.wiki-image {
+                opacity: 0.9;
+            }
+        }
+
         // ImageResize extension wraps images in a div with inline styles
         // Override the default dashed border to make selection more visible
         div[style*="border: 1px dashed"] {

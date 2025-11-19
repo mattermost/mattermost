@@ -40,20 +40,20 @@ func assertContentEquals(t *testing.T, expected, actual model.TipTapDocument) {
 	assert.JSONEq(t, string(expectedJSON), string(actualJSON))
 }
 
-func TestPageDraftStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Run("UpsertInsert", func(t *testing.T) { testPageDraftUpsertInsert(t, rctx, ss) })
-	t.Run("UpsertUpdate", func(t *testing.T) { testPageDraftUpsertUpdate(t, rctx, ss) })
-	t.Run("Get", func(t *testing.T) { testPageDraftGet(t, rctx, ss) })
-	t.Run("GetNotFound", func(t *testing.T) { testPageDraftGetNotFound(t, rctx, ss) })
-	t.Run("Delete", func(t *testing.T) { testPageDraftDelete(t, rctx, ss) })
-	t.Run("DeleteNotFound", func(t *testing.T) { testPageDraftDeleteNotFound(t, rctx, ss) })
-	t.Run("GetForWiki", func(t *testing.T) { testPageDraftGetForWiki(t, rctx, ss) })
-	t.Run("GetForWikiOrdering", func(t *testing.T) { testPageDraftGetForWikiOrdering(t, rctx, ss) })
-	t.Run("JSONBSerialization", func(t *testing.T) { testPageDraftJSONBSerialization(t, rctx, ss) })
-	t.Run("LargeContent", func(t *testing.T) { testPageDraftLargeContent(t, rctx, ss) })
+func TestPageDraftContentStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("UpsertInsert", func(t *testing.T) { testPageDraftContentUpsertInsert(t, rctx, ss) })
+	t.Run("UpsertUpdate", func(t *testing.T) { testPageDraftContentUpsertUpdate(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testPageDraftContentGet(t, rctx, ss) })
+	t.Run("GetNotFound", func(t *testing.T) { testPageDraftContentGetNotFound(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testPageDraftContentDelete(t, rctx, ss) })
+	t.Run("DeleteNotFound", func(t *testing.T) { testPageDraftContentDeleteNotFound(t, rctx, ss) })
+	t.Run("GetForWiki", func(t *testing.T) { testPageDraftContentGetForWiki(t, rctx, ss) })
+	t.Run("GetForWikiOrdering", func(t *testing.T) { testPageDraftContentGetForWikiOrdering(t, rctx, ss) })
+	t.Run("JSONBSerialization", func(t *testing.T) { testPageDraftContentJSONBSerialization(t, rctx, ss) })
+	t.Run("LargeContent", func(t *testing.T) { testPageDraftContentLargeContent(t, rctx, ss) })
 }
 
-func testPageDraftUpsertInsert(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentUpsertInsert(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -89,7 +89,7 @@ func testPageDraftUpsertInsert(t *testing.T, rctx request.CTX, ss store.Store) {
 	wiki, err = ss.Wiki().Save(wiki)
 	require.NoError(t, err)
 
-	t.Run("insert new page draft successfully", func(t *testing.T) {
+	t.Run("insert new page draft content successfully", func(t *testing.T) {
 		content := model.TipTapDocument{
 			Type: "doc",
 			Content: []map[string]any{
@@ -105,31 +105,28 @@ func testPageDraftUpsertInsert(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		}
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Test Draft",
 			Content: content,
-			Props: map[string]any{
-				"page_id": model.NewId(),
-			},
 		}
 
-		savedDraft, err := ss.PageDraft().Upsert(pageDraft)
+		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
-		require.NotNil(t, savedDraft)
-		assert.Equal(t, pageDraft.UserId, savedDraft.UserId)
-		assert.Equal(t, pageDraft.WikiId, savedDraft.WikiId)
-		assert.Equal(t, pageDraft.DraftId, savedDraft.DraftId)
-		assert.Equal(t, pageDraft.Title, savedDraft.Title)
+		require.NotNil(t, savedContent)
+		assert.Equal(t, pageDraftContent.UserId, savedContent.UserId)
+		assert.Equal(t, pageDraftContent.WikiId, savedContent.WikiId)
+		assert.Equal(t, pageDraftContent.DraftId, savedContent.DraftId)
+		assert.Equal(t, pageDraftContent.Title, savedContent.Title)
 
-		expectedJSON, _ := json.Marshal(pageDraft.Content)
-		actualJSON, _ := json.Marshal(savedDraft.Content)
+		expectedJSON, _ := json.Marshal(pageDraftContent.Content)
+		actualJSON, _ := json.Marshal(savedContent.Content)
 		assert.JSONEq(t, string(expectedJSON), string(actualJSON))
-		assert.NotZero(t, savedDraft.CreateAt)
-		assert.NotZero(t, savedDraft.UpdateAt)
-		assert.Equal(t, savedDraft.CreateAt, savedDraft.UpdateAt)
+		assert.NotZero(t, savedContent.CreateAt)
+		assert.NotZero(t, savedContent.UpdateAt)
+		assert.Equal(t, savedContent.CreateAt, savedContent.UpdateAt)
 	})
 
 	t.Run("insert with empty content", func(t *testing.T) {
@@ -138,26 +135,25 @@ func testPageDraftUpsertInsert(t *testing.T, rctx request.CTX, ss store.Store) {
 			Content: []map[string]any{},
 		}
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "",
 			Content: emptyContent,
-			Props:   map[string]any{},
 		}
 
-		savedDraft, err := ss.PageDraft().Upsert(pageDraft)
+		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
-		assert.Equal(t, "", savedDraft.Title)
+		assert.Equal(t, "", savedContent.Title)
 
 		expectedJSON, _ := json.Marshal(emptyContent)
-		actualJSON, _ := json.Marshal(savedDraft.Content)
+		actualJSON, _ := json.Marshal(savedContent.Content)
 		assert.JSONEq(t, string(expectedJSON), string(actualJSON))
 	})
 }
 
-func testPageDraftUpsertUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentUpsertUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -193,7 +189,7 @@ func testPageDraftUpsertUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	wiki, err = ss.Wiki().Save(wiki)
 	require.NoError(t, err)
 
-	t.Run("update existing page draft via upsert", func(t *testing.T) {
+	t.Run("update existing page draft content via upsert", func(t *testing.T) {
 		initialContent := model.TipTapDocument{
 			Type: "doc",
 			Content: []map[string]any{
@@ -209,21 +205,18 @@ func testPageDraftUpsertUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		}
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Initial Title",
 			Content: initialContent,
-			Props: map[string]any{
-				"page_id": model.NewId(),
-			},
 		}
 
-		savedDraft, err := ss.PageDraft().Upsert(pageDraft)
+		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
-		initialCreateAt := savedDraft.CreateAt
-		initialUpdateAt := savedDraft.UpdateAt
+		initialCreateAt := savedContent.CreateAt
+		initialUpdateAt := savedContent.UpdateAt
 
 		time.Sleep(2 * time.Millisecond)
 
@@ -242,33 +235,29 @@ func testPageDraftUpsertUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		}
 
-		pageDraft.Title = "Updated Title"
-		pageDraft.Content = updatedContent
-		pageDraft.Props = map[string]any{
-			"page_id":   model.NewId(),
-			"new_field": "new_value",
-		}
+		pageDraftContent.Title = "Updated Title"
+		pageDraftContent.Content = updatedContent
 
-		updatedDraft, err := ss.PageDraft().Upsert(pageDraft)
+		updatedContentResult, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
-		assert.Equal(t, "Updated Title", updatedDraft.Title)
+		assert.Equal(t, "Updated Title", updatedContentResult.Title)
 
 		updatedJSON, _ := json.Marshal(updatedContent)
-		actualJSON, _ := json.Marshal(updatedDraft.Content)
+		actualJSON, _ := json.Marshal(updatedContentResult.Content)
 		assert.JSONEq(t, string(updatedJSON), string(actualJSON))
-		assert.Equal(t, initialCreateAt, updatedDraft.CreateAt)
-		assert.Greater(t, updatedDraft.UpdateAt, initialUpdateAt)
+		assert.Equal(t, initialCreateAt, updatedContentResult.CreateAt)
+		assert.Greater(t, updatedContentResult.UpdateAt, initialUpdateAt)
 
-		retrievedDraft, err := ss.PageDraft().Get(user.Id, wiki.Id, pageDraft.DraftId)
+		retrievedContent, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
-		assert.Equal(t, "Updated Title", retrievedDraft.Title)
+		assert.Equal(t, "Updated Title", retrievedContent.Title)
 
-		retrievedJSON, _ := json.Marshal(retrievedDraft.Content)
+		retrievedJSON, _ := json.Marshal(retrievedContent.Content)
 		assert.JSONEq(t, string(updatedJSON), string(retrievedJSON))
 	})
 }
 
-func testPageDraftGet(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -306,31 +295,28 @@ func testPageDraftGet(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	content := createTestContent("Test content")
 
-	pageDraft := &model.PageDraft{
+	pageDraftContent := &model.PageDraftContent{
 		UserId:  user.Id,
 		WikiId:  wiki.Id,
 		DraftId: model.NewId(),
 		Title:   "Test Draft",
 		Content: content,
-		Props: map[string]any{
-			"page_id": model.NewId(),
-		},
 	}
-	_, err = ss.PageDraft().Upsert(pageDraft)
+	_, err = ss.PageDraftContent().Upsert(pageDraftContent)
 	require.NoError(t, err)
 
-	t.Run("get existing page draft", func(t *testing.T) {
-		retrieved, getErr := ss.PageDraft().Get(user.Id, wiki.Id, pageDraft.DraftId)
+	t.Run("get existing page draft content", func(t *testing.T) {
+		retrieved, getErr := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, getErr)
-		assert.Equal(t, pageDraft.UserId, retrieved.UserId)
-		assert.Equal(t, pageDraft.WikiId, retrieved.WikiId)
-		assert.Equal(t, pageDraft.DraftId, retrieved.DraftId)
-		assert.Equal(t, pageDraft.Title, retrieved.Title)
-		assertContentEquals(t, pageDraft.Content, retrieved.Content)
+		assert.Equal(t, pageDraftContent.UserId, retrieved.UserId)
+		assert.Equal(t, pageDraftContent.WikiId, retrieved.WikiId)
+		assert.Equal(t, pageDraftContent.DraftId, retrieved.DraftId)
+		assert.Equal(t, pageDraftContent.Title, retrieved.Title)
+		assertContentEquals(t, pageDraftContent.Content, retrieved.Content)
 	})
 }
 
-func testPageDraftGetNotFound(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentGetNotFound(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -367,7 +353,7 @@ func testPageDraftGetNotFound(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("get non-existent page draft", func(t *testing.T) {
-		_, getErr := ss.PageDraft().Get(user.Id, wiki.Id, model.NewId())
+		_, getErr := ss.PageDraftContent().Get(user.Id, wiki.Id, model.NewId())
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -376,18 +362,17 @@ func testPageDraftGetNotFound(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("get with wrong user id", func(t *testing.T) {
 		content := model.TipTapDocument{Type: "doc", Content: []map[string]any{}}
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Test Draft",
 			Content: content,
-			Props:   map[string]any{},
 		}
-		_, err := ss.PageDraft().Upsert(pageDraft)
+		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
 
-		_, getErr := ss.PageDraft().Get(model.NewId(), wiki.Id, pageDraft.DraftId)
+		_, getErr := ss.PageDraftContent().Get(model.NewId(), wiki.Id, pageDraftContent.DraftId)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -396,25 +381,24 @@ func testPageDraftGetNotFound(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("get with wrong wiki id", func(t *testing.T) {
 		content := model.TipTapDocument{Type: "doc", Content: []map[string]any{}}
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Test Draft",
 			Content: content,
-			Props:   map[string]any{},
 		}
-		_, err := ss.PageDraft().Upsert(pageDraft)
+		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
 
-		_, getErr := ss.PageDraft().Get(user.Id, model.NewId(), pageDraft.DraftId)
+		_, getErr := ss.PageDraftContent().Get(user.Id, model.NewId(), pageDraftContent.DraftId)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
 	})
 }
 
-func testPageDraftDelete(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -453,28 +437,27 @@ func testPageDraftDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("delete existing page draft", func(t *testing.T) {
 		content := model.TipTapDocument{Type: "doc", Content: []map[string]any{}}
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Test Draft",
 			Content: content,
-			Props:   map[string]any{},
 		}
-		_, err := ss.PageDraft().Upsert(pageDraft)
+		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
 
-		deleteErr := ss.PageDraft().Delete(user.Id, wiki.Id, pageDraft.DraftId)
+		deleteErr := ss.PageDraftContent().Delete(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, deleteErr)
 
-		_, getErr := ss.PageDraft().Get(user.Id, wiki.Id, pageDraft.DraftId)
+		_, getErr := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
 	})
 }
 
-func testPageDraftDeleteNotFound(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentDeleteNotFound(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -511,14 +494,14 @@ func testPageDraftDeleteNotFound(t *testing.T, rctx request.CTX, ss store.Store)
 	require.NoError(t, err)
 
 	t.Run("delete non-existent page draft", func(t *testing.T) {
-		deleteErr := ss.PageDraft().Delete(user.Id, wiki.Id, model.NewId())
+		deleteErr := ss.PageDraftContent().Delete(user.Id, wiki.Id, model.NewId())
 		assert.Error(t, deleteErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, deleteErr, &nfErr)
 	})
 }
 
-func testPageDraftGetForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentGetForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -563,41 +546,38 @@ func testPageDraftGetForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	content := model.TipTapDocument{Type: "doc", Content: []map[string]any{}}
 
-	draft1 := &model.PageDraft{
+	draft1 := &model.PageDraftContent{
 		UserId:  user.Id,
 		WikiId:  wiki1.Id,
 		DraftId: model.NewId(),
 		Title:   "Draft 1",
 		Content: content,
-		Props:   map[string]any{},
 	}
-	_, err = ss.PageDraft().Upsert(draft1)
+	_, err = ss.PageDraftContent().Upsert(draft1)
 	require.NoError(t, err)
 
-	draft2 := &model.PageDraft{
+	draft2 := &model.PageDraftContent{
 		UserId:  user.Id,
 		WikiId:  wiki1.Id,
 		DraftId: model.NewId(),
 		Title:   "Draft 2",
 		Content: content,
-		Props:   map[string]any{},
 	}
-	_, err = ss.PageDraft().Upsert(draft2)
+	_, err = ss.PageDraftContent().Upsert(draft2)
 	require.NoError(t, err)
 
-	draft3 := &model.PageDraft{
+	draft3 := &model.PageDraftContent{
 		UserId:  user.Id,
 		WikiId:  wiki2.Id,
 		DraftId: model.NewId(),
 		Title:   "Draft 3",
 		Content: content,
-		Props:   map[string]any{},
 	}
-	_, err = ss.PageDraft().Upsert(draft3)
+	_, err = ss.PageDraftContent().Upsert(draft3)
 	require.NoError(t, err)
 
 	t.Run("get all drafts for wiki", func(t *testing.T) {
-		drafts, getErr := ss.PageDraft().GetForWiki(user.Id, wiki1.Id)
+		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, wiki1.Id)
 		require.NoError(t, getErr)
 		assert.Len(t, drafts, 2)
 		for _, d := range drafts {
@@ -614,19 +594,19 @@ func testPageDraftGetForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		emptyWiki, err := ss.Wiki().Save(emptyWiki)
 		require.NoError(t, err)
 
-		drafts, getErr := ss.PageDraft().GetForWiki(user.Id, emptyWiki.Id)
+		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, emptyWiki.Id)
 		require.NoError(t, getErr)
 		assert.Empty(t, drafts)
 	})
 
 	t.Run("get drafts for non-existent wiki", func(t *testing.T) {
-		drafts, getErr := ss.PageDraft().GetForWiki(user.Id, model.NewId())
+		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, model.NewId())
 		require.NoError(t, getErr)
 		assert.Empty(t, drafts)
 	})
 }
 
-func testPageDraftGetForWikiOrdering(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentGetForWikiOrdering(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -665,40 +645,37 @@ func testPageDraftGetForWikiOrdering(t *testing.T, rctx request.CTX, ss store.St
 	content := model.TipTapDocument{Type: "doc", Content: []map[string]any{}}
 
 	t.Run("drafts ordered by UpdateAt DESC", func(t *testing.T) {
-		draft1 := &model.PageDraft{
+		draft1 := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "First Draft",
 			Content: content,
-			Props:   map[string]any{},
 		}
-		_, err := ss.PageDraft().Upsert(draft1)
+		_, err := ss.PageDraftContent().Upsert(draft1)
 		require.NoError(t, err)
 
-		draft2 := &model.PageDraft{
+		draft2 := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Second Draft",
 			Content: content,
-			Props:   map[string]any{},
 		}
-		_, err = ss.PageDraft().Upsert(draft2)
+		_, err = ss.PageDraftContent().Upsert(draft2)
 		require.NoError(t, err)
 
-		draft3 := &model.PageDraft{
+		draft3 := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Third Draft",
 			Content: content,
-			Props:   map[string]any{},
 		}
-		_, err = ss.PageDraft().Upsert(draft3)
+		_, err = ss.PageDraftContent().Upsert(draft3)
 		require.NoError(t, err)
 
-		drafts, getErr := ss.PageDraft().GetForWiki(user.Id, wiki.Id)
+		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, wiki.Id)
 		require.NoError(t, getErr)
 		require.Len(t, drafts, 3)
 
@@ -707,7 +684,7 @@ func testPageDraftGetForWikiOrdering(t *testing.T, rctx request.CTX, ss store.St
 	})
 }
 
-func testPageDraftJSONBSerialization(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentJSONBSerialization(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -808,30 +785,19 @@ func testPageDraftJSONBSerialization(t *testing.T, rctx request.CTX, ss store.St
 			},
 		}
 
-		complexProps := map[string]any{
-			"page_id":  model.NewId(),
-			"mentions": []string{"user1", "user2"},
-			"metadata": map[string]any{
-				"nested": map[string]any{
-					"key": "value",
-				},
-			},
-		}
-
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Complex Draft",
 			Content: complexContent,
-			Props:   complexProps,
 		}
 
-		savedDraft, err := ss.PageDraft().Upsert(pageDraft)
+		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
-		assertContentEquals(t, complexContent, savedDraft.Content)
+		assertContentEquals(t, complexContent, savedContent.Content)
 
-		retrieved, err := ss.PageDraft().Get(user.Id, wiki.Id, pageDraft.DraftId)
+		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 		assertContentEquals(t, complexContent, retrieved.Content)
 
@@ -855,19 +821,18 @@ func testPageDraftJSONBSerialization(t *testing.T, rctx request.CTX, ss store.St
 			},
 		}
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Special Characters",
 			Content: specialContent,
-			Props:   map[string]any{},
 		}
 
-		_, err := ss.PageDraft().Upsert(pageDraft)
+		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
 
-		retrieved, err := ss.PageDraft().Get(user.Id, wiki.Id, pageDraft.DraftId)
+		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 
 		assert.Equal(t, specialContent.Type, retrieved.Content.Type)
@@ -883,7 +848,7 @@ func testPageDraftJSONBSerialization(t *testing.T, rctx request.CTX, ss store.St
 	})
 }
 
-func testPageDraftLargeContent(t *testing.T, rctx request.CTX, ss store.Store) {
+func testPageDraftContentLargeContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
 		Name:        model.NewId(),
@@ -940,20 +905,19 @@ func testPageDraftLargeContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		contentJSON, _ := json.Marshal(largeContent)
 		require.Greater(t, len(contentJSON), 64*1024)
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Large Content Draft",
 			Content: largeContent,
-			Props:   map[string]any{},
 		}
 
-		savedDraft, err := ss.PageDraft().Upsert(pageDraft)
+		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
-		assertContentEquals(t, largeContent, savedDraft.Content)
+		assertContentEquals(t, largeContent, savedContent.Content)
 
-		retrieved, err := ss.PageDraft().Get(user.Id, wiki.Id, pageDraft.DraftId)
+		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 		assertContentEquals(t, largeContent, retrieved.Content)
 
@@ -982,19 +946,18 @@ func testPageDraftLargeContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		contentJSON, _ := json.Marshal(veryLargeContent)
 		require.Greater(t, len(contentJSON), 9*1024*1024)
 
-		pageDraft := &model.PageDraft{
+		pageDraftContent := &model.PageDraftContent{
 			UserId:  user.Id,
 			WikiId:  wiki.Id,
 			DraftId: model.NewId(),
 			Title:   "Very Large Content Draft",
 			Content: veryLargeContent,
-			Props:   map[string]any{},
 		}
 
-		_, err := ss.PageDraft().Upsert(pageDraft)
+		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
 		require.NoError(t, err)
 
-		retrieved, err := ss.PageDraft().Get(user.Id, wiki.Id, pageDraft.DraftId)
+		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 
 		retrievedJSON, _ := json.Marshal(retrieved.Content)

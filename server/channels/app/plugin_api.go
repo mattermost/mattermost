@@ -1627,3 +1627,20 @@ func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetI
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
 }
+
+// LinkPageToFirstWiki links a page to the first wiki in the given channel.
+// If no wiki exists, an error is returned.
+func (api *PluginAPI) LinkPageToFirstWiki(pageID, channelID string) *model.AppError {
+	wikis, err := api.app.GetWikisForChannel(api.ctx, channelID, false)
+	if err != nil {
+		return err
+	}
+
+	if len(wikis) == 0 {
+		return model.NewAppError("LinkPageToFirstWiki", "api.plugin.link_page_to_wiki.no_wiki", nil, "no wiki found for channel", http.StatusNotFound)
+	}
+
+	// Use the first wiki
+	wikiID := wikis[0].Id
+	return api.app.AddPageToWiki(api.ctx, pageID, wikiID)
+}

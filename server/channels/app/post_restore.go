@@ -25,7 +25,7 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 			statusCode = http.StatusInternalServerError
 		}
 
-		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, err.Error(), statusCode)
+		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, "", statusCode).Wrap(err)
 	}
 
 	// restoreVersionID needs to be an old version of postID

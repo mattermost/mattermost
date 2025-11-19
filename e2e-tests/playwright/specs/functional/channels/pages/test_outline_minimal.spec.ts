@@ -1,5 +1,5 @@
 import {expect, test} from './pages_test_fixture';
-import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel, enterEditMode, waitForEditModeReady, getEditor, clearEditorContent} from './test_helpers';
 
 /**
  * Minimal test to isolate the outline visibility issue
@@ -24,23 +24,19 @@ test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'
     await page1Node.click();
     await page.waitForLoadState('networkidle');
 
-    // # Click Edit button
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
-    await editButton.click();
-    await page.waitForTimeout(500);
+    // # Enter edit mode using helper
+    await enterEditMode(page);
+    await waitForEditModeReady(page);
 
-    // # Add heading to the page
-    const editor = page.locator('.ProseMirror').first();
-    await editor.click();
-    await page.keyboard.press('Control+A');
-    await page.keyboard.press('Backspace');
+    // # Clear existing content and add heading
+    await clearEditorContent(page);
     await addHeadingToEditor(page, 1, 'Test Heading');
 
     // # Publish the page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // Wait for Redux to update
+    await page.waitForTimeout(1000);
 
     // # Show outline for the page
     await showPageOutline(page, page1.id);

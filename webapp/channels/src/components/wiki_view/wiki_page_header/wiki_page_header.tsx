@@ -1,8 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState, useCallback} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
+import type {GlobalState} from '@mattermost/types/store';
+
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+
+import {createBookmarkFromPage} from 'actions/channel_bookmarks';
+
+import BookmarkChannelSelect from 'components/bookmark_channel_select';
 import PageActionsMenu from '../../pages_hierarchy_panel/page_actions_menu';
 import PageBreadcrumb from '../page_breadcrumb';
 
@@ -26,6 +34,7 @@ type Props = {
     onDelete?: () => void;
     onVersionHistory?: () => void;
     pageLink?: string;
+    canEdit?: boolean;
 };
 
 const WikiPageHeader = ({
@@ -48,7 +57,28 @@ const WikiPageHeader = ({
     onDelete,
     onVersionHistory,
     pageLink,
+    canEdit = true,
 }: Props) => {
+    const dispatch = useDispatch();
+    const [showBookmarkModal, setShowBookmarkModal] = useState(false);
+
+    const page = useSelector((state: GlobalState) => getPost(state, pageId));
+
+    const handleBookmarkInChannel = useCallback(() => {
+        setShowBookmarkModal(true);
+    }, []);
+
+    const handleChannelSelected = useCallback(async (selectedChannelId: string) => {
+        if (page && page.props?.title) {
+            const title = typeof page.props.title === 'string' ? page.props.title : String(page.props.title);
+            await dispatch(createBookmarkFromPage(selectedChannelId, pageId, title));
+        }
+    }, [dispatch, pageId, page]);
+
+    const handleCloseBookmarkModal = useCallback(() => {
+        setShowBookmarkModal(false);
+    }, []);
+
     return (
         <div
             className='PagePane__header'
@@ -99,6 +129,7 @@ const WikiPageHeader = ({
                             aria-label='Edit'
                             title='Edit'
                             onClick={onEdit}
+                            disabled={!canEdit}
                             data-testid='wiki-page-edit-button'
                         >
                             <i className='icon icon-pencil-outline'/>
@@ -113,6 +144,7 @@ const WikiPageHeader = ({
                             onRename={onRename}
                             onDuplicate={onDuplicate}
                             onMove={onMove}
+                            onBookmarkInChannel={handleBookmarkInChannel}
                             onDelete={onDelete}
                             onVersionHistory={onVersionHistory}
                             isDraft={isDraft}
@@ -137,6 +169,13 @@ const WikiPageHeader = ({
                     )}
                 </div>
             </div>
+            {showBookmarkModal && (
+                <BookmarkChannelSelect
+                    onSelect={handleChannelSelected}
+                    onClose={handleCloseBookmarkModal}
+                    title='Bookmark in channel'
+                />
+            )}
         </div>
     );
 };

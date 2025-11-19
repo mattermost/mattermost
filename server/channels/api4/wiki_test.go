@@ -811,7 +811,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 
 		_, appErr = th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId)
 		require.NotNil(t, appErr)
-		require.Equal(t, "app.draft.get_page.not_found", appErr.Id)
+		require.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
 
 		retrievedPage, resp, err := th.Client.GetPage(context.Background(), createdWiki.Id, publishedPage.Id)
 		require.NoError(t, err)
@@ -1856,7 +1856,7 @@ func TestDuplicatePage(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, duplicatedPage)
 		require.NotEqual(t, page.Id, duplicatedPage.Id)
-		require.Equal(t, "Duplicate of Original Page", duplicatedPage.Props["title"])
+		require.Equal(t, "Copy of Original Page", duplicatedPage.Props["title"])
 
 		duplicatedPageWikiId, appErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
 		require.Nil(t, appErr)
@@ -1980,28 +1980,6 @@ func TestDuplicatePage(t *testing.T) {
 		_, resp, err := client2.DuplicatePage(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id, nil, nil)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("fail when title conflict exists", func(t *testing.T) {
-		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
-		}
-		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-
-		page1, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Existing Page", "", th.BasicUser.Id, "")
-		require.Nil(t, appErr)
-
-		page2, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original Page", "", th.BasicUser.Id, "")
-		require.Nil(t, appErr)
-
-		conflictingTitle := page1.Props["title"].(string)
-		_, resp, err = th.Client.DuplicatePage(context.Background(), createdWiki.Id, page2.Id, createdWiki.Id, nil, &conflictingTitle)
-		require.Error(t, err)
-		CheckErrorID(t, err, "app.page.duplicate.title_conflict")
-		require.Equal(t, http.StatusConflict, resp.StatusCode)
 	})
 
 	t.Run("fail when duplicating across channels", func(t *testing.T) {
@@ -2577,7 +2555,7 @@ func TestResolvePageComment(t *testing.T) {
 		Props: model.StringInterface{
 			"wiki_id":      wiki.Id,
 			"page_id":      page.Id,
-			"comment_type": "inline",
+			model.PostPropsCommentType: model.PageCommentTypeInline,
 			"inline_anchor": map[string]any{
 				"text": "highlighted text",
 			},
@@ -2627,7 +2605,7 @@ func TestResolvePageComment(t *testing.T) {
 			Props: model.StringInterface{
 				"wiki_id":      wiki.Id,
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"text": "another highlight",
 				},

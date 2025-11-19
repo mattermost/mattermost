@@ -1564,6 +1564,13 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// LinkPageToFirstWiki links a page to the first wiki in the given channel.
+	// If no wiki exists, an error is returned.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	LinkPageToFirstWiki(pageID, channelID string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

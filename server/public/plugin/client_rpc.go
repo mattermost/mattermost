@@ -1095,6 +1095,36 @@ func (s *apiRPCServer) LogAuditRecWithLevel(args *Z_LogAuditRecWithLevelArgs, re
 	return nil
 }
 
+type Z_LinkPageToFirstWikiArgs struct {
+	A string
+	B string
+}
+
+type Z_LinkPageToFirstWikiReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) LinkPageToFirstWiki(pageID, channelID string) *model.AppError {
+	_args := &Z_LinkPageToFirstWikiArgs{pageID, channelID}
+	_returns := &Z_LinkPageToFirstWikiReturns{}
+	if err := g.client.Call("Plugin.LinkPageToFirstWiki", _args, _returns); err != nil {
+		log.Printf("RPC call to LinkPageToFirstWiki API failed: %s", err.Error())
+		return model.NewAppError("LinkPageToFirstWiki", "plugin.rpc.link_page_to_first_wiki.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) LinkPageToFirstWiki(args *Z_LinkPageToFirstWikiArgs, returns *Z_LinkPageToFirstWikiReturns) error {
+	if hook, ok := s.impl.(interface {
+		LinkPageToFirstWiki(pageID, channelID string) *model.AppError
+	}); ok {
+		returns.A = hook.LinkPageToFirstWiki(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API LinkPageToFirstWiki called but not implemented"))
+	}
+	return nil
+}
+
 type Z_InstallPluginArgs struct {
 	PluginStreamID uint32
 	B              bool

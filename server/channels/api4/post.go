@@ -602,31 +602,22 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
-	if post.Type == model.PostTypePage {
-		if !permanent {
-			appErr = c.App.DeletePage(c.AppContext, c.Params.PostId)
-		} else {
-			c.Err = model.NewAppError("deletePost", "api.post.delete_post.permanent_page_deletion_not_supported.app_error", nil, "pages cannot be permanently deleted through this endpoint", http.StatusBadRequest)
+	if c.AppContext.Session().UserId == post.UserId {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
+			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
 	} else {
-		if c.AppContext.Session().UserId == post.UserId {
-			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
-				c.SetPermissionError(model.PermissionDeletePost)
-				return
-			}
-		} else {
-			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
-				c.SetPermissionError(model.PermissionDeleteOthersPosts)
-				return
-			}
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
+			c.SetPermissionError(model.PermissionDeleteOthersPosts)
+			return
 		}
+	}
 
-		if permanent {
-			appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
-		} else {
-			_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
-		}
+	if permanent {
+		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+	} else {
+		_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
 	}
 
 	if appErr != nil {
@@ -892,9 +883,17 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+	// For pages, use page-specific permissions instead of generic post edit permission
+	if originalPost.Type == model.PostTypePage {
+		if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "updatePost"); err != nil {
+			c.Err = err
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	auditRec.AddEventPriorState(originalPost)
@@ -991,17 +990,25 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	var permission *model.Permission
-
-	if c.AppContext.Session().UserId == originalPost.UserId {
-		permission = model.PermissionEditPost
+	// For pages, use page-specific permissions instead of generic post edit permission
+	if originalPost.Type == model.PostTypePage {
+		if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "patchPost"); err != nil {
+			c.Err = err
+			return
+		}
 	} else {
-		permission = model.PermissionEditOthersPosts
-	}
+		var permission *model.Permission
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
-		c.SetPermissionError(permission)
-		return
+		if c.AppContext.Session().UserId == originalPost.UserId {
+			permission = model.PermissionEditPost
+		} else {
+			permission = model.PermissionEditOthersPosts
+		}
+
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
+			c.SetPermissionError(permission)
+			return
+		}
 	}
 
 	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {

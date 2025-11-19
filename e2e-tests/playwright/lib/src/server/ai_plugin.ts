@@ -18,16 +18,7 @@ import {testConfig} from '@/test_config';
  * @returns Promise<void>
  */
 export async function configureAIPlugin(adminClient: Client4): Promise<void> {
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Starting configuration...');
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] testConfig.aiPluginEnabled:', testConfig.aiPluginEnabled);
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] testConfig.aiPluginApiKey:', testConfig.aiPluginApiKey ? 'SET' : 'NOT SET');
-
     if (!testConfig.aiPluginEnabled) {
-        // eslint-disable-next-line no-console
-        console.log('AI Plugin is disabled (PW_AI_PLUGIN_ENABLED=false), skipping configuration');
         return;
     }
 
@@ -38,14 +29,7 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
     }
 
     // Get current config
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Fetching current server config...');
     const currentConfig = await adminClient.getConfig();
-
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Current AI plugin state:', currentConfig.PluginSettings?.PluginStates?.['mattermost-ai']);
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Current AI plugin config exists:', !!currentConfig.PluginSettings?.Plugins?.['mattermost-ai']);
 
     // Read anthropic key from env if available
     const anthropicKey = process.env.PW_AI_PLUGIN_ANTHROPIC_KEY || '';
@@ -80,7 +64,7 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
                                 name: 'writing_assistant',
                                 reasoningEffort: 'medium',
                                 reasoningEnabled: true,
-                                serviceID: '4c06d0f4-3a92-4cd6-ba56-bd23484da537',
+                                serviceID: '618606d0-65e0-4855-af4f-55e2dff5c99c',
                                 teamIDs: [],
                                 thinkingBudget: 0,
                                 userAccessLevel: 0,
@@ -125,7 +109,7 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
                                 defaultModel: 'gpt-4',
                                 id: '618606d0-65e0-4855-af4f-55e2dff5c99c',
                                 name: 'OpenAI Service',
-                                orgId: 'sysadmin',
+                                orgId: '',
                                 outputTokenLimit: 0,
                                 sendUserID: false,
                                 streamingTimeoutSeconds: 0,
@@ -159,33 +143,7 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
         },
     };
 
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Updating config with AI plugin settings...');
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Bot config:', JSON.stringify(aiPluginConfig.PluginSettings.Plugins['mattermost-ai'].config.bots, null, 2));
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Services config:', aiPluginConfig.PluginSettings.Plugins['mattermost-ai'].config.services.map((s: any) => ({name: s.name, type: s.type, hasKey: !!s.apiKey})));
-
-    const updatedConfig = await adminClient.updateConfig(aiPluginConfig as any);
-
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Config updated successfully');
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Updated AI plugin state:', updatedConfig.PluginSettings?.PluginStates?.['mattermost-ai']);
-
-    // Verify the update by fetching config again
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Verifying config update by fetching again...');
-    const verifyConfig = await adminClient.getConfig();
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Verified AI plugin enabled:', verifyConfig.PluginSettings?.PluginStates?.['mattermost-ai']?.Enable);
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Verified bots count:', verifyConfig.PluginSettings?.Plugins?.['mattermost-ai']?.config?.bots?.length);
-    // eslint-disable-next-line no-console
-    console.log('[AI Plugin Debug] Verified services count:', verifyConfig.PluginSettings?.Plugins?.['mattermost-ai']?.config?.services?.length);
-
-    // eslint-disable-next-line no-console
-    console.log('AI Plugin configured successfully');
+    await adminClient.updateConfig(aiPluginConfig as any);
 }
 
 /**

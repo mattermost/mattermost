@@ -61,9 +61,8 @@ func TestSavePageDraftWithMetadata(t *testing.T) {
 		draft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, "draft-3", validContent, "Draft Title", page.Id, nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
-		props := draft.GetProps()
-		require.NotNil(t, props)
-		require.Equal(t, page.Id, props["page_id"])
+		require.NotNil(t, draft.Props)
+		require.Equal(t, page.Id, draft.Props["page_id"])
 	})
 
 	t.Run("successfully saves draft with custom props", func(t *testing.T) {
@@ -75,10 +74,9 @@ func TestSavePageDraftWithMetadata(t *testing.T) {
 		draft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, "draft-4", validContent, "Draft Title", "", customProps)
 		require.Nil(t, appErr)
 		require.NotNil(t, draft)
-		props := draft.GetProps()
-		require.NotNil(t, props)
-		require.Equal(t, "custom_value", props["custom_field"])
-		require.Equal(t, float64(123), props["another_field"])
+		require.NotNil(t, draft.Props)
+		require.Equal(t, "custom_value", draft.Props["custom_field"])
+		require.Equal(t, 123, draft.Props["another_field"])
 	})
 
 	t.Run("fails with invalid JSON content", func(t *testing.T) {
@@ -158,7 +156,7 @@ func TestGetPageDraft(t *testing.T) {
 		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, "non-existent-draft")
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
-		require.Equal(t, "app.draft.get_page.not_found", appErr.Id)
+		require.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
 	})
 
 	t.Run("fails with wrong user id", func(t *testing.T) {
@@ -166,14 +164,14 @@ func TestGetPageDraft(t *testing.T) {
 		draft, appErr := th.App.GetPageDraft(th.Context, otherUser.Id, createdWiki.Id, "draft-1")
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
-		require.Equal(t, "app.draft.get_page.not_found", appErr.Id)
+		require.Equal(t, "app.draft.get_page_draft.not_found", appErr.Id)
 	})
 
 	t.Run("fails with wrong wiki id", func(t *testing.T) {
 		draft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, model.NewId(), "draft-1")
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
-		require.Equal(t, "app.draft.get_page.not_found", appErr.Id)
+		require.Equal(t, "app.draft.get_page_draft.wiki_not_found.app_error", appErr.Id)
 	})
 }
 

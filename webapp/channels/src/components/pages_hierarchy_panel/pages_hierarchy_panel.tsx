@@ -2,10 +2,14 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import {useDispatch} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {createBookmarkFromPage} from 'actions/channel_bookmarks';
+
+import BookmarkChannelSelect from 'components/bookmark_channel_select';
 import MovePageModal from 'components/move_page_modal';
 import TextInputModal from 'components/text_input_modal';
 
@@ -68,6 +72,7 @@ const PagesHierarchyPanel = ({
     isPanelCollapsed,
     actions,
 }: Props) => {
+    const dispatch = useDispatch();
     const [searchQuery, setSearchQuery] = useState('');
 
     // Data loading moved to parent WikiView component to prevent duplicate API calls
@@ -81,6 +86,12 @@ const PagesHierarchyPanel = ({
         drafts,
         onPageSelect,
     });
+
+    const handleChannelSelected = useCallback(async (selectedChannelId: string) => {
+        if (menuHandlers.pageToBookmark) {
+            await dispatch(createBookmarkFromPage(selectedChannelId, menuHandlers.pageToBookmark.pageId, menuHandlers.pageToBookmark.pageTitle));
+        }
+    }, [dispatch, menuHandlers]);
 
     // Convert drafts to Post-like objects to include in tree
     const draftPosts: DraftPage[] = useMemo(() => {
@@ -283,6 +294,7 @@ const PagesHierarchyPanel = ({
                         onRename={menuHandlers.handleRename}
                         onDuplicate={menuHandlers.handleDuplicate}
                         onMove={menuHandlers.handleMove}
+                        onBookmarkInChannel={menuHandlers.handleBookmarkInChannel}
                         onDelete={menuHandlers.handleDelete}
                         deletingPageId={menuHandlers.deletingPageId}
                         wikiId={wikiId}
@@ -329,6 +341,15 @@ const PagesHierarchyPanel = ({
                 onCancel={menuHandlers.handleCancelCreatePage}
                 onHide={() => menuHandlers.setShowCreatePageModal(false)}
             />
+
+            {/* Bookmark in channel modal */}
+            {menuHandlers.showBookmarkModal && menuHandlers.pageToBookmark && (
+                <BookmarkChannelSelect
+                    onSelect={handleChannelSelected}
+                    onClose={menuHandlers.handleBookmarkCancel}
+                    title='Bookmark in channel'
+                />
+            )}
         </div>
     );
 };

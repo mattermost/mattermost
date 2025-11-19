@@ -27,6 +27,7 @@ type Props = {
     onRename?: (pageId: string) => void;
     onDuplicate?: (pageId: string) => void;
     onMove?: (pageId: string) => void;
+    onBookmarkInChannel?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
     isRenaming?: boolean;
     isDeleting?: boolean;
@@ -44,6 +45,7 @@ const PageTreeNode = ({
     onRename,
     onDuplicate,
     onMove,
+    onBookmarkInChannel,
     onDelete,
     isRenaming,
     isDeleting,
@@ -209,6 +211,7 @@ const PageTreeNode = ({
                     onRename={() => onRename?.(node.id)}
                     onDuplicate={() => onDuplicate?.(node.id)}
                     onMove={() => onMove?.(node.id)}
+                    onBookmarkInChannel={() => onBookmarkInChannel?.(node.id)}
                     onDelete={() => onDelete?.(node.id)}
                     isDraft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
                     pageLink={pageLink}

@@ -46,11 +46,12 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
     }
     case WikiTypes.GET_PAGES_SUCCESS: {
         const {wikiId, pages} = action.data;
+        const pageIds = pages.map((p: Post) => p.id);
         return {
             ...state,
             byWiki: {
                 ...state.byWiki,
-                [wikiId]: pages.map((p: Post) => p.id),
+                [wikiId]: pageIds,
             },
             loading: {
                 ...state.loading,
@@ -75,14 +76,29 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
     case WikiTypes.RECEIVED_PAGE_IN_WIKI: {
         const {page, wikiId, pendingPageId} = action.data;
 
-        let currentPageIds = state.byWiki[wikiId] || [];
+        const currentPageIds = state.byWiki[wikiId] || [];
+        let nextPageIds: string[];
 
-        // If a pendingPageId is provided, remove it first (atomic replacement of optimistic page)
         if (pendingPageId) {
-            currentPageIds = currentPageIds.filter((id) => id !== pendingPageId);
-        }
+            const pendingIndex = currentPageIds.indexOf(pendingPageId);
+            if (pendingIndex === -1) {
+                nextPageIds = currentPageIds.includes(page.id) ? currentPageIds : [...currentPageIds, page.id];
+            } else {
+                // Remove any existing instance of page.id first to prevent duplicates
+                // This can happen if WebSocket/API adds the real page before optimistic update completes
+                const withoutExistingPageId = currentPageIds.filter((id) => id !== page.id);
+                const adjustedPendingIndex = withoutExistingPageId.indexOf(pendingPageId);
 
-        const nextPageIds = currentPageIds.includes(page.id) ? currentPageIds : [...currentPageIds, page.id];
+                nextPageIds = [
+                    ...withoutExistingPageId.slice(0, adjustedPendingIndex),
+                    page.id,
+                    ...withoutExistingPageId.slice(adjustedPendingIndex + 1),
+                ];
+            }
+        } else {
+            const alreadyExists = currentPageIds.includes(page.id);
+            nextPageIds = alreadyExists ? currentPageIds : [...currentPageIds, page.id];
+        }
 
         return {
             ...state,

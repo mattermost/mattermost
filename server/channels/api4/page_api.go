@@ -1,0 +1,245 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package api4
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
+)
+
+func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	pages, appErr := c.App.GetWikiPages(c.AppContext, c.Params.WikiId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	c.Logger.Debug("API returning pages", mlog.Int("count", len(pages)), mlog.String("wiki_id", c.Params.WikiId))
+
+	if err := json.NewEncoder(w).Encode(pages); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+	if wikiErr != nil {
+		c.Err = wikiErr
+		return
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("getWikiPage", "api.wiki.get_page.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	if wiki.DeleteAt != 0 {
+		c.Err = model.NewAppError("getWikiPage", "api.wiki.get_page.wiki_deleted", nil, "wiki has been deleted", http.StatusNotFound)
+		return
+	}
+
+	page, appErr := c.App.GetPage(c.AppContext, c.Params.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "getWikiPage"); err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(page); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("deletePage", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "deletePage")
+	if !ok {
+		return
+	}
+
+	page, pageErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	if pageErr != nil {
+		c.Err = pageErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationDelete, "deletePage"); err != nil {
+		c.Err = err
+		return
+	}
+
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError("deletePage", "api.wiki.delete.channel_mismatch", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if appErr := c.App.DeleteWikiPage(c.AppContext, c.Params.PageId, c.Params.WikiId); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("page_id=" + c.Params.PageId + " wiki_id=" + c.Params.WikiId + " wiki_title=" + wiki.Title)
+
+	ReturnStatusOK(w)
+}
+
+func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		Title        string `json:"title,omitempty"`
+		PageParentId string `json:"page_parent_id,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("createPage", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("parent_id", req.PageParentId)
+
+	_, channel, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "createPage")
+	if !ok {
+		return
+	}
+
+	// Additive permission check: Need BOTH page permission (content) AND wiki permission (container)
+
+	// Check page permission (content)
+	var pagePermission *model.Permission
+	if channel.Type == model.ChannelTypeOpen {
+		pagePermission = model.PermissionCreatePagePublicChannel
+	} else {
+		pagePermission = model.PermissionCreatePagePrivateChannel
+	}
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, pagePermission) {
+		c.SetPermissionError(pagePermission)
+		return
+	}
+
+	page, appErr := c.App.CreateWikiPage(c.AppContext, c.Params.WikiId, req.PageParentId, req.Title, "", c.AppContext.Session().UserId, "")
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(page)
+	auditRec.AddEventObjectType("page")
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(page); err != nil {
+		c.Logger.Warn("Error encoding response", mlog.Err(err))
+	}
+}
+
+func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if !model.IsValidId(c.Params.ChannelId) {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	postList, err := c.App.GetChannelPages(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
+	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := clientPostList.EncodeJSON(w); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}

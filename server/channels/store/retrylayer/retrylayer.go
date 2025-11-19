@@ -44,6 +44,7 @@ type RetryLayer struct {
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
 	PageContentStore                store.PageContentStore
+	PageDraftContentStore           store.PageDraftContentStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -170,6 +171,10 @@ func (s *RetryLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStor
 
 func (s *RetryLayer) PageContent() store.PageContentStore {
 	return s.PageContentStore
+}
+
+func (s *RetryLayer) PageDraftContent() store.PageDraftContentStore {
+	return s.PageDraftContentStore
 }
 
 func (s *RetryLayer) Plugin() store.PluginStore {
@@ -409,6 +414,11 @@ type RetryLayerOutgoingOAuthConnectionStore struct {
 
 type RetryLayerPageContentStore struct {
 	store.PageContentStore
+	Root *RetryLayer
+}
+
+type RetryLayerPageDraftContentStore struct {
+	store.PageDraftContentStore
 	Root *RetryLayer
 }
 
@@ -4425,27 +4435,6 @@ func (s *RetryLayerDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt in
 
 }
 
-func (s *RetryLayerDraftStore) DeletePageDraft(userId string, wikiId string, draftId string) error {
-
-	tries := 0
-	for {
-		err := s.DraftStore.DeletePageDraft(userId, wikiId, draftId)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerDraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
 
 	tries := 0
@@ -4509,32 +4498,11 @@ func (s *RetryLayerDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigra
 
 }
 
-func (s *RetryLayerDraftStore) GetPageDraft(userId string, wikiId string, draftId string) (*model.Draft, error) {
+func (s *RetryLayerDraftStore) GetManyByRootIds(userID string, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error) {
 
 	tries := 0
 	for {
-		result, err := s.DraftStore.GetPageDraft(userId, wikiId, draftId)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerDraftStore) GetPageDraftsForWiki(userId string, wikiId string) ([]*model.Draft, error) {
-
-	tries := 0
-	for {
-		result, err := s.DraftStore.GetPageDraftsForWiki(userId, wikiId)
+		result, err := s.DraftStore.GetManyByRootIds(userID, channelID, rootIDs, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -4572,6 +4540,27 @@ func (s *RetryLayerDraftStore) PermanentDeleteByUser(userId string) error {
 
 }
 
+func (s *RetryLayerDraftStore) UpdatePropsOnly(userId string, wikiId string, draftId string, props map[string]any, expectedUpdateAt int64) error {
+
+	tries := 0
+	for {
+		err := s.DraftStore.UpdatePropsOnly(userId, wikiId, draftId, props, expectedUpdateAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	tries := 0
@@ -4593,32 +4582,11 @@ func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 }
 
-func (s *RetryLayerDraftStore) UpsertPageDraft(userId string, wikiId string, draftId string, message string) (*model.Draft, error) {
+func (s *RetryLayerDraftStore) UpsertPageDraft(d *model.Draft) (*model.Draft, error) {
 
 	tries := 0
 	for {
-		result, err := s.DraftStore.UpsertPageDraft(userId, wikiId, draftId, message)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerDraftStore) UpsertPageDraftWithMetadata(userId string, wikiId string, draftId string, message string, title string, pageId string, props map[string]any) (*model.Draft, error) {
-
-	tries := 0
-	for {
-		result, err := s.DraftStore.UpsertPageDraftWithMetadata(userId, wikiId, draftId, message, title, pageId, props)
+		result, err := s.DraftStore.UpsertPageDraft(d)
 		if err == nil {
 			return result, nil
 		}
@@ -7629,6 +7597,90 @@ func (s *RetryLayerPageContentStore) Get(pageID string) (*model.PageContent, err
 
 }
 
+func (s *RetryLayerPageContentStore) GetMany(pageIDs []string) ([]*model.PageContent, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageContentStore.GetMany(pageIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageContentStore) GetWithDeleted(pageID string) (*model.PageContent, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageContentStore.GetWithDeleted(pageID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageContentStore) PermanentDelete(pageID string) error {
+
+	tries := 0
+	for {
+		err := s.PageContentStore.PermanentDelete(pageID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageContentStore) Restore(pageID string) error {
+
+	tries := 0
+	for {
+		err := s.PageContentStore.Restore(pageID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPageContentStore) Save(pageContent *model.PageContent) (*model.PageContent, error) {
 
 	tries := 0
@@ -7655,6 +7707,90 @@ func (s *RetryLayerPageContentStore) Update(pageContent *model.PageContent) (*mo
 	tries := 0
 	for {
 		result, err := s.PageContentStore.Update(pageContent)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageDraftContentStore) Delete(userId string, wikiId string, draftId string) error {
+
+	tries := 0
+	for {
+		err := s.PageDraftContentStore.Delete(userId, wikiId, draftId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageDraftContentStore) Get(userId string, wikiId string, draftId string) (*model.PageDraftContent, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageDraftContentStore.Get(userId, wikiId, draftId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageDraftContentStore) GetForWiki(userId string, wikiId string) ([]*model.PageDraftContent, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageDraftContentStore.GetForWiki(userId, wikiId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPageDraftContentStore) Upsert(content *model.PageDraftContent) (*model.PageDraftContent, error) {
+
+	tries := 0
+	for {
+		result, err := s.PageDraftContentStore.Upsert(content)
 		if err == nil {
 			return result, nil
 		}
@@ -7997,6 +8133,27 @@ func (s *RetryLayerPostStore) Get(rctx request.CTX, id string, opts model.GetPos
 	tries := 0
 	for {
 		result, err := s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetCommentsForPage(pageID, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -8745,11 +8902,11 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 
 }
 
-func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+		err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 		if err == nil {
 			return nil
 		}
@@ -13950,6 +14107,27 @@ func (s *RetryLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 
 }
 
+func (s *RetryLayerThreadStore) CreateThreadForPageComment(thread *model.Thread) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.CreateThreadForPageComment(thread)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) DeleteMembershipForUser(userID string, postID string) error {
 
 	tries := 0
@@ -17328,6 +17506,27 @@ func (s *RetryLayerWikiStore) Get(id string) (*model.Wiki, error) {
 
 }
 
+func (s *RetryLayerWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.GetAbandonedPages(cutoffTime)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error) {
 
 	tries := 0
@@ -17349,11 +17548,74 @@ func (s *RetryLayerWikiStore) GetForChannel(channelId string, includeDeleted boo
 
 }
 
+func (s *RetryLayerWikiStore) GetPageByTitleInWiki(wikiId string, title string) (*model.Post, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.GetPageByTitleInWiki(wikiId, title)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerWikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Post, error) {
 
 	tries := 0
 	for {
 		result, err := s.WikiStore.GetPages(wikiId, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiStore) MovePageToWiki(pageId string, targetWikiId string, parentPageId *string) error {
+
+	tries := 0
+	for {
+		err := s.WikiStore.MovePageToWiki(pageId, targetWikiId, parentPageId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
+
+	tries := 0
+	for {
+		result, err := s.WikiStore.MoveWikiToChannel(wikiId, targetChannelId, timestamp)
 		if err == nil {
 			return result, nil
 		}
@@ -17473,6 +17735,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.OAuthStore = &RetryLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &RetryLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
 	newStore.PageContentStore = &RetryLayerPageContentStore{PageContentStore: childStore.PageContent(), Root: &newStore}
+	newStore.PageDraftContentStore = &RetryLayerPageDraftContentStore{PageDraftContentStore: childStore.PageDraftContent(), Root: &newStore}
 	newStore.PluginStore = &RetryLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &RetryLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &RetryLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

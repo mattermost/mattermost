@@ -577,7 +577,7 @@ test('displays correct anchor text for each inline comment in wiki RHS', {tag: '
         const wikiRHS = page.locator('[data-testid="wiki-rhs"]');
         await expect(wikiRHS).toBeVisible({timeout: 3000});
         // * Verify anchor text context is displayed in RHS
-        const anchorContext = wikiRHS.locator('.InlineCommentContext');
+        const anchorContext = wikiRHS.locator('.inline-comment-anchor-box');
         await expect(anchorContext).toBeVisible({timeout: 2000});
         // * Verify it contains some text from the page
         const contextText = await anchorContext.first().textContent();
@@ -753,7 +753,7 @@ test('displays correct anchor text for each thread in global Threads view', {tag
                 // * Verify thread pane shows anchor context
                 const threadPane = page.locator('.ThreadPane');
                 await expect(threadPane).toBeVisible({timeout: 3000});
-                const firstPaneAnchor = threadPane.locator('.InlineCommentContext');
+                const firstPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
                 await expect(firstPaneAnchor).toBeVisible({timeout: 2000});
                 const anchorText = await firstPaneAnchor.first().textContent();
                 expect(anchorText).toBeTruthy();
@@ -770,7 +770,7 @@ test('displays correct anchor text for each thread in global Threads view', {tag
                     await page.waitForTimeout(500);
 
                     // * Verify thread pane shows anchor for second thread
-                    const secondPaneAnchor = threadPane.locator('.InlineCommentContext');
+                    const secondPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
                     await expect(secondPaneAnchor).toBeVisible({timeout: 2000});
                     const secondAnchorText = await secondPaneAnchor.first().textContent();
                     expect(secondAnchorText).toBeTruthy();

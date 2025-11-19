@@ -15,6 +15,7 @@ type Props = {
     onRename?: () => void;
     onDuplicate?: () => void;
     onMove?: () => void;
+    onBookmarkInChannel?: () => void;
     onDelete?: () => void;
     onVersionHistory?: () => void;
     isDraft?: boolean;
@@ -31,6 +32,7 @@ const PageActionsMenu = ({
     onRename,
     onDuplicate,
     onMove,
+    onBookmarkInChannel,
     onDelete,
     onVersionHistory,
     isDraft = false,
@@ -75,6 +77,7 @@ const PageActionsMenu = ({
                     onRename={onRename}
                     onDuplicate={onDuplicate}
                     onMove={onMove}
+                    onBookmarkInChannel={onBookmarkInChannel}
                     onDelete={onDelete}
                     onVersionHistory={onVersionHistory}
                     isDraft={isDraft}

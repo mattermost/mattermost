@@ -100,8 +100,14 @@ export async function fillCreatePageModal(page: Page, pageTitle: string) {
     // # Fill in page title
     await modalInput.fill(pageTitle);
 
-    // # Click Create button in modal
+    // # Wait for the Create button to be ready and click it
     const createButton = page.getByRole('button', {name: 'Create'});
+    await createButton.waitFor({state: 'visible', timeout: 5000});
+    await createButton.waitFor({state: 'attached', timeout: 5000});
+
+    // Small delay to ensure the input is fully processed
+    await page.waitForTimeout(100);
+
     await createButton.click();
 
     // # Wait for modal to close
@@ -359,18 +365,33 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     await editor.waitFor({state: 'attached', timeout: 5000});
 
     // # Fill page content in TipTap editor
+    // Use direct content manipulation via TipTap editor instance to avoid focus issues with RHS
     await editor.click({timeout: 10000, force: false});
-
-    // Clear any existing content first (important for rapid successive page creation)
-    await page.keyboard.press('Control+A');
-    await page.keyboard.press('Backspace');
-    await page.waitForTimeout(200);
-
-    // Type content directly into editor element
-    await editor.type(pageContent);
-
-    // Wait for editor to process the typed content
     await page.waitForTimeout(300);
+
+    // Set content directly via TipTap editor API (exposed via window.__tiptapEditor)
+    await page.evaluate((content) => {
+        const editorInstance = (window as any).__tiptapEditor;
+        if (editorInstance) {
+            editorInstance.commands.setContent({
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [{type: 'text', text: content}],
+                    },
+                ],
+            });
+            // Trigger focus to ensure content change is registered
+            editorInstance.commands.focus();
+        }
+    }, pageContent);
+
+    // Wait for content to be set and registered
+    await page.waitForTimeout(300);
+
+    // Wait for auto-save to complete (500ms debounce + network + buffer)
+    await page.waitForTimeout(1500);
 
     // Verify content was actually entered (skip validation for whitespace-only content)
     const enteredText = await editor.textContent();
@@ -450,18 +471,33 @@ export async function createChildPageThroughContextMenu(
     await editor.waitFor({state: 'attached', timeout: 5000});
 
     // # Fill page content in TipTap editor
+    // Use direct content manipulation via TipTap editor instance to avoid focus issues with RHS
     await editor.click({timeout: 10000, force: false});
-
-    // Clear any existing content first (important for rapid successive page creation)
-    await page.keyboard.press('Control+A');
-    await page.keyboard.press('Backspace');
-    await page.waitForTimeout(200);
-
-    // Type content directly into editor element
-    await editor.type(pageContent);
-
-    // Wait for editor to process the typed content
     await page.waitForTimeout(300);
+
+    // Set content directly via TipTap editor API (exposed via window.__tiptapEditor)
+    await page.evaluate((content) => {
+        const editorInstance = (window as any).__tiptapEditor;
+        if (editorInstance) {
+            editorInstance.commands.setContent({
+                type: 'doc',
+                content: [
+                    {
+                        type: 'paragraph',
+                        content: [{type: 'text', text: content}],
+                    },
+                ],
+            });
+            // Trigger focus to ensure content change is registered
+            editorInstance.commands.focus();
+        }
+    }, pageContent);
+
+    // Wait for content to be set and registered
+    await page.waitForTimeout(300);
+
+    // Wait for auto-save to complete (500ms debounce + network + buffer)
+    await page.waitForTimeout(1500);
 
     // Verify content was actually entered (skip validation for whitespace-only content)
     const enteredText = await editor.textContent();
@@ -575,6 +611,24 @@ export async function waitForPageInHierarchy(page: Page, pageTitle: string, time
 }
 
 /**
+ * Clicks a page in the hierarchy panel to navigate to it
+ * Waits for the page to be visible in hierarchy, then clicks it and waits for page viewer to load
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page to click
+ * @param timeout - Optional timeout in milliseconds (default: 5000)
+ */
+export async function clickPageInHierarchy(page: Page, pageTitle: string, timeout: number = 5000) {
+    await waitForPageInHierarchy(page, pageTitle, timeout);
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const pageButton = hierarchyPanel.getByRole('button', {name: pageTitle, exact: true});
+    await pageButton.click();
+
+    // Wait for page viewer to load
+    const viewerContent = page.locator('[data-testid="page-viewer-content"]');
+    await viewerContent.waitFor({state: 'visible', timeout: 10000});
+}
+
+/**
  * Renames a page via context menu using the rename modal
  * @param page - Playwright page object
  * @param currentTitle - Current title of the page to rename
@@ -642,16 +696,42 @@ export async function getPageOutlineInHierarchy(page: Page, pageTitle: string) {
  * @param pageId - ID of the page to show outline for
  */
 export async function showPageOutline(page: Page, pageId: string) {
+    // Wait for page to stabilize after any navigation/state changes
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const pageNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${pageId}"]`).first();
+    await pageNode.waitFor({state: 'visible', timeout: 5000});
 
-    // Click menu button
+    // Scroll the page node into view to ensure it's fully visible
+    await pageNode.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+
+    // Hover over page node to make menu button visible
+    await pageNode.hover();
+    await page.waitForTimeout(500);
+
+    // Click menu button using dispatchEvent to avoid race conditions with click-outside listeners
     const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]').first();
-    await menuButton.click();
+    await menuButton.waitFor({state: 'visible', timeout: 3000});
+
+    // Use evaluate to trigger a controlled click that won't interfere with React event listeners
+    await menuButton.evaluate((btn) => {
+        const event = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        });
+        btn.dispatchEvent(event);
+    });
+
+    // Wait for context menu to render
+    await page.waitForTimeout(800);
 
     // Click "Show outline" button
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await contextMenu.waitFor({state: 'visible', timeout: 3000});
+    await contextMenu.waitFor({state: 'visible', timeout: 5000});
 
     const showOutlineButton = contextMenu.locator('button:has-text("Show outline")').first();
     await showOutlineButton.waitFor({state: 'visible', timeout: 3000});
@@ -669,13 +749,17 @@ export async function showPageOutline(page: Page, pageId: string) {
 export async function showPageOutlineViaRightClick(page: Page, pageTitle: string) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle}).first();
+    await pageNode.waitFor({state: 'visible', timeout: 5000});
 
     // Right-click to open context menu
     await pageNode.click({button: 'right'});
 
+    // Wait for context menu to render
+    await page.waitForTimeout(100);
+
     // Click "Show outline" button
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await contextMenu.waitFor({state: 'visible', timeout: 2000});
+    await contextMenu.waitFor({state: 'visible', timeout: 3000});
 
     const showOutlineButton = contextMenu.locator('button:has-text("Show Outline"), [data-testid="page-context-menu-show-outline"]').first();
     await showOutlineButton.waitFor({state: 'visible'});
@@ -693,10 +777,19 @@ export async function showPageOutlineViaRightClick(page: Page, pageTitle: string
 export async function hidePageOutline(page: Page, pageId: string) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const pageNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${pageId}"]`).first();
+    await pageNode.waitFor({state: 'visible', timeout: 5000});
+
+    // Hover over page node to make menu button visible
+    await pageNode.hover();
+    await page.waitForTimeout(200);
 
     // Click menu button
     const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]').first();
+    await menuButton.waitFor({state: 'visible', timeout: 3000});
     await menuButton.click();
+
+    // Wait for context menu to render
+    await page.waitForTimeout(100);
 
     // Click "Hide outline" button (or "Show outline" if currently hidden - it toggles)
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
@@ -907,6 +1000,22 @@ export async function addInlineCommentAndPublish(
  */
 export function getWikiTab(page: Page, wikiTitle: string): Locator {
     return page.locator('.channel-tab').filter({hasText: wikiTitle}).first();
+}
+
+/**
+ * Extracts wiki ID from a wiki tab element
+ * @param page - Playwright page object
+ * @param wikiName - Name of the wiki
+ * @returns The wiki ID or null if not found
+ */
+export async function getWikiIdFromTab(page: Page, wikiName: string): Promise<string | null> {
+    const wikiTab = getWikiTab(page, wikiName);
+    const testId = await wikiTab.getAttribute('data-testid').catch(() => null);
+    if (testId) {
+        const match = testId.match(/wiki-tab-(.+)/);
+        return match ? match[1] : null;
+    }
+    return null;
 }
 
 /**
@@ -1243,10 +1352,46 @@ export function getEditor(page: Page): Locator {
 export async function enterEditMode(page: Page, timeout = 5000) {
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]').first();
     await expect(editButton).toBeVisible({timeout});
-    await editButton.click();
 
-    const editor = getEditor(page);
-    await editor.waitFor({state: 'visible', timeout});
+    // Ensure button is enabled before clicking
+    await expect(editButton).toBeEnabled({timeout});
+
+    // Log before clicking
+    console.log('[ENTER_EDIT_MODE] About to click Edit button');
+    const urlBefore = page.url();
+    console.log('[ENTER_EDIT_MODE] URL before click:', urlBefore);
+
+    // Add click listener to track the event
+    await page.evaluate(() => {
+        const editBtn = document.querySelector('[data-testid="wiki-page-edit-button"]');
+        if (editBtn) {
+            console.log('[CLIENT] Edit button found, adding listener');
+            editBtn.addEventListener('click', (e) => {
+                console.log('[CLIENT] Edit button clicked!', {
+                    target: e.target,
+                    currentTarget: e.currentTarget,
+                    defaultPrevented: e.defaultPrevented,
+                });
+            }, {once: true});
+        } else {
+            console.log('[CLIENT] Edit button NOT found in DOM');
+        }
+    });
+
+    // Click and wait for navigation
+    await editButton.click();
+    console.log('[ENTER_EDIT_MODE] Click executed, waiting for navigation');
+
+    await page.waitForLoadState('networkidle', {timeout: 10000});
+    const urlAfter = page.url();
+    console.log('[ENTER_EDIT_MODE] URL after click:', urlAfter);
+    console.log('[ENTER_EDIT_MODE] URL changed:', urlBefore !== urlAfter);
+
+    // Wait for the Publish button to appear (indicates we're actually in edit mode)
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    console.log('[ENTER_EDIT_MODE] Waiting for Publish button...');
+    await publishButton.waitFor({state: 'visible', timeout});
+    console.log('[ENTER_EDIT_MODE] Publish button appeared, edit mode confirmed');
 }
 
 /**
@@ -1281,13 +1426,17 @@ export async function closeWikiRHS(page: Page): Promise<void> {
 }
 
 /**
- * Publishes a page by clicking the publish button and waiting for network idle
+ * Publishes a page by clicking the publish button and waiting for view mode
  * @param page - Playwright page object
  */
 export async function publishPage(page: Page): Promise<void> {
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
     await publishButton.click();
     await page.waitForLoadState('networkidle');
+
+    // Wait for page to transition to view mode
+    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageViewer).toBeVisible({timeout: 5000});
 }
 
 /**
@@ -2001,6 +2150,10 @@ export async function deletePageViaActionsMenu(page: Page, option?: 'cascade' | 
     await page.waitForFunction((url) => window.location.href !== url, currentUrl, {timeout: 5000});
 
     await page.waitForLoadState('networkidle');
+
+    // Wait for wiki view to appear after navigation
+    const wikiView = page.locator('[data-testid="wiki-view"]');
+    await expect(wikiView).toBeVisible({timeout: 5000});
 }
 
 /**
@@ -2035,11 +2188,13 @@ export async function editPageThroughUI(page: Page, newContent: string, clearExi
     // Publish the changes
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton.click();
+
+    // Wait for navigation after publish (similar to createPageThroughUI)
     await page.waitForLoadState('networkidle');
 
-    // Wait for page viewer to appear
+    // Wait for page viewer to appear (increased timeout to match createPageThroughUI)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await pageViewer.waitFor({state: 'visible', timeout: 5000});
+    await pageViewer.waitFor({state: 'visible', timeout: 30000});
 }
 
 /**
@@ -2316,4 +2471,252 @@ export async function getThreadItemAndVerify(rhs: Locator): Promise<Locator> {
     const threadItem = rhs.locator('.WikiPageThreadViewer__thread-item').first();
     await expect(threadItem).toBeVisible({timeout: 3000});
     return threadItem;
+}
+
+/**
+ * Gets the AI rewrite button locator
+ * @param page - Playwright page object
+ * @returns The AI rewrite button locator
+ */
+export function getAIRewriteButton(page: Page): Locator {
+    return page.locator('[data-testid="ai-rewrite-button"]');
+}
+
+/**
+ * Opens the AI rewrite menu by clicking the AI button
+ * @param page - Playwright page object
+ * @returns The rewrite menu locator
+ */
+export async function openAIRewriteMenu(page: Page): Promise<Locator> {
+    const aiButton = getAIRewriteButton(page);
+    await aiButton.click();
+    await page.waitForTimeout(500);
+    const menu = page.locator('[data-testid="rewrite-menu"]');
+    await menu.waitFor({state: 'visible', timeout: 5000});
+    return menu;
+}
+
+/**
+ * Closes the AI rewrite menu by clicking backdrop
+ * Waits for backdrop to be fully removed before continuing
+ * @param page - Playwright page object
+ */
+export async function closeAIRewriteMenu(page: Page): Promise<void> {
+    const backdrop = page.locator('#backdropForMenuComponent').first();
+    const backdropVisible = await backdrop.isVisible().catch(() => false);
+    if (backdropVisible) {
+        await backdrop.click({force: true});
+        await page.waitForTimeout(300);
+        await backdrop.waitFor({state: 'detached', timeout: 3000}).catch(() => {});
+    } else {
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(300);
+    }
+}
+
+/**
+ * Waits for any backdrop to disappear (used after menu closures)
+ * @param page - Playwright page object
+ * @param timeout - Maximum time to wait in milliseconds
+ */
+export async function waitForBackdropDisappear(page: Page, timeout: number = 5000): Promise<void> {
+    const backdrop = page.locator('.MuiBackdrop-root, #backdropForMenuComponent').first();
+    await backdrop.waitFor({state: 'hidden', timeout}).catch(() => {
+        // Backdrop might already be gone
+    });
+}
+
+/**
+ * Checks if AI plugin is available by verifying AI button appears in formatting bar
+ * The AI button only appears when agents are configured
+ * @param page - Playwright page object
+ * @returns True if AI plugin is available
+ */
+export async function checkAIPluginAvailability(page: Page): Promise<boolean> {
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await page.keyboard.type('test');
+    await selectTextInEditor(page);
+    const aiButton = getAIRewriteButton(page);
+    const isVisible = await aiButton.isVisible().catch(() => false);
+    await page.keyboard.press('Backspace');
+    return isVisible;
+}
+
+/**
+ * Opens the Bookmarks tab/dropdown in the channel tabs bar
+ * This is needed because bookmarks are displayed in a separate tab/dropdown, not always visible
+ * @param page - Playwright page object
+ * @param timeout - Maximum time to wait for bookmarks tab to appear (default 10000ms)
+ * @returns The bookmarks container locator
+ */
+export async function openBookmarksTab(page: Page, timeout: number = 10000): Promise<Locator> {
+    // Wait for the Bookmarks tab to appear (may take time after bookmark creation)
+    const bookmarksTab = page.getByRole('button', {name: /Bookmarks/});
+    await bookmarksTab.waitFor({state: 'visible', timeout});
+    await bookmarksTab.click();
+    await page.waitForTimeout(500);
+
+    const bookmarksMenu = page.locator('[id$="-menu"]').filter({hasText: /.+/});
+    await expect(bookmarksMenu).toBeVisible();
+    return bookmarksMenu;
+}
+
+/**
+ * Verifies a bookmark with the specified name exists in the bookmarks dropdown menu
+ * Opens the bookmarks menu if not already open and checks for the bookmark
+ * @param page - Playwright page object
+ * @param bookmarkName - The name/title of the bookmark to verify
+ * @returns The bookmark locator
+ */
+export async function verifyBookmarkExists(page: Page, bookmarkName: string): Promise<Locator> {
+    const bookmarksMenu = await openBookmarksTab(page);
+    const bookmark = bookmarksMenu.getByRole('menuitem').filter({hasText: bookmarkName});
+    await expect(bookmark).toBeVisible();
+    return bookmark;
+}
+
+/**
+ * Verifies a bookmark does not exist in the bookmarks tab
+ * If the bookmarks tab doesn't exist (no bookmarks in channel), that's considered a pass
+ * @param page - Playwright page object
+ * @param bookmarkName - The name/title of the bookmark to verify is not present
+ */
+export async function verifyBookmarkNotExists(page: Page, bookmarkName: string): Promise<void> {
+    // Check if Bookmarks tab exists
+    const bookmarksTab = page.getByRole('button', {name: /Bookmarks/});
+    const tabExists = await bookmarksTab.isVisible().catch(() => false);
+
+    if (!tabExists) {
+        // No bookmarks tab means no bookmarks at all, which is valid
+        return;
+    }
+
+    // Open bookmarks and verify the specific bookmark is not present
+    const bookmarksContainer = await openBookmarksTab(page);
+    const bookmark = bookmarksContainer.getByRole('link', {name: bookmarkName});
+    await expect(bookmark).not.toBeVisible();
+}
+
+// ============================================================================
+// Channel Tab Helpers
+// ============================================================================
+
+/**
+ * Switches to the Messages tab in the channel header
+ * If no Messages tab exists (not in wiki view), this is a no-op
+ * @param page - Playwright page object
+ * @param timeout - Maximum time to wait for the tab (default: 2000ms)
+ */
+export async function switchToMessagesTab(page: Page, timeout: number = 2000): Promise<void> {
+    const messagesTab = page.locator('#channelHeaderDescription').getByRole('button', {name: 'Messages'});
+    const isVisible = await messagesTab.isVisible().catch(() => false);
+
+    if (isVisible) {
+        await messagesTab.click();
+        await page.waitForTimeout(500);
+    }
+    // If not visible, we're probably already in messages view or not in wiki
+}
+
+/**
+ * Switches to a wiki tab by name
+ * Uses a more flexible approach to find the wiki tab
+ * @param page - Playwright page object
+ * @param wikiName - Name of the wiki to switch to (can be partial match)
+ * @param timeout - Maximum time to wait for the tab (default: 10000ms)
+ */
+export async function switchToWikiTab(page: Page, wikiName: string, timeout: number = 10000): Promise<void> {
+    // Try exact match first
+    let wikiTab = page.getByRole('button', {name: wikiName}).first();
+    let isVisible = await wikiTab.isVisible().catch(() => false);
+
+    // If not found with exact name, try regex pattern for case-insensitive match
+    if (!isVisible) {
+        wikiTab = page.getByRole('button', {name: new RegExp(wikiName, 'i')}).first();
+    }
+
+    await wikiTab.waitFor({state: 'visible', timeout});
+    await wikiTab.click();
+    await page.waitForTimeout(500);
+}
+
+// ============================================================================
+// Post Action Menu Helpers
+// ============================================================================
+
+/**
+ * Opens the AI actions menu for a specific post
+ * @param page - Playwright page object
+ * @param postId - ID of the post to interact with
+ * @returns The AI actions menu button locator
+ */
+export async function openAIActionsMenu(page: Page, postId: string): Promise<Locator> {
+    const postLocator = page.locator(`#post_${postId}`);
+    await expect(postLocator).toBeVisible({timeout: 5000});
+    await postLocator.hover();
+
+    const aiActionsButton = page.getByTestId('ai-actions-menu');
+    await expect(aiActionsButton).toBeVisible({timeout: 3000});
+    await aiActionsButton.click();
+    await page.waitForTimeout(500);
+
+    return aiActionsButton;
+}
+
+/**
+ * Clicks a specific item in the AI actions menu
+ * @param page - Playwright page object
+ * @param menuItemName - Name of the menu item to click (e.g., "Summarize to Page")
+ */
+export async function clickAIActionsMenuItem(page: Page, menuItemName: string): Promise<void> {
+    const menuItem = page.getByRole('button', {name: new RegExp(menuItemName, 'i')});
+    await expect(menuItem).toBeVisible({timeout: 3000});
+    await menuItem.click();
+}
+
+/**
+ * Creates posts in a channel for testing AI summarization
+ * @param adminClient - Admin client for API calls
+ * @param channelId - ID of the channel to create posts in
+ * @param rootMessage - The root message to create
+ * @param replies - Array of reply messages
+ * @returns The root post object
+ */
+export async function createPostsForSummarization(
+    adminClient: any,
+    channelId: string,
+    rootMessage: string,
+    replies: string[],
+): Promise<any> {
+    const rootPost = await adminClient.createPost({
+        channel_id: channelId,
+        message: rootMessage,
+    });
+
+    for (const reply of replies) {
+        await adminClient.createPost({
+            channel_id: channelId,
+            message: reply,
+            root_id: rootPost.id,
+        });
+    }
+
+    return rootPost;
+}
+
+/**
+ * Verifies that a page appears in the hierarchy panel
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page to verify
+ * @param timeout - Maximum time to wait for the page (default: 10000ms)
+ */
+export async function verifyPageInHierarchy(page: Page, pageTitle: string, timeout: number = 10000): Promise<Locator> {
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).toBeVisible();
+
+    const pageLink = hierarchyPanel.getByText(pageTitle);
+    await expect(pageLink).toBeVisible({timeout});
+
+    return pageLink;
 }

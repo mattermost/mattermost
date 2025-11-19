@@ -9,7 +9,6 @@ import {
     createTestChannel,
     addHeadingToEditor,
     fillCreatePageModal,
-    waitForEditModeReady,
     navigateToWikiView,
     getPageOutlineInHierarchy,
     showPageOutline,
@@ -20,6 +19,8 @@ import {
     publishCurrentPage,
     clearEditorContent,
     getHierarchyPanel,
+    enterEditMode,
+    waitForEditModeReady,
 } from './test_helpers';
 
 /**
@@ -143,12 +144,8 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await pageNode.click();
     await page.waitForLoadState('networkidle');
 
-    // # Click edit button and wait for edit mode to be ready
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
-    await expect(editButton).toBeVisible({timeout: 2000});
-    await editButton.click();
-
-    // # Wait for edit mode to be fully ready using helper
+    // # Enter edit mode
+    await enterEditMode(page);
     await waitForEditModeReady(page);
 
     const editor = page.locator('.ProseMirror').first();
@@ -180,8 +177,8 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     // # Publish the page
     await publishCurrentPage(page);
 
-    // # Show outline for the page
-    await showPageOutline(page, testPage.id);
+    // # Show outline for the page using right-click (more reliable after navigation)
+    await showPageOutlineViaRightClick(page, 'Page with Headings');
 
     // * Verify outline is visible and headings appear
     await verifyOutlineHeadingVisible(page, 'Heading 1', 10000);
@@ -218,12 +215,8 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     // # Wait for page viewer to be visible (confirms we're in view mode)
     await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: 5000});
 
-    // # Click edit button and wait for edit mode to be ready
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.waitFor({state: 'visible', timeout: 5000});
-    await editButton.click({force: true});
-
-    // # Wait for edit mode to be fully ready using helper
+    // # Enter edit mode
+    await enterEditMode(page);
     await waitForEditModeReady(page);
 
     const editor = page.locator('.ProseMirror').first();
@@ -254,8 +247,8 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     // # Publish the page
     await publishCurrentPage(page);
 
-    // # Show outline for the page
-    await showPageOutline(page, testPage.id);
+    // # Show outline for the page using right-click (more reliable after navigation)
+    await showPageOutlineViaRightClick(page, 'Navigate to Headings');
 
     // * Verify "Conclusion" heading appears in outline
     await verifyOutlineHeadingVisible(page, 'Conclusion', 5000);
@@ -288,39 +281,17 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     const page1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page1.id}"]`).first();
 
     // # Edit Page 1 immediately after creation (no navigation away yet)
-    const editButton1 = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
-    await editButton1.click();
-    await page.waitForTimeout(500);
+    await enterEditMode(page);
+    await waitForEditModeReady(page);
 
     const editor1 = page.locator('.ProseMirror').first();
     await editor1.click();
     await page.keyboard.press('Control+A');
     await page.keyboard.press('Backspace');
-
-    // Type the heading text
-    await page.keyboard.type('Page 1 Heading');
     await page.waitForTimeout(200);
 
-    // Create native DOM selection explicitly (fixes headless browser issue)
-    await editor1.evaluate((node) => {
-        const sel = node.ownerDocument.getSelection();
-        const range = node.ownerDocument.createRange();
-        range.selectNodeContents(node.firstChild);
-        sel.removeAllRanges();
-        sel.addRange(range);
-        node.dispatchEvent(new Event('selectionchange', {bubbles: true}));
-    });
-
-    // Wait for formatting bubble to appear
-    const formattingBubble = page.locator('.formatting-bar-bubble').first();
-    await formattingBubble.waitFor({state: 'visible', timeout: 5000});
-    await page.waitForTimeout(200);
-
-    // Click Heading 1 button (force:true to click through inline-comment-bubble overlay)
-    const headingButton = formattingBubble.locator('button[title="Heading 1"]').first();
-    await headingButton.waitFor({state: 'visible', timeout: 3000});
-    await headingButton.click({force: true});
-    await page.waitForTimeout(500);
+    // # Add heading using helper function
+    await addHeadingToEditor(page, 1, 'Page 1 Heading');
 
     // Verify heading exists in editor before publishing
     const h1InEditor = editor1.locator('h1:has-text("Page 1 Heading")');

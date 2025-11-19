@@ -40,7 +40,7 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 	}
 
 	if draft.IsPageDraft() {
-		_, err := a.GetWiki(rctx, draft.ChannelId)
+		_, err := a.GetWiki(rctx, draft.WikiId)
 		if err != nil {
 			return nil, model.NewAppError("CreateDraft", "api.context.invalid_param.app_error",
 				map[string]any{"Name": "draft.wiki_id"}, "", http.StatusBadRequest).Wrap(err)

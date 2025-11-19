@@ -27,13 +27,15 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
+import {openModal} from 'actions/views/modals';
 import store from 'stores/redux_store';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
+import FilePreviewModal from 'components/file_preview_modal';
 import TextInputModal from 'components/text_input_modal';
 
 import {getHistory} from 'utils/browser_history';
-import {PageConstants} from 'utils/constants';
+import {PageConstants, ModalIdentifiers} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 import {slugifyHeading} from 'utils/slugify_heading';
 
@@ -699,6 +701,75 @@ const TipTapEditor = ({
             editorElement.removeEventListener('click', handleClick);
         };
     }, [editor]);
+
+    // Handle clicks on images in view mode to open preview modal
+    useEffect(() => {
+        if (!editor || editable) {
+            return undefined;
+        }
+
+        const handleImageClick = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+
+            // Check if clicked element is an image (any img tag, not just .wiki-image)
+            let imageElement: HTMLImageElement | null = null;
+            if (target instanceof HTMLImageElement) {
+                imageElement = target;
+            }
+
+            // Check if clicked element has an image parent
+            if (!imageElement) {
+                imageElement = target.closest('img') as HTMLImageElement | null;
+            }
+
+            // Check if clicked element is a wrapper containing an image (ImageResize wrapper)
+            if (!imageElement && target instanceof HTMLElement) {
+                imageElement = target.querySelector('img');
+            }
+
+            if (imageElement instanceof HTMLImageElement) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const src = imageElement.getAttribute('src');
+                const alt = imageElement.getAttribute('alt') || 'Image';
+                const title = imageElement.getAttribute('title') || alt;
+
+                if (src) {
+                    // Extract extension from title/alt (filename) instead of src (API URL)
+                    const filename = title || alt;
+                    const lastDotIndex = filename.lastIndexOf('.');
+                    let extension = 'png'; // default to png
+
+                    if (lastDotIndex !== -1 && lastDotIndex < filename.length - 1) {
+                        extension = filename.substring(lastDotIndex + 1).toLowerCase();
+                    }
+
+                    dispatch(openModal({
+                        modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+                        dialogType: FilePreviewModal,
+                        dialogProps: {
+                            startIndex: 0,
+                            postId: pageId,
+                            fileInfos: [{
+                                has_preview_image: false,
+                                link: src,
+                                extension,
+                                name: filename,
+                            }],
+                        },
+                    }));
+                }
+            }
+        };
+
+        const editorElement = editor.view.dom;
+        editorElement.addEventListener('click', handleImageClick);
+
+        return () => {
+            editorElement.removeEventListener('click', handleImageClick);
+        };
+    }, [editor, editable, dispatch, pageId]);
 
     const handlePageSelect = useCallback((pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => {
         if (!editor) {

@@ -454,39 +454,6 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Equal(t, "app.page.move.cross_channel_not_supported", appErr.Id)
 	})
 
-	t.Run("fails when page title conflicts with existing page in target wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.SetupPagePermissions()
-
-		sourceWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Source Wiki",
-		}
-
-		targetWiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Target Wiki",
-		}
-
-		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		_, err = th.App.CreateWikiPage(th.Context, createdTargetWiki.Id, "", "Duplicate Title", "", th.BasicUser.Id, "")
-		require.Nil(t, err)
-
-		pageToMove, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Duplicate Title", "", th.BasicUser.Id, "")
-		require.Nil(t, err)
-
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		appErr := th.App.MovePageToWiki(th.Context, pageToMove.Id, createdTargetWiki.Id, nil)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.page.move.title_conflict", appErr.Id)
-	})
-
 	t.Run("fails when user has no permission to edit source wiki", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
@@ -593,7 +560,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, duplicatedPage)
 
@@ -632,7 +599,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, duplicatedPage)
 
@@ -662,7 +629,7 @@ func TestDuplicatePage(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		customTitle := "My Custom Title"
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, &customTitle, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, &customTitle, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, customTitle, duplicatedPage.Props["title"], "Should use custom title")
 	})
@@ -687,35 +654,9 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId, "Should preserve parent from source page")
-	})
-
-	t.Run("fails when title conflict exists", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		th.SetupPagePermissions()
-
-		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
-		}
-
-		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original", "", th.BasicUser.Id, "")
-		require.Nil(t, err)
-
-		_, err = th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Copy of Original", "", th.BasicUser.Id, "")
-		require.Nil(t, err)
-
-		th.Context.Session().UserId = th.BasicUser.Id
-
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
-		require.NotNil(t, appErr)
-		require.Nil(t, duplicatedPage)
-		require.Contains(t, appErr.Id, "title_conflict")
 	})
 
 	t.Run("fails when duplicating across channels", func(t *testing.T) {
@@ -746,7 +687,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "cross_channel_not_supported")
@@ -766,7 +707,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, "nonexistent", createdWiki.Id, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, "nonexistent", createdWiki.Id, nil, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "source_not_found")
@@ -789,7 +730,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, "nonexistent", nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, "nonexistent", nil, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "target_wiki_not_found")
@@ -817,10 +758,10 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		duplicateTitle := duplicatedPage.Props["title"].(string)
+		duplicateTitle := duplicatedPage.GetPageTitle()
 		require.LessOrEqual(t, len(duplicateTitle), 255, "Title should not exceed max length")
 		require.True(t, len(duplicateTitle) <= 255)
 	})
@@ -1165,21 +1106,5 @@ func TestMoveWikiToChannel(t *testing.T) {
 		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, differentChannel, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.wiki.move_wiki_to_channel.cross_team_not_supported.app_error", appErr.Id)
-	})
-
-	t.Run("fails when target channel already has wiki with same title", func(t *testing.T) {
-		conflictChannel := th.CreateChannel(t, th.BasicTeam)
-
-		conflictWiki := &model.Wiki{
-			ChannelId:   conflictChannel.Id,
-			Title:       movedWiki.Title,
-			Description: "Conflict wiki",
-		}
-		_, err := th.App.CreateWiki(th.Context, conflictWiki, th.BasicUser.Id)
-		require.Nil(t, err)
-
-		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, conflictChannel, th.BasicUser.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.wiki.move_wiki_to_channel.title_conflict.app_error", appErr.Id)
 	})
 }

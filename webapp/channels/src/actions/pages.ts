@@ -15,7 +15,7 @@ import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {makePageDraftKey, loadPageDraftsForWiki} from 'actions/page_drafts';
+import {makePageDraftKey, loadPageDraftsForWiki, getUserDraftKeys} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {clearOutlineCache} from 'actions/views/pages_hierarchy';
 import {getGlobalItem} from 'selectors/storage';
@@ -298,14 +298,47 @@ export function loadChannelDefaultPage(channelId: string): ActionFuncAsync<Page>
 }
 
 // Publish a page draft
-export function publishPageDraft(wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string, pageStatus?: string): ActionFuncAsync<Page> {
+export function publishPageDraft(wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string, pageStatus?: string, force?: boolean): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         const state = getState();
+        const currentUserId = state.entities.users.currentUserId;
         const draftKey = makePageDraftKey(wikiId, draftId);
         const draft = getGlobalItem<PostDraft | null>(state, draftKey, null);
 
         if (!draft) {
             return {error: {message: 'Draft not found'}};
+        }
+
+        // Check for conflicts (only if not forcing and editing existing page)
+        const pageId = draft.props?.page_id as string | undefined;
+        const baselineUpdateAt = draft.props?.original_page_update_at as number | undefined;
+
+        if (!force && pageId && baselineUpdateAt) {
+            try {
+                const currentPage = await Client4.getPage(wikiId, pageId) as Page;
+
+                // Compare as numbers to avoid type mismatch issues
+                const currentUpdateAt = Number(currentPage.update_at);
+                const baselineNum = Number(baselineUpdateAt);
+                const isConflict = currentUpdateAt !== baselineNum;
+
+                if (isConflict) {
+                    return {
+                        error: {
+                            id: 'api.page.publish_draft.conflict',
+                            message: 'Page was modified by another user',
+                            status_code: 409,
+                            data: {
+                                currentPage,
+                                baselineUpdateAt,
+                            },
+                        },
+                    };
+                }
+            } catch (error) {
+                // If page fetch fails, proceed with publish
+                // (page might have been deleted, let server handle it)
+            }
         }
 
         // Use passed message if provided (latest content from editor), otherwise fall back to draft.message
@@ -360,7 +393,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         const finalPageStatus = pageStatus || (draft.props?.page_status as string | undefined);
 
         try {
-            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus) as Page;
+            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force) as Page;
 
             const actions: any[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
@@ -382,7 +415,16 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                 });
             }
 
-            dispatch(batchActions(actions));
+            // Cleanup: Delete user's old drafts for this page
+            const cleanupActions: any[] = [];
+            if (pageId && currentUserId) {
+                const draftKeys = getUserDraftKeys(state, wikiId, pageId, currentUserId);
+                draftKeys.forEach((key) => {
+                    cleanupActions.push(removeGlobalItem(key));
+                });
+            }
+
+            dispatch(batchActions([...actions, ...cleanupActions]));
 
             dispatch(removeGlobalItem(draftKey));
 
@@ -406,13 +448,35 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             ]));
 
             return {data};
-        } catch (error) {
+        } catch (error: any) {
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId}},
             ]));
             dispatch(setGlobalItem(draftKey, draft));
+
+            // Check if this is a conflict error (409 Conflict only, not 403)
+            // 403 Forbidden is a permission error, not a concurrency conflict
+            if (error?.status_code === 409 && pageId) {
+                // Fetch the current page to get the latest version
+                try {
+                    const currentPage = await Client4.getPage(wikiId, pageId) as Page;
+                    return {
+                        error: {
+                            id: 'api.page.publish_draft.conflict',
+                            message: 'Page was modified by another user',
+                            status_code: 409,
+                            data: {
+                                currentPage,
+                                baselineUpdateAt,
+                            },
+                        },
+                    };
+                } catch (fetchError) {
+                    // If we can't fetch the page, fall through to generic error handling
+                }
+            }
 
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));

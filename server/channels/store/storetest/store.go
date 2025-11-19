@@ -73,7 +73,7 @@ type Store struct {
 	WikiStore                       mocks.WikiStore
 	PageContentStore                mocks.PageContentStore
 	PageStore                       mocks.PageStore
-	PageDraftStore                  mocks.PageDraftStore
+	PageDraftContentStore           mocks.PageDraftContentStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -175,8 +175,8 @@ func (s *Store) PageContent() store.PageContentStore {
 func (s *Store) Page() store.PageStore {
 	return &s.PageStore
 }
-func (s *Store) PageDraft() store.PageDraftStore {
-	return &s.PageDraftStore
+func (s *Store) PageDraftContent() store.PageDraftContentStore {
+	return &s.PageDraftContentStore
 }
 
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
@@ -233,6 +233,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.WikiStore,
 		&s.PageContentStore,
 		&s.PageStore,
-		&s.PageDraftStore,
+		&s.PageDraftContentStore,
 	)
 }

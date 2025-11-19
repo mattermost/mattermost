@@ -28,16 +28,18 @@ type Draft struct {
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
-	// For page drafts, use PageContentMaxSize instead of post message limit
-	// Page drafts store TipTap JSON in Message field which can be much larger
-	maxSize := maxDraftSize
+	// Page drafts store content in PageDraftContents table, so Message should be empty
 	if o.IsPageDraft() {
-		maxSize = PageContentMaxSize
-	}
-
-	if utf8.RuneCountInString(o.Message) > maxSize {
-		return NewAppError("Drafts.IsValid", "model.draft.is_valid.message_length.app_error",
-			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxSize}, "channelid="+o.ChannelId, http.StatusBadRequest)
+		if o.Message != "" {
+			return NewAppError("Drafts.IsValid", "model.draft.is_valid.page_draft_message.app_error",
+				nil, "page drafts should not have Message content", http.StatusBadRequest)
+		}
+	} else {
+		// Channel drafts store content in Message field
+		if utf8.RuneCountInString(o.Message) > maxDraftSize {
+			return NewAppError("Drafts.IsValid", "model.draft.is_valid.message_length.app_error",
+				map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxDraftSize}, "channelid="+o.ChannelId, http.StatusBadRequest)
+		}
 	}
 
 	return o.BaseIsValid()
@@ -123,8 +125,8 @@ func (o *Draft) PreCommit() {
 }
 
 // IsPageDraft determines if a draft is for a wiki page (vs a channel post/thread).
-// Page drafts store WikiId in ChannelId field and draftId in RootId field.
-// Detection is based on Props containing page-specific metadata (title or page_id).
+// Page drafts store the wiki ID in the WikiId field.
+// Detection is based on WikiId being set or Props containing page-specific metadata (title or page_id).
 func (o *Draft) IsPageDraft() bool {
 	if o.WikiId != "" {
 		return true

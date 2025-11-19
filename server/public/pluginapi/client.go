@@ -31,6 +31,7 @@ type Client struct {
 	System        SystemService
 	Team          TeamService
 	User          UserService
+	Wiki          WikiService
 }
 
 // NewClient creates a new instance of Client.
@@ -65,6 +66,7 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 		System: SystemService{api: api},
 		Team:   TeamService{api: api},
 		User:   UserService{api: api},
+		Wiki:   WikiService{api: api},
 	}
 }
 

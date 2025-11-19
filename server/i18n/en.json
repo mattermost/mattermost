@@ -4811,6 +4811,22 @@
     "translation": "Could not sort the bookmark. Not found."
   },
   {
+    "id": "app.channel.bookmark.not_a_page.app_error",
+    "translation": "Cannot create bookmark from non-page post."
+  },
+  {
+    "id": "app.channel.bookmark.no_permission_to_page_channel.app_error",
+    "translation": "You do not have permission to access the page's channel."
+  },
+  {
+    "id": "app.channel.bookmark.page_missing_wiki_id.app_error",
+    "translation": "Cannot create bookmark. Page is missing wiki_id."
+  },
+  {
+    "id": "app.channel.bookmark.site_url_required.app_error",
+    "translation": "Cannot create page bookmark. SiteURL must be configured in System Console."
+  },
+  {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the channel members."
   },
@@ -6749,6 +6765,10 @@
   {
     "id": "app.pap.update_access_control_policy_active.app_error",
     "translation": "Could not change active status of access control policy."
+  },
+  {
+    "id": "app.page.create.max_depth_exceeded.app_error",
+    "translation": "Page hierarchy cannot exceed maximum depth of {{.MaxDepth}} levels."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -11299,5 +11319,61 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
+  },
+  {
+    "id": "conflict_warning.title",
+    "translation": "Page Was Modified"
+  },
+  {
+    "id": "conflict_warning.message",
+    "translation": "Someone else modified this page while you were editing. What would you like to do?"
+  },
+  {
+    "id": "conflict_warning.page_title",
+    "translation": "Page: {title}"
+  },
+  {
+    "id": "conflict_warning.last_modified",
+    "translation": "Last modified: {time}"
+  },
+  {
+    "id": "conflict_warning.view_changes",
+    "translation": "View Changes"
+  },
+  {
+    "id": "conflict_warning.copy_content",
+    "translation": "Copy My Content"
+  },
+  {
+    "id": "conflict_warning.overwrite",
+    "translation": "Overwrite Changes"
+  },
+  {
+    "id": "conflict_warning.cancel",
+    "translation": "Cancel"
+  },
+  {
+    "id": "unsaved_draft_modal.title",
+    "translation": "Unsaved Draft Exists"
+  },
+  {
+    "id": "unsaved_draft_modal.message",
+    "translation": "You have an unsaved draft for this page. What would you like to do?"
+  },
+  {
+    "id": "unsaved_draft_modal.created_at",
+    "translation": "Draft created: {time}"
+  },
+  {
+    "id": "unsaved_draft_modal.resume_draft",
+    "translation": "Resume Draft"
+  },
+  {
+    "id": "unsaved_draft_modal.discard_draft",
+    "translation": "Discard Draft"
+  },
+  {
+    "id": "unsaved_draft_modal.cancel",
+    "translation": "Cancel"
   }
 ]

@@ -13,10 +13,13 @@ import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 
 import {RewriteAction} from 'components/advanced_text_editor/rewrite_action';
 import RewriteMenu from 'components/advanced_text_editor/rewrite_menu';
+import {openMenu} from 'components/menu';
 
 const usePageRewrite = (
     editor: Editor | null,
-    setServerError: React.Dispatch<React.SetStateAction<ServerError | null>>,
+    setServerError: React.Dispatch<React.SetStateAction<(ServerError & {
+        submittedMessage?: string;
+    }) | null>>,
 ) => {
     const dispatch = useDispatch();
     const agents = useSelector(getAgents);
@@ -87,7 +90,7 @@ const usePageRewrite = (
             }
         } catch (error) {
             if (currentPromiseRef.current === promise) {
-                setServerError(error as ServerError);
+                setServerError(error);
                 setOriginalText('');
                 setLastAction(RewriteAction.CUSTOM);
             }
@@ -193,6 +196,10 @@ const usePageRewrite = (
         resetState();
     }, [selectedText, isProcessing, resetState]);
 
+    const openRewriteMenu = useCallback(() => {
+        openMenu('rewrite-button');
+    }, []);
+
     return {
         additionalControl: useMemo(() => (
             <RewriteMenu
@@ -230,12 +237,7 @@ const usePageRewrite = (
             regenerateMessage,
         ]),
         isProcessing,
-        openRewriteMenu: () => {
-            const button = document.getElementById('rewrite-button');
-            if (button) {
-                button.click();
-            }
-        },
+        openRewriteMenu,
     };
 };
 

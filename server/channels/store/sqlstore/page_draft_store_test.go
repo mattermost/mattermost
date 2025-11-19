@@ -9,6 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
-func TestPageDraftStore(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestPageDraftStore)
+func TestPageDraftContentStore(t *testing.T) {
+	StoreTestWithSqlStore(t, storetest.TestPageDraftContentStore)
 }

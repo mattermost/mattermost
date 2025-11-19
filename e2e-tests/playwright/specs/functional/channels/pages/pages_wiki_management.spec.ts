@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs, renameWikiThroughModal, deleteWikiThroughModalConfirmation, navigateToChannelFromWiki, verifyWikiNameInBreadcrumb, verifyNavigatedToWiki, extractWikiIdFromUrl, verifyWikiDeleted, waitForWikiTab, openWikiByTab, moveWikiToChannel, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, getWikiIdFromTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs, renameWikiThroughModal, deleteWikiThroughModalConfirmation, navigateToChannelFromWiki, verifyWikiNameInBreadcrumb, verifyNavigatedToWiki, extractWikiIdFromUrl, verifyWikiDeleted, waitForWikiTab, openWikiByTab, moveWikiToChannel, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify wiki can be renamed through channel tab bar menu
@@ -450,19 +450,6 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
 });
 
 /**
- * Helper function to extract wiki ID from a wiki tab
- */
-async function getWikiIdFromTab(page: any, wikiName: string): Promise<string | null> {
-    const wikiTab = getWikiTab(page, wikiName);
-    const testId = await wikiTab.getAttribute('data-testid').catch(() => null);
-    if (testId) {
-        const match = testId.match(/wiki-tab-(.+)/);
-        return match ? match[1] : null;
-    }
-    return null;
-}
-
-/**
  * @objective Verify wiki can be moved to another channel in the same team
  *
  * @precondition
@@ -562,4 +549,83 @@ test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, asy
 
     // * Verify wiki loads successfully
     await waitForWikiViewLoad(page);
+});
+
+/**
+ * @objective Verify inline comments are migrated when wiki is moved to another channel
+ *
+ * @precondition
+ * Two channels must exist in the same team
+ */
+test('migrates inline comments when moving wiki to another channel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const sourceChannel = await createTestChannel(adminClient, team.id, `Source Channel ${pw.random.id()}`);
+    const targetChannel = await createTestChannel(adminClient, team.id, `Target Channel ${pw.random.id()}`);
+
+    // # Add user to both channels
+    await adminClient.addToChannel(user.id, sourceChannel.id);
+    await adminClient.addToChannel(user.id, targetChannel.id);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    // # Navigate to source channel
+    await channelsPage.goto(team.name, sourceChannel.name);
+
+    const wikiName = `Wiki with Comments ${pw.random.id()}`;
+
+    // # Create wiki in source channel
+    await createWikiThroughUI(page, wikiName);
+
+    // * Verify wiki created
+    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+
+    // # Create a page in the wiki through UI
+    const pageName = `Test Page ${pw.random.id()}`;
+    await createPageThroughUI(page, pageName);
+    await page.waitForLoadState('networkidle');
+
+    // # Extract page ID from URL
+    const pageUrl = page.url();
+    const pageIdMatch = pageUrl.match(/\/([^/]+)$/);
+    const pageId = pageIdMatch ? pageIdMatch[1] : null;
+    expect(pageId).toBeTruthy();
+
+    // # Create inline comment using API (inline comments have empty RootId and page_id in Props)
+    const inlineCommentText = `Inline comment ${pw.random.id()}`;
+    const inlineComment = await adminClient.createPost({
+        channel_id: sourceChannel.id,
+        message: inlineCommentText,
+        type: 'page_comment',
+        root_id: '',
+        props: {
+            page_id: pageId,
+        },
+    });
+
+    // * Verify inline comment was created in source channel
+    expect(inlineComment.channel_id).toBe(sourceChannel.id);
+    expect(inlineComment.root_id).toBe('');
+    expect(inlineComment.props.page_id).toBe(pageId);
+
+    // # Navigate back to source channel to move the wiki
+    await channelsPage.goto(team.name, sourceChannel.name);
+    await page.waitForLoadState('networkidle');
+
+    // # Move wiki to target channel using helper
+    await moveWikiToChannel(page, wikiName, targetChannel.id);
+
+    // # Fetch the inline comment again to verify it was migrated
+    const movedComment = await adminClient.getPost(inlineComment.id);
+
+    // * Verify inline comment now belongs to target channel
+    expect(movedComment.channel_id).toBe(targetChannel.id);
+
+    // * Verify inline comment still has empty RootId
+    expect(movedComment.root_id).toBe('');
+
+    // * Verify inline comment still has page_id in Props
+    expect(movedComment.props.page_id).toBe(pageId);
+
+    // * Verify inline comment message is unchanged
+    expect(movedComment.message).toBe(inlineCommentText);
 });

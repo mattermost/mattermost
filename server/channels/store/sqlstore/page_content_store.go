@@ -198,53 +198,27 @@ func (s SqlPageContentStore) Update(pageContent *model.PageContent) (*model.Page
 		Set("UpdateAt", pageContent.UpdateAt).
 		Where(sq.Eq{"PageId": pageContent.PageId})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "page_content_update_tosql")
-	}
-
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update PageContent with pageId=%s", pageContent.PageId)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get rows affected")
-	}
-	if rowsAffected == 0 {
-		return nil, store.NewErrNotFound("PageContent", pageContent.PageId)
+	if err := s.checkRowsAffected(result, "PageContent", pageContent.PageId); err != nil {
+		return nil, err
 	}
 
 	return pageContent, nil
 }
 
 func (s SqlPageContentStore) Delete(pageID string) error {
-	query := s.getQueryBuilder().
-		Update("PageContents").
-		Set("DeleteAt", model.GetMillis()).
-		Set("UpdateAt", model.GetMillis()).
-		Where(sq.Eq{"PageId": pageID, "DeleteAt": 0})
+	query := s.buildSoftDeleteQuery("PageContents", "PageId", pageID, true)
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "page_content_delete_tosql")
-	}
-
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return errors.Wrapf(err, "failed to soft-delete PageContent with pageId=%s", pageID)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to get rows affected")
-	}
-	if rowsAffected == 0 {
-		return store.NewErrNotFound("PageContent", pageID)
-	}
-
-	return nil
+	return s.checkRowsAffected(result, "PageContent", pageID)
 }
 
 func (s SqlPageContentStore) PermanentDelete(pageID string) error {
@@ -266,32 +240,12 @@ func (s SqlPageContentStore) PermanentDelete(pageID string) error {
 }
 
 func (s SqlPageContentStore) Restore(pageID string) error {
-	query := s.getQueryBuilder().
-		Update("PageContents").
-		Set("DeleteAt", 0).
-		Set("UpdateAt", model.GetMillis()).
-		Where(sq.And{
-			sq.Eq{"PageId": pageID},
-			sq.NotEq{"DeleteAt": 0},
-		})
+	query := s.buildRestoreQuery("PageContents", "PageId", pageID)
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return errors.Wrap(err, "page_content_restore_tosql")
-	}
-
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return errors.Wrapf(err, "failed to restore PageContent with pageId=%s", pageID)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to get rows affected")
-	}
-	if rowsAffected == 0 {
-		return store.NewErrNotFound("PageContent", pageID)
-	}
-
-	return nil
+	return s.checkRowsAffected(result, "PageContent", pageID)
 }

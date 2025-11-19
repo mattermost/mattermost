@@ -12,6 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {RewriteAction} from 'components/advanced_text_editor/rewrite_action';
 import RewriteMenu from 'components/advanced_text_editor/rewrite_menu';
+import {openMenu} from 'components/menu';
 
 import {render, renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 
@@ -37,7 +38,12 @@ jest.mock('components/advanced_text_editor/rewrite_menu', () => {
     };
 });
 
+jest.mock('components/menu', () => ({
+    openMenu: jest.fn(),
+}));
+
 const MockedRewriteMenu = RewriteMenu as jest.MockedFunction<typeof RewriteMenu>;
+const MockedOpenMenu = openMenu as jest.MockedFunction<typeof openMenu>;
 
 describe('usePageRewrite', () => {
     const mockAgents: Agent[] = [
@@ -64,6 +70,7 @@ describe('usePageRewrite', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         MockedRewriteMenu.mockClear();
+        MockedOpenMenu.mockClear();
 
         // Create mock TipTap editor
         mockEditor = {
@@ -148,17 +155,11 @@ describe('usePageRewrite', () => {
 
     describe('openRewriteMenu', () => {
         it('should open the menu when called', () => {
-            const {result, rerender} = renderHookWithProps();
-            render(result.current.additionalControl);
-            let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
-            expect(props.isMenuOpen).toBe(false);
+            const {result} = renderHookWithProps();
 
             result.current.openRewriteMenu();
-            rerender();
 
-            render(result.current.additionalControl);
-            props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
-            expect(props.isMenuOpen).toBe(true);
+            expect(MockedOpenMenu).toHaveBeenCalledWith('rewrite-button');
         });
     });
 

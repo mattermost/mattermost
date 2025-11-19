@@ -2041,6 +2041,22 @@ export default class Client4 {
         );
     };
 
+    createBookmarkFromPage = (channelId: string, pageId: string, displayName?: string, emoji?: string, connectionId?: string) => {
+        const headers: Record<string, string> = {};
+        if (connectionId) {
+            headers['Connection-Id'] = connectionId;
+        }
+
+        return this.doFetch<ChannelBookmark>(
+            `${this.getChannelBookmarksRoute(channelId)}/from-page`,
+            {
+                method: 'post',
+                body: JSON.stringify({page_id: pageId, display_name: displayName, emoji}),
+                headers,
+            },
+        );
+    };
+
     // Wiki Routes
 
     createWiki = (wiki: WikiCreate) => {
@@ -2173,8 +2189,8 @@ export default class Client4 {
         );
     };
 
-    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, content?: string, pageStatus?: string) => {
-        const requestBody = {page_parent_id: pageParentId, title, search_text: searchText, content, page_status: pageStatus};
+    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, content?: string, pageStatus?: string, force?: boolean) => {
+        const requestBody = {page_parent_id: pageParentId, title, search_text: searchText, content, page_status: pageStatus, force};
         return this.doFetch<Post>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}/publish`,
             {method: 'post', body: JSON.stringify(requestBody)},
@@ -4553,7 +4569,6 @@ export default class Client4 {
             {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
         ).then((response) => {
             if (!response || typeof response.rewritten_text === 'undefined') {
-                console.error('[Rewrite API] Invalid response:', response);
                 throw new Error('Invalid response from rewrite API: missing rewritten_text field');
             }
             return response.rewritten_text;

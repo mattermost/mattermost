@@ -169,6 +169,53 @@ describe('wiki_pages reducer', () => {
             expect(nextState).not.toHaveProperty('pageSummaries');
             expect(nextState).not.toHaveProperty('fullPages');
         });
+
+        test('should replace pending page ID with real ID without creating duplicates', () => {
+            const pendingPageId = 'pending-123';
+            const realPageId = 'real-abc';
+            const stateWithPendingAndReal = {
+                ...initialState,
+                byWiki: {
+                    [wikiId]: ['page1', 'page2', pendingPageId, realPageId],
+                },
+                lastInvalidated: {},
+            };
+
+            const realPage = {...mockPage, id: realPageId};
+            const action = {
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                data: {page: realPage, wikiId, pendingPageId},
+            };
+
+            const nextState = wikiPagesReducer(stateWithPendingAndReal, action);
+
+            expect(nextState.byWiki[wikiId]).toEqual(['page1', 'page2', realPageId]);
+            expect(nextState.byWiki[wikiId].length).toBe(3);
+            expect(nextState.byWiki[wikiId].filter((id) => id === realPageId).length).toBe(1);
+        });
+
+        test('should replace pending page ID with real ID when real ID does not exist', () => {
+            const pendingPageId = 'pending-123';
+            const realPageId = 'real-abc';
+            const stateWithPending = {
+                ...initialState,
+                byWiki: {
+                    [wikiId]: ['page1', 'page2', pendingPageId],
+                },
+                lastInvalidated: {},
+            };
+
+            const realPage = {...mockPage, id: realPageId};
+            const action = {
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                data: {page: realPage, wikiId, pendingPageId},
+            };
+
+            const nextState = wikiPagesReducer(stateWithPending, action);
+
+            expect(nextState.byWiki[wikiId]).toEqual(['page1', 'page2', realPageId]);
+            expect(nextState.byWiki[wikiId].length).toBe(3);
+        });
     });
 
     describe('DELETED_PAGE', () => {

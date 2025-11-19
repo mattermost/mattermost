@@ -4,30 +4,19 @@
 import {expect, test} from './pages_test_fixture';
 import {configureAIPlugin, shouldSkipAITests} from '@mattermost/playwright-lib';
 
-import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, getEditorAndWait, selectTextInEditor, publishPage, waitForFormattingBar, createTestChannel} from './test_helpers';
-
-/**
- * Helper to check if AI plugin is available by checking if AI button appears in formatting bar
- * The AI button only appears when agents are configured
- */
-async function checkAIPluginAvailability(page: any): Promise<boolean> {
-    // Get the editor and type some text
-    const editor = await getEditorAndWait(page);
-    await editor.click();
-    await page.keyboard.type('test');
-
-    // Select text using triple-click (more reliable for formatting bar)
-    await selectTextInEditor(page);
-
-    // Check if AI button is visible
-    const aiButton = page.locator('[data-testid="ai-rewrite-button"]');
-    const isVisible = await aiButton.isVisible().catch(() => false);
-
-    // Clean up - delete the test text
-    await page.keyboard.press('Backspace');
-
-    return isVisible;
-}
+import {
+    createWikiThroughUI,
+    getNewPageButton,
+    fillCreatePageModal,
+    getEditorAndWait,
+    selectTextInEditor,
+    publishPage,
+    waitForFormattingBar,
+    createTestChannel,
+    checkAIPluginAvailability,
+    getAIRewriteButton,
+    closeAIRewriteMenu,
+} from './test_helpers';
 
 /**
  * @objective Verify AI rewrite button appears in formatting bar when text is selected
@@ -77,7 +66,7 @@ test('shows AI rewrite button when text is selected', {tag: '@pages'}, async ({p
     await waitForFormattingBar(page);
 
     // * Verify AI rewrite button is visible
-    const aiRewriteButton = page.locator('[data-testid="ai-rewrite-button"]');
+    const aiRewriteButton = getAIRewriteButton(page);
     await expect(aiRewriteButton).toBeVisible({timeout: 5000});
 });
 
@@ -122,7 +111,7 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
     await selectTextInEditor(page);
     await waitForFormattingBar(page);
 
-    const aiRewriteButton = page.locator('[data-testid="ai-rewrite-button"]');
+    const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
 
     // Wait for menu to open
@@ -179,7 +168,7 @@ test('displays all 7 rewrite actions in menu', {tag: '@pages'}, async ({pw, shar
 
     // # Open AI rewrite menu
     await waitForFormattingBar(page);
-    const aiRewriteButton = page.locator('[data-testid="ai-rewrite-button"]');
+    const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
 
     // * Verify all 7 rewrite actions are present
@@ -239,7 +228,7 @@ test('gracefully degrades when AI plugin is not available', {tag: '@pages'}, asy
 
     // * Wait for formatting bar and verify AI button does NOT appear
     await waitForFormattingBar(page);
-    const aiRewriteButton = page.locator('[data-testid="ai-rewrite-button"]');
+    const aiRewriteButton = getAIRewriteButton(page);
 
     // * AI button should not be visible when plugin is not configured
     await expect(aiRewriteButton).not.toBeVisible();
@@ -349,7 +338,7 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
     await selectTextInEditor(page);
     await waitForFormattingBar(page);
 
-    const aiRewriteButton = page.locator('[data-testid="ai-rewrite-button"]');
+    const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
     await page.waitForTimeout(500);
 
@@ -394,9 +383,26 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
     expect(finalContent?.toLowerCase()).not.toBe(originalText.toLowerCase());
 
     // * Verify editor is still functional after AI rewrite
+    // Wait for any UI updates to settle after AI rewrite
+    await page.waitForTimeout(500);
+
+    // Close the AI rewrite menu
+    await closeAIRewriteMenu(page);
+
+    // Verify we're still on the correct page by checking the page title
+    const pageTitle = page.locator('[data-testid="wiki-page-title-input"]').first();
+    await expect(pageTitle).toHaveValue('AI Integration Test Page', {timeout: 3000});
+
+    // Re-query editor after AI rewrite (DOM may have been updated)
+    const editorAfterRewrite = await getEditorAndWait(page);
+
+    // Ensure editor is focused before adding text
+    await editorAfterRewrite.click();
+    await page.waitForTimeout(200);
+
     await page.keyboard.press('End');
     await page.keyboard.type(' Additional text added after AI rewrite.');
-    await expect(editor).toContainText('Additional text added after AI rewrite.');
+    await expect(editorAfterRewrite).toContainText('Additional text added after AI rewrite.');
 });
 
 /**
@@ -439,7 +445,7 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
 
     // # Open AI menu
     await waitForFormattingBar(page);
-    const aiRewriteButton = page.locator('[data-testid="ai-rewrite-button"]');
+    const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
 
     // # Try to trigger rewrite without selecting an agent (if dropdown allows it)

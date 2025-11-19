@@ -132,7 +132,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			Type:      model.PostTypePageComment,
 			Props: map[string]any{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "para-222",
 					"offset": 2,
@@ -247,7 +247,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			Type:      model.PostTypePageComment,
 			Props: map[string]any{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "test-node",
 					"offset": 0,
@@ -437,7 +437,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			CreateAt:  model.GetMillis(),
 			Props: map[string]any{
 				"page_id":      page.Id,
-				"comment_type": "inline",
+				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "dup-test",
 					"offset": 0,

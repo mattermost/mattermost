@@ -4232,6 +4232,26 @@ func (_m *API) KVSetWithOptions(key string, value []byte, options model.PluginKV
 	return r0, r1
 }
 
+// LinkPageToFirstWiki provides a mock function with given fields: pageID, channelID
+func (_m *API) LinkPageToFirstWiki(pageID string, channelID string) *model.AppError {
+	ret := _m.Called(pageID, channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LinkPageToFirstWiki")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
+		r0 = rf(pageID, channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // ListBuiltInCommands provides a mock function with no fields
 func (_m *API) ListBuiltInCommands() ([]*model.Command, error) {
 	ret := _m.Called()

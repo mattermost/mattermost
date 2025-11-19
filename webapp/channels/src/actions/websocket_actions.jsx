@@ -899,10 +899,25 @@ export function handlePagePublishedEvent(msg) {
         return;
     }
 
-    dispatch(batchActions([
-        {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page, wikiId}},
-        {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
-    ]));
+    // Check if the current user is actively editing this page
+    const currentUrl = window.location.pathname;
+    const isDraftBeingEdited = currentUrl.includes(`/drafts/${draftId}`) ||
+                                (currentUrl.includes(`/wiki/`) && currentUrl.includes(`/${page.id}`));
+
+    if (isDraftBeingEdited) {
+        // Don't delete the draft - keep it alive for conflict detection
+        // Only update the published page in the store
+        dispatch({
+            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+            data: {page, wikiId},
+        });
+    } else {
+        // User is not editing this draft, safe to delete
+        dispatch(batchActions([
+            {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page, wikiId}},
+            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
+        ]));
+    }
 }
 
 async function handleTeamAddedEvent(msg) {

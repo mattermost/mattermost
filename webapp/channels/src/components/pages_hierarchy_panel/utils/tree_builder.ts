@@ -25,14 +25,18 @@ export type TreeNode = {
 /**
  * Build a tree structure from a flat list of pages
  * Pages are connected via page_parent_id field
+ *
+ * IMPORTANT: Pages array order is preserved! The input array should already be
+ * in the correct order from Redux (server-defined order). This function only
+ * organizes pages into a tree structure, it does NOT re-sort them.
  */
 export function buildTree(pages: PageOrDraft[]): TreeNode[] {
-    // Create lookup map
-    const nodeMap = new Map<string, TreeNode>();
-    const rootNodes: TreeNode[] = [];
+    // Create lookup map and track original index for stable ordering
+    const nodeMap = new Map<string, TreeNode & {originalIndex: number}>();
+    const rootNodes: Array<TreeNode & {originalIndex: number}> = [];
 
-    // First pass: Create all nodes
-    pages.forEach((page) => {
+    // First pass: Create all nodes and preserve original order
+    pages.forEach((page, index) => {
         const title = (page.props?.title as string | undefined) || page.message || 'Untitled';
 
         nodeMap.set(page.id, {
@@ -41,6 +45,7 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
             page,
             children: [],
             parentId: page.page_parent_id || null,
+            originalIndex: index, // Preserve input order
         });
     });
 
@@ -69,16 +74,25 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
 
     // Sort nodes by creation time (oldest first) for consistent ordering
     // This ensures tree order remains stable across navigation and updates
-    const sortByCreateTime = (nodes: TreeNode[]): TreeNode[] => {
+    // Use ID as tiebreaker to ensure deterministic ordering when timestamps are identical
+    const sortByCreateTime = (nodes: Array<TreeNode & {originalIndex: number}>): TreeNode[] => {
         return nodes.
             sort((a, b) => {
                 const aCreateAt = a.page.create_at || 0;
                 const bCreateAt = b.page.create_at || 0;
-                return aCreateAt - bCreateAt;
+                if (aCreateAt !== bCreateAt) {
+                    return aCreateAt - bCreateAt;
+                }
+
+                // Use ID as tiebreaker for deterministic ordering
+                return a.id.localeCompare(b.id);
             }).
             map((node) => ({
-                ...node,
-                children: sortByCreateTime(node.children),
+                id: node.id,
+                title: node.title,
+                page: node.page,
+                children: sortByCreateTime(node.children as Array<TreeNode & {originalIndex: number}>),
+                parentId: node.parentId,
             }));
     };
 

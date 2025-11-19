@@ -131,10 +131,12 @@ var PermissionDeleteWikiPrivateChannel *Permission
 var PermissionCreatePagePublicChannel *Permission
 var PermissionReadPagePublicChannel *Permission
 var PermissionEditPagePublicChannel *Permission
+var PermissionEditOthersPagePublicChannel *Permission
 var PermissionDeletePagePublicChannel *Permission
 var PermissionCreatePagePrivateChannel *Permission
 var PermissionReadPagePrivateChannel *Permission
 var PermissionEditPagePrivateChannel *Permission
+var PermissionEditOthersPagePrivateChannel *Permission
 var PermissionDeletePagePrivateChannel *Permission
 var PermissionReadOtherUsersTeams *Permission
 var PermissionEditBrand *Permission
@@ -1391,6 +1393,12 @@ func initializePermissions() {
 		"",
 		PermissionScopeChannel,
 	}
+	PermissionEditOthersPagePublicChannel = &Permission{
+		"edit_others_page_public_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
 	PermissionDeletePagePublicChannel = &Permission{
 		"delete_page_public_channel",
 		"",
@@ -1411,6 +1419,12 @@ func initializePermissions() {
 	}
 	PermissionEditPagePrivateChannel = &Permission{
 		"edit_page_private_channel",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+	PermissionEditOthersPagePrivateChannel = &Permission{
+		"edit_others_page_private_channel",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2687,10 +2701,12 @@ func initializePermissions() {
 		PermissionCreatePagePublicChannel,
 		PermissionReadPagePublicChannel,
 		PermissionEditPagePublicChannel,
+		PermissionEditOthersPagePublicChannel,
 		PermissionDeletePagePublicChannel,
 		PermissionCreatePagePrivateChannel,
 		PermissionReadPagePrivateChannel,
 		PermissionEditPagePrivateChannel,
+		PermissionEditOthersPagePrivateChannel,
 		PermissionDeletePagePrivateChannel,
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
@@ -2810,10 +2826,12 @@ func initializePermissions() {
 		PermissionCreatePagePublicChannel,
 		PermissionReadPagePublicChannel,
 		PermissionEditPagePublicChannel,
+		PermissionEditOthersPagePublicChannel,
 		PermissionDeletePagePublicChannel,
 		PermissionCreatePagePrivateChannel,
 		PermissionReadPagePrivateChannel,
 		PermissionEditPagePrivateChannel,
+		PermissionEditOthersPagePrivateChannel,
 		PermissionDeletePagePrivateChannel,
 	}
 

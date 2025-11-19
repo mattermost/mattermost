@@ -28,6 +28,22 @@ export function makePageDraftKey(wikiId: string, draftId: string): string {
     return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
 }
 
+export function getUserDraftKeys(state: GlobalState, wikiId: string, pageId: string, userId: string): string[] {
+    const prefix = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
+    const keys: string[] = [];
+
+    Object.keys(state.storage.storage).forEach((key) => {
+        if (key.startsWith(prefix)) {
+            const draft = state.storage.storage[key];
+            if (draft && typeof draft === 'object' && 'rootId' in draft && draft.rootId === pageId) {
+                keys.push(key);
+            }
+        }
+    });
+
+    return keys;
+}
+
 export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, draftId: string): PageDraft {
     const key = makePageDraftKey(wikiId, draftId);
 

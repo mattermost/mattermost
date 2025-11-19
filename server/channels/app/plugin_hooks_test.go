@@ -314,6 +314,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "message").Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -402,6 +403,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "message_edited").Return(nil)
 	mockAPI.On("LogDebug", "message_").Return(nil)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -450,6 +452,7 @@ func TestHookMessageHasBeenDeleted(t *testing.T) {
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "message").Return(nil).Times(1)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -497,6 +500,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -541,6 +545,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -591,6 +596,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -647,6 +653,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -1021,6 +1028,7 @@ func TestHookContext(t *testing.T) {
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", ctx.Session().Id).Return(nil)
 	mockAPI.On("LogInfo", ctx.RequestId()).Return(nil)
 	mockAPI.On("LogError", ctx.IPAddress()).Return(nil)
@@ -1241,6 +1249,7 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
+	mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "smile").Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -1287,6 +1296,7 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	var mockAPI plugintest.API
+	mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "star").Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -1723,6 +1733,7 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 	setupPlugin := func(t *testing.T, th *TestHelper) {
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "message").Return(nil)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
@@ -1806,6 +1817,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 
 		// Setup plugin
 		var mockAPI plugintest.API
+		mockAPI.On("LinkPageToFirstWiki", mock.Anything, mock.Anything).Return(nil)
 
 		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{`
 			package main
