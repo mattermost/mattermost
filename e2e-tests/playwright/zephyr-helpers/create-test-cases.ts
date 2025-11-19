@@ -13,7 +13,7 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
-import {createZephyrAPI} from '../lib/zephyr-api';
+import {createZephyrAPI} from '@mattermost/playwright-lib/zephyr-api';
 import {validateZephyrConfig} from '../config/zephyr.config';
 
 // Load environment variables

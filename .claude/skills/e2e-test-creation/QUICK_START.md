@@ -215,16 +215,16 @@ You: no
 **Usage**:
 ```bash
 # Basic usage
-npx ts-node scripts/sync-e2e-to-zephyr.ts specs/functional/channels/threads/threads_list.spec.ts
+npx ts-node zephyr-helpers/sync-e2e-to-zephyr.ts specs/functional/channels/threads/threads_list.spec.ts
 
 # With folder ID and active status
-npx ts-node scripts/sync-e2e-to-zephyr.ts \
+npx ts-node zephyr-helpers/sync-e2e-to-zephyr.ts \
   specs/functional/channels/threads/threads_list.spec.ts \
   --folder-id 28243013 \
   --active
 
 # Dry run (preview only)
-npx ts-node scripts/sync-e2e-to-zephyr.ts \
+npx ts-node zephyr-helpers/sync-e2e-to-zephyr.ts \
   specs/functional/channels/threads/threads_list.spec.ts \
   --dry-run
 ```
@@ -235,7 +235,7 @@ npx ts-node scripts/sync-e2e-to-zephyr.ts \
 
 **Usage**:
 ```bash
-npx ts-node scripts/update-zephyr-automation.ts MM-T5927 specs/functional/system_console/content_flagging.spec.ts
+npx ts-node zephyr-helpers/update-zephyr-automation.ts MM-T5927 specs/functional/system_console/content_flagging.spec.ts
 ```
 
 ### Script 3: create-test-cases.ts
@@ -244,7 +244,7 @@ npx ts-node scripts/update-zephyr-automation.ts MM-T5927 specs/functional/system
 
 **Usage**:
 ```bash
-npx ts-node scripts/create-test-cases.ts skeleton_file_1.spec.ts skeleton_file_2.spec.ts
+npx ts-node zephyr-helpers/create-test-cases.ts skeleton_file_1.spec.ts skeleton_file_2.spec.ts
 ```
 
 ## File Locations

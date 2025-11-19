@@ -114,19 +114,19 @@ The agent uses the `sync-e2e-to-zephyr.ts` script:
 
 ### Basic Usage
 ```bash
-npx ts-node scripts/sync-e2e-to-zephyr.ts specs/functional/channels/threads/threads_list.spec.ts
+npx ts-node zephyr-helpers/sync-e2e-to-zephyr.ts specs/functional/channels/threads/threads_list.spec.ts
 ```
 
 ### With Options
 ```bash
 # Create in specific folder with Active status
-npx ts-node scripts/sync-e2e-to-zephyr.ts \
+npx ts-node zephyr-helpers/sync-e2e-to-zephyr.ts \
   specs/functional/channels/threads/threads_list.spec.ts \
   --folder-id 28243013 \
   --active
 
 # Dry run (preview only)
-npx ts-node scripts/sync-e2e-to-zephyr.ts \
+npx ts-node zephyr-helpers/sync-e2e-to-zephyr.ts \
   specs/functional/channels/threads/threads_list.spec.ts \
   --dry-run
 ```
@@ -275,7 +275,7 @@ Both workflows result in:
 
 - `lib/e2e-test-parser.ts` - Parse E2E test files
 - `lib/zephyr-api.ts` - Zephyr API integration (createTestCaseFromE2EFile)
-- `scripts/sync-e2e-to-zephyr.ts` - CLI script for sync
+- `zephyr-helpers/sync-e2e-to-zephyr.ts` - CLI script for sync
 - `config/zephyr.config.ts` - Zephyr configuration
 
 ## Success Criteria

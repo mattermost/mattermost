@@ -22,8 +22,8 @@
 
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import {createZephyrAPI} from '../lib/zephyr-api';
-import {parseE2ETestFile, hasZephyrKey} from '../lib/e2e-test-parser';
+import {createZephyrAPI} from '@mattermost/playwright-lib/zephyr-api';
+import {parseE2ETestFile, hasZephyrKey} from '@mattermost/playwright-lib/e2e-test-parser';
 import {validateZephyrConfig} from '../config/zephyr.config';
 
 // Load environment variables

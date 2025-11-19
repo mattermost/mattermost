@@ -9,7 +9,7 @@ This directory contains TypeScript utility scripts for Zephyr test management in
 
 **Usage**:
 ```bash
-npx ts-node scripts/check-test-case.ts MM-T1234
+npx ts-node zephyr-helpers/check-test-case.ts MM-T1234
 ```
 
 **Description**: Fetches and displays test case information from Zephyr to verify connectivity and test case structure.
@@ -21,7 +21,7 @@ npx ts-node scripts/check-test-case.ts MM-T1234
 
 **Usage**:
 ```bash
-npx ts-node scripts/convert-to-e2e.ts MM-T1234
+npx ts-node zephyr-helpers/convert-to-e2e.ts MM-T1234
 ```
 
 **Description**: Takes a Zephyr test case key and generates a complete Playwright E2E test file with full automation code.
@@ -39,8 +39,8 @@ npx ts-node scripts/convert-to-e2e.ts MM-T1234
 
 **Usage**:
 ```bash
-npx ts-node scripts/pull-from-zephyr.ts --folder "E2E Tests/Authentication"
-npx ts-node scripts/pull-from-zephyr.ts --key MM-T1234
+npx ts-node zephyr-helpers/pull-from-zephyr.ts --folder "E2E Tests/Authentication"
+npx ts-node zephyr-helpers/pull-from-zephyr.ts --key MM-T1234
 ```
 
 **Description**: Fetches test cases from Zephyr and saves them locally for batch processing or analysis.
@@ -57,8 +57,8 @@ npx ts-node scripts/pull-from-zephyr.ts --key MM-T1234
 
 **Usage**:
 ```bash
-npx ts-node scripts/push-to-zephyr.ts --results test-results.json
-npx ts-node scripts/push-to-zephyr.ts --update MM-T1234 --status "Automated"
+npx ts-node zephyr-helpers/push-to-zephyr.ts --results test-results.json
+npx ts-node zephyr-helpers/push-to-zephyr.ts --update MM-T1234 --status "Automated"
 ```
 
 **Description**: Updates Zephyr test cases with automation results, status updates, or metadata.
@@ -76,7 +76,7 @@ npx ts-node scripts/push-to-zephyr.ts --update MM-T1234 --status "Automated"
 
 **Usage**:
 ```bash
-npx ts-node scripts/test-zephyr-pilot.ts
+npx ts-node zephyr-helpers/test-zephyr-pilot.ts
 ```
 
 **Description**: Validates Zephyr configuration and tests API connectivity. Use this first to ensure your credentials and setup are correct.
@@ -117,7 +117,7 @@ Create `.claude/settings.local.json` with your Zephyr credentials (see Configura
 
 ### 3. Test Configuration
 ```bash
-npx ts-node scripts/test-zephyr-pilot.ts
+npx ts-node zephyr-helpers/test-zephyr-pilot.ts
 ```
 
 ## Common Workflows
@@ -125,10 +125,10 @@ npx ts-node scripts/test-zephyr-pilot.ts
 ### Workflow 1: Convert Single Test Case
 ```bash
 # Step 1: Check test case exists
-npx ts-node scripts/check-test-case.ts MM-T1234
+npx ts-node zephyr-helpers/check-test-case.ts MM-T1234
 
 # Step 2: Convert to E2E test
-npx ts-node scripts/convert-to-e2e.ts MM-T1234
+npx ts-node zephyr-helpers/convert-to-e2e.ts MM-T1234
 
 # Step 3: Run generated test
 cd e2e-tests/playwright
@@ -138,12 +138,12 @@ npx playwright test specs/functional/auth/test_successful_login.spec.ts
 ### Workflow 2: Batch Convert from Folder
 ```bash
 # Step 1: Pull all test cases from folder
-npx ts-node scripts/pull-from-zephyr.ts --folder "E2E Tests/Authentication"
+npx ts-node zephyr-helpers/pull-from-zephyr.ts --folder "E2E Tests/Authentication"
 
 # Step 2: Process each test case
 # (Use the output to iterate through test cases)
 for key in MM-T1234 MM-T1235 MM-T1236; do
-  npx ts-node scripts/convert-to-e2e.ts $key
+  npx ts-node zephyr-helpers/convert-to-e2e.ts $key
 done
 ```
 
@@ -154,7 +154,7 @@ cd e2e-tests/playwright
 npx playwright test --reporter=json > results.json
 
 # Step 2: Push results to Zephyr
-npx ts-node scripts/push-to-zephyr.ts --results results.json
+npx ts-node zephyr-helpers/push-to-zephyr.ts --results results.json
 ```
 
 ## Script Integration with Workflows
@@ -181,7 +181,7 @@ export JIRA_TOKEN="your-token"
 export ZEPHYR_TOKEN="your-token"
 export PROJECT_KEY="MM"
 
-npx ts-node scripts/check-test-case.ts MM-T1234
+npx ts-node zephyr-helpers/check-test-case.ts MM-T1234
 ```
 
 ## Error Handling
@@ -198,13 +198,13 @@ cp .claude/settings.local.json.example .claude/settings.local.json
 **"401 Unauthorized"**
 ```bash
 # Solution: Verify tokens are valid
-npx ts-node scripts/test-zephyr-pilot.ts
+npx ts-node zephyr-helpers/test-zephyr-pilot.ts
 ```
 
 **"Test case not found"**
 ```bash
 # Solution: Verify test case exists and you have access
-npx ts-node scripts/check-test-case.ts MM-T1234
+npx ts-node zephyr-helpers/check-test-case.ts MM-T1234
 ```
 
 **"Permission denied"**
@@ -217,7 +217,7 @@ npx ts-node scripts/check-test-case.ts MM-T1234
 
 ### Adding New Scripts
 
-1. Create script in `scripts/` directory
+1. Create script in `zephyr-helpers/` directory
 2. Follow TypeScript best practices
 3. Use shared Zephyr API client
 4. Add documentation to this README
@@ -227,11 +227,11 @@ npx ts-node scripts/check-test-case.ts MM-T1234
 
 ```bash
 # Run with ts-node
-npx ts-node scripts/your-script.ts
+npx ts-node zephyr-helpers/your-script.ts
 
 # Or compile and run
-npx tsc scripts/your-script.ts
-node scripts/your-script.js
+npx tsc zephyr-helpers/your-script.ts
+node zephyr-helpers/your-script.js
 ```
 
 ## API Reference
@@ -244,17 +244,17 @@ For API details, see:
 
 ### Enable Debug Mode
 ```bash
-DEBUG=true npx ts-node scripts/check-test-case.ts MM-T1234
+DEBUG=true npx ts-node zephyr-helpers/check-test-case.ts MM-T1234
 ```
 
 ### Verbose Output
 ```bash
-VERBOSE=true npx ts-node scripts/convert-to-e2e.ts MM-T1234
+VERBOSE=true npx ts-node zephyr-helpers/convert-to-e2e.ts MM-T1234
 ```
 
 ### Dry Run (No API Calls)
 ```bash
-DRY_RUN=true npx ts-node scripts/push-to-zephyr.ts --update MM-T1234
+DRY_RUN=true npx ts-node zephyr-helpers/push-to-zephyr.ts --update MM-T1234
 ```
 
 ## Support
