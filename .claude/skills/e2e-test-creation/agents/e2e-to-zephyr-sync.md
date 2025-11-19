@@ -273,10 +273,10 @@ Both workflows result in:
 
 ## Files Used
 
-- `lib/e2e-test-parser.ts` - Parse E2E test files
-- `lib/zephyr-api.ts` - Zephyr API integration (createTestCaseFromE2EFile)
+- `zephyr-helpers/e2e-test-parser.ts` - Parse E2E test files
+- `zephyr-helpers/zephyr-api.ts` - Zephyr API integration (createTestCaseFromE2EFile)
 - `zephyr-helpers/sync-e2e-to-zephyr.ts` - CLI script for sync
-- `config/zephyr.config.ts` - Zephyr configuration
+- `zephyr-helpers/zephyr.config.ts` - Zephyr configuration
 
 ## Success Criteria
 

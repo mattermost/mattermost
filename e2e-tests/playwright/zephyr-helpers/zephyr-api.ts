@@ -7,7 +7,7 @@
  * Provides methods to interact with Zephyr test management system via API.
  */
 
-import {zephyrConfig, zephyrCustomFields} from '../config/zephyr.config';
+import {zephyrConfig, zephyrCustomFields} from './zephyr.config';
 
 export interface ZephyrTestCase {
     key: string;
