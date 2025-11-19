@@ -358,6 +358,11 @@ function PostComponent(props: Props) {
             return;
         }
 
+        // Prevent BoR messages from opening reply
+        if (post.type === PostTypes.BURN_ON_READ) {
+            return;
+        }
+
         if (
             !e.altKey &&
             props.clickToReply &&

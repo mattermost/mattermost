@@ -33,6 +33,14 @@ function BurnOnReadBadge({
     // Get read receipt data from Redux store (real-time updated via WebSocket)
     const readReceipt = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
 
+    // TODO: Remove this mock data once backend WebSocket is working
+    const mockReadReceipt = isSender && !readReceipt ? {
+        postId,
+        totalRecipients: 3,
+        revealedCount: 1,
+        lastUpdated: Date.now(),
+    } : readReceipt;
+
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Stop propagation to prevent opening RHS or other post click handlers
         e.stopPropagation();
@@ -58,15 +66,15 @@ function BurnOnReadBadge({
                 defaultMessage: 'Click to delete message for everyone',
             });
 
-            if (readReceipt) {
+            if (mockReadReceipt) {
                 const readReceiptText = formatMessage(
                     {
                         id: 'burn_on_read.badge.read_receipt',
                         defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
                     },
                     {
-                        revealedCount: readReceipt.revealedCount,
-                        totalRecipients: readReceipt.totalRecipients,
+                        revealedCount: mockReadReceipt.revealedCount,
+                        totalRecipients: mockReadReceipt.totalRecipients,
                     },
                 );
                 return (
@@ -106,15 +114,15 @@ function BurnOnReadBadge({
                 id: 'burn_on_read.badge.sender.delete',
                 defaultMessage: 'Click to delete message for everyone',
             });
-            if (readReceipt) {
+            if (mockReadReceipt) {
                 const readReceiptText = formatMessage(
                     {
                         id: 'burn_on_read.badge.read_receipt',
                         defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
                     },
                     {
-                        revealedCount: readReceipt.revealedCount,
-                        totalRecipients: readReceipt.totalRecipients,
+                        revealedCount: mockReadReceipt.revealedCount,
+                        totalRecipients: mockReadReceipt.totalRecipients,
                     },
                 );
                 return `${deleteText}. ${readReceiptText}`;
