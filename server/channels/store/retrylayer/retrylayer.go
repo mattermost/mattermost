@@ -8536,11 +8536,11 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 
 }
 
-func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+		err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 		if err == nil {
 			return nil
 		}
