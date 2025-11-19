@@ -289,29 +289,50 @@ npx playwright test --ui
 npx playwright test --headed
 ```
 
-## Example Workflow
+## Example Workflows
 
-When you add a new "Post Reactions" feature:
+### Workflow 1: Create Tests with Zephyr (STRICT 10-STEP MANDATORY)
 
-**DEFAULT MODE (Automatic):**
-1. **You detect** changes in `webapp/components/post/reactions/`
-2. **Plan phase**: Create FOCUSED test plan (1-3 scenarios):
-   - Happy path: User adds reaction to post
-   - Critical error: API failure when adding reaction
-   - (SKIP: Multi-user, edge cases, etc.)
-3. **Generate phase**: Create 1-2 tests in `e2e-tests/playwright/specs/functional/ai-assisted/messaging/post_reactions.spec.ts`
-4. **Run tests**: `npx playwright test post_reactions`
-5. **Heal phase** (if needed): Fix any failures automatically
+When you say: *"Create E2E tests for post reactions"*
 
-**COMPREHENSIVE MODE (User requests explicitly):**
-User says: "create comprehensive tests for post reactions with edge cases"
-1. **Plan phase**: Create comprehensive test plan (5+ scenarios):
-   - Adding/removing reactions
-   - Multiple users reacting (real-time)
-   - Reaction counts updating
-   - Edge cases (network failures, permission errors, etc.)
-2. **Generate phase**: Create 5-8 tests covering all scenarios
-3. **Run and heal** as needed
+**All 10 steps are mandatory - no skipping:**
+
+1. **Launch browser via MCP** → Playwright explores live UI
+2. **Explore UI** → Interact with post reactions feature
+3. **Discover selectors** → Find actual `data-testid` from DOM
+4. **Create skeleton tests** → Generate files with `MM-TXXX` placeholder
+5. **User confirmation** → Ask: "Create Zephyr Test Cases?"
+6. **Push to Zephyr** → Create cases (Status: Draft), get MM-T5928, MM-T5929
+7. **Generate full code** → Complete Playwright implementation with discovered selectors
+8. **Place in ai-assisted/** → `specs/functional/ai-assisted/messaging/post_reactions.spec.ts`
+9. **Run tests (mandatory)** → `npx playwright test --project=chrome`, must pass
+10. **Fix & update Zephyr** → Heal if needed, then set Zephyr status to "Active"
+
+**Result:** ✅ Passing tests + ✅ Zephyr cases Active
+
+---
+
+### Workflow 2: Automate Existing Test (MANDATORY EXECUTION)
+
+When you say: *"Automate MM-T5928"*
+
+1. Fetch test case from Zephyr
+2. Generate test steps if missing
+3. Update Zephyr with steps
+4. Generate full Playwright code
+5. Write file to `ai-assisted/` directory
+6. **Execute test (mandatory)** with Chrome
+7. **Heal until passing** (max 3 attempts)
+8. **Update Zephyr to "Active"** only after test passes
+
+---
+
+### Workflow 3: Quick Tests (No Zephyr)
+
+For quick iteration without Zephyr:
+1-4: Same as Workflow 1
+5: User says "no" to Zephyr creation
+Result: Tests remain with MM-TXXX, ready for later Zephyr sync
 
 ## Real-World Example Comparison
 

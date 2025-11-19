@@ -125,7 +125,7 @@ You: "Create tests for post reactions"
 
 ---
 
-### Workflow 2: Create Tests + Zephyr Sync
+### Workflow 2: Create Tests + Zephyr Sync (STRICT 10-STEP MANDATORY)
 
 **Use when:** You need Zephyr test cases created
 
@@ -133,24 +133,36 @@ You: "Create tests for post reactions"
 You: "Create tests for login feature with Zephyr sync"
 ```
 
-**What happens:**
-1. Planning → Skeleton generation
-2. **Creates Zephyr test cases** (MM-T1234, MM-T1235)
-3. Generates full Playwright code with MM-T keys
-4. Runs tests
-5. **Updates Zephyr** with automation status
+**What happens (ALL 10 steps mandatory - no skipping):**
+
+1. **Launch browser via MCP** → Playwright explores live UI
+2. **Explore UI** → Interact with login feature
+3. **Discover selectors** → Find actual `data-testid` from DOM
+4. **Create skeleton tests** → Generate files with `MM-TXXX` placeholder
+5. **User confirmation** → Ask: "Create Zephyr Test Cases?"
+6. **Push to Zephyr** → Create cases (Status: Draft), get MM-T1234, MM-T1235
+7. **Generate full code** → Complete Playwright implementation with discovered selectors
+8. **Place in ai-assisted/** → `specs/functional/ai-assisted/auth/login.spec.ts`
+9. **Run tests (mandatory)** → `npx playwright test --project=chrome`, must pass
+10. **Fix & update Zephyr** → Heal if needed, then set Zephyr status to "Active"
 
 **Output:**
 ```
 ✅ Generated: specs/functional/ai-assisted/auth/login.spec.ts
-✅ Zephyr Cases: MM-T1234, MM-T1235
+✅ Zephyr Cases: MM-T1234, MM-T1235 (Status: Active)
 ✅ Tests: 2 passing
-✅ Zephyr Updated: Marked as automated
+✅ Zephyr Updated: Marked as automated, file path added
 ```
+
+**Key Points:**
+- ✅ Tests MUST pass before Zephyr status updates to "Active"
+- ✅ Auto-healing invoked if tests fail (max 3 attempts)
+- ✅ All tests run with `--project=chrome`
+- ✅ Zephyr cases start in "Draft" status, become "Active" only after validation
 
 ---
 
-### Workflow 3: Automate Existing Zephyr Test Case
+### Workflow 3: Automate Existing Zephyr Test Case (MANDATORY EXECUTION)
 
 **Use when:** You have a manual Zephyr test case (MM-TXXXX) that needs automation
 
@@ -158,11 +170,29 @@ You: "Create tests for login feature with Zephyr sync"
 You: "Automate MM-T5928"
 ```
 
-**What happens:**
-1. Fetches test case from Zephyr
-2. Analyzes steps and objectives
-3. Generates Playwright test
-4. Updates Zephyr with automation file path
+**What happens (All steps mandatory):**
+1. **Fetch test case** from Zephyr API
+2. **Generate test steps** if missing or incomplete
+3. **Update Zephyr** with generated steps
+4. **Generate full Playwright code** with proper structure
+5. **Write file** to `specs/functional/ai-assisted/` directory
+6. **Execute test (mandatory)** with `--project=chrome`
+7. **Heal until passing** (max 3 attempts)
+8. **Update Zephyr to "Active"** only after test passes
+
+**Output:**
+```
+✅ Fetched: MM-T5928 (Content Flagging)
+✅ Generated: specs/functional/ai-assisted/system_console/content_flagging.spec.ts
+✅ Test execution: 1 passing
+✅ Zephyr Updated: Status=Active, automation file path added
+```
+
+**Key Points:**
+- ✅ Tests MUST pass before Zephyr updates
+- ✅ Healing invoked automatically if test fails
+- ✅ Max 3 heal attempts before manual intervention required
+- ✅ Chrome-only execution for reliability
 
 ---
 
@@ -197,6 +227,32 @@ You: "Fix the failing test in specs/functional/ai-assisted/channels/create_chann
 3. Discovers updated selectors
 4. Applies targeted fixes
 5. Re-runs tests to verify
+
+---
+
+## Validation Guarantees
+
+### Mandatory Test Execution
+
+**All Zephyr-linked workflows include mandatory test execution:**
+
+```
+✅ Tests MUST pass before Zephyr status updates
+✅ Auto-healing invoked if tests fail (max 3 attempts)
+✅ Chrome-only execution for reliability
+✅ No skipping - validation is mandatory
+```
+
+**If tests fail after 3 heal attempts:**
+- Zephyr remains in "Draft" status
+- Manual intervention required
+- Test file preserved for debugging
+
+**Why mandatory execution?**
+- Ensures test quality before marking as "Active"
+- Catches issues early in development cycle
+- Maintains high confidence in automated tests
+- Prevents false positives in Zephyr
 
 ---
 
