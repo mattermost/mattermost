@@ -20,7 +20,7 @@ test('Should show channel banner when configured', async ({pw}) => {
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('Example channel banner text');
-    await configurationTab.setChannelBannerTextColor('#77DD88');
+    await configurationTab.setChannelBannerTextColor('77DD88');
 
     await configurationTab.save();
     await channelSettingsModal.close();
@@ -65,7 +65,7 @@ test('Should render markdown', async ({pw}) => {
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('**bold** *italic* ~~strikethrough~~');
-    await configurationTab.setChannelBannerTextColor('#77DD88');
+    await configurationTab.setChannelBannerTextColor('77DD88');
 
     await configurationTab.save();
     await channelSettingsModal.close();
