@@ -58,6 +58,7 @@ const (
 var AllJobTypes = [...]string{
 	JobTypeDataRetention,
 	JobTypeMessageExport,
+	JobTypeCLIMessageExport,
 	JobTypeElasticsearchPostIndexing,
 	JobTypeElasticsearchPostAggregation,
 	JobTypeLdapSync,
@@ -71,12 +72,25 @@ var AllJobTypes = [...]string{
 	JobTypeExportProcess,
 	JobTypeExportDelete,
 	JobTypeCloud,
+	JobTypeResendInvitationEmail,
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
+	JobTypeUpgradeNotifyAdmin,
+	JobTypeTrialNotifyAdmin,
+	JobTypePostPersistentNotifications,
+	JobTypeInstallPluginNotifyAdmin,
+	JobTypeHostedPurchaseScreening,
+	JobTypeS3PathMigration,
 	JobTypeCleanupDesktopTokens,
+	JobTypeDeleteEmptyDraftsMigration,
 	JobTypeRefreshMaterializedViews,
+	JobTypeDeleteOrphanDraftsMigration,
+	JobTypeExportUsersToCSV,
+	JobTypeDeleteDmsPreferencesMigration,
 	JobTypeMobileSessionMetadata,
+	JobTypeAccessControlSync,
+	JobTypePushProxyAuth,
 }
 
 type Job struct {
