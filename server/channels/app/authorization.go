@@ -223,7 +223,9 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 
 	channel, err := a.Srv().Store().Channel().GetForPost(postID)
 	if err != nil {
-		return false, false
+		// Original implementation (SessionHasPermissionToChannelByPost) still checks for
+		// general permissions even if the channel is not found, and some tests rely on this behavior.
+		return a.SessionHasPermissionTo(session, model.PermissionReadChannelContent), false
 	}
 
 	return a.SessionHasPermissionToReadChannel(rctx, session, channel)
