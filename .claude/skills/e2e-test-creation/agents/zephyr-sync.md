@@ -741,7 +741,7 @@ async function updateZephyrToActive(
     
     // Build update payload
     const updatePayload = {
-      status: 'Active',
+      statusId: 890281,  // Active status ID in Zephyr
       labels: ['playwright-automated', 'ai-generated'],
       customFields: {
         'Automation Status': 'Automated',

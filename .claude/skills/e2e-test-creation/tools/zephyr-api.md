@@ -117,6 +117,7 @@ Store credentials in `.claude/settings.local.json`:
 ```json
 {
   "objective": "Updated objective",
+  "statusId": 890281,
   "customFields": {
     "Automation Status": "Automated",
     "Automation File": "specs/functional/auth/login.spec.ts"
@@ -133,6 +134,8 @@ Store credentials in `.claude/settings.local.json`:
   }
 }
 ```
+
+**Note:** Use `statusId: 890281` to set status to "Active"
 
 ### 4. Search Test Cases
 
