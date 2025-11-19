@@ -223,7 +223,7 @@ This skill includes comprehensive documentation:
 - **workflows/automate-existing.md** - Automate existing Zephyr test cases
 - **tools/zephyr-api.md** - Zephyr API integration
 - **tools/placeholder-replacer.md** - Placeholder replacement utility
-- **zephyr-helpers/** - Utility scripts for Zephyr integration (check, convert, pull, push)
+- **e2e-tests/playwright/zephyr-helpers/** - Working Zephyr integration scripts
 
 ### Specialized Agents
 - **agents/planner.md** - Test planning guidance
