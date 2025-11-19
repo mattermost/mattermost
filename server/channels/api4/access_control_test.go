@@ -857,10 +857,7 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 }
 
 func TestSetActiveStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
-	t.Cleanup(func() {
-		th.TearDown()
-	})
+	th := Setup(t).InitBasic(t)
 
 	samplePolicy := &model.AccessControlPolicy{
 		ID:       th.BasicChannel.Id,
@@ -930,13 +927,13 @@ func TestSetActiveStatus(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Add permission to channel admin role
-		th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 		// Create private channel and make user channel admin
-		privateChannel := th.CreatePrivateChannel()
-		channelAdmin := th.CreateUser()
-		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-		th.AddUserToChannel(channelAdmin, privateChannel)
-		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
 
 		channelPolicy := &model.AccessControlPolicy{
 			ID:       privateChannel.Id,
