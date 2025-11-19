@@ -2345,7 +2345,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	}
 }
 
-func (a *App) GetPostInfo(rctx request.CTX, postID string, channel *model.Channel, team *model.Team, userID string, hasJoinedChannel bool, hasJoinedTeam bool) (*model.PostInfo, *model.AppError) {
+func (a *App) GetPostInfo(rctx request.CTX, postID string, channel *model.Channel, team *model.Team, userID string, hasJoinedChannel bool) (*model.PostInfo, *model.AppError) {
 	info := model.PostInfo{
 		ChannelId:          channel.Id,
 		ChannelType:        channel.Type,

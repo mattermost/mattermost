@@ -1445,11 +1445,13 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	hasPermissionToAccessChannel := false
+	hasJoinedChannel := false
 
 	_, channelMemberErr := c.App.GetChannelMember(c.AppContext, channel.Id, userID)
 
 	if channelMemberErr == nil {
 		hasPermissionToAccessChannel = true
+		hasJoinedChannel = true
 	}
 
 	if !hasPermissionToAccessChannel {
@@ -1467,7 +1469,7 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, appErr := c.App.GetPostInfo(c.AppContext, c.Params.PostId, channel, team, userID, hasPermissionToAccessChannel, hasPermissionToAccessTeam)
+	info, appErr := c.App.GetPostInfo(c.AppContext, c.Params.PostId, channel, team, userID, hasJoinedChannel)
 	if appErr != nil {
 		c.Err = appErr
 		return
