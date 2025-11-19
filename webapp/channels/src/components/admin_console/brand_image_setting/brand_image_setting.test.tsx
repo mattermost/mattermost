@@ -1,20 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
+import {screen, renderWithContext, userEvent, cleanup, waitFor} from 'tests/react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
-
-jest.mock('actions/admin_actions.jsx', () => ({
-    ...jest.requireActual('actions/admin_actions.jsx'),
-    uploadBrandImage: jest.fn(),
-    deleteBrandImage: jest.fn(),
-}));
 
 Client4.setUrl('http://localhost:8065');
 
@@ -26,21 +19,68 @@ describe('components/admin_console/brand_image_setting', () => {
         unRegisterSaveAction: jest.fn(),
     };
 
-    test('should have called deleteBrandImage or uploadBrandImage on save depending on component state', () => {
-        const wrapper = shallow<BrandImageSetting>(
-            <BrandImageSetting {...baseProps}/>,
-        );
+    const deleteButtonTestId = 'remove-image__btn';
 
-        const instance = wrapper.instance();
+    /**
+     * The previous test directly called 'handleSave' to test the 'deleteBrandImage' and 'uploadBrandImage' functions.
+     *
+     * This is only possible with a class component and Enzyme, but RTL promotes testing components the way
+     * a user would interact with them, hence the updated tests.
+     *
+     * 'deleteBrandImage' and 'uploadBrandImage' are only accessible in the 'handleSave' method which can't be
+     * invoked via any user interactions.
+     *
+     * Delete this comment after PR review.
+     */
 
-        wrapper.setState({deleteBrandImage: false, brandImage: new Blob(['brand_image_file'])});
-        instance.handleSave();
-        expect(deleteBrandImage).toHaveBeenCalledTimes(0);
-        expect(uploadBrandImage).toHaveBeenCalledTimes(1);
+    test('should register and unregister save handler when mounted and unmounted respectively', () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        wrapper.setState({deleteBrandImage: true, brandImage: undefined});
-        instance.handleSave();
-        expect(deleteBrandImage).toHaveBeenCalledTimes(1);
-        expect(uploadBrandImage).toHaveBeenCalledTimes(1);
+        expect(baseProps.registerSaveAction).toHaveBeenCalledTimes(1);
+
+        cleanup();
+
+        expect(baseProps.unRegisterSaveAction).toHaveBeenCalledTimes(1);
+    });
+
+    test('should show delete button if brand image exists', async () => {
+        /**
+         * The casts at the end exists to prevent you from having to provide a value for every property in the
+         * 'Promise<Response>' object thus preventing a TypeScript error.
+         */
+        global.fetch = jest.fn(() => Promise.resolve({status: 200} as Partial<Response> as Response));
+
+        await waitFor(() => renderWithContext(<BrandImageSetting {...baseProps}/>));
+
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId(deleteButtonTestId)).toBeVisible();
+    });
+
+    test('should hide delete button if the setting is disabled', async () => {
+        global.fetch = jest.fn(() => Promise.resolve({status: 200} as Partial<Response> as Response));
+
+        const props = {...baseProps, disabled: true};
+
+        await waitFor(() => renderWithContext(<BrandImageSetting {...props}/>));
+
+        expect(screen.queryByTestId(deleteButtonTestId)).toBe(null);
+    });
+
+    test('should call setSaveNeeded when a brand image is uploaded', async () => {
+        renderWithContext(<BrandImageSetting {...baseProps}/>);
+
+        await userEvent.upload(screen.getByTestId('file__upload-input'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
+
+        expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
+    });
+
+    test('should call setSaveNeeded when the delete button is pressed', async () => {
+        global.fetch = jest.fn(() => Promise.resolve({status: 200} as Partial<Response> as Response));
+
+        await waitFor(() => renderWithContext(<BrandImageSetting {...baseProps}/>));
+
+        await userEvent.click(screen.getByTestId(deleteButtonTestId));
+
+        expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
     });
 });

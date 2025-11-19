@@ -191,6 +191,7 @@ const BrandImageSetting = ({
                     <button
                         type='button'
                         className='remove-image__btn'
+                        data-testid='remove-image__btn'
                         onClick={handleDeleteButtonPressed}
                     >
                         <span aria-hidden={true}>{'×'}</span>
@@ -254,6 +255,7 @@ const BrandImageSetting = ({
                 </button>
                 <input
                     ref={fileInputRef}
+                    data-testid='file__upload-input'
                     type='file'
                     accept={Constants.ACCEPT_STATIC_IMAGE}
                     disabled={disabled}
