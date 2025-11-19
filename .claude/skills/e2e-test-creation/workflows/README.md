@@ -106,11 +106,11 @@ Stage 1: Planning → Stage 2: Skeleton Files → Stage 3: Zephyr + Full Code
    ```json
    {
      "zephyr": {
-       "baseUrl": "https://your-instance.atlassian.net",
+       "baseUrl": "https://mattermost.atlassian.net",
        "jiraToken": "YOUR_JIRA_PAT",
        "zephyrToken": "YOUR_ZEPHYR_TOKEN",
        "projectKey": "MM",
-       "folderId": "12345"
+       "folderId": "28243013"
      }
    }
    ```

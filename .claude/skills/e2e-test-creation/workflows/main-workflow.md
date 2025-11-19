@@ -430,7 +430,7 @@ Summary:
     "jiraToken": "YOUR_JIRA_PAT",
     "zephyrToken": "YOUR_ZEPHYR_TOKEN",
     "projectKey": "MM",
-    "folderId": "12345"
+    "folderId": "28243013"
   }
 }
 ```

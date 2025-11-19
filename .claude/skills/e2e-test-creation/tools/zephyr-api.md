@@ -9,11 +9,11 @@ Store credentials in `.claude/settings.local.json`:
 ```json
 {
   "zephyr": {
-    "baseUrl": "https://your-jira-instance.atlassian.net",
+    "baseUrl": "https://mattermost.atlassian.net",
     "jiraToken": "your-jira-personal-access-token",
     "zephyrToken": "your-zephyr-access-token",
     "projectKey": "MM",
-    "folderId": "12345"
+    "folderId": "28243013"
   }
 }
 ```
