@@ -27,6 +27,17 @@ import {
     uploadPrivateSamlCertificate,
     uploadPublicSamlCertificate,
 } from 'actions/admin_actions';
+
+import ContentFlaggingSettings from 'components/admin_console/content_flagging/content_flagging_settings';
+import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
+import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
+import PluginManagement from 'components/admin_console/plugin_management';
+import SystemAnalytics from 'components/analytics/system_analytics';
+import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/analytics/system_analytics/system_analytics';
+import TeamAnalytics from 'components/analytics/team_analytics';
+import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/analytics/team_analytics/team_analytics';
+import ExternalLink from 'components/external_link';
+
 import {
     BURN_ON_READ_DURATION_1_MINUTE,
     BURN_ON_READ_DURATION_5_MINUTES,
@@ -42,17 +53,6 @@ import {
     BURN_ON_READ_MAX_TTL_30_DAYS,
     BURN_ON_READ_MAX_TTL_DEFAULT,
 } from 'utils/burn_on_read_config_utils';
-
-import ContentFlaggingSettings from 'components/admin_console/content_flagging/content_flagging_settings';
-import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
-import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
-import PluginManagement from 'components/admin_console/plugin_management';
-import SystemAnalytics from 'components/analytics/system_analytics';
-import {searchableStrings as systemAnalyticsSearchableStrings} from 'components/analytics/system_analytics/system_analytics';
-import TeamAnalytics from 'components/analytics/team_analytics';
-import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/analytics/team_analytics/team_analytics';
-import ExternalLink from 'components/external_link';
-
 import {AboutLinks, CacheTypes, Constants, DeveloperLinks, DocLinks, LicenseSkus} from 'utils/constants';
 import {ID_PATH_PATTERN} from 'utils/path';
 import {getSiteURL} from 'utils/url';

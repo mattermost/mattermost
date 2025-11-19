@@ -634,11 +634,21 @@ function PostComponent(props: Props) {
 
     let burnOnReadTimerChip;
     if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.props?.expire_at) {
+        // Parse expire_at - it can be either number or string from API
+        const expireAt = typeof post.props.expire_at === 'number' ? post.props.expire_at : parseInt(String(post.props.expire_at), 10);
+
+        let maxExpireAt: number | undefined;
+        if (typeof post.props.max_expire_at === 'number') {
+            maxExpireAt = post.props.max_expire_at;
+        } else if (post.props.max_expire_at) {
+            maxExpireAt = parseInt(String(post.props.max_expire_at), 10);
+        }
+
         burnOnReadTimerChip = (
             <BurnOnReadTimerChip
                 postId={post.id}
-                expireAt={typeof post.props.expire_at === 'number' ? post.props.expire_at : undefined}
-                maxExpireAt={typeof post.props.max_expire_at === 'number' ? post.props.max_expire_at : undefined}
+                expireAt={isNaN(expireAt) ? undefined : expireAt}
+                maxExpireAt={maxExpireAt && isNaN(maxExpireAt) ? undefined : maxExpireAt}
                 durationMinutes={props.burnOnReadDurationMinutes}
                 onClick={handleTimerChipClick}
             />
