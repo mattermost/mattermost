@@ -45,12 +45,26 @@ Generates **minimal, focused** Playwright tests that:
 - 1-2 tests for critical error scenarios (if applicable)
 - **Total: 1-3 tests maximum unless requested otherwise**
 
-### 3. Test Healing
-Automatically fixes flaky or broken tests by:
-- Updating outdated selectors
-- Improving wait strategies
-- Fixing timing issues
-- Strengthening assertions
+### 3. Self-Healing Test System
+**Automatically diagnoses and repairs broken tests** by:
+- ✅ **Analyzing** error logs, stack traces, and failure patterns
+- ✅ **Determining WHY** tests fail (selector changes, timing, flow changes, assertions)
+- ✅ **Fetching test intent** from JSDoc, Zephyr, and test plans
+- ✅ **Discovering** new selectors via live browser inspection (MCP)
+- ✅ **Generating** patch diffs and complete fixed files
+- ✅ **Verifying** fixes by re-running tests
+- ✅ **Updating** Zephyr test steps if flow changed
+- ✅ **Providing** alternatives if fix doesn't work (max 3 attempts)
+
+**Core Principle:** Repairs root cause, NEVER masks failures or simply retries.
+
+**Healing Strategies:**
+- Automatic selector replacement (getByTestId → getByRole)
+- Automatic wait improvements (remove arbitrary timeouts)
+- Automatic assertion updates (exact match → partial match)
+- Automatic flow adjustment (detect new intermediate steps)
+
+**Output:** Full healing report with patch diff, explanation, and verification results
 
 ### 4. Zephyr Test Automation
 Automates test creation and syncs with Zephyr test management:

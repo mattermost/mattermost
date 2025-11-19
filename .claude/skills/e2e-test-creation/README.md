@@ -504,6 +504,7 @@ You: "Fix failing test in [file]"
 3. 🎯 **Try it:** *"Create tests for channel creation"*
 4. 🔄 **Setup Zephyr** (optional) for test management sync
 5. 📚 **Explore [examples.md](examples.md)** for real test samples
+6. 🔧 **Having issues?** Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common problems and solutions
 
 ---
 
