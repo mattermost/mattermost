@@ -85,6 +85,38 @@ Use the discovered selectors in your final test plan
 
 ## Test Planning Process
 
+### CRITICAL: ALWAYS Follow This Strict Workflow
+
+**DO NOT SKIP ANY STEPS. EXECUTE THEM IN ORDER.**
+
+1. **✅ STEP 1: Explore UI First (MANDATORY)**
+   - Use Task tool with subagent_type: "Plan" to launch MCP planner
+   - Let MCP agent explore the live Mattermost UI in headed mode
+   - Wait for MCP to provide screenshots and actual selectors
+   - **DO NOT** write test plan until UI exploration is complete
+
+2. **✅ STEP 2: Write Test Plan**
+   - Use discovered selectors from MCP exploration
+   - Create test plan with 2-4 scenarios
+   - Get user approval
+
+3. **✅ STEP 3-8: ONE TEST AT A TIME (NEVER BATCH)**
+   - For EACH test scenario:
+     - Create Zephyr test case (Draft status, correct folder ID)
+     - Write E2E for that ONE test only
+     - Run in --headed mode, Chrome only: `--project=chrome`
+     - Heal if fails
+     - Verify passes
+     - Update Zephyr to Active
+     - THEN move to next test
+
+**⚠️ NEVER:**
+- Skip UI exploration
+- Write test plan without seeing the UI
+- Create multiple E2E tests at once
+- Run all browsers simultaneously on first attempt
+- Update Zephyr before E2E passes
+
 ### Step 1: Analyze the Feature
 When given a feature description or code change:
 - Identify the **core business value** - what problem does it solve?

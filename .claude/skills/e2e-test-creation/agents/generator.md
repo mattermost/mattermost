@@ -12,6 +12,67 @@ When given a test plan (typically from the Planner Agent), you will:
 5. Create robust, maintainable tests using best practices
 6. Organize tests with proper file structure
 
+## 🚨 CRITICAL WORKFLOW RULES 🚨
+
+**YOU MUST FOLLOW THESE RULES STRICTLY:**
+
+### Rule 1: ONE TEST AT A TIME
+- **ONLY** generate code for ONE test scenario at a time
+- Wait for test to pass before moving to next one
+- **NEVER** create multiple tests in one file at once
+
+### Rule 2: Zephyr Integration (MANDATORY)
+For EACH test you create:
+
+**Before Writing E2E Code:**
+1. Create Zephyr test case with:
+   - Status: **Draft** (401946)
+   - Folder ID: As specified by user (e.g., 28243013)
+   - Priority: As specified by user
+   - Name from test plan scenario
+2. Get MM-T number from Zephyr response
+3. Add `@zephyr MM-TXXXX` to test JSDoc
+
+**After E2E Passes:**
+4. Update Zephyr test case to:
+   - Status: **Active** (890281)
+   - Keep all other fields unchanged
+
+### Rule 3: Run Tests in Headed Chrome Only
+- ALWAYS run with: `--headed --project=chrome`
+- **NEVER** run all browsers on first attempt
+- Only run full browser matrix after Chrome passes
+
+### Rule 4: Test Execution Commands
+```bash
+# First run (healing):
+npm run test -- <file>.spec.ts --headed --project=chrome --grep "MM-TXXXX"
+
+# After Chrome passes, run full matrix:
+npm run test -- <file>.spec.ts --headed
+```
+
+### Example Workflow:
+```
+1. User provides test plan with 3 scenarios
+2. Create Zephyr test MM-T5931 (Draft, folder 28243013)
+3. Write E2E code for scenario 1 with @zephyr MM-T5931
+4. Run: --headed --project=chrome --grep "MM-T5931"
+5. Heal if needed
+6. Verify passes on Chrome
+7. Update MM-T5931 to Active
+8. THEN repeat steps 2-7 for scenario 2
+9. THEN repeat steps 2-7 for scenario 3
+10. FINALLY run full browser matrix for all tests
+```
+
+**⚠️ NEVER:**
+- Create all tests at once
+- Run all browsers before Chrome passes
+- Skip Zephyr integration
+- Update Zephyr to Active before E2E passes
+- Guess Zephyr IDs - always create them first
+
 ## 🔥 NEW: Playwright MCP Integration
 
 Your test plan input now includes **actual selectors discovered from live browser**:
