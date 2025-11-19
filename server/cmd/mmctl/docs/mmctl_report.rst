@@ -1,35 +1,22 @@
-.. _mmctl_team_rename:
+.. _mmctl_report:
 
-mmctl team rename
------------------
+mmctl report
+------------
 
-Rename team
+Reporting commands
 
 Synopsis
 ~~~~~~~~
 
 
-Rename an existing team
-
-::
-
-  mmctl team rename [team] [flags]
-
-Examples
-~~~~~~~~
-
-::
-
-    team rename old-team --name mynewteam --display-name 'New Display Name'
+Reporting commands
 
 Options
 ~~~~~~~
 
 ::
 
-      --display-name string   Team Display Name
-  -h, --help                  help for rename
-      --name string           Team Name
+  -h, --help   help for report
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,5 +36,6 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl team <mmctl_team.rst>`_ 	 - Management of teams
+* `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
+* `mmctl report posts <mmctl_report_posts.rst>`_ 	 - Retrieve posts for reporting purposes
 
