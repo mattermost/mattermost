@@ -335,6 +335,147 @@ export class ZephyrAPI {
     }
 
     /**
+     * Create test case from existing E2E test file
+     * REVERSE WORKFLOW: E2E test → Zephyr test case
+     *
+     * @param parsedTest - Parsed E2E test metadata
+     * @param options - Creation options
+     * @returns Created test case with key and ID
+     */
+    async createTestCaseFromE2EFile(
+        parsedTest: {
+            testName: string;
+            objective: string;
+            precondition?: string;
+            steps: Array<{description: string; expectedResult: string}>;
+            priority: string;
+            tags: string[];
+            filePath: string;
+        },
+        options?: {
+            folderId?: string;
+            setActiveStatus?: boolean;
+        }
+    ): Promise<{key: string; id: number}> {
+        console.log(`\nCreating Zephyr test case from E2E test: ${parsedTest.testName}`);
+
+        const url = `${this.baseUrl}/testcases`;
+
+        // Prepare labels - include 'playwright-automated' since test already exists
+        const labels = [...new Set([...parsedTest.tags, 'playwright-automated'])];
+
+        // Determine status - Active if test exists and passes, Draft otherwise
+        const status = options?.setActiveStatus ? 'Active' : 'Draft';
+
+        const body: any = {
+            projectKey: this.projectKey,
+            name: parsedTest.testName,
+            objective: parsedTest.objective,
+            priority: parsedTest.priority || 'Normal',
+            status,
+            labels,
+        };
+
+        // Add precondition if present
+        if (parsedTest.precondition) {
+            body.precondition = parsedTest.precondition;
+        }
+
+        // Add folder if specified
+        if (options?.folderId) {
+            body.folderId = options.folderId;
+        }
+
+        const response = await this.makeRequest(url, 'POST', body);
+
+        console.log(`✅ Created test case: ${response.key}`);
+
+        // Now add test steps if provided
+        if (parsedTest.steps && parsedTest.steps.length > 0) {
+            console.log(`   Adding ${parsedTest.steps.length} test steps...`);
+            await this.createTestSteps(response.key, parsedTest.steps);
+        }
+
+        // If setting active status, update with Active status ID
+        if (options?.setActiveStatus) {
+            console.log(`   Setting status to Active...`);
+            await this.markAsAutomated(response.key, parsedTest.filePath);
+        }
+
+        return {
+            key: response.key,
+            id: response.id,
+        };
+    }
+
+    /**
+     * Update E2E test file with Zephyr key
+     * Adds @zephyr JSDoc tag to the test and updates test name with key
+     *
+     * @param filePath - Path to E2E test file
+     * @param testName - Test name to update
+     * @param zephyrKey - Zephyr test case key (e.g., MM-T1234)
+     */
+    async updateE2EFileWithZephyrKey(
+        filePath: string,
+        testName: string,
+        zephyrKey: string
+    ): Promise<void> {
+        const fs = await import('fs');
+        let content = fs.readFileSync(filePath, 'utf-8');
+
+        // Find the test function - need to capture the quote type and full test declaration
+        const testPattern = new RegExp(
+            `(\/\\*\\*[\\s\\S]*?\\*\/\\s*)?test(?:\\.(?:skip|only))?\\s*\\(\\s*(['"\`])(${testName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\2`,
+            'g'
+        );
+
+        const match = testPattern.exec(content);
+        if (!match) {
+            console.warn(`⚠️  Could not find test "${testName}" in ${filePath}`);
+            return;
+        }
+
+        const jsdoc = match[1];
+        const quoteChar = match[2];
+        const originalTestName = match[3];
+
+        // Check if test name already has Zephyr key
+        if (originalTestName.startsWith(zephyrKey)) {
+            console.log(`   Test name already has ${zephyrKey} prefix, skipping update`);
+            return;
+        }
+
+        // Update test name to include Zephyr key
+        const updatedTestName = `${zephyrKey} ${originalTestName}`;
+        const testNamePattern = new RegExp(
+            `(test(?:\\.(?:skip|only))?\\s*\\(\\s*${quoteChar})${originalTestName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(${quoteChar})`,
+            'g'
+        );
+        content = content.replace(testNamePattern, `$1${updatedTestName}$2`);
+
+        // Check if JSDoc exists and add @zephyr tag
+        if (jsdoc) {
+            // JSDoc exists - check if @zephyr already present
+            if (jsdoc.includes('@zephyr')) {
+                console.log(`   Test already has @zephyr tag`);
+            } else {
+                // Add @zephyr tag before closing */
+                const updatedJSDoc = jsdoc.replace(/\*\//, ` * @zephyr ${zephyrKey}\n */`);
+                content = content.replace(jsdoc, updatedJSDoc);
+            }
+        } else {
+            // No JSDoc - create one with @zephyr tag
+            const newJsdoc = `/**\n * @zephyr ${zephyrKey}\n */\n`;
+            const testStart = match.index;
+            content = content.substring(0, testStart) + newJsdoc + content.substring(testStart);
+        }
+
+        fs.writeFileSync(filePath, content, 'utf-8');
+        console.log(`   ✅ Updated ${filePath} with @zephyr ${zephyrKey} and test name`);
+    }
+
+    /**
      * Make HTTP request to Zephyr API
      * @param url - API endpoint URL
      * @param method - HTTP method

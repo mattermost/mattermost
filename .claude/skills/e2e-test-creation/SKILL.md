@@ -56,6 +56,7 @@ Automatically fixes flaky or broken tests by:
 Automates test creation and syncs with Zephyr test management:
 - **3-Stage Pipeline** - Plan → Skeleton Files → Zephyr Creation + Full Code
 - **Automate Existing Tests** - Convert existing Zephyr test cases (MM-T format) to Playwright
+- **Reverse Workflow (NEW)** - Create Zephyr test cases from existing E2E tests
 - **Bi-directional Sync** - Create tests in Zephyr and update with automation details
 - **Step Generation** - Automatically generate or refine test steps for Zephyr cases
 
@@ -231,6 +232,7 @@ This skill includes comprehensive documentation:
 - **agents/skeleton-generator.md** - Generate skeleton test files
 - **agents/zephyr-sync.md** - Zephyr sync orchestration
 - **agents/test-automator.md** - Automate existing test cases
+- **agents/e2e-to-zephyr-sync.md** - Reverse workflow: E2E test → Zephyr test case
 
 ## Running Tests
 

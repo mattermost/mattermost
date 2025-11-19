@@ -137,6 +137,46 @@ Summary:
   Status: Passed
 ```
 
+### Workflow 3: Create Zephyr Test from Existing E2E Test (REVERSE)
+
+**Use when**: You have an existing E2E test that works, but no Zephyr test case for it.
+
+#### Step 1: Request Zephyr Test Creation
+
+```
+You: Create Zephyr test case for specs/functional/channels/threads/threads_list.spec.ts
+```
+
+OR
+
+```
+You: I have a passing E2E test in specs/functional/channels/threads/threads_list.spec.ts.
+Can you create a Zephyr test case for it?
+```
+
+#### Step 2: Automatic Processing (Reverse Workflow)
+
+Claude will:
+- ✅ Parse E2E test file
+- ✅ Extract test metadata (name, objective, steps)
+- ✅ Create test case in Zephyr
+- ✅ Add `@zephyr MM-TXXX` JSDoc tag to E2E test
+- ✅ Update test name with Zephyr key prefix (e.g., `MM-T5929 Test name`)
+- ✅ Mark test as "Active" with 'playwright-automated' label
+
+#### Final Result
+
+```
+=== Zephyr Test Case Created ===
+
+Summary:
+  Test Key: MM-T9876
+  Test Name: Should be able to change threads with arrow keys
+  File: specs/functional/channels/threads/threads_list.spec.ts
+  Status: Active
+  Steps: 14 steps extracted from E2E test
+```
+
 ## Common Commands
 
 ### Create tests with Zephyr sync
@@ -152,11 +192,59 @@ Generate automation for MM-TXXXX
 Create E2E test for MM-TXXXX
 ```
 
+### Create Zephyr test from existing E2E test (REVERSE)
+```
+Create Zephyr test case for [file-path]
+Sync E2E test to Zephyr: [file-path]
+I have an existing E2E test at [file-path], create Zephyr test for it
+```
+
 ### Create tests WITHOUT Zephyr sync
 ```
 Create tests for [feature name]
 (When prompted: "Create Zephyr Test Cases?")
 You: no
+```
+
+## CLI Scripts
+
+### Script 1: sync-e2e-to-zephyr.ts (Reverse Workflow)
+
+**Purpose**: Create Zephyr test cases from existing E2E tests
+
+**Usage**:
+```bash
+# Basic usage
+npx ts-node scripts/sync-e2e-to-zephyr.ts specs/functional/channels/threads/threads_list.spec.ts
+
+# With folder ID and active status
+npx ts-node scripts/sync-e2e-to-zephyr.ts \
+  specs/functional/channels/threads/threads_list.spec.ts \
+  --folder-id 28243013 \
+  --active
+
+# Dry run (preview only)
+npx ts-node scripts/sync-e2e-to-zephyr.ts \
+  specs/functional/channels/threads/threads_list.spec.ts \
+  --dry-run
+```
+
+### Script 2: update-zephyr-automation.ts
+
+**Purpose**: Update existing Zephyr test cases with automation metadata
+
+**Usage**:
+```bash
+npx ts-node scripts/update-zephyr-automation.ts MM-T5927 specs/functional/system_console/content_flagging.spec.ts
+```
+
+### Script 3: create-test-cases.ts
+
+**Purpose**: Create new Zephyr test cases from skeleton files
+
+**Usage**:
+```bash
+npx ts-node scripts/create-test-cases.ts skeleton_file_1.spec.ts skeleton_file_2.spec.ts
 ```
 
 ## File Locations
@@ -230,6 +318,12 @@ npx playwright test specs/functional/auth/successful_login.spec.ts
 2. Verify response contained test keys
 3. Check placeholder replacer tool ran successfully
 
+### Issue: "Test already has @zephyr tag"
+
+**Note**: When using reverse workflow, if test already linked to Zephyr, it will be skipped.
+
+**Solution**: This is expected behavior. Test is already synced with Zephyr.
+
 ## Examples
 
 ### Example 1: Complete Workflow (New Tests)
@@ -269,7 +363,23 @@ Claude:
 Automation complete!
 ```
 
-### Example 3: Batch Request
+### Example 3: Reverse Workflow (E2E → Zephyr)
+
+```
+You: Create Zephyr test case for specs/functional/channels/threads/threads_list.spec.ts
+
+Claude:
+✓ Parsed E2E test file
+✓ Found test: "Should be able to change threads with arrow keys"
+✓ Extracted 14 test steps from code
+✓ Created test case: MM-T9876
+✓ Updated E2E file with @zephyr MM-T9876 tag
+✓ Set status to Active
+
+Zephyr test case created successfully!
+```
+
+### Example 4: Batch Request
 
 ```
 You: Create tests for:
@@ -287,6 +397,7 @@ Claude: [Processes all three scenarios through 3-stage pipeline]
 - **Complete Overview**: Read [`ZEPHYR_AUTOMATION_SUMMARY.md`](./ZEPHYR_AUTOMATION_SUMMARY.md)
 - **Main Workflow Details**: Read [`workflows/main-workflow.md`](./workflows/main-workflow.md)
 - **Automate Existing Details**: Read [`workflows/automate-existing.md`](./workflows/automate-existing.md)
+- **Reverse Workflow Details**: Read [`agents/e2e-to-zephyr-sync.md`](./agents/e2e-to-zephyr-sync.md)
 - **Examples**: Browse [`examples/zephyr-automation/`](./examples/zephyr-automation/)
 
 ### Advanced Usage
@@ -294,6 +405,7 @@ Claude: [Processes all three scenarios through 3-stage pipeline]
 - **Skip Test Execution**: "Automate MM-T1234 but don't run it yet"
 - **Comprehensive Tests**: "Create comprehensive tests with edge cases for [feature]"
 - **Manual Test Conversion**: Refer to existing manual test sync documentation
+- **Batch Sync**: Use CLI script with multiple files
 
 ## Configuration Reference
 
@@ -338,7 +450,7 @@ For issues or questions:
 
 ## Summary
 
-Two simple commands cover all scenarios:
+Three simple commands cover all scenarios:
 
 1. **New tests with Zephyr sync**:
    ```
@@ -349,6 +461,11 @@ Two simple commands cover all scenarios:
 2. **Automate existing test**:
    ```
    Automate MM-TXXXX
+   ```
+
+3. **Create Zephyr from E2E (REVERSE)**:
+   ```
+   Create Zephyr test case for [file-path]
    ```
 
 That's it! You're ready to automate tests with Zephyr integration.
