@@ -58,20 +58,20 @@ function extractMetadataFromFile(filePath: string): SkeletonMetadata | null {
     const stepsText = stepsMatch ? stepsMatch[1] : '';
     const steps = stepsText
         .split('\n')
-        .map(line => line.trim())
-        .filter(line => /^\*\s+\d+\./.test(line))
-        .map(line => line.replace(/^\*\s+\d+\.\s*/, ''));
+        .map((line) => line.trim())
+        .filter((line) => /^\*\s+\d+\./.test(line))
+        .map((line) => line.replace(/^\*\s+\d+\.\s*/, ''));
 
     // Infer category from file path
     const category = filePath.includes('/system_console/')
         ? 'system_console'
         : filePath.includes('/channels/')
-        ? 'channels'
-        : filePath.includes('/messaging/')
-        ? 'messaging'
-        : filePath.includes('/auth/')
-        ? 'auth'
-        : 'functional';
+          ? 'channels'
+          : filePath.includes('/messaging/')
+            ? 'messaging'
+            : filePath.includes('/auth/')
+              ? 'auth'
+              : 'functional';
 
     return {
         filePath,
@@ -88,7 +88,7 @@ function extractMetadataFromFile(filePath: string): SkeletonMetadata | null {
 async function createTestCaseInZephyr(
     zephyrAPI: any,
     metadata: SkeletonMetadata,
-    folderId?: string
+    folderId?: string,
 ): Promise<{key: string; id: number}> {
     console.log(`\nCreating test case: ${metadata.testName}`);
     console.log(`Objective: ${metadata.objective}`);
@@ -198,7 +198,7 @@ async function main() {
 
     // Step 5: Output key mappings
     console.log('Key Mappings:');
-    keyMappings.forEach(mapping => {
+    keyMappings.forEach((mapping) => {
         console.log(`  ${mapping.placeholder} → ${mapping.actualKey}`);
         console.log(`    File: ${path.basename(mapping.filePath)}`);
         console.log(`    Name: ${mapping.testName}`);
@@ -216,7 +216,7 @@ async function main() {
 
 // Run main
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         console.error('Unhandled error:', error);
         process.exit(1);
     });

@@ -229,7 +229,7 @@ export class ZephyrAPI {
             name: existingTestCase.name,
             status: {
                 id: activeStatusId,
-                self: `https://api.zephyrscale.smartbear.com/v2/statuses/${activeStatusId}`
+                self: `https://api.zephyrscale.smartbear.com/v2/statuses/${activeStatusId}`,
             },
             priority: existingTestCase.priority,
             labels,
@@ -315,7 +315,7 @@ export class ZephyrAPI {
      */
     async createTestSteps(
         testCaseKey: string,
-        steps: Array<{description: string; expectedResult: string}>
+        steps: Array<{description: string; expectedResult: string}>,
     ): Promise<void> {
         const url = `${this.baseUrl}/testcases/${testCaseKey}/teststeps`;
 
@@ -355,7 +355,7 @@ export class ZephyrAPI {
         options?: {
             folderId?: string;
             setActiveStatus?: boolean;
-        }
+        },
     ): Promise<{key: string; id: number}> {
         console.log(`\nCreating Zephyr test case from E2E test: ${parsedTest.testName}`);
 
@@ -416,18 +416,14 @@ export class ZephyrAPI {
      * @param testName - Test name to update
      * @param zephyrKey - Zephyr test case key (e.g., MM-T1234)
      */
-    async updateE2EFileWithZephyrKey(
-        filePath: string,
-        testName: string,
-        zephyrKey: string
-    ): Promise<void> {
+    async updateE2EFileWithZephyrKey(filePath: string, testName: string, zephyrKey: string): Promise<void> {
         const fs = await import('fs');
         let content = fs.readFileSync(filePath, 'utf-8');
 
         // Find the test function - need to capture the quote type and full test declaration
         const testPattern = new RegExp(
             `(\/\\*\\*[\\s\\S]*?\\*\/\\s*)?test(?:\\.(?:skip|only))?\\s*\\(\\s*(['"\`])(${testName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\2`,
-            'g'
+            'g',
         );
 
         const match = testPattern.exec(content);
@@ -450,7 +446,7 @@ export class ZephyrAPI {
         const updatedTestName = `${zephyrKey} ${originalTestName}`;
         const testNamePattern = new RegExp(
             `(test(?:\\.(?:skip|only))?\\s*\\(\\s*${quoteChar})${originalTestName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(${quoteChar})`,
-            'g'
+            'g',
         );
         content = content.replace(testNamePattern, `$1${updatedTestName}$2`);
 
@@ -484,9 +480,9 @@ export class ZephyrAPI {
      */
     private async makeRequest(url: string, method: string, body?: any): Promise<any> {
         const headers: Record<string, string> = {
-            'Authorization': `Bearer ${this.apiToken}`,
+            Authorization: `Bearer ${this.apiToken}`,
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
         };
 
         const options: RequestInit = {
@@ -508,9 +504,7 @@ export class ZephyrAPI {
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(
-                        `Zephyr API error (${response.status}): ${errorText}`
-                    );
+                    throw new Error(`Zephyr API error (${response.status}): ${errorText}`);
                 }
 
                 // Handle empty responses
@@ -528,7 +522,7 @@ export class ZephyrAPI {
                 if (attempt < config.retryAttempts) {
                     const delay = config.retryDelay * attempt;
                     console.log(`Retry attempt ${attempt}/${config.retryAttempts} after ${delay}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    await new Promise((resolve) => setTimeout(resolve, delay));
                 }
             }
         }

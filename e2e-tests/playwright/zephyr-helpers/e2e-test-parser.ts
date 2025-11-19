@@ -40,7 +40,8 @@ export function parseE2ETestFile(filePath: string): ParsedE2ETest[] {
     const tests: ParsedE2ETest[] = [];
 
     // Extract all test blocks
-    const testPattern = /test(?:\.(?:skip|only))?\s*\(\s*['"`](.+?)['"`]\s*(?:,\s*\{[^}]*tag:\s*['"`]([^'"`]+)['"`][^}]*\})?\s*,\s*async\s*\([^)]*\)\s*=>\s*\{([\s\S]*?)\n\}\);/g;
+    const testPattern =
+        /test(?:\.(?:skip|only))?\s*\(\s*['"`](.+?)['"`]\s*(?:,\s*\{[^}]*tag:\s*['"`]([^'"`]+)['"`][^}]*\})?\s*,\s*async\s*\([^)]*\)\s*=>\s*\{([\s\S]*?)\n\}\);/g;
 
     let match;
     while ((match = testPattern.exec(content)) !== null) {
@@ -147,7 +148,12 @@ function parseTestSteps(testBody: string): ParsedTestStep[] {
             const description = line.replace('// *', '').trim();
             if (description) {
                 // If we have a pending action, add this as its expected result
-                if (steps.length > 0 && steps[actionIndex] && steps[actionIndex].type === 'action' && !steps[actionIndex].expectedResult) {
+                if (
+                    steps.length > 0 &&
+                    steps[actionIndex] &&
+                    steps[actionIndex].type === 'action' &&
+                    !steps[actionIndex].expectedResult
+                ) {
                     steps[actionIndex].expectedResult = description;
                 } else {
                     // Otherwise, create a new verification step

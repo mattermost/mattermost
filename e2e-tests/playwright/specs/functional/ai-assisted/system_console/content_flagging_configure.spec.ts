@@ -46,7 +46,10 @@ test('MM-T5928 Configure additional settings with flagging reasons and comment r
     }
 
     // # Scroll to Additional Settings section by finding the heading
-    const additionalSettingsHeading = systemConsolePage.page.getByRole('heading', {name: 'Additional Settings', level: 1});
+    const additionalSettingsHeading = systemConsolePage.page.getByRole('heading', {
+        name: 'Additional Settings',
+        level: 1,
+    });
     await additionalSettingsHeading.scrollIntoViewIfNeeded();
 
     // * Verify "Reasons for flagging" field exists (default reasons are already present)
@@ -86,7 +89,10 @@ test('MM-T5928 Configure additional settings with flagging reasons and comment r
     await expect(enableToggleAfter).toBeChecked();
 
     // # Scroll to Additional Settings section again
-    const additionalSettingsHeadingAfter = systemConsolePage.page.getByRole('heading', {name: 'Additional Settings', level: 1});
+    const additionalSettingsHeadingAfter = systemConsolePage.page.getByRole('heading', {
+        name: 'Additional Settings',
+        level: 1,
+    });
     await additionalSettingsHeadingAfter.scrollIntoViewIfNeeded();
 
     // * Verify "Reasons for flagging" field is still visible

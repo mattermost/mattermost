@@ -85,22 +85,18 @@ export function validateZephyrConfig(): void {
     if (!config.baseUrl) {
         throw new Error(
             'ZEPHYR_API_BASE_URL environment variable is required. ' +
-            'Default: https://api.zephyrscale.smartbear.com/v2'
+                'Default: https://api.zephyrscale.smartbear.com/v2',
         );
     }
 
     if (!config.apiToken) {
         throw new Error(
-            'ZEPHYR_TOKEN environment variable is required. ' +
-            'Use your Zephyr Scale JWT token from .env file.'
+            'ZEPHYR_TOKEN environment variable is required. ' + 'Use your Zephyr Scale JWT token from .env file.',
         );
     }
 
     if (!config.projectKey) {
-        throw new Error(
-            'ZEPHYR_PROJECT_KEY environment variable is required. ' +
-            'Default: MM for Mattermost'
-        );
+        throw new Error('ZEPHYR_PROJECT_KEY environment variable is required. ' + 'Default: MM for Mattermost');
     }
 
     console.log('✅ Zephyr Scale Cloud API configuration validated successfully');

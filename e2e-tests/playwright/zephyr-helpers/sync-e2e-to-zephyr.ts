@@ -61,7 +61,9 @@ async function main() {
     }
 
     if (!testFilePath) {
-        console.error('Usage: npx ts-node scripts/sync-e2e-to-zephyr.ts <test-file-path> [--folder-id <id>] [--active] [--dry-run]');
+        console.error(
+            'Usage: npx ts-node scripts/sync-e2e-to-zephyr.ts <test-file-path> [--folder-id <id>] [--active] [--dry-run]',
+        );
         process.exit(1);
     }
 
@@ -186,16 +188,12 @@ async function main() {
                 {
                     folderId: targetFolderId,
                     setActiveStatus,
-                }
+                },
             );
 
             // Update E2E file with @zephyr tag
             console.log('   Updating E2E test file with @zephyr tag...');
-            await zephyrAPI.updateE2EFileWithZephyrKey(
-                fullPath,
-                test.testName,
-                result.key
-            );
+            await zephyrAPI.updateE2EFileWithZephyrKey(fullPath, test.testName, result.key);
 
             console.log(`✅ Successfully created and linked: ${result.key}\n`);
 
@@ -224,9 +222,9 @@ async function main() {
     console.log('='.repeat(70));
     console.log('');
 
-    const created = results.filter(r => r.status === 'created');
-    const skipped = results.filter(r => r.status === 'skipped');
-    const errors = results.filter(r => r.status === 'error');
+    const created = results.filter((r) => r.status === 'created');
+    const skipped = results.filter((r) => r.status === 'skipped');
+    const errors = results.filter((r) => r.status === 'error');
 
     console.log('Summary:');
     console.log(`   ✅ Created: ${created.length}`);
@@ -236,7 +234,7 @@ async function main() {
 
     if (created.length > 0) {
         console.log('Created Test Cases:');
-        created.forEach(r => {
+        created.forEach((r) => {
             console.log(`   ${r.zephyrKey} - ${r.testName}`);
         });
         console.log('');
@@ -244,7 +242,7 @@ async function main() {
 
     if (skipped.length > 0) {
         console.log('Skipped Test Cases:');
-        skipped.forEach(r => {
+        skipped.forEach((r) => {
             console.log(`   ${r.testName} - ${r.reason}`);
         });
         console.log('');
@@ -252,7 +250,7 @@ async function main() {
 
     if (errors.length > 0) {
         console.log('Failed Test Cases:');
-        errors.forEach(r => {
+        errors.forEach((r) => {
             console.log(`   ${r.testName} - ${r.reason}`);
         });
         console.log('');
@@ -268,7 +266,7 @@ async function main() {
 
 // Run main
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         console.error('Unhandled error:', error);
         process.exit(1);
     });

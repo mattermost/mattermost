@@ -82,7 +82,9 @@ test('MM-T5930 Configure team-specific reviewers for content flagging', {tag: '@
     await pw.wait(500);
 
     // * Verify the user was added to the selector (check for the user pill, not the dropdown option)
-    await expect(firstDataGridRow.locator('.UserProfilePill').getByText(reviewerUser.username, {exact: true})).toBeVisible();
+    await expect(
+        firstDataGridRow.locator('.UserProfilePill').getByText(reviewerUser.username, {exact: true}),
+    ).toBeVisible();
 
     // # Toggle the enable button for that team row
     const enableToggleForTeam = firstDataGridRow.locator('button[class*="toggle"], input[type="checkbox"]').first();
@@ -128,5 +130,7 @@ test('MM-T5930 Configure team-specific reviewers for content flagging', {tag: '@
 
     // * Verify the reviewer is still configured for the team
     const firstRowAfter = systemConsolePage.page.locator('div.DataGrid_row').first();
-    await expect(firstRowAfter.locator('.UserProfilePill').getByText(reviewerUser.username, {exact: true})).toBeVisible();
+    await expect(
+        firstRowAfter.locator('.UserProfilePill').getByText(reviewerUser.username, {exact: true}),
+    ).toBeVisible();
 });

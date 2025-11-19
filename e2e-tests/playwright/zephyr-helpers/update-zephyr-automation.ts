@@ -33,10 +33,14 @@ async function main() {
     const args = process.argv.slice(2);
 
     if (args.length === 0 || args.length % 2 !== 0) {
-        console.error('Usage: npx ts-node scripts/update-zephyr-automation.ts <test-key> <file-path> [<test-key> <file-path> ...]');
+        console.error(
+            'Usage: npx ts-node scripts/update-zephyr-automation.ts <test-key> <file-path> [<test-key> <file-path> ...]',
+        );
         console.error('');
         console.error('Example:');
-        console.error('  npx ts-node scripts/update-zephyr-automation.ts MM-T5927 specs/functional/system_console/enable_content_flagging.spec.ts MM-T5928 specs/functional/system_console/configure_flagging_settings.spec.ts');
+        console.error(
+            '  npx ts-node scripts/update-zephyr-automation.ts MM-T5927 specs/functional/system_console/enable_content_flagging.spec.ts MM-T5928 specs/functional/system_console/configure_flagging_settings.spec.ts',
+        );
         process.exit(1);
     }
 
@@ -114,7 +118,7 @@ async function main() {
 
 // Run main
 if (require.main === module) {
-    main().catch(error => {
+    main().catch((error) => {
         console.error('Unhandled error:', error);
         process.exit(1);
     });
