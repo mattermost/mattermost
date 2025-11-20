@@ -1601,10 +1601,10 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "Updated post with file",
 			FileIds:   model.StringArray{fileId},
 		}
-		rpost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, updatePost)
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, updatePost)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-		assert.Nil(t, rpost)
+		assert.Nil(t, updatedPost)
 	})
 
 	t.Run("should allow updating post with files when user has upload_file permission", func(t *testing.T) {
@@ -1626,11 +1626,11 @@ func TestUpdatePost(t *testing.T) {
 			Message:   "Updated post with file",
 			FileIds:   model.StringArray{fileId},
 		}
-		rpost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, updatePost)
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, updatePost)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.NotNil(t, rpost)
-		assert.Contains(t, rpost.FileIds, fileId)
+		require.NotNil(t, updatedPost)
+		assert.Contains(t, updatedPost.FileIds, fileId)
 	})
 
 	t.Run("logged out", func(t *testing.T) {
