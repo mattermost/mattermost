@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef} from 'react';
-import type {ComponentType} from 'react';
-import {Route, Switch} from 'react-router-dom';
-import type {match} from 'react-router-dom';
-import {createGlobalStyle} from 'styled-components';
+import React, { useRef } from 'react';
+import type { ComponentType } from 'react';
+import { Route, Switch } from 'react-router-dom';
+import type { match } from 'react-router-dom';
+import { createGlobalStyle } from 'styled-components';
 
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Team } from '@mattermost/types/teams';
+import type { UserProfile } from '@mattermost/types/users';
 
 import Emoji from 'components/emoji';
 import AddEmoji from 'components/emoji/add_emoji';
@@ -35,7 +35,7 @@ import Pluggable from 'plugins/pluggable';
 import BackstageNavbar from './components/backstage_navbar';
 import BackstageSidebar from './components/backstage_sidebar';
 
-type ExtraProps = Pick<Props, 'user' | 'team'> & {scrollToTop: () => void}
+type ExtraProps = Pick<Props, 'user' | 'team'> & { scrollToTop: () => void }
 
 type BackstageRouteProps = {
     component: ComponentType<any>;
@@ -44,7 +44,7 @@ type BackstageRouteProps = {
     exact?: boolean;
 }
 
-const BackstageRoute = ({component: Component, extraProps, ...rest}: BackstageRouteProps) => (
+const BackstageRoute = ({ component: Component, extraProps, ...rest }: BackstageRouteProps) => (
     <Route
         {...rest}
         render={(props) => (
@@ -71,7 +71,7 @@ type Props = {
     /**
      * Object from react-router
      */
-    match: match<{url: string}>;
+    match: match<{ url: string }>;
 
     siteName?: string;
     enableCustomEmoji: boolean;
@@ -111,7 +111,7 @@ const BackstageController = (props: Props) => {
                 className='backstage-body'
                 ref={listRef}
             >
-                <Pluggable pluggableName='Root'/>
+                <Pluggable pluggableName='Root' />
                 <BackstageSidebar
                     team={props.team}
                     enableCustomEmoji={props.enableCustomEmoji}
@@ -123,118 +123,120 @@ const BackstageController = (props: Props) => {
                     canCreateOrDeleteCustomEmoji={props.canCreateOrDeleteCustomEmoji}
                     canManageIntegrations={props.canManageIntegrations}
                 />
-                <Switch>
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={'/:team/integrations'}
-                        component={Integrations}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={`${props.match.url}/incoming_webhooks`}
-                        component={InstalledIncomingWebhooks}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/incoming_webhooks/add`}
-                        component={AddIncomingWehook}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/incoming_webhooks/edit`}
-                        component={EditIncomingWebhook}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={`${props.match.url}/outgoing_webhooks`}
-                        component={InstalledOutgoingWebhooks}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/outgoing_webhooks/add`}
-                        component={AddOutgoingWebhook}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/outgoing_webhooks/edit`}
-                        component={EditOutgoingWebhook}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/commands`}
-                        component={CommandsContainer}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={`${props.match.url}/oauth2-apps`}
-                        component={InstalledOauthApps}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/oauth2-apps/add`}
-                        component={AddOauthApp}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/oauth2-apps/edit`}
-                        component={EditOauthApp}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={`${props.match.url}/outgoing-oauth2-connections`}
-                        component={InstalledOutgoingOAuthConnections}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={`${props.match.url}/outgoing-oauth2-connections/add`}
-                        component={AddOutgoingOAuthConnection}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={`${props.match.url}/outgoing-oauth2-connections/edit`}
-                        component={EditOutgoingOAuthConnection}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/confirm`}
-                        component={ConfirmIntegration}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        exact={true}
-                        path={'/:team/emoji'}
-                        component={Emoji}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/add`}
-                        component={AddEmoji}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/bots/add`}
-                        component={AddBot}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/bots/edit`}
-                        component={AddBot}
-                    />
-                    <BackstageRoute
-                        extraProps={extraProps}
-                        path={`${props.match.url}/bots`}
-                        component={Bots}
-                    />
-                </Switch>
+                <div className='backstage-content'>
+                    <Switch>
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={'/:team/integrations'}
+                            component={Integrations}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={`${props.match.url}/incoming_webhooks`}
+                            component={InstalledIncomingWebhooks}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/incoming_webhooks/add`}
+                            component={AddIncomingWehook}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/incoming_webhooks/edit`}
+                            component={EditIncomingWebhook}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={`${props.match.url}/outgoing_webhooks`}
+                            component={InstalledOutgoingWebhooks}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/outgoing_webhooks/add`}
+                            component={AddOutgoingWebhook}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/outgoing_webhooks/edit`}
+                            component={EditOutgoingWebhook}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/commands`}
+                            component={CommandsContainer}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={`${props.match.url}/oauth2-apps`}
+                            component={InstalledOauthApps}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/oauth2-apps/add`}
+                            component={AddOauthApp}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/oauth2-apps/edit`}
+                            component={EditOauthApp}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={`${props.match.url}/outgoing-oauth2-connections`}
+                            component={InstalledOutgoingOAuthConnections}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={`${props.match.url}/outgoing-oauth2-connections/add`}
+                            component={AddOutgoingOAuthConnection}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={`${props.match.url}/outgoing-oauth2-connections/edit`}
+                            component={EditOutgoingOAuthConnection}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/confirm`}
+                            component={ConfirmIntegration}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            exact={true}
+                            path={'/:team/emoji'}
+                            component={Emoji}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/add`}
+                            component={AddEmoji}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/bots/add`}
+                            component={AddBot}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/bots/edit`}
+                            component={AddBot}
+                        />
+                        <BackstageRoute
+                            extraProps={extraProps}
+                            path={`${props.match.url}/bots`}
+                            component={Bots}
+                        />
+                    </Switch>
+                </div>
             </div>
-            <BackstageGlobalStyle/>
+            <BackstageGlobalStyle />
         </>
     );
 };
