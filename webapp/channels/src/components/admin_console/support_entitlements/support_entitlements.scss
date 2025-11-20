@@ -16,9 +16,9 @@
 
     .support-upsell-banner {
         padding: 20px 24px;
-        background: linear-gradient(135deg, rgba(22, 109, 224, 0.08) 0%, rgba(98, 100, 167, 0.08) 100%);
         border: 1px solid rgba(22, 109, 224, 0.2);
         border-radius: 4px;
+        background: linear-gradient(135deg, rgba(22, 109, 224, 0.08) 0%, rgba(98, 100, 167, 0.08) 100%);
 
         .upsell-content {
             h4 {
@@ -30,8 +30,8 @@
 
             p {
                 margin-bottom: 12px;
-                font-size: 14px;
                 color: rgba(var(--center-channel-color-rgb), 0.72);
+                font-size: 14px;
             }
 
             .btn {
@@ -116,8 +116,8 @@
         }
 
         ul {
-            margin: 0;
             padding-left: 16px;
+            margin: 0;
             font-size: 12px;
 
             li {
@@ -125,8 +125,8 @@
                 line-height: 1.4;
 
                 strong {
-                    font-weight: 600;
                     display: block;
+                    font-weight: 600;
                 }
             }
 
@@ -144,14 +144,14 @@
         th,
         td {
             padding: 8px 12px;
-            text-align: left;
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            text-align: left;
         }
 
         thead th {
-            font-weight: 600;
-            font-size: 13px;
             background: rgba(var(--center-channel-color-rgb), 0.04);
+            font-size: 13px;
+            font-weight: 600;
         }
 
         tbody tr:last-child td {
@@ -163,8 +163,8 @@
         }
 
         .feature-value {
-            text-align: center;
             width: 60px;
+            text-align: center;
 
             i {
                 font-size: 18px;
@@ -181,12 +181,12 @@
     }
 
     .support-notes {
-        margin-top: 12px;
         padding: 10px 12px;
-        background: rgba(var(--sys-dnd-indicator-rgb), 0.08);
         border-radius: 4px;
-        font-size: 13px;
+        margin-top: 12px;
+        background: rgba(var(--sys-dnd-indicator-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
 
         i {
             margin-right: 4px;
@@ -200,24 +200,24 @@
 
         .btn {
             display: inline-flex;
+            width: 100%;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            width: 100%;
-            font-size: 13px;
             padding: 10px 16px;
+            font-size: 13px;
+            gap: 6px;
             white-space: nowrap;
 
             i {
-                font-size: 16px;
                 flex-shrink: 0;
+                font-size: 16px;
             }
         }
 
         .btn-secondary {
+            border: 1px solid var(--button-bg);
             background: transparent;
             color: var(--button-bg);
-            border: 1px solid var(--button-bg);
 
             &:hover {
                 background: rgba(var(--button-bg-rgb), 0.08);
@@ -226,13 +226,13 @@
     }
 
     .support-error {
-        margin-top: 12px;
         padding: 10px 12px;
-        background: rgba(var(--error-text-color-rgb), 0.08);
         border: 1px solid rgba(var(--error-text-color-rgb), 0.32);
         border-radius: 4px;
-        font-size: 13px;
+        margin-top: 12px;
+        background: rgba(var(--error-text-color-rgb), 0.08);
         color: var(--error-text);
+        font-size: 13px;
 
         i {
             margin-right: 4px;
