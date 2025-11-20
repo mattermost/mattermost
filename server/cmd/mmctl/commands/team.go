@@ -269,26 +269,33 @@ func removeDuplicatesAndSortTeams(teams []*model.Team) []*model.Team {
 func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	oldTeamName := args[0]
 
-	newName, _ := cmd.Flags().GetString("name")
-	newDisplayName, _ := cmd.Flags().GetString("display_name")
-
-	if newDisplayName == "" {
-		newDisplayName, _ = cmd.Flags().GetString("display-name")
-	}
-	if newDisplayName == "" && newName == "" {
-		return errors.New("name or display name is required")
-	}
-
 	team := getTeamFromTeamArg(c, oldTeamName)
 	if team == nil {
 		return errors.New("Unable to find team '" + oldTeamName + "', to see the all teams try 'team list' command")
 	}
 
-	team.Name = newName
-	team.DisplayName = newDisplayName
+	newName, err := cmd.Flags().GetString("name")
+	if err != nil {
+		return err
+	}
+	newDisplayName, err := cmd.Flags().GetString("display_name")
+	if err != nil {
+		return err
+	}
 
-	// Using UpdateTeam API Method to rename team
-	_, _, err := c.UpdateTeam(context.TODO(), team)
+	if newDisplayName == "" && newName == "" {
+		return errors.New("name or display name is required")
+	}
+
+	// Only update fields that were provided
+	if newName != "" {
+		team.Name = newName
+	}
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
+
+	_, _, err = c.UpdateTeam(context.TODO(), team)
 	if err != nil {
 		return errors.New("Cannot rename team '" + oldTeamName + "', error : " + err.Error())
 	}
