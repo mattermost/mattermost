@@ -3,7 +3,6 @@
 
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
 
 import ConfirmModal from 'components/confirm_modal';
 
@@ -12,14 +11,14 @@ import BooleanSetting from './boolean_setting';
 type Props = {
     id: string;
     value: boolean;
-    onChange: (id: string, value: boolean, confirm?: boolean, doSubmit?: boolean, warning?: React.ReactNode) => void;
+    onChange: (id: string, value: boolean, confirm?: boolean, doSubmit?: boolean, warning?: React.ReactNode | string) => void;
     cancelSubmit: () => void;
     disabled?: boolean;
     setByEnv: boolean;
     showConfirm: boolean;
 }
 
-const CustomEnableDisableGuestAccountsSetting = ({
+const CustomEnableDisableGuestAccountsMagicLinkSetting = ({
     id,
     value,
     onChange,
@@ -29,13 +28,13 @@ const CustomEnableDisableGuestAccountsSetting = ({
     showConfirm,
 }: Props) => {
     const handleChange = useCallback((targetId: string, newValue: boolean, submit = false) => {
-        const confirmNeeded = newValue === false; // Requires confirmation if disabling guest accounts
-        let warning: React.ReactNode | string = '';
+        const confirmNeeded = newValue === false; // Requires confirmation if disabling magic links
+        let warning: React.ReactNode = '';
         if (confirmNeeded) {
             warning = (
                 <FormattedMessage
-                    id='admin.guest_access.disableConfirmWarning'
-                    defaultMessage='All current guest account sessions will be revoked, and marked as inactive'
+                    id='admin.guest_access.disableMagicLinkConfirmWarning'
+                    defaultMessage='All current guest magic link account sessions will be revoked, and marked as inactive'
                 />
             );
         }
@@ -48,18 +47,15 @@ const CustomEnableDisableGuestAccountsSetting = ({
 
     const label = (
         <FormattedMessage
-            id='admin.guest_access.enableTitle'
-            defaultMessage='Enable Guest Access: '
+            id='admin.guest_access.enableGuestMagicLinkTitle'
+            defaultMessage='Enable passwordless authentication for guests using magic links via email: '
         />
     );
 
     const helpText = (
         <FormattedMessage
-            id='admin.guest_access.helpText'
-            defaultMessage='When true, external guest can be invited to channels within teams. Please see <a>Permissions Schemes</a> for which roles can invite guests.'
-            values={{
-                a: (chunks) => <Link to='/admin_console/user_management/permissions/system_scheme'>{chunks}</Link>,
-            }}
+            id='admin.guest_access.enableGuestMagicLinkDescription'
+            defaultMessage='When true, team admins can decide to invite guests that login via magic link. The invitation link will log them in without the need to configure a password. Future logins will also be done with a magic link sent to their email.'
         />
     );
 
@@ -78,20 +74,20 @@ const CustomEnableDisableGuestAccountsSetting = ({
                 show={showConfirm && (value === false)}
                 title={
                     <FormattedMessage
-                        id='admin.guest_access.disableConfirmTitle'
-                        defaultMessage='Save and Disable Guest Access?'
+                        id='admin.guest_access.disableMagicLinkConfirmTitle'
+                        defaultMessage='Save and Disable Guest Magic Link Access?'
                     />
                 }
                 message={
                     <FormattedMessage
-                        id='admin.guest_access.disableConfirmMessage'
-                        defaultMessage='Disabling guest access will revoke all current Guest Account sessions. Guests will no longer be able to login and new guests cannot be invited into Mattermost. Guest users will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest accounts. Are you sure you wish to remove these users?'
+                        id='admin.guest_access.disableMagicLinkConfirmMessage'
+                        defaultMessage='Disabling guest magic link access will revoke all current Guest Magic Link Account sessions. Those accounts will no longer be able to login and new guests cannot be invited into Mattermost as passwordless accounts. These accounts will be marked as inactive in user lists. Enabling this feature will not reinstate previous guest magic link accounts. Are you sure you wish to remove these users?'
                     />
                 }
                 confirmButtonText={
                     <FormattedMessage
-                        id='admin.guest_access.disableConfirmButton'
-                        defaultMessage='Save and Disable Guest Access'
+                        id='admin.guest_access.disableMagicLinkConfirmButton'
+                        defaultMessage='Save and Disable Guest Magic Link Access'
                     />
                 }
                 onConfirm={handleConfirm}
@@ -101,4 +97,4 @@ const CustomEnableDisableGuestAccountsSetting = ({
     );
 };
 
-export default CustomEnableDisableGuestAccountsSetting;
+export default CustomEnableDisableGuestAccountsMagicLinkSetting;
