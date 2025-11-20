@@ -90,6 +90,14 @@ func (a *App) SessionHasPermissionToTeams(rctx request.CTX, session model.Sessio
 	return true
 }
 
+// SessionHasPermissionToChannel checks if the session has permission to the given channel.
+//
+// Returns:
+//
+//	(hasPermission, isMember)
+//
+// hasPermission: true if the user has the specified permission for the channel, otherwise false.
+// isMember: used for auditing access without membership. True if the user is a member of the channel, otherwise false.
 func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Session, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	if channelID == "" {
 		return false, false
