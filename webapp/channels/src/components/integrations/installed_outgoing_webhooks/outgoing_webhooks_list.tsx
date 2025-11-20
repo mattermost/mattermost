@@ -23,6 +23,7 @@ import { AdminConsoleListTable, LoadingStates } from 'components/admin_console/l
 import Filter from 'components/admin_console/filter/filter';
 import type { FilterOption, FilterOptions } from 'components/admin_console/filter/filter';
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
+import RegenerateTokenLink from 'components/integrations/regenerate_token_link';
 import Timestamp from 'components/timestamp';
 import Avatar from 'components/widgets/users/avatar';
 import ExternalLink from 'components/external_link';
@@ -347,6 +348,9 @@ const OutgoingWebhooksList = ({
             header: formatMessage({ id: 'installed_outgoing_webhooks.token', defaultMessage: 'Token' }),
             cell: (info) => {
                 const token = info.getValue();
+                const webhook = info.row.original;
+                const canChange = canManageOthersWebhooks || currentUser.id === webhook.creator_id;
+
                 return (
                     <div className='d-flex align-items-center' style={{ gap: '8px' }}>
                         <code
@@ -367,6 +371,17 @@ const OutgoingWebhooksList = ({
                             value={token}
                             label={defineMessage({ id: 'integrations.copy_token', defaultMessage: 'Copy Token' })}
                         />
+                        {canChange && (
+                            <RegenerateTokenLink
+                                onRegenerate={() => onRegenToken(webhook)}
+                                modalMessage={
+                                    <FormattedMessage
+                                        id='installed_outgoing_webhooks.regenerate.confirm'
+                                        defaultMessage='This will invalidate the current token and generate a new one. Any integrations using the old token will break. Are you sure you want to regenerate it?'
+                                    />
+                                }
+                            />
+                        )}
                     </div>
                 );
             },
@@ -380,41 +395,34 @@ const OutgoingWebhooksList = ({
                 const webhook = info.row.original;
                 const canChange = canManageOthersWebhooks || currentUser.id === webhook.creator_id;
 
-                if (!canChange) {
-                    return null;
-                }
-
                 return (
-                    <div className='d-flex' style={{ gap: '12px' }}>
-                        <button
-                            className='style--none color--link'
-                            onClick={() => onRegenToken(webhook)}
-                            style={{ padding: 0 }}
-                        >
-                            <FormattedMessage
-                                id='installed_integrations.regenToken'
-                                defaultMessage='Regenerate Token'
-                            />
-                        </button>
-                        <Link to={`/${team.name}/integrations/outgoing_webhooks/edit?id=${webhook.id}`}>
-                            <FormattedMessage
-                                id='installed_integrations.edit'
-                                defaultMessage='Edit'
-                            />
-                        </Link>
-                        <DeleteIntegrationLink
-                            modalMessage={
-                                <FormattedMessage
-                                    id='installed_outgoing_webhooks.delete.confirm'
-                                    defaultMessage='This action permanently deletes the outgoing webhook and breaks any integrations using it. Are you sure you want to delete it?'
+                    <div className='d-flex align-items-center' style={{ gap: '12px' }}>
+                        {canChange && (
+                            <>
+                                <Link
+                                    className='btn btn-sm btn-tertiary'
+                                    to={`/${team.name}/integrations/outgoing_webhooks/edit?id=${webhook.id}`}
+                                >
+                                    <FormattedMessage
+                                        id='installed_integrations.edit'
+                                        defaultMessage='Edit'
+                                    />
+                                </Link>
+                                <DeleteIntegrationLink
+                                    modalMessage={
+                                        <FormattedMessage
+                                            id='installed_outgoing_webhooks.delete.confirm'
+                                            defaultMessage='This action permanently deletes the outgoing webhook and breaks any integrations using it. Are you sure you want to delete it?'
+                                        />
+                                    }
+                                    onDelete={() => onDelete(webhook)}
                                 />
-                            }
-                            onDelete={() => onDelete(webhook)}
-                        />
+                            </>
+                        )}
                     </div>
                 );
             },
-            size: 200,
+            size: 150,
         }),
     ], [channels, users, team, canManageOthersWebhooks, currentUser, onDelete, onRegenToken, formatMessage]);
 
