@@ -329,6 +329,7 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 		return nil
 	}
 
+	// TODO: Decide what do to with this method
 	var updateErrors []error
 	successfullyUpdated := 0
 
@@ -426,6 +427,8 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 	for channelId := range channelIdsSet {
 		ch, err := a.GetChannel(rctx, channelId)
 		if err != nil {
+
+			// TODO: Decide what do to
 			rctx.Logger().Error("Failed to get channel", mlog.String("channel_id", channelId), mlog.Err(err))
 			channelNames[channelId] = T("app.scheduled_post.unknown_channel")
 			continue
