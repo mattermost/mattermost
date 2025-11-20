@@ -48,7 +48,7 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
-// HasPermissionToReadChannel provides a mock function with given fields: c, userID, channel
+// HasPermissionToReadChannel provides a mock function with given fields: rctx, userID, channel
 func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
 	ret := _m.Called(rctx, userID, channel)
 
@@ -76,6 +76,11 @@ func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string
 	return r0, r1
 }
 
+// LogAuditRec provides a mock function with given fields: rctx, auditRec, err
+func (_m *SuiteIFace) LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error) {
+	_m.Called(rctx, auditRec, err)
+}
+
 // MFARequired provides a mock function with given fields: rctx
 func (_m *SuiteIFace) MFARequired(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)
@@ -90,6 +95,26 @@ func (_m *SuiteIFace) MFARequired(rctx request.CTX) *model.AppError {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// MakeAuditRecord provides a mock function with given fields: rctx, event, initialStatus
+func (_m *SuiteIFace) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord {
+	ret := _m.Called(rctx, event, initialStatus)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MakeAuditRecord")
+	}
+
+	var r0 *model.AuditRecord
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) *model.AuditRecord); ok {
+		r0 = rf(rctx, event, initialStatus)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AuditRecord)
 		}
 	}
 

@@ -151,7 +151,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log())
-	ok, _ := webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel)
+	ok, isMember := webConn.Suite.HasPermissionToReadChannel(rctx, webConn.UserId, previewChannel)
 	if !ok {
 		// Do nothing.
 		// In this case, the sanitized post is already attached to the ws event.
@@ -164,6 +164,14 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		return errors.Wrap(err, "Invalid post_json value passed to permalinkBroadcastHook")
 	}
 	msg.Add("post", postJSON)
+
+	if !isMember {
+		auditRec := webConn.Suite.MakeAuditRecord(rctx, model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer webConn.Suite.LogAuditRec(rctx, auditRec, nil)
+		auditRec.AddMeta("reason", "websocket_permalink_preview")
+		auditRec.AddMeta("post_id", previewChannel.Id)
+		auditRec.AddMeta("user_id", webConn.UserId)
+	}
 
 	return nil
 }
