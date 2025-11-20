@@ -80,8 +80,8 @@ describe('BotsList', () => {
             bot2: {id: 'user2', username: 'owner2'} as any,
         },
         users: {
-            bot1: {id: 'bot1', username: 'testbot1'} as any,
-            bot2: {id: 'bot2', username: 'testbot2'} as any,
+            bot1: {id: 'bot1', username: 'testbot1', roles: 'system_user system_post_all'} as any,
+            bot2: {id: 'bot2', username: 'testbot2', roles: 'system_user system_post_all_public'} as any,
         },
         accessTokens: {
             bot1: {
@@ -94,6 +94,9 @@ describe('BotsList', () => {
         onDisable: jest.fn(),
         onEnable: jest.fn(),
         onCreateToken: jest.fn(),
+        onEnableToken: jest.fn(),
+        onDisableToken: jest.fn(),
+        onRevokeToken: jest.fn(),
         loading: false,
     };
 
