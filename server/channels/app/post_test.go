@@ -342,60 +342,6 @@ func TestAttachFilesToPost(t *testing.T) {
 		assert.Len(t, updated.FileIds, 1)
 		assert.Contains(t, updated.FileIds, info2.Id)
 	})
-
-	t.Run("should prevent attaching files when user lacks upload_file permission in target channel", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-
-		fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
-			&model.FileInfo{
-				CreatorId: th.BasicUser.Id,
-				Path:      "test-file.txt",
-				Name:      "test-file.txt",
-			})
-		require.NoError(t, err)
-
-		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
-		defer func() {
-			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
-		}()
-
-		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "Test post",
-		}
-		savedPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-
-		savedPost.FileIds = []string{fileInfo.Id}
-		appErr = th.App.attachFilesToPost(th.Context, savedPost)
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
-		assert.Contains(t, appErr.Id, "permission")
-	})
-
-	t.Run("should allow attaching files when user has upload_file permission", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-
-		fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
-			&model.FileInfo{
-				CreatorId: th.BasicUser.Id,
-				Path:      "test-file.txt",
-				Name:      "test-file.txt",
-			})
-		require.NoError(t, err)
-
-		post := th.BasicPost
-		post.FileIds = []string{fileInfo.Id}
-
-		appErr := th.App.attachFilesToPost(th.Context, post)
-		assert.Nil(t, appErr)
-
-		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
-		assert.Nil(t, appErr)
-		assert.Len(t, infos, 1)
-		assert.Equal(t, fileInfo.Id, infos[0].Id)
-	})
 }
 
 func TestUpdatePostEditAt(t *testing.T) {
