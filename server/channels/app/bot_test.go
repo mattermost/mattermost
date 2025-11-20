@@ -1005,7 +1005,7 @@ func TestGetSystemBot(t *testing.T) {
 func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("bot owned by current user", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -1031,7 +1031,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 	})
 
 	t.Run("bot owned by different user", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "username",
@@ -1057,7 +1057,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 	})
 
 	t.Run("invalid bot ID", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		session, err := th.App.CreateSession(th.Context, &model.Session{
 			UserId: th.BasicUser.Id,
@@ -1073,7 +1073,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 	})
 
 	t.Run("bot owned by plugin when no plugins environment", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		pluginID := "test-plugin-id"
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -1100,7 +1100,7 @@ func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
 	})
 
 	t.Run("bot owned by plugin", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
 
 		pluginID := "com.mattermost.testplugin"
 		pluginCode := `
