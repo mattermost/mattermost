@@ -364,8 +364,8 @@ const BotsList = ({
 
                 const roles = user.roles || '';
                 const isSystemAdmin = roles.includes('system_admin');
-                const hasPostAll = roles.includes('post:all') || roles.includes('system_post_all');
-                const hasPostChannels = roles.includes('post:channels') || roles.includes('system_post_channels');
+                const hasPostAll = roles.includes('system_post_all');
+                const hasPostChannels = roles.includes('system_post_all_public');
 
                 return (
                     <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
@@ -397,12 +397,18 @@ const BotsList = ({
                         <div style={{fontSize: '11px', color: 'rgba(var(--sys-center-channel-color-rgb), 0.64)'}}>
                             {hasPostAll && (
                                 <div>
-                                    {'post:all'}
+                                    <FormattedMessage
+                                        id='bots.permissions.post_all'
+                                        defaultMessage='Post to all channels'
+                                    />
                                 </div>
                             )}
                             {hasPostChannels && (
                                 <div>
-                                    {'post:channels'}
+                                    <FormattedMessage
+                                        id='bots.permissions.post_public'
+                                        defaultMessage='Post to public channels'
+                                    />
                                 </div>
                             )}
                             {!hasPostAll && !hasPostChannels && (
