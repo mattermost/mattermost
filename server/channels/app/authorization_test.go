@@ -245,12 +245,12 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 	})
 
 	t.Run("admin user can access channel if not a member", func(t *testing.T) {
-		session := model.Session{
+		adminSession := model.Session{
 			UserId: th.SystemAdminUser.Id,
 			Roles:  model.SystemAdminRoleId,
 		}
 
-		ok, isMember := th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicChannel.Id, model.PermissionAddReaction)
+		ok, isMember := th.App.SessionHasPermissionToChannel(th.Context, adminSession, th.BasicChannel.Id, model.PermissionAddReaction)
 		assert.True(t, ok)
 		assert.False(t, isMember)
 	})
