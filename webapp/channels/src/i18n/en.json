@@ -123,7 +123,7 @@
   "add_emoji.imageTooLarge": "Unable to create emoji. Image must be less than 512 KiB in size.",
   "add_emoji.name": "Name",
   "add_emoji.name.help": "Specify an emoji name that's up to 64 characters. It can contain lowercase letters, numbers, and the symbols '-', '+' and '_'.",
-  "add_emoji.nameInvalid": "An emoji's name can only contain lowercase letters, numbers, and the symbols '-' and '_'.",
+  "add_emoji.nameInvalid": "An emoji's name can only contain lowercase letters, numbers, and the symbols '-', '+' and '_'.",
   "add_emoji.nameRequired": "A name is required for the emoji",
   "add_emoji.nameTaken": "This name is already in use by a system emoji. Please choose another name.",
   "add_emoji.preview": "Preview",
