@@ -200,10 +200,6 @@ func (c *Client4) reportsRoute() clientRoute {
 }
 
 func (c *Client4) userRoute(userId string) clientRoute {
-	// "me" is a special keyword in the API, not a user ID
-	if userId == Me {
-		return c.usersRoute().JoinSegments(Me)
-	}
 	return c.usersRoute().JoinSegments(userId)
 }
 
