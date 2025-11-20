@@ -88,6 +88,6 @@ export default function PaymentAnnouncementBar() {
 const messages = defineMessages({
     updatePaymentInfo: {
         id: 'admin.billing.subscription.updatePaymentInfo',
-        defaultMessage: 'Update payment info',
+        defaultMessage: 'Update Payment Information',
     },
 });
