@@ -13,6 +13,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAppsOAuthAppIDs, getOAuthApps} from 'mattermost-redux/selectors/entities/integrations';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getUsers} from 'mattermost-redux/selectors/entities/users';
 
 import {loadOAuthAppsAndProfiles} from 'actions/integration_actions';
 
@@ -27,7 +28,9 @@ function mapStateToProps(state: GlobalState) {
         oauthApps: getOAuthApps(state),
         appsOAuthAppIDs: getAppsOAuthAppIDs(state),
         enableOAuthServiceProvider,
-        team: getCurrentTeam(state),
+        team: getCurrentTeam(state)!,
+        users: getUsers(state),
+        loading: false,
     };
 }
 

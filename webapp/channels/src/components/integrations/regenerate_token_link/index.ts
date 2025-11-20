@@ -17,8 +17,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(null, mapDispatchToProps, (stateProps, dispatchProps, ownProps) => ({
+export default connect(null, mapDispatchToProps, (_stateProps, dispatchProps, ownProps) => ({
     ...ownProps,
-    ...stateProps,
     openModal: dispatchProps.actions.openModal,
 }))(RegenerateTokenLink);
