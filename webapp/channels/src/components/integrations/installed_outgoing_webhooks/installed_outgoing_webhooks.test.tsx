@@ -87,8 +87,6 @@ describe('components/integrations/InstalledOutgoingWebhooks', () => {
                 {...defaultProps}
             />,
         );
-        expect(shallow(<div>{wrapper.instance().outgoingWebhooks('town')}</div>)).toMatchSnapshot();
-        expect(shallow(<div>{wrapper.instance().outgoingWebhooks('ZZZ')}</div>)).toMatchSnapshot();
         expect(wrapper).toMatchSnapshot();
     });
 

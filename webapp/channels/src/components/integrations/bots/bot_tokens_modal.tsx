@@ -8,8 +8,6 @@ import {GenericModal} from '@mattermost/components';
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {UserAccessToken} from '@mattermost/types/users';
 
-import Timestamp from 'components/timestamp';
-
 type Props = {
     bot: BotType;
     tokens: Record<string, UserAccessToken>;
@@ -68,12 +66,6 @@ const BotTokensModal = ({
                                     </th>
                                     <th>
                                         <FormattedMessage
-                                            id='bot.tokens.list.created'
-                                            defaultMessage='Created'
-                                        />
-                                    </th>
-                                    <th>
-                                        <FormattedMessage
                                             id='bot.tokens.list.status'
                                             defaultMessage='Status'
                                         />
@@ -101,9 +93,6 @@ const BotTokensModal = ({
                                                     {'—'}
                                                 </span>
                                             )}
-                                        </td>
-                                        <td>
-                                            <Timestamp value={token.create_at}/>
                                         </td>
                                         <td>
                                             {token.is_active ? (
