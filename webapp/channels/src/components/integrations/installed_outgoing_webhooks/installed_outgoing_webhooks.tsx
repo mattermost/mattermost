@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {OutgoingWebhook} from '@mattermost/types/integrations';
@@ -12,12 +11,9 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import BackstageList from 'components/backstage/components/backstage_list';
-import ExternalLink from 'components/external_link';
-import InstalledOutgoingWebhook, {matchesFilter} from 'components/integrations/installed_outgoing_webhook';
+import OutgoingWebhooksList from './outgoing_webhooks_list';
 
-import {Constants, DeveloperLinks} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
+import {Constants} from 'utils/constants';
 
 export type Props = {
 
@@ -113,126 +109,19 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
         this.props.actions.removeOutgoingHook(outgoingWebhook.id);
     };
 
-    outgoingWebhookCompare = (a: OutgoingWebhook, b: OutgoingWebhook) => {
-        let displayNameA = a.display_name;
-        if (!displayNameA) {
-            const channelA = this.props.channels[a.channel_id];
-            if (channelA) {
-                displayNameA = channelA.display_name;
-            } else {
-                displayNameA = localizeMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
-            }
-        }
-
-        let displayNameB = b.display_name;
-        if (!displayNameB) {
-            const channelB = this.props.channels[b.channel_id];
-            if (channelB) {
-                displayNameB = channelB.display_name;
-            } else {
-                displayNameB = localizeMessage({id: 'installed_outgoing_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
-            }
-        }
-        return displayNameA.localeCompare(displayNameB);
-    };
-
-    outgoingWebhooks = (filter: string) => this.props.outgoingWebhooks.
-        sort(this.outgoingWebhookCompare).
-        filter((outgoingWebhook) => matchesFilter(outgoingWebhook, this.props.channels[outgoingWebhook.channel_id], filter)).
-        map((outgoingWebhook) => {
-            const canChange = this.props.canManageOthersWebhooks || this.props.user.id === outgoingWebhook.creator_id;
-            const channel = this.props.channels[outgoingWebhook.channel_id];
-            return (
-                <InstalledOutgoingWebhook
-                    key={outgoingWebhook.id}
-                    outgoingWebhook={outgoingWebhook}
-                    onRegenToken={this.regenOutgoingWebhookToken}
-                    onDelete={this.removeOutgoingHook}
-                    creator={this.props.users[outgoingWebhook.creator_id] || {}}
-                    canChange={canChange}
-                    team={this.props.team}
-                    channel={channel}
-                />
-            );
-        });
-
     render() {
         return (
-            <BackstageList
-                header={
-                    <FormattedMessage
-                        id='installed_outgoing_webhooks.header'
-                        defaultMessage='Installed Outgoing Webhooks'
-                    />
-                }
-                addText={
-                    <FormattedMessage
-                        id='installed_outgoing_webhooks.add'
-                        defaultMessage='Add Outgoing Webhook'
-                    />
-                }
-                addLink={
-                    '/' +
-                    this.props.team.name +
-                    '/integrations/outgoing_webhooks/add'
-                }
-                addButtonId='addOutgoingWebhook'
-                emptyText={
-                    <FormattedMessage
-                        id='installed_outgoing_webhooks.empty'
-                        defaultMessage='No outgoing webhooks found'
-                    />
-                }
-                emptyTextSearch={
-                    <FormattedMessage
-                        id='installed_outgoing_webhooks.search.empty'
-                        defaultMessage='No outgoing webhooks match <b>{searchTerm}</b>'
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />
-                }
-                helpText={
-                    <FormattedMessage
-                        id='installed_outgoing_webhooks.help'
-                        defaultMessage='Use outgoing webhooks to connect external tools to Mattermost. {buildYourOwn} or visit the {appDirectory} to find self-hosted, third-party apps and integrations.'
-                        values={{
-                            buildYourOwn: (
-                                <ExternalLink
-                                    href={DeveloperLinks.SETUP_OUTGOING_WEBHOOKS}
-                                    location='installed_outgoing_webhooks'
-                                >
-                                    <FormattedMessage
-                                        id='installed_outgoing_webhooks.help.buildYourOwn'
-                                        defaultMessage='Build your own'
-                                    />
-                                </ExternalLink>
-                            ),
-                            appDirectory: (
-                                <ExternalLink
-                                    href='https://mattermost.com/marketplace'
-                                    location='installed_outgoing_webhooks'
-                                >
-                                    <FormattedMessage
-                                        id='installed_outgoing_webhooks.help.appDirectory'
-                                        defaultMessage='App Directory'
-                                    />
-                                </ExternalLink>
-                            ),
-                        }}
-                    />
-                }
-                searchPlaceholder={localizeMessage({
-                    id: 'installed_outgoing_webhooks.search',
-                    defaultMessage: 'Search Outgoing Webhooks',
-                })}
+            <OutgoingWebhooksList
+                outgoingWebhooks={this.props.outgoingWebhooks}
+                channels={this.props.channels}
+                users={this.props.users}
+                team={this.props.team}
+                canManageOthersWebhooks={this.props.canManageOthersWebhooks}
+                currentUser={this.props.user}
+                onDelete={this.removeOutgoingHook}
+                onRegenToken={this.regenOutgoingWebhookToken}
                 loading={this.state.loading}
-            >
-                {(filter: string) => {
-                    const children = this.outgoingWebhooks(filter);
-                    return [children, children.length > 0];
-                }}
-            </BackstageList>
+            />
         );
     }
 }
