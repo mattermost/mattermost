@@ -425,7 +425,7 @@ const BotsList = ({
                 return (
                     <div style={{fontSize: '12px'}}>
                         {hasPostAll && (
-                            <div>
+                            <div key='post_all'>
                                 <FormattedMessage
                                     id='bots.permissions.post_all'
                                     defaultMessage='Post to all channels'
@@ -433,7 +433,7 @@ const BotsList = ({
                             </div>
                         )}
                         {hasPostChannels && (
-                            <div>
+                            <div key='post_channels'>
                                 <FormattedMessage
                                     id='bots.permissions.post_public'
                                     defaultMessage='Post to public channels'
