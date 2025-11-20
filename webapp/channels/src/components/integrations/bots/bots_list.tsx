@@ -99,7 +99,7 @@ const BotsList = ({
 
         if (ownerKeys.length > 0) {
             options.owners = {
-                name: formatMessage({id: 'bots.filter.owners', defaultMessage: 'Managed By'}),
+                name: formatMessage({id: 'bots.filter.owners', defaultMessage: 'Owner'}),
                 keys: ownerKeys,
                 values: ownerValues,
             };
@@ -298,7 +298,7 @@ const BotsList = ({
         }),
 
         columnHelper.accessor('owner_id', {
-            header: formatMessage({id: 'bots.managed_by', defaultMessage: 'Managed By'}),
+            header: formatMessage({id: 'bots.owner', defaultMessage: 'Owner'}),
             cell: (info) => {
                 const bot = info.row.original;
                 const owner = owners[bot.user_id];
