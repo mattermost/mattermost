@@ -450,7 +450,7 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
 		for _, entry := range list.Entries {
-			hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, entry.ID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, entry.ID, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
