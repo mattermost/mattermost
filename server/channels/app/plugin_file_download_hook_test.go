@@ -159,6 +159,11 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		var mockAPI1 plugintest.API
 		mockAPI1.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
 		// Allow any logging calls (not verified in this test)
+		mockAPI1.On("LogInfo", mock.Anything).Maybe().Return(nil)
+		mockAPI1.On("LogInfo", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI1.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI1.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI1.On("LogWarn", mock.Anything).Maybe().Return(nil)
 		mockAPI1.On("LogWarn", mock.Anything, mock.Anything).Maybe().Return(nil)
 		mockAPI1.On("LogWarn", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
 		mockAPI1.On("LogWarn", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
