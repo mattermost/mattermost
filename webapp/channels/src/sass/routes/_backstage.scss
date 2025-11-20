@@ -39,8 +39,8 @@
 }
 
 .backstage-content {
-    flex: 1 1 auto;
     max-width: 100%;
+    flex: 1 1 auto;
     padding: 20px;
     margin: 0;
     background-color: variables.$bg--gray;
@@ -128,13 +128,13 @@
         font-weight: 600;
 
         &::before {
-            content: "";
             position: absolute;
             left: 0;
             width: 4px;
             height: 20px;
-            background: variables.$white;
             border-radius: 0 4px 4px 0;
+            background: variables.$white;
+            content: "";
         }
     }
 }
