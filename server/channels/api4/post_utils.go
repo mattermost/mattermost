@@ -42,11 +42,8 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 	}
 }
 
-// checkUploadFilePermissionForNewFiles checks if the user has upload_file permission
-// when adding new files to a post. It only checks permission if there are new files
-// being added (not just keeping existing ones). This prevents users from bypassing
-// channel-level permissions by uploading files in one team/channel and attaching
-// them to posts in another where they lack permission.
+// checkUploadFilePermissionForNewFiles checks upload_file permission only when
+// adding new files to a post, preventing permission bypass via cross-channel file attachments.
 func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, originalPost *model.Post) {
 	if len(newFileIds) == 0 {
 		return
