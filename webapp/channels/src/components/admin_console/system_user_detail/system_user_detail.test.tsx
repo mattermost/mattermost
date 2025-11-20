@@ -30,6 +30,7 @@ describe('SystemUserDetail', () => {
         showManageUserSettings: false,
         showLockedManageUserSettings: false,
         mfaEnabled: false,
+        customProfileAttributeEnabled: true,
         customProfileAttributeFields: [],
         patchUser: jest.fn(),
         updateUserMfa: jest.fn(),
