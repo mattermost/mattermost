@@ -362,7 +362,7 @@ const BotsList = ({
                     return <span className='text-muted'>{'—'}</span>;
                 }
 
-                const roles = user.roles || '';
+                const roles = user.roles ? user.roles.split(' ') : [];
                 const isSystemAdmin = roles.includes('system_admin');
                 const hasPostAll = roles.includes('system_post_all');
                 const hasPostChannels = roles.includes('system_post_all_public');
