@@ -350,6 +350,73 @@ const BotsList = ({
             },
         }),
 
+        columnHelper.display({
+            id: 'permissions',
+            header: formatMessage({id: 'bots.permissions', defaultMessage: 'Permissions'}),
+            cell: (info) => {
+                const bot = info.row.original;
+                const user = users[bot.user_id];
+                const fromApp = appsBotIDs.includes(bot.user_id);
+
+                if (fromApp || !user) {
+                    return <span className='text-muted'>{'—'}</span>;
+                }
+
+                const roles = user.roles || '';
+                const isSystemAdmin = roles.includes('system_admin');
+                const hasPostAll = roles.includes('post:all') || roles.includes('system_post_all');
+                const hasPostChannels = roles.includes('post:channels') || roles.includes('system_post_channels');
+
+                return (
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                        <div>
+                            <span
+                                style={{
+                                    display: 'inline-block',
+                                    padding: '2px 6px',
+                                    borderRadius: '3px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    backgroundColor: isSystemAdmin ? 'rgba(var(--error-text-rgb), 0.08)' : 'rgba(var(--sys-center-channel-color-rgb), 0.08)',
+                                    color: isSystemAdmin ? 'rgb(var(--error-text-rgb))' : 'rgb(var(--sys-center-channel-color-rgb))',
+                                }}
+                            >
+                                {isSystemAdmin ? (
+                                    <FormattedMessage
+                                        id='bots.role.admin'
+                                        defaultMessage='Admin'
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='bots.role.member'
+                                        defaultMessage='Member'
+                                    />
+                                )}
+                            </span>
+                        </div>
+                        <div style={{fontSize: '11px', color: 'rgba(var(--sys-center-channel-color-rgb), 0.64)'}}>
+                            {hasPostAll && (
+                                <div>
+                                    {'post:all'}
+                                </div>
+                            )}
+                            {hasPostChannels && (
+                                <div>
+                                    {'post:channels'}
+                                </div>
+                            )}
+                            {!hasPostAll && !hasPostChannels && (
+                                <span className='text-muted'>
+                                    {'—'}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                );
+            },
+            enableSorting: false,
+        }),
+
         columnHelper.accessor('create_at', {
             header: formatMessage({id: 'bots.created_at', defaultMessage: 'Created'}),
             cell: (info) => {
