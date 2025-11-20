@@ -170,11 +170,22 @@ const BotsList = ({
         const owner = owners[bot.user_id];
         const ownerName = owner ? Utils.getDisplayName(owner).toLowerCase() : '';
 
+        // Search through token IDs
+        const tokens = accessTokens?.[bot.user_id];
+        let tokenMatch = false;
+        if (tokens) {
+            tokenMatch = Object.keys(tokens).some((tokenId) => {
+                return tokenId.toLowerCase().includes(searchTerm) ||
+                       tokens[tokenId].description?.toLowerCase().includes(searchTerm);
+            });
+        }
+
         return username.includes(searchTerm) ||
                displayName.includes(searchTerm) ||
                description.includes(searchTerm) ||
-               ownerName.includes(searchTerm);
-    }, [owners]);
+               ownerName.includes(searchTerm) ||
+               tokenMatch;
+    }, [owners, accessTokens]);
 
     // Check if there are active filters
     const hasActiveFilters = useMemo(() => {
