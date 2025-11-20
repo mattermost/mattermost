@@ -71,6 +71,7 @@ export type PostMetadata = {
     reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
+    burn_on_read?: any;
 };
 
 export type Post = {

@@ -15,4 +15,5 @@ export type Draft = {
     file_ids?: string[];
     metadata?: PostMetadata;
     priority?: PostPriorityMetadata;
+    burn_on_read?: any;
 };
