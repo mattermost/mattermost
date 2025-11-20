@@ -64,6 +64,16 @@ func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
 	return nil
 }
 
+func (ms *mockSuite) MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord {
+	return &model.AuditRecord{
+		Status:    initialStatus,
+		EventName: event,
+	}
+}
+
+func (ms *mockSuite) LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error) {
+}
+
 func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {
 	var dbStore store.Store
 	var dbSettings *model.SqlSettings
