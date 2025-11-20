@@ -2,8 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
@@ -12,92 +10,58 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import BackstageList from 'components/backstage/components/backstage_list';
-import ExternalLink from 'components/external_link';
-
 import Constants from 'utils/constants';
-import * as Utils from 'utils/utils';
 
-import Bot, {matchesFilter} from './bot';
+import BotsList from './bots_list';
 
 type Props = {
-
-    /**
-    *  Map from botUserId to bot.
-    */
+    // Map from botUserId to bot
     bots: Record<string, BotType>;
 
-    /**
-     * List of bot IDs managed by the app framework
-     */
+    // List of bot IDs managed by the app framework
     appsBotIDs: string[];
 
-    /**
-     * Whether apps framework is enabled
-     */
+    // Whether apps framework is enabled
     appsEnabled: boolean;
 
-    /**
-    *  Map from botUserId to accessTokens.
-    */
+    // Map from botUserId to accessTokens
     accessTokens?: RelationOneToOne<UserProfile, Record<string, UserAccessToken>>;
 
-    /**
-    *  Map from botUserId to owner.
-    */
+    // Map from botUserId to owner
     owners: Record<string, UserProfile>;
 
-    /**
-    *  Map from botUserId to user.
-    */
+    // Map from botUserId to user
     users: Record<string, UserProfile>;
     createBots?: boolean;
 
     actions: {
-
-        /**
-         * Ensure we have bot accounts
-         */
+        // Ensure we have bot accounts
         loadBots: (page?: number, perPage?: number) => Promise<ActionResult<BotType[]>>;
 
-        /**
-        * Load access tokens for bot accounts
-        */
+        // Load access tokens for bot accounts
         getUserAccessTokensForUser: (userId: string, page?: number, perPage?: number) => void;
 
-        /**
-        * Access token managment
-        */
+        // Access token management
         createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
 
         revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
         disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
 
-        /**
-        * Load owner of bot account
-        */
+        // Load owner of bot account
         getUser: (userId: string) => void;
 
-        /**
-        * Disable a bot
-        */
+        // Disable a bot
         disableBot: (userId: string) => Promise<ActionResult>;
 
-        /**
-        * Enable a bot
-        */
+        // Enable a bot
         enableBot: (userId: string) => Promise<ActionResult>;
 
-        /**
-         * Load bot IDs managed by the apps
-         */
+        // Load bot IDs managed by the apps
         fetchAppsBotIDs: () => Promise<ActionResult>;
     };
 
-    /**
-    *  Only used for routing since backstage is team based.
-    */
+    // Only used for routing since backstage is team based
     team: Team;
 }
 
@@ -143,139 +107,38 @@ export default class Bots extends React.PureComponent<Props, State> {
         }
     }
 
-    DisabledSection(props: {hasDisabled: boolean; disabledBots: JSX.Element[]; filter?: string}): JSX.Element | null {
-        if (!props.hasDisabled) {
-            return null;
-        }
-        const botsToDisplay = React.Children.map(props.disabledBots, (child) => {
-            return React.cloneElement(child, {filter: props.filter});
-        });
-        return (
-            <>
-                <div className='bot-disabled'>
-                    <FormattedMessage
-                        id='bots.disabled'
-                        defaultMessage='Disabled'
-                    />
-                </div>
-                <div className='bot-list__disabled'>
-                    {botsToDisplay}
-                </div>
-            </>
-        );
-    }
-
-    EnabledSection(props: {enabledBots: JSX.Element[]; filter?: string}): JSX.Element {
-        const botsToDisplay = React.Children.map(props.enabledBots, (child) => {
-            return React.cloneElement(child, {filter: props.filter});
-        });
-        return (
-            <div>
-                {botsToDisplay}
-            </div>
-        );
-    }
-
-    botToJSX = (bot: BotType): JSX.Element => {
-        return (
-            <Bot
-                key={bot.user_id}
-                bot={bot}
-                owner={this.props.owners[bot.user_id]}
-                user={this.props.users[bot.user_id]}
-                accessTokens={(this.props.accessTokens && this.props.accessTokens[bot.user_id]) || {}}
-                actions={this.props.actions}
-                team={this.props.team}
-                fromApp={this.props.appsBotIDs.includes(bot.user_id)}
-            />
-        );
+    public disableBot = (bot: BotType): void => {
+        this.props.actions.disableBot(bot.user_id);
     };
 
-    bots = (filter?: string): [JSX.Element[], boolean] => {
-        const bots = Object.values(this.props.bots).sort((a, b) => a.username.localeCompare(b.username));
-        const match = (bot: BotType) => matchesFilter(bot, filter, this.props.owners[bot.user_id]);
-        const enabledBots = bots.filter((bot) => bot.delete_at === 0).filter(match).map(this.botToJSX);
-        const disabledBots = bots.filter((bot) => bot.delete_at > 0).filter(match).map(this.botToJSX);
-        const sections = [(
-            <div key='sections'>
-                <this.EnabledSection
-                    enabledBots={enabledBots}
-                />
-                <this.DisabledSection
-                    hasDisabled={disabledBots.length > 0}
-                    disabledBots={disabledBots}
-                />
-            </div>
-        )];
+    public enableBot = (bot: BotType): void => {
+        this.props.actions.enableBot(bot.user_id);
+    };
 
-        return [sections, enabledBots.length > 0 || disabledBots.length > 0];
+    public createToken = (bot: BotType): void => {
+        // TODO: Implement token creation modal/flow
+        // For now, users should use the edit page to create tokens
+        window.location.href = `/${this.props.team.name}/integrations/bots/edit?id=${bot.user_id}`;
     };
 
     public render(): JSX.Element {
+        // Convert bots object to array
+        const botsArray = Object.values(this.props.bots);
+
         return (
-            <BackstageList
-                header={
-                    <FormattedMessage
-                        id='bots.manage.header'
-                        defaultMessage='Bot Accounts'
-                    />
-                }
-                addText={this.props.createBots &&
-                    <FormattedMessage
-                        id='bots.manage.add'
-                        defaultMessage='Add Bot Account'
-                    />
-                }
-                addLink={'/' + this.props.team.name + '/integrations/bots/add'}
-                addButtonId='addBotAccount'
-                emptyText={
-                    <FormattedMessage
-                        id='bots.manage.empty'
-                        defaultMessage='No bot accounts found'
-                    />
-                }
-                emptyTextSearch={
-                    <FormattedMessage
-                        id='bots.emptySearch'
-                        defaultMessage='No bot accounts match <b>{searchTerm}</b>'
-                        values={{
-                            b: (chunks) => <b>{chunks}</b>,
-                        }}
-                    />
-                }
-                helpText={
-                    <>
-                        <FormattedMessage
-                            id='bots.manage.help1'
-                            defaultMessage='Use {botAccounts} to integrate with Mattermost through plugins or the API. Bot accounts are available to everyone on your server. '
-                            values={{
-                                botAccounts: (
-                                    <ExternalLink
-                                        href='https://mattermost.com/pl/default-bot-accounts'
-                                        location='bots'
-                                    >
-                                        <FormattedMessage
-                                            id='bots.manage.bot_accounts'
-                                            defaultMessage='Bot Accounts'
-                                        />
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
-                        <FormattedMessage
-                            id='bots.help2'
-                            defaultMessage={'Enable bot account creation in the <a>System Console</a>.'}
-                            values={{
-                                a: (chunks) => <Link to='/admin_console/integrations/bot_accounts'>{chunks}</Link>,
-                            }}
-                        />
-                    </>
-                }
-                searchPlaceholder={Utils.localizeMessage({id: 'bots.manage.search', defaultMessage: 'Search Bot Accounts'})}
+            <BotsList
+                bots={botsArray}
+                owners={this.props.owners}
+                users={this.props.users}
+                accessTokens={this.props.accessTokens}
+                team={this.props.team}
+                createBots={this.props.createBots || false}
+                appsBotIDs={this.props.appsBotIDs}
+                onDisable={this.disableBot}
+                onEnable={this.enableBot}
+                onCreateToken={this.createToken}
                 loading={this.state.loading}
-            >
-                {this.bots}
-            </BackstageList>
+            />
         );
     }
 }
