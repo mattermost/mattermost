@@ -29,6 +29,7 @@ type Props = {
     canManageOauth: boolean;
 
     actions: {
+
         // The function to call to fetch OAuth apps
         loadOAuthAppsAndProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
 

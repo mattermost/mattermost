@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useRef } from 'react';
-import type { ComponentType } from 'react';
-import { Route, Switch } from 'react-router-dom';
-import type { match } from 'react-router-dom';
-import { createGlobalStyle } from 'styled-components';
+import React, {useRef} from 'react';
+import type {ComponentType} from 'react';
+import {Route, Switch} from 'react-router-dom';
+import type {match} from 'react-router-dom';
+import {createGlobalStyle} from 'styled-components';
 
-import type { Team } from '@mattermost/types/teams';
-import type { UserProfile } from '@mattermost/types/users';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import Emoji from 'components/emoji';
 import AddEmoji from 'components/emoji/add_emoji';
@@ -44,7 +44,7 @@ type BackstageRouteProps = {
     exact?: boolean;
 }
 
-const BackstageRoute = ({ component: Component, extraProps, ...rest }: BackstageRouteProps) => (
+const BackstageRoute = ({component: Component, extraProps, ...rest}: BackstageRouteProps) => (
     <Route
         {...rest}
         render={(props) => (
@@ -111,7 +111,7 @@ const BackstageController = (props: Props) => {
                 className='backstage-body'
                 ref={listRef}
             >
-                <Pluggable pluggableName='Root' />
+                <Pluggable pluggableName='Root'/>
                 <BackstageSidebar
                     team={props.team}
                     enableCustomEmoji={props.enableCustomEmoji}
@@ -236,7 +236,7 @@ const BackstageController = (props: Props) => {
                     </Switch>
                 </div>
             </div>
-            <BackstageGlobalStyle />
+            <BackstageGlobalStyle/>
         </>
     );
 };

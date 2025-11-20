@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { FormattedMessage, useIntl, defineMessage } from 'react-intl';
-import { Link } from 'react-router-dom';
 import {
     useReactTable,
     getCoreRowModel,
@@ -12,24 +9,27 @@ import {
     getFilteredRowModel,
     createColumnHelper,
 } from '@tanstack/react-table';
-import type { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
+import type {ColumnDef, PaginationState, SortingState} from '@tanstack/react-table';
+import React, {useMemo, useState, useCallback, useEffect} from 'react';
+import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
-import type { IncomingWebhook } from '@mattermost/types/integrations';
-import type { Channel } from '@mattermost/types/channels';
-import type { Team } from '@mattermost/types/teams';
-import type { UserProfile } from '@mattermost/types/users';
-import type { IDMappedObjects } from '@mattermost/types/utilities';
+import type {Channel} from '@mattermost/types/channels';
+import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import { AdminConsoleListTable, PAGE_SIZES, LoadingStates } from 'components/admin_console/list_table';
 import Filter from 'components/admin_console/filter/filter';
-import type { FilterOptions } from 'components/admin_console/filter/filter';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
+import {AdminConsoleListTable, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import CopyText from 'components/copy_text';
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import Timestamp from 'components/timestamp';
 import Avatar from 'components/widgets/users/avatar';
-import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
 
-import { getSiteURL } from 'utils/url';
+import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
+import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 type Props = {
@@ -55,10 +55,10 @@ export default function IncomingWebhooksList({
     onDelete,
     loading,
 }: Props) {
-    const { formatMessage } = useIntl();
+    const {formatMessage} = useIntl();
 
     const [filter, setFilter] = useState('');
-    const [sorting, setSorting] = useState<SortingState>([{ id: 'display_name', desc: false }]);
+    const [sorting, setSorting] = useState<SortingState>([{id: 'display_name', desc: false}]);
     const [pagination, setPagination] = useState<PaginationState>({
         pageIndex: 0,
         pageSize: PAGE_SIZES[0],
@@ -110,7 +110,7 @@ export default function IncomingWebhooksList({
 
         if (userKeys.length > 0) {
             options.users = {
-                name: formatMessage({ id: 'installed_incoming_webhooks.filter.users', defaultMessage: 'Users' }),
+                name: formatMessage({id: 'installed_incoming_webhooks.filter.users', defaultMessage: 'Users'}),
                 keys: userKeys,
                 values: userValues,
             };
@@ -118,7 +118,7 @@ export default function IncomingWebhooksList({
 
         if (channelKeys.length > 0) {
             options.channels = {
-                name: formatMessage({ id: 'installed_incoming_webhooks.filter.channels', defaultMessage: 'Channels' }),
+                name: formatMessage({id: 'installed_incoming_webhooks.filter.channels', defaultMessage: 'Channels'}),
                 keys: channelKeys,
                 values: channelValues,
             };
@@ -166,7 +166,7 @@ export default function IncomingWebhooksList({
 
     const columns = useMemo<Array<ColumnDef<IncomingWebhook, any>>>(() => [
         columnHelper.accessor('display_name', {
-            header: formatMessage({ id: 'installed_incoming_webhooks.name', defaultMessage: 'Name' }),
+            header: formatMessage({id: 'installed_incoming_webhooks.name', defaultMessage: 'Name'}),
             cell: (info) => {
                 const webhook = info.row.original;
                 const channel = channels[webhook.channel_id];
@@ -174,23 +174,21 @@ export default function IncomingWebhooksList({
                 if (!displayName && channel) {
                     displayName = channel.display_name;
                 } else if (!displayName) {
-                    displayName = formatMessage({ id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook' });
+                    displayName = formatMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
                 }
 
-                const maxDescriptionLength = 12;
                 const description = webhook.description || '';
-                const truncatedDescription = description.length > maxDescriptionLength
-                    ? description.substring(0, maxDescriptionLength) + '...'
-                    : description;
 
                 return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
-                        <div style={{
-                            fontWeight: 600,
-                            fontSize: '14px',
-                            lineHeight: '20px',
-                            textOverflow: 'ellipsis',
-                        }}>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0}}>
+                        <div
+                            style={{
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                lineHeight: '20px',
+                                textOverflow: 'ellipsis',
+                            }}
+                        >
                             {displayName}
                         </div>
                         {webhook.description && (
@@ -220,7 +218,7 @@ export default function IncomingWebhooksList({
             minSize: 120,
         }),
         columnHelper.accessor('channel_id', {
-            header: formatMessage({ id: 'installed_incoming_webhooks.channel', defaultMessage: 'Channel' }),
+            header: formatMessage({id: 'installed_incoming_webhooks.channel', defaultMessage: 'Channel'}),
             cell: (info) => {
                 const channelId = info.getValue();
                 const channel = channels[channelId];
@@ -231,12 +229,12 @@ export default function IncomingWebhooksList({
                         </Link>
                     );
                 }
-                return formatMessage({ id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook' });
+                return formatMessage({id: 'installed_incoming_webhooks.unknown_channel', defaultMessage: 'A Private Webhook'});
             },
             enableSorting: true,
         }),
         columnHelper.accessor('user_id', {
-            header: formatMessage({ id: 'installed_incoming_webhooks.createdBy', defaultMessage: 'Created By' }),
+            header: formatMessage({id: 'installed_incoming_webhooks.createdBy', defaultMessage: 'Created By'}),
             cell: (info) => {
                 const userId = info.getValue();
                 const user = users[userId];
@@ -257,25 +255,28 @@ export default function IncomingWebhooksList({
             enableSorting: true,
         }),
         columnHelper.accessor('create_at', {
-            header: formatMessage({ id: 'installed_incoming_webhooks.created', defaultMessage: 'Created' }),
+            header: formatMessage({id: 'installed_incoming_webhooks.created', defaultMessage: 'Created'}),
             cell: (info) => (
                 <Timestamp
                     value={info.getValue()}
                     useRelative={false}
-                    useDate={{ year: 'numeric', month: 'long', day: '2-digit' }}
-                    useTime={{ hour: 'numeric', minute: '2-digit' }}
+                    useDate={{year: 'numeric', month: 'long', day: '2-digit'}}
+                    useTime={{hour: 'numeric', minute: '2-digit'}}
                 />
             ),
             enableSorting: true,
             size: 180,
         }),
         columnHelper.accessor('id', {
-            header: formatMessage({ id: 'installed_incoming_webhooks.url', defaultMessage: 'Webhook URL' }),
+            header: formatMessage({id: 'installed_incoming_webhooks.url', defaultMessage: 'Webhook URL'}),
             cell: (info) => {
                 const token = info.getValue();
                 const webhookUrl = getSiteURL() + '/hooks/' + token;
                 return (
-                    <div className='d-flex align-items-center' style={{ gap: '8px' }}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '8px'}}
+                    >
                         <code
                             style={{
                                 fontSize: '14px',
@@ -292,7 +293,7 @@ export default function IncomingWebhooksList({
                         </code>
                         <CopyText
                             value={webhookUrl}
-                            label={defineMessage({ id: 'integrations.copy_url', defaultMessage: 'Copy URL' })}
+                            label={defineMessage({id: 'integrations.copy_url', defaultMessage: 'Copy URL'})}
                         />
                     </div>
                 );
@@ -301,20 +302,26 @@ export default function IncomingWebhooksList({
         }),
         columnHelper.display({
             id: 'actions',
-            header: formatMessage({ id: 'installed_incoming_webhooks.actions', defaultMessage: 'Actions' }),
+            header: formatMessage({id: 'installed_incoming_webhooks.actions', defaultMessage: 'Actions'}),
             cell: (info) => {
                 const webhook = info.row.original;
                 const canChange = canManageOthersWebhooks || currentUser.id === webhook.user_id;
 
                 return (
-                    <div className='d-flex align-items-center' style={{ gap: '12px' }}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '12px'}}
+                    >
                         {canChange && (
                             <>
                                 <Link
                                     className='btn btn-sm btn-tertiary'
                                     to={`/${team.name}/integrations/incoming_webhooks/edit?id=${webhook.id}`}
                                 >
-                                    <FormattedMessage id='installed_integrations.edit' defaultMessage='Edit' />
+                                    <FormattedMessage
+                                        id='installed_integrations.edit'
+                                        defaultMessage='Edit'
+                                    />
                                 </Link>
                                 <DeleteIntegrationLink
                                     modalMessage={
@@ -392,7 +399,7 @@ export default function IncomingWebhooksList({
         globalFilterFn,
         meta: {
             tableId: 'incomingWebhooksTable',
-            tableCaption: formatMessage({ id: 'installed_incoming_webhooks.header', defaultMessage: 'Installed Incoming Webhooks' }),
+            tableCaption: formatMessage({id: 'installed_incoming_webhooks.header', defaultMessage: 'Installed Incoming Webhooks'}),
             loadingState: loading ? LoadingStates.Loading : LoadingStates.Loaded,
             emptyDataMessage: (
                 <div className='text-center py-5'>
@@ -467,18 +474,27 @@ export default function IncomingWebhooksList({
             </style>
             <div className='mb-4'>
                 <h2 className='mb-0'>
-                    <FormattedMessage id='installed_incoming_webhooks.header' defaultMessage='Installed Incoming Webhooks' />
+                    <FormattedMessage
+                        id='installed_incoming_webhooks.header'
+                        defaultMessage='Installed Incoming Webhooks'
+                    />
                 </h2>
             </div>
-            <div className='d-flex align-items-center justify-content-between mb-4' style={{ position: 'relative', zIndex: 10, width: '100%' }}>
-                <div className='d-flex align-items-center' style={{ gap: '12px', flex: 1 }}>
+            <div
+                className='d-flex align-items-center justify-content-between mb-4'
+                style={{position: 'relative', zIndex: 10, width: '100%'}}
+            >
+                <div
+                    className='d-flex align-items-center'
+                    style={{gap: '12px', flex: 1}}
+                >
                     <input
                         type='text'
                         className='form-control'
-                        placeholder={formatMessage({ id: 'installed_incoming_webhooks.search', defaultMessage: 'Search incoming webhooks...' })}
+                        placeholder={formatMessage({id: 'installed_incoming_webhooks.search', defaultMessage: 'Search incoming webhooks...'})}
                         value={filter}
                         onChange={(e) => setFilter(e.target.value)}
-                        style={{ maxWidth: '300px' }}
+                        style={{maxWidth: '300px'}}
                     />
                     {Object.keys(filterOptionsToUse).length > 0 && (
                         <Filter
@@ -488,22 +504,32 @@ export default function IncomingWebhooksList({
                         />
                     )}
                     {(hasActiveFilters || filter) && (
-                        <span className='text-muted' style={{ fontSize: '0.875rem' }}>
+                        <span
+                            className='text-muted'
+                            style={{fontSize: '0.875rem'}}
+                        >
                             <FormattedMessage
                                 id='installed_incoming_webhooks.results_count'
                                 defaultMessage='{count, number} {count, plural, one {result} other {results}}'
-                                values={{ count: data.length }}
+                                values={{count: data.length}}
                             />
                         </span>
                     )}
                 </div>
-                <Link className='btn btn-primary' to={`/${team.name}/integrations/incoming_webhooks/add`} style={{ flexShrink: 0 }}>
-                    <FormattedMessage id='installed_incoming_webhooks.add' defaultMessage='Add Incoming Webhook' />
+                <Link
+                    className='btn btn-primary'
+                    to={`/${team.name}/integrations/incoming_webhooks/add`}
+                    style={{flexShrink: 0}}
+                >
+                    <FormattedMessage
+                        id='installed_incoming_webhooks.add'
+                        defaultMessage='Add Incoming Webhook'
+                    />
                 </Link>
             </div>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__container'>
-                    <AdminConsoleListTable table={table} />
+                    <AdminConsoleListTable table={table}/>
                 </div>
             </div>
         </div>

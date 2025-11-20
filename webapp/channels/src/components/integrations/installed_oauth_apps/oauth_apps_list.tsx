@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, useState, useCallback} from 'react';
-import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
 import {
     createColumnHelper,
     getCoreRowModel,
@@ -11,16 +8,19 @@ import {
     getFilteredRowModel,
     useReactTable,
 } from '@tanstack/react-table';
+import React, {useMemo, useState, useCallback} from 'react';
+import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import CopyText from 'components/copy_text';
-import {AdminConsoleListTable, LoadingStates} from 'components/admin_console/list_table';
 import Filter from 'components/admin_console/filter/filter';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
+import {AdminConsoleListTable, LoadingStates} from 'components/admin_console/list_table';
+import CopyText from 'components/copy_text';
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import RegenerateTokenLink from 'components/integrations/regenerate_token_link';
 import Timestamp from 'components/timestamp';
@@ -309,7 +309,10 @@ const OAuthAppsList = ({
             cell: (info) => {
                 const clientId = info.getValue();
                 return (
-                    <div className='d-flex align-items-center' style={{gap: '8px'}}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '8px'}}
+                    >
                         <code
                             style={{
                                 fontSize: '14px',
@@ -345,12 +348,15 @@ const OAuthAppsList = ({
                 const isShowing = showingSecrets.has(app.id);
 
                 if (fromApp) {
-                    return <span className='text-muted'>—</span>;
+                    return <span className='text-muted'>{'—'}</span>;
                 }
 
                 if (isPublicClient) {
                     return (
-                        <span style={{fontSize: '12px'}} className='text-muted'>
+                        <span
+                            style={{fontSize: '12px'}}
+                            className='text-muted'
+                        >
                             <FormattedMessage
                                 id='installed_oauth_apps.public_client'
                                 defaultMessage='Public Client (No Secret)'
@@ -362,7 +368,10 @@ const OAuthAppsList = ({
                 const displaySecret = isShowing ? app.client_secret : '***************';
 
                 return (
-                    <div className='d-flex align-items-center' style={{gap: '8px'}}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '8px'}}
+                    >
                         <code
                             style={{
                                 fontSize: '14px',
@@ -414,7 +423,7 @@ const OAuthAppsList = ({
             cell: (info) => {
                 const urls = info.getValue();
                 if (!urls || urls.length === 0) {
-                    return <span className='text-muted'>—</span>;
+                    return <span className='text-muted'>{'—'}</span>;
                 }
                 const urlsText = urls.join(', ');
                 return (
@@ -442,7 +451,7 @@ const OAuthAppsList = ({
                 const isPublic = info.getValue() || !app.client_secret || app.client_secret === '';
 
                 if (fromApp) {
-                    return <span className='text-muted'>—</span>;
+                    return <span className='text-muted'>{'—'}</span>;
                 }
 
                 return (
@@ -478,7 +487,7 @@ const OAuthAppsList = ({
                 const fromApp = appsOAuthAppIDs.includes(info.row.original.id);
 
                 if (fromApp) {
-                    return <span className='text-muted'>—</span>;
+                    return <span className='text-muted'>{'—'}</span>;
                 }
 
                 return (
@@ -511,10 +520,13 @@ const OAuthAppsList = ({
                 const userId = info.getValue();
                 const user = users[userId];
                 if (!user) {
-                    return <span className='text-muted'>—</span>;
+                    return <span className='text-muted'>{'—'}</span>;
                 }
                 return (
-                    <div className='d-flex align-items-center' style={{gap: '8px'}}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '8px'}}
+                    >
                         <Avatar
                             username={user.username}
                             size='sm'
@@ -555,7 +567,10 @@ const OAuthAppsList = ({
                 }
 
                 return (
-                    <div className='d-flex align-items-center' style={{gap: '12px'}}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '12px'}}
+                    >
                         {canManageOauth && (
                             <>
                                 <Link
@@ -637,8 +652,14 @@ const OAuthAppsList = ({
                     />
                 </h2>
             </div>
-            <div className='d-flex align-items-center justify-content-between mb-4' style={{position: 'relative', zIndex: 10, width: '100%'}}>
-                <div className='d-flex align-items-center' style={{gap: '12px', flex: 1}}>
+            <div
+                className='d-flex align-items-center justify-content-between mb-4'
+                style={{position: 'relative', zIndex: 10, width: '100%'}}
+            >
+                <div
+                    className='d-flex align-items-center'
+                    style={{gap: '12px', flex: 1}}
+                >
                     <input
                         type='text'
                         className='form-control'
@@ -655,7 +676,10 @@ const OAuthAppsList = ({
                         />
                     )}
                     {(hasActiveFilters || globalFilter) && (
-                        <span className='text-muted' style={{fontSize: '0.875rem'}}>
+                        <span
+                            className='text-muted'
+                            style={{fontSize: '0.875rem'}}
+                        >
                             <FormattedMessage
                                 id='installed_oauth_apps.results_count'
                                 defaultMessage='{count, number} {count, plural, one {result} other {results}}'

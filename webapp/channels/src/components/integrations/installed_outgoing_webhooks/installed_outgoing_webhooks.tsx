@@ -11,9 +11,9 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import OutgoingWebhooksList from './outgoing_webhooks_list';
-
 import {Constants} from 'utils/constants';
+
+import OutgoingWebhooksList from './outgoing_webhooks_list';
 
 export type Props = {
 

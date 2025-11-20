@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, useState, useCallback} from 'react';
-import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
-import {Link} from 'react-router-dom';
 import {
     createColumnHelper,
     getCoreRowModel,
@@ -13,16 +10,18 @@ import {
     type ExpandedState,
     getExpandedRowModel,
 } from '@tanstack/react-table';
+import React, {useMemo, useState, useCallback} from 'react';
+import {useIntl, FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {AdminConsoleListTable, LoadingStates} from 'components/admin_console/list_table';
 import Filter from 'components/admin_console/filter/filter';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
-import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
+import {AdminConsoleListTable, LoadingStates} from 'components/admin_console/list_table';
 import Timestamp from 'components/timestamp';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -287,7 +286,10 @@ const BotsList = ({
                 }
 
                 return (
-                    <div className='d-flex align-items-center' style={{gap: '8px'}}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '8px'}}
+                    >
                         <Avatar
                             username={owner.username}
                             size='sm'
@@ -321,15 +323,17 @@ const BotsList = ({
             cell: (info) => {
                 const isDisabled = info.getValue() > 0;
                 return (
-                    <span style={{
-                        display: 'inline-block',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        backgroundColor: isDisabled ? 'rgba(var(--dnd-indicator-rgb), 0.08)' : 'rgba(var(--online-indicator-rgb), 0.08)',
-                        color: isDisabled ? 'rgb(var(--dnd-indicator-rgb))' : 'rgb(var(--online-indicator-rgb))',
-                    }}>
+                    <span
+                        style={{
+                            display: 'inline-block',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: isDisabled ? 'rgba(var(--dnd-indicator-rgb), 0.08)' : 'rgba(var(--online-indicator-rgb), 0.08)',
+                            color: isDisabled ? 'rgb(var(--dnd-indicator-rgb))' : 'rgb(var(--online-indicator-rgb))',
+                        }}
+                    >
                         {isDisabled ? (
                             <FormattedMessage
                                 id='bots.status.disabled'
@@ -362,7 +366,7 @@ const BotsList = ({
                 const fromApp = appsBotIDs.includes(bot.user_id);
 
                 if (fromApp) {
-                    return <span className='text-muted'>—</span>;
+                    return <span className='text-muted'>{'—'}</span>;
                 }
 
                 if (tokenCount === 0) {
@@ -416,7 +420,10 @@ const BotsList = ({
                 }
 
                 return (
-                    <div className='d-flex align-items-center' style={{gap: '12px'}}>
+                    <div
+                        className='d-flex align-items-center'
+                        style={{gap: '12px'}}
+                    >
                         <button
                             className='btn btn-sm btn-tertiary'
                             onClick={() => onCreateToken(bot)}
@@ -506,8 +513,14 @@ const BotsList = ({
                     />
                 </h2>
             </div>
-            <div className='d-flex align-items-center justify-content-between mb-4' style={{position: 'relative', zIndex: 10, width: '100%'}}>
-                <div className='d-flex align-items-center' style={{gap: '12px', flex: 1}}>
+            <div
+                className='d-flex align-items-center justify-content-between mb-4'
+                style={{position: 'relative', zIndex: 10, width: '100%'}}
+            >
+                <div
+                    className='d-flex align-items-center'
+                    style={{gap: '12px', flex: 1}}
+                >
                     <input
                         type='text'
                         className='form-control'
@@ -524,7 +537,10 @@ const BotsList = ({
                         />
                     )}
                     {(hasActiveFilters || globalFilter) && (
-                        <span className='text-muted' style={{fontSize: '0.875rem'}}>
+                        <span
+                            className='text-muted'
+                            style={{fontSize: '0.875rem'}}
+                        >
                             <FormattedMessage
                                 id='bots.results_count'
                                 defaultMessage='{count, number} {count, plural, one {result} other {results}}'

@@ -1,5 +1,8 @@
-import React from 'react';
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import {render, screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter} from 'react-router-dom';
 
@@ -44,11 +47,11 @@ jest.mock('components/admin_console/list_table', () => ({
 }));
 
 // Mock other components
-jest.mock('components/copy_text', () => () => <div>CopyText</div>);
-jest.mock('components/integrations/delete_integration_link', () => () => <div>DeleteLink</div>);
-jest.mock('components/integrations/regenerate_token_link', () => () => <div>RegenerateLink</div>);
-jest.mock('components/timestamp', () => () => <div>Timestamp</div>);
-jest.mock('components/widgets/users/avatar', () => () => <div>Avatar</div>);
+jest.mock('components/copy_text', () => () => <div>{'CopyText'}</div>);
+jest.mock('components/integrations/delete_integration_link', () => () => <div>{'DeleteLink'}</div>);
+jest.mock('components/integrations/regenerate_token_link', () => () => <div>{'RegenerateLink'}</div>);
+jest.mock('components/timestamp', () => () => <div>{'Timestamp'}</div>);
+jest.mock('components/widgets/users/avatar', () => () => <div>{'Avatar'}</div>);
 
 describe('OAuthAppsList', () => {
     const props = {

@@ -1,12 +1,15 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import React from 'react';
 
-import type { Channel } from '@mattermost/types/channels';
-import type { IncomingWebhook, IncomingWebhooksWithCount } from '@mattermost/types/integrations';
-import type { Team } from '@mattermost/types/teams';
-import type { UserProfile } from '@mattermost/types/users';
-import type { IDMappedObjects } from '@mattermost/types/utilities';
+import type {Channel} from '@mattermost/types/channels';
+import type {IncomingWebhook, IncomingWebhooksWithCount} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import type { ActionResult } from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import IncomingWebhooksList from './incoming_webhooks_list';
 
@@ -53,7 +56,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
 
     loadPage = async (pageToLoad: number) => {
         if (this.props.enableIncomingWebhooks) {
-            this.setState({ loading: true },
+            this.setState({loading: true},
                 async () => {
                     await this.props.actions.loadIncomingHooksAndProfilesForTeam(
                         this.props.team.id,
@@ -61,7 +64,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                         PAGE_SIZE,
                         true,
                     );
-                    this.setState({ page: pageToLoad, loading: false });
+                    this.setState({page: pageToLoad, loading: false});
                 },
             );
         }

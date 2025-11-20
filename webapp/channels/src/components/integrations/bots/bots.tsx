@@ -15,6 +15,7 @@ import Constants from 'utils/constants';
 import BotsList from './bots_list';
 
 type Props = {
+
     // Map from botUserId to bot
     bots: Record<string, BotType>;
 
@@ -35,6 +36,7 @@ type Props = {
     createBots?: boolean;
 
     actions: {
+
         // Ensure we have bot accounts
         loadBots: (page?: number, perPage?: number) => Promise<ActionResult<BotType[]>>;
 
