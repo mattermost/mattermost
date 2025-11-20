@@ -825,7 +825,7 @@ func TestGetFile(t *testing.T) {
 	})
 
 	t.Run("content reviewer should be able to get file of channel and team they are not a member of", func(t *testing.T) {
-		th.LoginBasic(t)
+		th.LoginBasic()
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "failed to set license")
 
@@ -834,7 +834,7 @@ func TestGetFile(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		newChannel := th.CreatePrivateChannel(t)
+		newChannel := th.CreatePrivateChannel()
 
 		sent, err := testutils.ReadTestFile("test.png")
 		require.NoError(t, err)
@@ -842,9 +842,9 @@ func TestGetFile(t *testing.T) {
 		fileResp, _, err := client.UploadFile(context.Background(), sent, channel.Id, "test.png")
 		require.NoError(t, err)
 
-		post := th.CreatePostWithFilesWithClient(t, client, newChannel, fileResp.FileInfos[0])
+		post := th.CreatePostWithFilesWithClient(client, newChannel, fileResp.FileInfos[0])
 
-		reviewer := th.CreateUser(t)
+		reviewer := th.CreateUser()
 		response, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
 				EnableContentFlagging: model.NewPointer(true),
