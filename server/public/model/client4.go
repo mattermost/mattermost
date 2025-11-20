@@ -10026,7 +10026,11 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 }
 
 func (c *Client4) SetAccessControlPolicyActive(ctx context.Context, update AccessControlPolicyActiveUpdateRequest) ([]*AccessControlPolicy, *Response, error) {
-	r, err := c.DoAPIPutJSON(ctx, c.accessControlPoliciesRoute()+"/activate", update)
+	route, err := c.accessControlPoliciesRoute().JoinSegments("activate").String()
+	if err != nil {
+		return nil, nil, err
+	}
+	r, err := c.DoAPIPutJSON(ctx, route, update)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
