@@ -19,11 +19,11 @@ import {
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
+
+import {getPageDraft} from 'selectors/page_drafts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-
-import {getPageDraft} from 'selectors/page_drafts';
 import {
     getSearchType,
     getSearchTerms,

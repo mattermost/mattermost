@@ -17,13 +17,14 @@ import {PageDisplayTypes} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
 
-import DeletePageModal from './delete_page_modal';
+import type {DraftPage, TreeNode} from 'selectors/pages_hierarchy';
+import {buildTree, getAncestorIds} from 'selectors/pages_hierarchy';
+
+import DeletePageModal from 'components/delete_page_modal';
 import {usePageMenuHandlers} from './hooks/use_page_menu_handlers';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
 import PagesHeader from './pages_header';
-import type {DraftPage, TreeNode} from './utils/tree_builder';
-import {buildTree, getAncestorIds} from './utils/tree_builder';
 import {filterTreeBySearch} from './utils/tree_flattener';
 
 import './pages_hierarchy_panel.scss';
@@ -33,6 +34,7 @@ type Props = {
     channelId: string;
     currentPageId?: string;
     onPageSelect: (pageId: string) => void;
+    onVersionHistory?: (pageId: string) => void;
 
     // From Redux
     pages: Post[];
@@ -64,6 +66,7 @@ const PagesHierarchyPanel = ({
     channelId,
     currentPageId,
     onPageSelect,
+    onVersionHistory,
     pages,
     drafts,
     loading,
@@ -296,6 +299,7 @@ const PagesHierarchyPanel = ({
                         onMove={menuHandlers.handleMove}
                         onBookmarkInChannel={menuHandlers.handleBookmarkInChannel}
                         onDelete={menuHandlers.handleDelete}
+                        onVersionHistory={onVersionHistory}
                         deletingPageId={menuHandlers.deletingPageId}
                         wikiId={wikiId}
                         channelId={channelId}

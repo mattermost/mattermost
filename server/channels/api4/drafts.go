@@ -25,6 +25,7 @@ func (api *API) InitPageDrafts() {
 	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}", api.APISessionRequired(savePageDraft)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}", api.APISessionRequired(deletePageDraft)).Methods(http.MethodDelete)
 	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}/publish", api.APISessionRequired(publishPageDraft)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}/editor_stopped", api.APISessionRequired(notifyEditorStopped)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/drafts", api.APISessionRequired(getPageDraftsForWiki)).Methods(http.MethodGet)
 }
 

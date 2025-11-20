@@ -2553,8 +2553,8 @@ func TestResolvePageComment(t *testing.T) {
 		RootId:    page.Id,
 		Type:      model.PostTypePageComment,
 		Props: model.StringInterface{
-			"wiki_id":      wiki.Id,
-			"page_id":      page.Id,
+			"wiki_id":                  wiki.Id,
+			"page_id":                  page.Id,
 			model.PostPropsCommentType: model.PageCommentTypeInline,
 			"inline_anchor": map[string]any{
 				"text": "highlighted text",
@@ -2603,8 +2603,8 @@ func TestResolvePageComment(t *testing.T) {
 			Type:      model.PostTypePageComment,
 			UserId:    th.BasicUser2.Id,
 			Props: model.StringInterface{
-				"wiki_id":      wiki.Id,
-				"page_id":      page.Id,
+				"wiki_id":                  wiki.Id,
+				"page_id":                  page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"text": "another highlight",
@@ -2668,6 +2668,181 @@ func TestResolvePageComment(t *testing.T) {
 
 		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + regularPost.Id + "/resolve"
 		httpResp, err := th.Client.DoAPIPost(context.Background(), url, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+}
+
+func TestGetPageActiveEditors(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	page := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "Page content",
+		Type:      model.PostTypePage,
+		Props: model.StringInterface{
+			"wiki_id": wiki.Id,
+		},
+	}
+	page, appErr = th.App.CreatePost(th.Context, page, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	t.Run("get active editors successfully with no editors", func(t *testing.T) {
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/active_editors"
+		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var response map[string]interface{}
+		err = json.NewDecoder(httpResp.Body).Decode(&response)
+		require.NoError(t, err)
+
+		userIds, ok := response["user_ids"].([]any)
+		require.True(t, ok)
+		assert.Empty(t, userIds)
+	})
+
+	t.Run("get active editors with one editor", func(t *testing.T) {
+		draft := &model.PageDraftContent{
+			UserId:  th.BasicUser.Id,
+			WikiId:  wiki.Id,
+			DraftId: page.Id,
+			Title:   "Draft title",
+			Content: model.TipTapDocument{
+				Type: "doc",
+				Content: []map[string]any{
+					{
+						"type": "paragraph",
+						"content": []map[string]any{
+							{"type": "text", "text": "Draft content"},
+						},
+					},
+				},
+			},
+		}
+		savedDraft, storeErr := th.App.Srv().Store().PageDraftContent().Upsert(draft)
+		require.NoError(t, storeErr)
+		require.NotNil(t, savedDraft)
+
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/active_editors"
+		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var response map[string]interface{}
+		err = json.NewDecoder(httpResp.Body).Decode(&response)
+		require.NoError(t, err)
+
+		userIds, ok := response["user_ids"].([]any)
+		require.True(t, ok)
+		require.Len(t, userIds, 1)
+		assert.Equal(t, th.BasicUser.Id, userIds[0])
+
+		lastActivities, ok := response["last_activities"].(map[string]interface{})
+		require.True(t, ok)
+		assert.Contains(t, lastActivities, th.BasicUser.Id)
+	})
+
+	t.Run("get active editors with multiple editors", func(t *testing.T) {
+		draft2 := &model.PageDraftContent{
+			UserId:  th.BasicUser2.Id,
+			WikiId:  wiki.Id,
+			DraftId: page.Id,
+			Title:   "Draft title 2",
+			Content: model.TipTapDocument{
+				Type: "doc",
+				Content: []map[string]any{
+					{
+						"type": "paragraph",
+						"content": []map[string]any{
+							{"type": "text", "text": "Draft content 2"},
+						},
+					},
+				},
+			},
+		}
+		savedDraft2, storeErr := th.App.Srv().Store().PageDraftContent().Upsert(draft2)
+		require.NoError(t, storeErr)
+		require.NotNil(t, savedDraft2)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/active_editors"
+		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var response map[string]interface{}
+		err = json.NewDecoder(httpResp.Body).Decode(&response)
+		require.NoError(t, err)
+
+		userIds, ok := response["user_ids"].([]any)
+		require.True(t, ok)
+		assert.Len(t, userIds, 2)
+	})
+
+	t.Run("fail without read permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		privatePage := &model.Post{
+			ChannelId: privateChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Private page content",
+			Type:      model.PostTypePage,
+			Props: model.StringInterface{
+				"wiki_id": privateWiki.Id,
+			},
+		}
+		privatePage, appErr = th.App.CreatePost(th.Context, privatePage, privateChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		url := "/wikis/" + privateWiki.Id + "/pages/" + privatePage.Id + "/active_editors"
+		httpResp, err := client2.DoAPIGet(context.Background(), url, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail with invalid page id", func(t *testing.T) {
+		url := "/wikis/" + wiki.Id + "/pages/invalid123/active_editors"
+		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail when page is not actually a page", func(t *testing.T) {
+		regularPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Regular post",
+		}
+		regularPost, appErr := th.App.CreatePost(th.Context, regularPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		url := "/wikis/" + wiki.Id + "/pages/" + regularPost.Id + "/active_editors"
+		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
 	})

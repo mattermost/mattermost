@@ -198,13 +198,16 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
     await clickAIActionsMenuItem(page, 'Summarize to Page');
 
     // * Wait for page creation (AI processing can take time)
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(5000);
 
-    // # Navigate back to channel to ensure we can see wiki tab
-    await channelsPage.goto(team.name, channel.name);
+    // # Check if we're already on the wiki view (summarize action may auto-navigate)
+    const currentUrl = page.url();
+    const isOnWikiView = currentUrl.includes('/wiki/');
 
-    // # Switch to wiki to verify page was created
-    await switchToWikiTab(page, wikiName);
+    if (!isOnWikiView) {
+        // # Switch to wiki tab if we're still on messages view
+        await switchToWikiTab(page, wikiName);
+    }
 
     // * Verify page appears in the hierarchy panel
     const pageLink = await verifyPageInHierarchy(page, pageTitle, 10000);

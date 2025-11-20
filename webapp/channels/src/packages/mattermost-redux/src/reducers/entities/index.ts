@@ -3,6 +3,7 @@
 
 import {combineReducers} from 'redux';
 
+import activeEditors from './active_editors';
 import admin from './admin';
 import agents from './agents';
 import apps from './apps';
@@ -37,6 +38,7 @@ import wikis from './wikis';
 
 export default combineReducers({
     general,
+    activeEditors,
     agents,
     users,
     limits,

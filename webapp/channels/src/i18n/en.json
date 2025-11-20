@@ -6668,6 +6668,8 @@
   "widgets.users_emails_input.loading": "Loading",
   "widgets.users_emails_input.no_user_found_matching": "No one found matching **{text}**. Enter their email to invite them.",
   "widgets.users_emails_input.valid_email": "Add **{email}**",
+  "wiki.active_editors.currently_editing": "{count, plural, one {# person} other {# people}} editing",
+  "wiki.active_editors.error_loading": "Unable to load active editors",
   "wiki.author.aria": "Author: {username}",
   "wiki.author.by": "By {name}",
   "workspace_limits.archived_file.archived": "This file is archived",

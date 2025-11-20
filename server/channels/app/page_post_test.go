@@ -131,7 +131,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			Message:   "Inline comment without auto-follow",
 			Type:      model.PostTypePageComment,
 			Props: map[string]any{
-				"page_id":      page.Id,
+				"page_id":                  page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "para-222",
@@ -246,7 +246,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 			Message:   "Test inline comment",
 			Type:      model.PostTypePageComment,
 			Props: map[string]any{
-				"page_id":      page.Id,
+				"page_id":                  page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "test-node",
@@ -436,7 +436,7 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 			Type:      model.PostTypePageComment,
 			CreateAt:  model.GetMillis(),
 			Props: map[string]any{
-				"page_id":      page.Id,
+				"page_id":                  page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
 				"inline_anchor": map[string]any{
 					"nodeId": "dup-test",

@@ -110,8 +110,8 @@ export async function fillCreatePageModal(page: Page, pageTitle: string) {
 
     await createButton.click();
 
-    // # Wait for modal to close
-    await modalInput.waitFor({state: 'hidden', timeout: 5000});
+    // # Wait for modal to close (longer timeout as it waits for draft creation and navigation)
+    await modalInput.waitFor({state: 'hidden', timeout: 15000});
 }
 
 /**
@@ -289,11 +289,14 @@ export async function navigateToWikiView(page: Page, baseUrl: string, teamName: 
  * @param pageId - Page ID to navigate to
  */
 export async function navigateToPage(page: Page, baseUrl: string, teamName: string, channelId: string, wikiId: string, pageId: string) {
-    await page.goto(`${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`);
+    const url = `${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`;
+    await page.goto(url);
+
     await page.waitForLoadState('networkidle');
 
     // Wait for wiki view and page to load
     await waitForWikiViewLoad(page);
+
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
     await pageViewer.waitFor({state: 'visible', timeout: 10000});
 }
@@ -1356,42 +1359,14 @@ export async function enterEditMode(page: Page, timeout = 5000) {
     // Ensure button is enabled before clicking
     await expect(editButton).toBeEnabled({timeout});
 
-    // Log before clicking
-    console.log('[ENTER_EDIT_MODE] About to click Edit button');
-    const urlBefore = page.url();
-    console.log('[ENTER_EDIT_MODE] URL before click:', urlBefore);
-
-    // Add click listener to track the event
-    await page.evaluate(() => {
-        const editBtn = document.querySelector('[data-testid="wiki-page-edit-button"]');
-        if (editBtn) {
-            console.log('[CLIENT] Edit button found, adding listener');
-            editBtn.addEventListener('click', (e) => {
-                console.log('[CLIENT] Edit button clicked!', {
-                    target: e.target,
-                    currentTarget: e.currentTarget,
-                    defaultPrevented: e.defaultPrevented,
-                });
-            }, {once: true});
-        } else {
-            console.log('[CLIENT] Edit button NOT found in DOM');
-        }
-    });
-
     // Click and wait for navigation
     await editButton.click();
-    console.log('[ENTER_EDIT_MODE] Click executed, waiting for navigation');
 
     await page.waitForLoadState('networkidle', {timeout: 10000});
-    const urlAfter = page.url();
-    console.log('[ENTER_EDIT_MODE] URL after click:', urlAfter);
-    console.log('[ENTER_EDIT_MODE] URL changed:', urlBefore !== urlAfter);
 
     // Wait for the Publish button to appear (indicates we're actually in edit mode)
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    console.log('[ENTER_EDIT_MODE] Waiting for Publish button...');
     await publishButton.waitFor({state: 'visible', timeout});
-    console.log('[ENTER_EDIT_MODE] Publish button appeared, edit mode confirmed');
 }
 
 /**
@@ -2088,6 +2063,29 @@ export async function openPageContextMenu(page: Page, pageId: string): Promise<L
 }
 
 /**
+ * Deletes a page/draft through the UI using the context menu
+ * @param page - Playwright page object
+ * @param pageId - ID of the page
+ */
+export async function deletePageDraft(page: Page, pageId: string) {
+    await openPageContextMenu(page, pageId);
+
+    const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
+
+    // Wait for it to be visible
+    await deleteOption.waitFor({state: 'visible', timeout: 5000});
+
+    await deleteOption.click();
+
+    const deleteButton = page.locator('[data-testid="delete-button"]');
+    await deleteButton.waitFor({state: 'visible', timeout: 5000});
+
+    await deleteButton.click();
+
+    await page.waitForLoadState('networkidle');
+}
+
+/**
  * Deletes a page with specific options (cascade or move children)
  * This helper supports the hierarchy deletion scenarios
  * @param page - Playwright page object
@@ -2627,13 +2625,13 @@ export async function switchToMessagesTab(page: Page, timeout: number = 2000): P
  * @param timeout - Maximum time to wait for the tab (default: 10000ms)
  */
 export async function switchToWikiTab(page: Page, wikiName: string, timeout: number = 10000): Promise<void> {
-    // Try exact match first
-    let wikiTab = page.getByRole('button', {name: wikiName}).first();
+    // Try exact match first with 'tab' role
+    let wikiTab = page.getByRole('tab', {name: wikiName}).first();
     let isVisible = await wikiTab.isVisible().catch(() => false);
 
     // If not found with exact name, try regex pattern for case-insensitive match
     if (!isVisible) {
-        wikiTab = page.getByRole('button', {name: new RegExp(wikiName, 'i')}).first();
+        wikiTab = page.getByRole('tab', {name: new RegExp(wikiName, 'i')}).first();
     }
 
     await wikiTab.waitFor({state: 'visible', timeout});
@@ -2719,4 +2717,117 @@ export async function verifyPageInHierarchy(page: Page, pageTitle: string, timeo
     await expect(pageLink).toBeVisible({timeout});
 
     return pageLink;
+}
+
+/**
+ * Gets a page tree node by title from the hierarchy panel
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page to find
+ * @returns The page tree node locator
+ */
+export function getPageTreeNodeByTitle(page: Page, pageTitle: string): Locator {
+    const hierarchyPanel = getHierarchyPanel(page);
+    return hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+}
+
+/**
+ * Opens the three-dot menu for a page in the hierarchy panel by page title
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page
+ * @returns The context menu locator
+ */
+export async function openPageTreeNodeMenuByTitle(page: Page, pageTitle: string): Promise<Locator> {
+    const pageNode = getPageTreeNodeByTitle(page, pageTitle);
+    await pageNode.hover();
+
+    const threeDotButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await threeDotButton.waitFor({state: 'visible', timeout: 5000});
+    await threeDotButton.click();
+
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await contextMenu.waitFor({state: 'visible', timeout: 3000});
+
+    return contextMenu;
+}
+
+/**
+ * Opens the version history modal for a page by page title
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page
+ * @returns The version history modal locator
+ */
+export async function openVersionHistoryModal(page: Page, pageTitle: string): Promise<Locator> {
+    // # Open page three-dot menu
+    await openPageTreeNodeMenuByTitle(page, pageTitle);
+
+    // # Click "Version history" menu item
+    const versionHistoryMenuItem = page.getByText('Version history', {exact: true});
+    await versionHistoryMenuItem.waitFor({state: 'visible', timeout: 5000});
+    await versionHistoryMenuItem.click();
+
+    // # Wait for and return version history modal
+    const versionModal = page.locator('.page-version-history-modal');
+    await versionModal.waitFor({state: 'visible', timeout: 5000});
+
+    return versionModal;
+}
+
+/**
+ * Gets the version history modal if it's open
+ * @param page - Playwright page object
+ * @returns The version history modal locator
+ */
+export function getVersionHistoryModal(page: Page): Locator {
+    return page.locator('.page-version-history-modal');
+}
+
+/**
+ * Gets all version history items from the modal
+ * @param page - Playwright page object
+ * @returns Locator for all history items
+ */
+export function getVersionHistoryItems(page: Page): Locator {
+    const modal = getVersionHistoryModal(page);
+    return modal.locator('.edit-post-history__container');
+}
+
+/**
+ * Verifies the version history modal displays correct information
+ * @param page - Playwright page object
+ * @param pageTitle - Expected page title in modal header
+ * @param expectedVersionCount - Expected number of historical versions
+ */
+export async function verifyVersionHistoryModal(
+    page: Page,
+    pageTitle: string,
+    expectedVersionCount: number,
+) {
+    const versionModal = getVersionHistoryModal(page);
+    await expect(versionModal).toBeVisible();
+
+    // * Verify modal title contains page name
+    const modalHeader = versionModal.locator('.GenericModal__header');
+    await expect(modalHeader).toContainText(pageTitle);
+
+    // * Verify expected number of historical versions
+    const historyItems = getVersionHistoryItems(page);
+    await expect(historyItems).toHaveCount(expectedVersionCount, {timeout: 5000});
+}
+
+/**
+ * Appends content to the editor while in edit mode (does not click edit button)
+ * Useful for adding content when already editing a page
+ * @param page - Playwright page object
+ * @param newContent - Content to append
+ */
+export async function appendContentInEditor(page: Page, newContent: string) {
+    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+
+    // Move to end
+    await page.keyboard.press('End');
+
+    // Type new content
+    await editor.type(newContent);
 }

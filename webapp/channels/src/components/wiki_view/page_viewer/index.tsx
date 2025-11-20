@@ -20,7 +20,8 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import {usePageInlineComments} from '../hooks/usePageInlineComments';
-import InlineCommentModal from '../inline_comment_modal';
+import ActiveEditorsIndicator from 'components/active_editors_indicator/active_editors_indicator';
+import InlineCommentModal from 'components/inline_comment_modal';
 import TipTapEditor from '../wiki_page_editor/tiptap_editor';
 
 import './page_viewer.scss';
@@ -125,6 +126,12 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                 >
                     {pageTitle}
                 </h1>
+                {wikiId && (
+                    <ActiveEditorsIndicator
+                        wikiId={wikiId}
+                        pageId={pageId}
+                    />
+                )}
                 <div
                     className='PageViewer__meta'
                     data-testid='page-viewer-meta'

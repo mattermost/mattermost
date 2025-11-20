@@ -294,7 +294,7 @@ describe('usePageRewrite', () => {
                 setTextSelection: jest.fn().mockReturnThis(),
                 insertContent: jest.fn().mockReturnThis(),
                 run: jest.fn(),
-            }));
+            })) as any;
             mockEditor.chain = chainMock;
 
             const {result, rerender} = renderHookWithProps();

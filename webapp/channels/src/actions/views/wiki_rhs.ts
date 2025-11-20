@@ -23,3 +23,10 @@ export function setWikiRhsActiveTab(tab: 'page_comments' | 'all_threads') {
         tab,
     };
 }
+
+export function setFocusedInlineCommentId(commentId: string | null) {
+    return {
+        type: WikiRhsTypes.SET_FOCUSED_INLINE_COMMENT_ID,
+        commentId,
+    };
+}

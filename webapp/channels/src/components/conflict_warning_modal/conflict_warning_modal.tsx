@@ -54,7 +54,7 @@ export default function ConflictWarningModal({
                             <FormattedMessage
                                 id='conflict_warning.page_title'
                                 defaultMessage='Page: {title}'
-                                values={{title: currentPage.props?.title || 'Untitled'}}
+                                values={{title: (currentPage.props?.title as string | undefined) || 'Untitled'}}
                             />
                         </strong>
                         <br/>

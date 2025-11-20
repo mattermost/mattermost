@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -144,6 +145,65 @@ func (s *SqlPageDraftContentStore) GetForWiki(userId, wikiId string) ([]*model.P
 	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get PageDraftContents for userId=%s, wikiId=%s", userId, wikiId)
+	}
+	defer rows.Close()
+
+	contents := []*model.PageDraftContent{}
+
+	for rows.Next() {
+		var content model.PageDraftContent
+		var contentJSON sql.NullString
+
+		err = rows.Scan(
+			&content.UserId,
+			&content.WikiId,
+			&content.DraftId,
+			&content.Title,
+			&contentJSON,
+			&content.CreateAt,
+			&content.UpdateAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan PageDraftContent row")
+		}
+
+		if contentJSON.Valid && contentJSON.String != "" {
+			err = content.SetDocumentJSON(contentJSON.String)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse PageDraftContent content")
+			}
+		}
+
+		contents = append(contents, &content)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error iterating PageDraftContent rows")
+	}
+
+	return contents, nil
+}
+
+func (s *SqlPageDraftContentStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error) {
+	query := s.getQueryBuilder().
+		Select("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
+		From("PageDraftContents").
+		Where(sq.And{
+			sq.Eq{"DraftId": pageId},
+			sq.GtOrEq{"UpdateAt": minUpdateAt},
+		})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "page_draft_content_get_active_editors_tosql")
+	}
+
+	// DEBUG: Log the actual SQL query being executed
+	mlog.Info("Executing GetActiveEditorsForPage query", mlog.String("sql", queryString), mlog.Any("args", args))
+
+	rows, err := s.GetReplica().Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get active editors for pageId=%s", pageId)
 	}
 	defer rows.Close()
 

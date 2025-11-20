@@ -241,6 +241,9 @@ const state: GlobalState = {
             byChannel: {},
             byId: {},
         },
+        activeEditors: {
+            byPageId: {},
+        },
     },
     errors: [],
     requests: {

@@ -29,4 +29,7 @@ type PageStore interface {
 
 	// UpdatePageWithContent updates a page's title and/or content and creates edit history
 	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)
+
+	// GetPageVersionHistory fetches the version history for a page (limited to PostEditHistoryLimit versions)
+	GetPageVersionHistory(pageID string) ([]*model.Post, error)
 }

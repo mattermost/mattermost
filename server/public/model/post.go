@@ -72,6 +72,7 @@ const (
 	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 	PostPageMaxDepth      = 10                        // Maximum depth for page hierarchies
 	MaxPageTitleLength    = 255                       // Maximum length for page titles
+	PostEditHistoryLimit  = 10                        // Maximum number of edit history versions to store
 
 	PropsAddChannelMember = "add_channel_member"
 

@@ -28,8 +28,8 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import MoveWikiModal from './move_wiki_modal';
-import WikiDeleteModal from './wiki_delete_modal';
+import MoveWikiModal from 'components/move_wiki_modal';
+import WikiDeleteModal from 'components/wiki_delete_modal';
 
 type Props = {
     wiki: Wiki;

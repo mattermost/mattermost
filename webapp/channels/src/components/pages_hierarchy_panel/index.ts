@@ -6,9 +6,9 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
+import {getPageDraftsForWiki} from 'selectors/page_drafts';
 import {loadPages, createPage, updatePage, deletePage, movePage, movePageToWiki, duplicatePage} from 'actions/pages';
 import {toggleNodeExpanded, setSelectedPage, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
-import {getPageDraftsForWiki} from 'selectors/page_drafts';
 import {getPages, getPagesLoading, getPagesLastInvalidated} from 'selectors/pages';
 import {getExpandedNodes, getSelectedPageId, getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
@@ -21,6 +21,7 @@ type OwnProps = {
     channelId: string;
     currentPageId?: string;
     onPageSelect: (pageId: string) => void;
+    onVersionHistory?: (pageId: string) => void;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

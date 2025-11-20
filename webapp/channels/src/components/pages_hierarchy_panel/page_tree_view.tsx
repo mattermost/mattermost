@@ -9,12 +9,13 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {movePageInHierarchy} from 'actions/pages';
 
+import type {TreeNode} from 'selectors/pages_hierarchy';
+import {isDescendant} from 'selectors/pages_hierarchy';
+
 import type {GlobalState} from 'types/store';
 
 import HeadingNode from './heading_node';
 import PageTreeNode from './page_tree_node';
-import type {TreeNode} from './utils/tree_builder';
-import {isDescendant} from './utils/tree_builder';
 import {flattenTree, type FlatNode} from './utils/tree_flattener';
 
 import './page_tree_view.scss';
@@ -30,6 +31,7 @@ type NodeWrapperProps = {
     onMove?: (pageId: string) => void;
     onBookmarkInChannel?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
+    onVersionHistory?: (pageId: string) => void;
     isRenaming?: boolean;
     isDeleting?: boolean;
     wikiId?: string;
@@ -48,6 +50,7 @@ const PageTreeNodeWrapper = React.memo(({
     onMove,
     onBookmarkInChannel,
     onDelete,
+    onVersionHistory,
     isRenaming,
     isDeleting,
     wikiId,
@@ -73,6 +76,7 @@ const PageTreeNodeWrapper = React.memo(({
             onMove={onMove}
             onBookmarkInChannel={onBookmarkInChannel}
             onDelete={onDelete}
+            onVersionHistory={onVersionHistory}
             isRenaming={isRenaming}
             isDeleting={isDeleting}
             wikiId={wikiId}
@@ -95,6 +99,7 @@ type Props = {
     onMove?: (pageId: string) => void;
     onBookmarkInChannel?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
+    onVersionHistory?: (pageId: string) => void;
     deletingPageId?: string | null;
     wikiId?: string;
     channelId?: string;
@@ -113,6 +118,7 @@ const PageTreeView = ({
     onMove,
     onBookmarkInChannel,
     onDelete,
+    onVersionHistory,
     deletingPageId,
     wikiId,
     channelId,
@@ -250,6 +256,7 @@ const PageTreeView = ({
                                                     onMove={onMove}
                                                     onBookmarkInChannel={onBookmarkInChannel}
                                                     onDelete={onDelete}
+                                                    onVersionHistory={onVersionHistory}
                                                     isDeleting={deletingPageId === node.id}
                                                     wikiId={wikiId}
                                                     channelId={channelId}

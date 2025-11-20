@@ -62,6 +62,36 @@ func (_m *PageDraftContentStore) Get(userId string, wikiId string, draftId strin
 	return r0, r1
 }
 
+// GetActiveEditorsForPage provides a mock function with given fields: pageId, minUpdateAt
+func (_m *PageDraftContentStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error) {
+	ret := _m.Called(pageId, minUpdateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetActiveEditorsForPage")
+	}
+
+	var r0 []*model.PageDraftContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) ([]*model.PageDraftContent, error)); ok {
+		return rf(pageId, minUpdateAt)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) []*model.PageDraftContent); ok {
+		r0 = rf(pageId, minUpdateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PageDraftContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(pageId, minUpdateAt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForWiki provides a mock function with given fields: userId, wikiId
 func (_m *PageDraftContentStore) GetForWiki(userId string, wikiId string) ([]*model.PageDraftContent, error) {
 	ret := _m.Called(userId, wikiId)

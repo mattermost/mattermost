@@ -16,11 +16,11 @@ func TestBuildPageHierarchyCTE(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name        string
-		direction   PageHierarchyCTEDirection
-		excludeRoot bool
-		fullSelect  bool
-		mustContain []string
+		name           string
+		direction      PageHierarchyCTEDirection
+		excludeRoot    bool
+		fullSelect     bool
+		mustContain    []string
 		mustNotContain []string
 	}{
 		{

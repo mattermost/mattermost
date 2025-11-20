@@ -3,6 +3,7 @@
 
 import type {AnyAction} from 'redux';
 
+import ActiveEditorsTypes from './active_editors';
 import AdminTypes from './admin';
 import AgentTypes from './agents';
 import AppsTypes from './apps';
@@ -37,6 +38,7 @@ import UserTypes from './users';
 import WikiTypes from './wikis';
 
 export {
+    ActiveEditorsTypes,
     ErrorTypes,
     GeneralTypes,
     UserTypes,

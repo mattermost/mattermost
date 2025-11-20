@@ -174,7 +174,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.file_storage',
                 defaultMessage: 'File storage limit',
             }),
-            description: intl.formatMessage<ReactNode>(
+            description: intl.formatMessage(
                 description,
                 values,
             ),

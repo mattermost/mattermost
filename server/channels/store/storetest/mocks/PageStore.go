@@ -153,6 +153,36 @@ func (_m *PageStore) GetPageDescendants(postID string) (*model.PostList, error) 
 	return r0, r1
 }
 
+// GetPageVersionHistory provides a mock function with given fields: pageID
+func (_m *PageStore) GetPageVersionHistory(pageID string) ([]*model.Post, error) {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageVersionHistory")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.Post, error)); ok {
+		return rf(pageID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.Post); ok {
+		r0 = rf(pageID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pageID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // UpdatePageWithContent provides a mock function with given fields: rctx, pageID, title, content, searchText
 func (_m *PageStore) UpdatePageWithContent(rctx request.CTX, pageID string, title string, content string, searchText string) (*model.Post, error) {
 	ret := _m.Called(rctx, pageID, title, content, searchText)

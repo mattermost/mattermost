@@ -712,6 +712,8 @@ export const SocketEvents = {
     DRAFT_UPDATED: 'draft_updated',
     DRAFT_DELETED: 'draft_deleted',
     PAGE_PUBLISHED: 'page_published',
+    PAGE_DRAFT_DELETED: 'page_draft_deleted',
+    PAGE_EDITOR_STOPPED: 'page_editor_stopped',
     PAGE_COMMENT_RESOLVED: 'page_comment_resolved',
     PAGE_COMMENT_UNRESOLVED: 'page_comment_unresolved',
     PAGE_COMMENT_DELETED: 'page_comment_deleted',

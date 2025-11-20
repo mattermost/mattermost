@@ -10,8 +10,9 @@ import {Client4} from 'mattermost-redux/client';
 import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
+import {buildTree} from 'selectors/pages_hierarchy';
+
 import PageTreeView from './page_tree_view';
-import {buildTree} from './utils/tree_builder';
 
 describe('components/pages_hierarchy_panel/PageTreeView', () => {
     let testContext: WikiTestContext;

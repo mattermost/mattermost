@@ -1072,6 +1072,7 @@ type PageDraftContentStore interface {
 	Get(userId, wikiId, draftId string) (*model.PageDraftContent, error)
 	Delete(userId, wikiId, draftId string) error
 	GetForWiki(userId, wikiId string) ([]*model.PageDraftContent, error)
+	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error)
 }
 
 type PostAcknowledgementStore interface {

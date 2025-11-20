@@ -11,7 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {loadWiki} from 'actions/pages';
+import {getPageBreadcrumb, loadWiki} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
 
 import type {GlobalState} from 'types/store';
@@ -77,7 +77,13 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                             // Recursively fetch grandparent breadcrumb if it exists and is published
                             let items: BreadcrumbPath['items'] = [];
                             if (grandparentId && !isDraftId(grandparentId)) {
-                                const grandparentPath = await Client4.getPageBreadcrumb(wikiId, grandparentId);
+                                const result = await dispatch(getPageBreadcrumb(wikiId, grandparentId));
+                                if (result.error || !result.data) {
+                                    setError('Failed to load breadcrumb');
+                                    setIsLoading(false);
+                                    return;
+                                }
+                                const grandparentPath = result.data;
                                 items = [
                                     ...grandparentPath.items.map(fixBreadcrumbPath),
                                     {
@@ -121,7 +127,13 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                             setBreadcrumbPath(fixedPath);
                         } else {
                             // Parent is published - fetch parent breadcrumb and add draft as current page
-                            const parentPath = await Client4.getPageBreadcrumb(wikiId, parentPageId);
+                            const result = await dispatch(getPageBreadcrumb(wikiId, parentPageId));
+                            if (result.error || !result.data) {
+                                setError('Failed to load breadcrumb');
+                                setIsLoading(false);
+                                return;
+                            }
+                            const parentPath = result.data;
                             const fixedPath: BreadcrumbPath = {
                                 items: [
                                     ...parentPath.items.map(fixBreadcrumbPath),
@@ -167,7 +179,13 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     // Published page - get breadcrumb from server and fix paths
                     // Use the page's actual wiki ID (from metadata) if available, otherwise use URL wiki ID
                     const actualWikiId = (currentPage?.props?.wiki_id as string | undefined) || wikiId;
-                    const path = await Client4.getPageBreadcrumb(actualWikiId, pageId);
+                    const result = await dispatch(getPageBreadcrumb(actualWikiId, pageId));
+                    if (result.error || !result.data) {
+                        setError('Failed to load breadcrumb');
+                        setIsLoading(false);
+                        return;
+                    }
+                    const path = result.data;
 
                     const fixedPath: BreadcrumbPath = {
                         items: path.items.map(fixBreadcrumbPath),

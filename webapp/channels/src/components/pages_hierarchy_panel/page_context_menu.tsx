@@ -179,7 +179,7 @@ const PageContextMenu = ({
         {separator: true, id: 'sep2', label: '', icon: '', action: () => {}},
         {
             id: MENU_OPTION_IDS.VERSION_HISTORY,
-            label: 'Version History',
+            label: 'Version history',
             icon: 'icon-clock-outline',
             action: () => {
                 onVersionHistory?.();
@@ -191,6 +191,7 @@ const PageContextMenu = ({
             label: isDraft ? 'Delete draft' : 'Delete page',
             icon: 'icon-trash-can-outline',
             action: () => {
+                console.log('[CONTEXT_MENU] Delete action clicked', {pageId, isDraft});
                 onDelete?.();
                 onClose();
             },
@@ -205,9 +206,12 @@ const PageContextMenu = ({
         },
     ];
 
-    // Filter out bookmark option for drafts (can't bookmark unpublished pages)
+    // Filter out bookmark and version history options for drafts
     const filteredOptions = menuOptions.filter((option) => {
         if (isDraft && option.id === MENU_OPTION_IDS.BOOKMARK_IN_CHANNEL) {
+            return false;
+        }
+        if (isDraft && option.id === MENU_OPTION_IDS.VERSION_HISTORY) {
             return false;
         }
         return true;

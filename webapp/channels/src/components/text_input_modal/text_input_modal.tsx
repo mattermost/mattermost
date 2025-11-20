@@ -10,6 +10,8 @@ import {closeModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import './text_input_modal.scss';
+
 type Props = {
     show?: boolean;
     title: string;
@@ -101,38 +103,27 @@ const TextInputModal = ({
             isConfirmDisabled={!value.trim() || isSubmitting}
             autoCloseOnConfirmButton={false}
         >
-            <div style={{padding: '16px 0'}}>
+            <div className='TextInputModal__body'>
                 <label
                     htmlFor='text-input-modal-input'
-                    style={{
-                        display: 'block',
-                        marginBottom: '8px',
-                        fontWeight: 600,
-                    }}
+                    className='TextInputModal__label'
                 >
                     {title}
                 </label>
                 <input
                     id='text-input-modal-input'
                     type='text'
-                    className='form-control'
+                    className='form-control TextInputModal__input'
                     placeholder={placeholder}
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     autoFocus={true}
                     maxLength={maxLength}
-                    style={{width: '100%'}}
                     data-testid={inputTestId || 'text-input-modal-input'}
                 />
                 {helpText && (
-                    <small
-                        style={{
-                            display: 'block',
-                            marginTop: '8px',
-                            color: 'var(--center-channel-color-64)',
-                        }}
-                    >
+                    <small className='TextInputModal__help-text'>
                         {helpText}
                     </small>
                 )}

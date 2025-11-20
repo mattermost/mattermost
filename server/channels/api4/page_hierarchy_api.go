@@ -206,9 +206,9 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	)
 
 	type DuplicatePageRequest struct {
-		TargetWikiId  string  `json:"target_wiki_id"`
-		ParentPageId  *string `json:"parent_page_id,omitempty"`
-		Title         *string `json:"title,omitempty"`
+		TargetWikiId string  `json:"target_wiki_id"`
+		ParentPageId *string `json:"parent_page_id,omitempty"`
+		Title        *string `json:"title,omitempty"`
 	}
 
 	var req DuplicatePageRequest

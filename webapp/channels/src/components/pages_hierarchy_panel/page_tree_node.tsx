@@ -29,6 +29,7 @@ type Props = {
     onMove?: (pageId: string) => void;
     onBookmarkInChannel?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
+    onVersionHistory?: (pageId: string) => void;
     isRenaming?: boolean;
     isDeleting?: boolean;
     wikiId?: string;
@@ -47,6 +48,7 @@ const PageTreeNode = ({
     onMove,
     onBookmarkInChannel,
     onDelete,
+    onVersionHistory,
     isRenaming,
     isDeleting,
     wikiId,
@@ -213,6 +215,7 @@ const PageTreeNode = ({
                     onMove={() => onMove?.(node.id)}
                     onBookmarkInChannel={() => onBookmarkInChannel?.(node.id)}
                     onDelete={() => onDelete?.(node.id)}
+                    onVersionHistory={() => onVersionHistory?.(node.id)}
                     isDraft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
                     pageLink={pageLink}
                     isOutlineVisible={isOutlineVisible}

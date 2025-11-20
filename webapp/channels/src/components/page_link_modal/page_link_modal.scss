@@ -1,0 +1,107 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageLinkModal {
+    &__body {
+        padding: 16px 0;
+    }
+
+    &__label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    &__search-wrapper {
+        position: relative;
+        margin-bottom: 16px;
+    }
+
+    &__search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--center-channel-color-64);
+        font-size: 18px;
+        pointer-events: none;
+    }
+
+    &__search-input {
+        width: 100%;
+        padding-left: 40px;
+    }
+
+    &__results {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+        border: 1px solid var(--center-channel-color-16);
+        border-radius: 4px;
+    }
+
+    &__empty-state {
+        padding: 32px;
+        text-align: center;
+        color: var(--center-channel-color-64);
+    }
+
+    &__empty-icon {
+        font-size: 48px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    &__page-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        cursor: pointer;
+        background-color: transparent;
+        border-left: 4px solid transparent;
+        transition: all 0.1s;
+        font-weight: 400;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid var(--center-channel-color-08);
+        }
+
+        &--selected {
+            background-color: rgba(var(--button-bg-rgb), 0.16);
+            border-left-color: var(--button-bg);
+            font-weight: 600;
+        }
+    }
+
+    &__page-icon {
+        margin-right: 12px;
+        color: var(--center-channel-color-64);
+        font-size: 20px;
+    }
+
+    &__page-title {
+        flex: 1;
+    }
+
+    &__selected-icon {
+        color: var(--button-bg);
+        font-size: 18px;
+    }
+
+    &__link-input {
+        width: 100%;
+    }
+
+    &__help-text {
+        display: block;
+        margin-top: 8px;
+        color: var(--center-channel-color-64);
+    }
+
+    &__kbd {
+        padding: 2px 6px;
+        background-color: var(--center-channel-color-16);
+        border-radius: 3px;
+        font-size: 12px;
+    }
+}

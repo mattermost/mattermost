@@ -106,6 +106,12 @@ export type GlobalState = {
             byChannel: Record<string, string[]>;
             byId: Record<string, any>;
         };
+        activeEditors: {
+            byPageId: Record<string, Record<string, {
+                userId: string;
+                lastActivity: number;
+            }>>;
+        };
     };
     errors: any[];
     requests: {

@@ -47,7 +47,7 @@ import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
-import PageLinkModal from './page_link_modal';
+import PageLinkModal from 'components/page_link_modal';
 import {SlashCommandExtension} from './slash_command_extension';
 import usePageRewrite from './use_page_rewrite';
 

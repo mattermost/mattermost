@@ -8,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {getPageComments} from 'actions/pages';
 import {openWikiRhs, closeRightHandSide} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
@@ -39,7 +40,14 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         }
 
         try {
-            const comments = await Client4.getPageComments(wikiId, pageId);
+            const result = await dispatch(getPageComments(wikiId, pageId));
+
+            if (result.error || !result.data) {
+                setInlineComments([]);
+                return;
+            }
+
+            const comments = result.data;
 
             // Filter to only inline comments that are NOT resolved
             // Confluence behavior: resolved comments have their highlights removed

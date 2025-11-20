@@ -3,13 +3,12 @@
 
 import type {Post} from '@mattermost/types/posts';
 
-import {savePageDraft, makePageDraftKey} from 'actions/page_drafts';
-import {getGlobalItem} from 'selectors/storage';
+import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
+import {savePageDraft} from 'actions/page_drafts';
 
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
 
 /**
  * Checks if user has an existing draft with unsaved changes for the given page.
@@ -21,32 +20,26 @@ function checkForUnsavedDraft(
     pageId: string,
     publishedContent: string,
 ): {error: any} | null {
-    const draftKey = makePageDraftKey(wikiId, pageId);
-    const existingDraft = getGlobalItem<PostDraft | null>(state, draftKey, null);
+    if (!hasUnsavedChanges(state, wikiId, pageId, publishedContent)) {
+        return null;
+    }
 
+    const existingDraft = getPageDraft(state, wikiId, pageId);
     if (!existingDraft) {
         return null;
     }
 
-    const draftContent = existingDraft.message || '';
-    const publishedContentTrimmed = publishedContent || '';
-
-    if (draftContent !== publishedContentTrimmed) {
-        // Unsaved changes detected
-        return {
-            error: {
-                id: 'api.page.edit.unsaved_draft_exists',
-                message: 'You have unsaved changes in a previous draft',
-                data: {
-                    existingDraft,
-                    draftCreateAt: existingDraft.createAt,
-                    requiresConfirmation: true,
-                },
+    return {
+        error: {
+            id: 'api.page.edit.unsaved_draft_exists',
+            message: 'You have unsaved changes in a previous draft',
+            data: {
+                existingDraft,
+                draftCreateAt: existingDraft.createAt,
+                requiresConfirmation: true,
             },
-        };
-    }
-
-    return null;
+        },
+    };
 }
 
 /**

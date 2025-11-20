@@ -111,6 +111,11 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.Logger.Info("API: deletePageDraft called",
+		mlog.String("wiki_id", c.Params.WikiId),
+		mlog.String("draft_id", c.Params.DraftId),
+		mlog.String("user_id", c.AppContext.Session().UserId))
+
 	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
 	if appErr != nil {
 		c.Err = appErr
@@ -231,4 +236,34 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(post); err != nil {
 		c.Logger.Warn("Error encoding post response", mlog.Err(err))
 	}
+}
+
+func notifyEditorStopped(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequireDraftId()
+	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+	pageId := c.Params.DraftId
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPageEditorStopped, "", channel.Id, "", nil, "")
+	message.Add("page_id", pageId)
+	message.Add("user_id", userId)
+	c.App.Publish(message)
+
+	ReturnStatusOK(w)
 }

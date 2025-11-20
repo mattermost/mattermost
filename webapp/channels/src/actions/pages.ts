@@ -5,7 +5,7 @@ import {matchPath} from 'react-router-dom';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
-import type {Wiki} from '@mattermost/types/wikis';
+import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
 
 import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
@@ -15,13 +15,14 @@ import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {makePageDraftKey, loadPageDraftsForWiki, getUserDraftKeys} from 'actions/page_drafts';
+import {getPageDraft, getUserDraftKeysForPage} from 'selectors/page_drafts';
+
+import {loadPageDraftsForWiki} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {clearOutlineCache} from 'actions/views/pages_hierarchy';
-import {getGlobalItem} from 'selectors/storage';
 
 import {getHistory} from 'utils/browser_history';
-import {PageConstants} from 'utils/constants';
+import {PageConstants, StoragePrefixes} from 'utils/constants';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -78,9 +79,11 @@ export function loadPages(wikiId: string): ActionFuncAsync<Post[]> {
 
             return {data: pages};
         } catch (error) {
-            dispatch({type: GET_PAGES_FAILURE, data: {wikiId, error}});
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            dispatch(batchActions([
+                {type: GET_PAGES_FAILURE, data: {wikiId, error}},
+                logError(error),
+            ]));
             return {error};
         }
     };
@@ -302,8 +305,8 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
-        const draftKey = makePageDraftKey(wikiId, draftId);
-        const draft = getGlobalItem<PostDraft | null>(state, draftKey, null);
+        const draft = getPageDraft(state, wikiId, draftId);
+        const draftKey = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
 
         if (!draft) {
             return {error: {message: 'Draft not found'}};
@@ -418,8 +421,8 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             // Cleanup: Delete user's old drafts for this page
             const cleanupActions: any[] = [];
             if (pageId && currentUserId) {
-                const draftKeys = getUserDraftKeys(state, wikiId, pageId, currentUserId);
-                draftKeys.forEach((key) => {
+                const draftKeys = getUserDraftKeysForPage(state, wikiId, pageId);
+                draftKeys.forEach((key: string) => {
                     cleanupActions.push(removeGlobalItem(key));
                 });
             }
@@ -665,8 +668,7 @@ export function movePage(pageId: string, newParentId: string, wikiId: string): A
 function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const draftKey = makePageDraftKey(wikiId, draftId);
-        const draft = getGlobalItem<PostDraft | null>(state, draftKey, null);
+        const draft = getPageDraft(state, wikiId, draftId);
 
         if (!draft) {
             return {error: new Error('Draft not found')};
@@ -681,6 +683,7 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
             updateAt: Date.now(),
         };
 
+        const draftKey = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
         dispatch(setGlobalItem(draftKey, updatedDraft));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
@@ -832,6 +835,48 @@ export function publishPage(wikiId: string, pageId: string): ActionFuncAsync<Pos
     };
 }
 
+export function getPageComments(wikiId: string, pageId: string): ActionFuncAsync<Post[]> {
+    return async (dispatch, getState) => {
+        try {
+            const comments = await Client4.getPageComments(wikiId, pageId);
+
+            // Dispatch comments to Redux store (they are Posts)
+            if (comments && comments.length > 0) {
+                const postsById = comments.reduce((acc: Record<string, Post>, comment: Post) => {
+                    acc[comment.id] = comment;
+                    return acc;
+                }, {});
+
+                dispatch({
+                    type: PostActionTypes.RECEIVED_POSTS,
+                    data: {
+                        posts: postsById,
+                    },
+                });
+            }
+
+            return {data: comments};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsync<BreadcrumbPath> {
+    return async (dispatch, getState) => {
+        try {
+            const breadcrumb = await Client4.getPageBreadcrumb(wikiId, pageId);
+            return {data: breadcrumb};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
 export function createPageComment(wikiId: string, pageId: string, message: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         try {
@@ -970,6 +1015,17 @@ export function updatePageStatus(postId: string, status: string): ActionFuncAsyn
             }
 
             return {data: true};
+        } catch (error) {
+            return {error};
+        }
+    };
+}
+
+export function getPageVersionHistory(wikiId: string, pageId: string): ActionFuncAsync<Post[]> {
+    return async () => {
+        try {
+            const versionHistory = await Client4.getPageVersionHistory(wikiId, pageId);
+            return {data: versionHistory};
         } catch (error) {
             return {error};
         }

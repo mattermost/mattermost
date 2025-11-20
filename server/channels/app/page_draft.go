@@ -53,6 +53,14 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 			nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
+	// DEBUG: Log what we're about to upsert
+	rctx.Logger().Info("About to upsert PageDraftContent",
+		mlog.String("user_id", pageDraftContent.UserId),
+		mlog.String("wiki_id", pageDraftContent.WikiId),
+		mlog.String("draft_id", pageDraftContent.DraftId),
+		mlog.String("title", pageDraftContent.Title),
+		mlog.String("page_id_param", pageId))
+
 	savedContent, err := a.Srv().Store().PageDraftContent().Upsert(pageDraftContent)
 	if err != nil {
 		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page_content.app_error",
@@ -114,6 +122,21 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		Content:   savedContent.Content,
 	}
 
+	// Step 4: Send WebSocket event to notify other users of active editor
+	if pageId != "" {
+		// This is editing an existing page, send active editor notification
+		message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", channel.Id, "", nil, "")
+		message.Add("page_id", pageId)
+		message.Add("user_id", userId)
+		message.Add("timestamp", savedDraft.UpdateAt)
+		a.Publish(message)
+
+		rctx.Logger().Info("Sent draft updated WebSocket event for active editor",
+			mlog.String("page_id", pageId),
+			mlog.String("user_id", userId),
+			mlog.Int("timestamp", int(savedDraft.UpdateAt)))
+	}
+
 	return combinedDraft, nil
 }
 
@@ -173,7 +196,7 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, draftId string) (*m
 
 // DeletePageDraft deletes a page draft from both Drafts and PageDraftContents tables
 func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) *model.AppError {
-	rctx.Logger().Debug("Deleting page draft",
+	rctx.Logger().Info("Deleting page draft",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
 		mlog.String("draft_id", draftId))
@@ -182,6 +205,19 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
 		return model.NewAppError("DeletePageDraft", "app.draft.delete_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	}
+
+	// Check if this draft is for an existing page (draftId might be the pageId)
+	pageId := draftId // Use draftId as pageId for WebSocket event (works for both existing pages and new drafts)
+	_, postErr := a.GetSinglePost(rctx, draftId, false)
+	if postErr == nil {
+		rctx.Logger().Info("Draft deletion is for existing page",
+			mlog.String("page_id", pageId),
+			mlog.String("user_id", userId))
+	} else {
+		rctx.Logger().Info("Draft deletion is for new page draft",
+			mlog.String("draft_id", draftId),
+			mlog.String("user_id", userId))
 	}
 
 	// Delete from PageDraftContents table
@@ -200,6 +236,17 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) 
 		return model.NewAppError("DeletePageDraft", "app.draft.delete_page_metadata.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Always send WebSocket event to notify other users that this editor stopped editing
+	// The pageId/draftId is used to identify which page the editor was working on
+	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftDeleted, "", wiki.ChannelId, "", nil, "")
+	message.Add("page_id", pageId)
+	message.Add("user_id", userId)
+	a.Publish(message)
+
+	rctx.Logger().Info("Sent page draft deleted WebSocket event for active editor",
+		mlog.String("page_id", pageId),
+		mlog.String("user_id", userId))
 
 	return nil
 }
@@ -459,8 +506,8 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if err := a.validateCircularReference(rctx, pageId, parentId); err != nil {
-		return nil, err
+	if circErr := a.validateCircularReference(rctx, pageId, parentId); circErr != nil {
+		return nil, circErr
 	}
 
 	updatedPost, err := a.UpdatePage(rctx, pageId, title, content, searchText)
@@ -469,8 +516,8 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 	}
 
 	if parentId != existingPost.PageParentId {
-		if err := a.ChangePageParent(rctx, pageId, parentId); err != nil {
-			return nil, err
+		if parentErr := a.ChangePageParent(rctx, pageId, parentId); parentErr != nil {
+			return nil, parentErr
 		}
 		updatedPost, err = a.GetSinglePost(rctx, pageId, false)
 		if err != nil {

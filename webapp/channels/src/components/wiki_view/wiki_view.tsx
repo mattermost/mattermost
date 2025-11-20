@@ -25,7 +25,7 @@ import LoadingScreen from 'components/loading_screen';
 import MovePageModal from 'components/move_page_modal';
 import PageVersionHistoryModal from 'components/page_version_history';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
-import DeletePageModal from 'components/pages_hierarchy_panel/delete_page_modal';
+import DeletePageModal from 'components/delete_page_modal';
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/use_page_menu_handlers';
 import TextInputModal from 'components/text_input_modal';
 import UnsavedDraftModal from 'components/unsaved_draft_modal';
@@ -321,8 +321,8 @@ const WikiView = () => {
 
     // Check handleEdit result for unsaved draft error
     const onEdit = React.useCallback(async () => {
-        const result = await handleEdit();
-        if (result?.error?.id === 'api.page.edit.unsaved_draft_exists') {
+        const result = await handleEdit() as {error?: {id: string; data: any}} | {data: boolean} | undefined;
+        if (result && 'error' in result && result.error?.id === 'api.page.edit.unsaved_draft_exists') {
             setUnsavedDraftData(result.error.data);
             setShowUnsavedDraftModal(true);
         }
@@ -472,6 +472,7 @@ const WikiView = () => {
                             channelId={channelId}
                             currentPageId={pageId || draftId}
                             onPageSelect={handlePageSelect}
+                            onVersionHistory={handleVersionHistory}
                         />
                     )}
 
@@ -625,6 +626,7 @@ const WikiView = () => {
                             <PageVersionHistoryModal
                                 page={versionHistoryPage}
                                 pageTitle={pageTitle}
+                                wikiId={wikiId}
                                 onClose={handleCloseVersionHistory}
                             />
                         );

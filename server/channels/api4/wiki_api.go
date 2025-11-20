@@ -23,6 +23,8 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(createPage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getWikiPage)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePage)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/active_editors", api.APISessionRequired(getPageActiveEditors)).Methods(http.MethodGet)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/version_history", api.APISessionRequired(getPageVersionHistory)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/breadcrumb", api.APISessionRequired(getPageBreadcrumb)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/parent", api.APISessionRequired(updatePageParent)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/move", api.APISessionRequired(movePageToWiki)).Methods(http.MethodPut)
@@ -272,5 +274,102 @@ func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(movedWiki); err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
+}
+
+func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	pageId := c.Params.PageId
+
+	page, err := c.App.GetSinglePost(c.AppContext, pageId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if page.Type != model.PostTypePage {
+		c.Err = model.NewAppError("getPageActiveEditors", "api.wiki.get_page_active_editors.not_a_page", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	activeEditors, appErr := c.App.GetPageActiveEditors(c.AppContext, pageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.Header().Set("Cache-Control", "max-age=10")
+	if err := json.NewEncoder(w).Encode(activeEditors); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	pageId := c.Params.PageId
+
+	page, err := c.App.GetSinglePost(c.AppContext, pageId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if page.Type != model.PostTypePage {
+		c.Err = model.NewAppError("getPageVersionHistory", "api.wiki.get_page_version_history.not_a_page", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, pageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(versionHistory); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

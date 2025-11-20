@@ -12,6 +12,7 @@ import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {savePageDraft} from 'actions/page_drafts';
 import {loadChannelDefaultPage, publishPageDraft, loadPage, loadWiki} from 'actions/pages';
@@ -193,7 +194,7 @@ export function useWikiPageData(
 }
 
 type UseWikiPageActionsResult = {
-    handleEdit: () => Promise<void>;
+    handleEdit: () => Promise<ActionResult | undefined>;
     handlePublish: () => Promise<void>;
     handleTitleChange: (title: string) => void;
     handleContentChange: (content: string) => void;
@@ -523,7 +524,7 @@ export function useWikiPageActions(
 
     // Conflict modal handlers
     const handleConflictViewChanges = useCallback(() => {
-        if (conflictPageData) {
+        if (conflictPageData?.id && wikiId) {
             const teamName = getTeamNameFromPath(location.pathname);
             const pageUrl = getWikiUrl(teamName, channelId, wikiId, conflictPageData.id);
             window.open(pageUrl, '_blank');

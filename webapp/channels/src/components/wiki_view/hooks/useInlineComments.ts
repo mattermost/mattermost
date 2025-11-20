@@ -2,8 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {useState, useCallback} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
+import {receivedNewPost} from 'mattermost-redux/actions/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+
+import type {GlobalState} from 'types/store';
 
 type CommentAnchor = {
     text: string;
@@ -13,13 +18,15 @@ type CommentAnchor = {
 };
 
 export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCreated?: (commentId: string) => void) => {
+    const dispatch = useDispatch();
+    const crtEnabled = useSelector(isCollapsedThreadsEnabled);
     const [showCommentModal, setShowCommentModal] = useState(false);
     const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
 
     const handleCreateInlineComment = useCallback((anchor: CommentAnchor) => {
         setCommentAnchor(anchor);
         setShowCommentModal(true);
-    }, [pageId, wikiId]);
+    }, []);
 
     const handleSubmitComment = useCallback(async (message: string) => {
         if (!commentAnchor || !pageId || !wikiId) {
@@ -37,6 +44,8 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
         try {
             const result = await Client4.createPageComment(wikiId, pageId, message, payload);
 
+            dispatch(receivedNewPost(result, crtEnabled));
+
             if (onCommentCreated && result.id) {
                 onCommentCreated(result.id);
             }
@@ -47,7 +56,7 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
 
         setShowCommentModal(false);
         setCommentAnchor(null);
-    }, [commentAnchor, pageId, wikiId, onCommentCreated]);
+    }, [dispatch, crtEnabled, commentAnchor, pageId, wikiId, onCommentCreated]);
 
     const handleCloseModal = useCallback(() => {
         setShowCommentModal(false);

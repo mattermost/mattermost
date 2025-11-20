@@ -4,10 +4,13 @@
 package model
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -26,6 +29,35 @@ type PageContent struct {
 type TipTapDocument struct {
 	Type    string           `json:"type"`
 	Content []map[string]any `json:"content"`
+}
+
+// Scan implements the sql.Scanner interface for TipTapDocument
+func (td *TipTapDocument) Scan(value any) error {
+	if value == nil {
+		*td = TipTapDocument{Type: "doc", Content: []map[string]any{}}
+		return nil
+	}
+
+	buf, ok := value.([]byte)
+	if ok {
+		return json.Unmarshal(buf, td)
+	}
+
+	str, ok := value.(string)
+	if ok {
+		return json.Unmarshal([]byte(str), td)
+	}
+
+	return errors.New("received value is neither a byte slice nor string")
+}
+
+// Value implements the driver.Valuer interface for TipTapDocument
+func (td TipTapDocument) Value() (driver.Value, error) {
+	j, err := json.Marshal(td)
+	if err != nil {
+		return nil, err
+	}
+	return j, nil
 }
 
 func (pc *PageContent) IsValid() *AppError {

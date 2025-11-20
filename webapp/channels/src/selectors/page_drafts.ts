@@ -3,52 +3,69 @@
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
-import {makePageDraftKey} from 'actions/page_drafts';
+import {getGlobalItem} from 'selectors/storage';
 
 import {StoragePrefixes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
-// Input selectors
-const getStorage = (state: GlobalState) => state.storage?.storage || {};
-const getWikiId = (_state: GlobalState, wikiId: string) => wikiId;
+function makePageDraftKey(wikiId: string, pageId: string): string {
+    return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${pageId}`;
+}
+
+export function getPageDraft(state: GlobalState, wikiId: string, pageId: string): PostDraft | null {
+    const key = makePageDraftKey(wikiId, pageId);
+    return getGlobalItem<PostDraft | null>(state, key, null);
+}
+
+export function hasPageDraft(state: GlobalState, wikiId: string, pageId: string): boolean {
+    return getPageDraft(state, wikiId, pageId) !== null;
+}
+
+export function hasUnsavedChanges(state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean {
+    const draft = getPageDraft(state, wikiId, pageId);
+    if (!draft) {
+        return false;
+    }
+    return draft.message !== publishedContent;
+}
 
 export const getPageDraftsForWiki = createSelector(
     'getPageDraftsForWiki',
-    getStorage,
-    getWikiId,
+    (state: GlobalState) => state.storage.storage,
+    (_state: GlobalState, wikiId: string) => wikiId,
     (storage, wikiId) => {
-        if (!wikiId) {
-            return [];
-        }
-
         const prefix = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
         const drafts: PostDraft[] = [];
 
-        for (const key in storage) {
+        Object.keys(storage).forEach((key) => {
             if (key.startsWith(prefix)) {
                 const storedDraft = storage[key];
-                if (storedDraft?.value) {
+                if (storedDraft && storedDraft.value) {
                     drafts.push(storedDraft.value as PostDraft);
                 }
             }
-        }
+        });
 
-        const sorted = drafts.sort((a, b) => (a.createAt || 0) - (b.createAt || 0));
-        return sorted;
+        return drafts;
     },
 );
 
-export function getPageDraft(state: GlobalState, wikiId: string, draftId: string): PostDraft | null {
-    const key = makePageDraftKey(wikiId, draftId);
-    const storedDraft = state.storage.storage[key];
+export function getUserDraftKeysForPage(state: GlobalState, wikiId: string, pageId: string): string[] {
+    const prefix = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
+    const keys: string[] = [];
 
-    if (storedDraft && storedDraft.value) {
-        return storedDraft.value as PostDraft;
-    }
+    Object.keys(state.storage.storage).forEach((key) => {
+        if (key.startsWith(prefix)) {
+            const draft = state.storage.storage[key];
+            if (draft && typeof draft === 'object' && 'rootId' in draft && draft.rootId === pageId) {
+                keys.push(key);
+            }
+        }
+    });
 
-    return null;
+    return keys;
 }
 
 export function getFirstPageDraftForWiki(state: GlobalState, wikiId: string): PostDraft | null {

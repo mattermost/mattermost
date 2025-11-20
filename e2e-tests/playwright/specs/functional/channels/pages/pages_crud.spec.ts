@@ -3,7 +3,24 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, deletePageThroughUI, deleteDefaultDraftThroughUI, editPageThroughUI, getHierarchyPanel} from './test_helpers';
+import {
+    appendContentInEditor,
+    createChildPageThroughContextMenu,
+    createPageThroughUI,
+    createTestChannel,
+    createWikiThroughUI,
+    deleteDefaultDraftThroughUI,
+    deletePageThroughUI,
+    editPageThroughUI,
+    ensurePanelOpen,
+    getHierarchyPanel,
+    getPageTreeNodeByTitle,
+    getVersionHistoryItems,
+    getVersionHistoryModal,
+    openVersionHistoryModal,
+    publishPage,
+    verifyVersionHistoryModal,
+} from './test_helpers';
 
 /**
  * @objective Verify full page creation flow: create wiki through bookmarks UI, then create page
@@ -215,10 +232,6 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
     // * Verify status is displayed
     const status = page.locator('[data-testid="page-viewer-status"]');
     await expect(status).toBeVisible();
-});
-
-test.skip('shows page version history', {tag: '@pages'}, async ({pw}) => {
-    // Implementation TBD
 });
 
 test.skip('exports page to PDF', {tag: '@pages'}, async ({pw}) => {

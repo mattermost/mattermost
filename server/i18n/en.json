@@ -5531,6 +5531,22 @@
     "translation": "Unable to delete the Draft."
   },
   {
+    "id": "app.draft.delete_page.app_error",
+    "translation": "Unable to delete the page draft content."
+  },
+  {
+    "id": "app.draft.delete_page.wiki_not_found.app_error",
+    "translation": "Wiki not found for page draft."
+  },
+  {
+    "id": "app.draft.delete_page_content.app_error",
+    "translation": "Unable to delete page draft content."
+  },
+  {
+    "id": "app.draft.delete_page_metadata.app_error",
+    "translation": "Unable to delete page draft metadata."
+  },
+  {
     "id": "app.draft.feature_disabled",
     "translation": "Drafts feature is disabled."
   },
@@ -5547,8 +5563,88 @@
     "translation": "Unable to get files for Draft."
   },
   {
+    "id": "app.draft.get_page_draft.app_error",
+    "translation": "Unable to get page draft."
+  },
+  {
+    "id": "app.draft.get_page_draft.not_found",
+    "translation": "Page draft not found."
+  },
+  {
+    "id": "app.draft.get_page_draft.wiki_not_found.app_error",
+    "translation": "Wiki not found for page draft."
+  },
+  {
+    "id": "app.draft.get_page_draft_metadata.app_error",
+    "translation": "Unable to get page draft metadata."
+  },
+  {
+    "id": "app.draft.get_page_draft_metadata.not_found",
+    "translation": "Page draft metadata not found."
+  },
+  {
+    "id": "app.draft.get_wiki_drafts.channel_not_found.app_error",
+    "translation": "Channel not found for wiki drafts."
+  },
+  {
+    "id": "app.draft.get_wiki_drafts.deleted_channel.app_error",
+    "translation": "Cannot get drafts for archived channel."
+  },
+  {
+    "id": "app.draft.get_wiki_drafts.wiki_not_found.app_error",
+    "translation": "Wiki not found."
+  },
+  {
+    "id": "app.draft.get_wiki_drafts_content.app_error",
+    "translation": "Unable to get wiki page draft contents."
+  },
+  {
+    "id": "app.draft.get_wiki_drafts_metadata.app_error",
+    "translation": "Unable to get wiki page draft metadata."
+  },
+  {
+    "id": "app.draft.get_wiki_drafts.app_error",
+    "translation": "Unable to get wiki drafts."
+  },
+  {
+    "id": "app.draft.publish_page.content_error",
+    "translation": "Unable to resolve page draft content for publishing."
+  },
+  {
+    "id": "app.draft.publish_page.get_existing_error",
+    "translation": "Unable to get existing page for update."
+  },
+  {
+    "id": "app.draft.publish_page.not_found",
+    "translation": "Page draft not found for publishing."
+  },
+  {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.save_page.channel_not_found.app_error",
+    "translation": "Channel not found for page draft."
+  },
+  {
+    "id": "app.draft.save_page.deleted_channel.app_error",
+    "translation": "Cannot save draft for archived channel."
+  },
+  {
+    "id": "app.draft.save_page.invalid_content.app_error",
+    "translation": "Invalid content for page draft."
+  },
+  {
+    "id": "app.draft.save_page.wiki_not_found.app_error",
+    "translation": "Wiki not found for page draft."
+  },
+  {
+    "id": "app.draft.save_page_content.app_error",
+    "translation": "Unable to save page draft content."
+  },
+  {
+    "id": "app.draft.save_page_metadata.app_error",
+    "translation": "Unable to save page draft metadata."
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
@@ -6767,8 +6863,248 @@
     "translation": "Could not change active status of access control policy."
   },
   {
+    "id": "app.page.create.invalid_content.app_error",
+    "translation": "Invalid content for page."
+  },
+  {
+    "id": "app.page.create.invalid_parent.app_error",
+    "translation": "Parent page not found."
+  },
+  {
     "id": "app.page.create.max_depth_exceeded.app_error",
     "translation": "Page hierarchy cannot exceed maximum depth of {{.MaxDepth}} levels."
+  },
+  {
+    "id": "app.page.create.missing_title.app_error",
+    "translation": "Title is required for pages."
+  },
+  {
+    "id": "app.page.create.parent_different_channel.app_error",
+    "translation": "Parent page must be in the same channel."
+  },
+  {
+    "id": "app.page.create.parent_not_page.app_error",
+    "translation": "Parent must be a page."
+  },
+  {
+    "id": "app.page.create.permissions.app_error",
+    "translation": "You do not have permission to create a page."
+  },
+  {
+    "id": "app.page.create.save_content.app_error",
+    "translation": "Unable to save page content."
+  },
+  {
+    "id": "app.page.create.title_too_long.app_error",
+    "translation": "Page title is too long."
+  },
+  {
+    "id": "app.page.calculate_depth.get_ancestors_error",
+    "translation": "Unable to get page ancestors for depth calculation."
+  },
+  {
+    "id": "app.page.calculate_depth.not_found",
+    "translation": "Page not found for depth calculation."
+  },
+  {
+    "id": "app.page.change_parent.circular_reference.app_error",
+    "translation": "Cannot change parent: would create circular reference."
+  },
+  {
+    "id": "app.page.change_parent.get_ancestors.app_error",
+    "translation": "Unable to get page ancestors."
+  },
+  {
+    "id": "app.page.change_parent.invalid_parent.app_error",
+    "translation": "Invalid parent page."
+  },
+  {
+    "id": "app.page.change_parent.max_depth_exceeded.app_error",
+    "translation": "Changing parent would exceed maximum hierarchy depth."
+  },
+  {
+    "id": "app.page.change_parent.not_found.app_error",
+    "translation": "Page not found for parent change."
+  },
+  {
+    "id": "app.page.delete.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.delete.not_found.app_error",
+    "translation": "Page not found for deletion."
+  },
+  {
+    "id": "app.page.duplicate.channel_deleted",
+    "translation": "Cannot duplicate page to archived channel."
+  },
+  {
+    "id": "app.page.duplicate.content_not_found",
+    "translation": "Page content not found for duplication."
+  },
+  {
+    "id": "app.page.duplicate.cross_channel_not_supported",
+    "translation": "Cross-channel page duplication is not supported."
+  },
+  {
+    "id": "app.page.duplicate.not_a_page",
+    "translation": "Source post is not a page."
+  },
+  {
+    "id": "app.page.duplicate.serialize_content_failed",
+    "translation": "Unable to serialize page content."
+  },
+  {
+    "id": "app.page.duplicate.source_not_found",
+    "translation": "Source page not found for duplication."
+  },
+  {
+    "id": "app.page.duplicate.target_wiki_not_found",
+    "translation": "Target wiki not found for duplication."
+  },
+  {
+    "id": "app.page.get.content.app_error",
+    "translation": "Unable to get page content."
+  },
+  {
+    "id": "app.page.get.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.get.not_found.app_error",
+    "translation": "Page not found."
+  },
+  {
+    "id": "app.page.get.serialize_content.app_error",
+    "translation": "Unable to serialize page content."
+  },
+  {
+    "id": "app.page.get_field.app_error",
+    "translation": "Unable to get page field."
+  },
+  {
+    "id": "app.page.get_group.app_error",
+    "translation": "Unable to get page group."
+  },
+  {
+    "id": "app.page.get_status.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.get_status.page_not_found.app_error",
+    "translation": "Page not found."
+  },
+  {
+    "id": "app.page.get_status_field.app_error",
+    "translation": "Unable to get page status field."
+  },
+  {
+    "id": "app.page.get_version_history.app_error",
+    "translation": "Unable to get page version history."
+  },
+  {
+    "id": "app.page.move.channel_not_found",
+    "translation": "Channel not found for page move."
+  },
+  {
+    "id": "app.page.move.circular_reference",
+    "translation": "Cannot move page: would create circular reference."
+  },
+  {
+    "id": "app.page.move.cross_channel_not_supported",
+    "translation": "Cross-channel page moves are not supported."
+  },
+  {
+    "id": "app.page.move.failed",
+    "translation": "Failed to move page."
+  },
+  {
+    "id": "app.page.move.get_descendants_failed",
+    "translation": "Unable to get page descendants."
+  },
+  {
+    "id": "app.page.move.not_a_page",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.move.page_not_found",
+    "translation": "Page not found for move."
+  },
+  {
+    "id": "app.page.move.parent_not_a_page",
+    "translation": "Parent must be a page."
+  },
+  {
+    "id": "app.page.move.parent_not_found",
+    "translation": "Parent page not found."
+  },
+  {
+    "id": "app.page.move.parent_wiki_not_found",
+    "translation": "Parent page's wiki not found."
+  },
+  {
+    "id": "app.page.move.parent_wrong_wiki",
+    "translation": "Parent page must be in the target wiki."
+  },
+  {
+    "id": "app.page.move.self_parent",
+    "translation": "Cannot move page to itself as parent."
+  },
+  {
+    "id": "app.page.move.source_wiki_error",
+    "translation": "Error getting source wiki."
+  },
+  {
+    "id": "app.page.move.source_wiki_not_found",
+    "translation": "Source wiki not found."
+  },
+  {
+    "id": "app.page.move.target_wiki_not_found",
+    "translation": "Target wiki not found for page move."
+  },
+  {
+    "id": "app.page.move.wiki_channel_mismatch",
+    "translation": "Wiki and channel do not match."
+  },
+  {
+    "id": "app.page.set_status.app_error",
+    "translation": "Unable to set page status."
+  },
+  {
+    "id": "app.page.set_status.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.set_status.page_not_found.app_error",
+    "translation": "Page not found."
+  },
+  {
+    "id": "app.page.update.invalid_content.app_error",
+    "translation": "Invalid content for page update."
+  },
+  {
+    "id": "app.page.update.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.update.not_found.app_error",
+    "translation": "Page not found for update."
+  },
+  {
+    "id": "app.page.update.store_error.app_error",
+    "translation": "Unable to update page in store."
+  },
+  {
+    "id": "app.page.update.title_too_long.app_error",
+    "translation": "Page title is too long."
+  },
+  {
+    "id": "app.page.validate_status.invalid_value",
+    "translation": "Invalid status value."
+  },
+  {
+    "id": "app.page.validate_status.no_options",
+    "translation": "No status options available."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -8095,6 +8431,98 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "Password is not valid"
+  },
+  {
+    "id": "app.wiki.add_page.app_error",
+    "translation": "Unable to add page to wiki."
+  },
+  {
+    "id": "app.wiki.create.channel_not_found.app_error",
+    "translation": "Channel not found for wiki creation."
+  },
+  {
+    "id": "app.wiki.create.deleted_channel.app_error",
+    "translation": "Cannot create wiki in archived channel."
+  },
+  {
+    "id": "app.wiki.delete.app_error",
+    "translation": "Unable to delete wiki."
+  },
+  {
+    "id": "app.wiki.delete.delete_pages.app_error",
+    "translation": "Unable to delete wiki pages."
+  },
+  {
+    "id": "app.wiki.delete_page.app_error",
+    "translation": "Unable to delete wiki page."
+  },
+  {
+    "id": "app.wiki.delete_page.channel_not_found.app_error",
+    "translation": "Channel not found for wiki page deletion."
+  },
+  {
+    "id": "app.wiki.delete_page.deleted_channel.app_error",
+    "translation": "Cannot delete page from archived channel."
+  },
+  {
+    "id": "app.wiki.delete_page.wiki_not_found.app_error",
+    "translation": "Wiki not found for page deletion."
+  },
+  {
+    "id": "app.wiki.get.app_error",
+    "translation": "Unable to get wiki."
+  },
+  {
+    "id": "app.wiki.get_for_channel.app_error",
+    "translation": "Unable to get wikis for channel."
+  },
+  {
+    "id": "app.wiki.get_group.app_error",
+    "translation": "Unable to get wiki group."
+  },
+  {
+    "id": "app.wiki.get_pages.app_error",
+    "translation": "Unable to get wiki pages."
+  },
+  {
+    "id": "app.wiki.get_wiki_for_page.not_found",
+    "translation": "Wiki not found for page."
+  },
+  {
+    "id": "app.wiki.get_wiki_for_page.search_failed",
+    "translation": "Failed to search for wiki containing page."
+  },
+  {
+    "id": "app.wiki.get_wiki_for_page.unmarshal_failed",
+    "translation": "Failed to parse wiki data."
+  },
+  {
+    "id": "app.wiki.move_wiki.store_error.app_error",
+    "translation": "Unable to move wiki in store."
+  },
+  {
+    "id": "app.wiki.move_wiki_to_channel.cross_team_not_supported.app_error",
+    "translation": "Cross-team wiki moves are not supported."
+  },
+  {
+    "id": "app.wiki.move_wiki_to_channel.same_channel.app_error",
+    "translation": "Wiki is already in the target channel."
+  },
+  {
+    "id": "app.wiki.save.app_error",
+    "translation": "Unable to save wiki."
+  },
+  {
+    "id": "app.wiki.update.app_error",
+    "translation": "Unable to update wiki."
+  },
+  {
+    "id": "app.wiki.update.channel_not_found.app_error",
+    "translation": "Channel not found for wiki update."
+  },
+  {
+    "id": "app.wiki.update.deleted_channel.app_error",
+    "translation": "Cannot update wiki in archived channel."
   },
   {
     "id": "app.webhooks.analytics_incoming_count.app_error",

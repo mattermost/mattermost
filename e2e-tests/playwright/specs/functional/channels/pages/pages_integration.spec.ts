@@ -393,64 +393,6 @@ test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: 
 });
 
 /**
- * @objective Verify version history modal displays edit timestamps and authors
- *
- * @precondition
- * Version history shows when edits were made but does not yet support full content restoration
- */
-test('views version history modal with edit timestamps', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
-
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-
-    // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Version History Wiki ${pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Version History Page', 'Version 1 content');
-
-    // # Make first edit
-    await enterEditMode(page);
-    const editor = await getEditorAndWait(page);
-    await editor.click();
-    await editor.clear();
-    await editor.type('Version 2 content');
-    await publishPage(page);
-
-    // # Make second edit
-    await enterEditMode(page);
-    const editor2 = await getEditorAndWait(page);
-    await editor2.click();
-    await editor2.clear();
-    await editor2.type('Version 3 content');
-    await publishPage(page);
-
-    // # Open version history
-    await openPageActionsMenu(page);
-    await clickPageContextMenuItem(page, 'version-history');
-
-    // * Verify history modal opens
-    const historyModal = page.locator('.page-version-history-modal').first();
-    await expect(historyModal).toBeVisible({timeout: 3000});
-
-    // * Verify notice message about content snapshots
-    const noticeMessage = historyModal.locator('.page-version-history-modal__notice');
-    await expect(noticeMessage).toBeVisible();
-    await expect(noticeMessage).toContainText(/content.*restoration.*coming/i);
-
-    // * Verify the edit history component loaded (even if showing error or no history yet)
-    const editHistoryContainer = historyModal.locator('.sidebar-right__edit-post-history, .edit-post-history__error_container').first();
-    await expect(editHistoryContainer).toBeVisible({timeout: 3000});
-
-    // # Close modal
-    const closeButton = historyModal.locator('button').filter({hasText: /close|cancel/i}).first();
-    await closeButton.click();
-
-    // * Verify modal closed
-    await expect(historyModal).not.toBeVisible();
-});
-
-/**
  * @objective Verify complex workflow: multi-level hierarchy, comments, editing, permissions
  */
 test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {

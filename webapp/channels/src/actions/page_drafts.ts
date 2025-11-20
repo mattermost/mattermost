@@ -24,24 +24,8 @@ type PageDraft = {
     timestamp: Date;
 };
 
-export function makePageDraftKey(wikiId: string, draftId: string): string {
+function makePageDraftKey(wikiId: string, draftId: string): string {
     return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
-}
-
-export function getUserDraftKeys(state: GlobalState, wikiId: string, pageId: string, userId: string): string[] {
-    const prefix = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
-    const keys: string[] = [];
-
-    Object.keys(state.storage.storage).forEach((key) => {
-        if (key.startsWith(prefix)) {
-            const draft = state.storage.storage[key];
-            if (draft && typeof draft === 'object' && 'rootId' in draft && draft.rootId === pageId) {
-                keys.push(key);
-            }
-        }
-    });
-
-    return keys;
 }
 
 export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, draftId: string): PageDraft {
@@ -103,16 +87,20 @@ export function savePageDraft(
             show: true,
         };
 
-        dispatch(setGlobalItem(key, draft));
-        dispatch(setGlobalDraftSource(key, false));
+        dispatch(batchActions([
+            setGlobalItem(key, draft),
+            setGlobalDraftSource(key, false),
+        ]));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
                 const serverDraft = await Client4.savePageDraft(wikiId, draftId, message, title, pageId, additionalProps);
                 const transformedDraft = transformPageServerDraft(serverDraft, wikiId, draftId);
 
-                dispatch(setGlobalItem(key, transformedDraft.value));
-                dispatch(setGlobalDraftSource(key, true));
+                dispatch(batchActions([
+                    setGlobalItem(key, transformedDraft.value),
+                    setGlobalDraftSource(key, true),
+                ]));
             } catch (error) {
                 return {data: false, error};
             }

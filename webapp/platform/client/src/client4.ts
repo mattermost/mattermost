@@ -2122,6 +2122,20 @@ export default class Client4 {
         );
     };
 
+    getPageActiveEditors = (wikiId: string, pageId: string) => {
+        return this.doFetch<{user_ids: string[]; last_activities: Record<string, number>}>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/active_editors`,
+            {method: 'get'},
+        );
+    };
+
+    getPageVersionHistory = (wikiId: string, pageId: string) => {
+        return this.doFetch<Post[]>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/version_history`,
+            {method: 'get'},
+        );
+    };
+
     getChannelDefaultWikiPage = async (channelId: string) => {
         const wikis = await this.getChannelWikis(channelId, false);
         if (wikis.length === 0) {
@@ -4702,6 +4716,13 @@ export default class Client4 {
         return this.doFetch<null>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
             {method: 'DELETE'},
+        );
+    };
+
+    notifyPageEditorStopped = (wikiId: string, pageId: string) => {
+        return this.doFetch<null>(
+            `${this.getWikiRoute(wikiId)}/drafts/${pageId}/editor_stopped`,
+            {method: 'POST'},
         );
     };
 

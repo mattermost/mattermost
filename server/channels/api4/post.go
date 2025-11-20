@@ -548,14 +548,27 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
-	}
+	// Different permission model for pages vs regular posts
+	if originalPost.Type == model.PostTypePage {
+		// Wiki pages: Anyone with READ permission can view history
+		// This aligns with industry standard (Confluence, SharePoint, GitHub Wiki)
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+		// Skip author check for pages - any channel member can view history
+	} else {
+		// Regular posts: Keep existing restrictive model
+		// Only post author can view edit history (privacy for chat messages)
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 
-	if c.AppContext.Session().UserId != originalPost.UserId {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+		if c.AppContext.Session().UserId != originalPost.UserId {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	postsList, err := c.App.GetEditHistoryForPost(c.Params.PostId)
@@ -885,8 +898,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// For pages, use page-specific permissions instead of generic post edit permission
 	if originalPost.Type == model.PostTypePage {
-		if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "updatePost"); err != nil {
-			c.Err = err
+		if permErr := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "updatePost"); permErr != nil {
+			c.Err = permErr
 			return
 		}
 	} else {

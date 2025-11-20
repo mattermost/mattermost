@@ -35,6 +35,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
 
     // Convert drafts to Post-like objects and combine with pages
+    // If a draft exists for a page, it should replace the published page in the list
     const allPages = useMemo(() => {
         const draftPosts: Post[] = drafts.map((draft): Post => ({
             id: draft.rootId,
@@ -68,7 +69,13 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 images: {},
             },
         }));
-        return [...pages, ...draftPosts];
+
+        // Create a map of draft IDs for quick lookup
+        const draftIds = new Set(draftPosts.map((d) => d.id));
+
+        // Filter out published pages that have drafts, then add the drafts
+        const pagesWithoutDrafts = pages.filter((p) => !draftIds.has(p.id));
+        return [...pagesWithoutDrafts, ...draftPosts];
     }, [pages, drafts, currentUserId]);
 
     const [showCreatePageModal, setShowCreatePageModal] = useState(false);
@@ -201,20 +208,32 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, []);
 
     const handleDelete = useCallback((pageId: string) => {
+        console.log('[MENU_HANDLER] handleDelete called', {pageId});
         if (deletingPageId) {
+            console.log('[MENU_HANDLER] Already deleting a page, returning');
             return;
         }
         const page = allPages.find((p) => p.id === pageId);
         if (!page) {
+            console.log('[MENU_HANDLER] Page not found in allPages');
             return;
         }
         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
+        console.log('[MENU_HANDLER] handleDelete found page', {
+            pageId: page.id,
+            pageType: page.type,
+            isDraft,
+            PageDisplayTypes_PAGE_DRAFT: PageDisplayTypes.PAGE_DRAFT,
+        });
         if (isDraft) {
+            console.log('[MENU_HANDLER] Treating as draft, showing delete modal');
             setPageToDelete({page, childCount: 0});
             setShowDeleteModal(true);
             return;
         }
+        console.log('[MENU_HANDLER] Treating as published page, counting children');
         const childCount = getDescendantCount(pageId);
+        console.log('[MENU_HANDLER] Child count:', childCount);
         setPageToDelete({page, childCount});
         setShowDeleteModal(true);
     }, [allPages, deletingPageId, getDescendantCount]);
@@ -226,17 +245,28 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         const {page} = pageToDelete;
         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
 
+        console.log('[MENU_HANDLER] handleDeleteConfirm called', {
+            pageId: page.id,
+            pageType: page.type,
+            isDraft,
+            deleteChildren,
+        });
+
         setShowDeleteModal(false);
         setDeletingPageId(page.id);
 
         try {
             if (isDraft) {
+                console.log('[MENU_HANDLER] Calling removePageDraft for draft page');
                 const result = await dispatch(removePageDraft(wikiId, page.id));
                 if ((result as any).error) {
+                    console.error('[MENU_HANDLER] removePageDraft failed:', (result as any).error);
                     return;
                 }
+                console.log('[MENU_HANDLER] removePageDraft succeeded');
                 onPageSelect?.('');
             } else {
+                console.log('[MENU_HANDLER] Calling deletePage for published page');
                 if (deleteChildren) {
                     const descendantIds = getAllDescendantIds(page.id);
                     for (const descendantId of descendantIds.reverse()) {
@@ -249,8 +279,10 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 }
                 const result = await dispatch(deletePage(page.id, wikiId));
                 if ((result as any).error) {
+                    console.error('[MENU_HANDLER] deletePage failed:', (result as any).error);
                     return;
                 }
+                console.log('[MENU_HANDLER] deletePage succeeded');
 
                 const parentId = page.page_parent_id || '';
                 onPageSelect?.(parentId);

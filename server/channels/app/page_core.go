@@ -596,3 +596,61 @@ func (a *App) PermanentDeletePage(rctx request.CTX, pageID string) *model.AppErr
 
 	return nil
 }
+
+type PageActiveEditors struct {
+	UserIds        []string         `json:"user_ids"`
+	LastActivities map[string]int64 `json:"last_activities"`
+}
+
+func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActiveEditors, *model.AppError) {
+	rctx.Logger().Info("Fetching active editors for page", mlog.String("page_id", pageId))
+
+	fiveMinutesAgo := model.GetMillis() - (5 * 60 * 1000)
+	rctx.Logger().Info("Active editors query params",
+		mlog.String("page_id", pageId),
+		mlog.Int("five_minutes_ago", fiveMinutesAgo),
+		mlog.Int("current_time", model.GetMillis()))
+
+	drafts, err := a.Srv().Store().PageDraftContent().GetActiveEditorsForPage(pageId, fiveMinutesAgo)
+	if err != nil {
+		rctx.Logger().Error("Failed to get active editors", mlog.Err(err))
+		return nil, model.NewAppError("App.GetPageActiveEditors", "app.page.get_active_editors.get_drafts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("Retrieved drafts from database",
+		mlog.Int("draft_count", len(drafts)),
+		mlog.String("page_id", pageId),
+		mlog.Int("min_update_at", int(fiveMinutesAgo)))
+
+	userIds := []string{}
+	lastActivities := make(map[string]int64)
+
+	for _, draft := range drafts {
+		rctx.Logger().Debug("Processing draft",
+			mlog.String("user_id", draft.UserId),
+			mlog.String("draft_id", draft.DraftId),
+			mlog.Int("update_at", draft.UpdateAt))
+		userIds = append(userIds, draft.UserId)
+		lastActivities[draft.UserId] = draft.UpdateAt
+	}
+
+	rctx.Logger().Debug("Found active editors", mlog.Int("count", len(userIds)), mlog.String("page_id", pageId))
+
+	return &PageActiveEditors{
+		UserIds:        userIds,
+		LastActivities: lastActivities,
+	}, nil
+}
+
+func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string) ([]*model.Post, *model.AppError) {
+	rctx.Logger().Debug("Fetching version history for page", mlog.String("page_id", pageId))
+
+	posts, err := a.Srv().Store().Page().GetPageVersionHistory(pageId)
+	if err != nil {
+		return nil, model.NewAppError("App.GetPageVersionHistory", "app.page.get_version_history.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Debug("Found page version history", mlog.Int("count", len(posts)), mlog.String("page_id", pageId))
+
+	return posts, nil
+}

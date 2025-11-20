@@ -1,0 +1,71 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {useIntl} from 'react-intl';
+
+import {Client4} from 'mattermost-redux/client';
+
+import Avatar from 'components/widgets/users/avatar';
+
+import {useActiveEditors} from 'hooks/useActiveEditors';
+
+import './active_editors_indicator.scss';
+
+type Props = {
+    wikiId: string;
+    pageId: string;
+};
+
+export default function ActiveEditorsIndicator({wikiId, pageId}: Props) {
+    const intl = useIntl();
+    const editors = useActiveEditors(wikiId, pageId);
+
+    console.log('[ACTIVE_EDITORS_INDICATOR] Rendering with:', {
+        wikiId,
+        pageId,
+        editorsCount: editors.length,
+        editors: editors.map(e => ({userId: e.userId, username: e.user.username})),
+    });
+
+    if (editors.length === 0) {
+        console.log('[ACTIVE_EDITORS_INDICATOR] No editors, returning null');
+        return null;
+    }
+
+    console.log('[ACTIVE_EDITORS_INDICATOR] Showing indicator for', editors.length, 'editors');
+
+    const displayedEditors = editors.slice(0, 3);
+    const remainingCount = editors.length - 3;
+
+    return (
+        <div className='active-editors-indicator'>
+            <div className='active-editors-indicator__avatars'>
+                {displayedEditors.map((editor) => (
+                    <Avatar
+                        key={editor.userId}
+                        url={Client4.getProfilePictureUrl(editor.userId, editor.user.last_picture_update)}
+                        username={editor.user.username}
+                        size='sm'
+                        className='active-editors-indicator__avatar'
+                        data-testid={`active-editor-avatar-${editor.userId}`}
+                    />
+                ))}
+                {remainingCount > 0 && (
+                    <div className='active-editors-indicator__more'>
+                        {`+${remainingCount}`}
+                    </div>
+                )}
+            </div>
+            <span className='active-editors-indicator__text'>
+                {intl.formatMessage(
+                    {
+                        id: 'wiki.active_editors.currently_editing',
+                        defaultMessage: '{count, plural, one {# person} other {# people}} editing',
+                    },
+                    {count: editors.length},
+                )}
+            </span>
+        </div>
+    );
+}

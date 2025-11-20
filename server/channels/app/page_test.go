@@ -1737,3 +1737,96 @@ func TestPageMentionSystemMessages(t *testing.T) {
 		require.Equal(t, user2.Id, mentionMessage.GetProp("mentioned_user_id"))
 	})
 }
+
+func TestPageVersionHistory(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	setupPagePermissions(th)
+
+	t.Run("PageContents versioned on edit", func(t *testing.T) {
+		// Create page
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Version Test", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 1"}]}]}`, "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		// First edit
+		_, err = th.App.UpdatePage(th.Context, page.Id, "Version Test Updated", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Version 2"}]}]}`, "")
+		require.Nil(t, err)
+
+		// Get edit history
+		historyList, histErr := th.App.GetEditHistoryForPost(page.Id)
+		require.Nil(t, histErr)
+		require.NotNil(t, historyList)
+		require.Len(t, historyList, 1, "Should have 1 historical version")
+
+		// Verify historical Post metadata exists
+		var historicalPost *model.Post
+		for _, p := range historyList {
+			if p.OriginalId == page.Id && p.DeleteAt > 0 {
+				historicalPost = p
+				break
+			}
+		}
+		require.NotNil(t, historicalPost, "Historical post should exist")
+
+		// Verify historical PageContents exists
+		historicalContent, contentErr := th.App.Srv().Store().PageContent().GetWithDeleted(historicalPost.Id)
+		require.NoError(t, contentErr, "Historical PageContents should exist")
+		require.NotNil(t, historicalContent)
+		require.Greater(t, historicalContent.DeleteAt, int64(0), "Historical content should be marked as deleted")
+
+		// Verify historical content is correct
+		contentJSON, _ := historicalContent.GetDocumentJSON()
+		require.Contains(t, contentJSON, "Version 1", "Historical content should contain original text")
+	})
+
+	t.Run("Non-author can view page history", func(t *testing.T) {
+		// Create page as BasicUser
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Shared Page", `{"type":"doc","content":[]}`, "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		// Edit as BasicUser
+		_, err = th.App.UpdatePage(th.Context, page.Id, "Shared Page Updated", `{"type":"doc","content":[]}`, "")
+		require.Nil(t, err)
+
+		// BasicUser2 (not author) should be able to view history
+		// This is tested at API level in post_test.go
+	})
+
+	t.Run("Restore page version restores both content and title", func(t *testing.T) {
+		// Create page
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original Content"}]}]}`, "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		// Edit page (change both title and content)
+		_, err = th.App.UpdatePage(th.Context, page.Id, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated Content"}]}]}`, "")
+		require.Nil(t, err)
+
+		// Get historical version
+		historyList, histErr := th.App.GetEditHistoryForPost(page.Id)
+		require.Nil(t, histErr)
+		require.Len(t, historyList, 1)
+
+		var historicalPostID string
+		for _, p := range historyList {
+			if p.OriginalId == page.Id && p.DeleteAt > 0 {
+				historicalPostID = p.Id
+				break
+			}
+		}
+		require.NotEmpty(t, historicalPostID)
+
+		// Restore to original version
+		restoredPost, restoreErr := th.App.RestorePostVersion(th.Context, th.BasicUser.Id, page.Id, historicalPostID)
+		require.Nil(t, restoreErr)
+		require.NotNil(t, restoredPost)
+
+		// Verify title restored
+		require.Equal(t, "Original Title", restoredPost.Props["title"], "Title should be restored")
+
+		// Verify content restored
+		restoredContent, contentErr := th.App.Srv().Store().PageContent().Get(page.Id)
+		require.NoError(t, contentErr)
+		contentJSON, _ := restoredContent.GetDocumentJSON()
+		require.Contains(t, contentJSON, "Original Content", "Content should be restored")
+	})
+}

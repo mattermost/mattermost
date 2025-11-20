@@ -101,6 +101,8 @@ import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/sel
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
+import {handleActiveEditorDraftCreated, handleActiveEditorDraftUpdated, handleActiveEditorDraftDeleted, handleActiveEditorStopped} from 'hooks/useActiveEditors';
+
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -618,9 +620,25 @@ export function handleEvent(msg) {
     case SocketEvents.DRAFT_CREATED:
     case SocketEvents.DRAFT_UPDATED:
         dispatch(handleUpsertDraftEvent(msg));
+        // Handle active editors notification
+        if (msg.data.page_id && msg.data.user_id) {
+            dispatch(handleActiveEditorDraftUpdated(msg.data.page_id, msg.data.user_id, msg.data.timestamp));
+        }
         break;
     case SocketEvents.DRAFT_DELETED:
         dispatch(handleDeleteDraftEvent(msg));
+        break;
+    case SocketEvents.PAGE_DRAFT_DELETED:
+        // Handle active editors notification when page draft is deleted
+        if (msg.data.page_id && msg.data.user_id) {
+            dispatch(handleActiveEditorDraftDeleted(msg.data.page_id, msg.data.user_id));
+        }
+        break;
+    case SocketEvents.PAGE_EDITOR_STOPPED:
+        // Handle active editors notification when user stops editing (navigates away)
+        if (msg.data.page_id && msg.data.user_id) {
+            dispatch(handleActiveEditorStopped(msg.data.page_id, msg.data.user_id));
+        }
         break;
     case SocketEvents.PAGE_PUBLISHED:
         handlePagePublishedEvent(msg);
@@ -1860,8 +1878,21 @@ function handleUpsertDraftEvent(msg) {
             const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.draft_id);
             transformedDraft.value.show = true;
 
-            doDispatch(setGlobalItem(transformedDraft.key, transformedDraft.value));
-            doDispatch(setGlobalDraftSource(transformedDraft.key, true));
+            // Update active editors for this page
+            const pageId = draft.draft_id;
+            const userId = draft.user_id;
+            const timestamp = draft.update_at;
+            const isCreate = msg.event === SocketEvents.DRAFT_CREATED;
+
+            const activeEditorAction = isCreate ?
+                handleActiveEditorDraftCreated(pageId, userId, timestamp) :
+                handleActiveEditorDraftUpdated(pageId, userId, timestamp);
+
+            doDispatch(batchActions([
+                setGlobalItem(transformedDraft.key, transformedDraft.value),
+                setGlobalDraftSource(transformedDraft.key, true),
+                activeEditorAction,
+            ]));
         } else {
             // Handle channel draft
             const {key, value} = transformServerDraft(draft);
@@ -1917,6 +1948,16 @@ function handleDeleteScheduledPostEvent(msg) {
 function handleDeleteDraftEvent(msg) {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
+
+        // Check if this is a page draft
+        if (draft.wiki_id) {
+            const pageId = draft.draft_id;
+            const userId = draft.user_id;
+
+            // Remove editor from active editors list
+            doDispatch(handleActiveEditorDraftDeleted(pageId, userId));
+        }
+
         const {key} = transformServerDraft(draft);
 
         doDispatch(setGlobalItem(key, {
