@@ -99,7 +99,7 @@ const BotsList = ({
 
         if (ownerKeys.length > 0) {
             options.owners = {
-                name: formatMessage({id: 'bots.filter.owners', defaultMessage: 'Owner'}),
+                name: formatMessage({id: 'bots.filter.owners', defaultMessage: 'Managed By'}),
                 keys: ownerKeys,
                 values: ownerValues,
             };
