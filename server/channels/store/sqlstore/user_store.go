@@ -211,6 +211,34 @@ func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 	return userIds, nil
 }
 
+func (us SqlUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	curTime := model.GetMillis()
+	updateQuery := us.getQueryBuilder().Update("Users").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
+		Set("Roles", "system_user").
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"AuthService": model.UserAuthServiceMagicLink})
+
+	_, err := us.GetMaster().ExecBuilder(updateQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update Users with auth_service=magic_link")
+	}
+
+	selectQuery := us.getQueryBuilder().
+		Select("Id").
+		From("Users").
+		Where(sq.Eq{"DeleteAt": curTime})
+
+	userIds := []string{}
+	err = us.GetMaster().SelectBuilder(&userIds, selectQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Users")
+	}
+
+	return userIds, nil
+}
+
 func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
 	user.PreUpdate()
 

@@ -11339,6 +11339,22 @@ func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	return result, err
 }
 
+func (s *TimerLayerTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.GetTokenByTypeAndEmail(tokenType, email)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.GetTokenByTypeAndEmail", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	start := time.Now()
 
@@ -11622,6 +11638,22 @@ func (s *TimerLayerUserStore) DeactivateGuests() ([]string, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DeactivateGuests", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.DeactivateMagicLinkGuests()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DeactivateMagicLinkGuests", success, elapsed)
 	}
 	return result, err
 }
