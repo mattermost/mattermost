@@ -1185,10 +1185,6 @@
     "translation": "ongeldige aanvraag: Foutief client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "ongeldige aanvraag (invalid_request): Ontbrekend client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "ongeldige aanvraag: Foutief grant_type."
   },
@@ -11098,5 +11094,33 @@
   {
     "id": "app.content_flagging.set_thread_replies_properties.app_error",
     "translation": "Het is niet gelukt om eigenschappen in te stellen op antwoorden op het draadje voor het gemarkeerde bericht."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Permanente kanaalverwijdering is niet ingeschakeld. ServiceSettings.EnableAPIChannelDeletion moet op true staan om dit commando te kunnen gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "De permanente teamverwijderingsfunctie is niet ingeschakeld. ServiceSettings.EnableAPITeamDeletion moet op true staan om deze opdracht te kunnen gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "De permanente gebruikersverwijderingsfunctie is niet ingeschakeld. ServiceSettings.EnableAPIUserDeletion moet worden ingesteld op true om deze opdracht te gebruiken. Zie https://mattermost.com/pl/environment-configuration-settings voor meer informatie."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Fout bij het ophalen van de agenten."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call mislukt."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Fout bij het ophalen van de LLM-diensten."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call mislukt."
   }
 ]
