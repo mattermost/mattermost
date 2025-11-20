@@ -658,6 +658,27 @@ func (s *RetryLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, i
 
 }
 
+func (s *RetryLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+
+	tries := 0
+	for {
+		result, err := s.AccessControlPolicyStore.SetActiveStatusMultiple(rctx, list)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 
 	tries := 0
@@ -8536,11 +8557,11 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 
 }
 
-func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+		err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 		if err == nil {
 			return nil
 		}
@@ -14398,6 +14419,27 @@ func (s *RetryLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 
 }
 
+func (s *RetryLayerTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.GetTokenByTypeAndEmail(tokenType, email)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 
 	tries := 0
@@ -14566,7 +14608,7 @@ func (s *RetryLayerUserStore) AnalyticsActiveCount(timestamp int64, options mode
 
 }
 
-func (s *RetryLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (s *RetryLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 
 	tries := 0
 	for {
@@ -14745,6 +14787,27 @@ func (s *RetryLayerUserStore) DeactivateGuests() ([]string, error) {
 	tries := 0
 	for {
 		result, err := s.UserStore.DeactivateGuests()
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.DeactivateMagicLinkGuests()
 		if err == nil {
 			return result, nil
 		}
