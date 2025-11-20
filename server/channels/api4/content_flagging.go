@@ -73,7 +73,7 @@ func requireFlaggedPost(c *Context, postId string) {
 		return
 	}
 
-	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+	_, appErr := c.App.GetPostContentFlaggingPropertyValue(postId, app.ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		c.Err = appErr
 		return
