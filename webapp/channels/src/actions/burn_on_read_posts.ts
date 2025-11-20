@@ -20,22 +20,12 @@ import type {ActionFuncAsync} from 'types/store';
  */
 export function revealBurnOnReadPost(postId: string): ActionFuncAsync<{post: Post; expire_at: number}> {
     return async (dispatch, getState) => {
-        dispatch({
-            type: PostTypes.REVEAL_BURN_ON_READ_REQUEST,
-            data: {postId},
-        });
-
         let result;
 
         try {
             result = await Client4.revealBurnOnReadPost(postId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({
-                type: PostTypes.REVEAL_BURN_ON_READ_FAILURE,
-                data: {postId},
-                error,
-            });
             dispatch(logError(error));
             return {error};
         }
