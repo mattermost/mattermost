@@ -121,6 +121,18 @@ export default class Bots extends React.PureComponent<Props, State> {
         return this.props.actions.createUserAccessToken(userId, description);
     };
 
+    public enableToken = (tokenId: string): void => {
+        this.props.actions.enableUserAccessToken(tokenId);
+    };
+
+    public disableToken = (tokenId: string): void => {
+        this.props.actions.disableUserAccessToken(tokenId);
+    };
+
+    public revokeToken = (tokenId: string): void => {
+        this.props.actions.revokeUserAccessToken(tokenId);
+    };
+
     public render(): JSX.Element {
         // Convert bots object to array
         const botsArray = Object.values(this.props.bots);
@@ -137,6 +149,9 @@ export default class Bots extends React.PureComponent<Props, State> {
                 onDisable={this.disableBot}
                 onEnable={this.enableBot}
                 onCreateToken={this.createToken}
+                onEnableToken={this.enableToken}
+                onDisableToken={this.disableToken}
+                onRevokeToken={this.revokeToken}
                 loading={this.state.loading}
             />
         );

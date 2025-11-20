@@ -13,6 +13,9 @@ type Props = {
     tokens: Record<string, UserAccessToken>;
     show: boolean;
     onClose: () => void;
+    onEnableToken: (tokenId: string) => void;
+    onDisableToken: (tokenId: string) => void;
+    onRevokeToken: (tokenId: string) => void;
 };
 
 const BotTokensModal = ({
@@ -20,6 +23,9 @@ const BotTokensModal = ({
     tokens,
     show,
     onClose,
+    onEnableToken,
+    onDisableToken,
+    onRevokeToken,
 }: Props) => {
     const {formatMessage} = useIntl();
     const tokenList = Object.values(tokens);
@@ -68,6 +74,12 @@ const BotTokensModal = ({
                                         <FormattedMessage
                                             id='bot.tokens.list.status'
                                             defaultMessage='Status'
+                                        />
+                                    </th>
+                                    <th>
+                                        <FormattedMessage
+                                            id='bot.tokens.list.actions'
+                                            defaultMessage='Actions'
                                         />
                                     </th>
                                 </tr>
@@ -130,6 +142,43 @@ const BotTokensModal = ({
                                                     />
                                                 </span>
                                             )}
+                                        </td>
+                                        <td>
+                                            <div
+                                                className='d-flex align-items-center'
+                                                style={{gap: '8px'}}
+                                            >
+                                                {token.is_active ? (
+                                                    <button
+                                                        className='btn btn-sm btn-tertiary'
+                                                        onClick={() => onDisableToken(token.id)}
+                                                    >
+                                                        <FormattedMessage
+                                                            id='bot.tokens.list.disable'
+                                                            defaultMessage='Disable'
+                                                        />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        className='btn btn-sm btn-tertiary'
+                                                        onClick={() => onEnableToken(token.id)}
+                                                    >
+                                                        <FormattedMessage
+                                                            id='bot.tokens.list.enable'
+                                                            defaultMessage='Enable'
+                                                        />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    className='btn btn-sm btn-danger'
+                                                    onClick={() => onRevokeToken(token.id)}
+                                                >
+                                                    <FormattedMessage
+                                                        id='bot.tokens.list.revoke'
+                                                        defaultMessage='Revoke'
+                                                    />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

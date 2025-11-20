@@ -42,6 +42,9 @@ type Props = {
     onDisable: (bot: BotType) => void;
     onEnable: (bot: BotType) => void;
     onCreateToken: (userId: string, description: string) => Promise<{data?: UserAccessToken; error?: {message: string}}>;
+    onEnableToken: (tokenId: string) => void;
+    onDisableToken: (tokenId: string) => void;
+    onRevokeToken: (tokenId: string) => void;
     loading: boolean;
 };
 
@@ -56,6 +59,9 @@ const BotsList = ({
     onDisable,
     onEnable,
     onCreateToken,
+    onEnableToken,
+    onDisableToken,
+    onRevokeToken,
     loading,
 }: Props) => {
     const {formatMessage} = useIntl();
@@ -639,6 +645,9 @@ const BotsList = ({
                     tokens={accessTokens[selectedBotForTokenList.user_id] || {}}
                     show={selectedBotForTokenList !== null}
                     onClose={handleCloseTokenList}
+                    onEnableToken={onEnableToken}
+                    onDisableToken={onDisableToken}
+                    onRevokeToken={onRevokeToken}
                 />
             )}
         </div>
