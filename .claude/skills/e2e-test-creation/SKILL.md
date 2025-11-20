@@ -7,6 +7,105 @@ description: Automatically generates E2E Playwright tests for Mattermost fronten
 
 This skill helps you automatically generate comprehensive E2E tests for Mattermost using Playwright.
 
+## ⚠️ CRITICAL RULES - NEVER VIOLATE THESE
+
+### 🚫 Rule #1: NEVER Use Fake MM-T Numbers
+**WRONG:**
+```typescript
+test('MM-T5929 Configure team-specific reviewers', async ({pw}) => {
+  // This is WRONG - MM-T5929 doesn't exist in Zephyr!
+});
+```
+
+**CORRECT:**
+```typescript
+test('MM-TXXX Configure team-specific reviewers', async ({pw}) => {
+  // Use MM-TXXX as placeholder until real number from Zephyr
+});
+```
+
+**Why this matters:**
+- Fake MM-T numbers break Zephyr integration
+- Tests can't be tracked or reported correctly
+- Violates the entire workflow
+
+### 🚫 Rule #2: ALWAYS Run Tests ONE AT A TIME in Headed Chrome Mode
+**WRONG:**
+```bash
+npx playwright test file.spec.ts  # Runs all tests, all browsers
+```
+
+**CORRECT:**
+```bash
+npx playwright test file.spec.ts --headed --project=chrome --grep="MM-T5929"
+# Runs ONE test, in headed mode, Chrome only
+```
+
+**Why this matters:**
+- You need to see what's happening in the browser
+- Tests must pass one at a time before moving to next
+- Zephyr status updates happen per test, not in bulk
+
+### 🚫 Rule #3: MANDATORY User Approval Before Writing Code
+**WRONG:**
+```
+User: "Create E2E tests for feature X"
+AI: *immediately writes full test code*
+```
+
+**CORRECT:**
+```
+User: "Create E2E tests for feature X"
+AI: *creates test plan markdown*
+AI: "Here's the test plan. Should I proceed with skeleton files?"
+User: "Yes"
+AI: *creates skeleton files with MM-TXXX*
+AI: "Should I create Zephyr test cases?"
+User: "Yes"
+AI: *creates Zephyr cases, gets real MM-T numbers*
+AI: *implements FIRST test only*
+AI: *runs that ONE test in headed Chrome*
+```
+
+**Why this matters:**
+- Saves time and cost - user can reject bad plans early
+- User can review test scenarios before implementation
+- Prevents rework and wasted AI tokens
+
+### 🚫 Rule #4: Update Zephyr ONLY After Test Passes
+**WRONG:**
+```
+- Create Zephyr test case
+- Set status to "Active" immediately
+- Then try to run test (might fail)
+```
+
+**CORRECT:**
+```
+- Create Zephyr test case with status "Draft"
+- Implement test code
+- Run test in headed Chrome mode
+- IF test passes → Update Zephyr to "Active"
+- IF test fails → Fix and retry (max 3 attempts)
+```
+
+### 📋 The STRICT 10-Step Workflow
+
+When user says: *"Create E2E tests for [feature]"*
+
+1. ✅ Create test plan (markdown) → Get user approval
+2. ✅ Create skeleton files with `MM-TXXX` → Get user approval
+3. ✅ Ask: "Should I create Zephyr test cases?"
+4. ✅ Create Zephyr cases (status: **Draft**)
+5. ✅ Get real MM-T numbers (e.g., MM-T5929)
+6. ✅ Replace `MM-TXXX` with real numbers
+7. ✅ Implement **FIRST test only**
+8. ✅ Run: `npx playwright test file.spec.ts --headed --project=chrome --grep="MM-T5929"`
+9. ✅ If pass → Update Zephyr to **Active**
+10. ✅ Repeat steps 7-9 for next test
+
+**See [workflows/STRICT-WORKFLOW.md](workflows/STRICT-WORKFLOW.md) for detailed examples.**
+
 ## When This Skill is Used
 
 This skill is automatically activated when:

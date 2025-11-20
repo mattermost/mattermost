@@ -1,5 +1,19 @@
 # Main Workflow: Strict 10-Step Pipeline with Mandatory Zephyr
 
+## ⚠️ CRITICAL WARNING
+
+**BEFORE USING THIS WORKFLOW, READ:**
+- **[STRICT-WORKFLOW.md](STRICT-WORKFLOW.md)** - Contains critical rules and common mistakes
+- Violating these rules will break Zephyr integration and waste time/cost
+
+**Most common violations:**
+1. ❌ Using fake MM-T numbers (MM-T5929, etc.)
+2. ❌ Running all tests at once
+3. ❌ Skipping user approval
+4. ❌ Setting Zephyr to "Active" before test passes
+
+---
+
 ## Overview
 
 This workflow creates new E2E tests from scratch with **mandatory** Zephyr synchronization. All 10 steps must be completed - no optional steps.
@@ -8,9 +22,11 @@ This workflow creates new E2E tests from scratch with **mandatory** Zephyr synch
 - ❌ **NO optional steps** - All steps are mandatory
 - ❌ **NO skipping test execution** - Tests must pass before proceeding
 - ❌ **NO Zephyr bypass** - Zephyr sync is required
+- ❌ **NO fake MM-T numbers** - Use MM-TXXX until real IDs from Zephyr
 - ✅ **Strict validation** - Each stage validates before proceeding
 - ✅ **Auto-healing** - Tests are fixed until they pass
 - ✅ **Status updates** - Zephyr updated to "Active" only after tests pass
+- ✅ **One test at a time** - Run with --headed --project=chrome --grep
 
 ## Trigger
 

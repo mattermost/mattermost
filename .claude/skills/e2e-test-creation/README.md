@@ -2,6 +2,23 @@
 
 **Automatically generate E2E Playwright tests with Zephyr integration**
 
+## ⚠️ CRITICAL: Read This First!
+
+**Before using this skill, you MUST read:**
+- **[workflows/STRICT-WORKFLOW.md](workflows/STRICT-WORKFLOW.md)** - The ONLY correct way to create tests
+- **[skill.md](skill.md)** - Contains critical rules that must NEVER be violated
+
+**Common mistakes that break everything:**
+1. ❌ Using fake MM-T numbers (MM-T5929, etc.) instead of real Zephyr IDs
+2. ❌ Running all tests at once instead of one at a time
+3. ❌ Implementing all tests before validating first one
+4. ❌ Skipping user approval before writing code
+5. ❌ Setting Zephyr to "Active" before test passes
+
+**See [workflows/STRICT-WORKFLOW.md](workflows/STRICT-WORKFLOW.md) for detailed explanations.**
+
+---
+
 ## Overview
 
 This Claude skill provides automated E2E test generation for Mattermost using Playwright. It combines:
@@ -14,11 +31,43 @@ This Claude skill provides automated E2E test generation for Mattermost using Pl
 
 ## Table of Contents
 
-1. [Quick Start](#quick-start)
-2. [Setup](#setup)
-3. [Workflows](#workflows)
-4. [File Organization](#file-organization)
-5. [Documentation](#documentation)
+1. [⚠️ Critical Rules](#critical-rules)
+2. [Quick Start](#quick-start)
+3. [Setup](#setup)
+4. [Workflows](#workflows)
+5. [File Organization](#file-organization)
+6. [Documentation](#documentation)
+
+---
+
+## ⚠️ Critical Rules
+
+### Rule #1: NEVER Use Fake MM-T Numbers
+```typescript
+// ❌ WRONG - These don't exist in Zephyr
+test('MM-T5929 Configure...', async ({pw}) => {});
+
+// ✅ CORRECT - Use placeholder
+test('MM-TXXX Configure...', async ({pw}) => {});
+```
+
+### Rule #2: Run Tests ONE AT A TIME in Headed Chrome
+```bash
+# ❌ WRONG
+npx playwright test file.spec.ts
+
+# ✅ CORRECT
+npx playwright test file.spec.ts --headed --project=chrome --grep="MM-T5929"
+```
+
+### Rule #3: Get User Approval Before Writing Code
+```
+Step 1: Create test plan → Get approval
+Step 2: Create skeleton files → Get approval
+Step 3: Implement ONE test → Validate → Repeat
+```
+
+**See [workflows/STRICT-WORKFLOW.md](workflows/STRICT-WORKFLOW.md) for complete workflow.**
 
 ---
 
