@@ -25,7 +25,7 @@ function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
     const config = getConfig(state);
     const customProfileAttributeEnabled = isEnterpriseLicense(license) && isCustomProfileAttributesEnabled(state);
-    const customProfileAttributeFields = customProfileAttributeEnabled ? Object.values(getCustomProfileAttributes(state)) : [];
+    const customProfileAttributeFields = customProfileAttributeEnabled ? getCustomProfileAttributes(state) : [];
 
     const showManageUserSettings = getShowManageUserSettings(state);
     const showLockedManageUserSettings = getShowLockedManageUserSettings(state);

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {WebSocketEvents} from '@mattermost/client';
 import cloneDeep from 'lodash/cloneDeep';
+
+import {WebSocketEvents} from '@mattermost/client';
 
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';

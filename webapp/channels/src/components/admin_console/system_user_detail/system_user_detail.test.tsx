@@ -136,6 +136,26 @@ describe('SystemUserDetail', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should not fetch CPA data if disabled', async () => {
+        const getCustomProfileAttributeFields = jest.fn().mockResolvedValue({data: []});
+        const getCustomProfileAttributeValues = jest.fn().mockResolvedValue({data: {}});
+
+        const props = {
+            ...defaultProps,
+            customProfileAttributeEnabled: false,
+            getCustomProfileAttributeFields,
+            getCustomProfileAttributeValues,
+        };
+        const {container} = renderWithContext(<SystemUserDetail {...props}/>);
+
+        await waitForLoadingToFinish();
+
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        expect(getCustomProfileAttributeValues).not.toHaveBeenCalled();
+
+        expect(container).toMatchSnapshot();
+    });
+
     describe('change detection', () => {
         test('should detect email changes and enable save', async () => {
             const userEventInstance = userEvent.setup();
