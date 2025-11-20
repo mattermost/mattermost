@@ -244,6 +244,7 @@ export function sendGuestsInvites(
     users: UserProfile[],
     emails: string[],
     message: string,
+    guestMagicLink = false,
 ): ActionFuncAsync<InviteResults> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -264,7 +265,7 @@ export function sendGuestsInvites(
         if (emails.length > 0) {
             let response;
             try {
-                response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message));
+                response = await dispatch(TeamActions.sendEmailGuestInvitesToChannelsGracefully(teamId, channels.map((x) => x.id), emails, message, guestMagicLink));
             } catch (e) {
                 response = {
                     data: emails.map((email) => ({
