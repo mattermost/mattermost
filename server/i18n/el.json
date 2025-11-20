@@ -2353,10 +2353,6 @@
     "translation": "Σφάλμα κατά την προσπάθεια αποθήκευσης της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Λείπει το client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Λάθος client_id."
   },
