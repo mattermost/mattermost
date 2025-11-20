@@ -217,6 +217,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         Reflect.deleteProperty(props, 'onClick');
         Reflect.deleteProperty(props, 'hideUtilities');
         Reflect.deleteProperty(props, 'getFilePublicLink');
+        Reflect.deleteProperty(props, 'isFileRejected');
         Reflect.deleteProperty(props, 'intl');
 
         let ariaLabelImage = intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
