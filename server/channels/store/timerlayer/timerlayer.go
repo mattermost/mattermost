@@ -11467,7 +11467,7 @@ func (s *TimerLayerUserStore) AnalyticsActiveCount(timestamp int64, options mode
 	return result, err
 }
 
-func (s *TimerLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (s *TimerLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 	start := time.Now()
 
 	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
