@@ -22,6 +22,8 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import Filter from 'components/admin_console/filter/filter';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import {AdminConsoleListTable, LoadingStates} from 'components/admin_console/list_table';
+import BotTokensModal from 'components/integrations/bots/bot_tokens_modal';
+import CreateBotTokenModal from 'components/integrations/bots/create_bot_token_modal';
 import Timestamp from 'components/timestamp';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -39,7 +41,7 @@ type Props = {
     appsBotIDs: string[];
     onDisable: (bot: BotType) => void;
     onEnable: (bot: BotType) => void;
-    onCreateToken: (bot: BotType) => void;
+    onCreateToken: (userId: string, description: string) => Promise<{data?: UserAccessToken; error?: {message: string}}>;
     loading: boolean;
 };
 
@@ -60,6 +62,8 @@ const BotsList = ({
     const [globalFilter, setGlobalFilter] = useState('');
     const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
     const [expanded, setExpanded] = useState<ExpandedState>({});
+    const [selectedBotForToken, setSelectedBotForToken] = useState<BotType | null>(null);
+    const [selectedBotForTokenList, setSelectedBotForTokenList] = useState<BotType | null>(null);
 
     // Build filter options
     const filterOptionsToUse = useMemo((): FilterOptions => {
@@ -180,6 +184,26 @@ const BotsList = ({
         const hasStatusFilter = statusFilter?.keys.some((key) => statusFilter.values[key]?.value === true);
         return hasOwnerFilter || hasStatusFilter;
     }, [filterOptions]);
+
+    // Handle opening create token modal
+    const handleOpenCreateToken = useCallback((bot: BotType) => {
+        setSelectedBotForToken(bot);
+    }, []);
+
+    // Handle closing create token modal
+    const handleCloseCreateToken = useCallback(() => {
+        setSelectedBotForToken(null);
+    }, []);
+
+    // Handle opening token list modal
+    const handleOpenTokenList = useCallback((bot: BotType) => {
+        setSelectedBotForTokenList(bot);
+    }, []);
+
+    // Handle closing token list modal
+    const handleCloseTokenList = useCallback(() => {
+        setSelectedBotForTokenList(null);
+    }, []);
 
     // Define columns
     const columns = useMemo(() => [
@@ -381,13 +405,21 @@ const BotsList = ({
                 }
 
                 return (
-                    <span>
+                    <button
+                        className='color--link style--none'
+                        onClick={() => handleOpenTokenList(bot)}
+                        style={{
+                            padding: 0,
+                            textDecoration: 'underline',
+                            cursor: 'pointer',
+                        }}
+                    >
                         <FormattedMessage
                             id='bots.tokens.count'
                             defaultMessage='{count, number} {count, plural, one {token} other {tokens}}'
                             values={{count: tokenCount}}
                         />
-                    </span>
+                    </button>
                 );
             },
             enableSorting: false,
@@ -426,7 +458,7 @@ const BotsList = ({
                     >
                         <button
                             className='btn btn-sm btn-tertiary'
-                            onClick={() => onCreateToken(bot)}
+                            onClick={() => handleOpenCreateToken(bot)}
                         >
                             <FormattedMessage
                                 id='bot.manage.create_token'
@@ -456,7 +488,7 @@ const BotsList = ({
             },
             size: 280,
         }),
-    ], [users, owners, accessTokens, team, appsBotIDs, onDisable, onEnable, onCreateToken, formatMessage]);
+    ], [users, owners, accessTokens, team, appsBotIDs, onDisable, onEnable, handleOpenCreateToken, handleOpenTokenList, formatMessage]);
 
     // Create table instance
     const table = useReactTable({
@@ -580,6 +612,24 @@ const BotsList = ({
                     <AdminConsoleListTable table={table as any}/>
                 </div>
             </div>
+
+            {selectedBotForToken && (
+                <CreateBotTokenModal
+                    bot={selectedBotForToken}
+                    show={selectedBotForToken !== null}
+                    onClose={handleCloseCreateToken}
+                    onCreateToken={onCreateToken}
+                />
+            )}
+
+            {selectedBotForTokenList && accessTokens && (
+                <BotTokensModal
+                    bot={selectedBotForTokenList}
+                    tokens={accessTokens[selectedBotForTokenList.user_id] || {}}
+                    show={selectedBotForTokenList !== null}
+                    onClose={handleCloseTokenList}
+                />
+            )}
         </div>
     );
 };

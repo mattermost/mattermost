@@ -117,10 +117,8 @@ export default class Bots extends React.PureComponent<Props, State> {
         this.props.actions.enableBot(bot.user_id);
     };
 
-    public createToken = (bot: BotType): void => {
-        // TODO: Implement token creation modal/flow
-        // For now, users should use the edit page to create tokens
-        window.location.href = `/${this.props.team.name}/integrations/bots/edit?id=${bot.user_id}`;
+    public createToken = async (userId: string, description: string): Promise<{data?: UserAccessToken; error?: {message: string}}> => {
+        return this.props.actions.createUserAccessToken(userId, description);
     };
 
     public render(): JSX.Element {
