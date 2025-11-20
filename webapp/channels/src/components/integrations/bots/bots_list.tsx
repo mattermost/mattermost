@@ -351,8 +351,8 @@ const BotsList = ({
         }),
 
         columnHelper.display({
-            id: 'permissions',
-            header: formatMessage({id: 'bots.permissions', defaultMessage: 'Permissions'}),
+            id: 'role',
+            header: formatMessage({id: 'bots.role', defaultMessage: 'Role'}),
             cell: (info) => {
                 const bot = info.row.original;
                 const user = users[bot.user_id];
@@ -364,59 +364,87 @@ const BotsList = ({
 
                 const roles = user.roles ? user.roles.split(' ') : [];
                 const isSystemAdmin = roles.includes('system_admin');
+
+                return (
+                    <span
+                        style={{
+                            display: 'inline-block',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: isSystemAdmin ? 'rgba(var(--error-text-rgb), 0.08)' : 'rgba(var(--sys-center-channel-color-rgb), 0.08)',
+                            color: isSystemAdmin ? 'rgb(var(--error-text-rgb))' : 'rgb(var(--sys-center-channel-color-rgb))',
+                        }}
+                    >
+                        {isSystemAdmin ? (
+                            <FormattedMessage
+                                id='bots.role.admin'
+                                defaultMessage='Admin'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='bots.role.member'
+                                defaultMessage='Member'
+                            />
+                        )}
+                    </span>
+                );
+            },
+            enableSorting: true,
+            sortingFn: (rowA, rowB) => {
+                const userA = users[rowA.original.user_id];
+                const userB = users[rowB.original.user_id];
+                if (!userA || !userB) {
+                    return 0;
+                }
+                const rolesA = userA.roles ? userA.roles.split(' ') : [];
+                const rolesB = userB.roles ? userB.roles.split(' ') : [];
+                const isAdminA = rolesA.includes('system_admin') ? 1 : 0;
+                const isAdminB = rolesB.includes('system_admin') ? 1 : 0;
+                return isAdminB - isAdminA; // Admin first
+            },
+        }),
+
+        columnHelper.display({
+            id: 'post_permissions',
+            header: formatMessage({id: 'bots.post_permissions', defaultMessage: 'Post Permissions'}),
+            cell: (info) => {
+                const bot = info.row.original;
+                const user = users[bot.user_id];
+                const fromApp = appsBotIDs.includes(bot.user_id);
+
+                if (fromApp || !user) {
+                    return <span className='text-muted'>{'—'}</span>;
+                }
+
+                const roles = user.roles ? user.roles.split(' ') : [];
                 const hasPostAll = roles.includes('system_post_all');
                 const hasPostChannels = roles.includes('system_post_all_public');
 
                 return (
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
-                        <div>
-                            <span
-                                style={{
-                                    display: 'inline-block',
-                                    padding: '2px 6px',
-                                    borderRadius: '3px',
-                                    fontSize: '11px',
-                                    fontWeight: 600,
-                                    backgroundColor: isSystemAdmin ? 'rgba(var(--error-text-rgb), 0.08)' : 'rgba(var(--sys-center-channel-color-rgb), 0.08)',
-                                    color: isSystemAdmin ? 'rgb(var(--error-text-rgb))' : 'rgb(var(--sys-center-channel-color-rgb))',
-                                }}
-                            >
-                                {isSystemAdmin ? (
-                                    <FormattedMessage
-                                        id='bots.role.admin'
-                                        defaultMessage='Admin'
-                                    />
-                                ) : (
-                                    <FormattedMessage
-                                        id='bots.role.member'
-                                        defaultMessage='Member'
-                                    />
-                                )}
+                    <div style={{fontSize: '12px'}}>
+                        {hasPostAll && (
+                            <div>
+                                <FormattedMessage
+                                    id='bots.permissions.post_all'
+                                    defaultMessage='Post to all channels'
+                                />
+                            </div>
+                        )}
+                        {hasPostChannels && (
+                            <div>
+                                <FormattedMessage
+                                    id='bots.permissions.post_public'
+                                    defaultMessage='Post to public channels'
+                                />
+                            </div>
+                        )}
+                        {!hasPostAll && !hasPostChannels && (
+                            <span className='text-muted'>
+                                {'—'}
                             </span>
-                        </div>
-                        <div style={{fontSize: '11px', color: 'rgba(var(--sys-center-channel-color-rgb), 0.64)'}}>
-                            {hasPostAll && (
-                                <div>
-                                    <FormattedMessage
-                                        id='bots.permissions.post_all'
-                                        defaultMessage='Post to all channels'
-                                    />
-                                </div>
-                            )}
-                            {hasPostChannels && (
-                                <div>
-                                    <FormattedMessage
-                                        id='bots.permissions.post_public'
-                                        defaultMessage='Post to public channels'
-                                    />
-                                </div>
-                            )}
-                            {!hasPostAll && !hasPostChannels && (
-                                <span className='text-muted'>
-                                    {'—'}
-                                </span>
-                            )}
-                        </div>
+                        )}
                     </div>
                 );
             },
