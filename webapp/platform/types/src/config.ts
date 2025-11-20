@@ -403,6 +403,7 @@ export type ServiceSettings = {
     PostPriority: boolean;
     EnableAPIChannelDeletion: boolean;
     EnableAWSMetering: boolean;
+    AWSMeteringTimeoutSeconds: number;
     SplitKey: string;
     FeatureFlagSyncIntervalSeconds: number;
     DebugSplit: boolean;

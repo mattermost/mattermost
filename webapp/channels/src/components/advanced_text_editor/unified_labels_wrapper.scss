@@ -14,19 +14,24 @@
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
-        transition: all 0.15s ease;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
-
-        &:active {
-            background: rgba(var(--center-channel-color-rgb), 0.16);
-        }
+        opacity: 0;
+        transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 
         svg {
             display: block;
         }
+    }
+
+    &:hover &__close {
+        opacity: 1;
+    }
+
+    &__close:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__close:active {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
     }
 }

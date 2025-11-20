@@ -10,13 +10,13 @@
 
     &__badge {
         display: flex;
-        height: 20px;
+        height: 16px;
         align-items: center;
-        padding: 2px 8px;
+        padding: 0 6px;
         border-radius: 4px;
         background-color: rgba(var(--error-text-color-rgb), 0.08);
         color: var(--error-text);
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 600;
         gap: 4px;
     }
@@ -42,16 +42,21 @@
         background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
-        transition: background-color 0.15s ease, color 0.15s ease;
+        opacity: 0;
+        transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    }
 
-        &:hover {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: rgb(var(--button-bg-rgb));
-        }
+    &:hover &__close {
+        opacity: 1;
+    }
 
-        &:active {
-            background-color: rgba(var(--button-bg-rgb), 0.16);
-            color: rgb(var(--button-bg-rgb));
-        }
+    &__close:hover {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+    }
+
+    &__close:active {
+        background-color: rgba(var(--button-bg-rgb), 0.16);
+        color: rgb(var(--button-bg-rgb));
     }
 }

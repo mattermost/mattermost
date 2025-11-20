@@ -665,12 +665,11 @@ function PostComponent(props: Props) {
                                 }
                                 {priority}
                                 {burnOnReadBadge}
-                                {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
-                                    typeof post.props.ai_generated_by === 'string' &&
-                                    typeof post.props.ai_generated_by_username === 'string' && (
+                                {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
+                                    PostUtils.hasAiGeneratedMetadata(post) && (
                                     <AiGeneratedIndicator
-                                        userId={post.props.ai_generated_by}
-                                        username={post.props.ai_generated_by_username}
+                                        userId={post.props.ai_generated_by as string}
+                                        username={post.props.ai_generated_by_username as string}
                                         postAuthorId={post.user_id}
                                     />
                                 )}
