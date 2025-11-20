@@ -2932,7 +2932,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'dropdown',
                                     key: 'ServiceSettings.CollapsedThreads',
                                     label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
-                                    help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
+                                    help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users have the option to enable Threaded Discussions in Account Settings. When enabled (default on), users see Threaded Discussions by default and have the option to disable it in Account Settings. When always on, users are required to use Threaded Discussions and cannot disable it.'}),
                                     help_text_values: {
                                         linkKnownIssues: (msg: string) => (
                                             <ExternalLink
@@ -3452,7 +3452,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'WranglerSettings.MoveThreadToAnotherTeamEnable',
                             label: defineMessage({id: 'admin.experimental.moveThreadToAnotherTeamEnable.title', defaultMessage: 'Enable Moving Threads To Different Teams'}),
-                            help_text: defineMessage({id: 'admin.experimental.moveThreadToAnotherTeamEnable.desc', defaultMessage: 'Control whether Wrangler is permitted to move message threads from one team to another or not.'}),
+                            help_text: defineMessage({id: 'admin.experimental.moveThreadToAnotherTeamEnable.desc', defaultMessage: 'Control whether move thread is permitted to move message threads from one team to another or not.'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
@@ -3460,7 +3460,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'WranglerSettings.MoveThreadFromPrivateChannelEnable',
                             label: defineMessage({id: 'admin.experimental.moveThreadFromPrivateChannelEnable.title', defaultMessage: 'Enable Moving Threads From Private Channels'}),
-                            help_text: defineMessage({id: 'admin.experimental.moveThreadFromPrivateChannelEnable.desc', defaultMessage: 'Control whether Wrangler is permitted to move message threads from private channels or not.'}),
+                            help_text: defineMessage({id: 'admin.experimental.moveThreadFromPrivateChannelEnable.desc', defaultMessage: 'Control whether move thread is permitted to move message threads from private channels or not.'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
@@ -3468,7 +3468,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'WranglerSettings.MoveThreadFromDirectMessageChannelEnable',
                             label: defineMessage({id: 'admin.experimental.moveThreadFromDirectMessageChannelEnable.title', defaultMessage: 'Enable Moving Threads From Direct Message Channels'}),
-                            help_text: defineMessage({id: 'admin.experimental.moveThreadFromDirectMessageChannelEnable.desc', defaultMessage: 'Control whether Wrangler is permitted to move message threads from direct message channels or not.'}),
+                            help_text: defineMessage({id: 'admin.experimental.moveThreadFromDirectMessageChannelEnable.desc', defaultMessage: 'Control whether move thread is permitted to move message threads from direct message channels or not.'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
@@ -3476,7 +3476,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'WranglerSettings.MoveThreadFromGroupMessageChannelEnable',
                             label: defineMessage({id: 'admin.experimental.moveThreadFromGroupMessageChannelEnable.title', defaultMessage: 'Enable Moving Threads From Group Message Channels'}),
-                            help_text: defineMessage({id: 'admin.experimental.moveThreadFromGroupMessageChannelEnable.desc', defaultMessage: 'Control whether Wrangler is permitted to move message threads from group message channels or not.'}),
+                            help_text: defineMessage({id: 'admin.experimental.moveThreadFromGroupMessageChannelEnable.desc', defaultMessage: 'Control whether move thread is permitted to move message threads from group message channels or not.'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
@@ -5933,7 +5933,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.ExperimentalEnableAuthenticationTransfer',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableAuthenticationTransfer.title', defaultMessage: 'Allow Authentication Transfer:'}),
-                            help_text: defineMessage({id: 'admin.experimental.experimentalEnableAuthenticationTransfer.desc', defaultMessage: 'When true, users can change their sign-in method to any that is enabled on the server, any via Account Settings or the APIs. When false, Users cannot change their sign-in method, regardless of which authentication options are enabled.'}),
+                            help_text: defineMessage({id: 'admin.experimental.experimentalEnableAuthenticationTransfer.desc', defaultMessage: 'When true, users can change their sign-in method to any that is enabled on the server, either via their Profile or the APIs. When false, Users cannot change their sign-in method, regardless of which authentication options are enabled.'}),
                             help_text_markdown: false,
                             isHidden: it.any( // documented as E20 and higher, but only E10 in the code
                                 it.not(it.licensed),

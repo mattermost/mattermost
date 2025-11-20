@@ -132,7 +132,7 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                 subtitle={
                     <FormattedMessage
                         id='admin.customProfileAttributes.subtitle'
-                        defaultMessage='You can add or remove custom profile attributes by going to the <link>system properties page</link>.'
+                        defaultMessage='You can add or remove custom profile attributes by going to the <link>user attributes page</link>.'
                         values={{
                             link: (msg) => (
                                 <Link
