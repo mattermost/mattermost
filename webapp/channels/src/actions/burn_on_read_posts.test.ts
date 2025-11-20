@@ -42,18 +42,13 @@ describe('burn_on_read_posts actions', () => {
             },
         };
 
-        it('should dispatch request and success actions on successful reveal', async () => {
+        it('should dispatch success action on successful reveal', async () => {
             (Client4.revealBurnOnReadPost as jest.Mock) = jest.fn().mockResolvedValue(mockResponse);
 
             const dispatch = jest.fn();
             const getState = jest.fn().mockReturnValue(mockState);
 
             const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
-
-            expect(dispatch).toHaveBeenCalledWith({
-                type: PostTypes.REVEAL_BURN_ON_READ_REQUEST,
-                data: {postId: 'post123'},
-            });
 
             expect(Client4.revealBurnOnReadPost).toHaveBeenCalledWith('post123');
 
@@ -68,7 +63,7 @@ describe('burn_on_read_posts actions', () => {
             expect(result).toEqual({data: mockResponse});
         });
 
-        it('should dispatch request and failure actions on error', async () => {
+        it('should return error on failure', async () => {
             const mockError = {
                 message: 'Not found',
                 status_code: 404,
@@ -81,19 +76,10 @@ describe('burn_on_read_posts actions', () => {
 
             const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
 
-            expect(dispatch).toHaveBeenCalledWith({
-                type: PostTypes.REVEAL_BURN_ON_READ_REQUEST,
-                data: {postId: 'post123'},
-            });
-
-            expect(dispatch).toHaveBeenCalledWith({
-                type: PostTypes.REVEAL_BURN_ON_READ_FAILURE,
-                data: {postId: 'post123'},
-                error: mockError,
-            });
-
-            // Should also dispatch logError action
-            expect(dispatch).toHaveBeenCalledTimes(3); // REQUEST, FAILURE, logError
+            // Should dispatch logError action
+            expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+                type: 'RECEIVED_ERROR',
+            }));
 
             expect(result).toEqual({error: mockError});
         });
@@ -107,10 +93,6 @@ describe('burn_on_read_posts actions', () => {
             const getState = jest.fn().mockReturnValue(mockState);
 
             const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
-
-            expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-                type: PostTypes.REVEAL_BURN_ON_READ_FAILURE,
-            }));
 
             expect(result.error).toBe(networkError);
         });

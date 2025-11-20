@@ -61,9 +61,5 @@ export default keyMirror({
     MOVE_POST_SUCCESS: null,
     MOVE_POST_FAILURE: null,
 
-    REVEAL_BURN_ON_READ_REQUEST: null,
     REVEAL_BURN_ON_READ_SUCCESS: null,
-    REVEAL_BURN_ON_READ_FAILURE: null,
-
-    BURN_ON_READ_POST_REVEALED: null,
 });

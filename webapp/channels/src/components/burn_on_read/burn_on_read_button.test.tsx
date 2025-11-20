@@ -43,7 +43,7 @@ describe('BurnOnReadButton', () => {
 
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
-        expect(button).toHaveClass('active');
+        expect(button).toHaveClass('control');
     });
 
     it('should call onToggle with true when clicked while disabled', () => {

@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -32,19 +31,31 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props)
         onToggle(!enabled);
     };
 
-    const tooltipMessage = formatMessage(
+    const tooltipTitle = formatMessage(
         {
-            id: 'burn_on_read.button.tooltip',
-            defaultMessage: 'Burn-on-read: Message will be deleted for a recipient {duration} minutes after they open it',
+            id: 'burn_on_read.button.tooltip.title',
+            defaultMessage: 'Burn-on-read',
+        },
+    );
+
+    const tooltipHint = formatMessage(
+        {
+            id: 'burn_on_read.button.tooltip.hint',
+            defaultMessage: 'Message will be deleted for a recipient {duration} minutes after they open it',
         },
         {duration: durationMinutes},
     );
 
+    const tooltipMessage = `${tooltipTitle}: ${tooltipHint}`;
+
     return (
-        <WithTooltip title={tooltipMessage}>
+        <WithTooltip
+            title={tooltipTitle}
+            hint={tooltipHint}
+        >
             <IconContainer
                 id='burnOnReadButton'
-                className={classNames({control: true, active: enabled})}
+                className='control'
                 disabled={disabled}
                 type='button'
                 aria-label={tooltipMessage}
