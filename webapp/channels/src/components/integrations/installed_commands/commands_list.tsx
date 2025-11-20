@@ -121,6 +121,7 @@ const CommandsList = ({
         const displayName = command.display_name?.toLowerCase() || '';
         const description = command.description?.toLowerCase() || '';
         const trigger = command.trigger?.toLowerCase() || '';
+        const url = command.url?.toLowerCase() || '';
         const user = users[command.creator_id];
         const userName = Utils.getDisplayName(user).toLowerCase();
         const token = command.token?.toLowerCase() || '';
@@ -128,6 +129,7 @@ const CommandsList = ({
         return displayName.includes(searchTerm) ||
                description.includes(searchTerm) ||
                trigger.includes(searchTerm) ||
+               url.includes(searchTerm) ||
                userName.includes(searchTerm) ||
                token.includes(searchTerm);
     }, [users]);
@@ -210,6 +212,30 @@ const CommandsList = ({
                     >
                         {trigger}
                     </code>
+                );
+            },
+            enableSorting: true,
+        }),
+
+        columnHelper.accessor('url', {
+            header: formatMessage({id: 'installed_commands.request_url', defaultMessage: 'Request URL'}),
+            cell: (info) => {
+                const url = info.getValue();
+                if (!url) {
+                    return <span className='text-muted'>—</span>;
+                }
+                return (
+                    <div
+                        style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '300px',
+                        }}
+                        title={url}
+                    >
+                        {url}
+                    </div>
                 );
             },
             enableSorting: true,
