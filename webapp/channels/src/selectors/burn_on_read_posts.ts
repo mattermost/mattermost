@@ -42,7 +42,8 @@ export function hasUserRevealedBurnOnReadPost(state: GlobalState, postId: string
     }
 
     // Check if recipient has revealed the post
-    return post.props?.revealed === true;
+    // Post is revealed if metadata.expire_at exists
+    return typeof post.metadata?.expire_at === 'number';
 }
 
 /**
@@ -72,7 +73,8 @@ export function shouldDisplayConcealedPlaceholder(state: GlobalState, postId: st
     }
 
     // Show concealed if not yet revealed
-    return post.props?.revealed !== true;
+    // Post is NOT revealed if metadata.expire_at doesn't exist
+    return typeof post.metadata?.expire_at !== 'number';
 }
 
 /**
@@ -97,7 +99,7 @@ export function getBurnOnReadPostExpiration(state: GlobalState, postId: string):
         return null;
     }
 
-    const expireAt = post.props?.expire_at;
+    const expireAt = post.metadata?.expire_at;
     if (typeof expireAt === 'number') {
         return expireAt;
     }

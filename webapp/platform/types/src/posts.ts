@@ -72,6 +72,7 @@ export type PostMetadata = {
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
     burn_on_read?: any;
+    expire_at?: number;
 };
 
 export type Post = {

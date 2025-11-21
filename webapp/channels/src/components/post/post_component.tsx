@@ -624,7 +624,7 @@ function PostComponent(props: Props) {
     let burnOnReadBadge;
     if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost) {
         const isSender = post.user_id === props.currentUserId;
-        const revealed = post.props?.revealed === true;
+        const revealed = typeof post.metadata?.expire_at === 'number';
 
         burnOnReadBadge = (
             <BurnOnReadBadge
@@ -638,14 +638,14 @@ function PostComponent(props: Props) {
     }
 
     let burnOnReadTimerChip;
-    if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.props?.expire_at) {
-        // Parse expire_at - it can be either number or string from API
-        const expireAt = typeof post.props.expire_at === 'number' ? post.props.expire_at : parseInt(String(post.props.expire_at), 10);
+    if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.metadata?.expire_at) {
+        // Parse expire_at from metadata - it can be either number or string from API
+        const expireAt = typeof post.metadata.expire_at === 'number' ? post.metadata.expire_at : parseInt(String(post.metadata.expire_at), 10);
 
         let maxExpireAt: number | undefined;
-        if (typeof post.props.max_expire_at === 'number') {
+        if (typeof post.props?.max_expire_at === 'number') {
             maxExpireAt = post.props.max_expire_at;
-        } else if (post.props.max_expire_at) {
+        } else if (post.props?.max_expire_at) {
             maxExpireAt = parseInt(String(post.props.max_expire_at), 10);
         }
 

@@ -286,15 +286,18 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             return state;
         }
 
+        const currentPost = state[post.id];
+        const currentMetadata = currentPost.metadata || {};
+        const newMetadata = post.metadata || {};
+
         return {
             ...state,
             [post.id]: {
-                ...state[post.id],
+                ...currentPost,
                 ...post,
-                props: {
-                    ...state[post.id].props,
-                    ...post.props,
-                    revealed: true,
+                metadata: {
+                    ...currentMetadata,
+                    ...newMetadata,
                     expire_at: expireAt,
                 },
             },
@@ -344,6 +347,22 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
     let currentState = nextState;
+
+    // TEMPORARY MOCK: Move expire_at from props to metadata for burn-on-read posts
+    // This simulates what the backend will do when integration is complete
+    if (post.type === 'burn_on_read' && post.props?.expire_at && !post.metadata?.expire_at) {
+        const expireAtValue = typeof post.props.expire_at === 'number' ?
+            post.props.expire_at :
+            parseInt(String(post.props.expire_at), 10);
+
+        post = {
+            ...post,
+            metadata: {
+                ...(post.metadata || {}),
+                expire_at: expireAtValue,
+            },
+        };
+    }
 
     // Check if post already exists in state or if nested permalink
     if (!shouldUpdatePost(post, currentState[post.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
