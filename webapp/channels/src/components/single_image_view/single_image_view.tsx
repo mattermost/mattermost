@@ -7,9 +7,8 @@ import type {KeyboardEvent, MouseEvent} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import {getFilePreviewUrl, getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
-
 import {Client4} from 'mattermost-redux/client';
+import {getFilePreviewUrl, getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
@@ -82,11 +81,11 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         }
 
         const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
-        
+
         // Use Client4.getOptions() to get properly authenticated request options
         // This includes the Bearer token and all required headers
         const options = Client4.getOptions({method: 'HEAD'});
-        
+
         fetch(thumbnailUrl, options).then((response) => {
             if (this.mounted) {
                 // 423 Locked = rejected by plugin
@@ -190,7 +189,10 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                 <div className={classNames('file-view--single')}>
                     <div className='file__image'>
                         <div className='image-header'>
-                            <div className='image-name' onClick={this.handleImageClick}>
+                            <div
+                                className='image-name'
+                                onClick={this.handleImageClick}
+                            >
                                 {fileInfo.name}
                             </div>
                         </div>
