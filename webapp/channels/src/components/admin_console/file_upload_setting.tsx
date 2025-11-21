@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import * as Utils from 'utils/utils';
@@ -59,19 +59,19 @@ const FileUploadSetting = ({
         };
     }, []);
 
-    const handleChooseClick = () => {
+    const handleChooseClick = useCallback(() => {
         fileInputRef.current?.click();
-    };
+    }, []);
 
-    const handleChange = () => {
+    const handleChange = useCallback(() => {
         const files = fileInputRef.current?.files;
         if (files && files.length > 0) {
             setIsFileSelected(true);
             setFileNameFromState(files[0].name);
         }
-    };
+    }, []);
 
-    const handleSubmit = (e: React.MouseEvent) => {
+    const handleSubmit = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         setIsUploading(true);
@@ -87,7 +87,7 @@ const FileUploadSetting = ({
                 }
             });
         }
-    };
+    }, [id, onSubmit]);
 
     let serverError;
     if (errorFromProps) {
