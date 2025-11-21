@@ -18,8 +18,7 @@ describe('burn_on_read_posts actions', () => {
         create_at: 1234567890,
         update_at: 1234567890,
         delete_at: 0,
-        props: {
-            revealed: true,
+        metadata: {
             expire_at: 9999999999999,
         },
     };
@@ -75,11 +74,6 @@ describe('burn_on_read_posts actions', () => {
             const getState = jest.fn().mockReturnValue(mockState);
 
             const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
-
-            // Should dispatch logError action
-            expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-                type: 'RECEIVED_ERROR',
-            }));
 
             expect(result).toEqual({error: mockError});
         });

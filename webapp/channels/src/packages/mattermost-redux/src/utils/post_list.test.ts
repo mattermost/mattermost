@@ -178,8 +178,8 @@ describe('makeFilterPostsAndAddSeparators', () => {
                 posts: {
                     posts: {
                         1001: {id: '1001', create_at: now, type: '', user_id: 'user1'},
-                        1002: {id: '1002', create_at: now + 1, type: 'burn_on_read', props: {expire_at: expiredTime}, user_id: 'user2'},
-                        1003: {id: '1003', create_at: now + 2, type: 'burn_on_read', props: {expire_at: futureTime}, user_id: 'user3'},
+                        1002: {id: '1002', create_at: now + 1, type: 'burn_on_read', metadata: {expire_at: expiredTime}, user_id: 'user2'},
+                        1003: {id: '1003', create_at: now + 2, type: 'burn_on_read', metadata: {expire_at: futureTime}, user_id: 'user3'},
                         1004: {id: '1004', create_at: now + 3, type: '', user_id: 'user4'},
                     },
                 },
@@ -220,7 +220,7 @@ describe('makeFilterPostsAndAddSeparators', () => {
                 },
                 posts: {
                     posts: {
-                        1001: {id: '1001', create_at: now, type: 'burn_on_read', props: {}, user_id: 'user1'},
+                        1001: {id: '1001', create_at: now, type: 'burn_on_read', user_id: 'user1'},
                         1002: {id: '1002', create_at: now + 1, type: 'burn_on_read', user_id: 'user2'},
                     },
                 },
