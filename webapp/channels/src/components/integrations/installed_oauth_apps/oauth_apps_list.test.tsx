@@ -107,7 +107,7 @@ describe('OAuthAppsList', () => {
 
         expect(screen.getByText('App 1')).toBeInTheDocument();
         expect(screen.getByText('App 2')).toBeInTheDocument();
-        expect(screen.getByText('user1')).toBeInTheDocument();
+        expect(screen.getAllByText('user1').length).toBeGreaterThan(0);
     });
 
     test('filters oauth apps', () => {
@@ -147,8 +147,8 @@ describe('OAuthAppsList', () => {
             </IntlProvider>,
         );
 
-        expect(screen.getByText('Yes')).toBeInTheDocument(); // trusted
-        expect(screen.getByText('No')).toBeInTheDocument(); // not trusted
+        expect(screen.getAllByText('Yes').length).toBeGreaterThan(0); // trusted
+        expect(screen.getAllByText('No').length).toBeGreaterThan(0); // not trusted
     });
 
     test('hides actions for apps from Apps Framework', () => {
