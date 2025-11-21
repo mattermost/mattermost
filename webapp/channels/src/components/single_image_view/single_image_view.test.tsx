@@ -24,11 +24,27 @@ describe('components/SingleImageView', () => {
         isFileRejected: false,
     };
 
+    // Mock fetch for thumbnail availability check
+    beforeEach(() => {
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                status: 200, // Simulate thumbnail is allowed
+                headers: new Headers(),
+            } as Response),
+        );
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     test('should match snapshot', () => {
         const wrapper = shallow(
             <SingleImageView {...baseProps}/>,
         );
 
+        // Set thumbnailCheckComplete to true to simulate completed check
+        wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
         expect(wrapper).toMatchSnapshot();
 
         wrapper.setState({loaded: true});
@@ -46,7 +62,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...props}/>,
         );
 
-        wrapper.setState({viewPortWidth: 300});
+        wrapper.setState({viewPortWidth: 300, thumbnailCheckComplete: true, thumbnailRejected: false});
         expect(wrapper).toMatchSnapshot();
 
         wrapper.setState({loaded: true});
@@ -58,6 +74,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
 
+        wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
         wrapper.find(SizeAwareImage).at(0).simulate('click', {preventDefault: () => { }});
         expect(baseProps.actions.openModal).toHaveBeenCalledTimes(1);
     });
@@ -88,6 +105,7 @@ describe('components/SingleImageView', () => {
         const wrapper = shallow(
             <SingleImageView {...baseProps}/>,
         );
+        wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
         expect(wrapper.state('loaded')).toEqual(false);
         wrapper.find(SizeAwareImage).prop('onImageLoaded')?.({height: 0, width: 0});
         expect(wrapper.state('loaded')).toEqual(true);
@@ -99,6 +117,7 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
 
+        wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
         expect(wrapper.find(SizeAwareImage).prop('handleSmallImageContainer')).
             toEqual(true);
     });
@@ -111,6 +130,7 @@ describe('components/SingleImageView', () => {
             />,
         );
 
+        wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
         expect(wrapper.find('.image-header').text()).toHaveLength(0);
     });
 
@@ -135,8 +155,45 @@ describe('components/SingleImageView', () => {
 
             const wrapper = shallow(<SingleImageView {...props}/>);
 
+            wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
             expect(wrapper.find('.image-permalink').exists()).toBe(true);
             expect(wrapper).toMatchSnapshot();
+        });
+    });
+
+    describe('thumbnail rejection check', () => {
+        test('should not render image preview when thumbnail is rejected', () => {
+            const wrapper = shallow(
+                <SingleImageView {...baseProps}/>,
+            );
+
+            wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: true});
+
+            // Should not find SizeAwareImage when thumbnail is rejected
+            expect(wrapper.find(SizeAwareImage)).toHaveLength(0);
+            // Should show filename only
+            expect(wrapper.find('.image-name').text()).toEqual(baseProps.fileInfo.name);
+        });
+
+        test('should render image preview when thumbnail is allowed', () => {
+            const wrapper = shallow(
+                <SingleImageView {...baseProps}/>,
+            );
+
+            wrapper.setState({thumbnailCheckComplete: true, thumbnailRejected: false});
+
+            // Should find SizeAwareImage when thumbnail is allowed
+            expect(wrapper.find(SizeAwareImage)).toHaveLength(1);
+        });
+
+        test('should show minimal view while thumbnail check is in progress', () => {
+            const wrapper = shallow(
+                <SingleImageView {...baseProps}/>,
+            );
+
+            // thumbnailCheckComplete defaults to false
+            expect(wrapper.find(SizeAwareImage)).toHaveLength(0);
+            expect(wrapper.find('.image-name').text()).toEqual(baseProps.fileInfo.name);
         });
     });
 });
