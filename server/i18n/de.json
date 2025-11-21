@@ -1185,10 +1185,6 @@
     "translation": "invalid_request: Fehlerhafte client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: client_secret fehlt."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Fehlerhafter grant_type."
   },
@@ -4616,7 +4612,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4628,15 +4624,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10933,7 +10929,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Beitrag konnte in der Datenbank nicht aktualisiert werden, während versucht wurde den markierten Beitrag wieder herzustellen."
+    "translation": "Beim Versuch, die Löschung des markierten Beitrag und die zugehörigen Daten rückgängig zu machen, konnte der Beitrag nicht in der Datenbank aktualisiert werden."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -10954,10 +10950,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "Beim dauerhaften Löschen von markierten Beiträgen wurde der Status der markierten Beiträge nicht aktualisiert."
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Die Dateiinformationen für den markierten Beitrag konnten nicht wiederhergestellt werden."
   },
   {
     "id": "app.content_flagging.save_reviewer_settings.app_error",
@@ -11014,5 +11006,109 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Ungültiges Zeitlimit für Benachrichtigungen bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Die Kanal-ID stimmt nicht mit der Kanal-ID des markierten Beitrags überein."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Kann keine Berechtigung hinzufügen, die durch das Team- oder Systemberechtigungsschema eingeschränkt ist."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Benutzer ist kein Inhaltsprüfer."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Die Team-ID stimmt nicht mit der Team-ID des markierten Beitrags überein."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Kein Reviewer-ID-Eigenschaftsfeld gefunden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Der Wert der Eigenschaft Status konnte beim Setzen des Überprüfers nicht aktualisiert werden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Überprüfer der Nachricht konnte nicht gesetzt werden."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Das Eigenschaftsfeld Flagged Post ID kann nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Das Feld \"Reporting User\" kann nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Es konnte kein Wert für das \"Reporting User\" Feld gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Die Suche nach dem Begriff in Allgemeine Prüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Die Suche nach dem markierten Beitrag in den Beiträgen der Überprüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in System Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Die Antworten auf den markierten Beitrag konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Das Eigenschaftsfeld \"Verwaltet durch\" konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Das Eigenschaftsfeld Status konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Das Setzen von Eigenschaftswerten auf Antworten von Unterhaltungen für den markierten Beitrag ist fehlgeschlagen."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Kanälen ist nicht aktiviert. ServiceSettings.EnableAPIChannelDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Teams ist nicht aktiviert. ServiceSettings.EnableAPITeamDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Benutzern ist nicht aktiviert. ServiceSettings.EnableAPIUserDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Agenten konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge-Aufruf fehlgeschlagen."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM Dienste konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge-Aufruf fehlgeschlagen."
   }
 ]

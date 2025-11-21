@@ -82,8 +82,6 @@ type Store interface {
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult
-	SetContext(context context.Context)
-	Context() context.Context
 	Logger() mlog.LoggerIFace
 	NotifyAdmin() NotifyAdminStore
 	PostPriority() PostPriorityStore
@@ -383,6 +381,7 @@ type PostStore interface {
 	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
 	GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
+	GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error)
 	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsByThread(threadID string, since int64) ([]*model.Post, error)
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
@@ -421,6 +420,7 @@ type PostStore interface {
 	GetNthRecentPostTime(n int64) (int64, error)
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
+	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
 }
 
 type UserStore interface {
@@ -470,7 +470,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() (map[string]*model.User, error)
 	PermanentDelete(rctx request.CTX, userID string) error
 	AnalyticsActiveCount(timestamp int64, options model.UserCountOptions) (int64, error)
-	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error)
+	AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error)
 	GetUnreadCount(userID string, isCRTEnabled bool) (int64, error)
 	GetUnreadCountForChannel(userID string, channelID string) (int64, error)
 	GetAnyUnreadPostCountForChannel(userID string, channelID string) (int64, error)
@@ -499,6 +499,7 @@ type UserStore interface {
 	PromoteGuestToUser(userID string) error
 	DemoteUserToGuest(userID string) (*model.User, error)
 	DeactivateGuests() ([]string, error)
+	DeactivateMagicLinkGuests() ([]string, error)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
 	IsEmpty(excludeBots bool) (bool, error)
@@ -700,6 +701,7 @@ type TokenStore interface {
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error
+	GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error)
 }
 
 type DesktopTokensStore interface {
@@ -1137,6 +1139,7 @@ type AccessControlPolicyStore interface {
 	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
 	Delete(rctx request.CTX, id string) error
 	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
+	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 }
