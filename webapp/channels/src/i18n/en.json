@@ -3580,6 +3580,7 @@
   "bots.managed_by": "Managed by ",
   "bots.managed_by.app": "Managed by Apps Framework",
   "bots.name": "Bot",
+  "bots.owner": "Owner",
   "bots.owner.apps": "Apps Framework",
   "bots.owner.plugin": "Plugin",
   "bots.permissions.post_all": "Post to all channels",
