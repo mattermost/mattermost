@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
@@ -140,11 +140,11 @@ const BrandImageSetting = ({
         }
     }, [brandImage]);
 
-    const handleSelectClick = () => {
+    const handleSelectClick = useCallback(() => {
         fileInputRef.current?.click();
-    };
+    }, []);
 
-    const handleImageChange = () => {
+    const handleImageChange = useCallback(() => {
         if (!fileInputRef.current) {
             return;
         }
@@ -154,15 +154,15 @@ const BrandImageSetting = ({
             setBrandImage(element.files[0]);
             setShouldDeleteBrandImage(false);
         }
-    };
+    }, [setSaveNeeded]);
 
-    const handleDeleteButtonPressed = () => {
+    const handleDeleteButtonPressed = useCallback(() => {
         setShouldDeleteBrandImage(true);
         setBrandImage(undefined);
         setBrandImageExists(false);
 
         setSaveNeeded();
-    };
+    }, [setSaveNeeded]);
 
     let img = null;
     if (brandImage) {
