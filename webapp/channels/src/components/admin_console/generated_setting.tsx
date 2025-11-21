@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import crypto from 'crypto';
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import SetByEnv from './set_by_env';
@@ -39,7 +39,7 @@ const GeneratedSetting = ({
         />
     ),
 }: Props) => {
-    const regenerate = (e: React.MouseEvent) => {
+    const regenerate = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         // Pure base64 implementation can contain characters that are not URL safe without additional
@@ -47,7 +47,7 @@ const GeneratedSetting = ({
         // where: 62 - (minus) , 63 _ (underscore)
         const value = crypto.randomBytes(256).toString('base64').substring(0, 32);
         onChange(id, value.replaceAll('+', '-').replaceAll('/', '_'));
-    };
+    }, [id, onChange]);
 
     let disabledText = null;
     if (disabled && disabledTextFromProps) {
