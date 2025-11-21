@@ -11,6 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import LoggedIn from 'components/logged_in';
 import ModalController from 'components/modal_controller';
+import RhsPopout from 'components/rhs_popout';
 import ThreadPopout from 'components/thread_popout';
 
 import {TEAM_NAME_PATH_PATTERN, ID_PATH_PATTERN} from 'utils/path';
@@ -40,6 +41,10 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
                 <Route
                     path={`/_popout/thread/:team(${TEAM_NAME_PATH_PATTERN})/:postId(${ID_PATH_PATTERN})`}
                     component={ThreadPopout}
+                />
+                <Route
+                    path='/_popout/rhs'
+                    component={RhsPopout}
                 />
             </Switch>
         </LoggedIn>

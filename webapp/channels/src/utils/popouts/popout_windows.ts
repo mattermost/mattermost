@@ -47,6 +47,23 @@ export async function popoutThread(
     return popoutListeners;
 }
 
+export async function popoutRhsPlugin(
+    intl: IntlShape,
+    pluginId: string,
+    teamName: string,
+) {
+    return popout(
+        `/_popout/rhs/plugin/${teamName}/${pluginId}`,
+        {
+            isRHS: true,
+            titleTemplate: intl.formatMessage({
+                id: 'rhs_plugin_popout.title',
+                defaultMessage: 'Plugin - {pluginId}',
+            }, {pluginId}),
+        },
+    );
+}
+
 /**
  * Below this is generic popout code
  * You likely do not need to add anything below this.

@@ -1,0 +1,16 @@
+.main-wrapper {
+    border: none !important;
+    margin: 0 !important;
+    display: flex !important;
+
+    .sidebar--right {
+        transform: none;
+        width: 100%;
+        max-width: 100% !important;
+
+        .sidebar-right__body {
+            height: 100%;
+        }
+    }
+}
+
