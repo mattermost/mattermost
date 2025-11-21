@@ -195,17 +195,16 @@ func TestSendMailPlainText(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Log(err)
-				t.Log("No email was received, maybe due load on the server. Skipping this verification")
-				return
+				t.Log("No email was received, maybe due load on the server. Failing this test")
+				t.Error(err)
+			} else {
+				require.NotEmpty(t, resultsMailbox, "Mailbox should contain at least one message")
+				require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+				resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+				require.NoError(t, err, "Could not get message from mailbox")
+				require.Contains(t, test.emailBodyHTML, resultsEmail.Body.HTML, "Wrong received message %s", resultsEmail.Body.Text)
+				require.Contains(t, resultsEmail.Body.Text, test.expectedBodyText, "Wrong message plain text conversion %s", resultsEmail.Body.Text)
 			}
-
-			require.NotEmpty(t, resultsMailbox, "Mailbox should contain at least one message")
-			require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
-			resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
-			require.NoError(t, err, "Could not get message from mailbox")
-			require.Contains(t, test.emailBodyHTML, resultsEmail.Body.HTML, "Wrong received message %s", resultsEmail.Body.Text)
-			require.Contains(t, resultsEmail.Body.Text, test.expectedBodyText, "Wrong message plain text conversion %s", resultsEmail.Body.Text)
 		})
 	}
 }
