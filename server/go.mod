@@ -227,7 +227,7 @@ require (
 )
 
 // Prevent tablewriter from being upgraded because the downstream dependency 
-// code.sajari.com/docconv/v2 has am indirect dependency on jaytaylor/html2text via 
+// code.sajari.com/docconv/v2 has an indirect dependency on jaytaylor/html2text via 
 // advancedlogic/GoOse. jaytaylor/html2text does not have a go.mod file which makes 
 // it bump to the latest version always. Tablewriter has made breaking changes to its 
 // latest release.
