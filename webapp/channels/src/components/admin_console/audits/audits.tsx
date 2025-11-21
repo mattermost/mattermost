@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, memo} from 'react';
+import React, {useEffect, useState, memo, useCallback} from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
@@ -47,10 +47,10 @@ const Audits = ({
          **/
     }, []);
 
-    const reload = () => {
+    const reload = useCallback(() => {
         setIsLoadingAudits(true);
         actions.getAudits().then(() => setIsLoadingAudits(false));
-    };
+    }, [actions]);
 
     const activityLogHeader = () => {
         const h4Style: CSSProperties = {
