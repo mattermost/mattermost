@@ -171,6 +171,7 @@ describe('components/SingleImageView', () => {
 
             // Should not find SizeAwareImage when thumbnail is rejected
             expect(wrapper.find(SizeAwareImage)).toHaveLength(0);
+
             // Should show filename only
             expect(wrapper.find('.image-name').text()).toEqual(baseProps.fileInfo.name);
         });
