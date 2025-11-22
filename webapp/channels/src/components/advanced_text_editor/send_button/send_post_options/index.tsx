@@ -97,7 +97,7 @@ export function SendPostOptions({disabled, onSelect, channelId}: Props) {
                 labels={
                     <FormattedMessage
                         id='create_post_button.option.schedule_message.options.header'
-                        defaultMessage='Scheduled message'
+                        defaultMessage='Schedule message'
                     />
                 }
             />
