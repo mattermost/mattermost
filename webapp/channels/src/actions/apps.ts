@@ -99,7 +99,7 @@ export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: IntlShape
                 if (!res.form?.submit) {
                     const errMsg = intl.formatMessage({
                         id: 'apps.error.responses.form.no_form',
-                        defaultMessage: 'Response type is `form`, but no valid form was included in response.',
+                        defaultMessage: 'Response type is `form`, but no form was included in response.',
                     });
                     return {error: makeCallErrorResponse(errMsg)};
                 }
@@ -154,7 +154,7 @@ export function doAppFetchForm<Res=unknown>(call: AppCallRequest, intl: any): Th
                 if (!res.form?.submit) {
                     const errMsg = intl.formatMessage({
                         id: 'apps.error.responses.form.no_form',
-                        defaultMessage: 'Response type is `form`, but no valid form was included in response.',
+                        defaultMessage: 'Response type is `form`, but no form was included in response.',
                     });
                     return {error: makeCallErrorResponse(errMsg)};
                 }

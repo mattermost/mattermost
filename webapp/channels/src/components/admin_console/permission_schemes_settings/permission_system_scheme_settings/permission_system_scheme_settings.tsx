@@ -405,7 +405,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                                 <span>
                                     <FormattedMessage
                                         id='admin.permissions.systemScheme.introBanner'
-                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams.'
+                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams.'
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink

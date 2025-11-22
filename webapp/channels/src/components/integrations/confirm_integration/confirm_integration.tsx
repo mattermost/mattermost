@@ -208,7 +208,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p key='add_oauth_app.doneHelp'>
                     <FormattedMessage
                         id='add_oauth_app.doneHelp.public'
-                        defaultMessage='Your OAuth 2.0 public client application is set up. Please use the following Client ID when requesting authorization for your application. Public clients must use PKCE for authorization (details at <link>oAuth 2 Applications</link>).'
+                        defaultMessage='Your OAuth 2.0 public client application is set up. Please use the following Client ID when requesting authorization for your application. Public clients must use PKCE for authorization (details at <link>oAuth 2.0 Applications</link>).'
                         values={{
                             link: (msg) => (
                                 <ExternalLink
@@ -227,7 +227,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p key='add_oauth_app.doneHelp'>
                     <FormattedMessage
                         id='add_oauth_app.doneHelp'
-                        defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>).'
+                        defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2.0 Applications</link>).'
                         values={{
                             link: (msg) => (
                                 <ExternalLink
@@ -417,10 +417,10 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
             <p>
                 <FormattedMessage
                     id='bots.manage.created.text'
-                    defaultMessage='Your bot account **{botname}** has been created successfully. Please use the following access token to connect to the bot (see [documentation](https://mattermost.com/pl/default-bot-accounts) for further details).'
+                    defaultMessage='Your bot account <strong>{botname}</strong> has been created successfully. Please use the following access token to connect to the bot (see <link>documentation</link> for further details).'
                     values={{
                         botname: bot.display_name || bot.username,
-                        b: (msg) => <b>{msg}</b>,
+                        strong: (msg) => <b>{msg}</b>,
                         link: (msg) => (
                             <ExternalLink
                                 href='https://mattermost.com/pl/default-bot-accounts'

@@ -53,7 +53,7 @@ const messages = defineMessages({
     systemSchemeBannerText: {id: 'admin.permissions.systemSchemeBannerText', defaultMessage: 'Set the default permissions inherited by all teams unless a <link>Team Override Scheme</link> is applied.'},
     systemSchemeBannerButton: {id: 'admin.permissions.systemSchemeBannerButton', defaultMessage: 'Edit Scheme'},
     teamOverrideSchemesTitle: {id: 'admin.permissions.teamOverrideSchemesTitle', defaultMessage: 'Team Override Schemes'},
-    teamOverrideSchemesBannerText: {id: 'admin.permissions.teamOverrideSchemesBannerText', defaultMessage: 'Use when specific teams need permission exceptions to the <link>System Scheme</link>'},
+    teamOverrideSchemesBannerText: {id: 'admin.permissions.teamOverrideSchemesBannerText', defaultMessage: 'Use when specific teams need permission exceptions to the <link>System Scheme</link>.'},
     teamOverrideSchemesNewButton: {id: 'admin.permissions.teamOverrideSchemesNewButton', defaultMessage: 'New Team Override Scheme'},
 });
 

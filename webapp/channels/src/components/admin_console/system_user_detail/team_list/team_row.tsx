@@ -30,7 +30,7 @@ export default class TeamRow extends React.PureComponent<Props> {
             return (
                 <FormattedMessage
                     id={'admin.systemUserDetail.teamList.teamType.groupSync'}
-                    defaultMessage={'Group sync'}
+                    defaultMessage={'Group Sync'}
                 />
             );
         }
@@ -38,14 +38,14 @@ export default class TeamRow extends React.PureComponent<Props> {
             return (
                 <FormattedMessage
                     id={'admin.systemUserDetail.teamList.teamType.anyoneCanJoin'}
-                    defaultMessage={'Anyone can join'}
+                    defaultMessage={'Anyone Can Join'}
                 />
             );
         }
         return (
             <FormattedMessage
                 id={'admin.systemUserDetail.teamList.teamType.inviteOnly'}
-                defaultMessage={'Invite only'}
+                defaultMessage={'Invite Only'}
             />
         );
     };

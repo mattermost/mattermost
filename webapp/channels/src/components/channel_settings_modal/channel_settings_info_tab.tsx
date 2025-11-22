@@ -394,7 +394,7 @@ function ChannelSettingsInfoTab({
                 onChange={handlePurposeChange}
                 createMessage={formatMessage({
                     id: 'channel_settings_modal.purpose.placeholder',
-                    defaultMessage: 'Enter a purpose for this channel',
+                    defaultMessage: 'Enter a purpose for this channel (optional)',
                 })}
                 maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
                 preview={shouldShowPreviewPurpose}
@@ -426,7 +426,7 @@ function ChannelSettingsInfoTab({
                 onChange={handleHeaderChange}
                 createMessage={formatMessage({
                     id: 'channel_settings_modal.header.placeholder',
-                    defaultMessage: 'Enter a header description or important links',
+                    defaultMessage: 'Enter a header for this channel',
                 })}
                 maxLength={HEADER_MAX_LENGTH}
                 preview={shouldShowPreviewHeader}
