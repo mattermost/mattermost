@@ -50,6 +50,7 @@ describe('PostComponent', () => {
             closeRightHandSide: jest.fn(),
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),
+            fetchChannelsForPostIfNeeded: jest.fn(),
         },
     };
 

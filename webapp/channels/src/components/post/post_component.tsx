@@ -97,6 +97,7 @@ export type Props = {
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
+        fetchChannelsForPostIfNeeded: (post: Post) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -213,6 +214,16 @@ function PostComponent(props: Props) {
             document.removeEventListener('keyup', handleA11yKeyboardFocus);
         };
     }, [handleA11yKeyboardFocus]);
+
+    // Fetch channels mentioned in this post if they're not already in Redux store
+    // Only re-run when post ID changes or post is edited (not on reactions, replies, etc.)
+    // Note: Including props.actions.fetchChannelsForPostIfNeeded is unnecessary because it's stable
+    // and never changes. We explicitly omit it to make clear this effect depends ONLY on post data
+    // (id/edit_at), not action references.
+    useEffect(() => {
+        props.actions.fetchChannelsForPostIfNeeded(post);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [post.id, post.edit_at]);
 
     const hasSameRoot = (props: Props) => {
         if (props.isFirstReply) {
