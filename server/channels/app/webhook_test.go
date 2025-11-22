@@ -24,8 +24,7 @@ import (
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -157,8 +156,7 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 
 func TestUpdateIncomingWebhook(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -297,8 +295,7 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 func TestCreateWebhookPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, testCluster).InitBasic()
-	defer th.TearDown()
+	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -398,8 +395,7 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 }
 
 func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableIncomingWebhooks = true
@@ -456,7 +452,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 	})
 
 	t.Run("should set props based on icon_emoji (using a custom emoji)", func(t *testing.T) {
-		emoji := th.CreateEmoji()
+		emoji := th.CreateEmoji(t)
 
 		post, appErr := th.App.CreateWebhookPost(
 			th.Context,
@@ -507,8 +503,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 func TestCreateWebhookPostWithPriority(t *testing.T) {
 	mainHelper.Parallel(t)
 	testCluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, testCluster).InitBasic()
-	defer th.TearDown()
+	th := SetupWithClusterMock(t, testCluster).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -557,8 +552,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 
 func TestCreateWebhookPostLinks(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
@@ -767,8 +761,7 @@ func TestSplitWebhookPostAttachments(t *testing.T) {
 
 func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	outgoingWebhook := model.OutgoingWebhook{
 		ChannelId:    th.BasicChannel.Id,
@@ -880,8 +873,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		return testCasesOutgoing
 	}
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -909,7 +901,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			}))
 			defer ts.Close()
 
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, ts.URL, th)
 			payload := getPayload(hook, th, channel)
 
@@ -987,8 +979,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 	}))
 	defer ts2.Close()
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
@@ -1008,7 +999,7 @@ func TestTriggerOutGoingWebhookWithMultipleURLs(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 			})
-			channel := th.CreateChannel(th.Context, th.BasicTeam)
+			channel := th.CreateChannel(t, th.BasicTeam)
 			hook, _ := createOutgoingWebhook(channel, testCase.CallBackURLs, th)
 			payload := getPayload(hook, th, channel)
 
@@ -1050,7 +1041,6 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 func TestDoOutgoingWebhookRequest(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("127.0.0.1")
