@@ -4,8 +4,8 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import BackstageList from 'components/backstage/components/backstage_list';
 import InstalledOAuthApps from 'components/integrations/installed_oauth_apps/installed_oauth_apps';
+import OAuthAppsList from 'components/integrations/installed_oauth_apps/oauth_apps_list';
 
 import {TestHelper} from 'utils/test_helper';
 
@@ -44,13 +44,23 @@ describe('components/integrations/InstalledOAuthApps', () => {
             name: 'test',
         }),
         oauthApps,
+        users: {
+            '88oybd1dwfdoxpkpw1h5kpbyco': TestHelper.getUserMock({
+                id: '88oybd1dwfdoxpkpw1h5kpbyco',
+                username: 'user1',
+            }),
+            '88oybd2dwfdoxpkpw1h5kpbyco': TestHelper.getUserMock({
+                id: '88oybd2dwfdoxpkpw1h5kpbyco',
+                username: 'user2',
+            }),
+        },
         canManageOauth: true,
         actions: {
             loadOAuthAppsAndProfiles: jest.fn(),
             regenOAuthAppSecret: jest.fn(),
             deleteOAuthApp: jest.fn(),
         },
-        enableOAuthServiceProvider: true,
+        loading: false,
         appsOAuthAppIDs: [],
     };
 
@@ -68,15 +78,8 @@ describe('components/integrations/InstalledOAuthApps', () => {
         const wrapper = shallow<InstalledOAuthApps>(<InstalledOAuthApps {...props}/>);
 
         expect(wrapper).toMatchSnapshot();
-        expect(shallow(<div>{wrapper.instance().oauthApps('first')}</div>)).toMatchSnapshot(); // successful filter
-        expect(shallow(<div>{wrapper.instance().oauthApps('ZZZ')}</div>)).toMatchSnapshot(); // unsuccessful filter
-        expect(shallow(<div>{wrapper.instance().oauthApps()}</div>).find('Connect(InstalledOAuthApp)').length).toBe(2); // no filter, should return all
-        expect(wrapper.find(BackstageList).props().addLink).toEqual('/test/integrations/oauth2-apps/add');
-        expect(wrapper.find(BackstageList).props().addText).toEqual('Add OAuth 2.0 Application');
-
-        wrapper.setProps({canManageOauth: false});
-        expect(wrapper.find(BackstageList).props().addLink).toBeFalsy();
-        expect(wrapper.find(BackstageList).props().addText).toBeFalsy();
+        expect(wrapper.find(OAuthAppsList)).toHaveLength(1);
+        expect(wrapper.find(OAuthAppsList).prop('oauthApps')).toHaveLength(2);
     });
 
     test('should match snapshot for Apps', () => {
@@ -95,7 +98,8 @@ describe('components/integrations/InstalledOAuthApps', () => {
 
         props.actions.loadOAuthAppsAndProfiles = newGetOAuthApps;
         const wrapper = shallow<InstalledOAuthApps>(<InstalledOAuthApps {...props}/>);
-        expect(shallow(<div>{wrapper.instance().oauthApps('second')}</div>)).toMatchSnapshot(); // successful filter
+        expect(wrapper).toMatchSnapshot();
+        expect(wrapper.find(OAuthAppsList).prop('appsOAuthAppIDs')).toContain('fzcxd9wpzpbpfp8pad78xj75pr');
     });
 
     test('should props.deleteOAuthApp on deleteOAuthApp', () => {

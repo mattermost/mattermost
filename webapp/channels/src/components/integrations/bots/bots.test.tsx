@@ -6,8 +6,8 @@ import React from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
-import Bot from './bot';
 import Bots from './bots';
+import BotsList from './bots_list';
 
 describe('components/integrations/bots/Bots', () => {
     const team = TestHelper.getTeamMock();
@@ -24,7 +24,7 @@ describe('components/integrations/bots/Bots', () => {
         fetchAppsBotIDs: jest.fn(),
     };
 
-    it('bots', () => {
+    it('renders BotsList with correct props', () => {
         const bot1 = TestHelper.getBotMock({user_id: '1'});
         const bot2 = TestHelper.getBotMock({user_id: '2'});
         const bot3 = TestHelper.getBotMock({user_id: '3'});
@@ -39,7 +39,7 @@ describe('components/integrations/bots/Bots', () => {
             [bot3.user_id]: TestHelper.getUserMock({id: bot3.user_id}),
         };
 
-        const wrapperFull = shallow(
+        const wrapper = shallow(
             <Bots
                 bots={bots}
                 team={team}
@@ -51,45 +51,9 @@ describe('components/integrations/bots/Bots', () => {
                 appsBotIDs={[]}
             />,
         );
-        wrapperFull.instance().setState({loading: false});
-        const wrapper = shallow(<div>{(wrapperFull.instance() as Bots).bots()[0]}</div>);
 
-        expect(wrapper.find('EnabledSection').shallow().contains(
-            <Bot
-                key={bot1.user_id}
-                bot={bot1}
-                owner={undefined}
-                user={users[bot1.user_id]}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={false}
-            />,
-        )).toEqual(true);
-        expect(wrapper.find('EnabledSection').shallow().contains(
-            <Bot
-                key={bot2.user_id}
-                bot={bot2}
-                owner={undefined}
-                user={users[bot2.user_id]}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={false}
-            />,
-        )).toEqual(true);
-        expect(wrapper.find('EnabledSection').shallow().contains(
-            <Bot
-                key={bot3.user_id}
-                bot={bot3}
-                owner={undefined}
-                user={users[bot3.user_id]}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={false}
-            />,
-        )).toEqual(true);
+        expect(wrapper.find(BotsList)).toHaveLength(1);
+        expect(wrapper.find(BotsList).prop('bots')).toHaveLength(3);
     });
 
     it('bots with bots from apps', () => {
@@ -107,7 +71,7 @@ describe('components/integrations/bots/Bots', () => {
             [bot3.user_id]: TestHelper.getUserMock({id: bot3.user_id}),
         };
 
-        const wrapperFull = shallow(
+        const wrapper = shallow(
             <Bots
                 bots={bots}
                 team={team}
@@ -119,45 +83,9 @@ describe('components/integrations/bots/Bots', () => {
                 appsBotIDs={[bot3.user_id]}
             />,
         );
-        wrapperFull.instance().setState({loading: false});
-        const wrapper = shallow(<div>{(wrapperFull.instance() as Bots).bots()[0]}</div>);
 
-        expect(wrapper.find('EnabledSection').shallow().contains(
-            <Bot
-                key={bot1.user_id}
-                bot={bot1}
-                owner={undefined}
-                user={users[bot1.user_id]}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={false}
-            />,
-        )).toEqual(true);
-        expect(wrapper.find('EnabledSection').shallow().contains(
-            <Bot
-                key={bot2.user_id}
-                bot={bot2}
-                owner={undefined}
-                user={users[bot2.user_id]}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={false}
-            />,
-        )).toEqual(true);
-        expect(wrapper.find('EnabledSection').shallow().contains(
-            <Bot
-                key={bot3.user_id}
-                bot={bot3}
-                owner={undefined}
-                user={users[bot3.user_id]}
-                accessTokens={{}}
-                team={team}
-                actions={actions}
-                fromApp={true}
-            />,
-        )).toEqual(true);
+        expect(wrapper.find(BotsList)).toHaveLength(1);
+        expect(wrapper.find(BotsList).prop('appsBotIDs')).toContain(bot3.user_id);
     });
 
     it('bot owner tokens', () => {
@@ -167,7 +95,6 @@ describe('components/integrations/bots/Bots', () => {
         };
 
         const owner = TestHelper.getUserMock({id: bot1.owner_id});
-
         const user = TestHelper.getUserMock({id: bot1.user_id});
 
         const passedTokens = {
@@ -186,7 +113,7 @@ describe('components/integrations/bots/Bots', () => {
             [bot1.user_id]: passedTokens,
         };
 
-        const wrapperFull = shallow(
+        const wrapper = shallow(
             <Bots
                 bots={bots}
                 team={team}
@@ -198,20 +125,8 @@ describe('components/integrations/bots/Bots', () => {
                 appsBotIDs={[]}
             />,
         );
-        wrapperFull.instance().setState({loading: false});
-        const wrapper = shallow(<div>{(wrapperFull.instance() as Bots).bots()[0]}</div>);
 
-        expect(wrapper.find('EnabledSection').shallow().contains(
-            <Bot
-                key={bot1.user_id}
-                bot={bot1}
-                owner={owner}
-                user={user}
-                accessTokens={passedTokens}
-                team={team}
-                actions={actions}
-                fromApp={false}
-            />,
-        )).toEqual(true);
+        expect(wrapper.find(BotsList)).toHaveLength(1);
+        expect(wrapper.find(BotsList).prop('accessTokens')).toEqual(tokens);
     });
 });
