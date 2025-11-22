@@ -1778,6 +1778,8 @@
   "admin.mobileSecurity.allowPdfLinkNavigationTitle": "Allow Link Navigation in Secure PDFs:",
   "admin.mobileSecurity.biometricsDescription": "Enforces biometric authentication (with PIN/passcode fallback) before accessing the app. Users will be prompted based on session activity and server switching rules.",
   "admin.mobileSecurity.biometricsTitle": "Enable Biometric Authentication:",
+  "admin.mobileSecurity.enableIntuneMAMDescription": "When true, enables Microsoft Intune Mobile Application Management (MAM) for the Mattermost mobile app. Users can authenticate using their Azure AD/Entra ID credentials via MSAL tokens. Requires Azure AD/Entra ID (Office365) to be configured with a valid Directory ID and Client ID.",
+  "admin.mobileSecurity.enableIntuneMAMTitle": "Enable Microsoft Intune MAM:",
   "admin.mobileSecurity.jailbreakDescription": "Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.",
   "admin.mobileSecurity.jailbreakTitle": "Enable Jailbreak/Root Protection:",
   "admin.mobileSecurity.mobileAllowDownloads": "Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile",
