@@ -69,12 +69,8 @@ export default class MobileSecurity {
             'NativeAppSettings.MobileAllowPdfLinkNavigationfalse',
         );
 
-        this.enableIntuneMAMToggleTrue = this.container.getByTestId(
-            'NativeAppSettings.EnableIntuneMAMtrue',
-        );
-        this.enableIntuneMAMToggleFalse = this.container.getByTestId(
-            'NativeAppSettings.EnableIntuneMAMfalse',
-        );
+        this.enableIntuneMAMToggleTrue = this.container.getByTestId('NativeAppSettings.EnableIntuneMAMtrue');
+        this.enableIntuneMAMToggleFalse = this.container.getByTestId('NativeAppSettings.EnableIntuneMAMfalse');
 
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
     }

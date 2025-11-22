@@ -191,10 +191,7 @@ test('should show and enable Intune MAM when Enterprise Advanced licensed and Of
 
     const license = await adminClient.getClientLicenseOld();
 
-    test.skip(
-        license.SkuShortName !== 'advanced',
-        'Skipping test - server does not have enterprise advanced license',
-    );
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
@@ -260,10 +257,7 @@ test('should hide Intune MAM when Office365 is not configured', async ({pw}) => 
 
     const license = await adminClient.getClientLicenseOld();
 
-    test.skip(
-        license.SkuShortName !== 'advanced',
-        'Skipping test - server does not have enterprise advanced license',
-    );
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
