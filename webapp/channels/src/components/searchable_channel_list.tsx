@@ -289,7 +289,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.noMore'
                     tagName='strong'
-                    defaultMessage='No results for {text}'
+                    defaultMessage='No results for "{text}"'
                     values={{text: this.state.channelSearchValue}}
                 />
             );
@@ -646,7 +646,7 @@ const messages = defineMessages({
     },
     noMore: {
         id: 'more_channels.noMore',
-        defaultMessage: 'No results for {text}',
+        defaultMessage: 'No results for "{text}"',
     },
 });
 

@@ -201,7 +201,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     } else if (isCard) {
         titleDescriptor = defineMessage({
             id: 'search_header.title5',
-            defaultMessage: 'Extra information',
+            defaultMessage: 'Extra Information',
         });
     } else if (!searchTerms && noResults && noFileResults) {
         titleDescriptor = defineMessage({
@@ -236,7 +236,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         contentItems = (
             <div className='sidebar--right__subheader a11y__section'>
                 <div className='sidebar--right__loading'>
-                    <LoadingWrapper text={defineMessage({id: 'search_header.loading', defaultMessage: 'Searching'})}/>
+                    <LoadingWrapper text={defineMessage({id: 'search_header.loading', defaultMessage: 'Searching...'})}/>
                 </div>
             </div>
         );

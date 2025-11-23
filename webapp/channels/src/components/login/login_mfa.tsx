@@ -60,7 +60,7 @@ const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps)
                         inputSize={SIZE.LARGE}
                         value={token}
                         onChange={handleInputOnChange}
-                        placeholder={formatMessage({id: 'login_mfa.token', defaultMessage: 'Enter MFA Token'})}
+                        placeholder={formatMessage({id: 'login_mfa.token', defaultMessage: 'MFA Token'})}
                         autoFocus={true}
                         disabled={saving}
                     />

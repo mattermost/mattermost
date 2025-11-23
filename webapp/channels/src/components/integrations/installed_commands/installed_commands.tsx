@@ -88,7 +88,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                 header={
                     <FormattedMessage
                         id='installed_commands.header'
-                        defaultMessage='Installed Slash Commands'
+                        defaultMessage='Slash Commands'
                     />
                 }
                 addText={
@@ -102,7 +102,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                 emptyText={
                     <FormattedMessage
                         id='installed_commands.empty'
-                        defaultMessage='No slash commands found'
+                        defaultMessage='No commands found'
                     />
                 }
                 emptyTextSearch={

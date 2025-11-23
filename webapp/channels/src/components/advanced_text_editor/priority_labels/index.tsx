@@ -79,7 +79,7 @@ function PriorityLabels({
                 <WithTooltip
                     title={intl.formatMessage({
                         id: 'post_priority.remove',
-                        defaultMessage: 'Remove {priority}',
+                        defaultMessage: 'Remove {priority} label',
                     }, {priority})}
                 >
                     <button
@@ -90,7 +90,7 @@ function PriorityLabels({
                         <span className='sr-only'>
                             <FormattedMessage
                                 id={'post_priority.remove'}
-                                defaultMessage={'Remove {priority}'}
+                                defaultMessage={'Remove {priority} label'}
                                 values={{priority}}
                             />
                         </span>

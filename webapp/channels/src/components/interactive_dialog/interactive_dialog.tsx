@@ -74,8 +74,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                 if (error) {
                     errors[elem.name] = (
                         <FormattedMessage
-                            id={error.id}
-                            defaultMessage={error.defaultMessage}
+                            {...error}
                             values={error.values}
                         />
                     );

@@ -19,7 +19,7 @@ const emojiCategories = {
         name: 'recent',
         label: defineMessage({
             id: 'emoji_picker.recent',
-            defaultMessage: 'Recent',
+            defaultMessage: 'Recently Used',
         }),
         iconClassName: 'icon-clock-outline',
     },

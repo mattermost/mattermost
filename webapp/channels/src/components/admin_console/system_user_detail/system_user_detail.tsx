@@ -859,7 +859,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <WithTooltip
                                             title={defineMessage({
                                                 id: 'generic.enterprise_feature',
-                                                defaultMessage: 'Enterprise feature',
+                                                defaultMessage: 'Enterprise Feature',
                                             })}
                                             hint={defineMessage({
                                                 id: 'admin.user_item.manageSettings.disabled_tooltip',

@@ -292,7 +292,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         return [
             {
                 name: 'profile',
-                uiName: formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile'}),
+                uiName: formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile Settings'}),
                 icon: 'icon icon-settings-outline',
                 iconTitle: formatMessage({id: 'user.settings.profile.icon', defaultMessage: 'Profile Settings Icon'}),
             },

@@ -114,7 +114,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                 >
                     <i className='icon-plus-box'/>
                     <span>
-                        {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add Channels'})}
+                        {intl.formatMessage({id: 'sidebar_left.addChannelsCta', defaultMessage: 'Add channels'})}
                     </span>
                 </div>
             </button>
@@ -157,7 +157,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             {addChannelsButton()}
             <Menu
                 id='AddChannelCtaDropdown'
-                ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_cta_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channels Dropdown'})}
+                ariaLabel={intl.formatMessage({id: 'sidebar_left.add_channel_cta_dropdown.dropdownAriaLabel', defaultMessage: 'Add Channel Dropdown'})}
             >
                 {renderDropdownItems()}
             </Menu>

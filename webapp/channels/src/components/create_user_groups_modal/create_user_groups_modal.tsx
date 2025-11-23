@@ -304,8 +304,8 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         <fieldset className='group-add-people-fieldset'>
                             <legend>
                                 <FormattedMessage
-                                    id='user_groups_modal.addPeople.field_title'
-                                    defaultMessage='Add People'
+                                    id='user_groups_modal.addPeople'
+                                    defaultMessage='Add people'
                                 />
                             </legend>
                             <div className='group-add-user'>

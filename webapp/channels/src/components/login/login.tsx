@@ -368,7 +368,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 mode = 'danger';
                 title = formatMessage({
                     id: 'login.get_terms_error',
-                    defaultMessage: 'Unable to load terms of service. If this issue persists, contact your System Administrator.',
+                    defaultMessage: 'Unable to load terms of use. If this issue persists, contact your System Administrator.',
                 });
                 break;
 

@@ -43,7 +43,7 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
                 })}
                 description={formatMessage({
                     id: 'general_tab.openInviteDesc',
-                    defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.',
+                    defaultMessage: "When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing from 'Yes' to 'No' will regenerate the invitation code, create a new invitation link and invalidate the previous link.",
                 })}
                 descriptionAboveContent={true}
                 content={groupConstrainedContent}
@@ -69,7 +69,7 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
             })}
             description={formatMessage({
                 id: 'general_tab.openInviteDesc',
-                defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.',
+                defaultMessage: "When allowed, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing from 'Yes' to 'No' will regenerate the invitation code, create a new invitation link and invalidate the previous link.",
             })}
             descriptionAboveContent={true}
         />
