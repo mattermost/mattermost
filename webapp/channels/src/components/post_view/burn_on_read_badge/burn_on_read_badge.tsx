@@ -30,16 +30,18 @@ function BurnOnReadBadge({
 }: Props) {
     const {formatMessage} = useIntl();
 
-    // Get read receipt data from Redux store (real-time updated via WebSocket)
+    // Get read receipt data from Redux store
     const readReceipt = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
 
     // TODO: Remove this mock data once backend WebSocket is working
-    const mockReadReceipt = isSender && !readReceipt ? {
+    const mockReadReceipt = {
         postId,
         totalRecipients: 3,
         revealedCount: 1,
         lastUpdated: Date.now(),
-    } : readReceipt;
+    };
+
+    const readReceiptData = isSender && !readReceipt ? mockReadReceipt : readReceipt;
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Stop propagation to prevent opening RHS or other post click handlers
@@ -66,15 +68,15 @@ function BurnOnReadBadge({
                 defaultMessage: 'Click to delete message for everyone',
             });
 
-            if (mockReadReceipt) {
+            if (readReceiptData) {
                 const readReceiptText = formatMessage(
                     {
                         id: 'burn_on_read.badge.read_receipt',
                         defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
                     },
                     {
-                        revealedCount: mockReadReceipt.revealedCount,
-                        totalRecipients: mockReadReceipt.totalRecipients,
+                        revealedCount: readReceiptData.revealedCount,
+                        totalRecipients: readReceiptData.totalRecipients,
                     },
                 );
                 return (
@@ -114,15 +116,15 @@ function BurnOnReadBadge({
                 id: 'burn_on_read.badge.sender.delete',
                 defaultMessage: 'Click to delete message for everyone',
             });
-            if (mockReadReceipt) {
+            if (readReceiptData) {
                 const readReceiptText = formatMessage(
                     {
                         id: 'burn_on_read.badge.read_receipt',
                         defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
                     },
                     {
-                        revealedCount: mockReadReceipt.revealedCount,
-                        totalRecipients: mockReadReceipt.totalRecipients,
+                        revealedCount: readReceiptData.revealedCount,
+                        totalRecipients: readReceiptData.totalRecipients,
                     },
                 );
                 return `${deleteText}. ${readReceiptText}`;
@@ -138,25 +140,28 @@ function BurnOnReadBadge({
         return '';
     };
 
+    const isInteractive = isSender || (!isSender && !revealed);
+
     return (
         <WithTooltip
             id={`burn-on-read-tooltip-${postId}`}
             title={tooltipContent}
             isVertical={true}
         >
-            <span
+            <button
+                type='button'
                 className='BurnOnReadBadge'
                 data-testid={`burn-on-read-badge-${postId}`}
                 aria-label={getAriaLabel()}
-                onClick={handleClick}
-                role={(isSender || (!isSender && !revealed)) ? 'button' : undefined}
-                style={{cursor: (isSender || (!isSender && !revealed)) ? 'pointer' : 'default'}}
+                role='button'
+                onClick={isInteractive ? handleClick : undefined}
+                disabled={!isInteractive}
             >
                 <i
                     className='icon icon-fire'
                     aria-hidden='true'
                 />
-            </span>
+            </button>
         </WithTooltip>
     );
 }

@@ -3,6 +3,7 @@
 
 import {PostTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+import {Posts} from 'mattermost-redux/constants';
 
 import {revealBurnOnReadPost} from './burn_on_read_posts';
 
@@ -11,7 +12,7 @@ jest.mock('mattermost-redux/client');
 describe('burn_on_read_posts actions', () => {
     const mockPost = {
         id: 'post123',
-        type: 'burn_on_read',
+        type: Posts.POST_TYPES.BURN_ON_READ,
         user_id: 'user1',
         channel_id: 'channel1',
         message: 'revealed content',

@@ -7,18 +7,18 @@ import {expirationScheduler} from 'utils/burn_on_read_expiration_scheduler';
 
 interface Props {
     postId: string;
-    expireAt: number | null;
-    maxExpireAt: number | null;
+    expireAt?: number | null;
+    maxExpireAt?: number | null;
 }
 
 /**
  * Invisible component that registers burn-on-read posts with the global expiration scheduler.
  * Used for both revealed and unrevealed messages to ensure client-side deletion.
  *
- * - Revealed messages: have expire_at (10 min after reveal)
- * - Unrevealed messages: have max_expire_at (7 days after creation)
+ * - Revealed messages: have expire_at (based on burn_on_read setting and time of reveal)
+ * - Unrevealed messages: have max_expire_at (based on bunr_on_read setting and max time to live)
  */
-const BurnOnReadExpirationHandler = ({postId, expireAt, maxExpireAt}: Props) => {
+const BurnOnReadExpirationHandler = ({postId, expireAt = null, maxExpireAt = null}: Props) => {
     useEffect(() => {
         // Register post with global expiration scheduler
         expirationScheduler.registerPost(postId, expireAt, maxExpireAt);

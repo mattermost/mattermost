@@ -30,8 +30,8 @@ describe('BurnOnReadExpirationScheduler', () => {
         });
 
         it('should handle expired posts beyond grace period', () => {
-            // Post expired 15 seconds ago (beyond 10 second grace period)
-            const expireAt = Date.now() - 15000;
+            // Post expired 5 seconds ago (beyond 2 second grace period)
+            const expireAt = Date.now() - 5000;
 
             expirationScheduler.registerPost('post1', expireAt, null);
 
@@ -43,8 +43,8 @@ describe('BurnOnReadExpirationScheduler', () => {
         });
 
         it('should NOT immediately expire posts within grace period', () => {
-            // Post expired 5 seconds ago (within 10 second grace period)
-            const expireAt = Date.now() - 5000;
+            // Post expired 1 second ago (within 2 second grace period)
+            const expireAt = Date.now() - 1000;
 
             expirationScheduler.registerPost('post1', expireAt, null);
 
@@ -126,14 +126,21 @@ describe('BurnOnReadExpirationScheduler', () => {
     });
 
     describe('expiration handling', () => {
-        it('should dispatch expiration action when timer fires', () => {
+        it('should dispatch expiration action when timer fires (after grace period)', () => {
             const expireAt = new Date('2025-01-01T00:00:05.000Z').getTime();
 
             expirationScheduler.registerPost('post1', expireAt, null);
 
-            // Fast-forward time
+            // Fast-forward to expiration time
             jest.advanceTimersByTime(5000);
 
+            // Should NOT dispatch yet - grace period not passed
+            expect(mockDispatch).not.toHaveBeenCalled();
+
+            // Fast-forward past grace period (2 seconds)
+            jest.advanceTimersByTime(2000);
+
+            // Now should dispatch
             expect(mockDispatch).toHaveBeenCalledTimes(1);
             expect(mockDispatch).toHaveBeenCalledWith(expect.any(Function));
         });
@@ -147,15 +154,15 @@ describe('BurnOnReadExpirationScheduler', () => {
             expirationScheduler.registerPost('post2', expireAt2, null);
             expirationScheduler.registerPost('post3', expireAt3, null);
 
-            // First expiration
-            jest.advanceTimersByTime(5000);
+            // First expiration (5s + 2s grace = 7s)
+            jest.advanceTimersByTime(7000);
             expect(mockDispatch).toHaveBeenCalledTimes(1);
 
-            // Second expiration
+            // Second expiration (5s more from 7s = 12s, needs 10s + 2s grace = 12s)
             jest.advanceTimersByTime(5000);
             expect(mockDispatch).toHaveBeenCalledTimes(2);
 
-            // Third expiration
+            // Third expiration (5s more from 12s = 17s, needs 15s + 2s grace = 17s)
             jest.advanceTimersByTime(5000);
             expect(mockDispatch).toHaveBeenCalledTimes(3);
 
@@ -173,12 +180,15 @@ describe('BurnOnReadExpirationScheduler', () => {
             expirationScheduler.registerPost('post3', expireAt3, null);
 
             // Should still expire in correct order: post2, post3, post1
-            jest.advanceTimersByTime(5000);
+            // post2: 5s + 2s grace = 7s
+            jest.advanceTimersByTime(7000);
             expect(mockDispatch).toHaveBeenCalledTimes(1);
 
+            // post3: 10s + 2s grace = 12s (5s more from 7s)
             jest.advanceTimersByTime(5000);
             expect(mockDispatch).toHaveBeenCalledTimes(2);
 
+            // post1: 15s + 2s grace = 17s (5s more from 12s)
             jest.advanceTimersByTime(5000);
             expect(mockDispatch).toHaveBeenCalledTimes(3);
         });
@@ -194,7 +204,8 @@ describe('BurnOnReadExpirationScheduler', () => {
             expirationScheduler.registerPost('post1', expireAt2, null);
             expect(expirationScheduler.getState().nextExpiration).toBe(expireAt2);
 
-            jest.advanceTimersByTime(5000);
+            // 5s + 2s grace = 7s
+            jest.advanceTimersByTime(7000);
             expect(mockDispatch).toHaveBeenCalledTimes(1);
         });
     });
@@ -226,6 +237,37 @@ describe('BurnOnReadExpirationScheduler', () => {
         });
     });
 
+    describe('forceCheck', () => {
+        it('should immediately check and expire posts past grace period', () => {
+            const expireAt = Date.now() + 5000; // 5 seconds in future
+
+            expirationScheduler.registerPost('post1', expireAt, null);
+
+            // Should schedule for future, not immediate
+            expect(mockDispatch).not.toHaveBeenCalled();
+
+            // Advance time past expiration + grace (2s)
+            jest.setSystemTime(expireAt + 3000);
+
+            // Force check should expire it immediately
+            expirationScheduler.forceCheck();
+
+            expect(mockDispatch).toHaveBeenCalledTimes(1);
+            expect(expirationScheduler.getState().activeTimers).toBe(0);
+        });
+
+        it('should not expire posts still within grace period', () => {
+            const expireAt = Date.now() - 1000; // 1 second ago (within 2s grace)
+
+            expirationScheduler.registerPost('post1', expireAt, null);
+
+            expirationScheduler.forceCheck();
+
+            expect(mockDispatch).not.toHaveBeenCalled();
+            expect(expirationScheduler.getState().activeTimers).toBe(1);
+        });
+    });
+
     describe('edge cases', () => {
         it('should handle posts expiring right now (within grace period)', () => {
             const expireAt = Date.now();
@@ -240,11 +282,11 @@ describe('BurnOnReadExpirationScheduler', () => {
         });
 
         it('should handle recently expired posts (within grace period)', () => {
-            const expireAt = Date.now() - 5000; // 5 seconds ago
+            const expireAt = Date.now() - 1000; // 1 second ago
 
             expirationScheduler.registerPost('post1', expireAt, null);
 
-            // Should NOT expire immediately (within 10s grace period)
+            // Should NOT expire immediately (within 2s grace period)
             expect(mockDispatch).not.toHaveBeenCalled();
 
             const state = expirationScheduler.getState();

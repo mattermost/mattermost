@@ -422,30 +422,32 @@ function PostComponent(props: Props) {
         setBurnOnReadRevealing(true);
         setBurnOnReadRevealError(null);
 
-        const result = await props.actions.revealBurnOnReadPost(postId) as any;
+        try {
+            const result = await props.actions.revealBurnOnReadPost(postId);
 
-        setBurnOnReadRevealing(false);
-
-        if (result?.error) {
-            // Handle different error types with i18n
-            let errorMessage = formatMessage({
-                id: 'post.burn_on_read.reveal_error.generic',
-                defaultMessage: 'Failed to reveal message. Please try again.',
-            });
-
-            if (result.error.status_code === 404) {
-                errorMessage = formatMessage({
-                    id: 'post.burn_on_read.reveal_error.not_found',
-                    defaultMessage: 'This message is no longer available.',
+            if (result && typeof result === 'object' && 'error' in result) {
+                // Handle different error types with i18n
+                let errorMessage = formatMessage({
+                    id: 'post.burn_on_read.reveal_error.generic',
+                    defaultMessage: 'Failed to reveal message. Please try again.',
                 });
-            } else if (result.error.status_code === 403) {
-                errorMessage = formatMessage({
-                    id: 'post.burn_on_read.reveal_error.forbidden',
-                    defaultMessage: "You don't have permission to view this message.",
-                });
+
+                if (result.error.status_code === 404) {
+                    errorMessage = formatMessage({
+                        id: 'post.burn_on_read.reveal_error.not_found',
+                        defaultMessage: 'This message is no longer available.',
+                    });
+                } else if (result.error.status_code === 403) {
+                    errorMessage = formatMessage({
+                        id: 'post.burn_on_read.reveal_error.forbidden',
+                        defaultMessage: "You don't have permission to view this message.",
+                    });
+                }
+
+                setBurnOnReadRevealError(errorMessage);
             }
-
-            setBurnOnReadRevealError(errorMessage);
+        } finally {
+            setBurnOnReadRevealing(false);
         }
     }, [props.actions, formatMessage]);
 
@@ -453,8 +455,13 @@ function PostComponent(props: Props) {
         // Skip modal if preference is set
         if (props.burnOnReadSkipConfirmation) {
             setBurnDeleting(true);
-            await props.actions.burnPostNow?.(post.id);
-            setBurnDeleting(false);
+
+            try {
+                await props.actions.burnPostNow?.(post.id);
+            } finally {
+                setBurnDeleting(false);
+            }
+
             return;
         }
         setShowBurnConfirmModal(true);
@@ -467,10 +474,16 @@ function PostComponent(props: Props) {
 
     const handleBurnConfirm = useCallback(async (skipConfirmation: boolean) => {
         setBurnDeleting(true);
-        const result = await props.actions.burnPostNow?.(post.id) as any;
-        setBurnDeleting(false);
 
-        if (!result?.error) {
+        try {
+            const result = await props.actions.burnPostNow?.(post.id);
+
+            if (result && typeof result === 'object' && 'error' in result) {
+                // Error occurred, keep modal open so user can retry or cancel
+                return;
+            }
+
+            // Success - close modal
             setShowBurnConfirmModal(false);
 
             // Save preference if user checked "Do not ask me again"
@@ -483,6 +496,8 @@ function PostComponent(props: Props) {
                 };
                 props.actions.savePreferences(props.currentUserId, [pref]);
             }
+        } finally {
+            setBurnDeleting(false);
         }
     }, [props.actions, props.currentUserId, post.id]);
 

@@ -80,7 +80,7 @@ export function makeFilterPostsAndAddSeparators() {
                 }
 
                 // Filter out already-expired burn-on-read posts
-                if (post.type === 'burn_on_read' && post.metadata?.expire_at) {
+                if (post.type === Posts.POST_TYPES.BURN_ON_READ && post.metadata?.expire_at) {
                     const expireAt = post.metadata.expire_at;
                     if (typeof expireAt === 'number' && expireAt <= Date.now()) {
                         continue;

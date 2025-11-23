@@ -54,13 +54,17 @@ export function useBurnOnReadTimer({expireAt}: UseBurnOnReadTimerOptions): Timer
         let hasExpired = false;
 
         // Subscribe to global ticker (single setInterval for all timers)
-        const unsubscribe = timerTicker.subscribe(() => {
+        // Receives current timestamp for efficient calculation
+        const unsubscribe = timerTicker.subscribe((now) => {
             // Stop updating after expiration to avoid unnecessary renders
             if (hasExpired) {
                 return;
             }
 
-            const newRemaining = calculateRemainingTime(expireAt);
+            // Use passed timestamp instead of calling Date.now() again
+            // Handles both milliseconds and seconds timestamps
+            const expireAtMs = expireAt < 10000000000 ? expireAt * 1000 : expireAt;
+            const newRemaining = expireAtMs - now;
             setRemainingMs(newRemaining);
 
             // Mark as expired to stop future updates

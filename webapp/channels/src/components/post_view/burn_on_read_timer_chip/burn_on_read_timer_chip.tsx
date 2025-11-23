@@ -11,8 +11,6 @@ import WithTooltip from 'components/with_tooltip';
 
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';
 import {getAriaAnnouncementInterval, formatAriaAnnouncement} from 'utils/burn_on_read_timer_utils';
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
 
 import './burn_on_read_timer_chip.scss';
 
@@ -30,15 +28,16 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
 
     // Use server-provided expireAt if available, otherwise fallback to calculating from duration
     const displayExpireAt = useMemo(() => {
-        if (expireAt) {
+        if (expireAt && !isNaN(expireAt) && expireAt > 0) {
             return expireAt;
         }
 
         // Fallback: calculate from current time + duration
-        return Date.now() + (durationMinutes * 60 * 1000);
+        const calculated = Date.now() + (durationMinutes * 60 * 1000);
+        return isNaN(calculated) ? Date.now() : calculated;
     }, [expireAt, durationMinutes]);
 
-    const {displayText, remainingMs, isWarning} = useBurnOnReadTimer({
+    const {displayText, remainingMs, isWarning, isExpired} = useBurnOnReadTimer({
         expireAt: displayExpireAt,
     });
 
@@ -49,7 +48,7 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
     }, [onClick]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+        if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             e.stopPropagation();
             onClick();
@@ -79,8 +78,8 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
     ), [formatMessage, displayText]);
 
     const tooltipContent = useMemo(() => (
-        <div style={{textAlign: 'center'}}>
-            <div>
+        <div className='BurnOnReadTimerChip__tooltip'>
+            <div className='BurnOnReadTimerChip__tooltip-primary'>
                 {formatMessage(
                     {
                         id: 'post.burn_on_read.timer.tooltip.line1',
@@ -89,7 +88,7 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
                     {time: displayText},
                 )}
             </div>
-            <div style={{opacity: 0.7, marginTop: '4px'}}>
+            <div className='BurnOnReadTimerChip__tooltip-secondary'>
                 {formatMessage({
                     id: 'post.burn_on_read.timer.tooltip.line2',
                     defaultMessage: 'Click here to delete immediately',
@@ -103,17 +102,17 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
             {/* Register with expiration scheduler */}
             <BurnOnReadExpirationHandler
                 postId={postId}
-                expireAt={expireAt ?? null}
-                maxExpireAt={maxExpireAt ?? null}
+                expireAt={expireAt}
+                maxExpireAt={maxExpireAt}
             />
 
             <WithTooltip title={tooltipContent}>
                 <button
-                    className={`BurnOnReadTimerChip ${isWarning ? 'BurnOnReadTimerChip--warning' : ''}`}
+                    type='button'
+                    className={`BurnOnReadTimerChip ${isWarning ? 'BurnOnReadTimerChip--warning' : ''} ${isExpired ? 'BurnOnReadTimerChip--expired' : ''}`}
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
                     aria-label={ariaLabel}
-                    type='button'
                 >
                     <FireIcon
                         size={14}

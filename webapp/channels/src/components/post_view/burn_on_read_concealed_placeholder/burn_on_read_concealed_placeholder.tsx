@@ -7,9 +7,6 @@ import {useIntl} from 'react-intl';
 import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import Constants from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
-
 import './burn_on_read_concealed_placeholder.scss';
 
 type Props = {
@@ -38,7 +35,7 @@ function BurnOnReadConcealedPlaceholder({
     }, [postId, onReveal, loading]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if ((isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) && !loading) {
+        if ((e.key === 'Enter' || e.key === ' ') && !loading) {
             e.preventDefault();
             onReveal(postId);
         }
@@ -57,17 +54,17 @@ function BurnOnReadConcealedPlaceholder({
             {/* Register with expiration scheduler for max_expire_at tracking */}
             <BurnOnReadExpirationHandler
                 postId={postId}
-                expireAt={null}
-                maxExpireAt={maxExpireAt ?? null}
+                maxExpireAt={maxExpireAt}
             />
 
-            <div
+            <button
+                type='button'
                 className={`BurnOnReadConcealedPlaceholder ${loading ? 'BurnOnReadConcealedPlaceholder--loading' : ''} ${error ? 'BurnOnReadConcealedPlaceholder--error' : ''}`}
                 onClick={handleClick}
                 onKeyDown={handleKeyDown}
-                role='button'
-                tabIndex={0}
+                disabled={loading}
                 aria-label={ariaLabel}
+                tabIndex={0}
                 data-testid={`burn-on-read-concealed-${postId}`}
             >
                 {loading ? (
@@ -92,7 +89,7 @@ function BurnOnReadConcealedPlaceholder({
                         {error}
                     </div>
                 )}
-            </div>
+            </button>
         </>
     );
 }

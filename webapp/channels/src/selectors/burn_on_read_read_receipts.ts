@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import type {BurnOnReadReadReceipt} from '@mattermost/types/burn_on_read_read_receipts';
-
-import type {GlobalState} from 'types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
 /**
  * Returns the read receipt data for a specific burn-on-read post.
  * Contains total recipients and how many have revealed the message.
+ * Returns null if no read receipt data exists for the post.
  */
 export function getBurnOnReadReadReceipt(state: GlobalState, postId: string): BurnOnReadReadReceipt | null {
-    return state.entities.burnOnReadReadReceipts[postId] || null;
+    return state.entities.burnOnReadReadReceipts?.[postId] || null;
 }
 
 /**

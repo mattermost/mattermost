@@ -351,10 +351,8 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
     // TEMPORARY MOCK: Move expire_at from props to metadata for burn-on-read posts
     // This simulates what the backend will do when integration is complete
     let processedPost = post;
-    if (post.type === 'burn_on_read' && post.props?.expire_at && !post.metadata?.expire_at) {
-        const expireAtValue = typeof post.props.expire_at === 'number' ?
-            post.props.expire_at :
-            parseInt(String(post.props.expire_at), 10);
+    if (post.type === Posts.POST_TYPES.BURN_ON_READ && post.props?.expire_at && !post.metadata?.expire_at) {
+        const expireAtValue = typeof post.props.expire_at === 'number' ? post.props.expire_at : parseInt(String(post.props.expire_at), 10);
 
         processedPost = {
             ...post,

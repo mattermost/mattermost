@@ -6,10 +6,10 @@
     align-items: center;
     padding: 2px 8px;
     border: none;
-    border-radius: 12px;
+    border-radius: 4px;
     margin-left: 8px;
     background: rgba(210, 75, 78, 0.16);
-    color: #d24b4e;
+    color: var(--error-text, #d24b4e);
     cursor: pointer;
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     font-size: 11px;
@@ -41,8 +41,25 @@
 
     &--warning {
         animation: pulse 1s ease-in-out infinite;
-        background: #d24b4e;
+        background: var(--dnd-indicator, #d24b4e);
         color: #ffffff;
+    }
+
+    &--expired {
+        animation: fadeOut 2s ease-out forwards;
+    }
+
+    &__tooltip {
+        text-align: center;
+    }
+
+    &__tooltip-primary {
+        color: rgba(255, 255, 255, 1);
+    }
+
+    &__tooltip-secondary {
+        margin-top: 4px;
+        color: rgba(255, 255, 255, 0.7);
     }
 }
 
@@ -54,5 +71,17 @@
 
     50% {
         opacity: 0.85;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.95);
     }
 }

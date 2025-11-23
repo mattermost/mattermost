@@ -17,10 +17,11 @@ import type {DispatchFunc} from 'types/store';
  * Backend job is authoritative; this is UX optimization only.
  */
 class BurnOnReadExpirationScheduler {
-    private nextTimerId: NodeJS.Timeout | null = null;
-    private pollingIntervalId: NodeJS.Timeout | null = null;
+    private nextTimerId: ReturnType<typeof setTimeout> | null = null;
+    private pollingIntervalId: ReturnType<typeof setInterval> | null = null;
     private postExpirations: Map<string, number> = new Map();
     private dispatch: DispatchFunc | null = null;
+    private initialized = false;
 
     // Grace period: Don't immediately delete posts that just expired
     // This prevents premature deletion due to:
@@ -28,7 +29,7 @@ class BurnOnReadExpirationScheduler {
     // - Clock skew between client/server
     // - Stale data on initial load
     // Backend job is authoritative; this is just UX optimization
-    private readonly gracePeriodMs = 10000; // 10 seconds
+    private readonly gracePeriodMs = 2000; // 2 seconds
 
     // Hybrid strategy thresholds
     // 15 min threshold covers typical revealed message timer (10 min) with setTimeout
@@ -37,13 +38,21 @@ class BurnOnReadExpirationScheduler {
     private readonly pollingInterval = 60 * 1000; // Check every 60 seconds for long delays
 
     /**
-     * Initialize the scheduler with Redux dispatch
+     * Initialize the scheduler with Redux dispatch (idempotent - safe to call multiple times)
      */
     public initialize(dispatch: DispatchFunc): void {
+        // SSR guard
+        if (typeof document === 'undefined') {
+            return;
+        }
+
         this.dispatch = dispatch;
 
-        // Listen for visibility changes to check expirations when tab becomes visible
-        document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        // Idempotent: only attach listener once to avoid duplicates on hot reload/re-mounts
+        if (!this.initialized) {
+            document.addEventListener('visibilitychange', this.handleVisibilityChange);
+            this.initialized = true;
+        }
     }
 
     /**
@@ -96,6 +105,11 @@ class BurnOnReadExpirationScheduler {
      * Hybrid strategy: setTimeout for short delays, polling for long delays
      */
     private recomputeSchedule(): void {
+        // SSR guard
+        if (typeof window === 'undefined') {
+            return;
+        }
+
         // Clear existing timers
         if (this.nextTimerId) {
             clearTimeout(this.nextTimerId);
@@ -106,6 +120,7 @@ class BurnOnReadExpirationScheduler {
             this.pollingIntervalId = null;
         }
 
+        // Early return if nothing to track
         if (this.postExpirations.size === 0) {
             return;
         }
@@ -117,14 +132,17 @@ class BurnOnReadExpirationScheduler {
             return;
         }
 
-        const delay = Math.max(0, nextExpiration - Date.now());
+        // Schedule timer for expiration + grace period
+        // This ensures we only check once the grace period has fully elapsed
+        const delay = Math.max(0, (nextExpiration + this.gracePeriodMs) - Date.now());
 
         // Hybrid strategy: short delay = setTimeout, long delay = polling
         if (delay < this.shortDelayThreshold) {
             // Short delay: use setTimeout for exact timing
             this.nextTimerId = setTimeout(() => {
                 this.checkAndExpirePosts();
-                this.recomputeSchedule();
+
+                // Note: checkAndExpirePosts() calls recomputeSchedule() if needed
             }, delay);
         } else {
             // Long delay: use polling to handle sleep/throttling
@@ -156,26 +174,41 @@ class BurnOnReadExpirationScheduler {
     }
 
     /**
-     * Check all posts and expire any that have passed their expiration time
+     * Check all posts and expire any that have passed their expiration time + grace period
      */
     private checkAndExpirePosts(): void {
         const now = Date.now();
         const expiredPosts: string[] = [];
 
-        // Find all expired posts
+        // Find all expired posts (including grace period in the check)
+        // This is where the grace period should be applied, not just in registerPost
         for (const [postId, expireAt] of this.postExpirations.entries()) {
-            if (expireAt <= now) {
+            if (expireAt + this.gracePeriodMs <= now) {
                 expiredPosts.push(postId);
             }
         }
 
-        // Expire them
+        // Batch delete from tracking (avoids mutation during iteration)
         for (const postId of expiredPosts) {
-            this.handleExpiration(postId);
+            this.postExpirations.delete(postId);
         }
 
-        // Reschedule if needed (after expiring posts, check if there are more)
-        if (expiredPosts.length > 0 && this.postExpirations.size > 0) {
+        // Dispatch batch expiration if dispatch is available
+        if (expiredPosts.length > 0 && this.dispatch) {
+            // Dispatch each expiration (in future, consider batched action to reduce Redux thrash)
+            for (const postId of expiredPosts) {
+                try {
+                    this.dispatch(handlePostExpired(postId));
+                } catch (error) {
+                    // Silently fail - errors are logged by Redux middleware
+                }
+            }
+        }
+
+        // Reschedule if we expired any posts
+        // - If we expired posts and more remain: schedule the next one
+        // - If we expired posts and none remain: recomputeSchedule() exits early
+        if (expiredPosts.length > 0) {
             this.recomputeSchedule();
         }
     }
@@ -196,7 +229,7 @@ class BurnOnReadExpirationScheduler {
     };
 
     /**
-     * Handle post expiration
+     * Handle single post expiration (used by registerPost for immediate expiration)
      */
     private handleExpiration(postId: string): void {
         // Remove from tracking
@@ -204,7 +237,11 @@ class BurnOnReadExpirationScheduler {
 
         // Dispatch expiration action
         if (this.dispatch) {
-            this.dispatch(handlePostExpired(postId));
+            try {
+                this.dispatch(handlePostExpired(postId));
+            } catch (error) {
+                // Silently fail - errors are logged by Redux middleware
+            }
         }
     }
 
@@ -227,6 +264,13 @@ class BurnOnReadExpirationScheduler {
     }
 
     /**
+     * Force immediate check for expired posts (useful for testing/devtools)
+     */
+    public forceCheck(): void {
+        this.checkAndExpirePosts();
+    }
+
+    /**
      * Cleanup on logout/unmount
      */
     public cleanup(): void {
@@ -238,9 +282,12 @@ class BurnOnReadExpirationScheduler {
             clearInterval(this.pollingIntervalId);
             this.pollingIntervalId = null;
         }
-        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        if (typeof document !== 'undefined') {
+            document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+        }
         this.postExpirations.clear();
         this.dispatch = null;
+        this.initialized = false;
     }
 
     /**

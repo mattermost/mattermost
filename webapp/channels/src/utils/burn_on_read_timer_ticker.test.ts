@@ -24,6 +24,7 @@ describe('BurnOnReadTimerTicker', () => {
         jest.advanceTimersByTime(1000);
 
         expect(callback).toHaveBeenCalledTimes(1);
+        expect(callback).toHaveBeenCalledWith(expect.any(Number)); // Should receive timestamp
     });
 
     it('should stop ticker when last subscriber unsubscribes', () => {
@@ -67,10 +68,18 @@ describe('BurnOnReadTimerTicker', () => {
         expect(callback1).toHaveBeenCalledTimes(3);
         expect(callback2).toHaveBeenCalledTimes(3);
         expect(callback3).toHaveBeenCalledTimes(3);
+
+        // All callbacks should receive the same timestamp per tick
+        const firstTickTime = callback1.mock.calls[0][0];
+        expect(callback2.mock.calls[0][0]).toBe(firstTickTime);
+        expect(callback3.mock.calls[0][0]).toBe(firstTickTime);
     });
 
     it('should handle subscriber errors gracefully', () => {
-        const errorCallback = jest.fn(() => {
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        const errorCallback = jest.fn((now: number) => {
+            expect(typeof now).toBe('number');
             throw new Error('Test error');
         });
         const successCallback = jest.fn();
@@ -82,6 +91,8 @@ describe('BurnOnReadTimerTicker', () => {
 
         expect(errorCallback).toHaveBeenCalledTimes(1);
         expect(successCallback).toHaveBeenCalledTimes(1); // Should still be called despite error
+
+        consoleErrorSpy.mockRestore();
     });
 
     it('should not start multiple intervals', () => {
