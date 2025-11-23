@@ -53,6 +53,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EngineElasticSearch},
 	},
 	{
+		Name: "Should be able to search for terms within URLs",
+		Fn:   testSearchTermsInURLs,
+		Tags: []string{EnginePostgres, EngineElasticSearch},
+	},
+	{
 		Name: "Should be able to search when markdown underscores are applied",
 		Fn:   testSearchMarkdownUnderscores,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
@@ -570,6 +575,43 @@ func testSearchEmailAddressesWithQuotes(t *testing.T, th *SearchTestHelper) {
 
 	require.Len(t, results.Posts, 1)
 	th.checkPostInSearchResults(t, p1.Id, results.Posts)
+}
+
+func testSearchTermsInURLs(t *testing.T, th *SearchTestHelper) {
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "Check this link https://example.com/path/to/resource", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "Another post with http://test.com/special-chars_here", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	_, err = th.createPost(th.User.Id, th.ChannelBasic.Id, "Post without URLs", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	t.Run("Should search for terms within URL paths", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "resource"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Should search for terms with special characters in URLs", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "special-chars"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Should search for domain names in URLs", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "example.com"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
 }
 
 func testSearchMarkdownUnderscores(t *testing.T, th *SearchTestHelper) {
