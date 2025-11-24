@@ -1052,7 +1052,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 error: null,
                 isSaving: false,
             });
-
         } catch (err) {
             console.error('SystemUserDetails-handleConfirmSave', err); // eslint-disable-line no-console
 
