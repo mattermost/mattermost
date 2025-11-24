@@ -29,7 +29,7 @@ export async function popoutThread(
             isRHS: true,
             titleTemplate: intl.formatMessage({
                 id: 'thread_popout.title',
-                defaultMessage: 'Thread - {channelName} - {teamName}',
+                defaultMessage: "Thread - '{channelName}' - '{teamName}'", // escaped placeholders for template rendering later on
             }),
         },
     );
