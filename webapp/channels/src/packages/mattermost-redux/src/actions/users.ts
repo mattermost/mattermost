@@ -9,7 +9,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, UserAuthUpdate, UserAuthResponse} from '@mattermost/types/users';
+import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, UserAuthUpdate} from '@mattermost/types/users';
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
@@ -1044,14 +1044,19 @@ export function patchUser(user: UserProfile): ActionFuncAsync<UserProfile> {
     };
 }
 
-export function updateUserAuth(userId: string, userAuth: UserAuthUpdate): ActionFuncAsync<UserAuthResponse> {
-    return async (dispatch) => {
-        let data: UserAuthResponse;
+export function updateUserAuth(userId: string, userAuth: UserAuthUpdate): ActionFuncAsync<UserAuthUpdate> {
+    return async (dispatch, getState) => {
+        let data: UserAuthUpdate;
         try {
             data = await Client4.updateUserAuth(userId, userAuth);
         } catch (error) {
             dispatch(logError(error));
             return {error};
+        }
+
+        const profile = getState().entities.users.profiles[userId];
+        if (profile) {
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, auth_data: data.auth_data, auth_service: data.auth_service}});
         }
 
         return {data};

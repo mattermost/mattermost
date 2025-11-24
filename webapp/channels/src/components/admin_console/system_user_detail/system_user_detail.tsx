@@ -1026,7 +1026,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     updatedUser = {
                         ...updatedUser,
                         auth_data: data.auth_data,
-                        auth_service: data.auth_service,
+                        auth_service: data.auth_service || '',
                     };
                 } else {
                     throw new Error(error ? error.message : 'Failed to update user auth data');

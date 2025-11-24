@@ -159,8 +159,3 @@ export type UserAuthUpdate = {
     auth_data?: string;
     auth_service?: string;
 };
-
-export type UserAuthResponse = {
-    auth_data: string;
-    auth_service: string;
-};

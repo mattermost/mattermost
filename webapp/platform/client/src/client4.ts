@@ -148,7 +148,6 @@ import type {
     AuthChangeResponse,
     UserAccessToken,
     UserAuthUpdate,
-    UserAuthResponse,
     UserProfile,
     UsersStats,
     UserStatus,
@@ -654,7 +653,7 @@ export default class Client4 {
     };
 
     updateUserAuth = (userId: string, userAuth: UserAuthUpdate) => {
-        return this.doFetch<UserAuthResponse>(
+        return this.doFetch<UserAuthUpdate>(
             `${this.getUserRoute(userId)}/auth`,
             {method: 'put', body: JSON.stringify(userAuth)},
         );
