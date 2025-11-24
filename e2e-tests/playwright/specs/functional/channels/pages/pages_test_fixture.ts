@@ -42,10 +42,10 @@ export const test = base.extend<{}, PagesWorkerFixtures>({
         await adminClient.updateConfig(getOnPremServerConfig() as any);
 
         // Create shared team for all pages tests
-        const team = await adminClient.createTeam(createRandomTeam('pages-team', 'Pages Team'));
+        const team = await adminClient.createTeam(await createRandomTeam('pages-team', 'Pages Team'));
 
         // Create shared user and add to team
-        const randomUser = createRandomUser('pages-user');
+        const randomUser = await createRandomUser('pages-user');
         const user = await adminClient.createUser(randomUser, '', '');
         user.password = randomUser.password;
         await adminClient.addToTeam(team.id, user.id);

@@ -4587,6 +4587,18 @@ components:
       required:
         - Enabled
         - ReviewerIds
+    AccessControlPolicyActiveUpdateRequest:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessControlPolicyActiveUpdate"
+    AccessControlPolicyActiveUpdate:
+      description: The ID of the policy.
+          active:
+            type: boolean
+            description: The active status of the policy.
     Wiki:
       type: object
       properties:

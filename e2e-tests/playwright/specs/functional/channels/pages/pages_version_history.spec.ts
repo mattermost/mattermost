@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
+import {createRandomUser} from '@mattermost/playwright-lib';
 
 import {
     createPageThroughUI,
@@ -78,10 +79,11 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
     await page1.waitForTimeout(AUTOSAVE_WAIT); // Wait for auto-save
 
     // # User 2 (non-author) opens the same wiki and page
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
+    const user2Data = await createRandomUser('user2');
+    const user2 = await adminClient.createUser(user2Data, '', '');
+    user2.password = user2Data.password;
+    await adminClient.addToTeam(team.id, user2.id);
+    await adminClient.addToChannel(user2.id, channel.id);
 
     // Close user1 page after user2 is set up
     await page1.close();

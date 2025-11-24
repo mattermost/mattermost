@@ -15,6 +15,7 @@ import {
     createTestUserInChannel,
     clickPageInHierarchy,
     selectAllText,
+    withRolePermissions,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
@@ -388,25 +389,18 @@ test('applies first-write-wins when saving concurrent edits from multiple tabs',
     await editor1.pressSequentially(' - User 1 edit');
 
     // # Create user2 FIRST (before granting permissions)
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # Grant page and wiki edit permissions to channel_user role AFTER user is created
     // Note: edit_others_page permissions are needed for User 2 to edit User 1's page
-    const channelUserRole = await adminClient.getRoleByName('channel_user');
-    await adminClient.patchRole(channelUserRole.id, {
-        permissions: [
-            ...channelUserRole.permissions,
-            'edit_page_public_channel',
-            'edit_page_private_channel',
-            'edit_others_page_public_channel',
-            'edit_others_page_private_channel',
-            'edit_wiki_public_channel',
-            'edit_wiki_private_channel',
-        ],
-    });
+    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+        'edit_page_public_channel',
+        'edit_page_private_channel',
+        'edit_others_page_public_channel',
+        'edit_others_page_private_channel',
+        'edit_wiki_public_channel',
+        'edit_wiki_private_channel',
+    ]);
 
     // Wait a moment for permission changes to propagate
     await page1.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -503,6 +497,9 @@ test('applies first-write-wins when saving concurrent edits from multiple tabs',
     await expect(pageViewer2After).not.toContainText('User 1 edit');
 
     await page2.close();
+
+    // # Cleanup: Restore original permissions
+    await restorePermissions();
 });
 
 /**
@@ -529,24 +526,17 @@ test('allows explicit overwrite after confirmation when user overrides first-wri
     await editor1.pressSequentially(' - User 1 edit');
 
     // # Create user2 with permissions
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // Grant edit permissions
-    const channelUserRole = await adminClient.getRoleByName('channel_user');
-    await adminClient.patchRole(channelUserRole.id, {
-        permissions: [
-            ...channelUserRole.permissions,
-            'edit_page_public_channel',
-            'edit_page_private_channel',
-            'edit_others_page_public_channel',
-            'edit_others_page_private_channel',
-            'edit_wiki_public_channel',
-            'edit_wiki_private_channel',
-        ],
-    });
+    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+        'edit_page_public_channel',
+        'edit_page_private_channel',
+        'edit_others_page_public_channel',
+        'edit_others_page_private_channel',
+        'edit_wiki_public_channel',
+        'edit_wiki_private_channel',
+    ]);
 
     await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
@@ -638,6 +628,9 @@ test('allows explicit overwrite after confirmation when user overrides first-wri
     await expect(pageViewer2After).not.toContainText('User 2 edit');
 
     await page2.close();
+
+    // # Cleanup: Restore original permissions
+    await restorePermissions();
 });
 
 /**

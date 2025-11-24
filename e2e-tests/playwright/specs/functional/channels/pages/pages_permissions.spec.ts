@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
+import {createRandomUser} from '@mattermost/playwright-lib';
 
 import {
     createWikiThroughUI,
     createPageThroughUI,
     createChildPageThroughContextMenu,
+    createTestChannel,
     getNewPageButton,
     openPageActionsMenu,
     clickPageContextMenuItem,
@@ -56,12 +58,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Create a private channel (non-members will not have access)
-    const privateChannel = await adminClient.createChannel({
-        team_id: team.id,
-        name: `private-wiki-test-${pw.random.id()}`,
-        display_name: `Private Wiki Test ${pw.random.id()}`,
-        type: 'P',
-    });
+    const privateChannel = await createTestChannel(adminClient, team.id, 'private-wiki-test', 'P');
 
     // # Add first user to the private channel
     await adminClient.addToChannel(user.id, privateChannel.id);
@@ -75,12 +72,13 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         const testPage = await createPageThroughUI(userPage, 'Private Page', 'Private content');
 
         // # Create user NOT in channel (using MM pattern)
-        const nonMemberUser = pw.random.user('nonmember');
-        const {id: nonMemberUserId} = await adminClient.createUser(nonMemberUser, '', '');
-        await adminClient.addToTeam(team.id, nonMemberUserId);
+        const nonMemberUser = await createRandomUser('nonmember');
+        const createdNonMember = await adminClient.createUser(nonMemberUser, '', '');
+        createdNonMember.password = nonMemberUser.password;
+        await adminClient.addToTeam(team.id, createdNonMember.id);
 
         // # Login as non-member and attempt to navigate to wiki
-        const {page: nonMemberPage, channelsPage: nonMemberChannelsPage} = await pw.testBrowser.login(nonMemberUser);
+        const {page: nonMemberPage, channelsPage: nonMemberChannelsPage} = await pw.testBrowser.login(createdNonMember);
 
         // Wait for login to complete by navigating to a valid page first
         await nonMemberChannelsPage.goto(team.name, 'town-square');
@@ -150,13 +148,14 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create admin user
-    const adminUser = pw.random.user('admin');
-    const {id: adminUserId} = await adminClient.createUser(adminUser, '', '');
-    await adminClient.addToTeam(team.id, adminUserId);
-    await adminClient.addToChannel(adminUserId, channel.id);
-    await adminClient.updateChannelMemberRoles(channel.id, adminUserId, 'channel_admin channel_user');
+    const adminUser = await createRandomUser('admin');
+    const createdAdminUser = await adminClient.createUser(adminUser, '', '');
+    createdAdminUser.password = adminUser.password;
+    await adminClient.addToTeam(team.id, createdAdminUser.id);
+    await adminClient.addToChannel(createdAdminUser.id, channel.id);
+    await adminClient.updateChannelMemberRoles(channel.id, createdAdminUser.id, 'channel_admin channel_user');
 
-    const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+    const {page, channelsPage} = await pw.testBrowser.login(createdAdminUser);
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki and page through UI
@@ -278,14 +277,15 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
     const testPage = await createPageThroughUI(userPage, 'Protected Page', 'Protected content');
 
     // # Create guest user with read-only access
-    const guestUser = pw.random.user('guest');
-    const {id: guestUserId} = await adminClient.createUser(guestUser, '', '');
-    await adminClient.demoteUserToGuest(guestUserId);
-    await adminClient.addToTeam(team.id, guestUserId);
-    await adminClient.addToChannel(guestUserId, channel.id);
+    const guestUser = await createRandomUser('guest');
+    const createdGuestUser = await adminClient.createUser(guestUser, '', '');
+    createdGuestUser.password = guestUser.password;
+    await adminClient.demoteUserToGuest(createdGuestUser.id);
+    await adminClient.addToTeam(team.id, createdGuestUser.id);
+    await adminClient.addToChannel(createdGuestUser.id, channel.id);
 
     // # Login as guest and navigate to the page
-    const {page} = await pw.testBrowser.login(guestUser);
+    const {page} = await pw.testBrowser.login(createdGuestUser);
     const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
     await page.goto(pageUrl);
     await page.waitForLoadState('networkidle');

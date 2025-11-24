@@ -5,6 +5,7 @@ import type {Page, Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
+import {createRandomUser} from '@mattermost/playwright-lib';
 
 /**
  * Standard wait times for page operations
@@ -78,15 +79,39 @@ export async function pressModifierKey(page: Page, key: string): Promise<void> {
  * @param client - Client4 instance
  * @param teamId - Team ID
  * @param channelName - Name for the channel
+ * @param type - Channel type: 'O' for open/public (default), 'P' for private
  * @returns The created channel
  */
-export async function createTestChannel(client: Client4, teamId: string, channelName: string): Promise<Channel> {
+export async function createTestChannel(client: Client4, teamId: string, channelName: string, type: 'O' | 'P' = 'O'): Promise<Channel> {
+    const timestamp = Date.now();
+    const uniqueName = `${channelName}-${timestamp}`;
     return await client.createChannel({
         team_id: teamId,
-        name: channelName.toLowerCase().replace(/[^a-z0-9-_]/g, '-'),
-        display_name: channelName,
-        type: 'O',
+        name: uniqueName.toLowerCase().replace(/[^a-z0-9-_]/g, '-'),
+        display_name: uniqueName,
+        type,
     });
+}
+
+/**
+ * Creates a test user and adds them to a team (but not a channel)
+ * @param pw - Playwright test context with random.user utility
+ * @param adminClient - Client4 instance with admin permissions
+ * @param team - Team object with id
+ * @param username - Optional username prefix (defaults to 'user')
+ * @returns Object containing the created user and userId
+ */
+export async function createTestUserInTeam(
+    pw: any,
+    adminClient: Client4,
+    team: {id: string},
+    username?: string,
+) {
+    const userData = await createRandomUser(username || 'user');
+    const user = await adminClient.createUser(userData, '', '');
+    user.password = userData.password;
+    await adminClient.addToTeam(team.id, user.id);
+    return {user, userId: user.id};
 }
 
 /**
@@ -105,11 +130,12 @@ export async function createTestUserInChannel(
     channel: {id: string},
     username?: string,
 ) {
-    const user = pw.random.user(username || 'user');
-    const {id: userId} = await adminClient.createUser(user, '', '');
-    await adminClient.addToTeam(team.id, userId);
-    await adminClient.addToChannel(userId, channel.id);
-    return {user, userId};
+    const userData = await createRandomUser(username || 'user');
+    const user = await adminClient.createUser(userData, '', '');
+    user.password = userData.password;
+    await adminClient.addToTeam(team.id, user.id);
+    await adminClient.addToChannel(user.id, channel.id);
+    return {user, userId: user.id};
 }
 
 /**
@@ -254,6 +280,9 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
         // (may be an empty channel or different UI state)
         await page.waitForTimeout(WEBSOCKET_WAIT);
     }
+
+    // # Wait for the channel tabs container to be visible first
+    await page.locator('.channel-tabs-container').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT + 5000});
 
     // # Click the "+" button in the channel tabs to open the add content menu
     const addContentButton = page.locator('#add-tab-content');
@@ -3013,4 +3042,46 @@ export async function appendContentInEditor(page: Page, newContent: string) {
 
     // Type new content
     await editor.type(newContent);
+}
+
+/**
+ * Temporarily grants additional permissions to a role and returns a cleanup function.
+ * The cleanup function should be called at the end of the test to restore original permissions.
+ *
+ * @param adminClient - Admin client to use for API calls
+ * @param roleName - Name of the role to modify (e.g., 'channel_user')
+ * @param permissions - Array of permission strings to add to the role
+ * @returns Cleanup function that restores original permissions
+ *
+ * @example
+ * const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+ *     'edit_page_public_channel',
+ *     'edit_page_private_channel',
+ * ]);
+ *
+ * // ... test code that needs the permissions ...
+ *
+ * // Restore original permissions at test end
+ * await restorePermissions();
+ */
+export async function withRolePermissions(
+    adminClient: Client4,
+    roleName: string,
+    permissions: string[]
+): Promise<() => Promise<void>> {
+    const role = await adminClient.getRoleByName(roleName);
+    const originalPermissions = [...role.permissions];
+
+    await adminClient.patchRole(role.id, {
+        permissions: [
+            ...role.permissions,
+            ...permissions,
+        ],
+    });
+
+    return async () => {
+        await adminClient.patchRole(role.id, {
+            permissions: originalPermissions,
+        });
+    };
 }

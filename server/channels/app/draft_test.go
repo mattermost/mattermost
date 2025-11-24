@@ -591,6 +591,38 @@ func TestPublishPageDraft(t *testing.T) {
 		require.NotNil(t, publishedChild)
 		assert.Equal(t, publishedParent.Id, publishedChild.PageParentId, "Published child page should have correct parent")
 	})
+
+	t.Run("handles malformed TipTap JSON gracefully", func(t *testing.T) {
+		// This test validates that the system handles malformed/corrupted TipTap JSON
+		// that might exist due to bugs, data migration issues, or database corruption.
+		// The server should accept and store the malformed content (as it's just JSON),
+		// allowing the frontend to handle rendering gracefully.
+
+		draftId := model.NewId()
+		title := "Malformed Content Page"
+
+		// Create malformed TipTap JSON with invalid node type
+		malformedContent := `{"type":"doc","content":[{"type":"invalid_node_type"}]}`
+
+		// # Save draft with malformed content - should succeed (server stores JSON as-is)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, malformedContent, title, "", nil)
+		require.Nil(t, err, "Server should accept malformed TipTap JSON")
+
+		// # Publish the draft - should succeed
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "", "", 0, false)
+		require.Nil(t, appErr, "Publishing malformed content should succeed")
+		require.NotNil(t, publishedPage)
+
+		// * Verify page was created with the malformed content
+		assert.Equal(t, title, publishedPage.Props["title"])
+		assert.Equal(t, model.PostTypePage, publishedPage.Type)
+		assert.JSONEq(t, malformedContent, publishedPage.Message, "Malformed content should be stored as-is")
+
+		// * Verify page can be retrieved
+		retrievedPage, getErr := th.App.GetPage(th.Context, publishedPage.Id)
+		require.Nil(t, getErr, "Should be able to retrieve page with malformed content")
+		assert.JSONEq(t, malformedContent, retrievedPage.Message)
+	})
 }
 
 // TestPageDraftWhenPageDeleted tests concurrent editing conflict scenarios where users

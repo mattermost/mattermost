@@ -33,6 +33,7 @@ import {
     verifyHierarchyContains,
     verifyPageContentContains,
     verifyWikiRHSContent,
+    waitForSearchDebounce,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
@@ -181,15 +182,15 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki and page through UI
-    const uniqueTerm = `SearchTerm${pw.random.id()}`;
-    const wiki = await createWikiThroughUI(page, `Search Flow Wiki ${pw.random.id()}`);
+    const uniqueTerm = `SearchTerm${await pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page, `Search Flow Wiki ${await pw.random.id()}`);
     const searchablePage = await createPageThroughUI(page, `Page with ${uniqueTerm}`, `Content containing ${uniqueTerm}`);
 
     // # Perform search
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
     await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill(uniqueTerm);
-    await page.waitForTimeout(SHORT_WAIT);
+    await waitForSearchDebounce(page);
 
     // # Click search result - use getByRole to find the button containing the search term
     const searchResult = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();

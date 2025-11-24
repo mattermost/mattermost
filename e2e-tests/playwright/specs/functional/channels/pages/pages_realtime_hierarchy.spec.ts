@@ -15,6 +15,7 @@ import {
     renamePageViaContextMenu,
     deletePageThroughUI,
     createChildPageThroughContextMenu,
+    withRolePermissions,
     EDITOR_LOAD_WAIT,
     WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
@@ -149,20 +150,13 @@ test('shows notification and redirects when viewed page is deleted by another us
     const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be deleted');
 
     // # Create user2 with delete permissions
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
+    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # Grant delete permissions to channel_user role
-    const channelUserRole = await adminClient.getRoleByName('channel_user');
-    await adminClient.patchRole(channelUserRole.id, {
-        permissions: [
-            ...channelUserRole.permissions,
-            'delete_page_public_channel',
-            'delete_page_private_channel',
-        ],
-    });
+    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+        'delete_page_public_channel',
+        'delete_page_private_channel',
+    ]);
 
     // # User 2 logs in and views the page
     const {page: user2Page} = await pw.testBrowser.login(user2);
@@ -234,6 +228,9 @@ test('shows notification and redirects when viewed page is deleted by another us
     }
 
     await user2Page.close();
+
+    // # Cleanup: Restore original permissions
+    await restorePermissions();
 });
 
 /**

@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT, UI_MICRO_WAIT, pressModifierKey} from './test_helpers';
+import {createTestChannel, createTestUserInTeam, createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT, UI_MICRO_WAIT, pressModifierKey} from './test_helpers';
 
 /**
  * @objective Verify editor handles large content without performance degradation
@@ -151,12 +151,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create another user to mention
-    const mentionedUser = await adminClient.createUser({
-        email: `mentioned-${pw.random.id()}@example.com`,
-        username: `mentioned${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    await adminClient.addToTeam(team.id, mentionedUser.id);
+    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -216,12 +211,7 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create another channel to mention
-    const mentionedChannel = await adminClient.createChannel({
-        team_id: team.id,
-        name: `mentioned-channel-${pw.random.id()}`,
-        display_name: `Mentioned Channel ${pw.random.id()}`,
-        type: 'O',
-    });
+    const mentionedChannel = await createTestChannel(adminClient, team.id, `mentioned-channel-${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -294,19 +284,8 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create two users to mention
-    const user1 = await adminClient.createUser({
-        email: `user1-${pw.random.id()}@example.com`,
-        username: `user1${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    await adminClient.addToTeam(team.id, user1.id);
-
-    const user2 = await adminClient.createUser({
-        email: `user2-${pw.random.id()}@example.com`,
-        username: `user2${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    await adminClient.addToTeam(team.id, user2.id);
+    const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'user1');
+    const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'user2');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -351,12 +330,7 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create another user to mention
-    const mentionedUser = await adminClient.createUser({
-        email: `mentioned-${pw.random.id()}@example.com`,
-        username: `matttest${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    await adminClient.addToTeam(team.id, mentionedUser.id);
+    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'matttest');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -427,18 +401,8 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create two users to mention
-    const user1 = await adminClient.createUser({
-        email: `user1-${pw.random.id()}@example.com`,
-        username: `alice${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    const user2 = await adminClient.createUser({
-        email: `user2-${pw.random.id()}@example.com`,
-        username: `bob${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    await adminClient.addToTeam(team.id, user1.id);
-    await adminClient.addToTeam(team.id, user2.id);
+    const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'alice');
+    const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'bob');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -506,12 +470,7 @@ test('shows mention dropdown on second attempt after canceling first', {tag: '@p
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create a user to mention
-    const mentionedUser = await adminClient.createUser({
-        email: `mentioned-${pw.random.id()}@example.com`,
-        username: `testuser${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    await adminClient.addToTeam(team.id, mentionedUser.id);
+    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'testuser');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -574,12 +533,7 @@ test.skip('sends notification to mentioned user when page is published', {tag: '
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create a second user who will be mentioned
-    const mentionedUser = await adminClient.createUser({
-        email: `mentioned-${pw.random.id()}@example.com`,
-        username: `mentioned${pw.random.id()}`,
-        password: 'Password1!',
-    });
-    await adminClient.addToTeam(team.id, mentionedUser.id);
+    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
     await adminClient.addToChannel(mentionedUser.id, channel.id);
 
     // # Also add mentioned user to off-topic channel (they'll navigate there to check mentions)
@@ -1065,12 +1019,7 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Create a unique channel for this test (to avoid cross-wiki page pollution)
-    const uniqueChannel = await adminClient.createChannel({
-        team_id: team.id,
-        name: `empty-test-${pw.random.id()}`,
-        display_name: `Empty Test ${pw.random.id()}`,
-        type: 'O',
-    });
+    const uniqueChannel = await createTestChannel(adminClient, team.id, `empty-test-${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, uniqueChannel.name);

@@ -21,7 +21,7 @@ export async function createPageViaDraft(
     content: PageContent,
     pageParentId = '',
 ): Promise<Post> {
-    const draftId = getRandomId();
+    const draftId = await getRandomId();
     const draftContent = JSON.stringify(content);
 
     await client.savePageDraft(wikiId, draftId, draftContent, title);

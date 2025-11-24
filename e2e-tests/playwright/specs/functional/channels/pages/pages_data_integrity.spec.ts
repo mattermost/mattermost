@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {createPageViaDraft} from '@mattermost/playwright-lib';
 import {expect, test} from './pages_test_fixture';
 
 import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel, UI_MICRO_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT} from './test_helpers';
@@ -226,89 +225,11 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
 });
 
 /**
- * @objective Verify malformed TipTap JSON is handled gracefully
+ * NOTE: Test for malformed TipTap JSON moved to backend integration tests
+ *
+ * Malformed JSON cannot be created through normal UI flows and would require API calls
+ * to test, which defeats the purpose of E2E testing. This edge case is now covered by
+ * backend integration tests in server/channels/app/page_draft_test.go
+ *
+ * See: TestPublishPageDraftWithMalformedContent
  */
-test('handles malformed TipTap JSON gracefully', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
-
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Malformed Wiki ${pw.random.id()}`);
-
-    // # Create page with invalid TipTap structure via API (can't create malformed content through UI)
-    const malformedContent = {
-        type: 'doc' as const,
-        content: [{type: 'invalid_node_type'}],
-    };
-    const malformedPage = await createPageViaDraft(
-        adminClient,
-        wiki.id,
-        'Malformed Page',
-        malformedContent as any, // Cast to bypass type checking for intentionally invalid content
-    );
-
-    // # Navigate to malformed page
-    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/pages/${malformedPage.id}`);
-    await page.waitForLoadState('networkidle');
-
-    // * Verify page loads without crashing - wait for wiki view to be ready
-    const wikiView = page.locator('[data-testid="wiki-view"]');
-    await expect(wikiView).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-
-    // Wait longer for page data to load and error handling to kick in
-    await page.waitForTimeout(ELEMENT_TIMEOUT);
-
-    // Page should either show content or an error, but not crash
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    const pageViewer = page.locator('[data-testid="page-viewer"]');
-    const emptyState = page.locator('.PagePane__emptyState');
-    const hierarchyPanel = getHierarchyPanel(page);
-
-    // Check what state we're in
-    const hasContent = await pageContent.isVisible().catch(() => false);
-    const hasPageViewer = await pageViewer.isVisible().catch(() => false);
-    const hasEmptyState = await emptyState.isVisible().catch(() => false);
-    const hasHierarchyPanel = await hierarchyPanel.isVisible().catch(() => false);
-
-    // Should show something (not stuck in loading) - at minimum the hierarchy panel should be visible
-    expect(hasContent || hasPageViewer || hasEmptyState || hasHierarchyPanel).toBe(true);
-
-    // * Verify error message or fallback display
-    const errorBanner = page.locator('[data-testid="content-error"], .error-banner, .alert-danger').first();
-    const warningMessage = page.locator('[data-testid="warning"], .warning').first();
-
-    const hasError = await errorBanner.isVisible().catch(() => false);
-    const hasWarning = await warningMessage.isVisible().catch(() => false);
-
-    // Should show some indication of the problem
-    if (hasError) {
-        await expect(errorBanner).toContainText(/unable|error|invalid|content/i);
-    } else if (hasWarning) {
-        await expect(warningMessage).toContainText(/unable|error|invalid|content/i);
-    }
-
-    // # Try to edit malformed page
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    if (await editButton.isVisible()) {
-        await editButton.click();
-    }
-
-    // * Verify editor handles gracefully (shows warning or empty editor)
-    const editor = await getEditorAndWait(page);
-    const editorVisible = await editor.isVisible({timeout: ELEMENT_TIMEOUT}).catch(() => false);
-
-    if (editorVisible) {
-        // Editor loaded - check if it shows empty or error state
-        const editorText = await editor.textContent();
-        // Should not crash, may be empty or show placeholder
-        expect(editorText !== undefined).toBe(true);
-    } else {
-        // Editor didn't load - check for error message
-        const editError = page.locator('[data-testid="edit-error"], .error').first();
-        const hasEditError = await editError.isVisible().catch(() => false);
-        expect(hasEditError || editorVisible).toBe(true);
-    }
-});

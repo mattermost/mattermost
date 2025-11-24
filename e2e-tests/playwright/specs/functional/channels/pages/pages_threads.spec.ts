@@ -3,7 +3,21 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createTestChannel, waitForEditModeReady, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, UI_MICRO_WAIT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createTestChannel,
+    waitForEditModeReady,
+    getEditorAndWait,
+    addInlineCommentInEditMode,
+    verifyCommentMarkerVisible,
+    clickCommentMarkerAndOpenRHS,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
+} from './test_helpers';
 
 /**
  * @objective Verify page posts display with title and excerpt in Threads panel instead of raw JSON
@@ -30,40 +44,25 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = await getEditorAndWait(page);
+    // # Add inline comment using helper function
+    await addInlineCommentInEditMode(page, 'Great article overall!');
 
-    // # Select text using triple-click (selects paragraph in TipTap)
-    await editor.click({clickCount: 3});
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Wait for formatting bubble menu to appear with comment button
-    const commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
-    await commentButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
-
-    const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await modal.locator('textarea').fill('Great article overall!');
-    await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-
+    // # Publish the page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
+    // # Verify comment marker is visible
+    const commentMarker = await verifyCommentMarkerVisible(page);
+
     // # Click comment marker to open thread in RHS (creates participation)
-    const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
-    await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await commentMarker.click();
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
 
     // * Verify RHS opens with page post showing title (not JSON)
     // Wait for the specific content to appear, don't just check the wrapper
     await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
     await page.waitForSelector(`:text("${pageTitle}")`, {timeout: HIERARCHY_TIMEOUT});
 
-    const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
     await expect(rhs).toBeVisible();
     await expect(rhs).not.toContainText('{"type"');
 
@@ -106,24 +105,8 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = await getEditorAndWait(page);
-
-    // # Add inline comment - Select text using triple-click (selects paragraph in TipTap)
-    await editor.click({clickCount: 3});
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Wait for formatting bubble menu to appear with comment button
-    const inlineCommentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(inlineCommentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
-    await inlineCommentButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
-
-    const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await modal.locator('textarea').fill('Needs more detail here');
-    await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-    await page.waitForTimeout(SHORT_WAIT);
+    // # Add inline comment using helper function
+    await addInlineCommentInEditMode(page, 'Needs more detail here');
 
     // # Publish page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
@@ -182,39 +165,21 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = await getEditorAndWait(page);
+    // # Add inline comment using helper function
+    await addInlineCommentInEditMode(page, 'Should we prioritize real-time or offline?');
 
-    // # Select text using triple-click (selects paragraph in TipTap)
-    await editor.click({clickCount: 3});
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Wait for formatting bubble menu to appear with comment button
-    const commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
-    await commentButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
-
-    const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await modal.locator('textarea').fill('Should we prioritize real-time or offline?');
-    await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-
+    // # Publish page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
-    // # Click comment to open RHS
-    const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
-    await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await commentMarker.click();
+    // # Verify comment marker and click to open RHS
+    const commentMarker = await verifyCommentMarkerVisible(page);
+    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
 
     // Wait for RHS content to load
     await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
     await page.waitForSelector(':text("Feature Spec")', {timeout: HIERARCHY_TIMEOUT});
-
-    const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
-    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Wait for reply textarea to be ready
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -261,40 +226,11 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = await getEditorAndWait(page);
+    // # Add first inline comment using helper function
+    await addInlineCommentInEditMode(page, 'Can we add OAuth2 support?');
 
-    // # Add first inline comment - Select text using triple-click (selects paragraph in TipTap)
-    await editor.click({clickCount: 3});
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Wait for formatting bubble menu to appear with comment button
-    let commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
-    await commentButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
-
-    const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await modal.locator('textarea').fill('Can we add OAuth2 support?');
-    await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Add second inline comment - Select text using triple-click
-    await editor.click({clickCount: 3});
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Wait for formatting bubble menu to appear with comment button
-    commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
-    await commentButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
-
-    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await modal.locator('textarea').fill('Should document the error codes');
-    await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-    await page.waitForTimeout(SHORT_WAIT);
+    // # Add second inline comment using helper function
+    await addInlineCommentInEditMode(page, 'Should document the error codes');
 
     // # Publish page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
