@@ -34,7 +34,7 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AtIcon from 'components/widgets/icons/at_icon';
 import EmailIcon from 'components/widgets/icons/email_icon';
-import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
+import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
@@ -701,7 +701,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     id='admin.userManagement.userDetail.authenticationMethod'
                     defaultMessage='Authentication Method'
                 />
-                <SheidOutlineIcon/>
+                <ShieldOutlineIcon/>
                 <span>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
             </label>,
         );
@@ -713,7 +713,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         id='admin.userManagement.userDetail.authData'
                         defaultMessage='Auth Data'
                     />
-                    <SheidOutlineIcon/>
+                    <ShieldOutlineIcon/>
                     <input
                         className={classNames('form-control', {
                             error: this.state.authDataError,
