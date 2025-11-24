@@ -21,7 +21,7 @@ export default class ConfigurationSettings {
     }
 
     async enableChannelBanner() {
-        const toggleButton = await this.container.getByTestId('channelBannerToggle-button');
+        const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         const classes = await toggleButton.getAttribute('class');
         if (!classes?.includes('active')) {
             await toggleButton.click();
@@ -29,7 +29,7 @@ export default class ConfigurationSettings {
     }
 
     async disableChannelBanner() {
-        const toggleButton = await this.container.getByTestId('channelBannerToggle-button');
+        const toggleButton = this.container.getByTestId('channelBannerToggle-button');
         const classes = await toggleButton.getAttribute('class');
         if (classes?.includes('active')) {
             await toggleButton.click();
@@ -37,16 +37,15 @@ export default class ConfigurationSettings {
     }
 
     async setChannelBannerText(text: string) {
-        const textBox = await this.container.getByTestId('channel_banner_banner_text_textbox');
+        const textBox = this.container.getByTestId('channel_banner_banner_text_textbox');
         await expect(textBox).toBeVisible();
         await textBox.fill(text);
     }
 
     async setChannelBannerTextColor(color: string) {
-        const colorInput = await this.container.locator(
-            '#channel_banner_banner_background_color_picker-inputColorValue',
-        );
+        const colorInput = this.container.locator('#channel_banner_banner_background_color_picker-inputColorValue');
         await expect(colorInput).toBeVisible();
         await colorInput.fill(color);
+        expect((await colorInput.inputValue()).replace('#', '')).toBe(color);
     }
 }

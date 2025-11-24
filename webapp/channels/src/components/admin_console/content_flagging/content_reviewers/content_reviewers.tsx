@@ -17,12 +17,19 @@ import {
 } from 'components/admin_console/system_properties/controls';
 
 import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
-import type {SystemConsoleCustomSettingsComponentProps} from '../../schema_admin_settings';
+import type {SystemConsoleCustomSettingChangeHandler} from '../../schema_admin_settings';
 
 import './content_reviewers.scss';
 
-export default function ContentFlaggingContentReviewers(props: SystemConsoleCustomSettingsComponentProps) {
-    const [reviewerSetting, setReviewerSetting] = useState<ContentFlaggingReviewerSetting>(props.value as ContentFlaggingReviewerSetting);
+type Props = {
+    id: string;
+    onChange: SystemConsoleCustomSettingChangeHandler;
+    value: ContentFlaggingReviewerSetting;
+    disabled?: boolean;
+}
+
+export default function ContentFlaggingContentReviewers({id, onChange, value, disabled = false}: Props) {
+    const [reviewerSetting, setReviewerSetting] = useState<ContentFlaggingReviewerSetting>(value as ContentFlaggingReviewerSetting);
 
     const handleSameReviewersForAllTeamsChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const updatedSetting: ContentFlaggingReviewerSetting = {
@@ -31,8 +38,8 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
         };
 
         setReviewerSetting(updatedSetting);
-        props.onChange(props.id, updatedSetting);
-    }, [props, reviewerSetting]);
+        onChange(id, updatedSetting);
+    }, [id, onChange, reviewerSetting]);
 
     const handleSystemAdminReviewerChange = useCallback((_: string, value: boolean) => {
         const updatedSetting: ContentFlaggingReviewerSetting = {
@@ -41,8 +48,8 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
         };
 
         setReviewerSetting(updatedSetting);
-        props.onChange(props.id, updatedSetting);
-    }, [props, reviewerSetting]);
+        onChange(id, updatedSetting);
+    }, [id, onChange, reviewerSetting]);
 
     const handleTeamAdminReviewerChange = useCallback((_: string, value: boolean) => {
         const updatedSetting: ContentFlaggingReviewerSetting = {
@@ -51,8 +58,8 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
         };
 
         setReviewerSetting(updatedSetting);
-        props.onChange(props.id, updatedSetting);
-    }, [props, reviewerSetting]);
+        onChange(id, updatedSetting);
+    }, [id, onChange, reviewerSetting]);
 
     const handleCommonReviewersChange = useCallback((selectedUserIds: string[]) => {
         const updatedSetting: ContentFlaggingReviewerSetting = {
@@ -61,8 +68,8 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
         };
 
         setReviewerSetting(updatedSetting);
-        props.onChange(props.id, updatedSetting);
-    }, [props, reviewerSetting]);
+        onChange(id, updatedSetting);
+    }, [id, onChange, reviewerSetting]);
 
     const handleTeamReviewerSettingsChange = useCallback((updatedTeamSettings: Record<string, TeamReviewerSetting>) => {
         const updatedSetting: ContentFlaggingReviewerSetting = {
@@ -71,8 +78,8 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
         };
 
         setReviewerSetting(updatedSetting);
-        props.onChange(props.id, updatedSetting);
-    }, [props, reviewerSetting]);
+        onChange(id, updatedSetting);
+    }, [id, onChange, reviewerSetting]);
 
     return (
         <AdminSection>
@@ -105,7 +112,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='sameReviewersForAllTeams_true'
                                     id='sameReviewersForAllTeams_true'
@@ -113,6 +120,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                                     value='true'
                                     checked={reviewerSetting.CommonReviewers}
                                     onChange={handleSameReviewersForAllTeamsChange}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -120,7 +128,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                                 />
                             </Label>
 
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='sameReviewersForAllTeams_false'
                                     id='sameReviewersForAllTeams_false'
@@ -128,6 +136,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                                     value='false'
                                     checked={!reviewerSetting.CommonReviewers}
                                     onChange={handleSameReviewersForAllTeamsChange}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.false'
@@ -153,6 +162,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                                     id='content_reviewers_common_reviewers'
                                     multiSelectInitialValue={reviewerSetting.CommonReviewerIds}
                                     multiSelectOnChange={handleCommonReviewersChange}
+                                    disabled={disabled}
                                 />
                             </div>
                         </div>
@@ -171,6 +181,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                             <TeamReviewers
                                 teamReviewersSetting={reviewerSetting.TeamReviewersSetting}
                                 onChange={handleTeamReviewerSettingsChange}
+                                disabled={disabled}
                             />
 
                         </div>
@@ -197,6 +208,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                                     defaultChecked={reviewerSetting.SystemAdminsAsReviewers}
                                     onChange={handleSystemAdminReviewerChange}
                                     setByEnv={false}
+                                    disabled={disabled}
                                 />
 
                                 <CheckboxSetting
@@ -210,6 +222,7 @@ export default function ContentFlaggingContentReviewers(props: SystemConsoleCust
                                     defaultChecked={reviewerSetting.TeamAdminsAsReviewers}
                                     onChange={handleTeamAdminReviewerChange}
                                     setByEnv={false}
+                                    disabled={disabled}
                                 />
                             </div>
 

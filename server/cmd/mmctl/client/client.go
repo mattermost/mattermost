@@ -124,8 +124,8 @@ type Client interface {
 	MigrateAuthToLdap(ctx context.Context, fromAuthService string, matchField string, force bool) (*model.Response, error)
 	MigrateAuthToSaml(ctx context.Context, fromAuthService string, usersMap map[string]string, auto bool) (*model.Response, error)
 	GetPing(ctx context.Context) (string, *model.Response, error)
-	GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *model.Response, error)
-	GetPingWithOptions(ctx context.Context, options model.SystemPingOptions) (map[string]string, *model.Response, error)
+	GetPingWithFullServerStatus(ctx context.Context) (map[string]any, *model.Response, error)
+	GetPingWithOptions(ctx context.Context, options model.SystemPingOptions) (map[string]any, *model.Response, error)
 	CreateUpload(ctx context.Context, us *model.UploadSession) (*model.UploadSession, *model.Response, error)
 	GetUpload(ctx context.Context, uploadID string) (*model.UploadSession, *model.Response, error)
 	GetUploadsForUser(ctx context.Context, userID string) ([]*model.UploadSession, *model.Response, error)
@@ -174,4 +174,5 @@ type Client interface {
 	ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
+	GetPostsForReporting(ctx context.Context, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error)
 }

@@ -4,8 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import './shared.scss';
+import type {UserPropertyField} from '@mattermost/types/properties';
+
 import Markdown from 'components/markdown';
+import WithTooltip from 'components/with_tooltip';
+
+import './shared.scss';
 
 // CEL operator constants
 export enum CELOperator {
@@ -49,9 +53,27 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.IN]: {type: 'list', celOp: CELOperator.IN},
 };
 
+// Checks if there are any usable attributes for ABAC policies.
+// An attribute is usable if:
+// 1. It doesn't contain spaces (CEL incompatible)
+// 2. It's either synced from LDAP/SAML, admin-managed, OR user-managed attributes are enabled
+export function hasUsableAttributes(
+    userAttributes: UserPropertyField[],
+    enableUserManagedAttributes: boolean,
+): boolean {
+    return userAttributes.some((attr) => {
+        const hasSpaces = attr.name.includes(' ');
+        const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+        const isAdminManaged = attr.attrs?.managed === 'admin';
+        const allowed = isSynced || isAdminManaged || enableUserManagedAttributes;
+        return !hasSpaces && allowed;
+    });
+}
+
 interface TestButtonProps {
     onClick: () => void;
     disabled: boolean;
+    disabledTooltip?: string;
 }
 
 interface AddAttributeButtonProps {
@@ -64,8 +86,8 @@ interface HelpTextProps {
     onLearnMoreClick?: () => void;
 }
 
-export function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
-    return (
+export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps): JSX.Element {
+    const button = (
         <button
             className='btn btn-sm btn-tertiary'
             onClick={onClick}
@@ -78,6 +100,16 @@ export function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
             />
         </button>
     );
+
+    if (disabled && disabledTooltip) {
+        return (
+            <WithTooltip title={disabledTooltip}>
+                {button}
+            </WithTooltip>
+        );
+    }
+
+    return button;
 }
 
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {

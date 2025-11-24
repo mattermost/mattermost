@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"context"
-	"crypto/subtle"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -36,16 +35,30 @@ const (
 )
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	// Public method for plugin API - always generates secrets for backward compatibility
+	return a.CreateOAuthAppInternal(app, true)
+}
+
+// CreateOAuthAppInternal creates an OAuth app with optional secret generation.
+// If generateSecret is true and ClientSecret is empty, a secret will be auto-generated.
+// If generateSecret is false, the ClientSecret is left as-is (empty for public clients).
+func (a *App) CreateOAuthAppInternal(app *model.OAuthApp, generateSecret bool) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	app.ClientSecret = model.NewId()
+	// Generate a client secret if requested and not already set
+	if generateSecret {
+		app.ClientSecret = model.NewId()
+	}
 
 	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
+
+		a.Log().Error("Error saving OAuth app", mlog.Err(err), mlog.String("name", app.Name))
+
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -87,6 +100,7 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	updatedApp.CreatorId = oldApp.CreatorId
 	updatedApp.CreateAt = oldApp.CreateAt
 	updatedApp.ClientSecret = oldApp.ClientSecret
+	updatedApp.IsDynamicallyRegistered = oldApp.IsDynamicallyRegistered
 
 	oauthApp, err := a.Srv().Store().OAuth().UpdateApp(updatedApp)
 	if err != nil {
@@ -164,7 +178,17 @@ func (a *App) GetOAuthImplicitRedirect(rctx request.CTX, userID string, authRequ
 }
 
 func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	authData := &model.AuthData{UserId: userID, ClientId: authRequest.ClientId, CreateAt: model.GetMillis(), RedirectUri: authRequest.RedirectURI, State: authRequest.State, Scope: authRequest.Scope}
+	authData := &model.AuthData{
+		UserId:              userID,
+		ClientId:            authRequest.ClientId,
+		CreateAt:            model.GetMillis(),
+		RedirectUri:         authRequest.RedirectURI,
+		State:               authRequest.State,
+		Scope:               authRequest.Scope,
+		CodeChallenge:       authRequest.CodeChallenge,
+		CodeChallengeMethod: authRequest.CodeChallengeMethod,
+		Resource:            authRequest.Resource,
+	}
 	authData.Code = model.NewId() + model.NewId()
 
 	// parse authRequest.RedirectURI to handle query parameters see: https://mattermost.atlassian.net/browse/MM-46216
@@ -207,6 +231,11 @@ func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authReq
 
 	if !oauthApp.IsValidRedirectURL(authRequest.RedirectURI) {
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Validate PKCE requirements for public clients
+	if oauthApp.IsPublicClient() && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
+		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	var redirectURI string
@@ -270,7 +299,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 	return session, nil
 }
 
-func (a *App) GetOAuthAccessTokenForCodeFlow(rctx request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken string) (*model.AccessResponse, *model.AppError) {
+func (a *App) GetOAuthAccessTokenForCodeFlow(rctx request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier, resource string) (*model.AccessResponse, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -280,107 +309,189 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(rctx request.CTX, clientId, grantTy
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
-	if subtle.ConstantTimeCompare([]byte(oauthApp.ClientSecret), []byte(secret)) == 0 {
-		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.credentials.app_error", nil, "", http.StatusForbidden)
+	if err := a.validateOAuthClient(oauthApp, grantType, secret, codeVerifier); err != nil {
+		return nil, err
 	}
 
-	var accessData *model.AccessData
-	var accessRsp *model.AccessResponse
-	var user *model.User
 	if grantType == model.AccessTokenGrantType {
-		var authData *model.AuthData
-		authData, nErr = a.Srv().Store().OAuth().GetAuthData(code)
-		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		}
+		return a.handleAuthorizationCodeGrant(rctx, oauthApp, redirectURI, code, codeVerifier, clientId, resource)
+	}
 
-		if authData.IsExpired() {
-			if nErr = a.Srv().Store().OAuth().RemoveAuthData(authData.Code); nErr != nil {
-				rctx.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
-			}
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
-		}
+	return a.handleRefreshTokenGrant(rctx, oauthApp, refreshToken, resource)
+}
 
-		if authData.RedirectUri != redirectURI {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
-		}
+func (a *App) validateOAuthClient(oauthApp *model.OAuthApp, grantType, secret, codeVerifier string) *model.AppError {
+	return oauthApp.ValidateForGrantType(grantType, secret, codeVerifier)
+}
 
-		user, nErr = a.Srv().Store().User().Get(context.Background(), authData.UserId)
-		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		}
+func (a *App) validatePKCE(oauthApp *model.OAuthApp, authData *model.AuthData, codeVerifier string) *model.AppError {
+	return authData.ValidatePKCEForClientType(oauthApp.IsPublicClient(), codeVerifier)
+}
 
-		if user.DeleteAt != 0 {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
-		}
+func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAuthApp, redirectURI, code, codeVerifier, clientId, resource string) (*model.AccessResponse, *model.AppError) {
+	authData, nErr := a.Srv().Store().OAuth().GetAuthData(code)
+	if nErr != nil {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+	}
 
-		accessData, nErr = a.Srv().Store().OAuth().GetPreviousAccessData(user.Id, clientId)
-		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		}
-
-		if accessData != nil {
-			if accessData.IsExpired() {
-				var access *model.AccessResponse
-				access, err := a.newSessionUpdateToken(rctx, oauthApp, accessData, user)
-				if err != nil {
-					return nil, err
-				}
-				accessRsp = access
-			} else {
-				// Return the same token and no need to create a new session
-				accessRsp = &model.AccessResponse{
-					AccessToken:      accessData.Token,
-					TokenType:        model.AccessTokenType,
-					RefreshToken:     accessData.RefreshToken,
-					ExpiresInSeconds: int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
-				}
-			}
-		} else {
-			var session *model.Session
-			// Create a new session and return new access token
-			session, err := a.newSession(rctx, oauthApp, user)
-			if err != nil {
-				return nil, err
-			}
-
-			accessData = &model.AccessData{ClientId: clientId, UserId: user.Id, Token: session.Token, RefreshToken: model.NewId(), RedirectUri: redirectURI, ExpiresAt: session.ExpiresAt, Scope: authData.Scope}
-
-			if _, nErr = a.Srv().Store().OAuth().SaveAccessData(accessData); nErr != nil {
-				return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
-			}
-
-			accessRsp = &model.AccessResponse{
-				AccessToken:      session.Token,
-				TokenType:        model.AccessTokenType,
-				RefreshToken:     accessData.RefreshToken,
-				ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
-			}
-		}
-
+	if authData.IsExpired() {
 		if nErr = a.Srv().Store().OAuth().RemoveAuthData(authData.Code); nErr != nil {
 			rctx.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
 		}
-	} else {
-		// When grantType is refresh_token
-		accessData, nErr = a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
-		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		}
-
-		user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
-		if nErr != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		}
-
-		access, err := a.newSessionUpdateToken(rctx, oauthApp, accessData, user)
-		if err != nil {
-			return nil, err
-		}
-		accessRsp = access
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
 
-	return accessRsp, nil
+	if authData.RedirectUri != redirectURI {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if err := a.validatePKCE(oauthApp, authData, codeVerifier); err != nil {
+		return nil, err
+	}
+
+	user, nErr := a.Srv().Store().User().Get(context.Background(), authData.UserId)
+	if nErr != nil {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
+	}
+
+	defer func() {
+		if nErr = a.Srv().Store().OAuth().RemoveAuthData(authData.Code); nErr != nil {
+			rctx.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
+		}
+	}()
+
+	var audience string
+	if resource != "" {
+		// Validate the resource parameter per RFC 8707
+		if err := model.ValidateResourceParameter(resource, clientId, "handleAuthorizationCodeGrant"); err != nil {
+			return nil, err
+		}
+
+		// Validate resource parameter consistency between authorization and token requests
+		if authData.Resource != "" && resource != authData.Resource {
+			return nil, model.NewAppError("handleAuthorizationCodeGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+		}
+
+		audience = resource
+	} else if authData.Resource != "" {
+		audience = authData.Resource // Use resource from authorization request
+	}
+
+	return a.generateAccessTokenResponse(rctx, oauthApp, user, clientId, redirectURI, authData.Scope, audience)
+}
+
+func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp, refreshToken, resource string) (*model.AccessResponse, *model.AppError) {
+	// Validate that this client can use refresh token grant type
+	if err := oauthApp.ValidateForGrantType(model.RefreshTokenGrantType, oauthApp.ClientSecret, ""); err != nil {
+		return nil, err
+	}
+
+	accessData, nErr := a.Srv().Store().OAuth().GetAccessDataByRefreshToken(refreshToken)
+	if nErr != nil {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	user, nErr := a.Srv().Store().User().Get(context.Background(), accessData.UserId)
+	if nErr != nil {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
+	}
+
+	audience := accessData.Audience // Default to existing audience
+	if resource != "" {
+		// Validate the resource parameter per RFC 8707
+		if err := model.ValidateResourceParameter(resource, oauthApp.Id, "handleRefreshTokenGrant"); err != nil {
+			return nil, err
+		}
+
+		// For refresh tokens, resource parameter must match the original audience
+		if accessData.Audience != "" && resource != accessData.Audience {
+			return nil, model.NewAppError("handleRefreshTokenGrant", "api.oauth.get_access_token.resource_mismatch.app_error", nil, "client_id="+oauthApp.Id, http.StatusBadRequest)
+		}
+
+		audience = resource
+	}
+
+	return a.newSessionUpdateToken(rctx, oauthApp, accessData, user, audience)
+}
+
+func (a *App) generateAccessTokenResponse(rctx request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope, audience string) (*model.AccessResponse, *model.AppError) {
+	accessData, nErr := a.Srv().Store().OAuth().GetPreviousAccessData(user.Id, clientId)
+	if nErr != nil {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+	}
+
+	if accessData != nil {
+		return a.handleExistingAccessData(rctx, oauthApp, accessData, user, audience)
+	}
+
+	return a.createNewAccessData(rctx, oauthApp, user, clientId, redirectURI, scope, audience)
+}
+
+func (a *App) handleExistingAccessData(rctx request.CTX, oauthApp *model.OAuthApp, accessData *model.AccessData, user *model.User, audience string) (*model.AccessResponse, *model.AppError) {
+	if accessData.IsExpired() {
+		return a.newSessionUpdateToken(rctx, oauthApp, accessData, user, audience)
+	}
+
+	refreshToken := accessData.RefreshToken
+	if oauthApp.IsPublicClient() {
+		refreshToken = ""
+	}
+
+	audienceStr := accessData.Audience
+
+	return &model.AccessResponse{
+		AccessToken:      accessData.Token,
+		TokenType:        model.AccessTokenType,
+		RefreshToken:     refreshToken,
+		ExpiresInSeconds: int32((accessData.ExpiresAt - model.GetMillis()) / 1000),
+		Audience:         audienceStr,
+	}, nil
+}
+
+func (a *App) createNewAccessData(rctx request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string, audience string) (*model.AccessResponse, *model.AppError) {
+	session, err := a.newSession(rctx, oauthApp, user)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken := ""
+	if !oauthApp.IsPublicClient() {
+		refreshToken = model.NewId()
+	}
+
+	accessData := &model.AccessData{
+		ClientId:     clientId,
+		UserId:       user.Id,
+		Token:        session.Token,
+		RefreshToken: refreshToken,
+		RedirectUri:  redirectURI,
+		ExpiresAt:    session.ExpiresAt,
+		Scope:        scope,
+		Audience:     audience,
+	}
+
+	if _, nErr := a.Srv().Store().OAuth().SaveAccessData(accessData); nErr != nil {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	refreshTokenResponse := accessData.RefreshToken
+	if oauthApp.IsPublicClient() {
+		refreshTokenResponse = ""
+	}
+
+	audienceStr := audience
+
+	return &model.AccessResponse{
+		AccessToken:      session.Token,
+		TokenType:        model.AccessTokenType,
+		RefreshToken:     refreshTokenResponse,
+		ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
+		Audience:         audienceStr,
+	}, nil
 }
 
 func (a *App) newSession(rctx request.CTX, app *model.OAuthApp, user *model.User) (*model.Session, *model.AppError) {
@@ -411,7 +522,7 @@ func (a *App) newSession(rctx request.CTX, app *model.OAuthApp, user *model.User
 	return session, nil
 }
 
-func (a *App) newSessionUpdateToken(rctx request.CTX, app *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
+func (a *App) newSessionUpdateToken(rctx request.CTX, app *model.OAuthApp, accessData *model.AccessData, user *model.User, audience string) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
 	if err := a.Srv().Store().Session().Remove(accessData.Token); err != nil {
 		rctx.Logger().Warn("error removing access data token from session", mlog.Err(err))
@@ -423,17 +534,29 @@ func (a *App) newSessionUpdateToken(rctx request.CTX, app *model.OAuthApp, acces
 	}
 
 	accessData.Token = session.Token
-	accessData.RefreshToken = model.NewId()
+	// Generate refresh token only for confidential clients
+	if !app.IsPublicClient() {
+		accessData.RefreshToken = model.NewId()
+	} else {
+		accessData.RefreshToken = ""
+	}
 	accessData.ExpiresAt = session.ExpiresAt
+	// Update audience if provided (for refresh token with resource parameter)
+	if audience != "" {
+		accessData.Audience = audience
+	}
 
 	if _, err := a.Srv().Store().OAuth().UpdateAccessData(accessData); err != nil {
 		return nil, model.NewAppError("newSessionUpdateToken", "web.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	audienceStr := accessData.Audience
+
 	accessRsp := &model.AccessResponse{
 		AccessToken:      session.Token,
 		RefreshToken:     accessData.RefreshToken,
 		TokenType:        model.AccessTokenType,
 		ExpiresInSeconds: int32(*a.Config().ServiceSettings.SessionLengthSSOInHours * 60 * 60),
+		Audience:         audienceStr,
 	}
 
 	return accessRsp, nil
@@ -850,10 +973,13 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(cookieErr)
 	}
 
-	expectedTokenExtra := generateOAuthStateTokenExtra(stateEmail, stateAction, cookie.Value)
-	if expectedTokenExtra != expectedToken.Extra {
-		err := errors.New("Extra token value does not match token generated from state")
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	tokenEmail, tokenAction, tokenCookie, parseErr := parseOAuthStateTokenExtra(expectedToken.Extra)
+	if parseErr != nil {
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
+	}
+
+	if tokenEmail != stateEmail || tokenAction != stateAction || tokenCookie != cookie.Value {
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("invalid state token"))
 	}
 
 	appErr = a.DeleteToken(expectedToken)
@@ -977,7 +1103,7 @@ func (a *App) SwitchEmailToOAuth(rctx request.CTX, w http.ResponseWriter, r *htt
 	stateProps["email"] = email
 
 	if service == model.UserAuthServiceSaml {
-		samlToken, samlErr := a.CreateSamlRelayToken(email)
+		samlToken, samlErr := a.CreateSamlRelayToken(model.TokenTypeSaml, email)
 		if samlErr != nil {
 			return "", samlErr
 		}
@@ -1036,4 +1162,71 @@ func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId 
 
 func generateOAuthStateTokenExtra(email, action, cookie string) string {
 	return email + ":" + action + ":" + cookie
+}
+
+func (a *App) GetAuthorizationServerMetadata(rctx request.CTX) (*model.AuthorizationServerMetadata, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.site_url_required.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	metadata, err := model.GetDefaultMetadata(siteURL)
+	if err != nil {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
+		metadata.RegistrationEndpoint, err = url.JoinPath(siteURL, model.OAuthAppsRegisterEndpoint)
+		if err != nil {
+			return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return metadata, nil
+}
+
+func (a *App) RegisterOAuthClient(rctx request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
+		return nil, model.NewAppError("RegisterOAuthClient", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	app := model.NewOAuthAppFromClientRegistration(req, userID)
+
+	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
+	if err != nil {
+		var appErr *model.AppError
+		var invErr *store.ErrInvalidInput
+
+		a.Log().Error("Error saving OAuth app via DCR", mlog.Err(err), mlog.String("name", app.Name))
+
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("RegisterOAuthClient", "app.oauth.save_app.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		default:
+			return nil, model.NewAppError("RegisterOAuthClient", "app.oauth.save_app.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return oauthApp, nil
+}
+
+// parseOAuthStateTokenExtra parses a token extra string in the format "email:action:cookie".
+// Returns an error if the token does not contain exactly 3 colon-separated parts.
+func parseOAuthStateTokenExtra(tokenExtra string) (email, action, cookie string, err error) {
+	parts := strings.Split(tokenExtra, ":")
+	if len(parts) != 3 {
+		return "", "", "", fmt.Errorf("invalid token format: expected exactly 3 parts separated by ':', got %d", len(parts))
+	}
+
+	email = parts[0]
+	action = parts[1]
+	cookie = parts[2]
+
+	return email, action, cookie, nil
 }

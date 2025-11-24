@@ -13,7 +13,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestResetPermissionsCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.Run("Shouldn't let a non-system-admin reset a role's permissions", func() {
 		printer.Clean()

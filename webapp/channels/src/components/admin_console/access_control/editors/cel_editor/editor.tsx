@@ -74,6 +74,7 @@ interface CELEditorProps {
     placeholder?: string;
     className?: string;
     channelId?: string;
+    disabled?: boolean;
     userAttributes: Array<{
         attribute: string;
         values: string[];
@@ -89,6 +90,7 @@ function CELEditor({
     placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
     channelId,
+    disabled = false,
     userAttributes,
 }: CELEditorProps): JSX.Element {
     const [editorState, setEditorState] = useState({
@@ -252,6 +254,13 @@ function CELEditor({
         };
     }, []); // Only run once on mount
 
+    // Update the editor's readOnly state when disabled prop changes
+    useEffect(() => {
+        if (monacoRef.current) {
+            monacoRef.current.updateOptions({readOnly: disabled});
+        }
+    }, [disabled]);
+
     // Helper function to determine current validation state
     const getValidationState = useCallback(() => {
         if (editorState.validationErrors.length > 0) {
@@ -374,12 +383,13 @@ function CELEditor({
                 </div>
                 <TestButton
                     onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
-                    disabled={!editorState.isValid || editorState.isValidating}
+                    disabled={disabled || !editorState.expression || !editorState.isValid || editorState.isValidating}
                 />
             </div>
             {editorState.showTestResults && (
                 <TestResultsModal
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
+                    isStacked={true}
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
