@@ -123,6 +123,9 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		return err
 	}
 
+	// Store old parent ID for websocket broadcast
+	oldParentID := post.PageParentId
+
 	pageHierarchyLock.Lock()
 	defer pageHierarchyLock.Unlock()
 
@@ -174,8 +177,20 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
+	wikiID, wikiErr := a.GetWikiIdForPage(rctx, postID)
+	if wikiErr != nil {
+		rctx.Logger().Warn("Could not get wiki ID for page, broadcasting with empty wiki ID",
+			mlog.String("page_id", postID),
+			mlog.Err(wikiErr))
+		wikiID = ""
+	}
+
+	// Broadcast page_moved websocket event
+	a.BroadcastPageMoved(postID, oldParentID, newParentID, wikiID, post.ChannelId, model.GetMillis())
+
 	rctx.Logger().Info("Page parent changed",
 		mlog.String("page_id", postID),
+		mlog.String("old_parent_id", oldParentID),
 		mlog.String("new_parent_id", newParentID))
 
 	return nil

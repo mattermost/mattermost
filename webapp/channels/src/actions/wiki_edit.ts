@@ -3,8 +3,8 @@
 
 import type {Post} from '@mattermost/types/posts';
 
-import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
 import {savePageDraft} from 'actions/page_drafts';
+import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
 
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 

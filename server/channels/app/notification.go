@@ -1394,7 +1394,7 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
 func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionResults {
-	if post.Type == model.PostTypePage {
+	if shouldUseCustomMentionParsing(post) {
 		return getExplicitMentionsFromPage(post, keywords)
 	}
 

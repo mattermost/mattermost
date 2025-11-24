@@ -12,12 +12,12 @@
     // The button is visually hidden but needed for menu positioning
     #rewrite-button {
         position: absolute;
+        z-index: 1000;
         top: 0;
         left: 50%;
-        transform: translateX(-50%);
         opacity: 0;
         pointer-events: none;
-        z-index: 1000;
+        transform: translateX(-50%);
 
         // Make it visible for debugging if needed
         // opacity: 1;
@@ -36,10 +36,10 @@
         // TipTap Placeholder extension adds .is-empty class to empty paragraph nodes
         // Show placeholder in every empty paragraph block
         p.is-empty::before {
+            height: 0;
             color: var(--center-channel-color-40);
             content: attr(data-placeholder);
             float: left;
-            height: 0;
             pointer-events: none;
         }
 
@@ -198,8 +198,8 @@
         // Override the default dashed border to make selection more visible
         div[style*="border: 1px dashed"] {
             border: 2px solid var(--button-bg) !important;
-            box-shadow: 0 0 0 4px rgba(var(--button-bg-rgb), 0.12) !important;
             border-radius: 4px !important;
+            box-shadow: 0 0 0 4px rgba(var(--button-bg-rgb), 0.12) !important;
         }
 
         table {
@@ -253,10 +253,10 @@
             }
         }
 
-        hr {
-            margin: 3.5em -1em 3em -1em;  
+        hr {  
             border: none;
             border-top: var(--border-dark);
+            margin: 3.5em -1em 3em -1em;
         }
 
         strong {

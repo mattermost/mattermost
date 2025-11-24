@@ -56,9 +56,11 @@ const itemMessages = defineMessages({
 export type Props = PropsFromRedux & {
     post: Post;
     isCurrent?: boolean;
+    onVersionRestored?: () => void;
+    customHandleUndo?: () => Promise<void>;
 }
 
-const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions}: Props) => {
+const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, onVersionRestored, customHandleUndo}: Props) => {
     const {formatMessage} = useIntl();
     const [open, setOpen] = useState(isCurrent);
 
@@ -120,6 +122,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions}: 
         if (result.data) {
             actions.closeRightHandSide();
             showInfoTooltip();
+            onVersionRestored?.();
         }
 
         const key = StoragePrefixes.EDIT_DRAFT + post.original_id;
@@ -127,6 +130,11 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions}: 
     };
 
     const handleUndo = async () => {
+        if (customHandleUndo) {
+            await customHandleUndo();
+            return;
+        }
+
         if (!postCurrentVersion) {
             actions.closeRightHandSide();
             return;

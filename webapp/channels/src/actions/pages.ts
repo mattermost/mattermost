@@ -15,11 +15,10 @@ import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {getPageDraft, getUserDraftKeysForPage} from 'selectors/page_drafts';
-
 import {loadPageDraftsForWiki} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {clearOutlineCache} from 'actions/views/pages_hierarchy';
+import {getPageDraft, getUserDraftKeysForPage} from 'selectors/page_drafts';
 
 import {getHistory} from 'utils/browser_history';
 import {PageConstants, StoragePrefixes} from 'utils/constants';
@@ -80,10 +79,8 @@ export function loadPages(wikiId: string): ActionFuncAsync<Post[]> {
             return {data: pages};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(batchActions([
-                {type: GET_PAGES_FAILURE, data: {wikiId, error}},
-                logError(error),
-            ]));
+            dispatch({type: GET_PAGES_FAILURE, data: {wikiId, error}});
+            dispatch(logError(error));
             return {error};
         }
     };
@@ -179,11 +176,6 @@ export function updateWiki(wikiId: string, patch: {title?: string; description?:
             dispatch({
                 type: WikiTypes.RECEIVED_WIKI,
                 data: updatedWiki,
-            });
-
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId},
             });
 
             return {data: updatedWiki};
@@ -396,7 +388,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         const finalPageStatus = pageStatus || (draft.props?.page_status as string | undefined);
 
         try {
-            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force) as Page;
+            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baselineUpdateAt) as Page;
 
             const actions: any[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
@@ -443,19 +435,17 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             // Clear outline cache for the published page so fresh headings are extracted
             dispatch(clearOutlineCache(data.id));
 
-            // Invalidate both pages and drafts to trigger WikiView useEffect reload
+            // Only invalidate drafts (page already added via RECEIVED_PAGE_IN_WIKI above)
+            // Don't invalidate pages to avoid race condition where server hasn't indexed page yet
             const timestamp = Date.now();
-            dispatch(batchActions([
-                {type: WikiTypes.INVALIDATE_PAGES, data: {wikiId, timestamp}},
-                {type: WikiTypes.INVALIDATE_DRAFTS, data: {wikiId, timestamp}},
-            ]));
+            dispatch({type: WikiTypes.INVALIDATE_DRAFTS, data: {wikiId, timestamp}});
 
             return {data};
         } catch (error: any) {
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
-                {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId}},
+                {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId, wikiId}},
             ]));
             dispatch(setGlobalItem(draftKey, draft));
 
@@ -513,7 +503,7 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
 }
 
 // Update a page
-export function updatePage(pageId: string, newTitle: string, wikiId: string): ActionFuncAsync {
+export function updatePage(pageId: string, newTitle: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const originalPost = state.entities.posts.posts[pageId];
@@ -544,12 +534,6 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
                 data,
             });
 
-            const timestamp = Date.now();
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId, timestamp},
-            });
-
             return {data};
         } catch (error) {
             dispatch({
@@ -577,18 +561,12 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
             },
             {
                 type: WikiTypes.DELETED_PAGE,
-                data: {id: pageId},
+                data: {id: pageId, wikiId},
             },
         ]));
 
         try {
             await Client4.deletePage(wikiId, pageId);
-
-            const timestamp = Date.now();
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId, timestamp},
-            });
 
             return {data: true};
         } catch (error) {
@@ -613,7 +591,7 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
 }
 
 // Move a page (change parent)
-export function movePage(pageId: string, newParentId: string, wikiId: string): ActionFuncAsync {
+export function movePage(pageId: string, newParentId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const originalPost = state.entities.posts.posts[pageId];
@@ -642,12 +620,6 @@ export function movePage(pageId: string, newParentId: string, wikiId: string): A
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,
                 data,
-            });
-
-            const timestamp = Date.now();
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId, timestamp},
             });
 
             return {data};
@@ -735,24 +707,17 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
         });
 
         try {
-            const patchData = {
-                id: pageId,
-                page_parent_id: newParentId || '',
-            };
-            const data = await Client4.patchPost(patchData);
+            await Client4.updatePageParent(wikiId, pageId, newParentId || '');
 
+            // Dispatch again after API success to ensure Redux stays updated
+            // Don't re-fetch from API as it could get stale data from replica database
+            // Websocket event will also update Redux, but this ensures immediate consistency
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,
-                data,
+                data: optimisticPost,
             });
 
-            const timestamp = Date.now();
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId, timestamp},
-            });
-
-            return {data};
+            return {data: optimisticPost};
         } catch (error) {
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,
@@ -769,26 +734,48 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
 // Move a page to a different wiki
 export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string): ActionFuncAsync {
     return async (dispatch, getState) => {
+        const state = getState();
+        const originalPost = state.entities.posts.posts[pageId];
+
+        if (!originalPost) {
+            return {error: new Error('Page not found')};
+        }
+
+        // Create optimistic update
+        const optimisticPost: Post = {
+            ...originalPost,
+            page_parent_id: parentPageId || '',
+            props: {
+                ...originalPost.props,
+                page_parent_id: parentPageId || '',
+                wiki_id: targetWikiId,
+            },
+            update_at: Date.now(),
+        };
+
+        // Dispatch optimistic update
+        dispatch({
+            type: PostActionTypes.RECEIVED_POST,
+            data: optimisticPost,
+        });
+
         try {
             await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
 
-            const timestamp = Date.now();
-            const isSameWiki = sourceWikiId === targetWikiId;
-
-            if (isSameWiki) {
-                dispatch({
-                    type: WikiTypes.INVALIDATE_PAGES,
-                    data: {wikiId: sourceWikiId, timestamp},
-                });
-            } else {
-                dispatch(batchActions([
-                    {type: WikiTypes.INVALIDATE_PAGES, data: {wikiId: sourceWikiId, timestamp}},
-                    {type: WikiTypes.INVALIDATE_PAGES, data: {wikiId: targetWikiId, timestamp}},
-                ]));
-            }
+            // Dispatch again after API success to ensure Redux stays updated
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data: optimisticPost,
+            });
 
             return {data: true};
         } catch (error) {
+            // Revert optimistic update on error
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data: originalPost,
+            });
+
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
@@ -804,12 +791,6 @@ export function duplicatePage(pageId: string, wikiId: string): ActionFuncAsync<P
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,
                 data: duplicatedPage,
-            });
-
-            const timestamp = Date.now();
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId, timestamp},
             });
 
             return {data: duplicatedPage};

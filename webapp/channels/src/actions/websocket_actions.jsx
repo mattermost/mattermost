@@ -101,8 +101,6 @@ import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/sel
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {handleActiveEditorDraftCreated, handleActiveEditorDraftUpdated, handleActiveEditorDraftDeleted, handleActiveEditorStopped} from 'hooks/useActiveEditors';
-
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -129,6 +127,7 @@ import DialogRouter from 'components/dialog_router';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
+import {handleActiveEditorDraftCreated, handleActiveEditorDraftUpdated, handleActiveEditorDraftDeleted, handleActiveEditorStopped} from 'hooks/useActiveEditors';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
@@ -296,6 +295,24 @@ export function reconnect() {
 
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());
+    }
+
+    // Trigger pages reload for current wiki after reconnect
+    // This acts as a safety net for any events missed during disconnect
+    const currentPath = window.location.pathname;
+    const wikiMatch = currentPath.match(/\/wikis\/([^/]+)/);
+
+    if (wikiMatch && wikiMatch[1]) {
+        const wikiId = wikiMatch[1];
+        const timestamp = Date.now();
+
+        // eslint-disable-next-line
+        console.log(`[WebSocket] Reconnected - invalidating pages for wiki ${wikiId}`);
+
+        dispatch({
+            type: WikiTypes.INVALIDATE_PAGES,
+            data: {wikiId, timestamp},
+        });
     }
 
     dispatch(resetWsErrorCount());
@@ -620,6 +637,7 @@ export function handleEvent(msg) {
     case SocketEvents.DRAFT_CREATED:
     case SocketEvents.DRAFT_UPDATED:
         dispatch(handleUpsertDraftEvent(msg));
+
         // Handle active editors notification
         if (msg.data.page_id && msg.data.user_id) {
             dispatch(handleActiveEditorDraftUpdated(msg.data.page_id, msg.data.user_id, msg.data.timestamp));
@@ -642,6 +660,18 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.PAGE_PUBLISHED:
         handlePagePublishedEvent(msg);
+        break;
+    case SocketEvents.PAGE_DELETED:
+        handlePageDeletedEvent(msg);
+        break;
+    case SocketEvents.PAGE_TITLE_UPDATED:
+        handlePageTitleUpdatedEvent(msg);
+        break;
+    case SocketEvents.PAGE_MOVED:
+        handlePageMovedEvent(msg);
+        break;
+    case SocketEvents.WIKI_UPDATED:
+        handleWikiUpdatedEvent(msg);
         break;
     case SocketEvents.SCHEDULED_POST_CREATED:
         dispatch(handleCreateScheduledPostEvent(msg));
@@ -787,6 +817,14 @@ export function handleNewPostEvent(msg) {
         myDispatch(handleNewPost(post, msg));
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
+        // If this is a page, add it to the wiki pages store
+        if (post.props?.is_page && post.props?.wiki_id) {
+            myDispatch({
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                data: {page: post, wikiId: post.props.wiki_id},
+            });
+        }
+
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
         // 2. The server hasn't told the client not to set the user to online. This happens when:
@@ -845,6 +883,14 @@ export function handlePostEditEvent(msg) {
     dispatch(receivedPost(post, crtEnabled));
 
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+    // If this is a page, update it in the wiki pages store
+    if (post.props?.is_page && post.props?.wiki_id) {
+        dispatch({
+            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+            data: {page: post, wikiId: post.props.wiki_id},
+        });
+    }
 }
 
 async function handlePostDeleteEvent(msg) {
@@ -909,6 +955,7 @@ export function handlePagePublishedEvent(msg) {
     const page = JSON.parse(msg.data.page);
     const draftId = msg.data.draft_id;
     const wikiId = msg.data.wiki_id;
+    const sourceWikiId = msg.data.source_wiki_id;
 
     const state = getState();
     const pendingPublishes = state.entities.wikiPages?.pendingPublishes || {};
@@ -920,22 +967,124 @@ export function handlePagePublishedEvent(msg) {
     // Check if the current user is actively editing this page
     const currentUrl = window.location.pathname;
     const isDraftBeingEdited = currentUrl.includes(`/drafts/${draftId}`) ||
-                                (currentUrl.includes(`/wiki/`) && currentUrl.includes(`/${page.id}`));
+                                (currentUrl.includes('/wiki/') && currentUrl.includes(`/${page.id}`));
 
-    if (isDraftBeingEdited) {
-        // Don't delete the draft - keep it alive for conflict detection
-        // Only update the published page in the store
-        dispatch({
-            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-            data: {page, wikiId},
-        });
-    } else {
-        // User is not editing this draft, safe to delete
-        dispatch(batchActions([
-            {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page, wikiId}},
-            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
-        ]));
+    // Dispatch actions individually instead of batching to ensure subscribers are notified
+    dispatch({type: PostTypes.RECEIVED_POST, data: page});
+    dispatch({type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page, wikiId}});
+
+    // If this page was moved from another wiki, remove it from the source wiki
+    if (sourceWikiId && sourceWikiId !== wikiId) {
+        dispatch({type: WikiTypes.REMOVED_PAGE_FROM_WIKI, data: {pageId: page.id, wikiId: sourceWikiId}});
     }
+
+    if (!isDraftBeingEdited) {
+        // User is not editing this draft, safe to delete
+        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}});
+    }
+}
+
+export function handlePageDeletedEvent(msg) {
+    const pageId = msg.data.page_id;
+    const wikiId = msg.data.wiki_id;
+
+    dispatch(batchActions([
+        {
+            type: PostTypes.POST_DELETED,
+            data: {id: pageId},
+        },
+        {
+            type: WikiTypes.DELETED_PAGE,
+            data: {id: pageId, wikiId},
+        },
+    ]));
+}
+
+export function handlePageTitleUpdatedEvent(msg) {
+    const pageId = msg.data.page_id;
+    const title = msg.data.title;
+    const wikiId = msg.data.wiki_id;
+    const updateAt = msg.data.update_at;
+
+    const state = getState();
+    const existingPage = getPost(state, pageId);
+
+    if (!existingPage) {
+        return;
+    }
+
+    const updatedPage = {
+        ...existingPage,
+        message: title,
+        update_at: updateAt,
+    };
+
+    dispatch(batchActions([
+        {
+            type: PostTypes.RECEIVED_POST,
+            data: updatedPage,
+        },
+        {
+            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+            data: {page: updatedPage, wikiId},
+        },
+    ]));
+}
+
+export function handlePageMovedEvent(msg) {
+    const pageId = msg.data.page_id;
+    const newParentId = msg.data.new_parent_id;
+    const wikiId = msg.data.wiki_id;
+    const updateAt = msg.data.update_at;
+
+    const state = getState();
+    const existingPage = getPost(state, pageId);
+
+    if (!existingPage) {
+        return;
+    }
+
+    const updatedPage = {
+        ...existingPage,
+        page_parent_id: newParentId,
+        props: {
+            ...existingPage.props,
+            page_parent_id: newParentId,
+        },
+        update_at: updateAt,
+    };
+
+    dispatch(batchActions([
+        {
+            type: PostTypes.RECEIVED_POST,
+            data: updatedPage,
+        },
+        {
+            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+            data: {page: updatedPage, wikiId},
+        },
+    ]));
+}
+
+export function handleWikiUpdatedEvent(msg) {
+    const wikiId = msg.data.wiki_id;
+    const channelId = msg.data.channel_id;
+    const title = msg.data.title;
+    const description = msg.data.description;
+    const updateAt = msg.data.update_at;
+
+    const wiki = {
+        id: wikiId,
+        channel_id: channelId,
+        title,
+        description,
+        update_at: updateAt,
+    };
+
+    dispatch({
+        type: WikiTypes.RECEIVED_WIKI,
+        data: wiki,
+    });
 }
 
 async function handleTeamAddedEvent(msg) {

@@ -21,6 +21,13 @@ import {
     getHierarchyPanel,
     enterEditMode,
     waitForEditModeReady,
+    selectAllText,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
+    WEBSOCKET_WAIT,
+    UI_MICRO_WAIT,
+    HIERARCHY_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -74,7 +81,7 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
 
     // * Verify outline initially hidden in hierarchy panel
     const outlineInTree = await getPageOutlineInHierarchy(page, 'Feature Spec');
-    await expect(outlineInTree).not.toBeVisible({timeout: 2000});
+    await expect(outlineInTree).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Open context menu via right-click
     const hierarchyPanel = getHierarchyPanel(page);
@@ -83,7 +90,7 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
 
     // * Verify context menu shows "Show outline" when outline is hidden
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await contextMenu.waitFor({state: 'visible', timeout: 2000});
+    await contextMenu.waitFor({state: 'visible', timeout: WEBSOCKET_WAIT});
     const showOutlineButton = contextMenu.locator('[data-testid="page-context-menu-show-outline"]');
     await expect(showOutlineButton).toHaveText('Show outline');
 
@@ -91,14 +98,14 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     await showOutlineButton.click();
 
     // * Verify outline appears
-    await expect(outlineInTree).toBeVisible({timeout: 3000});
+    await expect(outlineInTree).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const outlineText = await outlineInTree.textContent();
     expect(outlineText).toContain('Overview');
     expect(outlineText).toContain('Requirements');
 
     // # Open context menu again via right-click
     await pageNode.click({button: 'right'});
-    await contextMenu.waitFor({state: 'visible', timeout: 2000});
+    await contextMenu.waitFor({state: 'visible', timeout: WEBSOCKET_WAIT});
 
     // * Verify context menu now shows "Hide outline" when outline is visible
     const hideOutlineButton = contextMenu.locator('[data-testid="page-context-menu-show-outline"]');
@@ -108,11 +115,11 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     await hideOutlineButton.click();
 
     // * Verify outline is hidden
-    await expect(outlineInTree).not.toBeVisible({timeout: 2000});
+    await expect(outlineInTree).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Open context menu one more time to verify it changed back
     await pageNode.click({button: 'right'});
-    await contextMenu.waitFor({state: 'visible', timeout: 2000});
+    await contextMenu.waitFor({state: 'visible', timeout: WEBSOCKET_WAIT});
 
     // * Verify context menu shows "Show outline" again
     await expect(showOutlineButton).toHaveText('Show outline');
@@ -157,22 +164,22 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     // # Add headings using helper without content (similar to test 3)
     await addHeadingToEditor(page, 1, 'Heading 1');
     await editor.press('Enter');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
     await editor.type('Content for heading 1');
     await editor.press('Enter');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     await addHeadingToEditor(page, 2, 'Heading 2');
     await editor.press('Enter');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
     await editor.type('Content for heading 2');
     await editor.press('Enter');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     await addHeadingToEditor(page, 3, 'Heading 3');
     await editor.press('Enter');
     await editor.type('Content for heading 3');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Publish the page
     await publishCurrentPage(page);
@@ -181,9 +188,9 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await showPageOutlineViaRightClick(page, 'Page with Headings');
 
     // * Verify outline is visible and headings appear
-    await verifyOutlineHeadingVisible(page, 'Heading 1', 10000);
-    await verifyOutlineHeadingVisible(page, 'Heading 2', 10000);
-    await verifyOutlineHeadingVisible(page, 'Heading 3', 10000);
+    await verifyOutlineHeadingVisible(page, 'Heading 1', HIERARCHY_TIMEOUT);
+    await verifyOutlineHeadingVisible(page, 'Heading 2', HIERARCHY_TIMEOUT);
+    await verifyOutlineHeadingVisible(page, 'Heading 3', HIERARCHY_TIMEOUT);
 });
 
 /**
@@ -210,10 +217,10 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     const pageNode = hierarchyPanel.locator(`text="Navigate to Headings"`).first();
     await pageNode.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for page viewer to be visible (confirms we're in view mode)
-    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: 5000});
+    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Enter edit mode
     await enterEditMode(page);
@@ -231,7 +238,7 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
         introContent += 'Introduction paragraph. ';
     }
     await addHeadingToEditor(page, 1, 'Introduction', introContent);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Add H2 heading "Middle Section" with multiple paragraphs
     let middleContent = '';
@@ -239,7 +246,7 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
         middleContent += 'Middle section content. ';
     }
     await addHeadingToEditor(page, 2, 'Middle Section', middleContent);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Add H2 heading "Conclusion" with some content
     await addHeadingToEditor(page, 2, 'Conclusion', 'Conclusion content.');
@@ -251,14 +258,14 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     await showPageOutlineViaRightClick(page, 'Navigate to Headings');
 
     // * Verify "Conclusion" heading appears in outline
-    await verifyOutlineHeadingVisible(page, 'Conclusion', 5000);
+    await verifyOutlineHeadingVisible(page, 'Conclusion', ELEMENT_TIMEOUT);
 
     // # Click on "Conclusion" heading in outline to navigate
     await clickOutlineHeading(page, 'Conclusion');
 
     // * Verify page navigates to the heading location (heading is visible in viewport)
     const conclusionHeading = page.locator('h2:has-text("Conclusion"), h1:has-text("Conclusion"), h3:has-text("Conclusion")').first();
-    await expect(conclusionHeading).toBeInViewport({timeout: 3000});
+    await expect(conclusionHeading).toBeInViewport({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -286,16 +293,16 @@ test('preserves outline visibility setting when navigating between pages', {tag:
 
     const editor1 = page.locator('.ProseMirror').first();
     await editor1.click();
-    await page.keyboard.press('Control+A');
+    await selectAllText(page);
     await page.keyboard.press('Backspace');
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
     // # Add heading using helper function
     await addHeadingToEditor(page, 1, 'Page 1 Heading');
 
     // Verify heading exists in editor before publishing
     const h1InEditor = editor1.locator('h1:has-text("Page 1 Heading")');
-    await expect(h1InEditor).toBeVisible({timeout: 3000});
+    await expect(h1InEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Publish page 1
     await publishCurrentPage(page);
@@ -303,7 +310,7 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     // # Verify the heading was published correctly by checking page viewer
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
     const publishedHeading = pageViewer.locator('h1:has-text("Page 1 Heading")');
-    await expect(publishedHeading).toBeVisible({timeout: 5000});
+    await expect(publishedHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // Verify the heading has an ID (required for outline)
     const headingId = await publishedHeading.getAttribute('id');
@@ -318,24 +325,24 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     await showPageOutline(page, page1.id);
 
     // * Verify outline is expanded for Page 1 by looking for the heading in tree items
-    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', 5000);
+    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
 
     // # Navigate to Page 2
     const page2Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page2.id}"]`).first();
     await page2Node.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify outline for Page 1 is still expanded in hierarchy
-    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', 5000);
+    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
 
     // # Navigate back to Page 1
     await page1Node.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify outline remains expanded
-    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', 5000);
+    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
 
     // # Hide outline for Page 1
     await hidePageOutline(page, page1.id);
@@ -350,7 +357,7 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     await page.waitForLoadState('networkidle');
     await page1Node.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify outline remains collapsed after navigation
     const stillCollapsed = await page1OutlineHeading.isVisible().catch(() => false);

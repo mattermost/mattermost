@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal, buildWikiPageUrl, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal, buildWikiPageUrl, getEditorAndWait, typeInEditor, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, PAGE_LOAD_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify breadcrumb navigation displays correct page hierarchy
@@ -27,7 +27,7 @@ test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async (
 
     // * Verify breadcrumb shows full hierarchy
     const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
-    await expect(breadcrumb).toBeVisible({timeout: 3000});
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const breadcrumbText = await breadcrumb.textContent();
 
     // * Verify all ancestors in correct order
@@ -112,7 +112,7 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     // * Verify navigated to parent page
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toContainText('Parent content', {timeout: 15000});
+    await expect(pageContent).toContainText('Parent content', {timeout: PAGE_LOAD_TIMEOUT});
 
     // * Verify wiki name is displayed in breadcrumb but not clickable
     const wikiNameElement = breadcrumb.locator('.PageBreadcrumb__wiki-name');
@@ -144,12 +144,12 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
 
     await fillCreatePageModal(page, 'Child Draft');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
     const editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Child content');
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify breadcrumb shows parent → draft
     // Wait for draft to be fully saved and breadcrumb to update
@@ -158,7 +158,7 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
         const breadcrumbText = await breadcrumb.textContent();
         expect(breadcrumbText).toContain('Parent Page');
         expect(breadcrumbText).toMatch(/Child Draft|Untitled/);
-    }).toPass({timeout: 10000});
+    }).toPass({timeout: HIERARCHY_TIMEOUT});
 });
 
 /**
@@ -177,7 +177,7 @@ test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, s
 
     // * Verify correct page is displayed
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('URL routing test content');
 
     // * Verify URL is correct
@@ -214,7 +214,7 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
 
     // * Verify page loaded correctly
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('Deep link test content');
 
     // * Verify URL matches deep link
@@ -223,7 +223,7 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
 
     // * Verify page is accessible (not showing error)
     const errorMessage = page.locator('text=/error|not found|access denied/i').first();
-    await expect(errorMessage).not.toBeVisible({timeout: 2000});
+    await expect(errorMessage).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -250,7 +250,7 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
 
     // * Verify page1 content
     let pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('First page content');
 
     // # Navigate to page2 using hierarchy panel
@@ -328,7 +328,7 @@ test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sh
 
     // If not redirected, we expect an error message.
     if (!isRedirected) {
-        await expect(errorMessage).toBeVisible({timeout: 5000});
+        await expect(errorMessage).toBeVisible({timeout: ELEMENT_TIMEOUT});
     }
 });
 
@@ -365,12 +365,12 @@ test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw
     expect(urlAfterRefresh).toBe(urlBeforeRefresh);
 
     // * Verify page content persists after refresh
-    await expect(pageContent).toBeVisible({timeout: 10000});
+    await expect(pageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await expect(pageContent).toContainText('Content that should persist after refresh');
 
     // * Verify page title persists after refresh
     const pageTitle = page.locator('[data-testid="page-viewer-title"]').first();
-    await expect(pageTitle).toBeVisible({timeout: 5000});
+    await expect(pageTitle).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageTitle).toContainText('Refresh Test Page');
 });
 
@@ -392,21 +392,21 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
 
     // * Verify page is visible
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('This is fullscreen test content');
 
     // * Verify hierarchy panel is visible initially
     const hierarchyPanel = getHierarchyPanel(page);
-    await expect(hierarchyPanel).toBeVisible({timeout: 3000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Click fullscreen button
     const fullscreenButton = page.locator('[data-testid="wiki-page-fullscreen-button"]');
-    await expect(fullscreenButton).toBeVisible({timeout: 3000});
+    await expect(fullscreenButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await fullscreenButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify hierarchy panel is hidden in fullscreen
-    await expect(hierarchyPanel).not.toBeVisible({timeout: 2000});
+    await expect(hierarchyPanel).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // * Verify body has fullscreen-mode class
     const bodyClassList = await page.evaluate(() => document.body.className);
@@ -418,13 +418,13 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
 
     // # Toggle comments in fullscreen mode
     const toggleCommentsButton = page.locator('[data-testid="wiki-page-toggle-comments"]');
-    await expect(toggleCommentsButton).toBeVisible({timeout: 3000});
+    await expect(toggleCommentsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await toggleCommentsButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify RHS (comments panel) is visible
     const rhs = page.locator('#sidebar-right, .sidebar-right').first();
-    await expect(rhs).toBeVisible({timeout: 3000});
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify RHS is positioned correctly in fullscreen
     const rhsBox = await rhs.boundingBox();
@@ -435,10 +435,10 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
 
     // # Exit fullscreen using button
     await fullscreenButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify hierarchy panel is visible again
-    await expect(hierarchyPanel).toBeVisible({timeout: 3000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify body no longer has fullscreen-mode class
     const bodyClassListAfter = await page.evaluate(() => document.body.className);
@@ -446,7 +446,7 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
 
     // # Test Escape key to exit fullscreen
     await fullscreenButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify in fullscreen mode
     const bodyClassListFullscreen = await page.evaluate(() => document.body.className);
@@ -454,7 +454,7 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
 
     // # Press Escape key
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify exited fullscreen
     const bodyClassListEscaped = await page.evaluate(() => document.body.className);

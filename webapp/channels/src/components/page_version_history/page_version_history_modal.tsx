@@ -3,16 +3,20 @@
 
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
+import {restorePostVersion} from 'mattermost-redux/actions/posts';
+
 import {getPageVersionHistory} from 'actions/pages';
-import LoadingScreen from 'components/loading_screen';
-import EditedPostItem from 'components/post_edit_history/edited_post_item';
+
 import Scrollbars from 'components/common/scrollbars';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
+import LoadingScreen from 'components/loading_screen';
+
+import PageVersionHistoryItem from './page_version_history_item';
 
 import './page_version_history_modal.scss';
 
@@ -21,6 +25,7 @@ type Props = {
     pageTitle: string;
     wikiId: string;
     onClose: () => void;
+    onVersionRestored?: () => void;
 };
 
 const PageVersionHistoryModal = ({
@@ -28,6 +33,7 @@ const PageVersionHistoryModal = ({
     pageTitle,
     wikiId,
     onClose,
+    onVersionRestored,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -63,11 +69,6 @@ const PageVersionHistoryModal = ({
         defaultMessage: 'Version History',
     });
 
-    const noticeMessage = formatMessage({
-        id: 'page_version_history.notice',
-        defaultMessage: 'Note: Version history shows when changes were made and by whom. Full content restoration is coming in a future update.',
-    });
-
     const retrieveErrorHeading = formatMessage({
         id: 'post_info.edit.history.retrieveError',
         defaultMessage: 'Unable to load edit history',
@@ -100,18 +101,26 @@ const PageVersionHistoryModal = ({
         );
     } else {
         content = (
-            <div style={{maxHeight: 'calc(100vh - 250px)', overflow: 'auto'}}>
-                <Scrollbars>
-                    <div className='page-version-history__list'>
-                        {versionHistory.map((post) => (
-                            <EditedPostItem
-                                key={post.id}
-                                post={post}
-                            />
-                        ))}
-                    </div>
-                </Scrollbars>
-            </div>
+            <Scrollbars>
+                <div className='page-version-history__list'>
+                    {versionHistory.map((post) => (
+                        <PageVersionHistoryItem
+                            key={post.id}
+                            post={post}
+                            isCurrent={post.id === page.id}
+                            postCurrentVersion={page}
+                            onVersionRestored={onVersionRestored}
+                            customHandleUndo={async () => {
+                                // To undo a restore, we restore back to the current version (first in history)
+                                if (versionHistory.length > 0) {
+                                    const currentVersion = versionHistory[0];
+                                    await dispatch(restorePostVersion(post.original_id, currentVersion.id, ''));
+                                }
+                            }}
+                        />
+                    ))}
+                </div>
+            </Scrollbars>
         );
     }
 
@@ -122,11 +131,8 @@ const PageVersionHistoryModal = ({
             compassDesign={true}
             handleCancel={onClose}
             className='page-version-history-modal'
+            bodyPadding={false}
         >
-            <div className='page-version-history-modal__notice'>
-                <i className='icon-information-outline'/>
-                <span>{noticeMessage}</span>
-            </div>
             <div className='page-version-history-modal__content'>
                 {content}
             </div>

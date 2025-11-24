@@ -5,8 +5,6 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {PostDraft} from 'types/store/draft';
-
 export type UnsavedDraftModalProps = {
     show: boolean;
     draftCreateAt?: number;

@@ -4,11 +4,9 @@
 import {useState, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {Client4} from 'mattermost-redux/client';
 import {receivedNewPost} from 'mattermost-redux/actions/posts';
+import {Client4} from 'mattermost-redux/client';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-
-import type {GlobalState} from 'types/store';
 
 type CommentAnchor = {
     text: string;

@@ -30,10 +30,12 @@ func setupPagePermissions(th *TestHelper) {
 		model.PermissionCreatePagePublicChannel.Id,
 		model.PermissionReadPagePublicChannel.Id,
 		model.PermissionEditPagePublicChannel.Id,
+		model.PermissionEditOthersPagePublicChannel.Id,
 		model.PermissionDeletePagePublicChannel.Id,
 		model.PermissionCreatePagePrivateChannel.Id,
 		model.PermissionReadPagePrivateChannel.Id,
 		model.PermissionEditPagePrivateChannel.Id,
+		model.PermissionEditOthersPagePrivateChannel.Id,
 		model.PermissionDeletePagePrivateChannel.Id,
 	)
 
@@ -1829,4 +1831,123 @@ func TestPageVersionHistory(t *testing.T) {
 		contentJSON, _ := restoredContent.GetDocumentJSON()
 		require.Contains(t, contentJSON, "Original Content", "Content should be restored")
 	})
+}
+
+func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	setupPagePermissions(th)
+
+	sessionCtx := createSessionContext(th)
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "")
+	require.Nil(t, err)
+	require.NotNil(t, createdPage)
+
+	baseUpdateAt := createdPage.UpdateAt
+
+	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
+	updatedPage, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search text", baseUpdateAt, false)
+
+	require.Nil(t, err)
+	require.NotNil(t, updatedPage)
+	require.Equal(t, "Updated Title", updatedPage.Props["title"])
+	require.Equal(t, newContent, updatedPage.Message)
+	require.Greater(t, updatedPage.UpdateAt, baseUpdateAt)
+
+	pageContent, contentErr := th.App.Srv().Store().PageContent().Get(updatedPage.Id)
+	require.NoError(t, contentErr)
+	jsonContent, jsonErr := pageContent.GetDocumentJSON()
+	require.NoError(t, jsonErr)
+	require.Contains(t, jsonContent, "Updated content")
+}
+
+func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	setupPagePermissions(th)
+
+	sessionCtx := createSessionContext(th)
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "")
+	require.Nil(t, err)
+	require.NotNil(t, createdPage)
+
+	baseUpdateAt := createdPage.UpdateAt
+
+	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
+	updated1, err1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 1 Title", content1, "user 1 search", baseUpdateAt, false)
+	require.Nil(t, err1)
+	require.NotNil(t, updated1)
+	require.Greater(t, updated1.UpdateAt, baseUpdateAt)
+
+	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
+	_, err2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 2 Title", content2, "user 2 search", baseUpdateAt, false)
+
+	require.NotNil(t, err2)
+	require.Equal(t, "app.page.update.conflict.app_error", err2.Id)
+	require.Equal(t, 409, err2.StatusCode)
+	require.Contains(t, err2.DetailedError, "modified_by=")
+	require.Contains(t, err2.DetailedError, "modified_at=")
+}
+
+func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	setupPagePermissions(th)
+
+	sessionCtx := createSessionContext(th)
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "")
+	require.Nil(t, err)
+	require.NotNil(t, createdPage)
+
+	baseUpdateAt := createdPage.UpdateAt
+
+	_, deleteErr := th.App.DeletePost(th.Context, createdPage.Id, th.BasicUser.Id)
+	require.Nil(t, deleteErr)
+
+	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
+	_, updateErr := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search", baseUpdateAt, false)
+
+	require.NotNil(t, updateErr)
+	require.Equal(t, 404, updateErr.StatusCode)
+	require.Equal(t, "app.page.update.not_found.app_error", updateErr.Id)
+}
+
+func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	setupPagePermissions(th)
+
+	user1Session := createSessionContext(th)
+
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.AddUserToChannel(t, user2, th.BasicChannel)
+
+	_ = th.App.Srv().InvalidateAllCaches()
+
+	session2, sessErr := th.App.CreateSession(th.Context, &model.Session{UserId: user2.Id, Props: model.StringMap{}})
+	require.Nil(t, sessErr)
+	user2Session := th.Context.WithSession(session2)
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "")
+	require.Nil(t, err)
+	require.NotNil(t, createdPage)
+
+	baseUpdateAt := createdPage.UpdateAt
+
+	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
+	updated2, err2 := th.App.UpdatePageWithOptimisticLocking(user2Session, createdPage.Id, "User 2 Title", content2, "user 2 search", baseUpdateAt, false)
+	require.Nil(t, err2)
+	require.NotNil(t, updated2)
+
+	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
+	_, err1 := th.App.UpdatePageWithOptimisticLocking(user1Session, createdPage.Id, "User 1 Title", content1, "user 1 search", baseUpdateAt, false)
+
+	require.NotNil(t, err1)
+	require.Equal(t, 409, err1.StatusCode)
+	require.Contains(t, err1.DetailedError, user2.Id, "Error should include ID of user who made the conflicting change")
+	require.Contains(t, err1.DetailedError, "modified_at=")
 }

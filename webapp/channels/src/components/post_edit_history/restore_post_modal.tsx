@@ -8,7 +8,7 @@ import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
-import PostMessageView from 'components/post_view/post_message_view';
+import PostMessageContainer from 'components/post_view/post_message_view';
 
 import './restore_post_history.scss';
 
@@ -61,12 +61,13 @@ const RestorePostModal = ({post, postHeader, actions, onExited}: Props) => {
         >
             <div className='edit-post-history__restore__modal__content'>
                 {postHeader}
-                <PostMessageView
-                    post={post}
-                    overflowType='ellipsis'
-                    maxHeight={100}
-                    showPostEditedIndicator={false}
-                />
+                <div className='post__body'>
+                    <PostMessageContainer
+                        post={post}
+                        isRHS={true}
+                        showPostEditedIndicator={false}
+                    />
+                </div>
                 <FileAttachmentListContainer
                     post={post}
                     isEditHistory={true}

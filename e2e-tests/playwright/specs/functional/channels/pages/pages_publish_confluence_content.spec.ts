@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, waitForPageInHierarchy, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, waitForPageInHierarchy, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, HIERARCHY_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify publishing page with Confluence-copied content doesn't cause draggableId errors
@@ -79,7 +79,7 @@ test('publishes page with Confluence-like content without draggableId errors', {
     }, confluenceHTML);
 
     // # Wait for content to be processed
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify content appears in editor (check for heading text)
     await expect(editor).toContainText('Heading from Confluence');
@@ -117,7 +117,7 @@ test('publishes page with Confluence-like content without draggableId errors', {
     await expect(hierarchyPanel).toBeVisible();
 
     // * Verify the published page appears in hierarchy
-    await waitForPageInHierarchy(page, 'Confluence Content Test', 10000);
+    await waitForPageInHierarchy(page, 'Confluence Content Test', HIERARCHY_TIMEOUT);
 
     // * Verify no JavaScript errors were logged during the publish flow
     expect(consoleErrors.filter((e) => !e.includes('404'))).toHaveLength(0);
@@ -179,7 +179,7 @@ test('shows proper error message when draft not found during publish', {tag: '@p
     });
 
     // # Wait a moment for state to sync
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Attempt to publish
     await publishCurrentPage(page);
@@ -221,7 +221,7 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
     await publishCurrentPage(page);
 
     // # Wait for parent page to appear in hierarchy
-    await waitForPageInHierarchy(page, 'Parent Page', 10000);
+    await waitForPageInHierarchy(page, 'Parent Page', HIERARCHY_TIMEOUT);
 
     // # Create a child page with Confluence-like content
     await newPageButton.click();
@@ -246,13 +246,13 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
         }
     }, complexHTML);
 
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Publish child page
     await publishCurrentPage(page);
 
     // * Verify child page appears in hierarchy
-    await waitForPageInHierarchy(page, 'Child Page', 10000);
+    await waitForPageInHierarchy(page, 'Child Page', HIERARCHY_TIMEOUT);
 
     // # Monitor for draggableId errors
     const consoleErrors: string[] = [];
@@ -271,7 +271,7 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
     await expect(childPageNode).toBeVisible();
 
     // # Wait a moment for any drag-and-drop initialization
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify no draggableId errors occurred
     const draggableErrors = consoleErrors.filter((error) =>

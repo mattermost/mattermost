@@ -270,51 +270,12 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		},
 	}
 
-	createdPage, createErr := a.CreatePost(rctx, page, channel, model.CreatePostFlags{})
+	createdPage, createErr := a.Srv().Store().Page().CreatePage(rctx, page, content, searchText)
 	if createErr != nil {
-		return nil, createErr
-	}
-
-	rctx.Logger().Debug("Page Post created successfully, proceeding to create PageContent",
-		mlog.String("page_id", createdPage.Id),
-		mlog.String("channel_id", channelID))
-
-	pageContent := &model.PageContent{
-		PageId: createdPage.Id,
-	}
-	if err := pageContent.SetDocumentJSON(content); err != nil {
-		rctx.Logger().Warn("PageContent validation failed after Post creation - attempting cleanup to prevent orphaned Post",
-			mlog.String("page_id", createdPage.Id),
-			mlog.Err(err))
-		if _, delErr := a.DeletePost(rctx, createdPage.Id, userID); delErr != nil {
-			rctx.Logger().Error("ORPHAN PREVENTION FAILED: Could not delete Post after PageContent validation failed - orphaned Post may exist",
-				mlog.String("page_id", createdPage.Id),
-				mlog.Err(delErr))
-		} else {
-			rctx.Logger().Debug("Successfully cleaned up Post after PageContent validation failed",
-				mlog.String("page_id", createdPage.Id))
+		if strings.Contains(createErr.Error(), "invalid_content") {
+			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, createErr.Error(), http.StatusBadRequest)
 		}
-		return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
-	if searchText != "" {
-		pageContent.SearchText = searchText
-	}
-
-	_, contentErr := a.Srv().Store().PageContent().Save(pageContent)
-	if contentErr != nil {
-		rctx.Logger().Warn("PageContent save failed after Post creation - attempting cleanup to prevent orphaned Post",
-			mlog.String("page_id", createdPage.Id),
-			mlog.Err(contentErr))
-		if _, delErr := a.DeletePost(rctx, createdPage.Id, userID); delErr != nil {
-			rctx.Logger().Error("ORPHAN PREVENTION FAILED: Could not delete Post after PageContent save failed - orphaned Post may exist",
-				mlog.String("page_id", createdPage.Id),
-				mlog.Err(delErr))
-		} else {
-			rctx.Logger().Debug("Successfully cleaned up Post after PageContent save failed",
-				mlog.String("page_id", createdPage.Id))
-		}
-		return nil, model.NewAppError("CreatePage", "app.page.create.save_content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+		return nil, model.NewAppError("CreatePage", "app.page.create.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
 	}
 
 	rctx.Logger().Info("Page created successfully",
@@ -341,12 +302,12 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 		return nil, model.NewAppError("GetPage", "app.page.get.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
 	}
 
-	rctx.Logger().Debug("GetPage: post retrieved", mlog.String("page_id", pageID), mlog.String("type", post.Type))
-
 	if post.Type != model.PostTypePage {
-		rctx.Logger().Error("GetPage: not a page", mlog.String("page_id", pageID), mlog.String("type", post.Type))
+		rctx.Logger().Error("GetPage: post is not a page", mlog.String("page_id", pageID), mlog.String("type", post.Type))
 		return nil, model.NewAppError("GetPage", "app.page.get.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
 	}
+
+	rctx.Logger().Debug("GetPage: page retrieved", mlog.String("page_id", pageID))
 
 	session := rctx.Session()
 	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationRead, "GetPage"); err != nil {
@@ -386,6 +347,16 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 // LoadPageContentForPostList loads page content from the pagecontent table for any pages in the PostList.
 // This populates the Message field with the full page content stored in the pagecontent table.
 func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostList) *model.AppError {
+	return a.loadPageContentForPostList(rctx, postList, false)
+}
+
+// LoadPageContentForPostListIncludingDeleted loads page content including historical (deleted) versions.
+// Use this for version history where posts have DeleteAt > 0.
+func (a *App) LoadPageContentForPostListIncludingDeleted(rctx request.CTX, postList *model.PostList) *model.AppError {
+	return a.loadPageContentForPostList(rctx, postList, true)
+}
+
+func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostList, includeDeleted bool) *model.AppError {
 	if postList == nil || postList.Posts == nil {
 		return nil
 	}
@@ -401,10 +372,30 @@ func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostL
 		return nil
 	}
 
-	pageContents, contentErr := a.Srv().Store().PageContent().GetMany(pageIDs)
-	if contentErr != nil {
-		rctx.Logger().Error("LoadPageContentForPostList: error fetching PageContents", mlog.Int("count", len(pageIDs)), mlog.Err(contentErr))
-		return model.NewAppError("LoadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+	var pageContents []*model.PageContent
+	var contentErr error
+
+	if includeDeleted {
+		pageContents = make([]*model.PageContent, 0, len(pageIDs))
+		for _, pageID := range pageIDs {
+			content, err := a.Srv().Store().PageContent().GetWithDeleted(pageID)
+			if err != nil {
+				var nfErr *store.ErrNotFound
+				if errors.As(err, &nfErr) {
+					rctx.Logger().Warn("loadPageContentForPostList: PageContent not found for historical page", mlog.String("page_id", pageID))
+					continue
+				}
+				rctx.Logger().Error("loadPageContentForPostList: error fetching PageContent", mlog.String("page_id", pageID), mlog.Err(err))
+				return model.NewAppError("loadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			pageContents = append(pageContents, content)
+		}
+	} else {
+		pageContents, contentErr = a.Srv().Store().PageContent().GetMany(pageIDs)
+		if contentErr != nil {
+			rctx.Logger().Error("loadPageContentForPostList: error fetching PageContents", mlog.Int("count", len(pageIDs)), mlog.Err(contentErr))
+			return model.NewAppError("loadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+		}
 	}
 
 	contentMap := make(map[string]*model.PageContent, len(pageContents))
@@ -416,15 +407,15 @@ func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostL
 		if post.Type == model.PostTypePage {
 			pageContent, found := contentMap[post.Id]
 			if !found {
-				rctx.Logger().Warn("LoadPageContentForPostList: PageContent not found for page", mlog.String("page_id", post.Id))
+				rctx.Logger().Warn("loadPageContentForPostList: PageContent not found for page", mlog.String("page_id", post.Id))
 				post.Message = ""
 				continue
 			}
 
 			contentJSON, jsonErr := pageContent.GetDocumentJSON()
 			if jsonErr != nil {
-				rctx.Logger().Error("LoadPageContentForPostList: error serializing page content", mlog.String("page_id", post.Id), mlog.Err(jsonErr))
-				return model.NewAppError("LoadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+				rctx.Logger().Error("loadPageContentForPostList: error serializing page content", mlog.String("page_id", post.Id), mlog.Err(jsonErr))
+				return model.NewAppError("loadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 			}
 			post.Message = contentJSON
 		}
@@ -480,6 +471,107 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		return nil, enrichErr
 	}
 
+	// Broadcast title update if title was changed
+	if title != "" {
+		wikiId, _ := updatedPost.Props["wiki_id"].(string)
+		if wikiId != "" {
+			a.BroadcastPageTitleUpdated(pageID, title, wikiId, updatedPost.ChannelId, updatedPost.UpdateAt)
+		}
+	}
+
+	return updatedPost, nil
+}
+
+// UpdatePageWithOptimisticLocking updates a page with first-one-wins concurrency control
+// baseUpdateAt is the UpdateAt timestamp the client last saw when they started editing
+// Returns 409 Conflict if the page was modified by someone else
+// Returns 404 Not Found if the page was deleted
+func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, content, searchText string, baseUpdateAt int64, force bool) (*model.Post, *model.AppError) {
+	post, err := a.GetSinglePost(rctx, pageID, false)
+	if err != nil {
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
+	}
+
+	if post.Type != model.PostTypePage {
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
+	}
+
+	session := rctx.Session()
+	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationEdit, "UpdatePageWithOptimisticLocking"); err != nil {
+		return nil, err
+	}
+
+	if title != "" && len(title) > model.MaxPageTitleLength {
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+	}
+
+	if title != "" {
+		post.Props["title"] = title
+	}
+
+	if content != "" {
+		post.Message = content
+	}
+
+	post.Props["last_modified_by"] = session.UserId
+
+	updatedPost, storeErr := a.Srv().Store().Page().Update(post, baseUpdateAt, force)
+	if storeErr != nil {
+		var conflictErr *store.ErrConflict
+		if errors.As(storeErr, &conflictErr) {
+			currentPage, getErr := a.GetSinglePost(rctx, pageID, false)
+			if getErr != nil {
+				rctx.Logger().Error("Failed to fetch current page after conflict",
+					mlog.String("page_id", pageID),
+					mlog.Err(getErr))
+				return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
+					nil, "page was modified by another user", http.StatusConflict)
+			}
+
+			modifiedBy := currentPage.UserId
+			if lastModifiedBy, ok := currentPage.Props["last_modified_by"].(string); ok && lastModifiedBy != "" {
+				modifiedBy = lastModifiedBy
+			}
+			modifiedAt := currentPage.UpdateAt
+
+			rctx.Logger().Info("Page update conflict detected",
+				mlog.String("page_id", pageID),
+				mlog.String("modified_by", modifiedBy),
+				mlog.Int("modified_at", modifiedAt),
+				mlog.Int("base_update_at", baseUpdateAt))
+
+			appErr := model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
+				nil, "page was modified by another user", http.StatusConflict)
+			appErr.DetailedError = fmt.Sprintf("modified_by=%s,modified_at=%d", modifiedBy, modifiedAt)
+			return nil, appErr
+		}
+
+		var notFoundErr *store.ErrNotFound
+		if errors.As(storeErr, &notFoundErr) {
+			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error",
+				nil, "page not found or was deleted", http.StatusNotFound)
+		}
+
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.store_error.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+
+	if content != "" {
+		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
+	}
+
+	rctx.Logger().Info("Page updated successfully with optimistic locking",
+		mlog.String("page_id", pageID),
+		mlog.Bool("title_updated", title != ""),
+		mlog.Bool("content_updated", content != ""),
+		mlog.Int("base_update_at", baseUpdateAt))
+
+	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
+
+	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
+		return nil, enrichErr
+	}
+
 	return updatedPost, nil
 }
 
@@ -501,20 +593,12 @@ func (a *App) DeletePage(rctx request.CTX, pageID string) *model.AppError {
 
 	rctx.Logger().Info("Deleting page", mlog.String("page_id", pageID))
 
-	if contentErr := a.Srv().Store().PageContent().Delete(pageID); contentErr != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(contentErr, &nfErr) {
-			rctx.Logger().Warn("Failed to delete PageContent during page deletion - orphaned content may remain",
-				mlog.String("page_id", pageID),
-				mlog.Err(contentErr))
-		}
-	} else {
-		rctx.Logger().Debug("Successfully deleted PageContent before Post soft-delete",
-			mlog.String("page_id", pageID))
+	if deleteErr := a.Srv().Store().Page().DeletePage(pageID, session.UserId); deleteErr != nil {
+		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	_, deleteErr := a.DeletePost(rctx, pageID, rctx.Session().UserId)
-	return deleteErr
+	a.broadcastPageDeleted(pageID, "", post.ChannelId, rctx.Session().UserId)
+	return nil
 }
 
 func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
@@ -652,5 +736,134 @@ func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string) ([]*model.P
 
 	rctx.Logger().Debug("Found page version history", mlog.Int("count", len(posts)), mlog.String("page_id", pageId))
 
+	postList := &model.PostList{
+		Posts: make(map[string]*model.Post, len(posts)),
+		Order: make([]string, len(posts)),
+	}
+	for i, post := range posts {
+		postList.Posts[post.Id] = post
+		postList.Order[i] = post.Id
+	}
+
+	if loadErr := a.LoadPageContentForPostListIncludingDeleted(rctx, postList); loadErr != nil {
+		return nil, loadErr
+	}
+
 	return posts, nil
+}
+
+// RestorePageVersion restores a page to a previous version from its history
+func (a *App) RestorePageVersion(
+	rctx request.CTX,
+	userID, pageID, restoreVersionID string,
+	toRestorePostVersion *model.Post,
+) (*model.Post, *model.AppError) {
+	// Step 1: Get historical PageContents
+	historicalContent, storeErr := a.Srv().Store().PageContent().GetWithDeleted(restoreVersionID)
+	if storeErr != nil {
+		var notFoundErr *store.ErrNotFound
+		if errors.As(storeErr, &notFoundErr) {
+			rctx.Logger().Warn("No historical page content found - will restore metadata only",
+				mlog.String("page_id", pageID),
+				mlog.String("restore_version_id", restoreVersionID))
+		} else {
+			return nil, model.NewAppError("RestorePageVersion",
+				"app.page.restore.get_content.app_error", nil, "",
+				http.StatusInternalServerError).Wrap(storeErr)
+		}
+	}
+
+	// Step 2: Extract title from historical post
+	var title string
+	if toRestorePostVersion.Props != nil {
+		if titleValue, ok := toRestorePostVersion.Props["title"]; ok {
+			if titleStr, isString := titleValue.(string); isString {
+				title = titleStr
+			}
+		}
+	}
+
+	// Step 3: Restore content and title together using UpdatePageWithContent
+	var updatedPost *model.Post
+	if historicalContent != nil {
+		contentJSON, jsonErr := historicalContent.GetDocumentJSON()
+		if jsonErr != nil {
+			return nil, model.NewAppError("RestorePageVersion",
+				"app.page.restore.serialize_content.app_error", nil, "",
+				http.StatusInternalServerError).Wrap(jsonErr)
+		}
+
+		updatedPost, storeErr = a.Srv().Store().Page().UpdatePageWithContent(
+			rctx, pageID, title, contentJSON, historicalContent.SearchText)
+		if storeErr != nil {
+			return nil, model.NewAppError("RestorePageVersion",
+				"app.page.restore.update_content.app_error", nil, "",
+				http.StatusInternalServerError).Wrap(storeErr)
+		}
+	} else {
+		updatedPost, storeErr = a.Srv().Store().Page().UpdatePageWithContent(
+			rctx, pageID, title, "", "")
+		if storeErr != nil {
+			return nil, model.NewAppError("RestorePageVersion",
+				"app.page.restore.update_title.app_error", nil, "",
+				http.StatusInternalServerError).Wrap(storeErr)
+		}
+	}
+
+	// Step 4: Restore FileIds if they differ (UpdatePageWithContent doesn't handle FileIds)
+	if !toRestorePostVersion.FileIds.Equals(updatedPost.FileIds) {
+		postPatch := &model.PostPatch{
+			FileIds: &toRestorePostVersion.FileIds,
+		}
+
+		patchPostOptions := &model.UpdatePostOptions{
+			IsRestorePost: true,
+		}
+
+		var patchErr *model.AppError
+		updatedPost, patchErr = a.PatchPost(rctx, pageID, postPatch, patchPostOptions)
+		if patchErr != nil {
+			return nil, model.NewAppError("RestorePageVersion",
+				"app.page.restore.update_fileids.app_error", nil, "",
+				http.StatusInternalServerError).Wrap(patchErr)
+		}
+	}
+
+	// Step 5: Reload the complete page with content to get fresh data for WebSocket
+	freshPage, getErr := a.GetPage(rctx, pageID)
+	if getErr != nil {
+		rctx.Logger().Warn("Failed to reload page after restore - WebSocket event will use potentially stale data",
+			mlog.String("page_id", pageID),
+			mlog.Err(getErr))
+		freshPage = updatedPost
+	}
+
+	// Step 6: Send WebSocket POST_EDITED event so clients update the page
+	a.sendPageEditedEvent(rctx, freshPage)
+
+	return updatedPost, nil
+}
+
+// sendPageEditedEvent sends a WebSocket POST_EDITED event for a page
+// This is necessary because publishWebsocketEventForPost returns early for pages
+func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
+	pageJSON, jsonErr := page.ToJSON()
+	if jsonErr != nil {
+		rctx.Logger().Warn("Failed to encode page to JSON for WebSocket event",
+			mlog.String("page_id", page.Id),
+			mlog.Err(jsonErr))
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", page.ChannelId, "", nil, "")
+	message.Add("post", pageJSON)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId: page.ChannelId,
+	})
+
+	rctx.Logger().Debug("Publishing POST_EDITED event for page",
+		mlog.String("page_id", page.Id),
+		mlog.String("channel_id", page.ChannelId))
+
+	a.Publish(message)
 }

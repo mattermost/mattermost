@@ -146,6 +146,10 @@ func (a *App) UpdateWiki(rctx request.CTX, wiki *model.Wiki) (*model.Wiki, *mode
 		}
 		return nil, model.NewAppError("UpdateWiki", "app.wiki.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Broadcast wiki update to all clients
+	a.BroadcastWikiUpdated(updatedWiki)
+
 	return updatedWiki, nil
 }
 
@@ -592,6 +596,17 @@ func (a *App) MovePageToWiki(rctx request.CTX, pageId, targetWikiId string, pare
 		mlog.String("channel_id", ctx.page.ChannelId),
 		mlog.String("user_id", rctx.Session().UserId))
 
+	// Broadcast page_published event to target wiki so other users see the new page
+	// Pass source wiki ID so clients can remove the page from the source wiki
+	a.BroadcastPagePublished(ctx.page, targetWikiId, ctx.page.ChannelId, "", rctx.Session().UserId, sourceWikiId)
+
+	// Also broadcast page_moved event with parent change information
+	var newParentId string
+	if parentPageId != nil {
+		newParentId = *parentPageId
+	}
+	a.BroadcastPageMoved(pageId, ctx.page.PageParentId, newParentId, targetWikiId, ctx.page.ChannelId, ctx.page.UpdateAt)
+
 	return nil
 }
 
@@ -669,6 +684,8 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 		mlog.String("duplicated_page_id", duplicatedPage.Id),
 		mlog.String("target_wiki_id", targetWikiId),
 		mlog.String("user_id", userId))
+
+	a.BroadcastPagePublished(duplicatedPage, targetWikiId, targetWiki.ChannelId, "", userId)
 
 	return duplicatedPage, nil
 }

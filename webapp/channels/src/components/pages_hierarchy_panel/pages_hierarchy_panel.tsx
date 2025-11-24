@@ -8,8 +8,11 @@ import {useDispatch} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {createBookmarkFromPage} from 'actions/channel_bookmarks';
+import type {DraftPage, TreeNode} from 'selectors/pages_hierarchy';
+import {buildTree, getAncestorIds} from 'selectors/pages_hierarchy';
 
 import BookmarkChannelSelect from 'components/bookmark_channel_select';
+import DeletePageModal from 'components/delete_page_modal';
 import MovePageModal from 'components/move_page_modal';
 import TextInputModal from 'components/text_input_modal';
 
@@ -17,10 +20,6 @@ import {PageDisplayTypes} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
 
-import type {DraftPage, TreeNode} from 'selectors/pages_hierarchy';
-import {buildTree, getAncestorIds} from 'selectors/pages_hierarchy';
-
-import DeletePageModal from 'components/delete_page_modal';
 import {usePageMenuHandlers} from './hooks/use_page_menu_handlers';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
@@ -96,47 +95,47 @@ const PagesHierarchyPanel = ({
         }
     }, [dispatch, menuHandlers]);
 
-    // Convert drafts to Post-like objects to include in tree
+    // Convert NEW drafts to Post-like objects to include in tree
+    // Only include drafts for pages that don't exist yet (first-time drafts)
+    // Drafts for existing pages will show "Unpublished changes" on the published page instead
     const draftPosts: DraftPage[] = useMemo(() => {
-        return drafts.map((draft): DraftPage => {
-            // If draft is editing an existing page, use that page's create_at for stable ordering
-            const originalPage = draft.props?.page_id ? pages.find((p) => p.id === draft.props.page_id) : null;
-            const createAt = originalPage?.create_at || draft.createAt;
-
-            return {
-                id: draft.rootId,
-                create_at: createAt,
-                update_at: draft.updateAt,
-                delete_at: 0,
-                edit_at: 0,
-                is_pinned: false,
-                user_id: '',
-                channel_id: draft.channelId,
-                root_id: '',
-                original_id: '',
-                message: draft.message,
-                type: PageDisplayTypes.PAGE_DRAFT,
-                page_parent_id: draft.props?.page_parent_id || '',
-                props: {
-                    ...draft.props,
-                    title: draft.props?.title || 'Untitled',
-                },
-                hashtags: '',
-                filenames: [],
-                file_ids: [],
-                pending_post_id: '',
-                reply_count: 0,
-                last_reply_at: 0,
-                participants: null,
-                metadata: {
-                    embeds: [],
-                    emojis: [],
-                    files: [],
-                    images: {},
-                },
-            };
-        });
-    }, [drafts, pages]);
+        return drafts.
+            filter((draft) => !draft.props?.page_id).
+            map((draft): DraftPage => {
+                return {
+                    id: draft.rootId,
+                    create_at: draft.createAt,
+                    update_at: draft.updateAt,
+                    delete_at: 0,
+                    edit_at: 0,
+                    is_pinned: false,
+                    user_id: '',
+                    channel_id: draft.channelId,
+                    root_id: '',
+                    original_id: '',
+                    message: draft.message,
+                    type: PageDisplayTypes.PAGE_DRAFT,
+                    page_parent_id: draft.props?.page_parent_id || '',
+                    props: {
+                        ...draft.props,
+                        title: draft.props?.title || 'Untitled',
+                    },
+                    hashtags: '',
+                    filenames: [],
+                    file_ids: [],
+                    pending_post_id: '',
+                    reply_count: 0,
+                    last_reply_at: 0,
+                    participants: null,
+                    metadata: {
+                        embeds: [],
+                        emojis: [],
+                        files: [],
+                        images: {},
+                    },
+                };
+            });
+    }, [drafts]);
 
     // Combine pages and drafts for tree display
     const allPagesAndDrafts = useMemo(() => {
@@ -169,24 +168,15 @@ const PagesHierarchyPanel = ({
     }, [currentPageId, pages, wikiId, pageMap, selectedPageId, actions]);
 
     // Combine pages and drafts for tree building
-    // But exclude published pages that have a draft (to avoid duplicates)
-    const draftIds = useMemo(() => {
-        const ids = new Set(drafts.map((d) => d.props?.page_id).filter(Boolean));
-        return ids;
-    }, [drafts]);
-    const pagesWithoutDrafts = useMemo(() => {
-        const filtered = pages.filter((page) => !draftIds.has(page.id));
-        return filtered;
-    }, [pages, draftIds]);
+    // Show published pages even if they have drafts (drafts are indicated with "Unpublished changes" badge)
+    // Only show draft nodes for NEW pages (pages that don't exist yet)
     const allPages = useMemo(() => {
-        const combined = [...pagesWithoutDrafts, ...draftPosts];
-        return combined;
-    }, [pagesWithoutDrafts, draftPosts]);
+        return [...pages, ...draftPosts];
+    }, [pages, draftPosts]);
 
     // Build tree from flat pages (including drafts)
     const tree = useMemo(() => {
-        const builtTree = buildTree(allPages);
-        return builtTree;
+        return buildTree(allPages);
     }, [allPages]);
 
     // Filter tree by search query

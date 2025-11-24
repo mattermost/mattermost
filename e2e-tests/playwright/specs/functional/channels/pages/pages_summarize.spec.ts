@@ -14,6 +14,9 @@ import {
     verifyPageInHierarchy,
     switchToWikiTab,
     switchToMessagesTab,
+    EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -61,14 +64,14 @@ test('shows summarize to page option in post actions menu', {tag: '@pages'}, asy
 
     // # Reload to see the posts
     await page.reload();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Open AI actions menu
     await openAIActionsMenu(page, rootPost.id);
 
     // * Verify "Summarize to Page" option is visible
     const summarizeButton = page.getByRole('button', {name: /Summarize to Page/i});
-    await expect(summarizeButton).toBeVisible({timeout: 3000});
+    await expect(summarizeButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -113,7 +116,7 @@ test('prompts for page title when summarize to page is clicked', {tag: '@pages'}
 
     // # Reload to see posts
     await page.reload();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Open AI actions menu
     await openAIActionsMenu(page, rootPost.id);
@@ -132,7 +135,7 @@ test('prompts for page title when summarize to page is clicked', {tag: '@pages'}
     await clickAIActionsMenuItem(page, 'Summarize to Page');
 
     // # Wait for dialog to be handled
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify dialog appeared with correct message
     expect(dialogAppeared).toBeTruthy();
@@ -184,7 +187,7 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 
     // # Reload to see posts
     await page.reload();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Open AI actions menu
     await openAIActionsMenu(page, rootPost.id);
@@ -198,7 +201,7 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
     await clickAIActionsMenuItem(page, 'Summarize to Page');
 
     // * Wait for page creation (AI processing can take time)
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(ELEMENT_TIMEOUT);
 
     // # Check if we're already on the wiki view (summarize action may auto-navigate)
     const currentUrl = page.url();
@@ -210,15 +213,15 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
     }
 
     // * Verify page appears in the hierarchy panel
-    const pageLink = await verifyPageInHierarchy(page, pageTitle, 10000);
+    const pageLink = await verifyPageInHierarchy(page, pageTitle, HIERARCHY_TIMEOUT);
 
     // # Click the page to open it
     await pageLink.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify page viewer is displayed with content
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer).toBeVisible({timeout: 5000});
+    await expect(pageViewer).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify page has some content (AI-generated summary)
     const pageContent = await pageViewer.textContent();
@@ -261,7 +264,7 @@ test('hides summarize to page option when AI plugin is not available', {tag: '@p
 
     // # Reload to see posts
     await page.reload();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Hover over post to show menu
     const postLocator = page.locator(`#post_${postResponse.id}`);

@@ -4,13 +4,15 @@
 import React, {useState, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {GlobalState} from '@mattermost/types/store';
-
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {createBookmarkFromPage} from 'actions/channel_bookmarks';
+import {hasUnpublishedChanges} from 'selectors/page_drafts';
 
 import BookmarkChannelSelect from 'components/bookmark_channel_select';
+
+import type {GlobalState} from 'types/store';
+
 import PageActionsMenu from '../../pages_hierarchy_panel/page_actions_menu';
 import PageBreadcrumb from '../page_breadcrumb';
 
@@ -63,6 +65,12 @@ const WikiPageHeader = ({
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
 
     const page = useSelector((state: GlobalState) => getPost(state, pageId));
+    const showUnpublishedIndicator = useSelector((state: GlobalState) => {
+        if (isDraft || !pageId || !wikiId) {
+            return false;
+        }
+        return hasUnpublishedChanges(state, wikiId, pageId);
+    });
 
     const handleBookmarkInChannel = useCallback(() => {
         setShowBookmarkModal(true);
@@ -101,6 +109,14 @@ const WikiPageHeader = ({
                     className='PagePane__controls'
                     data-testid='wiki-page-controls'
                 >
+                    {showUnpublishedIndicator && (
+                        <span
+                            className='PagePane__unpublished-indicator'
+                            data-testid='wiki-page-unpublished-indicator'
+                        >
+                            {'Unpublished changes'}
+                        </span>
+                    )}
                     {(!isDraft || isExistingPage) && (
                         <button
                             className='PagePane__icon-button btn btn-icon btn-sm'

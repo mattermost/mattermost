@@ -3,9 +3,11 @@
 
 import {renderHook} from '@testing-library/react';
 
-import {useActiveEditors} from 'hooks/useActiveEditors';
-import * as Actions from 'actions/active_editors';
 import * as Selectors from 'mattermost-redux/selectors/entities/active_editors';
+
+import * as Actions from 'actions/active_editors';
+
+import {useActiveEditors} from 'hooks/useActiveEditors';
 
 jest.mock('react-redux', () => ({
     useDispatch: () => jest.fn(),

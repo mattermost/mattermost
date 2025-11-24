@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import ActiveEditorsTypes from 'mattermost-redux/action_types/active_editors';
 import {UserTypes} from 'mattermost-redux/action_types';
+import ActiveEditorsTypes from 'mattermost-redux/action_types/active_editors';
 import activeEditorsReducer from 'mattermost-redux/reducers/entities/active_editors';
 
 import TestHelper from '../../../test/test_helper';

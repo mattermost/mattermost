@@ -210,6 +210,8 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		SearchText   string `json:"search_text"`
 		Content      string `json:"content"`
 		PageStatus   string `json:"page_status"`
+		BaseUpdateAt int64  `json:"base_update_at"`
+		Force        bool   `json:"force"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -217,15 +219,7 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Logger.Info("[API] publishPageDraft request",
-		mlog.String("wiki_id", c.Params.WikiId),
-		mlog.String("draft_id", c.Params.DraftId),
-		mlog.String("page_parent_id", req.PageParentId),
-		mlog.String("title", req.Title),
-		mlog.String("page_status", req.PageStatus),
-		mlog.Int("content_length", len(req.Content)))
-
-	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText, req.Content, req.PageStatus)
+	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText, req.Content, req.PageStatus, req.BaseUpdateAt, req.Force)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -10,7 +10,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
+import {loadPageDraftsForWiki} from 'actions/page_drafts';
 import {loadPages} from 'actions/pages';
 import {openPagesPanel, closePagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
@@ -21,14 +21,14 @@ import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hiera
 import {getRhsState} from 'selectors/rhs';
 
 import ConflictWarningModal from 'components/conflict_warning_modal';
+import ConfirmOverwriteModal from 'components/conflict_warning_modal/confirm_overwrite_modal';
+import DeletePageModal from 'components/delete_page_modal';
 import LoadingScreen from 'components/loading_screen';
 import MovePageModal from 'components/move_page_modal';
 import PageVersionHistoryModal from 'components/page_version_history';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
-import DeletePageModal from 'components/delete_page_modal';
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/use_page_menu_handlers';
 import TextInputModal from 'components/text_input_modal';
-import UnsavedDraftModal from 'components/unsaved_draft_modal';
 
 import {isEditingExistingPage, getPublishedPageIdFromDraft} from 'utils/page_utils';
 import {canEditPage} from 'utils/post_utils';
@@ -67,10 +67,6 @@ const WikiView = () => {
     // Version history modal state
     const [showVersionHistory, setShowVersionHistory] = React.useState(false);
     const [versionHistoryPageId, setVersionHistoryPageId] = React.useState<string | null>(null);
-
-    // Unsaved draft modal state
-    const [showUnsavedDraftModal, setShowUnsavedDraftModal] = React.useState(false);
-    const [unsavedDraftData, setUnsavedDraftData] = React.useState<any>(null);
 
     // Toggle fullscreen
     const toggleFullscreen = React.useCallback(() => {
@@ -245,18 +241,19 @@ const WikiView = () => {
         }
     }, [pageId, draftId, wikiId, dispatch]);
 
-    // Auto-select draft or page when at wiki root
+    // Auto-select page when at wiki root
     React.useEffect(() => {
         if (!pageId && !draftId) {
             const teamName = getTeamNameFromPath(location.pathname);
 
             // Priority 1: Try to restore last viewed page if it exists
             if (lastViewedPageId) {
-                const lastViewedDraft = allDrafts.find((d) => d.rootId === lastViewedPageId);
+                // Check if it's a new draft (not editing existing page)
+                const lastViewedNewDraft = allDrafts.find((d) => d.rootId === lastViewedPageId && !d.props?.page_id);
                 const lastViewedPage = allPages.find((p) => p.id === lastViewedPageId);
 
-                if (lastViewedDraft) {
-                    const draftUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedDraft.rootId, true);
+                if (lastViewedNewDraft) {
+                    const draftUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedNewDraft.rootId, true);
                     history.replace(draftUrl);
                     return;
                 } else if (lastViewedPage) {
@@ -266,9 +263,10 @@ const WikiView = () => {
                 }
             }
 
-            // Priority 2: Select first draft if drafts exist
-            if (allDrafts.length > 0) {
-                const firstDraft = allDrafts[0];
+            // Priority 2: Select first NEW draft if one exists (drafts without page_id)
+            const newDrafts = allDrafts.filter((d) => !d.props?.page_id);
+            if (newDrafts.length > 0) {
+                const firstDraft = newDrafts[0];
                 if (firstDraft) {
                     const draftUrl = getWikiUrl(teamName, channelId, wikiId, firstDraft.rootId, true);
                     history.replace(draftUrl);
@@ -276,7 +274,7 @@ const WikiView = () => {
                 }
             }
 
-            // Priority 3: Select first published page if no drafts but pages exist
+            // Priority 3: Select first published page if pages exist
             if (allPages.length > 0) {
                 const firstPage = allPages[0];
                 if (firstPage) {
@@ -308,7 +306,7 @@ const WikiView = () => {
     // draft id in local state.
     // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
 
-    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, conflictModal} = useWikiPageActions(
+    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, conflictModal, confirmOverwriteModal} = useWikiPageActions(
         channelId,
         pageId,
         draftId,
@@ -319,42 +317,19 @@ const WikiView = () => {
         history,
     );
 
-    // Check handleEdit result for unsaved draft error
+    // Auto-resume draft like Confluence (no modal prompt)
     const onEdit = React.useCallback(async () => {
         const result = await handleEdit() as {error?: {id: string; data: any}} | {data: boolean} | undefined;
+
+        // If draft exists, automatically navigate to it (Confluence-style auto-resume)
         if (result && 'error' in result && result.error?.id === 'api.page.edit.unsaved_draft_exists') {
-            setUnsavedDraftData(result.error.data);
-            setShowUnsavedDraftModal(true);
+            if (pageId && wikiId) {
+                const teamName = getTeamNameFromPath(location.pathname);
+                const draftPath = getWikiUrl(teamName, channelId, wikiId, pageId, true);
+                history.push(draftPath);
+            }
         }
-    }, [handleEdit]);
-
-    // Unsaved draft modal: Resume existing draft
-    const handleResumeDraft = React.useCallback(() => {
-        setShowUnsavedDraftModal(false);
-        if (pageId && wikiId) {
-            const teamName = getTeamNameFromPath(location.pathname);
-            const draftPath = getWikiUrl(teamName, channelId, wikiId, pageId, true);
-            history.push(draftPath);
-        }
-    }, [pageId, wikiId, channelId, history, location]);
-
-    // Unsaved draft modal: Discard existing draft and create new one from published content
-    const handleDiscardDraft = React.useCallback(async () => {
-        setShowUnsavedDraftModal(false);
-        if (pageId && wikiId) {
-            // Delete the existing draft
-            await dispatch(removePageDraft(wikiId, pageId));
-
-            // Create a fresh draft from published content by calling handleEdit
-            // This will trigger openPageInEditMode which creates a new draft
-            await handleEdit();
-        }
-    }, [pageId, wikiId, dispatch, handleEdit]);
-
-    const handleCancelUnsavedDraft = React.useCallback(() => {
-        setShowUnsavedDraftModal(false);
-        setUnsavedDraftData(null);
-    }, []);
+    }, [handleEdit, pageId, wikiId, channelId, history, location]);
 
     const handleToggleComments = () => {
         if (isWikiRhsOpen) {
@@ -376,31 +351,24 @@ const WikiView = () => {
             return;
         }
 
-        // BUGFIX: When navigating to wiki root (empty pageId), clear lastViewedPageId
-        // to prevent auto-select from navigating back to a deleted page
         if (!selectedPageId && wikiId) {
             dispatch(setLastViewedPage(wikiId, ''));
         }
 
-        const isSelectedIdDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId);
         const teamName = getTeamNameFromPath(location.pathname);
-        const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isSelectedIdDraft);
+
+        // Check if selected ID is a draft (for URL generation)
+        // Only navigate to draft if the ID itself is a draft ID (not just if a draft exists for this page)
+        // Published pages should always open in view mode, even if they have unsaved drafts
+        const isDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId && !draft.props?.page_id);
+
+        const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isDraft);
 
         history.push(url);
 
-        // If RHS is open, update it to show the new page's comments
-        if (isWikiRhsOpen) {
-            if (isSelectedIdDraft) {
-                // For drafts, try to get the published page ID to show comments
-                const draft = allDrafts.find((d) => d.rootId === selectedPageId || selectedPageId.startsWith('draft-'));
-                const publishedPageId = getPublishedPageIdFromDraft(draft);
-                if (publishedPageId) {
-                    dispatch(openWikiRhs(publishedPageId, wikiId || '', undefined));
-                }
-            } else if (selectedPageId) {
-                // For published pages, use the page ID directly (only if not empty)
-                dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
-            }
+        // For RHS: new drafts don't have comments, published pages do
+        if (isWikiRhsOpen && selectedPageId && !isDraft) {
+            dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
         }
     };
 
@@ -628,6 +596,7 @@ const WikiView = () => {
                                 pageTitle={pageTitle}
                                 wikiId={wikiId}
                                 onClose={handleCloseVersionHistory}
+                                onVersionRestored={handleCloseVersionHistory}
                             />
                         );
                     })()}
@@ -645,14 +614,15 @@ const WikiView = () => {
                         />
                     )}
 
-                    {/* Unsaved draft warning modal */}
-                    <UnsavedDraftModal
-                        show={showUnsavedDraftModal}
-                        draftCreateAt={unsavedDraftData?.draftCreateAt}
-                        onResumeDraft={handleResumeDraft}
-                        onDiscardDraft={handleDiscardDraft}
-                        onCancel={handleCancelUnsavedDraft}
-                    />
+                    {/* Confirm overwrite modal */}
+                    {confirmOverwriteModal.show && confirmOverwriteModal.currentPage && (
+                        <ConfirmOverwriteModal
+                            show={confirmOverwriteModal.show}
+                            currentPage={confirmOverwriteModal.currentPage}
+                            onConfirm={confirmOverwriteModal.onConfirm}
+                            onCancel={confirmOverwriteModal.onCancel}
+                        />
+                    )}
                 </>
             )}
         </div>

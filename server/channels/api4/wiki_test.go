@@ -801,7 +801,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		assert.JSONEq(t, updatedDraftMessage, updatedContent)
 
 		pageTitle := "Test Page"
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", pageTitle, "", "", "")
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", pageTitle, "", "", "", 0, false)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, publishedPage.Id)
 		require.Equal(t, model.PostTypePage, publishedPage.Type)
@@ -848,14 +848,14 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, createTipTapContent("Parent page content"), "Parent Page", "", nil)
 		require.Nil(t, appErr)
 
-		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, "", "Parent Page", "", "", "")
+		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, "", "Parent Page", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		childDraftId := model.NewId()
 		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, createTipTapContent("Child page content"), "Child Page", "", nil)
 		require.Nil(t, appErr)
 
-		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, parentPage.Id, "Child Page", "", "", "")
+		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, parentPage.Id, "Child Page", "", "", "", 0, false)
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, childPage.PageParentId)
 	})
@@ -2704,7 +2704,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		var response map[string]interface{}
+		var response map[string]any
 		err = json.NewDecoder(httpResp.Body).Decode(&response)
 		require.NoError(t, err)
 
@@ -2740,7 +2740,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		var response map[string]interface{}
+		var response map[string]any
 		err = json.NewDecoder(httpResp.Body).Decode(&response)
 		require.NoError(t, err)
 
@@ -2749,7 +2749,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 		require.Len(t, userIds, 1)
 		assert.Equal(t, th.BasicUser.Id, userIds[0])
 
-		lastActivities, ok := response["last_activities"].(map[string]interface{})
+		lastActivities, ok := response["last_activities"].(map[string]any)
 		require.True(t, ok)
 		assert.Contains(t, lastActivities, th.BasicUser.Id)
 	})
@@ -2783,7 +2783,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, model.BuildResponse(httpResp))
 
-		var response map[string]interface{}
+		var response map[string]any
 		err = json.NewDecoder(httpResp.Body).Decode(&response)
 		require.NoError(t, err)
 

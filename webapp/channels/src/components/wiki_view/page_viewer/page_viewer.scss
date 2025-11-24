@@ -4,8 +4,8 @@
 .PageViewer {
     display: flex;
     width: 100%;
-    height: 100%;
     max-width: 800px;
+    height: 100%;
     flex-direction: column;
 
     &::-webkit-scrollbar {
@@ -35,17 +35,17 @@
         color: var(--center-channel-color);
         font-size: 40px;
         font-weight: 600;
-        line-height: 1.2;
         letter-spacing: -0.02em;
+        line-height: 1.2;
     }
 
     &__meta {
         display: flex;
+        height: 32px;
         align-items: center;
         color: var(--center-channel-color-64);
         font-size: 14px;
         gap: 16px;
-        height: 32px;
     }
 
     &__author,

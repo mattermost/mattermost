@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton, fillCreatePageModal, createDraftThroughUI, deletePageThroughUI, getEditorAndWait, typeInEditor, clearEditorContent, navigateToWikiView, navigateToPage, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton, fillCreatePageModal, createDraftThroughUI, deletePageThroughUI, getEditorAndWait, typeInEditor, clearEditorContent, navigateToWikiView, navigateToPage, getHierarchyPanel, clickPageInHierarchy, enterEditMode, verifyPageContentContains, AUTOSAVE_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, SHORT_WAIT, WEBSOCKET_WAIT, HIERARCHY_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify draft auto-save functionality and persistence
@@ -30,7 +30,7 @@ test('auto-saves draft while editing', {tag: '@pages'}, async ({pw, sharedPagesS
     await typeInEditor(page, 'Draft content here');
 
     // * Wait for auto-save to complete
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Refresh page
     await page.reload();
@@ -44,6 +44,120 @@ test('auto-saves draft while editing', {tag: '@pages'}, async ({pw, sharedPagesS
     await expect(titleAfterReload).toHaveValue('Draft Page');
 
     await expect(editorAfterReload).toContainText('Draft content here');
+});
+
+/**
+ * @objective Verify navigation away from edit mode auto-saves draft without prompt and auto-resumes on edit
+ */
+test('auto-saves draft when navigating away and auto-resumes on edit', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    // # Setup: Create wiki with two pages
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    const pageA = await createPageThroughUI(page, 'Page A', 'Original content A');
+    const pageB = await createPageThroughUI(page, 'Page B', 'Original content B');
+
+    // # Navigate to Page A and edit
+    await clickPageInHierarchy(page, 'Page A');
+    await page.waitForLoadState('networkidle');
+    await enterEditMode(page);
+
+    const editor = await getEditorAndWait(page);
+    await editor.click();
+    await clearEditorContent(page);
+    await typeInEditor(page, 'Draft changes to Page A');
+    await page.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # Navigate to Page B
+    await clickPageInHierarchy(page, 'Page B');
+
+    // * Verify navigation completes immediately without prompt
+    await page.waitForURL(new RegExp(`/wiki/.*/.*/${pageB.id}`));
+    await page.waitForLoadState('networkidle');
+    await verifyPageContentContains(page, 'Original content B');
+
+    // * Verify hierarchy does NOT show a draft node for Page A (only the published page)
+    const hierarchyPanel = getHierarchyPanel(page);
+    const pageADraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Page A'});
+    await expect(pageADraftNode).not.toBeVisible();
+    const pageAPublishedNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {hasText: 'Page A'});
+    await expect(pageAPublishedNode).toBeVisible();
+
+    // # Navigate back to Page A
+    await clickPageInHierarchy(page, 'Page A');
+    await page.waitForLoadState('networkidle');
+
+    // * Verify viewing published page (not draft)
+    await verifyPageContentContains(page, 'Original content A');
+
+    // * Verify "Unpublished changes" indicator is shown
+    const unpublishedIndicator = page.locator('[data-testid="wiki-page-unpublished-indicator"]');
+    await expect(unpublishedIndicator).toBeVisible();
+    await expect(unpublishedIndicator).toContainText('Unpublished changes');
+
+    // # Click Edit button
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]').first();
+    await editButton.click();
+
+    // * Verify NO modal appears (auto-resumes like Confluence)
+    // * Verify automatically navigated to draft URL
+    await page.waitForURL(/\/drafts\//);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify editor shows draft content (auto-resumed)
+    const editorAfter = await getEditorAndWait(page);
+    await expect(editorAfter).toContainText('Draft changes to Page A');
+});
+
+/**
+ * @objective Verify auto-save indicator shows saving status to user
+ */
+test.skip('displays saving indicator during auto-save', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and draft
+    const wiki = await createWikiThroughUI(page, `Indicator Wiki ${pw.random.id()}`);
+
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Auto-save Indicator Test');
+
+    // # Wait for editor to appear
+    const editor = await getEditorAndWait(page);
+
+    // # Type content to trigger auto-save
+    await typeInEditor(page, 'Testing auto-save indicator');
+
+    // * Verify "Saving..." indicator appears
+    const savingIndicator = page.locator('[data-testid="draft-saving-indicator"], .saving-indicator, [aria-label*="Saving"], .draft-status').first();
+    await expect(savingIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(savingIndicator).toContainText(/saving|autosav/i);
+
+    // * Wait for save to complete and verify "Saved" indicator
+    await page.waitForTimeout(WEBSOCKET_WAIT); // Wait for auto-save to complete
+
+    const savedIndicator = page.locator('[data-testid="draft-saved-indicator"], .saved-indicator, [aria-label*="Saved"], .draft-status').first();
+    await expect(savedIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(savedIndicator).toContainText(/saved|auto.*saved/i);
+
+    // # Type more content to trigger another auto-save cycle
+    await editor.click();
+    await editor.pressSequentially(' - more content');
+
+    // * Verify "Saving..." indicator appears again
+    await expect(savingIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Wait and verify "Saved" appears again
+    await page.waitForTimeout(WEBSOCKET_WAIT);
+    await expect(savedIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -70,8 +184,8 @@ test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw, s
     // # Fill content
     await typeInEditor(page, 'This will be discarded');
 
-    // Wait for auto-save
-    await page.waitForTimeout(2000);
+    // * Wait for auto-save to complete
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Delete draft via hierarchy panel context menu
     await deletePageThroughUI(page, 'Draft to Discard');
@@ -99,20 +213,17 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
     await newPageButton.click();
     await fillCreatePageModal(page, 'Draft 1');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
-
-    let titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Draft 1');
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     let editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Content 1');
 
-    await page.waitForTimeout(2000); // Wait for auto-save
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Navigate back to wiki (without publishing)
     // First go to channel to deselect any auto-selected drafts
     await page.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // Then navigate back to wiki
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
@@ -122,21 +233,18 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
 
     // Wait for new page button specifically
     newPageButton = getNewPageButton(page);
-    await newPageButton.waitFor({state: 'visible', timeout: 10000});
+    await newPageButton.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Create second draft
     await newPageButton.click();
     await fillCreatePageModal(page, 'Draft 2');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
-
-    titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Draft 2');
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Content 2');
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Navigate back to check drafts section
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
@@ -172,15 +280,15 @@ test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw, shared
     // # Fill content
     await typeInEditor(page, 'Content that should survive refresh');
 
-    // * Wait for auto-save
-    await page.waitForTimeout(3000);
+    // * Wait for auto-save to complete
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Refresh browser
     await page.reload();
     await page.waitForLoadState('networkidle');
 
     // * Verify draft recovered (either in editor or drafts section)
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     const titleAfterRefresh = page.locator('[data-testid="wiki-page-title-input"]');
     const editorAfterRefresh = await getEditorAndWait(page);
@@ -211,6 +319,7 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
+
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki and published page through UI
@@ -224,19 +333,41 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
     const editor = await getEditorAndWait(page);
     await editor.click();
     await page.keyboard.press('End');
-    await page.keyboard.type(' - Modified content');
+    await typeInEditor(page, ' - Modified content');
 
-    await page.waitForTimeout(2000); // Wait for auto-save
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify URL shows draft pattern
     const currentUrl = page.url();
     const isDraftUrl = currentUrl.includes('/drafts/') || currentUrl.includes('/edit');
     expect(isDraftUrl).toBe(true);
 
-    // * Verify hierarchy tree shows this page as draft
+    // * Verify hierarchy tree does NOT show a draft node (only published page node)
     const hierarchyPanel = getHierarchyPanel(page);
     const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Published Page'});
-    await expect(draftNode).toBeVisible();
+    await expect(draftNode).not.toBeVisible();
+
+    // * Verify published page node is still visible
+    const publishedNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {hasText: 'Published Page'});
+    await expect(publishedNode).toBeVisible();
+
+    // # Navigate away to Untitled page (draft-only) to abandon current draft editor
+    const urlBeforeNav = page.url();
+    const untitledButton = hierarchyPanel.getByRole('button', {name: 'Untitled page', exact: true});
+    await untitledButton.click();
+    // Wait for URL to change to a different page
+    await page.waitForFunction((oldUrl) => window.location.href !== oldUrl, urlBeforeNav, {timeout: HIERARCHY_TIMEOUT});
+
+    // # Navigate back to Published Page - should now show in view mode with "Unpublished changes"
+    await clickPageInHierarchy(page, 'Published Page'); // This waits for page-viewer-content
+
+    // * Verify viewing published page (not draft)
+    await verifyPageContentContains(page, 'Original content');
+
+    // * Verify "Unpublished changes" indicator is shown
+    const unpublishedIndicator = page.locator('[data-testid="wiki-page-unpublished-indicator"]');
+    await expect(unpublishedIndicator).toBeVisible();
+    await expect(unpublishedIndicator).toContainText('Unpublished changes');
 });
 
 /**
@@ -257,16 +388,17 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
     await newPageButton.click();
     await fillCreatePageModal(page, 'Navigable Draft');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
     const editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Draft content');
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Navigate away from draft
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await ensurePanelOpen(page);
 
     // # Click draft node in hierarchy (drafts are integrated in tree)
     const hierarchyPanel = getHierarchyPanel(page);
@@ -303,38 +435,38 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
     // # Wait for parent node to appear in tree
     const hierarchyPanel = getHierarchyPanel(page);
     const parentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
-    await parentNode.waitFor({state: 'visible', timeout: 5000});
+    await parentNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Create child draft via right-click context menu
     await parentNode.click({button: 'right'});
 
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: 2000});
+    await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
     const createSubpageButton = contextMenu.locator('button:has-text("New subpage")');
     await createSubpageButton.click();
     await fillCreatePageModal(page, 'Child Draft Node');
 
     // # Wait for editor to load
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Add some content and wait for auto-save and hierarchy refresh
     const editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Child content');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify parent node now has expand button (showing it has the child)
     const updatedParentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
     const expandButton = updatedParentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    await expect(expandButton).toBeVisible({timeout: 5000});
+    await expect(expandButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Check if parent is already expanded - if not, click to expand
     // The createPage action calls expandAncestors, so parent should already be expanded
     // But we need to wait for the expand to take effect
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify child draft appears under parent in hierarchy (should be visible without clicking expand)
     const childDraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"]:has-text("Child Draft Node")').first();
-    await expect(childDraftNode).toBeVisible({timeout: 5000});
+    await expect(childDraftNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify draft node is indented (indicating child relationship)
     const draftPaddingLeft = await childDraftNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
@@ -360,20 +492,18 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     await newPageButton.click();
     await fillCreatePageModal(page, 'First Draft');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     let titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('First Draft');
-
     let editor = await getEditorAndWait(page);
     await typeInEditor(page, 'First draft content');
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Navigate back and create second draft
     // First go to channel to deselect any auto-selected drafts
     await page.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // Then navigate back to wiki
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
@@ -383,20 +513,17 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
 
     // Wait for new page button specifically
     newPageButton = getNewPageButton(page);
-    await newPageButton.waitFor({state: 'visible', timeout: 10000});
+    await newPageButton.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     await newPageButton.click();
     await fillCreatePageModal(page, 'Second Draft');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
-
-    titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Second Draft');
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Second draft content');
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Switch back to first draft (drafts are integrated in tree)
     const hierarchyPanel = getHierarchyPanel(page);
@@ -443,19 +570,16 @@ test('displays draft nodes with visual distinction from published pages', {tag: 
     await fillCreatePageModal(page, 'Draft Page');
 
     // Wait for editor to load
-    await page.waitForTimeout(1000);
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.waitFor({state: 'visible', timeout: 5000});
-    await titleInput.fill('Draft Page');
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     const editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Draft content');
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Navigate back to view hierarchy
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+    await ensurePanelOpen(page);
 
     // * Verify draft and published page have different visual indicators
     const hierarchyPanel = getHierarchyPanel(page);
@@ -505,21 +629,21 @@ test('removes draft from hierarchy after immediately publishing default wiki pag
     // # The default page should already be loaded in the editor after wiki creation
     // Get the title to verify the page later (should be "Untitled page" or wiki name)
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.waitFor({state: 'visible', timeout: 5000});
+    await titleInput.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     const pageTitle = await titleInput.inputValue();
 
     // # Publish IMMEDIATELY without delays (this increases race condition probability)
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.waitFor({state: 'visible', timeout: 5000});
+    await publishButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await publishButton.click();
 
     // # Wait for publish to complete and state to stabilize
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify only published page exists (no draft entry)
     const publishedPageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle}).first();
-    await expect(publishedPageNode).toBeVisible({timeout: 5000});
+    await expect(publishedPageNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify the page is marked as published (not draft)
     const isDraftAttribute = await publishedPageNode.getAttribute('data-is-draft');
@@ -564,13 +688,13 @@ test('publishes parent draft and child draft stays under published parent', {tag
 
     // * Verify parent draft appears in hierarchy
     const parentDraftNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Parent Draft'});
-    await expect(parentDraftNode).toBeVisible({timeout: 5000});
+    await expect(parentDraftNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Create child draft under parent draft via right-click context menu
     await parentDraftNode.click({button: 'right'});
 
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await contextMenu.waitFor({state: 'visible', timeout: 5000});
+    await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     const createSubpageButton = contextMenu.locator('[data-testid="page-context-menu-new-child"]').first();
     await createSubpageButton.click();
@@ -583,28 +707,28 @@ test('publishes parent draft and child draft stays under published parent', {tag
     await typeInEditor(page, 'Child draft content');
 
     // # Wait for auto-save to complete
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Navigate back to wiki view to see updated hierarchy
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Ensure pages panel is open after navigation
     await ensurePanelOpen(page);
 
     // # Refind parent node after navigation (page reloaded)
     const parentDraftNodeAfterChildCreate = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Parent Draft'});
-    await expect(parentDraftNodeAfterChildCreate).toBeVisible({timeout: 5000});
+    await expect(parentDraftNodeAfterChildCreate).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Expand parent node to see child
     const expandButton = parentDraftNodeAfterChildCreate.locator('[data-testid="page-tree-node-expand-button"]');
-    await expect(expandButton).toBeVisible({timeout: 2000});
+    await expect(expandButton).toBeVisible({timeout: WEBSOCKET_WAIT});
     await expandButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify child draft appears under parent draft in hierarchy
     const childDraftNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Child Draft'});
-    await expect(childDraftNode).toBeVisible({timeout: 10000});
+    await expect(childDraftNode).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // * Verify child has greater indentation than parent (indicating hierarchy)
     const parentPadding = await parentDraftNodeAfterChildCreate.evaluate((el) => window.getComputedStyle(el).paddingLeft);
@@ -617,23 +741,23 @@ test('publishes parent draft and child draft stays under published parent', {tag
 
     // # Publish parent draft
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.waitFor({state: 'visible', timeout: 5000});
+    await publishButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await publishButton.click();
 
     // # Wait for publish to complete and websocket events to be processed
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000); // Give more time for websocket events
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Navigate to wiki view to see hierarchy
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Ensure pages panel is open
     await ensurePanelOpen(page);
 
     // * Verify parent is now published (no draft badge)
     const publishedParentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="false"]`).filter({hasText: 'Parent Draft'});
-    await expect(publishedParentNode).toBeVisible({timeout: 5000});
+    await expect(publishedParentNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify parent has no draft badge
     const parentDraftBadge = publishedParentNode.locator('[data-testid="draft-badge"]');
@@ -641,14 +765,14 @@ test('publishes parent draft and child draft stays under published parent', {tag
 
     // # Expand published parent node to see child draft
     const expandAfterPublish = publishedParentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    await expect(expandAfterPublish).toBeVisible({timeout: 2000});
+    await expect(expandAfterPublish).toBeVisible({timeout: WEBSOCKET_WAIT});
     await expandAfterPublish.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify child draft is STILL under published parent (NOT moved to root)
     // The child should still be visible and still be a draft
     const childDraftAfterPublish = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Child Draft'});
-    await expect(childDraftAfterPublish).toBeVisible({timeout: 10000});
+    await expect(childDraftAfterPublish).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // * Verify child still has draft badge
     const childDraftBadge = childDraftAfterPublish.locator('[data-testid="draft-badge"]');

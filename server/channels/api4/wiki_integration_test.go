@@ -22,6 +22,7 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -48,7 +49,7 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draftId, draftContent, "Test Page", "", nil)
 		require.Nil(t, appErr)
 
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId, "", "Test Page", "", "", "")
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId, "", "Test Page", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		timeout := time.After(3 * time.Second)
@@ -102,7 +103,7 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draftId, draftContent, "Test Page", "", nil)
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId, "", "Test Page 2", "", "", "")
+		_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId, "", "Test Page 2", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		timeout := time.After(2 * time.Second)
@@ -152,11 +153,11 @@ func TestMultiUserPageEditing(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.Context.Session().UserId = th.BasicUser.Id
-		page1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId1, "", "User 1 Page", "", "", "")
+		page1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId1, "", "User 1 Page", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		th.Context.Session().UserId = th.BasicUser2.Id
-		page2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser2.Id, wiki.Id, draftId2, "", "User 2 Page", "", "", "")
+		page2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser2.Id, wiki.Id, draftId2, "", "User 2 Page", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		assert.NotEqual(t, page1.Id, page2.Id)
@@ -176,7 +177,7 @@ func TestMultiUserPageEditing(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, parentDraftId, parentContent, "Parent Page", "", nil)
 		require.Nil(t, appErr)
 
-		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parentDraftId, "", "Parent Page", "", "", "")
+		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parentDraftId, "", "Parent Page", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		child1DraftId := model.NewId()
@@ -194,11 +195,11 @@ func TestMultiUserPageEditing(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.Context.Session().UserId = th.BasicUser.Id
-		child1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, child1DraftId, parentPage.Id, "Child 1", "", "", "")
+		child1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, child1DraftId, parentPage.Id, "Child 1", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		th.Context.Session().UserId = th.BasicUser2.Id
-		child2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser2.Id, wiki.Id, child2DraftId, parentPage.Id, "Child 2", "", "", "")
+		child2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser2.Id, wiki.Id, child2DraftId, parentPage.Id, "Child 2", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		assert.Equal(t, parentPage.Id, child1.PageParentId)
@@ -252,21 +253,21 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		parentContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Parent"}]}]}`
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, parentDraftId, parentContent, "Parent", "", nil)
 		require.Nil(t, appErr)
-		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parentDraftId, "", "Parent", "", "", "")
+		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parentDraftId, "", "Parent", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		child1DraftId := model.NewId()
 		child1Content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Child 1"}]}]}`
 		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, child1DraftId, child1Content, "Child 1", "", nil)
 		require.Nil(t, appErr)
-		child1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, child1DraftId, "", "Child 1", "", "", "")
+		child1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, child1DraftId, "", "Child 1", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		child2DraftId := model.NewId()
 		child2Content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Child 2"}]}]}`
 		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, child2DraftId, child2Content, "Child 2", "", nil)
 		require.Nil(t, appErr)
-		child2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, child2DraftId, "", "Child 2", "", "", "")
+		child2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, child2DraftId, "", "Child 2", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		done := make(chan bool, 2)
@@ -316,14 +317,14 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 		parent1Content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Parent 1"}]}]}`
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, parent1DraftId, parent1Content, "Parent 1", "", nil)
 		require.Nil(t, appErr)
-		parent1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parent1DraftId, "", "Parent 1", "", "", "")
+		parent1, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parent1DraftId, "", "Parent 1", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		parent2DraftId := model.NewId()
 		parent2Content := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Parent 2"}]}]}`
 		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, parent2DraftId, parent2Content, "Parent 2", "", nil)
 		require.Nil(t, appErr)
-		parent2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parent2DraftId, parent1.Id, "Parent 2", "", "", "")
+		parent2, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, parent2DraftId, parent1.Id, "Parent 2", "", "", "", 0, false)
 		require.Nil(t, appErr)
 
 		err1 := th.App.ChangePageParent(th.Context, parent1.Id, parent2.Id)
@@ -361,7 +362,7 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, draftId, draftContent, "Private Page", "", nil)
 	require.Nil(t, appErr)
 
-	privatePage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, privateWiki.Id, draftId, "", "Private Page", "", "", "")
+	privatePage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, privateWiki.Id, draftId, "", "Private Page", "", "", "", 0, false)
 	require.Nil(t, appErr)
 
 	t.Run("user2 cannot access private channel page", func(t *testing.T) {
@@ -390,4 +391,144 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "api.context.permissions.app_error", appErr.Id)
 	})
+}
+
+func TestPublishPageDraft_OptimisticLocking_Success(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+
+	wiki := &model.Wiki{
+		ChannelId:   th.BasicChannel.Id,
+		Title:       "Test Wiki",
+		Description: "Test wiki for optimistic locking",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	draftId := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draftId, validContent, "Original Title", "", nil)
+	require.Nil(t, appErr)
+
+	createdPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId, "", "Original Title", "", validContent, "", 0, false)
+	require.Nil(t, appErr)
+	baseUpdateAt := createdPage.UpdateAt
+
+	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
+	newDraftId := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, newDraftId, newContent, "Updated Title", createdPage.Id, nil)
+	require.Nil(t, appErr)
+
+	updatedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, newDraftId, "", "Updated Title", "", newContent, "", baseUpdateAt, false)
+
+	require.Nil(t, appErr)
+	require.NotNil(t, updatedPage)
+	require.Equal(t, "Updated Title", updatedPage.Props["title"])
+	require.Greater(t, updatedPage.UpdateAt, baseUpdateAt)
+}
+
+func TestPublishPageDraft_OptimisticLocking_Returns409(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+
+	wiki := &model.Wiki{
+		ChannelId:   th.BasicChannel.Id,
+		Title:       "Test Wiki",
+		Description: "Test wiki for optimistic locking conflict",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	draftId := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draftId, validContent, "Original Title", "", nil)
+	require.Nil(t, appErr)
+
+	createdPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId, "", "Original Title", "", validContent, "", 0, false)
+	require.Nil(t, appErr)
+	baseUpdateAt := createdPage.UpdateAt
+
+	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
+	draft1Id := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draft1Id, content1, "User 1 Title", createdPage.Id, nil)
+	require.Nil(t, appErr)
+
+	updated1, appErr1 := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draft1Id, "", "User 1 Title", "", content1, "", baseUpdateAt, false)
+	require.Nil(t, appErr1)
+	require.Greater(t, updated1.UpdateAt, baseUpdateAt)
+
+	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
+	draft2Id := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draft2Id, content2, "User 2 Title", createdPage.Id, nil)
+	require.Nil(t, appErr)
+
+	_, appErr2 := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draft2Id, "", "User 2 Title", "", content2, "", baseUpdateAt, false)
+
+	require.NotNil(t, appErr2)
+	require.Equal(t, "app.page.update.conflict.app_error", appErr2.Id)
+	require.Equal(t, 409, appErr2.StatusCode)
+	require.Contains(t, appErr2.DetailedError, "modified_by=")
+	require.Contains(t, appErr2.DetailedError, "modified_at=")
+}
+
+func TestPublishPageDraft_WrongBaseUpdateAtReturns409(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+
+	wiki := &model.Wiki{
+		ChannelId:   th.BasicChannel.Id,
+		Title:       "Test Wiki",
+		Description: "Test wiki for wrong baseUpdateAt",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	draftId := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draftId, validContent, "Original Title", "", nil)
+	require.Nil(t, appErr)
+
+	createdPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, draftId, "", "Original Title", "", validContent, "", 0, false)
+	require.Nil(t, appErr)
+
+	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
+	newDraftId := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, newDraftId, newContent, "Updated Title", createdPage.Id, nil)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, newDraftId, "", "Updated Title", "", newContent, "", 0, false)
+
+	require.NotNil(t, appErr)
+	require.Equal(t, "app.page.update.conflict.app_error", appErr.Id)
+	require.Equal(t, 409, appErr.StatusCode)
 }

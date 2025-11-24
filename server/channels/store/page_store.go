@@ -12,6 +12,15 @@ import (
 // Pages are stored as Posts with Type="page", but hierarchy-specific
 // operations are isolated in this store for better separation of concerns.
 type PageStore interface {
+	// CreatePage creates a page and its content in a single transaction
+	CreatePage(rctx request.CTX, post *model.Post, content, searchText string) (*model.Post, error)
+
+	// GetPage fetches a page by ID
+	GetPage(pageID string, includeDeleted bool) (*model.Post, error)
+
+	// DeletePage soft-deletes a page and its content in a single transaction
+	DeletePage(pageID string, deleteByID string) error
+
 	// GetPageChildren fetches direct children of a page
 	GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error)
 
@@ -29,6 +38,13 @@ type PageStore interface {
 
 	// UpdatePageWithContent updates a page's title and/or content and creates edit history
 	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)
+
+	// Update updates a page with optimistic locking (first-one-wins)
+	// baseUpdateAt is the UpdateAt timestamp the client last saw
+	// force bypasses optimistic locking when user explicitly confirms overwrite
+	// Returns ErrConflict if page was modified since baseUpdateAt (unless force=true)
+	// Returns ErrNotFound if page doesn't exist or was deleted
+	Update(page *model.Post, baseUpdateAt int64, force bool) (*model.Post, error)
 
 	// GetPageVersionHistory fetches the version history for a page (limited to PostEditHistoryLimit versions)
 	GetPageVersionHistory(pageID string) ([]*model.Post, error)

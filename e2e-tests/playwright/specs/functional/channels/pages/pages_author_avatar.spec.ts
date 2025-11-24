@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, createDraftThroughUI, getEditor, publishPage, getPageViewerContent} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createDraftThroughUI, getEditor, publishPage, getPageViewerContent, HIERARCHY_TIMEOUT, ELEMENT_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify author avatar appears in wiki page draft editor
@@ -88,7 +88,7 @@ test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sh
 
     // # Wait for editor to reappear after reload
     const editor = getEditor(page);
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // * Verify author avatar is still visible after reload
     await expect(authorSection).toBeVisible();
@@ -117,7 +117,7 @@ test('does not show author avatar in published page view', {tag: '@pages'}, asyn
     await publishPage(page);
 
     // # Wait for navigation to published page
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+$/, {timeout: 10000});
+    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+$/, {timeout: HIERARCHY_TIMEOUT});
 
     // * Verify author section is NOT visible in published view
     const authorSection = page.locator('[data-testid="wiki-page-author"]');

@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createTestChannel, waitForEditModeReady, getEditorAndWait, typeInEditor} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createTestChannel, waitForEditModeReady, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, UI_MICRO_WAIT} from './test_helpers';
 
 /**
  * @objective Verify page posts display with title and excerpt in Threads panel instead of raw JSON
@@ -34,17 +34,17 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
 
     // # Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for formatting bubble menu to appear with comment button
     const commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: 5000});
-    await page.waitForTimeout(300);
+    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
     await commentButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: 5000});
+    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await modal.locator('textarea').fill('Great article overall!');
     await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
 
@@ -54,14 +54,14 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
 
     // # Click comment marker to open thread in RHS (creates participation)
     const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
-    await expect(commentMarker).toBeVisible({timeout: 5000});
+    await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await commentMarker.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify RHS opens with page post showing title (not JSON)
     // Wait for the specific content to appear, don't just check the wrapper
-    await page.waitForSelector(':text("Commented on the page:")', {timeout: 10000});
-    await page.waitForSelector(`:text("${pageTitle}")`, {timeout: 10000});
+    await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
+    await page.waitForSelector(`:text("${pageTitle}")`, {timeout: HIERARCHY_TIMEOUT});
 
     const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
     await expect(rhs).toBeVisible();
@@ -69,9 +69,9 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
 
     // # Navigate to Threads view
     const threadsLink = page.locator('a[href*="/threads"]').first();
-    await expect(threadsLink).toBeVisible({timeout: 5000});
+    await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify page appears in threads list (if comment was created successfully)
     const bodyText = await page.locator('body').textContent();
@@ -110,20 +110,20 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
 
     // # Add inline comment - Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for formatting bubble menu to appear with comment button
     const inlineCommentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(inlineCommentButton).toBeVisible({timeout: 5000});
-    await page.waitForTimeout(300);
+    await expect(inlineCommentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
     await inlineCommentButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: 5000});
+    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await modal.locator('textarea').fill('Needs more detail here');
     await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Publish page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
@@ -132,29 +132,29 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
 
     // # Click comment marker to open thread in RHS
     const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
-    await expect(commentMarker).toBeVisible({timeout: 5000});
+    await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await commentMarker.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify RHS opens with thread
     // Wait for specific content to appear
-    await page.waitForSelector(':text("Commented on the page:")', {timeout: 10000});
-    await page.waitForSelector(':text("Documentation Page")', {timeout: 10000});
+    await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
+    await page.waitForSelector(':text("Documentation Page")', {timeout: HIERARCHY_TIMEOUT});
 
     const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
     await expect(rhs).toBeVisible();
 
     // * Verify inline comment appears
-    await page.waitForSelector(':text("Needs more detail here")', {timeout: 10000});
+    await page.waitForSelector(':text("Needs more detail here")', {timeout: HIERARCHY_TIMEOUT});
 
     // * Verify no JSON artifacts in RHS
     await expect(rhs).not.toContainText('{"type"');
 
     // # Navigate to global Threads view to verify comment shows there
     const threadsLink = page.locator('a[href*="/threads"]').first();
-    await expect(threadsLink).toBeVisible({timeout: 5000});
+    await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify page appears in threads list
     await expect(page.locator('body')).toContainText('Documentation Page');
@@ -186,17 +186,17 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
 
     // # Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for formatting bubble menu to appear with comment button
     const commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: 5000});
-    await page.waitForTimeout(300);
+    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
     await commentButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: 5000});
+    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await modal.locator('textarea').fill('Should we prioritize real-time or offline?');
     await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
 
@@ -206,34 +206,34 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
 
     // # Click comment to open RHS
     const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
-    await expect(commentMarker).toBeVisible({timeout: 5000});
+    await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await commentMarker.click();
 
     // Wait for RHS content to load
-    await page.waitForSelector(':text("Commented on the page:")', {timeout: 10000});
-    await page.waitForSelector(':text("Feature Spec")', {timeout: 10000});
+    await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
+    await page.waitForSelector(':text("Feature Spec")', {timeout: HIERARCHY_TIMEOUT});
 
     const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
-    await expect(rhs).toBeVisible({timeout: 3000});
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Wait for reply textarea to be ready
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Add reply - Look for textarea within RHS
     const replyTextarea = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').locator('textarea').first();
-    await expect(replyTextarea).toBeVisible({timeout: 10000});
+    await expect(replyTextarea).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await replyTextarea.fill('I think real-time is more important');
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify reply appears in RHS
-    await page.waitForSelector(':text("I think real-time is more important")', {timeout: 10000});
+    await page.waitForSelector(':text("I think real-time is more important")', {timeout: HIERARCHY_TIMEOUT});
 
     // # Navigate to global Threads view
     const threadsLink = page.locator('a[href*="/threads"]').first();
-    await expect(threadsLink).toBeVisible({timeout: 5000});
+    await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify thread shows in Threads view with page title
     await expect(page.locator('body')).toContainText('Feature Spec');
@@ -265,36 +265,36 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
 
     // # Add first inline comment - Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for formatting bubble menu to appear with comment button
     let commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: 5000});
-    await page.waitForTimeout(300);
+    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
     await commentButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     const modal = page.getByRole('dialog', {name: 'Add Comment'});
-    await expect(modal).toBeVisible({timeout: 5000});
+    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await modal.locator('textarea').fill('Can we add OAuth2 support?');
     await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Add second inline comment - Select text using triple-click
     await editor.click({clickCount: 3});
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for formatting bubble menu to appear with comment button
     commentButton = page.locator('.formatting-bar-bubble button[title="Add Comment"]');
-    await expect(commentButton).toBeVisible({timeout: 5000});
-    await page.waitForTimeout(300);
+    await expect(commentButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
     await commentButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
-    await expect(modal).toBeVisible({timeout: 5000});
+    await expect(modal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await modal.locator('textarea').fill('Should document the error codes');
     await modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first().click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Publish page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
@@ -303,24 +303,24 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
 
     // # Click first comment marker to open thread
     const firstCommentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
-    await expect(firstCommentMarker).toBeVisible({timeout: 5000});
+    await expect(firstCommentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await firstCommentMarker.click();
 
     // Wait for RHS content to load
-    await page.waitForSelector(':text("Commented on the page:")', {timeout: 10000});
-    await page.waitForSelector(':text("API Documentation")', {timeout: 10000});
+    await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
+    await page.waitForSelector(':text("API Documentation")', {timeout: HIERARCHY_TIMEOUT});
 
     const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
     await expect(rhs).toBeVisible();
 
     // * Verify one of the comments is visible (order may vary)
-    await page.waitForSelector(':text("Should document the error codes"), :text("Can we add OAuth2 support?")', {timeout: 10000});
+    await page.waitForSelector(':text("Should document the error codes"), :text("Can we add OAuth2 support?")', {timeout: HIERARCHY_TIMEOUT});
 
     // # Navigate to global Threads view to see all comments
     const threadsLink = page.locator('a[href*="/threads"]').first();
-    await expect(threadsLink).toBeVisible({timeout: 5000});
+    await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify thread appears with page title
     await expect(page.locator('body')).toContainText('API Documentation');

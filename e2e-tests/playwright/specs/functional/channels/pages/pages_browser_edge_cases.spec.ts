@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify warning when navigating away with unsaved changes
@@ -35,22 +35,22 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     await typeInEditor(page, 'Important unsaved content here');
 
     // * Wait for auto-save indicator (if exists)
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     const savingIndicator = page.locator('[data-testid="saving-indicator"], .saving-indicator').first();
     await expect(savingIndicator).toBeVisible();
     // Wait for "Saved" or "Saving..." to appear
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Try to navigate away via new page button
     const newPageButton2 = getNewPageButton(page);
     await newPageButton2.click();
 
     // * Verify warning dialog appears
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard Changes|Discard Draft/i});
-    await expect(warningDialog).toBeVisible({timeout: 3000});
+    await expect(warningDialog).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     await expect(warningDialog).toContainText(/unsaved|discard|changes/i);
 
@@ -96,14 +96,14 @@ test.skip('warns when using browser back button with unsaved changes', {tag: '@p
     await typeInEditor(page, ' - Modified content');
 
     // Wait for changes to register
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Use browser back button
     await page.goBack();
 
     // * Playwright cannot interact with browser's native beforeunload dialog
     // Instead, verify that custom dialog appears or navigation is blocked
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard/i});
     await expect(warningDialog).toBeVisible();
@@ -186,9 +186,9 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     // # Create new page
     // Scope to pages hierarchy panel to avoid strict mode violations with duplicate elements
     const hierarchyPanel = getHierarchyPanel(page).first();
-    await hierarchyPanel.waitFor({state: 'visible', timeout: 5000});
+    await hierarchyPanel.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     const newPageButton = hierarchyPanel.locator('[data-testid="new-page-button"]');
-    await newPageButton.waitFor({state: 'visible', timeout: 5000});
+    await newPageButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await newPageButton.click();
 
     // # Fill in the create page modal
@@ -205,14 +205,14 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     await typeInEditor(page, 'Content that should survive refresh');
 
     // * Wait for auto-save (2s debounce + save operation)
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(ELEMENT_TIMEOUT);
 
     // # Refresh browser
     await page.reload();
     await page.waitForLoadState('networkidle');
 
     // * Verify draft recovered from localStorage or server
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     const editorAfterRefresh = await getEditorAndWait(page);
     const titleAfterRefresh = page.locator('[data-testid="wiki-page-title-input"]').first();

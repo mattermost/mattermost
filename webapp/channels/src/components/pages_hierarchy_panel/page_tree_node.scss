@@ -34,8 +34,8 @@ $radius-sm: 4px;
         background: $node-selected-bg;
 
         .PageTreeNode__title {
-            font-weight: 600;
             color: var(--link-color);
+            font-weight: 600;
         }
 
         .PageTreeNode__icon {
@@ -77,14 +77,14 @@ $radius-sm: 4px;
     font-size: 14px;
 
     &-button {
+        overflow: hidden;
+        flex-grow: 1;
         border: unset;
         background: unset;
         color: $node-text;
         cursor: pointer;
         pointer-events: auto;
-        flex-grow: 1;
         text-align: left;
-        overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -97,8 +97,8 @@ $radius-sm: 4px;
     background: rgba(var(--center-channel-text-rgb), 0.08);
     color: $node-text-muted;
     font-size: 10px;
-    line-height: 12px;
     font-weight: 600;
+    line-height: 12px;
     text-transform: uppercase;
 }
 

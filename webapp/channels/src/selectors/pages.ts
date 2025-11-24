@@ -56,7 +56,10 @@ export const getPageAncestors = createSelector(
 export const getPages = createSelector(
     'getPages',
     (state: GlobalState) => state.entities.posts.posts,
-    (state: GlobalState, wikiId: string) => state.entities.wikiPages?.byWiki?.[wikiId] || [],
+    (state: GlobalState, wikiId: string) => {
+        const byWiki = state.entities.wikiPages?.byWiki || {};
+        return byWiki[wikiId] || [];
+    },
     (posts, pageIds) => {
         return pageIds.
             map((id) => posts[id]).
@@ -128,4 +131,55 @@ export const getPageStatusField = (state: GlobalState) => {
 export const getPageStatus = (state: GlobalState, postId: string): string => {
     const page = getPage(state, postId);
     return (page?.props?.page_status as string) || 'In progress';
+};
+
+// Build breadcrumb from Redux state (no API call)
+export const buildBreadcrumbFromRedux = (
+    state: GlobalState,
+    wikiId: string,
+    pageId: string,
+    channelId: string,
+    teamName: string,
+): {items: any[]; current_page: any} | null => {
+    const wiki = state.entities.wikis?.byId?.[wikiId];
+    if (!wiki) {
+        return null;
+    }
+
+    const page = getPage(state, pageId);
+    if (!page) {
+        return null;
+    }
+
+    const ancestors = getPageAncestors(state, pageId);
+    const items: any[] = [
+        {
+            id: wikiId,
+            title: wiki.title,
+            type: 'wiki',
+            path: `/${teamName}/wiki/${channelId}/${wikiId}`,
+            channel_id: channelId,
+        },
+    ];
+
+    ancestors.forEach((ancestor) => {
+        items.push({
+            id: ancestor.id,
+            title: ancestor.props?.title || 'Untitled',
+            type: 'page',
+            path: `/${teamName}/wiki/${channelId}/${wikiId}/${ancestor.id}`,
+            channel_id: channelId,
+        });
+    });
+
+    return {
+        items,
+        current_page: {
+            id: page.id,
+            title: page.props?.title || 'Untitled',
+            type: 'page',
+            path: `/${teamName}/wiki/${channelId}/${wikiId}/${page.id}`,
+            channel_id: channelId,
+        },
+    };
 };

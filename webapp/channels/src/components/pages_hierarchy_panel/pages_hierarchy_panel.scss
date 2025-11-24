@@ -30,10 +30,10 @@ $spacing-lg: 16px;
 $radius-sm: 4px;
 
 .PagesHierarchyPanel {
-    display: flex;
     position: absolute;
-    left: 0;
     top: 0;
+    left: 0;
+    display: flex;
     width: $sidebar-width;
     height: 100%;
     flex-direction: column;
@@ -143,9 +143,9 @@ $radius-sm: 4px;
 }
 
 .PagesHierarchyPanel__clearSearch {
-    display: flex;
     position: absolute;
     right: 18px;
+    display: flex;
     width: 20px;
     height: 20px;
     align-items: center;

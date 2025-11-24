@@ -11,9 +11,10 @@ import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {loadChannelPages} from 'actions/pages';
 import {getChannelPages} from 'selectors/pages';
 
+import ActiveEditorsIndicator from 'components/active_editors_indicator';
+import InlineCommentModal from 'components/inline_comment_modal';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
-import ActiveEditorsIndicator from 'components/active_editors_indicator';
 
 import * as Utils from 'utils/utils';
 
@@ -22,7 +23,6 @@ import type {GlobalState} from 'types/store';
 import TipTapEditor from './tiptap_editor';
 
 import {usePageInlineComments} from '../hooks/usePageInlineComments';
-import InlineCommentModal from 'components/inline_comment_modal';
 import PageStatusSelector from '../page_status_selector';
 
 type Props = {

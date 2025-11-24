@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT, UI_MICRO_WAIT, pressModifierKey} from './test_helpers';
 
 /**
  * @objective Verify editor handles large content without performance degradation
@@ -51,7 +51,7 @@ test('handles large content without performance degradation', {tag: '@pages'}, a
     }, largeContent);
 
     // * Verify editor remains responsive with large content
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     await expect(editor).toContainText('Lorem ipsum');
 
     // # Verify editor remains responsive - add more text at the end
@@ -67,7 +67,7 @@ test('handles large content without performance degradation', {tag: '@pages'}, a
     await publishPage(page);
 
     // * Verify publish succeeds
-    await page.waitForLoadState('networkidle', {timeout: 15000});
+    await page.waitForLoadState('networkidle', {timeout: PAGE_LOAD_TIMEOUT});
 
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toBeVisible();
@@ -178,15 +178,15 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
 
     // * Verify mention suggestion dropdown appears
     const mentionDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Select the mentioned user from dropdown
     const userOption = page.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: 3000});
+    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await userOption.click();
 
     // * Verify mention is properly created with data-id attribute
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
     await expect(userMentionInEditor).toBeVisible();
 
@@ -204,7 +204,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
 
     // * Verify mention element with data-id attribute is properly rendered
     const userMention = pageContent.locator(`.mention[data-id="${mentionedUser.id}"]`).first();
-    await expect(userMention).toBeVisible({timeout: 5000});
+    await expect(userMention).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(userMention).toContainText(mentionedUser.username);
 });
 
@@ -243,18 +243,18 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
 
     // * Verify channel mention suggestion dropdown appears
     const mentionDropdown = page.locator('.tiptap-channel-mention-popup, .tiptap-mention-popup').first();
-    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Type part of the channel name to filter
     await editor.pressSequentially(mentionedChannel.name.substring(0, 5));
 
     // # Select the mentioned channel from dropdown
     const channelOption = page.locator(`text="${mentionedChannel.display_name}"`).first();
-    await expect(channelOption).toBeVisible({timeout: 3000});
+    await expect(channelOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await channelOption.click();
 
     // * Verify channel mention is properly created with data-channel-id attribute
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     const channelMentionInEditor = editor.locator(`.channel-mention[data-channel-id="${mentionedChannel.id}"]`);
     await expect(channelMentionInEditor).toBeVisible();
 
@@ -272,13 +272,13 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
 
     // * Verify channel mention element with data-channel-id exists
     const channelMention = pageContent.locator(`.channel-mention[data-channel-id="${mentionedChannel.id}"]`).first();
-    await expect(channelMention).toBeVisible({timeout: 5000});
+    await expect(channelMention).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Click on the ~channel mention to verify it navigates to that channel
     await channelMention.click();
 
     // * Verify navigation to the mentioned channel
-    await page.waitForURL(`**/${team.name}/channels/${mentionedChannel.name}`, {timeout: 5000});
+    await page.waitForURL(`**/${team.name}/channels/${mentionedChannel.name}`, {timeout: ELEMENT_TIMEOUT});
     await channelsPage.toBeVisible();
 
     // * Verify we're now viewing the mentioned channel
@@ -325,7 +325,7 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     // # Type multiple mentions in editor
     await typeInEditor(page, `Task assigned to @${user1.username} and reviewed by @${user2.username}`);
 
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify both mentions appear in editor
     const editorContent = await editor.textContent();
@@ -379,17 +379,17 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
 
     // * Verify mention suggestion dropdown appears
     const mentionDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Select the mentioned user from dropdown
     const userOption = page.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: 3000});
+    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // Click to select (this is where the bug commonly occurs)
     await userOption.click();
 
     // # Wait for mention to be inserted
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify mention is properly created
     const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
@@ -460,15 +460,15 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
 
     // * Verify first mention dropdown appears
     let mentionDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Select first user
     let userOption = page.locator(`[data-testid="mentionSuggestion_${user1.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: 3000});
+    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await userOption.click();
 
     // * Verify first mention is inserted
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     const firstMention = editor.locator(`.mention[data-id="${user1.id}"]`);
     await expect(firstMention).toBeVisible();
 
@@ -480,15 +480,15 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
 
     // * Verify second mention dropdown appears (BUG: it doesn't appear)
     mentionDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Select second user
     userOption = page.locator(`[data-testid="mentionSuggestion_${user2.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: 3000});
+    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await userOption.click();
 
     // * Verify second mention is inserted
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     const secondMention = editor.locator(`.mention[data-id="${user2.id}"]`);
     await expect(secondMention).toBeVisible();
 
@@ -533,16 +533,16 @@ test('shows mention dropdown on second attempt after canceling first', {tag: '@p
 
     // * Verify first mention dropdown appears
     const firstDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(firstDropdown).toBeVisible({timeout: 5000});
+    await expect(firstDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Cancel the first mention by pressing Escape
     await page.keyboard.press('Escape');
 
     // * Verify dropdown is gone
-    await expect(firstDropdown).not.toBeVisible({timeout: 2000});
+    await expect(firstDropdown).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Wait a moment and add some more text
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     await page.keyboard.type(' more text ');
 
     // # Second attempt: Type @ again (THIS IS WHERE THE BUG OCCURS)
@@ -550,11 +550,11 @@ test('shows mention dropdown on second attempt after canceling first', {tag: '@p
 
     // * Verify second mention dropdown appears (BUG: it doesn't appear)
     const secondDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(secondDropdown).toBeVisible({timeout: 5000});
+    await expect(secondDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify dropdown has users
     const userOption = page.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: 3000});
+    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -602,15 +602,15 @@ test.skip('sends notification to mentioned user when page is published', {tag: '
 
     // * Verify mention suggestion dropdown appears
     const mentionDropdown = authorPage.locator('.tiptap-mention-popup').first();
-    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Select the mentioned user from dropdown
     const userOption = authorPage.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: 3000});
+    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await userOption.click();
 
     // * Verify mention is properly created with data-id attribute
-    await authorPage.waitForTimeout(500);
+    await authorPage.waitForTimeout(SHORT_WAIT);
     const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
     await expect(userMentionInEditor).toBeVisible();
 
@@ -629,7 +629,7 @@ test.skip('sends notification to mentioned user when page is published', {tag: '
     await expect(pageContent).toBeVisible();
 
     // # Wait a moment for notification to be sent
-    await authorPage.waitForTimeout(1000);
+    await authorPage.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Create a second browser context for mentioned user (simulating them checking notifications)
     // First get mentioned user's storage state by logging them in temporarily
@@ -648,23 +648,23 @@ test.skip('sends notification to mentioned user when page is published', {tag: '
 
     // * Wait for channel to fully load by checking for post input
     const postInput = mentionedUserPage.locator('#post_textbox').first();
-    await expect(postInput).toBeVisible({timeout: 15000});
+    await expect(postInput).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
 
     // # Open the Recent Mentions RHS panel
     // The button has icon-at class based on the at_mentions_button component
     const mentionsButton = mentionedUserPage.locator('button:has(i.icon-at)').first();
-    await expect(mentionsButton).toBeVisible({timeout: 10000});
+    await expect(mentionsButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await mentionsButton.click();
 
     // * Verify RHS panel opened
     const rhsSidebar = mentionedUserPage.locator('#rhsContainer, .sidebar--right').first();
-    await expect(rhsSidebar).toBeVisible({timeout: 10000});
+    await expect(rhsSidebar).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // * Verify the page mention appears in recent mentions
     // Note: If this fails with "No mentions yet", investigate whether page mentions
     // trigger the notification system (they should, like regular post mentions do)
-    await expect(rhsSidebar).toContainText('Page with Mention Notification', {timeout: 5000});
-    await expect(rhsSidebar).toContainText(user.username, {timeout: 5000});
+    await expect(rhsSidebar).toContainText('Page with Mention Notification', {timeout: ELEMENT_TIMEOUT});
+    await expect(rhsSidebar).toContainText(user.username, {timeout: ELEMENT_TIMEOUT});
 
     // # Cleanup
     await mentionedUserContext.close();
@@ -700,11 +700,11 @@ test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, asy
 
     // # Focus editor and press Ctrl+L (or Cmd+L on Mac) keyboard shortcut
     await editor.click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
     const linkModal = await openPageLinkModal(editor);
 
     // * Verify modal opens via keyboard shortcut
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(linkModal).toContainText('Link to a page');
 });
 
@@ -735,7 +735,7 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
+    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -745,7 +745,7 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
 
     // # Open link modal via toolbar button
     const linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify all three pages appear in the list
     await expect(linkModal).toContainText('Getting Started Guide');
@@ -794,7 +794,7 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
+    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -804,7 +804,7 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
 
     // # Open link modal via toolbar button (this will type and select "test text")
     const linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Click on "Target Page" in the list
     const targetPageOption = linkModal.locator('text="Target Page"').first();
@@ -818,13 +818,13 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     await expect(linkModal).not.toBeVisible();
 
     // * Verify link appears in editor (should contain "test text" which was typed by the helper)
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
     const editorContent = await editor.textContent();
     expect(editorContent).toContain('test text');
 
     // * Verify link has correct attributes (check for link element)
     const pageLink = editor.locator('a').filter({hasText: 'test text'}).first();
-    await expect(pageLink).toBeVisible({timeout: 5000});
+    await expect(pageLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify link href contains the page ID
     const href = await pageLink.getAttribute('href');
@@ -854,7 +854,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     await fillCreatePageModal(page, 'Source Page with Link');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
+    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -866,7 +866,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
 
     // # Insert page link via toolbar button
     const linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Search for the target page (modal only shows first 10, so we need to search)
     const searchInput = linkModal.locator('input[type="text"]').first();
@@ -892,7 +892,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     // * Verify page is published
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toBeVisible();
-    await page.waitForTimeout(1000); // Wait for page to fully render
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for page to fully render
 
     // # Click on the page link in the hierarchy panel instead (more reliable)
     const hierarchyPanel = getHierarchyPanel(page);
@@ -901,7 +901,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
 
     // * Verify navigation by checking content changed to target page
     const targetPageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(targetPageContent).toContainText('This is the linked page content', {timeout: 15000});
+    await expect(targetPageContent).toContainText('This is the linked page content', {timeout: PAGE_LOAD_TIMEOUT});
 });
 
 /**
@@ -934,7 +934,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
+    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -945,79 +945,79 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     // # Type first word and convert to link
     await typeInEditor(page, 'link1');
     await selectTextInEditor(page);
-    await page.keyboard.press('Meta+l');
+    await pressModifierKey(page, 'l');
 
     let linkModal = page.locator('[data-testid="page-link-modal"]').first();
-    await linkModal.waitFor({state: 'visible', timeout: 5000});
+    await linkModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     let searchInput = linkModal.locator('input[type="text"]').first();
     await searchInput.fill('First Page');
 
     // Wait for filtering to complete and only the matching page to be visible
     const firstPageOption = linkModal.locator('[role="option"]:has-text("First Page")').first();
-    await firstPageOption.waitFor({state: 'visible', timeout: 5000});
-    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: 5000});
+    await firstPageOption.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: ELEMENT_TIMEOUT});
 
     await firstPageOption.click();
-    await expect(firstPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
+    await expect(firstPageOption.locator('.icon-check')).toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
     await linkModal.locator('button:has-text("Insert Link")').click();
-    await linkModal.waitFor({state: 'hidden', timeout: 5000});
-    await page.waitForTimeout(300);
+    await linkModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // # Type separator and second word, then convert second word to link
     await editor.type(' and link2');
     await page.keyboard.press('Shift+Alt+ArrowLeft');
-    await page.keyboard.press('Meta+l');
+    await pressModifierKey(page, 'l');
 
     linkModal = page.locator('[data-testid="page-link-modal"]').first();
-    await linkModal.waitFor({state: 'visible', timeout: 5000});
+    await linkModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     searchInput = linkModal.locator('input[type="text"]').first();
     await searchInput.fill('Second Page');
 
     // Wait for filtering to complete and only the matching page to be visible
     const secondPageOption = linkModal.locator('[role="option"]:has-text("Second Page")').first();
-    await secondPageOption.waitFor({state: 'visible', timeout: 5000});
-    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: 5000});
+    await secondPageOption.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: ELEMENT_TIMEOUT});
 
     await secondPageOption.click();
-    await expect(secondPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
+    await expect(secondPageOption.locator('.icon-check')).toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
     // Fill in the link text field
     let linkTextInput = linkModal.locator('input[id="link-text-input"]');
     await linkTextInput.fill('link2');
 
     await linkModal.locator('button:has-text("Insert Link")').click();
-    await linkModal.waitFor({state: 'hidden', timeout: 5000});
-    await page.waitForTimeout(300);
+    await linkModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // # Type separator and third word, then convert third word to link
     await editor.type(' also link3');
     await page.keyboard.press('Shift+Alt+ArrowLeft');
-    await page.keyboard.press('Meta+l');
+    await pressModifierKey(page, 'l');
 
     linkModal = page.locator('[data-testid="page-link-modal"]').first();
-    await linkModal.waitFor({state: 'visible', timeout: 5000});
+    await linkModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     searchInput = linkModal.locator('input[type="text"]').first();
     await searchInput.fill('Third Page');
 
     // Wait for filtering to complete and only the matching page to be visible
     const thirdPageOption = linkModal.locator('[role="option"]:has-text("Third Page")').first();
-    await thirdPageOption.waitFor({state: 'visible', timeout: 5000});
-    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: 5000});
+    await thirdPageOption.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: ELEMENT_TIMEOUT});
 
     await thirdPageOption.click();
-    await expect(thirdPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
+    await expect(thirdPageOption.locator('.icon-check')).toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
     // Fill in the link text field
     linkTextInput = linkModal.locator('input[id="link-text-input"]');
     await linkTextInput.fill('link3');
 
     await linkModal.locator('button:has-text("Insert Link")').click();
-    await linkModal.waitFor({state: 'hidden', timeout: 5000});
-    await page.waitForTimeout(300);
+    await linkModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // # Publish page
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
@@ -1088,7 +1088,7 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
 
     // # Open link modal via toolbar button
     const linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify empty state message appears
     await expect(linkModal).toContainText(/No pages found|No pages available/i);
@@ -1117,7 +1117,7 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
     await fillCreatePageModal(page, 'Test Page for Escape');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
+    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -1127,7 +1127,7 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
 
     // # Open link modal via toolbar button
     const linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Press Escape key
     await page.keyboard.press('Escape');
@@ -1170,7 +1170,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
+    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -1182,7 +1182,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await typeInEditor(page, 'Link to child: ');
 
     const linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Search for Child Page (modal only shows first 10, so search is needed)
     const searchInput = linkModal.locator('input[type="text"]').first();
@@ -1198,7 +1198,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await insertLinkButton.click();
 
     // * Verify link inserted (should keep the selected text "test text" as the link text)
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     const editorContent = await editor.textContent();
     expect(editorContent).toContain('test text');
 
@@ -1211,16 +1211,16 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
 
     // # Wait for page viewer to show the published content and for edit button to appear (confirms publish complete)
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toContainText('Link to child:', {timeout: 5000});
+    await expect(pageContent).toContainText('Link to child:', {timeout: ELEMENT_TIMEOUT});
 
     // Wait for the edit button to appear, confirming the page is in view mode
     const editButton = page.getByRole('button', {name: 'Edit', exact: true});
-    await expect(editButton).toBeVisible({timeout: 5000});
+    await expect(editButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Click on the actual link in the page content to verify it works
     // Note: The entire "Link to child: test text" became a link because it was all selected when creating the link
     const pageLink = pageContent.locator('a:has-text("test text")');
-    await expect(pageLink).toBeVisible({timeout: 5000});
+    await expect(pageLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // Get the href for verification
     const linkHref = await pageLink.getAttribute('href');
@@ -1234,7 +1234,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
 
     // * Verify the page shows the child page content
     const childPageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(childPageContent).toContainText('This is a child page', {timeout: 15000});
+    await expect(childPageContent).toContainText('This is a child page', {timeout: PAGE_LOAD_TIMEOUT});
 });
 
 /**
@@ -1263,12 +1263,12 @@ test('formatting buttons show correct active state for text formatting', {tag: '
     await page.keyboard.type('Plain text ');
 
     // # Toggle bold on and type
-    await page.keyboard.press('Meta+B');
+    await pressModifierKey(page, 'b');
     await page.keyboard.type('bold text');
-    await page.keyboard.press('Meta+B'); // Toggle bold off
+    await pressModifierKey(page, 'b'); // Toggle bold off
 
     await page.keyboard.type(' more plain');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Now test if formatting buttons show correct active state
     // Select just the word "Plain" at the beginning
@@ -1278,11 +1278,11 @@ test('formatting buttons show correct active state for text formatting', {tag: '
     await page.keyboard.press('Shift+ArrowRight');
     await page.keyboard.press('Shift+ArrowRight');
     await page.keyboard.press('Shift+ArrowRight');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for formatting bubble to appear
     const formattingBubble = page.locator('.formatting-bar-bubble').first();
-    await formattingBubble.waitFor({state: 'visible', timeout: 10000});
+    await formattingBubble.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // * Verify bold button is NOT active when selection is on plain text
     const boldButtonInPlain = formattingBubble.locator('button[title*="Bold"]').first();
@@ -1299,7 +1299,7 @@ test('formatting buttons show correct active state for text formatting', {tag: '
     for (let i = 0; i < 9; i++) {
         await page.keyboard.press('Shift+ArrowRight');
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify bold button IS active when selection is on bold text
     const boldButton = formattingBubble.locator('button[title*="Bold"]').first();
@@ -1311,17 +1311,17 @@ test('formatting buttons show correct active state for text formatting', {tag: '
     // # Test italic formatting as well
     await page.keyboard.press('End');
     await page.keyboard.press('Enter');
-    await page.keyboard.press('Meta+I'); // Toggle italic on
+    await pressModifierKey(page, 'i'); // Toggle italic on
     await page.keyboard.type('italic text');
-    await page.keyboard.press('Meta+I'); // Toggle italic off
-    await page.waitForTimeout(500);
+    await pressModifierKey(page, 'i'); // Toggle italic off
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Select the italic text
     await page.keyboard.press('Home');
     for (let i = 0; i < 11; i++) {
         await page.keyboard.press('Shift+ArrowRight');
     }
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify italic button IS active when selection is on italic text
     const italicButton = formattingBubble.locator('button[title*="Italic"]').first();
@@ -1387,7 +1387,7 @@ test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pag
     }, largeContent);
 
     // # Wait for content to be inserted
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify content appears in editor
     await expect(editor).toContainText('Lorem ipsum');
@@ -1396,7 +1396,7 @@ test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pag
     await publishPage(page);
 
     // # Wait for publish to complete (or for error to appear)
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(ELEMENT_TIMEOUT);
 
     // * Verify publish succeeds WITHOUT "body too long" or similar error
     // Check for common error indicators
@@ -1419,7 +1419,7 @@ test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pag
 
     // * Verify page was published successfully
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toBeVisible({timeout: 10000});
+    await expect(pageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await expect(pageContent).toContainText('Lorem ipsum');
 
     // * Verify large content persists after publish (should be ~100K characters)
@@ -1511,7 +1511,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     }, base64Image);
 
     // # Wait for image to be processed and inserted
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(WEBSOCKET_WAIT);
 
     // * Verify exactly one image element appears in editor
     const images = editor.locator('img');
@@ -1571,7 +1571,7 @@ test('formatting bar includes divider button from shared registry', {tag: '@page
     const editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Test text for formatting');
     await selectTextInEditor(page);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for formatting bar
     const formattingBar = await waitForFormattingBar(page);

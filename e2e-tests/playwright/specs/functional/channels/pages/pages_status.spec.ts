@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal, publishCurrentPage} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal, publishCurrentPage, AUTOSAVE_WAIT, HIERARCHY_TIMEOUT, PAGE_LOAD_TIMEOUT} from './test_helpers';
 
 /**
  * Page status display names
@@ -81,7 +81,7 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     await inReviewOption.click();
 
     // # Wait for autosave
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Click Update button
     await publishCurrentPage(page);
@@ -127,7 +127,7 @@ test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, 
     await doneOption.click();
 
     // # Wait for autosave
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Update page
     await publishCurrentPage(page);
@@ -186,7 +186,7 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
         await statusOption.click();
 
         // # Wait for autosave
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // # Update page
         await publishCurrentPage(page);
@@ -229,7 +229,7 @@ test('shows status selector in draft mode and status badge in view mode', {tag: 
     await editor.click();
     await editor.fill('Test content');
 
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     await publishCurrentPage(page);
 
@@ -278,7 +278,7 @@ test('transitions through workflow states from rough_draft to done', {tag: '@pag
         await statusOption.click();
 
         // # Wait for autosave
-        await page.waitForTimeout(1500);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
         // # Update page
         await publishCurrentPage(page);
@@ -351,7 +351,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await expect(statusMenu).toBeVisible();
     let roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
     await roughDraftOption.click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     await publishCurrentPage(page);
 
@@ -374,7 +374,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await expect(statusMenu).toBeVisible();
     const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
     await doneOption.click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     await publishCurrentPage(page);
 
@@ -436,7 +436,7 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     await targetOption.click();
 
     // # Wait for autosave
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Update page
     await publishCurrentPage(page);
@@ -474,7 +474,7 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
     await editor.fill('This is draft content');
 
     // # Wait for autosave
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Select status 'done' in draft mode
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -488,7 +488,7 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
     await doneOption.click();
 
     // # Wait for autosave to persist status
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Publish the page
     await publishCurrentPage(page);
@@ -525,7 +525,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     await editor.fill('Content with status');
 
     // # Wait for autosave
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Select status 'in_review'
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -538,7 +538,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     await inReviewOption.click();
 
     // # Wait for autosave to persist status
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Capture current URL before refresh
     const currentUrl = page.url();
@@ -588,11 +588,11 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await page.waitForLoadState('networkidle');
 
     // # Wait for editor to fully load (including status selector)
-    await page.waitForSelector('[data-testid="wiki-page-editor"]', {state: 'visible', timeout: 10000});
+    await page.waitForSelector('[data-testid="wiki-page-editor"]', {state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Change status to 'rough_draft' in draft mode
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
-    await expect(statusSelector).toBeVisible({timeout: 15000});
+    await expect(statusSelector).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
     await statusSelector.click();
 
     const statusMenu = page.locator('.selectable-select-property__menu');
@@ -602,7 +602,7 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await roughDraftOption.click();
 
     // # Wait for autosave
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Update the content
     const editor = page.locator('.ProseMirror');
@@ -611,7 +611,7 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await editor.type(' Updated content');
 
     // # Wait for autosave
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Click Update button
     await publishCurrentPage(page);

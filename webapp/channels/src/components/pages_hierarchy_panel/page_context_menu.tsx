@@ -191,7 +191,6 @@ const PageContextMenu = ({
             label: isDraft ? 'Delete draft' : 'Delete page',
             icon: 'icon-trash-can-outline',
             action: () => {
-                console.log('[CONTEXT_MENU] Delete action clicked', {pageId, isDraft});
                 onDelete?.();
                 onClose();
             },

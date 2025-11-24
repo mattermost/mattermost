@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, openSlashCommandMenu, insertViaSlashCommand, verifyEditorElement, selectAllText, getEditorAndWait, typeInEditor} from './test_helpers';
+import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, openSlashCommandMenu, insertViaSlashCommand, verifyEditorElement, selectAllText, getEditorAndWait, typeInEditor, SHORT_WAIT, ELEMENT_TIMEOUT, WEBSOCKET_WAIT, EDITOR_LOAD_WAIT, UI_MICRO_WAIT} from './test_helpers';
 
 /**
  * @objective Verify slash command menu appears when typing / on blank line
@@ -62,7 +62,7 @@ test('does not open slash command menu when / typed mid-line', {tag: '@pages'}, 
 
     // * Verify slash menu does NOT appear
     const slashMenu = page.locator('.slash-command-menu');
-    await expect(slashMenu).not.toBeVisible({timeout: 2000});
+    await expect(slashMenu).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // * Verify the / character is just plain text
     await expect(editor).toContainText('This is some text/');
@@ -100,7 +100,7 @@ test('opens slash command menu when / typed at start of new line', {tag: '@pages
 
     // * Verify slash menu DOES appear
     const slashMenu = page.locator('.slash-command-menu');
-    await expect(slashMenu).toBeVisible({timeout: 3000});
+    await expect(slashMenu).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify menu contains expected items
     await expect(slashMenu).toContainText('Heading 1');
@@ -131,7 +131,7 @@ test('filters slash command menu items by typing search query', {tag: '@pages'},
 
     // * Verify slash menu opens with all items
     let slashMenu = page.locator('.slash-command-menu');
-    await slashMenu.waitFor({state: 'visible', timeout: 5000});
+    await slashMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // * Verify initial menu contains multiple items
     await expect(slashMenu).toContainText('Bold');
@@ -143,30 +143,30 @@ test('filters slash command menu items by typing search query', {tag: '@pages'},
     // * Wait for the menu to show filtered item
     // The menu should show "Heading 1" after filtering
     // Wait briefly to allow the filter to apply
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
     // Re-get the menu locator in case it was recreated
     slashMenu = page.locator('.slash-command-menu');
     const heading1Item = slashMenu.locator('.slash-command-item').filter({hasText: 'Heading 1'});
     // The menu should remain open with debounced exit (300ms)
-    await expect(heading1Item).toBeVisible({timeout: 2000});
+    await expect(heading1Item).toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Clear the filter and try a different one
     await page.keyboard.press('Backspace');
     await page.keyboard.press('Backspace');
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(UI_MICRO_WAIT);
 
     // # Type 'list' to filter
     await page.keyboard.type('list', {delay: 50});
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
     // * Verify menu shows list options
     slashMenu = page.locator('.slash-command-menu');
     const bulletedItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Bulleted list'});
     const numberedItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Numbered list'});
     // Menu should remain open with debounced exit
-    await expect(bulletedItem).toBeVisible({timeout: 2000});
-    await expect(numberedItem).toBeVisible({timeout: 2000});
+    await expect(bulletedItem).toBeVisible({timeout: WEBSOCKET_WAIT});
+    await expect(numberedItem).toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -230,7 +230,7 @@ test('inserts bulleted list when selected from slash command menu', {tag: '@page
     await expect(listElement.first()).toBeEmpty();
 
     // # Wait for editor to be fully ready before typing
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
     // # Type text into the empty list item
     await page.keyboard.type('First item');
@@ -282,15 +282,15 @@ test('opens image insertion when selected from slash command menu', {tag: '@page
 
     // # Type 'image' to filter to image option
     await page.keyboard.type('image');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify image option is visible in filtered menu
     const imageItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Image'});
-    await expect(imageItem).toBeVisible({timeout: 2000});
+    await expect(imageItem).toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Select image option (this should trigger the image modal/file picker without errors)
     await imageItem.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify no JavaScript errors occurred
     if (pageErrors.length > 0) {
@@ -335,11 +335,11 @@ test('navigates slash command menu with arrow keys and selects with Enter', {tag
 
     // # Navigate with arrow keys and select
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
     await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify menu closed after selection
     await expect(slashMenu).not.toBeVisible();
@@ -371,7 +371,7 @@ test('closes slash command menu when pressing Escape', {tag: '@pages'}, async ({
 
     // # Press Escape to close menu
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify menu is closed
     await expect(slashMenu).not.toBeVisible();
@@ -402,10 +402,10 @@ test('closes slash command menu when clicking away', {tag: '@pages'}, async ({pw
     // # Click away from the menu (click on title input)
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify menu is closed
-    await expect(slashMenu).not.toBeVisible({timeout: 2000});
+    await expect(slashMenu).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -432,10 +432,10 @@ test('verifies ESC key closes slash command menu', {tag: '@pages'}, async ({pw, 
 
     // # Press Escape key
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify menu is closed
-    await expect(slashMenu).not.toBeVisible({timeout: 1000});
+    await expect(slashMenu).not.toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
     // # Verify editor is still focused and functional
     const editor = await getEditorAndWait(page);

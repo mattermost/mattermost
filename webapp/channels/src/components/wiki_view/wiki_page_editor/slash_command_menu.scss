@@ -2,28 +2,28 @@
 // See LICENSE.txt for license information.
 
 .slash-command-menu {
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 4px;
-    max-height: 400px;
-    overflow-y: auto;
+    z-index: 1000;
     min-width: 280px;
     max-width: 320px;
-    z-index: 1000;
+    max-height: 400px;
+    padding: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
 }
 
 .slash-command-item {
     display: flex;
+    width: 100%;
     align-items: center;
-    gap: 12px;
     padding: 8px 12px;
     border: none;
+    border-radius: 4px;
     background: none;
     cursor: pointer;
-    border-radius: 4px;
-    width: 100%;
+    gap: 12px;
     text-align: left;
     transition: background-color 0.1s ease;
 
@@ -38,27 +38,27 @@
 }
 
 .slash-command-icon {
-    font-size: 18px;
-    color: rgba(0, 0, 0, 0.6);
-    flex-shrink: 0;
     width: 20px;
+    flex-shrink: 0;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 18px;
     text-align: center;
 }
 
 .slash-command-content {
-    flex: 1;
     min-width: 0;
+    flex: 1;
 }
 
 .slash-command-title {
+    color: rgba(0, 0, 0, 0.9);
     font-size: 14px;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.9);
 }
 
 .slash-command-empty {
     padding: 12px;
-    text-align: center;
     color: rgba(0, 0, 0, 0.5);
     font-size: 13px;
+    text-align: center;
 }

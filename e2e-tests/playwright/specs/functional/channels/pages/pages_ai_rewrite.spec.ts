@@ -16,6 +16,12 @@ import {
     checkAIPluginAvailability,
     getAIRewriteButton,
     closeAIRewriteMenu,
+    UI_MICRO_WAIT,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
+    WEBSOCKET_WAIT,
 } from './test_helpers';
 
 /**
@@ -67,7 +73,7 @@ test('shows AI rewrite button when text is selected', {tag: '@pages'}, async ({p
 
     // * Verify AI rewrite button is visible
     const aiRewriteButton = getAIRewriteButton(page);
-    await expect(aiRewriteButton).toBeVisible({timeout: 5000});
+    await expect(aiRewriteButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -115,11 +121,11 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
     await aiRewriteButton.click();
 
     // Wait for menu to open
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify rewrite menu appears (check for menu items instead of container visibility)
     const improveButton = page.locator('text=Improve writing');
-    await expect(improveButton).toBeVisible({timeout: 5000});
+    await expect(improveButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const rewriteMenu = page.locator('[data-testid="rewrite-menu"]');
 
@@ -183,7 +189,7 @@ test('displays all 7 rewrite actions in menu', {tag: '@pages'}, async ({pw, shar
 
     for (const action of expectedActions) {
         const actionButton = page.locator(`text=${action}`);
-        await expect(actionButton).toBeVisible({timeout: 2000});
+        await expect(actionButton).toBeVisible({timeout: WEBSOCKET_WAIT});
     }
 
     // * Verify custom prompt input exists
@@ -279,7 +285,7 @@ test('shows AI rewrite in inline comment toolbar when viewing page', {tag: '@pag
     await publishPage(page);
 
     // # Wait for page to be in view mode
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageViewer).toBeVisible();
 
@@ -288,7 +294,7 @@ test('shows AI rewrite in inline comment toolbar when viewing page', {tag: '@pag
 
     // * Verify inline comment toolbar appears with AI button
     const inlineToolbar = page.locator('.inline-comment-toolbar');
-    await expect(inlineToolbar).toBeVisible({timeout: 5000});
+    await expect(inlineToolbar).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const aiButton = inlineToolbar.locator('[data-testid="inline-comment-ai-button"]');
     await expect(aiButton).toBeVisible();
@@ -340,23 +346,23 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
 
     const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Click "Fix spelling and grammar" action
     const fixGrammarButton = page.locator('text=Fix spelling and grammar');
-    await expect(fixGrammarButton).toBeVisible({timeout: 5000});
+    await expect(fixGrammarButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await fixGrammarButton.click();
 
     // * Verify processing state appears (loading indicator or processing message)
     // Wait for either loading spinner or processing state
     const loadingIndicator = page.locator('.loading-spinner, [class*="processing"], [class*="loading"]').first();
-    await loadingIndicator.waitFor({state: 'visible', timeout: 3000}).catch(() => {
+    await loadingIndicator.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT}).catch(() => {
         // Loading might be too fast to catch
     });
 
     // * Wait for AI response (up to 30 seconds for real API call)
     // The editor content should change when AI responds
-    await page.waitForTimeout(2000); // Give AI time to start processing
+    await page.waitForTimeout(AUTOSAVE_WAIT); // Give AI time to start processing
 
     // Wait for content to change from original
     let contentChanged = false;
@@ -369,7 +375,7 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
             contentChanged = true;
             break;
         }
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
     }
 
     // * Verify content was actually changed by AI
@@ -384,21 +390,21 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
 
     // * Verify editor is still functional after AI rewrite
     // Wait for any UI updates to settle after AI rewrite
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // Close the AI rewrite menu
     await closeAIRewriteMenu(page);
 
     // Verify we're still on the correct page by checking the page title
     const pageTitle = page.locator('[data-testid="wiki-page-title-input"]').first();
-    await expect(pageTitle).toHaveValue('AI Integration Test Page', {timeout: 3000});
+    await expect(pageTitle).toHaveValue('AI Integration Test Page', {timeout: ELEMENT_TIMEOUT});
 
     // Re-query editor after AI rewrite (DOM may have been updated)
     const editorAfterRewrite = await getEditorAndWait(page);
 
     // Ensure editor is focused before adding text
     await editorAfterRewrite.click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
     await page.keyboard.press('End');
     await page.keyboard.type(' Additional text added after AI rewrite.');
@@ -459,11 +465,11 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
     });
 
     // * Verify editor is still functional after error
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // Close the menu by pressing Escape
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     await editor.click();
     await page.keyboard.press('End');

@@ -47,6 +47,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
     case WikiTypes.GET_PAGES_SUCCESS: {
         const {wikiId, pages} = action.data;
         const pageIds = pages.map((p: Post) => p.id);
+
         return {
             ...state,
             byWiki: {
@@ -108,12 +109,43 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
             },
         };
     }
+    case WikiTypes.REMOVED_PAGE_FROM_WIKI: {
+        const {pageId, wikiId} = action.data;
+
+        const currentPages = state.byWiki[wikiId];
+        if (!currentPages) {
+            return state;
+        }
+
+        return {
+            ...state,
+            byWiki: {
+                ...state.byWiki,
+                [wikiId]: currentPages.filter((id) => id !== pageId),
+            },
+        };
+    }
     case WikiTypes.DELETED_PAGE: {
-        const {id: pageId} = action.data;
+        const {id: pageId, wikiId} = action.data;
+
+        if (wikiId) {
+            const currentPages = state.byWiki[wikiId];
+            if (!currentPages) {
+                return state;
+            }
+
+            return {
+                ...state,
+                byWiki: {
+                    ...state.byWiki,
+                    [wikiId]: currentPages.filter((id) => id !== pageId),
+                },
+            };
+        }
 
         const nextByWiki = {...state.byWiki};
-        Object.keys(nextByWiki).forEach((wikiId) => {
-            nextByWiki[wikiId] = nextByWiki[wikiId].filter((id) => id !== pageId);
+        Object.keys(nextByWiki).forEach((wiki) => {
+            nextByWiki[wiki] = nextByWiki[wiki].filter((id) => id !== pageId);
         });
 
         return {
@@ -179,6 +211,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
     }
     case WikiTypes.INVALIDATE_PAGES: {
         const {wikiId, timestamp} = action.data;
+
         return {
             ...state,
             lastPagesInvalidated: {

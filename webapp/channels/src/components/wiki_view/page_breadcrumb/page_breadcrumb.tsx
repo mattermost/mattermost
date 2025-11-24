@@ -7,12 +7,12 @@ import {Link} from 'react-router-dom';
 
 import type {BreadcrumbPath} from '@mattermost/types/wikis';
 
-import {Client4} from 'mattermost-redux/client';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {getPageBreadcrumb, loadWiki} from 'actions/pages';
+import {loadWiki, getPageBreadcrumb} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
+import {buildBreadcrumbFromRedux} from 'selectors/pages';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -176,23 +176,27 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                         setBreadcrumbPath(simplePath);
                     }
                 } else if (pageId) {
-                    // Published page - get breadcrumb from server and fix paths
-                    // Use the page's actual wiki ID (from metadata) if available, otherwise use URL wiki ID
-                    const actualWikiId = (currentPage?.props?.wiki_id as string | undefined) || wikiId;
-                    const result = await dispatch(getPageBreadcrumb(actualWikiId, pageId));
-                    if (result.error || !result.data) {
+                    // Published page - build breadcrumb from Redux (no API call)
+                    // Load wiki if not already in Redux
+                    await dispatch(loadWiki(wikiId));
+
+                    // Get current state and build breadcrumb from Redux
+                    const state = dispatch((_, getState) => getState()) as any;
+                    const breadcrumb = buildBreadcrumbFromRedux(
+                        state,
+                        wikiId,
+                        pageId,
+                        channelId,
+                        currentTeam?.name || 'team',
+                    );
+
+                    if (!breadcrumb) {
                         setError('Failed to load breadcrumb');
                         setIsLoading(false);
                         return;
                     }
-                    const path = result.data;
 
-                    const fixedPath: BreadcrumbPath = {
-                        items: path.items.map(fixBreadcrumbPath),
-                        current_page: path.current_page,
-                    };
-
-                    setBreadcrumbPath(fixedPath);
+                    setBreadcrumbPath(breadcrumb as BreadcrumbPath);
                 } else if (loadedWiki) {
                     // No page selected - show wiki name only
                     setBreadcrumbPath({
@@ -216,7 +220,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, dispatch]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, currentPage?.page_parent_id, currentPage?.props?.page_parent_id, currentPage?.props?.wiki_id, dispatch]);
 
     if (isLoading) {
         return (

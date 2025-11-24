@@ -6,8 +6,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {Client4} from 'mattermost-redux/client';
-
 import {getPageComments} from 'actions/pages';
 import {openWikiRhs, closeRightHandSide} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';

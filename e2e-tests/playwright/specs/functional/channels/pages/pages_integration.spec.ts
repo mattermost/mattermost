@@ -33,6 +33,12 @@ import {
     verifyHierarchyContains,
     verifyPageContentContains,
     verifyWikiRHSContent,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
+    WEBSOCKET_WAIT,
 } from './test_helpers';
 
 /**
@@ -79,7 +85,7 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
 
     // # Step 1: Create draft
     const newPageButton = getNewPageButton(page);
-    await expect(newPageButton).toBeVisible({timeout: 3000});
+    await expect(newPageButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await newPageButton.click();
     await fillCreatePageModal(page, 'Draft Flow Test');
 
@@ -88,21 +94,21 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
     await editor.type('Draft content in progress');
 
     // * Wait for auto-save
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(ELEMENT_TIMEOUT);
 
     // # Step 2: Navigate away (without publishing)
     await channelsPage.goto(team.name, channel.name);
 
     // # Step 3: Return to wiki by clicking the wiki tab
     const wikiTab = page.getByRole('tab', {name: wiki.title});
-    await expect(wikiTab).toBeVisible({timeout: 5000});
+    await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await wikiTab.click();
     await page.waitForLoadState('networkidle');
 
     // # Step 4: Find and open draft (drafts are integrated in tree with data-is-draft attribute)
     const hierarchyPanel = getHierarchyPanel(page);
     const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft Flow Test'});
-    await expect(draftNode).toBeVisible({timeout: 10000});
+    await expect(draftNode).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await draftNode.click();
     await page.waitForLoadState('networkidle');
 
@@ -181,13 +187,13 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
 
     // # Perform search
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
-    await expect(searchInput).toBeVisible({timeout: 3000});
+    await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill(uniqueTerm);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Click search result - use getByRole to find the button containing the search term
     const searchResult = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
-    await expect(searchResult).toBeVisible({timeout: 3000});
+    await expect(searchResult).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchResult.click();
     await page.waitForLoadState('networkidle');
 
@@ -205,7 +211,7 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
     await page.waitForLoadState('networkidle');
 
     // * Verify back on search results or wiki home
-    await expect(searchInput).toBeVisible({timeout: 3000});
+    await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -239,9 +245,9 @@ test('creates multi-level hierarchy with comments and breadcrumb navigation', {t
 
     // # Navigate back to level 1 via breadcrumb
     const breadcrumb = getBreadcrumb(page);
-    await breadcrumb.waitFor({state: 'visible', timeout: 5000});
+    await breadcrumb.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     const level1Link = breadcrumb.locator('text="Level 1 Page"').first();
-    await level1Link.waitFor({state: 'visible', timeout: 5000});
+    await level1Link.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await level1Link.click();
     await page.waitForLoadState('networkidle');
 
@@ -283,9 +289,9 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
 
     // * Verify page no longer in hierarchy
     const hierarchyPanel = getHierarchyPanel(page);
-    await expect(hierarchyPanel).toBeVisible({timeout: 3000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const parentNode = hierarchyPanel.locator('text="Parent to Delete"').first();
-    await expect(parentNode).not.toBeVisible({timeout: 2000});
+    await expect(parentNode).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -320,7 +326,7 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     await renameMenuItem.click();
 
     // * Verify edit mode opened
-    await expect(page.locator('[data-testid="wiki-page-title-input"]')).toBeVisible({timeout: 3000});
+    await expect(page.locator('[data-testid="wiki-page-title-input"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Change title in edit mode
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
@@ -344,7 +350,7 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
 
     // * Verify hierarchy panel shows new title
     const hierarchyPanel = getHierarchyPanel(page);
-    await expect(hierarchyPanel).toBeVisible({timeout: 3000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(hierarchyPanel).toContainText(newTitle);
 });
 
@@ -430,9 +436,9 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
 
     // # Step 6: Navigate via breadcrumb
     const breadcrumb = getBreadcrumb(page);
-    await breadcrumb.waitFor({state: 'visible', timeout: 5000});
+    await breadcrumb.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     const rootLink = breadcrumb.locator('text="Root Project Page"').first();
-    await rootLink.waitFor({state: 'visible', timeout: 5000});
+    await rootLink.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await rootLink.click();
     await page.waitForLoadState('networkidle');
 
@@ -461,7 +467,7 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
 
     // # Create draft via modal
     const newPageButton = getNewPageButton(page);
-    await newPageButton.waitFor({state: 'visible', timeout: 5000});
+    await newPageButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await newPageButton.click();
 
     // # Fill modal and create page
@@ -473,7 +479,7 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
     await editor.type('Important draft content that must not be lost');
 
     // * Wait for auto-save
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(ELEMENT_TIMEOUT);
 
     // # Simulate browser close (navigate away)
     await page.goto(`${pw.url}/${team.name}/channels/town-square`);
@@ -485,14 +491,14 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
 
     // # Wait for hierarchy panel to load
     const hierarchyPanel = getHierarchyPanel(page);
-    await hierarchyPanel.waitFor({state: 'visible', timeout: 10000});
+    await hierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // Wait for draft to appear in hierarchy
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Recover draft (drafts are integrated in tree with data-is-draft attribute)
     const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]').filter({hasText: 'Draft Recovery Test'});
-    await draftNode.waitFor({state: 'visible', timeout: 10000});
+    await draftNode.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
     await draftNode.click();
     await page.waitForLoadState('networkidle');
 
@@ -511,11 +517,11 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
     await page.waitForLoadState('networkidle');
 
     const hierarchyPanel2 = getHierarchyPanel(page);
-    await hierarchyPanel2.waitFor({state: 'visible', timeout: 5000});
-    await page.waitForTimeout(1000);
+    await hierarchyPanel2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     const draftNode2 = hierarchyPanel2.locator('[data-testid="page-tree-node"][data-is-draft="true"]').filter({hasText: 'Draft Recovery Test'});
-    await expect(draftNode2).not.toBeVisible({timeout: 2000});
+    await expect(draftNode2).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -551,15 +557,15 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
 
     // * Verify hierarchy panel shows child under Parent B
     const hierarchyPanel = getHierarchyPanel(page);
-    await expect(hierarchyPanel).toBeVisible({timeout: 3000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const parentBNode = hierarchyPanel.locator('text="Parent B"').first();
     await expect(parentBNode).toBeVisible();
     // Expand Parent B if needed
     await parentBNode.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     const childNode = hierarchyPanel.locator('text="Child Page to Move"').first();
-    await expect(childNode).toBeVisible({timeout: 2000});
+    await expect(childNode).toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -578,24 +584,24 @@ test('searches pages with filters and verifies results', {tag: '@pages'}, async 
 
     // # Create multiple pages through UI
     await createPageThroughUI(page, `${searchTerm} First Page`, 'First page content');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
     await createPageThroughUI(page, `${searchTerm} Second Page`, 'Second page content');
 
     // # Perform search in wiki tree panel
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
-    await expect(searchInput).toBeVisible({timeout: 3000});
+    await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill(searchTerm);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify both pages appear in filtered tree
     const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
-    await expect(treeContainer).toBeVisible({timeout: 3000});
+    await expect(treeContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(treeContainer).toContainText('First Page');
     await expect(treeContainer).toContainText('Second Page');
 
     // # Clear search to verify both pages exist
     await searchInput.clear();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify both pages still visible after clearing search
     await expect(treeContainer).toContainText('First Page');

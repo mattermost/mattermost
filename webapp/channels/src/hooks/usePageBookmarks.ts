@@ -4,6 +4,8 @@
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
+
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 
 import {
@@ -13,7 +15,6 @@ import {
     reorderBookmark,
 } from 'actions/channel_bookmarks';
 
-import type {ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import type {GlobalState} from 'types/store';
 
 /**

@@ -268,8 +268,11 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 		rootPost := parentPostList.Posts[post.RootId]
 		if rootPost.RootId != "" {
-			// Allow page comment replies by transforming the structure
-			if !a.TransformPageCommentReply(rctx, post, rootPost) {
+			if shouldTransformReply(rootPost) {
+				if !a.TransformPageCommentReply(rctx, post, rootPost) {
+					return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+				}
+			} else {
 				return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
@@ -414,8 +417,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	// Handle page comment threads (page-specific logic)
-	if rpost.Type == model.PostTypePageComment && rpost.RootId == "" {
+	if shouldCallAfterCreateHook(rpost) {
 		if threadErr := a.handlePageCommentThreadCreation(rctx, rpost, user, channel); threadErr != nil {
 			rctx.Logger().Warn("Failed to handle page comment thread creation", mlog.Err(threadErr))
 		}
@@ -855,7 +857,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
-	if post.Type == model.PostTypePage || post.Type == model.PostTypePageComment {
+	if shouldSkipWebSocketPublish(post) {
 		return nil
 	}
 
@@ -1539,11 +1541,12 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		return nil, appErr
 	}
 
-	// Send page comment deleted event if this is a page comment
-	if pageId, ok := post.Props["page_id"].(string); ok && pageId != "" {
-		page, pageErr := a.GetSinglePost(rctx, pageId, false)
-		if pageErr == nil {
-			a.SendCommentDeletedEvent(rctx, post, page, channel)
+	if shouldSendCommentDeletedEvent(post) {
+		if pageId, ok := post.Props["page_id"].(string); ok && pageId != "" {
+			page, pageErr := a.GetSinglePost(rctx, pageId, false)
+			if pageErr == nil {
+				a.SendCommentDeletedEvent(rctx, post, page, channel)
+			}
 		}
 	}
 

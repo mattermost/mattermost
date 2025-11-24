@@ -14,6 +14,8 @@ import {
     openBookmarksTab,
     verifyBookmarkExists,
     verifyBookmarkNotExists,
+    EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -59,7 +61,7 @@ test('creates bookmark from page to another channel', {tag: '@pages'}, async ({p
     await expect(modal).not.toBeVisible();
 
     // Wait for bookmark to be created (give time for async dispatch to complete)
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Navigate to target channel
     await channelsPage.goto(team.name, targetChannel.name);
@@ -178,7 +180,7 @@ test('creates bookmark in same channel as page', {tag: '@pages'}, async ({pw, sh
 
     // * Wait for Bookmarks tab to appear (React re-render after Redux update)
     const bookmarksTab = page.getByRole('button', {name: /Bookmarks/});
-    await expect(bookmarksTab).toBeVisible({timeout: 5000});
+    await expect(bookmarksTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify bookmark appears in bookmarks container
     await verifyBookmarkExists(page, 'Same Channel Page');

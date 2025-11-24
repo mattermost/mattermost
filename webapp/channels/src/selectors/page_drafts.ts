@@ -72,3 +72,7 @@ export function getFirstPageDraftForWiki(state: GlobalState, wikiId: string): Po
     const drafts = getPageDraftsForWiki(state, wikiId);
     return drafts.length > 0 ? drafts[0] : null;
 }
+
+export function hasUnpublishedChanges(state: GlobalState, wikiId: string, pageId: string): boolean {
+    return hasPageDraft(state, wikiId, pageId);
+}

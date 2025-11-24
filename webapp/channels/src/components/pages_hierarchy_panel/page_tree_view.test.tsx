@@ -7,10 +7,10 @@ import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {buildTree} from 'selectors/pages_hierarchy';
+
 import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-
-import {buildTree} from 'selectors/pages_hierarchy';
 
 import PageTreeView from './page_tree_view';
 

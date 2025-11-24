@@ -28,12 +28,12 @@
     }
 
     &__page-title {
-        margin-left: 0px;
         padding-left: 8px;
+        border-left: var(--border-default);
         margin-bottom: 2px;
+        margin-left: 0px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
-        border-left: var(--border-default);
     }
 
     &__expand-btn,
@@ -124,9 +124,9 @@
                     margin: 0;
                     background: transparent;
                     color: rgba(var(--center-channel-color-rgb), 0.75);
-                    transition: all 0.15s ease;
                     font-size: 12px;
                     font-weight: 600;
+                    transition: all 0.15s ease;
 
                     &:hover {
                         border-color: transparent;

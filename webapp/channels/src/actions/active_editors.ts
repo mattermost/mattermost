@@ -3,7 +3,7 @@
 
 import * as Actions from 'mattermost-redux/actions/active_editors';
 
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'types/store';
 
 export function fetchActiveEditors(wikiId: string, pageId: string): ActionFuncAsync {
     return Actions.fetchActiveEditors(wikiId, pageId);

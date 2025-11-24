@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, getWikiIdFromTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs, renameWikiThroughModal, deleteWikiThroughModalConfirmation, navigateToChannelFromWiki, verifyWikiNameInBreadcrumb, verifyNavigatedToWiki, extractWikiIdFromUrl, verifyWikiDeleted, waitForWikiTab, openWikiByTab, moveWikiToChannel, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, getWikiIdFromTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs, renameWikiThroughModal, deleteWikiThroughModalConfirmation, navigateToChannelFromWiki, verifyWikiNameInBreadcrumb, verifyNavigatedToWiki, extractWikiIdFromUrl, verifyWikiDeleted, waitForWikiTab, openWikiByTab, moveWikiToChannel, getHierarchyPanel, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT} from './test_helpers';
 
 /**
  * @objective Verify wiki can be renamed through channel tab bar menu
@@ -35,7 +35,7 @@ test('renames wiki through channel tab bar menu', {tag: '@pages'}, async ({pw, s
     await renameWikiThroughModal(page, originalWikiName, newWikiName);
 
     // * Verify wiki tab displays new name in channel tab bar
-    await expect(getWikiTab(page, newWikiName)).toBeVisible({timeout: 5000});
+    await expect(getWikiTab(page, newWikiName)).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Click on renamed wiki tab to open it
     await openWikiByTab(page, newWikiName);
@@ -80,7 +80,7 @@ test('deletes wiki when wiki tab is deleted', {tag: '@pages'}, async ({pw, share
     await deleteWikiThroughModalConfirmation(page, wikiName);
 
     // * Verify wiki tab is removed from channel tab bar
-    await expect(wikiTab).not.toBeVisible({timeout: 5000});
+    await expect(wikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify navigated back to channel (not wiki)
     await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}`));
@@ -120,7 +120,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
 
     // # Wait for wiki tab to be visible and rename through wiki tab menu
     const wikiTab = getWikiTab(page, originalName);
-    await wikiTab.waitFor({state: 'visible', timeout: 5000});
+    await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     await openWikiTabMenu(page, originalName);
     await clickWikiTabMenuItem(page, 'wiki-tab-rename');
@@ -130,7 +130,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     await titleInput.clear();
     await titleInput.fill(updatedName);
     await renameModal.getByRole('button', {name: /rename/i}).click();
-    await renameModal.waitFor({state: 'hidden', timeout: 5000});
+    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki tab updated
     const updatedTab = getWikiTab(page, updatedName);
@@ -144,7 +144,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
 
     // * Verify wiki name is displayed in breadcrumb
     const breadcrumb = page.locator('[data-testid="breadcrumb"]').first();
-    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(breadcrumb).toContainText(updatedName);
 });
 
@@ -175,14 +175,14 @@ test('navigates to channel when deleting wiki tab while viewing wiki', {tag: '@p
 
     // # Wait for wiki tab to be visible
     const wikiTab = getWikiTab(page, wikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: 5000});
+    await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     await openWikiTabMenu(page, wikiName);
     await clickWikiTabMenuItem(page, 'wiki-tab-delete');
 
     const confirmModal = page.getByRole('dialog');
     await confirmModal.getByRole('button', {name: /delete|yes/i}).click();
-    await confirmModal.waitFor({state: 'hidden', timeout: 5000});
+    await confirmModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
     // * Verify navigated to channel (not wiki)
     await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}`));
@@ -223,7 +223,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
 
     // # Wait for wiki tab to be visible and rename wiki through wiki tab menu
     const wikiTab = getWikiTab(page, originalWikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: 5000});
+    await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     await openWikiTabMenu(page, originalWikiName);
     await clickWikiTabMenuItem(page, 'wiki-tab-rename');
@@ -233,7 +233,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await titleInput.clear();
     await titleInput.fill(newWikiName);
     await renameModal.getByRole('button', {name: /rename/i}).click();
-    await renameModal.waitFor({state: 'hidden', timeout: 5000});
+    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
     // # Click on renamed wiki tab
     const updatedTab = getWikiTab(page, newWikiName);
@@ -244,17 +244,17 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
 
     // # Wait for component to mount before checking visibility
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for wiki view to load
     await waitForWikiViewLoad(page);
 
     // # Wait for auto-selection to complete (URL will include pageId or draftId)
     // Wiki view automatically selects first page/draft when navigating to wiki root
-    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+/, {timeout: 10000});
+    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+/, {timeout: HIERARCHY_TIMEOUT});
 
     // # Wait additional time for pages to fully load after rename
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for pages to load in hierarchy panel
     await waitForPageInHierarchy(page, 'Parent Page', 15000);
@@ -265,7 +265,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
 
     // Check if parent has children and is collapsed (expand button visible)
-    await expect(expandButton).toBeVisible({timeout: 2000});
+    await expect(expandButton).toBeVisible({timeout: WEBSOCKET_WAIT});
     await expandButton.click();
 
     // # Wait for child page to become visible after expansion
@@ -280,13 +280,13 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
 
     // * Verify breadcrumb navigation exists and shows page hierarchy
     const breadcrumb = page.locator('[data-testid="breadcrumb"]').first();
-    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(breadcrumb).toContainText('Parent Page');
     await expect(breadcrumb).toContainText('Child Page');
 
     // # Click on parent in breadcrumb to navigate back
     const parentBreadcrumbLink = breadcrumb.locator('.PageBreadcrumb__link').filter({hasText: 'Parent Page'}).first();
-    await expect(parentBreadcrumbLink).toBeVisible({timeout: 5000});
+    await expect(parentBreadcrumbLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await parentBreadcrumbLink.click();
 
     // * Verify navigated back to parent page
@@ -334,7 +334,7 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
 
     // # Wait for wiki tab to be visible
     const wikiTab = getWikiTab(page, originalWikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: 5000});
+    await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     await openWikiTabMenu(page, originalWikiName);
     await clickWikiTabMenuItem(page, 'wiki-tab-rename');
@@ -344,7 +344,7 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     await titleInput.clear();
     await titleInput.fill(newWikiName);
     await renameModal.getByRole('button', {name: /rename/i}).click();
-    await renameModal.waitFor({state: 'hidden', timeout: 5000});
+    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
     // # Click on renamed wiki
     const updatedTab = getWikiTab(page, newWikiName);
@@ -353,13 +353,13 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     await expect(page).toHaveURL(/\/wiki\//);
 
     // # Wait for component to mount before checking visibility
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for wiki view to load
     await waitForWikiViewLoad(page);
 
     // # Wait additional time for pages to fully load after rename
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for pages to load in hierarchy panel with longer timeout
     await waitForPageInHierarchy(page, 'Page A', 15000);
@@ -376,15 +376,15 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
 
     // Click the title button specifically to select Page B
     await hierarchyPanel.locator('[data-testid="page-tree-node-title"]', {hasText: 'Page B'}).click();
-    await pageContent.waitFor({state: 'visible', timeout: 10000});
+    await pageContent.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
     await expect(pageContent).toContainText('Content B');
 
     await hierarchyPanel.locator('[data-testid="page-tree-node-title"]', {hasText: 'Page C'}).click();
-    await pageContent.waitFor({state: 'visible', timeout: 10000});
+    await pageContent.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
     await expect(pageContent).toContainText('Content C');
 
     await hierarchyPanel.locator('[data-testid="page-tree-node-title"]', {hasText: 'Page A'}).click();
-    await pageContent.waitFor({state: 'visible', timeout: 10000});
+    await pageContent.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
     await expect(pageContent).toContainText('Content A');
 });
 
@@ -418,24 +418,24 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
 
     // # Wait for wiki tab to be visible
     const wikiTab = getWikiTab(page, wikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: 5000});
+    await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     await openWikiTabMenu(page, wikiName);
     await clickWikiTabMenuItem(page, 'wiki-tab-delete');
 
     const confirmModal = page.getByRole('dialog');
     await confirmModal.getByRole('button', {name: /delete|yes/i}).click();
-    await confirmModal.waitFor({state: 'hidden', timeout: 5000});
+    await confirmModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki tab removed
-    await expect(wikiTab).not.toBeVisible({timeout: 3000});
+    await expect(wikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Try to navigate directly to child page URL
     await page.goto(childUrl);
     await page.waitForLoadState('networkidle');
 
     // * Wait for redirect or error to appear (redirect happens in React after page load)
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify child page is not accessible (404, error, or redirect)
     const errorLocator = page.locator('text=/not found|error|doesn\'t exist/i');
@@ -443,7 +443,7 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
 
     // Either we see an error message or we're redirected away from wiki
     if (!isRedirected) {
-        await expect(errorLocator).toBeVisible({timeout: 1000});
+        await expect(errorLocator).toBeVisible({timeout: EDITOR_LOAD_WAIT});
     } else {
         expect(isRedirected).toBeTruthy();
     }
@@ -483,7 +483,7 @@ test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, asy
 
     // # Wait for wiki tab to be visible in source channel
     const sourceWikiTab = getWikiTab(page, wikiName);
-    await sourceWikiTab.waitFor({state: 'visible', timeout: 5000});
+    await sourceWikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Open wiki tab menu
     await openWikiTabMenu(page, wikiName);
@@ -493,11 +493,11 @@ test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, asy
 
     // # Wait for move modal to appear
     const moveModal = page.getByRole('dialog');
-    await moveModal.waitFor({state: 'visible', timeout: 3000});
+    await moveModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Wait for channel select to be populated with options
     const channelSelect = moveModal.locator('#target-channel-select');
-    await channelSelect.waitFor({state: 'visible', timeout: 3000});
+    await channelSelect.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Wait for at least 2 options (placeholder + target channel)
     await page.waitForFunction(
@@ -506,7 +506,7 @@ test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, asy
             return select && select.options.length > 1;
         },
         'target-channel-select',
-        {timeout: 5000},
+        {timeout: ELEMENT_TIMEOUT},
     );
 
     // # Select target channel from dropdown by value
@@ -517,17 +517,17 @@ test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, asy
     await moveButton.click();
 
     // # Wait for modal to close
-    await moveModal.waitFor({state: 'hidden', timeout: 5000});
+    await moveModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
     // # Wait for network requests to complete after wiki move
     await page.waitForLoadState('networkidle');
 
     // * Verify wiki tab no longer exists in source channel
-    await expect(sourceWikiTab).not.toBeVisible({timeout: 5000});
+    await expect(sourceWikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki tab count is zero in source channel (explicit count check)
     const sourceWikiTabs = getAllWikiTabs(page);
-    await expect(sourceWikiTabs).toHaveCount(0, {timeout: 5000});
+    await expect(sourceWikiTabs).toHaveCount(0, {timeout: ELEMENT_TIMEOUT});
 
     // # Navigate to target channel
     await channelsPage.goto(team.name, targetChannel.name);
@@ -535,11 +535,11 @@ test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, asy
 
     // * Verify wiki tab now appears in target channel
     const targetWikiTab = getWikiTab(page, wikiName);
-    await expect(targetWikiTab).toBeVisible({timeout: 5000});
+    await expect(targetWikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki tab count is exactly one in target channel (explicit count check)
     const targetWikiTabs = getAllWikiTabs(page);
-    await expect(targetWikiTabs).toHaveCount(1, {timeout: 5000});
+    await expect(targetWikiTabs).toHaveCount(1, {timeout: ELEMENT_TIMEOUT});
 
     // # Click on wiki tab to open it
     await targetWikiTab.click();

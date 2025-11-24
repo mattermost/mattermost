@@ -1,5 +1,5 @@
 import {expect, test} from './pages_test_fixture';
-import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel, enterEditMode, waitForEditModeReady, getEditor, clearEditorContent} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel, enterEditMode, waitForEditModeReady, getEditor, clearEditorContent, ELEMENT_TIMEOUT, EDITOR_LOAD_WAIT} from './test_helpers';
 
 /**
  * Minimal test to isolate the outline visibility issue
@@ -36,12 +36,12 @@ test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Show outline for the page
     await showPageOutline(page, page1.id);
 
     // * Verify the heading appears in the outline
     const outlineHeading = page.locator('[role="treeitem"]').filter({hasText: /Test Heading/}).first();
-    await expect(outlineHeading).toBeVisible({timeout: 5000});
+    await expect(outlineHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });

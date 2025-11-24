@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -62,63 +61,4 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 	}
 
 	return a.PatchPost(rctx, postID, postPatch, patchPostOptions)
-}
-
-func (a *App) RestorePageVersion(
-	rctx request.CTX,
-	userID, pageID, restoreVersionID string,
-	toRestorePostVersion *model.Post,
-) (*model.Post, *model.AppError) {
-	// Step 1: Restore Post metadata (title in Props, FileIds)
-	postPatch := &model.PostPatch{
-		Props:   &toRestorePostVersion.Props, // Restores title
-		FileIds: &toRestorePostVersion.FileIds,
-	}
-
-	patchPostOptions := &model.UpdatePostOptions{
-		IsRestorePost: true,
-	}
-
-	updatedPost, patchErr := a.PatchPost(rctx, pageID, postPatch, patchPostOptions)
-	if patchErr != nil {
-		return nil, patchErr
-	}
-
-	// Step 2: Restore PageContents from historical PageContents table
-	// The historical PageContents has PageId = restoreVersionID (historical Post ID)
-	historicalContent, storeErr := a.Srv().Store().PageContent().GetWithDeleted(restoreVersionID)
-	if storeErr != nil {
-		var notFoundErr *store.ErrNotFound
-		if errors.As(storeErr, &notFoundErr) {
-			// If no historical content exists, log warning but don't fail
-			// (metadata still restored successfully)
-			rctx.Logger().Warn("Failed to get historical page content - metadata restored but content unchanged",
-				mlog.String("page_id", pageID),
-				mlog.String("restore_version_id", restoreVersionID))
-			return updatedPost, nil
-		}
-		return nil, model.NewAppError("RestorePageVersion",
-			"app.page.restore.get_content.app_error", nil, "",
-			http.StatusInternalServerError).Wrap(storeErr)
-	}
-
-	// Step 3: Update current PageContents with historical content
-	// Use UpdatePageWithContent to ensure proper versioning
-	contentJSON, jsonErr := historicalContent.GetDocumentJSON()
-	if jsonErr != nil {
-		return nil, model.NewAppError("RestorePageVersion",
-			"app.page.restore.serialize_content.app_error", nil, "",
-			http.StatusInternalServerError).Wrap(jsonErr)
-	}
-
-	// UpdatePageWithContent will create a new version automatically
-	_, storeErr = a.Srv().Store().Page().UpdatePageWithContent(
-		rctx, pageID, "", contentJSON, historicalContent.SearchText)
-	if storeErr != nil {
-		return nil, model.NewAppError("RestorePageVersion",
-			"app.page.restore.update_content.app_error", nil, "",
-			http.StatusInternalServerError).Wrap(storeErr)
-	}
-
-	return updatedPost, nil
 }

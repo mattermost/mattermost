@@ -4,8 +4,6 @@
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {Post} from '@mattermost/types/posts';
-
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {createPageComment, createPageCommentReply} from 'actions/pages';

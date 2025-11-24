@@ -19,6 +19,7 @@ import {
     getVersionHistoryModal,
     openVersionHistoryModal,
     publishPage,
+    SHORT_WAIT,
     verifyVersionHistoryModal,
 } from './test_helpers';
 
@@ -132,7 +133,7 @@ test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     await deletePageThroughUI(page, 'Page to Delete');
 
     // * Verify navigated away from deleted page
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
     const currentUrl = page.url();
     expect(currentUrl).not.toMatch(new RegExp(`/pages/${testPage.id}`));
 

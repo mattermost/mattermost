@@ -4,11 +4,10 @@
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {PostDraft} from 'types/store/draft';
-import type {GlobalState} from 'types/store';
-
-import {getPageDraft, hasUnsavedChanges} from 'selectors/page_drafts';
 import {savePageDraft, removePageDraft} from 'actions/page_drafts';
+import {getPageDraft, hasUnsavedChanges} from 'selectors/page_drafts';
+
+import type {GlobalState} from 'types/store';
 
 /**
  * Hook to manage page draft for a specific wiki page.

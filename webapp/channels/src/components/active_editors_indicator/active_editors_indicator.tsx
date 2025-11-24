@@ -21,19 +21,9 @@ export default function ActiveEditorsIndicator({wikiId, pageId}: Props) {
     const intl = useIntl();
     const editors = useActiveEditors(wikiId, pageId);
 
-    console.log('[ACTIVE_EDITORS_INDICATOR] Rendering with:', {
-        wikiId,
-        pageId,
-        editorsCount: editors.length,
-        editors: editors.map(e => ({userId: e.userId, username: e.user.username})),
-    });
-
     if (editors.length === 0) {
-        console.log('[ACTIVE_EDITORS_INDICATOR] No editors, returning null');
         return null;
     }
-
-    console.log('[ACTIVE_EDITORS_INDICATOR] Showing indicator for', editors.length, 'editors');
 
     const displayedEditors = editors.slice(0, 3);
     const remainingCount = editors.length - 3;

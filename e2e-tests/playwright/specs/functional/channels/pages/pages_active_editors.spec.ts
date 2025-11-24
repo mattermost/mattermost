@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, getEditorAndWait, typeInEditor, fillCreatePageModal, getNewPageButton, clickPageInHierarchy, enterEditMode, publishPage, navigateToPage, deletePageDraft} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, getEditorAndWait, typeInEditor, fillCreatePageModal, getNewPageButton, clickPageInHierarchy, enterEditMode, publishPage, navigateToPage, deletePageDraft, createTestUserInChannel, createMultipleTestUsersInChannel, SHORT_WAIT, AUTOSAVE_WAIT, WEBSOCKET_WAIT, HIERARCHY_TIMEOUT, STALE_CLEANUP_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify active editors indicator displays when another user edits the same page
@@ -13,10 +13,7 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     // # Create a second user
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
+    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 logs in and creates a wiki with a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -34,7 +31,7 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     await typeInEditor(page1, 'Initial content');
 
     // # Wait for draft to save
-    await page1.waitForTimeout(2000);
+    await page1.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Publish the page
     await publishPage(page1);
@@ -71,13 +68,13 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     await page2.screenshot({path: '/tmp/test-user2-after-typing.png', fullPage: true});
 
     // # Wait for draft to save
-    await page2.waitForTimeout(2000);
+    await page2.waitForTimeout(AUTOSAVE_WAIT);
     await page2.screenshot({path: '/tmp/test-user2-after-draft-save.png', fullPage: true});
 
     // * User 1 should see active editors indicator showing User 2
     await page1.screenshot({path: '/tmp/test-user1-before-active-editor-check.png', fullPage: true});
     const activeEditorsIndicator = page1.locator('.active-editors-indicator');
-    await expect(activeEditorsIndicator).toBeVisible({timeout: 10000});
+    await expect(activeEditorsIndicator).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await page1.screenshot({path: '/tmp/test-user1-active-editor-visible.png', fullPage: true});
 
     // * Verify the indicator shows 1 person editing
@@ -98,15 +95,8 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     // # Create two additional users
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
-
-    const user3 = pw.random.user('user3');
-    const {id: user3Id} = await adminClient.createUser(user3, '', '');
-    await adminClient.addToTeam(team.id, user3Id);
-    await adminClient.addToChannel(user3Id, channel.id);
+    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {user: user3, userId: user3Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
 
     // # User 1 logs in and creates a wiki with a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -120,7 +110,7 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
 
     const editor1 = await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(2000);
+    await page1.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Publish the page
     await publishPage(page1);
@@ -137,7 +127,7 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
 
     const editor2 = await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 content');
-    await page2.waitForTimeout(2000);
+    await page2.waitForTimeout(AUTOSAVE_WAIT);
 
     // # User 3 logs in and starts editing
     const {page: page3} = await pw.testBrowser.login(user3);
@@ -147,11 +137,11 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
 
     const editor3 = await getEditorAndWait(page3);
     await typeInEditor(page3, ' User 3 content');
-    await page3.waitForTimeout(2000);
+    await page3.waitForTimeout(WEBSOCKET_WAIT);
 
     // * User 1 should see active editors indicator showing both users
     const activeEditorsIndicator = page1.locator('.active-editors-indicator');
-    await expect(activeEditorsIndicator).toBeVisible({timeout: 10000});
+    await expect(activeEditorsIndicator).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // * Verify the indicator shows 2 people editing
     await expect(activeEditorsIndicator).toContainText('2 people editing');
@@ -172,10 +162,7 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     // # Create a second user
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
+    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -189,7 +176,7 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
 
     const editor1 = await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(2000);
+    await page1.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Publish the page
     await publishPage(page1);
@@ -199,7 +186,10 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
     const pageId = pageUrl.split('/').pop();
 
     // # User 2 starts editing
-    const {page: page2} = await pw.testBrowser.login(user2);
+    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+
+    await channelsPage2.goto(team.name, channel.name);
+    await page2.waitForLoadState('networkidle');
 
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
 
@@ -207,17 +197,17 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
 
     const editor2 = await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 content');
-    await page2.waitForTimeout(2000);
+    await page2.waitForTimeout(AUTOSAVE_WAIT);
 
     // * User 1 should see active editors indicator
     const activeEditorsIndicator = page1.locator('.active-editors-indicator');
-    await expect(activeEditorsIndicator).toBeVisible({timeout: 10000});
+    await expect(activeEditorsIndicator).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // # User 2 deletes the draft through the UI
     await deletePageDraft(page2, pageId!);
 
     // * Active editors indicator should disappear for User 1
-    await expect(activeEditorsIndicator).not.toBeVisible({timeout: 10000});
+    await expect(activeEditorsIndicator).not.toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     await page2.close();
 });
@@ -241,7 +231,7 @@ test('does not show current user in active editors list', {tag: '@pages'}, async
 
     const editor = await getEditorAndWait(page);
     await typeInEditor(page, 'User editing their own draft');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Active editors indicator should not be visible
     const activeEditorsIndicator = page.locator('.active-editors-indicator');
@@ -256,14 +246,8 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     // # Create 4 additional users
-    const users = [];
-    for (let i = 0; i < 4; i++) {
-        const newUser = pw.random.user(`user${i}`);
-        const {id: newUserId} = await adminClient.createUser(newUser, '', '');
-        await adminClient.addToTeam(team.id, newUserId);
-        await adminClient.addToChannel(newUserId, channel.id);
-        users.push(newUser);
-    }
+    const userResults = await createMultipleTestUsersInChannel(pw, adminClient, team, channel, 4, 'user');
+    const users = userResults.map((result) => result.user);
 
     // # User 1 creates a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -277,7 +261,7 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
 
     const editor1 = await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(2000);
+    await page1.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Publish the page
     await publishPage(page1);
@@ -295,20 +279,20 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
         await userPage.waitForLoadState('networkidle');
 
         const pageViewer = userPage.locator('[data-testid="page-viewer-content"]');
-        await pageViewer.waitFor({state: 'visible', timeout: 10000});
+        await pageViewer.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
         await enterEditMode(userPage);
 
         const editor = await getEditorAndWait(userPage);
         await typeInEditor(userPage, ` User ${i} content`);
-        await userPage.waitForTimeout(2000);
+        await userPage.waitForTimeout(WEBSOCKET_WAIT);
 
         pages.push(userPage);
     }
 
     // * User 1 should see active editors indicator with overflow
     const activeEditorsIndicator = page1.locator('.active-editors-indicator');
-    await expect(activeEditorsIndicator).toBeVisible({timeout: 10000});
+    await expect(activeEditorsIndicator).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // * Verify only 3 avatars are shown
     const avatars = activeEditorsIndicator.locator('[data-testid*="avatar"]');
@@ -336,10 +320,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     // # Create a second user
-    const user2 = pw.random.user('user2');
-    const {id: user2Id} = await adminClient.createUser(user2, '', '');
-    await adminClient.addToTeam(team.id, user2Id);
-    await adminClient.addToChannel(user2Id, channel.id);
+    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -354,7 +335,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
 
     const editor1 = await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
-    await page1.waitForTimeout(2000);
+    await page1.waitForTimeout(WEBSOCKET_WAIT);
 
     // # Publish the page
     await publishPage(page1);
@@ -372,20 +353,20 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
 
     const editor2 = await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 editing');
-    await page2.waitForTimeout(2000);
+    await page2.waitForTimeout(AUTOSAVE_WAIT);
 
     // * User 1 should see active editors indicator
     const activeEditorsIndicator = page1.locator('.active-editors-indicator');
-    await expect(activeEditorsIndicator).toBeVisible({timeout: 10000});
+    await expect(activeEditorsIndicator).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await expect(activeEditorsIndicator).toContainText('1 person editing');
 
     // # User 2 navigates away WITHOUT deleting draft (draft persists)
     await page2.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
-    await page2.waitForTimeout(2000);
+    await page2.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Active editors indicator should disappear for User 1 within 60 seconds (stale cleanup interval)
     // Note: This relies on the frontend's stale cleanup mechanism since we're NOT deleting the draft
-    await expect(activeEditorsIndicator).not.toBeVisible({timeout: 65000});
+    await expect(activeEditorsIndicator).not.toBeVisible({timeout: STALE_CLEANUP_TIMEOUT});
 
     // # Verify draft still exists for User 2 (can resume editing)
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);

@@ -5,7 +5,6 @@ import nock from 'nock';
 
 import * as Actions from 'mattermost-redux/actions/active_editors';
 import {Client4} from 'mattermost-redux/client';
-import ActiveEditorsTypes from 'mattermost-redux/action_types/active_editors';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';

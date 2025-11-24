@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
+import './conflict_warning_modal.scss';
+
 export type ConflictWarningModalProps = {
     show: boolean;
     currentPage: Post;
@@ -20,7 +22,6 @@ export type ConflictWarningModalProps = {
 export default function ConflictWarningModal({
     show,
     currentPage,
-    draftContent,
     onViewChanges,
     onCopyContent,
     onOverwrite,
@@ -32,6 +33,7 @@ export default function ConflictWarningModal({
             onHide={onCancel}
             backdrop='static'
             className='conflict-warning-modal'
+            data-testid='conflict-warning-modal'
         >
             <Modal.Header closeButton={true}>
                 <Modal.Title>
@@ -43,10 +45,11 @@ export default function ConflictWarningModal({
             </Modal.Header>
             <Modal.Body>
                 <div className='conflict-warning-content'>
-                    <p>
+                    <p className='conflict-warning-primary'>
+                        <i className='icon icon-information-outline'/>
                         <FormattedMessage
-                            id='conflict_warning.message'
-                            defaultMessage='Someone else modified this page while you were editing. What would you like to do?'
+                            id='conflict_warning.first_write_message'
+                            defaultMessage='Someone else published this page first while you were editing. Your changes have been preserved as a draft.'
                         />
                     </p>
                     <div className='conflict-warning-info'>
@@ -66,45 +69,55 @@ export default function ConflictWarningModal({
                             }}
                         />
                     </div>
+                    <p className='conflict-warning-options'>
+                        <FormattedMessage
+                            id='conflict_warning.options_message'
+                            defaultMessage='You can view their changes, continue editing your draft to merge manually, or overwrite their version with yours.'
+                        />
+                    </p>
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button
-                    className='btn btn-link'
-                    onClick={onViewChanges}
-                >
-                    <FormattedMessage
-                        id='conflict_warning.view_changes'
-                        defaultMessage='View Changes'
-                    />
-                </button>
-                <button
-                    className='btn btn-secondary'
-                    onClick={onCopyContent}
-                >
-                    <FormattedMessage
-                        id='conflict_warning.copy_content'
-                        defaultMessage='Copy My Content'
-                    />
-                </button>
-                <button
-                    className='btn btn-danger'
-                    onClick={onOverwrite}
-                >
-                    <FormattedMessage
-                        id='conflict_warning.overwrite'
-                        defaultMessage='Overwrite Changes'
-                    />
-                </button>
-                <button
-                    className='btn btn-default'
-                    onClick={onCancel}
-                >
-                    <FormattedMessage
-                        id='conflict_warning.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </button>
+                <div className='conflict-warning-actions-left'>
+                    <button
+                        className='btn btn-link'
+                        onClick={onViewChanges}
+                    >
+                        <FormattedMessage
+                            id='conflict_warning.view_changes'
+                            defaultMessage='View Their Changes'
+                        />
+                    </button>
+                    <button
+                        className='btn btn-link'
+                        onClick={onCopyContent}
+                    >
+                        <FormattedMessage
+                            id='conflict_warning.copy_content'
+                            defaultMessage='Copy My Content'
+                        />
+                    </button>
+                </div>
+                <div className='conflict-warning-actions-right'>
+                    <button
+                        className='btn btn-default'
+                        onClick={onCancel}
+                    >
+                        <FormattedMessage
+                            id='conflict_warning.cancel'
+                            defaultMessage='Cancel'
+                        />
+                    </button>
+                    <button
+                        className='btn btn-danger'
+                        onClick={onOverwrite}
+                    >
+                        <FormattedMessage
+                            id='conflict_warning.overwrite'
+                            defaultMessage='Overwrite Anyway'
+                        />
+                    </button>
+                </div>
             </Modal.Footer>
         </Modal>
     );

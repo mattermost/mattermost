@@ -18,6 +18,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import ImageResize from 'tiptap-extension-resize-image';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -32,6 +33,7 @@ import store from 'stores/redux_store';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import FilePreviewModal from 'components/file_preview_modal';
+import PageLinkModal from 'components/page_link_modal';
 import TextInputModal from 'components/text_input_modal';
 
 import {getHistory} from 'utils/browser_history';
@@ -47,7 +49,6 @@ import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
-import PageLinkModal from 'components/page_link_modal';
 import {SlashCommandExtension} from './slash_command_extension';
 import usePageRewrite from './use_page_rewrite';
 
@@ -195,7 +196,7 @@ const TipTapEditor = ({
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [selectedText, setSelectedText] = useState('');
     const [showImageUrlModal, setShowImageUrlModal] = useState(false);
-    const [serverError, setServerError] = useState<any>(null);
+    const [, setServerError] = useState<(ServerError & {submittedMessage?: string}) | null>(null);
 
     const autocompleteGroups = useSelector((state: GlobalState) => {
         if (!teamId || !channelId) {

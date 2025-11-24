@@ -14,6 +14,10 @@ import {
     waitForPageViewerLoad,
     getEditorAndWait,
     typeInEditor,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -33,13 +37,13 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
     const newPageButton = getNewPageButton(page);
 
     // * Verify button is visible and enabled
-    await expect(newPageButton).toBeVisible({timeout: 3000});
+    await expect(newPageButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const isDisabled = await newPageButton.isDisabled();
     expect(isDisabled).toBe(false);
 
     // # Click to verify creation flow works
     await newPageButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify editor opened
     const editor = await getEditorAndWait(page);
@@ -87,7 +91,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         await nonMemberPage.waitForLoadState('networkidle');
 
         // Wait for any redirects to complete
-        await nonMemberPage.waitForTimeout(1000);
+        await nonMemberPage.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify access denied (error page, redirect, or permission message)
         const currentUrl = nonMemberPage.url();
@@ -98,7 +102,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         if (!isAccessDenied) {
             // Check for permission error message on page
             const errorMessage = nonMemberPage.locator('text=/permission|access denied|unauthorized/i').first();
-            await expect(errorMessage).toBeVisible({timeout: 3000});
+            await expect(errorMessage).toBeVisible({timeout: ELEMENT_TIMEOUT});
         } else {
             expect(isAccessDenied).toBe(true);
         }
@@ -126,13 +130,13 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
 
     // * Verify edit button is visible and enabled
-    await expect(editButton).toBeVisible({timeout: 3000});
+    await expect(editButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const isDisabled = await editButton.isDisabled();
     expect(isDisabled).toBe(false);
 
     // # Click edit to verify it works
     await editButton.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify editor opened
     const editor = await getEditorAndWait(page);
@@ -164,7 +168,7 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
 
     // * Verify delete option is available and enabled
     const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
-    await expect(deleteMenuItem).toBeVisible({timeout: 3000});
+    await expect(deleteMenuItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const isDisabled = await deleteMenuItem.isDisabled();
     expect(isDisabled).toBe(false);
@@ -229,7 +233,7 @@ test.skip('inherits permissions when page moved to wiki in different channel', {
 
     // # Select wiki2 in move modal
     const moveModal = page.getByRole('dialog', {name: /Move/i});
-    await expect(moveModal).toBeVisible({timeout: 3000});
+    await expect(moveModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const wikiSelect = moveModal.locator('#target-wiki-select');
     await wikiSelect.selectOption(wiki2.id);
@@ -293,7 +297,7 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
 
     // * Verify edit button is not enabled
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await expect(editButton).not.toBeEnabled({timeout: 2000});
+    await expect(editButton).not.toBeEnabled({timeout: AUTOSAVE_WAIT});
 
     // # Restore original guest accounts setting
     await adminClient.patchConfig({

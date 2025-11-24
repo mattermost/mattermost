@@ -4,6 +4,7 @@
 .channel-tab {
     position: relative;
     display: flex;
+    overflow: hidden;
     align-items: center;
     justify-content: center;
     padding: 6px 0 4px 0;
@@ -14,7 +15,6 @@
     color: rgba(var(--center-channel-color-rgb), 0.75);
     cursor: pointer;
     transition: all 0.15s ease;
-    overflow: hidden;
 
     &:hover {
         .channel-tab__content {
@@ -46,11 +46,11 @@
 
     &__content {
         display: flex;
+        overflow: hidden;
         min-width: 0;
         align-items: center;
         padding: 4px 8px;
         border-radius: var(--radius-s);
-        overflow: hidden;
         gap: 2px;
     }
 

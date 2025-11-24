@@ -35,6 +35,13 @@ import {
     verifyCommentsEmptyState,
     getThreadItemAndVerify,
     getEditor,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
+    WEBSOCKET_WAIT,
+    UI_MICRO_WAIT,
 } from './test_helpers';
 
 /**
@@ -127,13 +134,13 @@ test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, shar
 
     // * Verify highlight disappears from editor when resolved
     const highlight = page.locator('.inline-comment-highlight').first();
-    await expect(highlight).not.toBeVisible({timeout: 2000});
+    await expect(highlight).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Unresolve the comment
     await toggleCommentResolution(page, rhs);
 
     // * Verify highlight reappears in editor when unresolved
-    await expect(highlight).toBeVisible({timeout: 2000});
+    await expect(highlight).toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -173,18 +180,18 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
         await commentMarkers.first().click();
 
         const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
-        await expect(rhs).toBeVisible({timeout: 3000});
+        await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
         // # Try to navigate to next comment
         const nextButton = rhs.locator('button[aria-label*="Next"], button:has-text("Next")').first();
         await expect(nextButton).toBeVisible();
         await nextButton.click();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
         // * Verify navigation occurred (RHS content changed)
         const prevButton = rhs.locator('button[aria-label*="Previous"], button[aria-label*="Prev"]').first();
         await expect(prevButton).toBeVisible();
         await prevButton.click();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
     }
 });
 
@@ -318,7 +325,7 @@ test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sh
     await commentMarker.click();
 
     // * Verify RHS opens
-    await expect(rhs).toBeVisible({timeout: 5000});
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify RHS header shows "Thread" (single comment thread view, not full page tabs)
     const rhsHeader = rhs.locator('[data-testid="wiki-rhs-header-title"]');
@@ -411,14 +418,14 @@ test('switches between multiple comment threads in RHS', {tag: '@pages'}, async 
 
         // # Click first marker
         await commentMarkers.nth(0).click();
-        await expect(rhs).toBeVisible({timeout: 5000});
+        await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         const firstContent = await rhs.textContent();
 
         // # Click second marker
         await commentMarkers.nth(1).click();
 
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
         const secondContent = await rhs.textContent();
 
         // * Verify content changed (different comments)
@@ -571,14 +578,14 @@ test('displays correct anchor text for each inline comment in wiki RHS', {tag: '
     if (markerCount >= 1) {
         // # Click first marker to open RHS
         await commentMarkers.nth(0).click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // # Verify RHS opened
         const wikiRHS = page.locator('[data-testid="wiki-rhs"]');
-        await expect(wikiRHS).toBeVisible({timeout: 3000});
+        await expect(wikiRHS).toBeVisible({timeout: ELEMENT_TIMEOUT});
         // * Verify anchor text context is displayed in RHS
         const anchorContext = wikiRHS.locator('.inline-comment-anchor-box');
-        await expect(anchorContext).toBeVisible({timeout: 2000});
+        await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
         // * Verify it contains some text from the page
         const contextText = await anchorContext.first().textContent();
         expect(contextText).toBeTruthy();
@@ -586,10 +593,10 @@ test('displays correct anchor text for each inline comment in wiki RHS', {tag: '
         // # If multiple markers exist, test navigation between them
         if (markerCount >= 2) {
             await commentMarkers.nth(1).click();
-            await page.waitForTimeout(300);
+            await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
             // * Verify anchor context updates
-            await expect(anchorContext).toBeVisible({timeout: 2000});
+            await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
             const secondContextText = await anchorContext.first().textContent();
             expect(secondContextText).toBeTruthy();
         }
@@ -615,14 +622,14 @@ test('creates inline comment from formatting bar with correct anchor text', {tag
 
     // # Type content in the editor
     const editor = getEditor(page);
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await editor.click();
     await editor.type('important information');
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // # Publish the page first (inline comments only work on published pages, not new drafts)
     await publishPage(page);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Enter edit mode and add inline comment
     await enterEditMode(page);
@@ -642,7 +649,7 @@ test('creates inline comment from formatting bar with correct anchor text', {tag
     // * Verify comment marker is visible and click to verify RHS still works
     const commentMarker = await verifyCommentMarkerVisible(page);
     await commentMarker.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify RHS still shows the comment with correct anchor text after publishing
     await verifyWikiRHSContent(page, rhs, ['important information']);
@@ -666,12 +673,12 @@ test('displays correct anchor text for each thread in global Threads view', {tag
     // # Create a page with three distinct text sections
     await ensurePanelOpen(page);
     const newPageButton = getNewPageButton(page);
-    await newPageButton.waitFor({state: 'visible', timeout: 5000});
+    await newPageButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await newPageButton.click();
     await fillCreatePageModal(page, 'Global Threads Anchors Test');
 
     const editor = getEditor(page);
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await editor.click();
 
     // Type content with Enter keys for proper paragraph separation
@@ -717,13 +724,13 @@ test('displays correct anchor text for each thread in global Threads view', {tag
     if (markerCount >= 1) {
         // # Navigate to global Threads view
         const threadsButton = page.locator('[aria-label*="Threads"]').or(page.locator('button:has-text("Threads")')).first();
-        await expect(threadsButton).toBeVisible({timeout: 5000});
+        await expect(threadsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await threadsButton.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify Threads view is visible
         const threadsView = page.locator('.ThreadList');
-        await expect(threadsView).toBeVisible({timeout: 3000});
+        await expect(threadsView).toBeVisible({timeout: ELEMENT_TIMEOUT});
         // # Get all thread items
         const threadItems = threadsView.locator('.ThreadItem');
         const threadCount = await threadItems.count();
@@ -748,30 +755,30 @@ test('displays correct anchor text for each thread in global Threads view', {tag
 
                 // # Click into first thread to verify detail view
                 await firstThread.click();
-                await page.waitForTimeout(500);
+                await page.waitForTimeout(SHORT_WAIT);
 
                 // * Verify thread pane shows anchor context
                 const threadPane = page.locator('.ThreadPane');
-                await expect(threadPane).toBeVisible({timeout: 3000});
+                await expect(threadPane).toBeVisible({timeout: ELEMENT_TIMEOUT});
                 const firstPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
-                await expect(firstPaneAnchor).toBeVisible({timeout: 2000});
+                await expect(firstPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
                 const anchorText = await firstPaneAnchor.first().textContent();
                 expect(anchorText).toBeTruthy();
 
                 // # If multiple threads exist, test navigation to second thread
                 if (pageThreadCount >= 2) {
                     const backButton = page.locator('.ThreadPane button.back');
-                    await expect(backButton).toBeVisible({timeout: 2000});
+                    await expect(backButton).toBeVisible({timeout: WEBSOCKET_WAIT});
                     await backButton.click();
-                    await page.waitForTimeout(300);
+                    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
                     const secondThread = pageThreads.nth(1);
                     await secondThread.click();
-                    await page.waitForTimeout(500);
+                    await page.waitForTimeout(SHORT_WAIT);
 
                     // * Verify thread pane shows anchor for second thread
                     const secondPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
-                    await expect(secondPaneAnchor).toBeVisible({timeout: 2000});
+                    await expect(secondPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
                     const secondAnchorText = await secondPaneAnchor.first().textContent();
                     expect(secondAnchorText).toBeTruthy();
                 }
@@ -804,7 +811,7 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
 
     // # Resolve the comment
     await toggleCommentResolution(page, threadRhs);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Close the thread view and open page-level "Page Comments" RHS
     await closeWikiRHS(page);
@@ -829,11 +836,11 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
 
     // # Click on thread to open thread view and unresolve
     await threadItem.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Unresolve the comment
     await toggleCommentResolution(page, threadRhs);
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Close thread view and reopen page-level filters
     await closeWikiRHS(page);

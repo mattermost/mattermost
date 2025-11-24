@@ -8,7 +8,6 @@ import {useSelector, useDispatch} from 'react-redux';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {movePageInHierarchy} from 'actions/pages';
-
 import type {TreeNode} from 'selectors/pages_hierarchy';
 import {isDescendant} from 'selectors/pages_hierarchy';
 

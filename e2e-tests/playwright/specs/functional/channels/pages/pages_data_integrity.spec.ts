@@ -4,7 +4,7 @@
 import {createPageViaDraft} from '@mattermost/playwright-lib';
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel, UI_MICRO_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify XSS attempts in page content are sanitized
@@ -27,7 +27,7 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
     await newPageButton.click();
     await fillCreatePageModal(page, 'XSS Test Page');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
     // # Attempt to inject script tag
     const xssAttempt = '<script>alert("XSS")</script>';
@@ -76,7 +76,7 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await newPageButton.click();
     await fillCreatePageModal(page, xssTitle);
 
-    await page.waitForTimeout(1000); // Wait for editor to load
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
     const editor = await getEditorAndWait(page);
     await typeInEditor(page, 'Content here');
@@ -123,7 +123,7 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, share
     await searchInput.press('Enter');
 
     // Wait for search to complete
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify no pages are incorrectly returned (should treat as literal string)
     const searchResults = page.locator('[data-testid="search-result"], .search-result').first();
@@ -159,7 +159,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     await newPageButton.click();
     await fillCreatePageModal(page, 'Validation Test Page');
 
-    await page.waitForTimeout(1000); // Wait for editor to load
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
     // # Attempt very long title (>255 characters)
     const longTitle = 'A'.repeat(300);
@@ -174,7 +174,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     await publishButton.click();
 
     // * Verify validation error appears
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // Check for error in announcement bar (backend validation shows here)
     const errorBanner = page.locator('[data-testid="announcement-bar"], .announcement-bar').first();
@@ -194,7 +194,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
             const closeVisible = await closeButton.isVisible().catch(() => false);
             if (closeVisible) {
                 await closeButton.click();
-                await page.waitForTimeout(300);
+                await page.waitForTimeout(UI_MICRO_WAIT * 3);
             }
         }
     }
@@ -205,13 +205,13 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
 
     // # Test special characters that might break URLs
     await titleInput.clear();
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(UI_MICRO_WAIT);
     await titleInput.fill('Page / With \\ Slashes');
-    await page.waitForTimeout(300); // Wait for title to be saved
+    await page.waitForTimeout(UI_MICRO_WAIT * 3); // Wait for title to be saved
 
     await publishButton.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // Additional wait for page render
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Additional wait for page render
 
     // * Verify either sanitized or published successfully (implementation-specific)
     // Page should either:
@@ -256,10 +256,10 @@ test('handles malformed TipTap JSON gracefully', {tag: '@pages'}, async ({pw, sh
 
     // * Verify page loads without crashing - wait for wiki view to be ready
     const wikiView = page.locator('[data-testid="wiki-view"]');
-    await expect(wikiView).toBeVisible({timeout: 10000});
+    await expect(wikiView).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // Wait longer for page data to load and error handling to kick in
-    await page.waitForTimeout(5000);
+    await page.waitForTimeout(ELEMENT_TIMEOUT);
 
     // Page should either show content or an error, but not crash
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
@@ -298,7 +298,7 @@ test('handles malformed TipTap JSON gracefully', {tag: '@pages'}, async ({pw, sh
 
     // * Verify editor handles gracefully (shows warning or empty editor)
     const editor = await getEditorAndWait(page);
-    const editorVisible = await editor.isVisible({timeout: 5000}).catch(() => false);
+    const editorVisible = await editor.isVisible({timeout: ELEMENT_TIMEOUT}).catch(() => false);
 
     if (editorVisible) {
         // Editor loaded - check if it shows empty or error state

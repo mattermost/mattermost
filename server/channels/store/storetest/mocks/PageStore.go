@@ -33,6 +33,54 @@ func (_m *PageStore) ChangePageParent(postID string, newParentID string) error {
 	return r0
 }
 
+// CreatePage provides a mock function with given fields: rctx, post, content, searchText
+func (_m *PageStore) CreatePage(rctx request.CTX, post *model.Post, content string, searchText string) (*model.Post, error) {
+	ret := _m.Called(rctx, post, content, searchText)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreatePage")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string, string) (*model.Post, error)); ok {
+		return rf(rctx, post, content, searchText)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, string, string) *model.Post); ok {
+		r0 = rf(rctx, post, content, searchText)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, string, string) error); ok {
+		r1 = rf(rctx, post, content, searchText)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DeletePage provides a mock function with given fields: pageID, deleteByID
+func (_m *PageStore) DeletePage(pageID string, deleteByID string) error {
+	ret := _m.Called(pageID, deleteByID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePage")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pageID, deleteByID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetChannelPages provides a mock function with given fields: channelID
 func (_m *PageStore) GetChannelPages(channelID string) (*model.PostList, error) {
 	ret := _m.Called(channelID)
@@ -56,6 +104,36 @@ func (_m *PageStore) GetChannelPages(channelID string) (*model.PostList, error) 
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPage provides a mock function with given fields: pageID, includeDeleted
+func (_m *PageStore) GetPage(pageID string, includeDeleted bool) (*model.Post, error) {
+	ret := _m.Called(pageID, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPage")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool) (*model.Post, error)); ok {
+		return rf(pageID, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Post); ok {
+		r0 = rf(pageID, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(pageID, includeDeleted)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -176,6 +254,36 @@ func (_m *PageStore) GetPageVersionHistory(pageID string) ([]*model.Post, error)
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(pageID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Update provides a mock function with given fields: page, baseUpdateAt, force
+func (_m *PageStore) Update(page *model.Post, baseUpdateAt int64, force bool) (*model.Post, error) {
+	ret := _m.Called(page, baseUpdateAt, force)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Post, int64, bool) (*model.Post, error)); ok {
+		return rf(page, baseUpdateAt, force)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Post, int64, bool) *model.Post); ok {
+		r0 = rf(page, baseUpdateAt, force)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Post, int64, bool) error); ok {
+		r1 = rf(page, baseUpdateAt, force)
 	} else {
 		r1 = ret.Error(1)
 	}

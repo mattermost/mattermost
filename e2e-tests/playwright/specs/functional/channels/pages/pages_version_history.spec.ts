@@ -10,10 +10,17 @@ import {
     editPageThroughUI,
     ensurePanelOpen,
     getPageTreeNodeByTitle,
+    getVersionContent,
     getVersionHistoryItems,
     getVersionHistoryModal,
     openVersionHistoryModal,
+    restorePageVersion,
     verifyVersionHistoryModal,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
+    PAGE_LOAD_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -32,18 +39,18 @@ test('shows page version history after multiple edits', {tag: '@pages'}, async (
 
     // # Make first edit
     await editPageThroughUI(page, '\n\nEdited content v2');
-    await page.waitForTimeout(2000); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
 
     // # Make second edit
     await editPageThroughUI(page, '\n\nFinal content v3');
-    await page.waitForTimeout(2000); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
 
     // # Wait for page to be updated in Redux store (visible in tree)
     const pageNode = getPageTreeNodeByTitle(page, 'Version Test Page');
-    await pageNode.waitFor({state: 'visible', timeout: 5000});
+    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Additional wait to ensure Redux state is fully updated after edits
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Open version history modal
     await openVersionHistoryModal(page, 'Version Test Page');
@@ -68,7 +75,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
 
     // # Edit page to create version history
     await editPageThroughUI(page1, '\n\nEdited by user 1');
-    await page1.waitForTimeout(1500); // Wait for auto-save
+    await page1.waitForTimeout(AUTOSAVE_WAIT); // Wait for auto-save
 
     // # User 2 (non-author) opens the same wiki and page
     const user2 = pw.random.user('user2');
@@ -87,7 +94,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
     await page2.waitForLoadState('networkidle');
 
     // # Wait for wiki view to load first
-    await page2.waitForSelector('[data-testid="wiki-view"]', {state: 'visible', timeout: 15000});
+    await page2.waitForSelector('[data-testid="wiki-view"]', {state: 'visible', timeout: PAGE_LOAD_TIMEOUT});
 
     // # Ensure hierarchy panel is open
     await ensurePanelOpen(page2);
@@ -100,7 +107,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
     await expect(versionModal).toBeVisible();
 
     const historyItems = getVersionHistoryItems(page2);
-    await expect(historyItems).toHaveCount(1, {timeout: 5000});
+    await expect(historyItems).toHaveCount(1, {timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -120,11 +127,11 @@ test('enforces 10-version limit in page history', {tag: '@pages'}, async ({pw, s
     // # Make 14 edits (total 15 versions including original)
     for (let i = 1; i <= 14; i++) {
         await editPageThroughUI(page, `\n\nEdit ${i}`);
-        await page.waitForTimeout(500); // Small delay between edits
+        await page.waitForTimeout(SHORT_WAIT); // Small delay between edits
     }
 
     // # Wait for all edits to be saved
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Open version history modal
     await openVersionHistoryModal(page, 'Version Limit Test');
@@ -134,7 +141,7 @@ test('enforces 10-version limit in page history', {tag: '@pages'}, async ({pw, s
     await expect(versionModal).toBeVisible();
 
     const historyItems = getVersionHistoryItems(page);
-    await expect(historyItems).toHaveCount(10, {timeout: 5000});
+    await expect(historyItems).toHaveCount(10, {timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -156,22 +163,75 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
 
     // # Make first edit
     await editPageThroughUI(page, '\n\nVersion 2 content');
-    await page.waitForTimeout(2000); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
 
     // # Make second edit
     await editPageThroughUI(page, '\n\nVersion 3 content');
-    await page.waitForTimeout(2000); // Wait for Redux store to update
+    await page.waitForTimeout(AUTOSAVE_WAIT); // Wait for Redux store to update
 
     // # Wait for page to be updated in Redux store (visible in tree)
     const pageNode = getPageTreeNodeByTitle(page, 'Version History Page');
-    await pageNode.waitFor({state: 'visible', timeout: 5000});
+    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // # Additional wait to ensure Redux state is fully updated after edits
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Open version history modal
     await openVersionHistoryModal(page, 'Version History Page');
 
     // * Verify version history modal displays correctly (2 historical versions, current version excluded)
     await verifyVersionHistoryModal(page, 'Version History Page', 2);
+});
+
+/**
+ * @objective Verify restoring a previous page version from version history
+ */
+test('restores previous page version from version history', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page with initial content
+    await createWikiThroughUI(page, `Restore Wiki ${pw.random.id()}`);
+    await createPageThroughUI(page, 'Restore Test Page', 'Version 1: Original content');
+
+    // # Make first edit
+    await editPageThroughUI(page, '\n\nVersion 2: First edit');
+    await page.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # Make second edit
+    await editPageThroughUI(page, '\n\nVersion 3: Second edit');
+    await page.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # Wait for page to be updated in Redux store
+    const pageNode = getPageTreeNodeByTitle(page, 'Restore Test Page');
+    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // # Open version history modal
+    await openVersionHistoryModal(page, 'Restore Test Page');
+
+    // * Verify version history shows 2 historical versions
+    const historyItems = getVersionHistoryItems(page);
+    await expect(historyItems).toHaveCount(2, {timeout: ELEMENT_TIMEOUT});
+
+    // # Restore the first historical version (most recent edit before current)
+    await restorePageVersion(page, 0);
+
+    // * Verify version history modal closes after restore
+    const versionModal = getVersionHistoryModal(page);
+    await expect(versionModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify page content shows the restored version (Version 2)
+    const wikiView = page.locator('[data-testid="wiki-view"]');
+    await expect(wikiView).toContainText('Version 2: First edit');
+    await expect(wikiView).not.toContainText('Version 3: Second edit');
+
+    // # Reopen version history to verify restore created a new version
+    await openVersionHistoryModal(page, 'Restore Test Page');
+
+    // * Verify version history now shows 3 historical versions
+    await expect(historyItems).toHaveCount(3, {timeout: ELEMENT_TIMEOUT});
 });

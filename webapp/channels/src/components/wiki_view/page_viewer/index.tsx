@@ -10,7 +10,9 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {loadPage} from 'actions/pages';
 import {getPage, getPageStatus} from 'selectors/pages';
 
+import ActiveEditorsIndicator from 'components/active_editors_indicator/active_editors_indicator';
 import {useUser} from 'components/common/hooks/useUser';
+import InlineCommentModal from 'components/inline_comment_modal';
 import LoadingScreen from 'components/loading_screen';
 import ProfilePicture from 'components/profile_picture';
 import UserProfile from 'components/user_profile';
@@ -20,8 +22,6 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import {usePageInlineComments} from '../hooks/usePageInlineComments';
-import ActiveEditorsIndicator from 'components/active_editors_indicator/active_editors_indicator';
-import InlineCommentModal from 'components/inline_comment_modal';
 import TipTapEditor from '../wiki_page_editor/tiptap_editor';
 
 import './page_viewer.scss';

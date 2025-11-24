@@ -18,8 +18,8 @@
         min-width: 0;
         flex: 1;
         flex-direction: column;
-        background: var(--center-channel-bg);
         margin-left: var(--sidebar-width);
+        background: var(--center-channel-bg);
         transition: margin-left 0.2s ease-in-out;
 
         &__header {
@@ -80,19 +80,32 @@
             gap: 8px;
 
             .btn-icon {
-                height: 32px;
                 width: 32px;
                 min-width: 32px;
+                height: 32px;
                 margin:0;
             }
 
             .PagePane__publish-button,
             .PagePane__edit-button {
                 height: 32px;
-                padding-left: 12px;
                 padding-right: 12px;
+                padding-left: 12px;
                 margin: 0;
             }
+        }
+
+        &__unpublished-indicator {
+            display: flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 4px;
+            background: rgba(var(--away-indicator-rgb), 0.12);
+            color: var(--away-indicator);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         &__icon-button {
@@ -125,11 +138,11 @@
 
         &__content {
             display: flex;
-            align-items: center;
-            overflow-y: auto;
             min-width: 0;
             flex: 1;
             flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
         }
 
         &__emptyState {
@@ -206,8 +219,8 @@
     .page-draft-editor {
         display: flex;
         width: 100%;
-        height: 100%;
         max-width: 800px;
+        height: 100%;
         flex-direction: column;
 
         .page-title-input {
@@ -217,10 +230,10 @@
             background: transparent;
             color: var(--center-channel-color);
             font-family: 'Metropolis', sans-serif;
-            font-weight: 600;
             font-size: 40px;
-            line-height: 1.2;
+            font-weight: 600;
             letter-spacing: -.02em;
+            line-height: 1.2;
             outline: none;
         }
 
@@ -245,8 +258,8 @@
                 background: transparent;
                 color: var(--center-channel-color);
                 font-size: 40px;
-                line-height: 1.2;
                 letter-spacing: -0.02em;
+                line-height: 1.2;
                 outline: none;
 
                 &::placeholder {

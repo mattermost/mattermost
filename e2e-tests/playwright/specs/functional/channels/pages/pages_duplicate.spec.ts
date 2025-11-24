@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, waitForPageInHierarchy, waitForDuplicatedPageInHierarchy, getPageIdFromUrl, publishCurrentPage, getEditorAndWait, getHierarchyPanel, duplicatePageThroughUI} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, waitForPageInHierarchy, waitForDuplicatedPageInHierarchy, getPageIdFromUrl, publishCurrentPage, getEditorAndWait, getHierarchyPanel, duplicatePageThroughUI, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify page duplication creates a copy with default "Copy of [title]" naming at same level
@@ -21,7 +21,7 @@ test('duplicates page to same wiki with default title', {tag: '@pages'}, async (
     const originalPage = await createPageThroughUI(page, 'Original Page', 'Original content here');
 
     // # Wait for page to be fully committed to database
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Ensure panel is open
     await ensurePanelOpen(page);
@@ -71,14 +71,14 @@ test('duplicates child page at same level as source', {tag: '@pages'}, async ({p
 
     // # Wait for duplication to complete
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Ensure hierarchy panel is open and updated
     await ensurePanelOpen(page);
 
     // * Verify duplicated page appears as sibling under same parent
     const duplicateChild = hierarchyPanel.locator('[data-page-id]').filter({hasText: 'Copy of Child Page'}).first();
-    await expect(duplicateChild).toBeVisible({timeout: 15000});
+    await expect(duplicateChild).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
 
     // # Click on duplicated child page
     await duplicateChild.click();
@@ -104,7 +104,7 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
     const contentPage = await createPageThroughUI(page, 'Content Page', 'This is the original page content with some text.');
 
     // # Wait for page to be fully committed to database
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Ensure panel is open
     await ensurePanelOpen(page);
@@ -114,7 +114,7 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
 
     // # Wait for duplication
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Click on duplicated page
     const duplicateNode = page.locator('[data-page-id]').filter({hasText: 'Copy of Content Page'}).first();
@@ -149,7 +149,7 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
 
     // # Wait for duplication
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify duplicated page appears at root level
     const hierarchyPanel = getHierarchyPanel(page).first();

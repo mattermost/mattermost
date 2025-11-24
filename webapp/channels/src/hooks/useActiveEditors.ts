@@ -8,8 +8,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getActiveEditorsWithProfiles} from 'mattermost-redux/selectors/entities/active_editors';
 
-import type {GlobalState} from 'types/store';
-
 import {
     fetchActiveEditors,
     handleDraftCreated,
@@ -17,6 +15,8 @@ import {
     handleDraftDeleted,
     removeStaleEditors,
 } from 'actions/active_editors';
+
+import type {GlobalState} from 'types/store';
 
 export type ActiveEditorWithUser = {
     userId: string;
@@ -37,31 +37,16 @@ export function useActiveEditors(wikiId: string, pageId: string): ActiveEditorWi
     const editors = useSelector((state: GlobalState) => getActiveEditorsWithProfiles(state, pageId));
     const cleanupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    console.log('[useActiveEditors] Hook called with:', {wikiId, pageId, editorsCount: editors.length});
-
     useEffect(() => {
         if (!pageId || !wikiId) {
-            console.log('[useActiveEditors] Missing pageId or wikiId, skipping fetch');
             return;
         }
 
-        console.log('[useActiveEditors] Setting up for:', {wikiId, pageId});
-        console.log('[useActiveEditors] Fetching initial active editors');
         dispatch(fetchActiveEditors(wikiId, pageId));
 
-        console.log('[useActiveEditors] Setting up cleanup interval (60s) for pageId:', pageId);
         cleanupIntervalRef.current = setInterval(() => {
-            console.log('[useActiveEditors] Cleanup interval fired for pageId:', pageId);
             dispatch(removeStaleEditors(pageId));
         }, 60000);
-
-        return () => {
-            console.log('[useActiveEditors] Cleanup: clearing interval for pageId:', pageId);
-            if (cleanupIntervalRef.current) {
-                clearInterval(cleanupIntervalRef.current);
-                cleanupIntervalRef.current = null;
-            }
-        };
     }, [pageId, wikiId, dispatch]);
 
     return editors;

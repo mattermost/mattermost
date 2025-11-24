@@ -4,8 +4,8 @@
 import {combineReducers} from 'redux';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import ActiveEditorsTypes from 'mattermost-redux/action_types/active_editors';
 import {UserTypes} from 'mattermost-redux/action_types';
+import ActiveEditorsTypes from 'mattermost-redux/action_types/active_editors';
 
 export type ActiveEditorInfo = {
     userId: string;
@@ -73,54 +73,31 @@ function byPageId(
     case ActiveEditorsTypes.STALE_EDITORS_REMOVED: {
         const {pageId, staleThreshold} = action.data;
 
-        console.log('[STALE_CLEANUP_REDUCER] Processing STALE_EDITORS_REMOVED:', {
-            pageId,
-            staleThreshold,
-            hasPageState: !!state[pageId],
-            allPageIds: Object.keys(state),
-        });
-
         if (!state[pageId]) {
-            console.log('[STALE_CLEANUP_REDUCER] No state for pageId, returning unchanged');
             return state;
         }
 
         const nextPageState: Record<string, ActiveEditorInfo> = {};
         let hasChanges = false;
-        const removedEditors: string[] = [];
-        const keptEditors: string[] = [];
 
         Object.values(state[pageId]).forEach((editor) => {
             if (editor.lastActivity >= staleThreshold) {
                 nextPageState[editor.userId] = editor;
-                keptEditors.push(editor.userId);
             } else {
                 hasChanges = true;
-                removedEditors.push(editor.userId);
             }
         });
 
-        console.log('[STALE_CLEANUP_REDUCER] Cleanup results:', {
-            pageId,
-            hasChanges,
-            removedEditors,
-            keptEditors,
-            nextStateSize: Object.keys(nextPageState).length,
-        });
-
         if (!hasChanges) {
-            console.log('[STALE_CLEANUP_REDUCER] No changes, returning same state');
             return state;
         }
 
         if (Object.keys(nextPageState).length === 0) {
-            console.log('[STALE_CLEANUP_REDUCER] All editors removed, deleting page entry');
             const nextState = {...state};
             Reflect.deleteProperty(nextState, pageId);
             return nextState;
         }
 
-        console.log('[STALE_CLEANUP_REDUCER] Returning updated state with remaining editors');
         return {
             ...state,
             [pageId]: nextPageState,

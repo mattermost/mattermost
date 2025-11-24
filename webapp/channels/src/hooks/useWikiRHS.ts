@@ -4,8 +4,12 @@
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {GlobalState} from 'types/store';
-
+import {
+    setWikiRhsMode,
+    setWikiRhsWikiId,
+    setWikiRhsActiveTab,
+    setFocusedInlineCommentId,
+} from 'actions/views/wiki_rhs';
 import {
     getWikiRhsWikiId,
     getWikiRhsMode,
@@ -13,12 +17,6 @@ import {
     getFocusedInlineCommentId,
     getWikiRhsActiveTab,
 } from 'selectors/wiki_rhs';
-import {
-    setWikiRhsMode,
-    setWikiRhsWikiId,
-    setWikiRhsActiveTab,
-    setFocusedInlineCommentId,
-} from 'actions/views/wiki_rhs';
 
 /**
  * Hook to manage Wiki RHS state and operations.

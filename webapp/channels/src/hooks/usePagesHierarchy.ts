@@ -4,17 +4,6 @@
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {GlobalState} from 'types/store';
-
-import {
-    getPagesTree,
-    getExpandedNodes,
-    getSelectedPageId,
-    getIsPanesPanelCollapsed,
-    getLastViewedPage,
-    getPageAncestorIds,
-    isNodeExpanded,
-} from 'selectors/pages_hierarchy';
 import {
     toggleNodeExpanded,
     setSelectedPage,
@@ -24,6 +13,15 @@ import {
     closePagesPanel,
     setLastViewedPage,
 } from 'actions/views/pages_hierarchy';
+import {
+    getPagesTree,
+    getExpandedNodes,
+    getSelectedPageId,
+    getIsPanesPanelCollapsed,
+    getLastViewedPage,
+} from 'selectors/pages_hierarchy';
+
+import type {GlobalState} from 'types/store';
 
 /**
  * Hook to manage pages hierarchy for a wiki.

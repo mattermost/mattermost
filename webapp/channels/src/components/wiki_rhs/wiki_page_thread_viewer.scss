@@ -198,9 +198,9 @@
         }
 
         &.resolved {
-            opacity: 0.7;
             border-color: rgba(var(--center-channel-color-rgb), 0.04);
             background: rgba(var(--center-channel-color-rgb), 0.02);
+            opacity: 0.7;
 
             .WikiPageThreadViewer__thread-item-icon i {
                 opacity: 0.5;
@@ -231,10 +231,10 @@
     &__thread-item-text {
         display: flex;
         align-items: center;
-        gap: 8px;
         color: var(--center-channel-color);
         font-size: 14px;
         font-weight: 500;
+        gap: 8px;
         line-height: 1.4;
     }
 

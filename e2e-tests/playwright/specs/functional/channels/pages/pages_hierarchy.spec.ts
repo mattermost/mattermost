@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, navigateToPage, getBreadcrumb, getHierarchyPanel, deletePageWithOption, getEditorAndWait, typeInEditor} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, navigateToPage, getBreadcrumb, getHierarchyPanel, deletePageWithOption, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, UI_MICRO_WAIT} from './test_helpers';
 
 /**
  * @objective Verify page hierarchy expansion and collapse functionality
@@ -32,23 +32,23 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPage
 
     // * Verify child node is visible (parent should be auto-expanded after child creation)
     const childNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + childPage.id + '"]');
-    await expect(childNode).toBeVisible({timeout: 5000});
+    await expect(childNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Collapse parent node
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButton).toBeVisible();
     await expandButton.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify child is hidden after collapse
     await expect(childNode).not.toBeVisible();
 
     // # Expand parent node again
     await expandButton.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify child is visible again after expand
-    await expect(childNode).toBeVisible({timeout: 5000});
+    await expect(childNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -77,14 +77,14 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
 
     // # Select "Move" from context menu
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: 2000});
+    await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
     const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
     await expect(moveButton).toBeVisible();
     await moveButton.click();
 
     // # Select Page 1 as new parent in modal
     const moveModal = page.getByRole('dialog', {name: /Move/i});
-    await expect(moveModal).toBeVisible({timeout: 3000});
+    await expect(moveModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     // Use data-page-id attribute to find the page option
     const page1Option = moveModal.locator(`[data-page-id="${page1.id}"]`).first();
     await page1Option.click();
@@ -94,15 +94,10 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     await confirmButton.click();
 
     // Wait for modal to close
-    await expect(moveModal).not.toBeVisible({timeout: 5000});
+    await expect(moveModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
     await page.waitForLoadState('networkidle');
 
-    // * Verify Page 2 now appears under Page 1
-    // Check breadcrumb navigation shows the hierarchy
-    const breadcrumbNav = page.locator('[aria-label*="breadcrumb" i]').first();
-    await expect(breadcrumbNav).toContainText('Page 1');
-    await expect(breadcrumbNav).toContainText('Page 2');
-
+    // * Verify Page 2 now appears under Page 1 in hierarchy panel
     // Find Page 1 in hierarchy panel
     const page1Node = hierarchyPanel.locator('[data-page-id="' + page1.id + '"]').first();
     await expect(page1Node).toBeVisible();
@@ -116,7 +111,7 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     const isCollapsed = await chevronRight.count() > 0;
     if (isCollapsed) {
         await expandButton.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // * Verify Page 2 is now visible as a child of Page 1 in the hierarchy
@@ -134,9 +129,15 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     }, page2.id);
     expect(page2Index).toBeGreaterThan(page1Index);
 
+    // # Wait for websocket event to propagate
+    await page.waitForTimeout(500);
+
+    // # Click on Page 2 to navigate to it
+    await page2AsChild.click();
+
     // * Verify breadcrumbs reflect new hierarchy: Wiki > Page 1 > Page 2
     const breadcrumb = getBreadcrumb(page);
-    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
     const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
@@ -222,7 +223,7 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
     await confirmButton.click();
 
     // Wait for modal to close
-    await expect(moveModal).not.toBeVisible({timeout: 5000});
+    await expect(moveModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
     await page.waitForLoadState('networkidle');
 
     // * Verify page removed from Wiki 1
@@ -230,7 +231,7 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
 
     const hierarchyPanel = getHierarchyPanel(page);
     const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
-    await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
+    await expect(pageInWiki1Still).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify page appears in Wiki 2
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki2.id);
@@ -244,7 +245,7 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
 
     // * Verify breadcrumbs show Wiki 2 > Page to Move
     const breadcrumb = getBreadcrumb(page);
-    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
     const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
@@ -287,14 +288,14 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
 
     // # Select "Move" from context menu
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: 2000});
+    await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
     const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
     await expect(moveButton).toBeVisible();
     await moveButton.click();
 
     // # Select Existing Child as new parent in modal
     const moveModal = page.getByRole('dialog', {name: /Move/i});
-    await expect(moveModal).toBeVisible({timeout: 3000});
+    await expect(moveModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const existingChildOption = moveModal.locator(`[data-page-id="${existingChild.id}"]`).first();
     await existingChildOption.click();
 
@@ -302,7 +303,7 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     await confirmButton.click();
 
     // Wait for modal to close
-    await expect(moveModal).not.toBeVisible({timeout: 5000});
+    await expect(moveModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
     await page.waitForLoadState('networkidle');
 
     // * Verify hierarchy: Parent Page > Existing Child > Page to Move
@@ -314,7 +315,7 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
     if (await parentChevronRight.count() > 0) {
         await parentExpandButton.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // Find and expand Existing Child
@@ -325,20 +326,22 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     const childChevronRight = existingChildNode.locator('.icon-chevron-right').first();
     if (await childChevronRight.count() > 0) {
         await childExpandButton.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // * Verify Page to Move is now visible as a child of Existing Child
     const movedPageNode = hierarchyPanel.locator('[data-page-id="' + pageToMove.id + '"]').first();
     await expect(movedPageNode).toBeVisible();
 
-    // # Click on moved page to view it and verify breadcrumbs
+    // # Wait for websocket event to propagate
+    await page.waitForTimeout(500);
+
+    // # Click on moved page to navigate to it
     await movedPageNode.click();
-    await page.waitForLoadState('networkidle');
 
     // * Verify breadcrumbs reflect full hierarchy: Wiki > Parent Page > Existing Child > Page to Move
     const breadcrumb = page.locator('[data-testid="breadcrumb"]');
-    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
     const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
@@ -387,7 +390,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     await wikiSelect.selectOption(wiki2.id);
 
     // Wait for pages to load
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // # Then select Child as parent and confirm
     await confirmMoveToTarget(page, moveModal, `[data-page-id="${childPage.id}"]`);
@@ -397,7 +400,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
 
     const hierarchyPanel = getHierarchyPanel(page);
     const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
-    await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
+    await expect(pageInWiki1Still).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify page appears in Wiki 2 under Child in Wiki 2
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki2.id);
@@ -410,7 +413,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
     if (await parentChevronRight.count() > 0) {
         await parentExpandButton.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // Find and expand Child in Wiki 2
@@ -421,7 +424,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     const childChevronRight = childNode.locator('.icon-chevron-right').first();
     if (await childChevronRight.count() > 0) {
         await childExpandButton.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // * Verify Page to Move is now visible as a child of Child in Wiki 2
@@ -434,7 +437,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
 
     // * Verify breadcrumbs reflect new hierarchy: Wiki 2 > Parent in Wiki 2 > Child in Wiki 2 > Page to Move
     const breadcrumb = getBreadcrumb(page);
-    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify wiki name (not a link anymore)
     const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
@@ -529,222 +532,11 @@ test('handles special characters in page names', {tag: '@pages'}, async ({pw, sh
     const hierarchyPanel = getHierarchyPanel(page);
     const renamedNode = hierarchyPanel.locator(`text="${specialName}"`).first();
 
-    await expect(renamedNode).toBeVisible({timeout: 5000});
+    await expect(renamedNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const nodeText = await renamedNode.textContent();
     expect(nodeText).toContain('🚀');
     expect(nodeText).toContain('中文');
     expect(nodeText).toContain('émojis');
-});
-
-/**
-/**
- * @objective Verify drag-and-drop to make a page a child of another page
- */
-test.skip('makes page a child via drag-drop', {tag: '@pages'}, async ({pw}) => {
-    // BLOCKED: Playwright drag-and-drop doesn't work with react-beautiful-dnd
-    //
-    // The UI functionality WORKS and is implemented (page_tree_view.tsx:139-182)
-    // The underlying API is tested via "moves page to new parent within same wiki" test (uses modal)
-    //
-    // Known issue: Playwright's native drag-and-drop (dragTo, mouse.down/up) doesn't properly
-    // trigger react-beautiful-dnd's event handlers. Would need custom CDP commands or visual testing.
-    //
-    // Alternatives:
-    // 1. Test via context menu "Move To" modal (already tested)
-    // 2. Use visual regression testing for drag behavior
-    // 3. Implement custom CDP drag-and-drop for react-beautiful-dnd
-    const channel = await createTestChannel(sharedAdminClient, sharedTeam.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(sharedUser);
-    await channelsPage.goto(sharedTeam.name, channel.name);
-
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Drag Wiki ${pw.random.id()}`);
-
-    // # Create two root-level pages
-    const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
-    const siblingPage = await createPageThroughUI(page, 'Sibling Page', 'Sibling content');
-
-    // * Verify both pages are visible in hierarchy panel
-    const hierarchyPanel = getHierarchyPanel(page);
-    const parentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
-    const siblingNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${siblingPage.id}"]`);
-    await expect(parentNode).toBeVisible();
-    await expect(siblingNode).toBeVisible();
-
-    // # Get initial padding of both nodes
-    const initialParentPadding = await parentNode.evaluate((el) => {
-        return window.getComputedStyle(el).paddingLeft;
-    });
-    const initialSiblingPadding = await siblingNode.evaluate((el) => {
-        return window.getComputedStyle(el).paddingLeft;
-    });
-
-    // * Verify both start at same level (same padding)
-    expect(initialParentPadding).toBe(initialSiblingPadding);
-
-    // # Perform manual drag-and-drop using CDP (react-beautiful-dnd compatible)
-    const siblingBox = await siblingNode.boundingBox();
-    const parentBox = await parentNode.boundingBox();
-
-    if (!siblingBox || !parentBox) {
-        throw new Error('Could not get bounding boxes for drag operation');
-    }
-
-    // Start drag from center of sibling
-    await page.mouse.move(siblingBox.x + siblingBox.width / 2, siblingBox.y + siblingBox.height / 2);
-    await page.mouse.down();
-    await page.waitForTimeout(100);
-
-    // Move to center of parent (combine behavior in react-beautiful-dnd)
-    await page.mouse.move(parentBox.x + parentBox.width / 2, parentBox.y + parentBox.height / 2, {steps: 10});
-    await page.waitForTimeout(200);
-
-    // Drop
-    await page.mouse.up();
-
-    // # Wait for drag operation to complete and UI to update
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
-
-    // * Verify parent now has expand button (indicating it has children)
-    const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    await expect(expandButton).toBeVisible({timeout: 5000});
-
-    // # Expand parent to see children
-    await expandButton.click();
-    await page.waitForTimeout(500);
-
-    // * Verify sibling page appears under parent
-    const childNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${siblingPage.id}"]`);
-    await expect(childNode).toBeVisible({timeout: 5000});
-
-    // * Verify child has increased indentation (depth indicator)
-    const childPadding = await childNode.evaluate((el) => {
-        return window.getComputedStyle(el).paddingLeft;
-    });
-
-    // Child should have 20px more padding than initial sibling padding (one level deeper)
-    expect(parseInt(childPadding)).toBeGreaterThan(parseInt(initialSiblingPadding));
-});
-
-/**
- * @objective Verify drag-and-drop to promote a child page to root level
- */
-test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, async ({pw}) => {
-    // BLOCKED: Playwright drag-and-drop doesn't work with react-beautiful-dnd (same as above test)
-    //
-    // The UI functionality WORKS - dragging child between root nodes should promote it
-    // The underlying API is tested via "moves page to new parent within same wiki" test (uses modal)
-    const channel = await createTestChannel(sharedAdminClient, sharedTeam.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(sharedUser);
-    await channelsPage.goto(sharedTeam.name, channel.name);
-
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Promote Wiki ${pw.random.id()}`);
-
-    // # Create parent page and a child page
-    const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
-    const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
-
-    // # Create a second root page to drag between
-    const rootPage2 = await createPageThroughUI(page, 'Root Page 2', 'Root content 2');
-
-    // * Verify initial hierarchy
-    const hierarchyPanel = getHierarchyPanel(page);
-    const parentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
-    await expect(parentNode).toBeVisible();
-
-    // # Expand parent to see child
-    const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    await expandButton.click();
-    await page.waitForTimeout(500);
-
-    const childNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);
-    await expect(childNode).toBeVisible();
-
-    // # Get initial padding of child (should be indented)
-    const initialChildPadding = await childNode.evaluate((el) => {
-        return window.getComputedStyle(el).paddingLeft;
-    });
-    const parentPadding = await parentNode.evaluate((el) => {
-        return window.getComputedStyle(el).paddingLeft;
-    });
-
-    // * Verify child is indented more than parent
-    expect(parseInt(initialChildPadding)).toBeGreaterThan(parseInt(parentPadding));
-
-    // # Perform drag-and-drop to move child BETWEEN root pages
-    // Get the root page 2 node position
-    const rootPage2Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${rootPage2.id}"]`);
-    await expect(rootPage2Node).toBeVisible();
-
-    const childBox = await childNode.boundingBox();
-    const rootPage2Box = await rootPage2Node.boundingBox();
-
-    if (!childBox || !rootPage2Box) {
-        throw new Error('Could not get bounding boxes for drag operation');
-    }
-
-    // # Start drag from center of child
-    await page.mouse.move(childBox.x + childBox.width / 2, childBox.y + childBox.height / 2);
-    await page.mouse.down();
-    await page.waitForTimeout(100);
-
-    // # Move to space BETWEEN root pages (above rootPage2, not ON it)
-    // Move to just above the rootPage2 to drop BETWEEN pages
-    await page.mouse.move(rootPage2Box.x + rootPage2Box.width / 2, rootPage2Box.y - 5, {steps: 10});
-    await page.waitForTimeout(200);
-
-    // # Drop
-    await page.mouse.up();
-
-    // # Wait for drag operation to complete and UI to update
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
-
-    // * Verify child node is now at root level (no longer under parent)
-    // Parent node should no longer have expand button (or should collapse)
-    const parentStillHasExpandButton = await parentNode.locator('[data-testid="page-tree-node-expand-button"]').isVisible().catch(() => false);
-
-    // If parent still has expand button, it should show child is gone
-    if (parentStillHasExpandButton) {
-        // Collapse and re-expand to refresh
-        await expandButton.click();
-        await page.waitForTimeout(300);
-        await expandButton.click();
-        await page.waitForTimeout(500);
-
-        // Child should not be visible under parent anymore
-        const childStillUnderParent = await hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`).count();
-        expect(childStillUnderParent).toBe(0);
-    }
-
-    // * Verify promoted child now appears at root level with same padding as other root pages
-    const promotedChildNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`).first();
-    await expect(promotedChildNode).toBeVisible({timeout: 5000});
-
-    const newChildPadding = await promotedChildNode.evaluate((el) => {
-        return window.getComputedStyle(el).paddingLeft;
-    });
-
-    // Should now have same padding as root pages (not indented)
-    expect(newChildPadding).toBe(parentPadding);
-});
-
-test.skip('reorders pages at same level via drag-drop', {tag: '@pages'}, async ({pw}) => {
-    // BLOCKED: Requires DisplayOrder field implementation
-    //
-    // Current limitation: Pages are ordered by CreateAt timestamp only (no display_order field)
-    // The drag-drop UI exists (react-beautiful-dnd) but only supports parent changes, not sibling reordering
-    //
-    // To implement:
-    // 1. Add DisplayOrder field to Post model (server/public/model/post.go)
-    // 2. Update database schema with migration
-    // 3. Modify GetPageChildren query to ORDER BY DisplayOrder, CreateAt (server/channels/store/sqlstore/page_store.go:33)
-    // 4. Implement reorder API endpoint
-    // 5. Update handleDragEnd in page_tree_view.tsx:156-164 to calculate new order and call reorder API
 });
 
 /**
@@ -828,7 +620,7 @@ test('enforces max hierarchy depth - 12th level fails', {tag: '@pages'}, async (
     // * Verify error bar is displayed with max depth message
     // Mattermost shows errors in an announcement bar at the top of the page
     const errorBar = page.locator('.announcement-bar, [role="alert"]').filter({hasText: /depth|limit|maximum|exceed/i});
-    await expect(errorBar).toBeVisible({timeout: 5000});
+    await expect(errorBar).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify we're still in edit mode (draft editor still visible, not navigated away)
     await expect(editor).toBeVisible();
@@ -894,33 +686,33 @@ test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw,
     const hierarchyPanel = getHierarchyPanel(page);
     const parentNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
     const childNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + childPage.id + '"]');
-    await expect(childNode).toBeVisible({timeout: 5000});
+    await expect(childNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Collapse parent node
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButton).toBeVisible();
     await expandButton.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify child is hidden after collapse
     await expect(childNode).not.toBeVisible();
 
     // # Navigate away to channel view (click channel name or navigate to channel)
     await channelsPage.goto(team.name, channel.name);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify we're in the channel view (not wiki view)
     const channelHeader = page.locator('#channelHeaderTitle, [data-testid="channel-header-title"]');
-    await expect(channelHeader).toBeVisible({timeout: 3000});
+    await expect(channelHeader).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Navigate back to wiki by clicking the wiki bookmark
     const wikiBookmark = page.locator(`[data-bookmark-link*="wiki"], a:has-text("${wiki.title}")`).first();
-    await expect(wikiBookmark).toBeVisible({timeout: 3000});
+    await expect(wikiBookmark).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await wikiBookmark.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify we're back in wiki view
-    await expect(hierarchyPanel).toBeVisible({timeout: 5000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify parent node is still collapsed (child not visible)
     await expect(childNode).not.toBeVisible();
@@ -1023,7 +815,7 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
 
     // Wait for channel to be fully loaded
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Persist State Wiki ${pw.random.id()}`);
@@ -1043,14 +835,14 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     await navigateToPage(page, pw.url, team.name, channel.id, wiki.id, publishedPage1.id);
 
     const hierarchyPanel = getHierarchyPanel(page);
-    await expect(hierarchyPanel).toBeVisible({timeout: 5000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Expand parent node to make child visible
     const parent1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
     const expandButton = parent1Node.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButton).toBeVisible();
     await expandButton.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify EXACT nodes we created are visible before refresh
     const published1NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
@@ -1084,14 +876,14 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     await page.waitForLoadState('networkidle');
 
     // * Verify hierarchy panel is still visible after refresh
-    await expect(hierarchyPanel).toBeVisible({timeout: 5000});
+    await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Expand parent node again after refresh to make child visible
     const parent1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
     const expandButtonAfter = parent1NodeAfter.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButtonAfter).toBeVisible();
     await expandButtonAfter.click();
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify EXACT same nodes are visible after refresh
     const published1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
@@ -1131,7 +923,7 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
         // Navigate to town square to ensure we're not on the channel we're about to delete
         await channelsPage.goto(team.name, 'town-square');
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(SHORT_WAIT);
 
         // Now delete the channel
         await adminClient.deleteChannel(channel.id);
@@ -1192,7 +984,7 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
         await titleButton.click();
 
         // Wait for navigation
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify order is still the same
         const currentOrder = await getPageOrder();

@@ -208,6 +208,12 @@ type UseWikiPageActionsResult = {
         onOverwrite: () => void;
         onCancel: () => void;
     };
+    confirmOverwriteModal: {
+        show: boolean;
+        currentPage: Post | null;
+        onConfirm: () => void;
+        onCancel: () => void;
+    };
 };
 
 /**
@@ -235,6 +241,7 @@ export function useWikiPageActions(
 
     // Conflict modal state
     const [showConflictModal, setShowConflictModal] = useState(false);
+    const [showConfirmOverwriteModal, setShowConfirmOverwriteModal] = useState(false);
     const [conflictPageData, setConflictPageData] = useState<Post | null>(null);
     const conflictContentRef = useRef<string>('');
 
@@ -311,18 +318,17 @@ export function useWikiPageActions(
 
     const handleEdit = useCallback(async () => {
         if (!pageId || !wikiId || !currentPage) {
-            return;
+            return undefined;
         }
 
         const result = await dispatch(openPageInEditMode(channelId, wikiId, currentPage, history, location));
 
         // Check if unsaved draft was detected
         if (result.error && result.error.id === 'api.page.edit.unsaved_draft_exists') {
-            // Return error data to trigger modal in component
             return result;
         }
 
-        return result;
+        return undefined;
     }, [channelId, pageId, wikiId, currentPage, dispatch, history, location]);
 
     const handleTitleChange = useCallback((newTitle: string) => {
@@ -506,6 +512,7 @@ export function useWikiPageActions(
 
         const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
+        const originalPageUpdateAt = currentDraft.props?.original_page_update_at;
         const title = latestTitleRef.current || currentDraft.props?.title || '';
         const content = latestContentRef.current || currentDraft.message || '';
         dispatch(savePageDraft(
@@ -517,6 +524,7 @@ export function useWikiPageActions(
             pageIdFromDraft,
             {
                 ...(pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : {}),
+                ...(originalPageUpdateAt ? {original_page_update_at: originalPageUpdateAt} : {}),
                 page_status: newStatus,
             },
         ));
@@ -538,15 +546,17 @@ export function useWikiPageActions(
         setShowConflictModal(false);
     }, []);
 
-    const handleConflictOverwrite = useCallback(async () => {
+    const handleConflictOverwrite = useCallback(() => {
+        // Close conflict modal and show confirmation modal
+        setShowConflictModal(false);
+        setShowConfirmOverwriteModal(true);
+    }, []);
+
+    const handleConfirmOverwrite = useCallback(async () => {
         try {
-            // eslint-disable-next-line no-console
-            console.log('[handleConflictOverwrite] START');
-            setShowConflictModal(false);
+            setShowConfirmOverwriteModal(false);
 
             if (!wikiId || !currentDraft) {
-                // eslint-disable-next-line no-console
-                console.log('[handleConflictOverwrite] Missing wikiId or currentDraft');
                 return;
             }
 
@@ -556,10 +566,6 @@ export function useWikiPageActions(
             const draftRootId = currentDraft.rootId;
             const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
 
-            // eslint-disable-next-line no-console
-            console.log('[handleConflictOverwrite] Publishing with force=true', {wikiId, draftRootId, title});
-
-            // Retry publish with force flag
             const result = await dispatch(publishPageDraft(
                 wikiId,
                 draftRootId,
@@ -571,24 +577,21 @@ export function useWikiPageActions(
                 true, // force = true
             ));
 
-            // eslint-disable-next-line no-console
-            console.log('[handleConflictOverwrite] Publish result:', {hasData: !!result.data, hasError: !!result.error, error: result.error});
-
             if (result.data) {
                 const teamName = getTeamNameFromPath(location.pathname);
                 const redirectUrl = getWikiUrl(teamName, channelId, wikiId, result.data.id);
-                // eslint-disable-next-line no-console
-                console.log('[handleConflictOverwrite] Navigating to:', redirectUrl);
                 history.replace(redirectUrl);
-            } else {
-                // eslint-disable-next-line no-console
-                console.error('[handleConflictOverwrite] Publish FAILED with error:', JSON.stringify(result.error, null, 2));
             }
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('[handleConflictOverwrite] EXCEPTION:', error);
+            // Handle error silently
         }
     }, [wikiId, currentDraft, channelId, location.pathname, history, dispatch]);
+
+    const handleCancelConfirmOverwrite = useCallback(() => {
+        // Go back to conflict modal
+        setShowConfirmOverwriteModal(false);
+        setShowConflictModal(true);
+    }, []);
 
     const handleConflictCancel = useCallback(() => {
         setShowConflictModal(false);
@@ -608,6 +611,12 @@ export function useWikiPageActions(
             onCopyContent: handleConflictCopyContent,
             onOverwrite: handleConflictOverwrite,
             onCancel: handleConflictCancel,
+        },
+        confirmOverwriteModal: {
+            show: showConfirmOverwriteModal,
+            currentPage: conflictPageData,
+            onConfirm: handleConfirmOverwrite,
+            onCancel: handleCancelConfirmOverwrite,
         },
     };
 }

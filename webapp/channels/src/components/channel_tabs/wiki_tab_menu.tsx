@@ -21,15 +21,14 @@ import {updateWiki, deleteWiki, moveWikiToChannel} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
+import MoveWikiModal from 'components/move_wiki_modal';
 import TextInputModal from 'components/text_input_modal';
+import WikiDeleteModal from 'components/wiki_delete_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
-
-import MoveWikiModal from 'components/move_wiki_modal';
-import WikiDeleteModal from 'components/wiki_delete_modal';
 
 type Props = {
     wiki: Wiki;

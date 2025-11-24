@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
+import React from 'react';
 
 import ActiveEditorsIndicator from 'components/active_editors_indicator/active_editors_indicator';
 
+import {useActiveEditors} from 'hooks/useActiveEditors';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 jest.mock('hooks/useActiveEditors', () => ({
@@ -18,8 +19,6 @@ jest.mock('components/widgets/users/avatar', () => {
         return <div data-testid={testId}>{props.username}</div>;
     });
 });
-
-import {useActiveEditors} from 'hooks/useActiveEditors';
 
 describe('components/ActiveEditorsIndicator', () => {
     const baseProps = {

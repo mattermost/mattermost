@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT} from './test_helpers';
 
 /**
  * @objective Verify pages can be found using wiki tree panel search by title
@@ -26,13 +26,13 @@ test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, 
 
     // # Perform search in wiki tree panel
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
-    await expect(searchInput).toBeVisible({timeout: 3000});
+    await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill(searchableTitle);
-    await page.waitForTimeout(500); // Debounce
+    await page.waitForTimeout(SHORT_WAIT); // Debounce
 
     // * Verify filtered tree shows matching page
     const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
-    await expect(treeContainer).toBeVisible({timeout: 3000});
+    await expect(treeContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(treeContainer).toContainText(searchableTitle);
 
     // * Verify non-matching pages are not shown in filtered tree
@@ -75,19 +75,19 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
 
     // # Search by title - should find the page
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
-    await expect(searchInput).toBeVisible({timeout: 3000});
+    await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill('Engineering');
-    await page.waitForTimeout(500); // Debounce
+    await page.waitForTimeout(SHORT_WAIT); // Debounce
 
     const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
-    await expect(treeContainer).toBeVisible({timeout: 3000});
+    await expect(treeContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
     // * Verify page found by title
     await expect(treeContainer).toContainText('Engineering Documentation');
 
     // # Clear and search by content - should NOT find the page (tree search is title-only)
     await searchInput.clear();
     await searchInput.fill(uniqueContent);
-    await page.waitForTimeout(500); // Debounce
+    await page.waitForTimeout(SHORT_WAIT); // Debounce
 
     // * Verify no pages found (content not searchable in tree panel)
     await expect(treeContainer).toContainText('No pages found');
@@ -111,7 +111,7 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
     await createPageThroughUI(page, searchableTitle, 'Test content for global search');
 
     // # Wait for page to be indexed (pages need to be saved to PageContents for search)
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Perform global search
     await channelsPage.globalHeader.openSearch();
@@ -120,7 +120,7 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
     await searchInput.press('Enter');
 
     // # Wait for search results to appear in RHS
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify search results contain the page title
@@ -155,7 +155,7 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await publishCurrentPage(page);
 
     // # Wait for page to be indexed
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Perform global search for content
     await channelsPage.globalHeader.openSearch();
@@ -164,7 +164,7 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await searchInput.press('Enter');
 
     // # Wait for search results to appear in RHS
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify search results contain the page title and content preview

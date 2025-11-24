@@ -198,6 +198,9 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(page)
 	auditRec.AddEventObjectType("page")
 
+	// Broadcast page_published event (for direct page creation via API, not draft publishing)
+	c.App.BroadcastPagePublished(page, c.Params.WikiId, page.ChannelId, "", c.AppContext.Session().UserId)
+
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(page); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
