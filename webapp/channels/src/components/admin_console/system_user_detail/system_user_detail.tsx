@@ -108,18 +108,17 @@ export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedCompon
 export type State = {
     user?: UserProfile;
     usernameField: string;
-    usernameError?: string | null;
+    usernameError: string | null;
     emailField: string;
-    emailError?: string | null;
+    emailError: string | null;
     authDataField: string;
-    authDataError?: string | null;
+    authDataError: string | null;
     customProfileAttributeFields: UserPropertyField[];
     customProfileAttributeValues: Record<string, string | string[]>;
     customProfileAttributeErrors: Record<string, string | undefined>;
     originalCpaValues: Record<string, string | string[]>;
     isLoading: boolean;
-    error?: string | null;
-    isSaveNeeded: boolean;
+    error: string | null;
     isSaving: boolean;
     teams: TeamMembership[];
     teamIds: Array<Team['id']>;
@@ -146,7 +145,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             originalCpaValues: {},
             isLoading: false,
             error: null,
-            isSaveNeeded: false,
             isSaving: false,
             teams: [],
             teamIds: [],
@@ -205,7 +203,52 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         if (this.props.customProfileAttributeFields.length === 0) {
             this.props.getCustomProfileAttributeFields();
         }
+        (window as any).debug = this;
     }
+
+    componentDidUpdate(prevProps: Props, prevState: State) {
+        // Update navigation blocking whenever relevant state changes
+        const hasChanges = this.hasUnsavedChanges();
+        const hadChanges = this.hasUnsavedChanges(prevState);
+
+        if (hasChanges !== hadChanges) {
+            this.props.setNavigationBlocked(hasChanges);
+        }
+    }
+
+    private hasUnsavedChanges = (state: State = this.state): boolean => {
+        if (!state.user) {
+            return false;
+        }
+
+        const emailChanged = state.emailField !== state.user.email;
+        const usernameChanged = state.usernameField !== state.user.username;
+        const authDataChanged = state.authDataField !== (state.user.auth_data || '');
+        const cpaChanged = this.hasCpaChanges(state);
+
+        return emailChanged || usernameChanged || authDataChanged || cpaChanged;
+    };
+
+    private hasCpaChanges = (state: State = this.state): boolean => {
+        const {customProfileAttributeFields} = this.props;
+        for (const field of customProfileAttributeFields) {
+            const currentValue = state.customProfileAttributeValues[field.id];
+            const originalValue = state.originalCpaValues[field.id];
+
+            if (this.isCpaValueChanged(currentValue, originalValue)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    private isCpaValueChanged = (currentValue: string | string[] | undefined, originalValue: string | string[] | undefined): boolean => {
+        if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
+            return currentValue.length !== originalValue.length ||
+                   currentValue.some((val, idx) => val !== originalValue[idx]);
+        }
+        return currentValue !== originalValue;
+    };
 
     handleTeamsLoaded = (teams: TeamMembership[]) => {
         const teamIds = teams.map((team) => team.team_id);
@@ -301,7 +344,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const {target: {value}} = event;
 
         // Validate email
-        let emailError;
+        let emailError = null;
         if (!value.trim()) {
             emailError = this.props.intl.formatMessage({id: 'admin.user_item.emptyEmail', defaultMessage: 'Email cannot be empty'});
         } else if (!isEmail(value)) {
@@ -312,8 +355,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             emailField: value,
             emailError,
             error: null, // Clear any errors when user starts editing
-        }, () => {
-            this.checkForChanges();
         });
     };
 
@@ -350,28 +391,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 [fieldId]: cpaError,
             },
             error: null, // Clear any errors when user starts editing
-        }, () => {
-            this.checkForChanges();
         });
-    };
-
-    checkForChanges = () => {
-        if (!this.state.user) {
-            return;
-        }
-
-        const emailChanged = this.state.emailField !== this.state.user.email;
-        const usernameChanged = this.state.usernameField !== this.state.user.username;
-        const authDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
-        const cpaChanged = this.hasCpaChanges();
-
-        const hasChanges = emailChanged || usernameChanged || authDataChanged || cpaChanged;
-
-        this.setState({
-            isSaveNeeded: hasChanges,
-        });
-
-        this.props.setNavigationBlocked(hasChanges);
     };
 
     handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -382,7 +402,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const {target: {value}} = event;
 
         // Validate username
-        let usernameError;
+        let usernameError = null;
         if (!value.trim()) {
             usernameError = this.props.intl.formatMessage({id: 'admin.user_item.invalidUsername', defaultMessage: 'Username cannot be empty'});
         }
@@ -390,8 +410,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({
             usernameField: value,
             usernameError,
-        }, () => {
-            this.checkForChanges();
         });
     };
 
@@ -403,7 +421,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const {target: {value}} = event;
 
         // Validate auth data
-        let authDataError;
+        let authDataError = null;
         if (!value.trim()) {
             authDataError = this.props.intl.formatMessage({id: 'admin.user_item.invalidAuthData', defaultMessage: 'Auth Data cannot be empty'});
         } else if (value.length > 128) {
@@ -413,13 +431,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({
             authDataField: value,
             authDataError,
-        }, () => {
-            this.checkForChanges();
         });
-    };
-
-    hasCpaChanges = (): boolean => {
-        return Object.keys(this.getChangedCpaFields()).length > 0;
     };
 
     getChangedCpaFields = (): Record<string, string | string[]> => {
@@ -429,16 +441,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             const currentValue = this.state.customProfileAttributeValues[field.id];
             const originalValue = this.state.originalCpaValues[field.id];
 
-            // Check if this field value has changed
-            let hasChanged = false;
-            if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
-                hasChanged = currentValue.length !== originalValue.length ||
-                            currentValue.some((val, idx) => val !== originalValue[idx]);
-            } else {
-                hasChanged = currentValue !== originalValue;
-            }
-
-            if (hasChanged) {
+            if (this.isCpaValueChanged(currentValue, originalValue)) {
                 res[field.id] = currentValue || '';
             }
         }
@@ -914,9 +917,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             customProfileAttributeValues: {...this.state.originalCpaValues},
             customProfileAttributeErrors: {},
             error: null, // Clear any errors when user starts editing
-            isSaveNeeded: false,
         });
-        this.props.setNavigationBlocked(false);
     };
 
     handleSubmit = async (event: MouseEvent<HTMLButtonElement>) => {
@@ -931,7 +932,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             return;
         }
 
-        if (!this.state.isSaveNeeded) {
+        if (!this.hasUnsavedChanges()) {
             return;
         }
 
@@ -943,7 +944,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         if (!this.state.user) {
             return;
         }
-        if (!this.state.isSaveNeeded) {
+        if (!this.hasUnsavedChanges()) {
             return;
         }
         if (this.state.isSaving) {
@@ -1047,11 +1048,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 emailError: null,
                 authDataField: updatedUser.auth_data || '',
                 authDataError: null,
-                originalCpaValues: {...this.state.customProfileAttributeValues}, // Update original values
+                originalCpaValues: {...this.state.customProfileAttributeValues},
                 error: null,
                 isSaving: false,
-                isSaveNeeded: false,
             });
+
         } catch (err) {
             console.error('SystemUserDetails-handleConfirmSave', err); // eslint-disable-line no-console
 
@@ -1059,10 +1060,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 error: this.props.intl.formatMessage({id: 'admin.user_item.userUpdateFailed', defaultMessage: 'Failed to update user'}),
                 isSaving: false,
             });
-            return; // Don't unblock navigation on error
         }
-
-        this.props.setNavigationBlocked(false);
     };
 
     /**
@@ -1319,7 +1317,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     <div className='admin-console-save-buttons'>
                         <SaveButton
                             saving={this.state.isSaving}
-                            disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.isSaving ||
+                            disabled={!this.hasUnsavedChanges() || this.state.isLoading || this.state.isSaving ||
                                 this.state.emailError !== null ||
                                 this.state.usernameError !== null ||
                                 this.state.authDataError !== null ||
@@ -1327,7 +1325,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             }
                             onClick={this.handleSubmit}
                         />
-                        {this.state.isSaveNeeded && (
+                        {this.hasUnsavedChanges() && (
                             <button
                                 type='button'
                                 className='btn btn-tertiary'
