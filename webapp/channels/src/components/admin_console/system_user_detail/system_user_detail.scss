@@ -128,4 +128,33 @@
         margin-top: 10px;
         margin-bottom: 10px;
     }
+
+    .password-confirmation-section {
+        margin-top: 16px;
+        margin-bottom: 16px;
+        padding: 12px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        border-radius: 4px;
+
+        .password-input-wrapper {
+            margin-top: 12px;
+
+            input[type="password"] {
+                width: 100%;
+                max-width: 320px;
+
+                &.error {
+                    border-color: var(--error-text);
+                    box-shadow: 0 0 0 1px var(--error-text);
+                }
+            }
+
+            .field-error {
+                display: block;
+                margin-top: 8px;
+                color: var(--error-text);
+                font-size: 12px;
+            }
+        }
+    }
 }

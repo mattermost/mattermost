@@ -28,6 +28,7 @@ const getLdapUserMock = jest.fn().mockResolvedValue({data: ldapUser, error: null
 
 describe('SystemUserDetail', () => {
     const defaultProps: Props = {
+        currentUserId: 'current_user_id',
         showManageUserSettings: false,
         showLockedManageUserSettings: false,
         mfaEnabled: false,

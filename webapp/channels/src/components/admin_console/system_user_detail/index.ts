@@ -11,6 +11,7 @@ import {getUserPreferences} from 'mattermost-redux/actions/preferences';
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, updateUserAuth, getUser, patchUser, updateUserMfa, getCustomProfileAttributeValues, saveCustomProfileAttribute} from 'mattermost-redux/actions/users';
 import {getConfig, getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 import {openModal} from 'actions/views/modals';
@@ -26,6 +27,7 @@ function mapStateToProps(state: GlobalState) {
     const showLockedManageUserSettings = getShowLockedManageUserSettings(state);
 
     return {
+        currentUserId: getCurrentUserId(state),
         mfaEnabled: config?.EnableMultifactorAuthentication === 'true' || false,
         customProfileAttributeFields,
         showManageUserSettings,

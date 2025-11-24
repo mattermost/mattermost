@@ -113,6 +113,8 @@ export type State = {
     emailError: string | null;
     authDataField: string;
     authDataError: string | null;
+    confirmPassword: string;
+    confirmPasswordError: string | null;
     customProfileAttributeFields: UserPropertyField[];
     customProfileAttributeValues: Record<string, string | string[]>;
     customProfileAttributeErrors: Record<string, string | undefined>;
@@ -139,6 +141,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             emailError: null,
             authDataField: '',
             authDataError: null,
+            confirmPassword: '',
+            confirmPasswordError: null,
             customProfileAttributeFields: [],
             customProfileAttributeValues: {},
             customProfileAttributeErrors: {},
@@ -239,6 +243,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             }
         }
         return false;
+    };
+
+    private isEditingOwnEmail = (state: State = this.state): boolean => {
+        return Boolean(
+            state.user &&
+            this.props.currentUserId === state.user.id &&
+            state.emailField !== state.user.email,
+        );
     };
 
     private isCpaValueChanged = (currentValue: string | string[] | undefined, originalValue: string | string[] | undefined): boolean => {
@@ -780,8 +792,17 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         );
     };
 
+    handleConfirmPasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {value}} = event;
+        this.setState({
+            confirmPassword: value,
+            confirmPasswordError: null,
+        });
+    };
+
     renderConfirmModal = () => {
         const fields: Array<React.ReactNode | null> = [];
+        const isEditingOwnEmail = this.isEditingOwnEmail();
 
         if (this.state.user && this.state.usernameField !== this.state.user.username) {
             fields.push(
@@ -896,6 +917,41 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         );
                     })}
                 </ul>
+                {isEditingOwnEmail && (
+                    <div className='password-confirmation-section'>
+                        <FormattedMessage
+                            id='admin.userDetail.saveChangesModal.passwordRequired'
+                            defaultMessage='For security reasons, please confirm your current password to change your email address:'
+                        />
+                        <div className='password-input-wrapper'>
+                            <input
+                                type='password'
+                                className={classNames('form-control', {
+                                    error: this.state.confirmPasswordError,
+                                })}
+                                value={this.state.confirmPassword}
+                                onChange={this.handleConfirmPasswordChange}
+                                placeholder={this.props.intl.formatMessage({
+                                    id: 'admin.userDetail.saveChangesModal.passwordPlaceholder',
+                                    defaultMessage: 'Enter your password',
+                                })}
+                                aria-describedby='confirm-password-error'
+                                aria-invalid={this.state.confirmPasswordError ? 'true' : 'false'}
+                                autoFocus={true}
+                            />
+                            {this.state.confirmPasswordError && (
+                                <div
+                                    id='confirm-password-error'
+                                    className='field-error'
+                                    role='alert'
+                                    aria-live='polite'
+                                >
+                                    {this.state.confirmPasswordError}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
                 <FormattedMessage
                     id='admin.userDetail.saveChangesModal.warning'
                     defaultMessage='Are you sure you want to proceed with these changes?'
@@ -975,6 +1031,22 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     updatedUser.username = this.state.usernameField.trim();
                 }
 
+                // If editing own email, include password for verification
+                if (this.isEditingOwnEmail()) {
+                    if (!this.state.confirmPassword) {
+                        this.setState({
+                            confirmPasswordError: this.props.intl.formatMessage({
+                                id: 'admin.userDetail.saveChangesModal.passwordRequired',
+                                defaultMessage: 'Password is required to change your email address',
+                            }),
+                            isSaving: false,
+                            showSaveConfirmationModal: true,
+                        });
+                        return;
+                    }
+                    updatedUser.password = this.state.confirmPassword;
+                }
+
                 promises.push(this.props.patchUser(updatedUser));
             }
 
@@ -997,6 +1069,18 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 if (userResult.data) {
                     updatedUser = userResult.data;
                 } else if (userResult.error) {
+                    // Check if error is related to password verification
+                    if (this.isEditingOwnEmail() && (userResult.error.status_code === 400)) {
+                        this.setState({
+                            confirmPasswordError: this.props.intl.formatMessage({
+                                id: 'admin.userDetail.saveChangesModal.incorrectPassword',
+                                defaultMessage: 'Incorrect password. Please try again.',
+                            }),
+                            isSaving: false,
+                            showSaveConfirmationModal: true,
+                        });
+                        return;
+                    }
                     throw new Error(userResult.error.message);
                 }
                 resultIndex++;
@@ -1097,7 +1181,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     toggleCloseSaveConfirmationModal = () => {
-        this.setState({showSaveConfirmationModal: false});
+        this.setState({
+            showSaveConfirmationModal: false,
+            confirmPassword: '',
+            confirmPasswordError: null,
+        });
     };
 
     openConfirmEditUserSettingsModal = () => {
@@ -1418,6 +1506,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             defaultMessage='Save Changes'
                         />
                     }
+
+                    // Disable if editing own email and password is empty
+                    confirmDisabled={this.isEditingOwnEmail() && !this.state.confirmPassword}
                     onConfirm={this.handleConfirmSave}
                     onCancel={this.toggleCloseSaveConfirmationModal}
                 />
