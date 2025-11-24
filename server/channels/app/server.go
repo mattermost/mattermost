@@ -439,6 +439,12 @@ func NewServer(options ...Option) (*Server, error) {
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
+		} else if *oldCfg.GuestAccountsSettings.EnableGuestMagicLink && !*newCfg.GuestAccountsSettings.EnableGuestMagicLink {
+			// Only run this if guest magic link accounts are still enabled
+			c := request.EmptyContext(s.Log())
+			if appErr := appInstance.DeactivateMagicLinkGuests(c); appErr != nil {
+				mlog.Error("Unable to deactivate guest magic link accounts", mlog.Err(appErr))
+			}
 		}
 	})
 
@@ -448,6 +454,14 @@ func NewServer(options ...Option) (*Server, error) {
 		c := request.EmptyContext(s.Log())
 		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
+	} else if !*s.platform.Config().GuestAccountsSettings.EnableGuestMagicLink {
+		// Disable guest magic link accounts on first run if guest magic link accounts are disabled
+		// and only if guest accounts are still enabled
+		appInstance := New(ServerConnector(s.Channels()))
+		c := request.EmptyContext(s.Log())
+		if appErr := appInstance.DeactivateMagicLinkGuests(c); appErr != nil {
+			mlog.Error("Unable to deactivate guest magic link accounts", mlog.Err(appErr))
 		}
 	}
 
