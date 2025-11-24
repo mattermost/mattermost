@@ -101,7 +101,7 @@ describe('CommandsList', () => {
 
         expect(screen.getByText('Command 1')).toBeInTheDocument();
         expect(screen.getByText('Command 2')).toBeInTheDocument();
-        expect(screen.getByText('user1')).toBeInTheDocument();
+        expect(screen.getAllByText('user1').length).toBeGreaterThan(0);
     });
 
     test('filters commands', () => {

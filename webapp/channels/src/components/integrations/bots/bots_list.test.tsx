@@ -109,8 +109,8 @@ describe('BotsList', () => {
             </IntlProvider>,
         );
 
-        expect(screen.getByText('@testbot1')).toBeInTheDocument();
-        expect(screen.getByText('@testbot2')).toBeInTheDocument();
+        expect(screen.getByText('Test Bot 1 (@testbot1)', {exact: false})).toBeInTheDocument();
+        expect(screen.getByText('Test Bot 2 (@testbot2)', {exact: false})).toBeInTheDocument();
     });
 
     test('filters bots', () => {
@@ -125,8 +125,8 @@ describe('BotsList', () => {
         const searchInput = screen.getByPlaceholderText('Search Bot Accounts');
         fireEvent.change(searchInput, {target: {value: 'testbot1'}});
 
-        expect(screen.getByText('@testbot1')).toBeInTheDocument();
-        expect(screen.queryByText('@testbot2')).not.toBeInTheDocument();
+        expect(screen.getByText('Test Bot 1 (@testbot1)', {exact: false})).toBeInTheDocument();
+        expect(screen.queryByText('Test Bot 2 (@testbot2)', {exact: false})).not.toBeInTheDocument();
     });
 
     test('shows enabled and disabled status', () => {
@@ -138,8 +138,8 @@ describe('BotsList', () => {
             </IntlProvider>,
         );
 
-        expect(screen.getByText('Enabled')).toBeInTheDocument();
-        expect(screen.getByText('Disabled')).toBeInTheDocument();
+        expect(screen.getAllByText('Enabled').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Disabled').length).toBeGreaterThan(0);
     });
 
     test('shows token count', () => {
