@@ -363,12 +363,13 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	var posts *model.PostList
 	var err *model.AppError
 
+	offset := c.Params.Page * c.Params.PerPage
 	if channelId != "" {
-		posts, err = c.App.GetFlaggedPostsForChannel(c.Params.UserId, channelId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPostsForChannel(c.Params.UserId, channelId, offset, c.Params.PerPage)
 	} else if teamId != "" {
-		posts, err = c.App.GetFlaggedPostsForTeam(c.Params.UserId, teamId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPostsForTeam(c.Params.UserId, teamId, offset, c.Params.PerPage)
 	} else {
-		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, offset, c.Params.PerPage)
 	}
 	if err != nil {
 		c.Err = err
