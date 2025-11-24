@@ -17,6 +17,7 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import {focusPost} from 'components/permalink_view/actions';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
@@ -87,8 +88,10 @@ function ThreadMenu({
     ]);
 
     const popout = useCallback(() => {
-        popoutThread(intl, threadId, team);
-    }, [threadId, team, intl]);
+        popoutThread(intl, threadId, team, (postId, returnTo) => {
+            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+        });
+    }, [threadId, team, intl, dispatch, currentUserId]);
 
     return (
         <MenuWrapper
@@ -102,7 +105,7 @@ function ThreadMenu({
                 })}
                 openLeft={true}
             >
-                {!canPopout && (
+                {!canPopout() && (
                     <Menu.ItemAction
                         buttonClass='PopoutMenuItem'
                         text={formatMessage({

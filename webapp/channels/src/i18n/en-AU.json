@@ -5726,7 +5726,7 @@
   "sidebar_right_menu.console": "System Console",
   "sidebar_right_menu.flagged": "Saved messages",
   "sidebar_right_menu.recentMentions": "Recent Mentions",
-  "signup.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a1>Terms of Use</a1> and <a2>Privacy Policy</a2>.  If you do not agree, you cannot use {siteName}.",
+  "signup.agreement": "By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}.",
   "signup.ldap": "AD/LDAP Credentials",
   "signup.title": "Create Account | {siteName}",
   "signup_team.guest_without_channels": "Your guest account has no channels assigned. Please contact an administrator.",
