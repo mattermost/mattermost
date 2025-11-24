@@ -173,7 +173,9 @@ describe('makeFilterPostsAndAddSeparators', () => {
         const state = {
             entities: {
                 general: {
-                    config: {},
+                    config: {
+                        EnableBurnOnRead: 'true',
+                    },
                 },
                 posts: {
                     posts: {
@@ -216,7 +218,9 @@ describe('makeFilterPostsAndAddSeparators', () => {
         const state = {
             entities: {
                 general: {
-                    config: {},
+                    config: {
+                        EnableBurnOnRead: 'true',
+                    },
                 },
                 posts: {
                     posts: {
@@ -245,6 +249,51 @@ describe('makeFilterPostsAndAddSeparators', () => {
         // Both posts should be included (no expire_at to filter on)
         expect(result).toContain('1001');
         expect(result).toContain('1002');
+    });
+
+    it('should filter out all burn-on-read posts when feature is disabled', () => {
+        const filterPostsAndAddSeparators = makeFilterPostsAndAddSeparators();
+        const now = Date.now();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {
+                        EnableBurnOnRead: 'false',
+                    },
+                },
+                posts: {
+                    posts: {
+                        1001: {id: '1001', create_at: now, type: '', user_id: 'user1'},
+                        1002: {id: '1002', create_at: now + 1, type: Posts.POST_TYPES.BURN_ON_READ, user_id: 'user2'},
+                        1003: {id: '1003', create_at: now + 2, type: Posts.POST_TYPES.BURN_ON_READ, metadata: {expire_at: now + 60000}, user_id: 'user3'},
+                        1004: {id: '1004', create_at: now + 3, type: '', user_id: 'user4'},
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: '1234',
+                    profiles: {
+                        1234: {id: '1234', username: 'user', timezone: {useAutomaticTimezone: 'false', manualTimezone: 'UTC'}},
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const postIds = ['1004', '1003', '1002', '1001'];
+        const lastViewedAt = Number.POSITIVE_INFINITY;
+        const indicateNewMessages = false;
+
+        const result = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
+
+        // Should include: regular posts 1001 and 1004
+        // Should exclude: ALL burn-on-read posts (1002, 1003) when feature is disabled
+        expect(result).toContain('1001');
+        expect(result).toContain('1004');
+        expect(result).not.toContain('1002');
+        expect(result).not.toContain('1003');
     });
 
     it('new messages indicator', () => {

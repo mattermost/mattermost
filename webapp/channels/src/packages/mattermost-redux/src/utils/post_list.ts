@@ -10,6 +10,7 @@ import {isStringArray, isArrayOf} from '@mattermost/types/utilities';
 
 import {Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {makeGetPostsForIds} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
 import {shouldShowJoinLeaveMessages} from 'mattermost-redux/selectors/entities/preferences';
@@ -54,7 +55,8 @@ export function makeFilterPostsAndAddSeparators() {
         () => '', // This previously returned state.entities.posts.selectedPostId which stopped being set at some point
         getCurrentUser,
         shouldShowJoinLeaveMessages,
-        (posts, lastViewedAt, indicateNewMessages, selectedPostId, currentUser, showJoinLeave) => {
+        (state: GlobalState) => getConfig(state).EnableBurnOnRead === 'true',
+        (posts, lastViewedAt, indicateNewMessages, selectedPostId, currentUser, showJoinLeave, isBorEnabled) => {
             if (posts.length === 0 || !currentUser) {
                 return [];
             }
@@ -79,10 +81,16 @@ export function makeFilterPostsAndAddSeparators() {
                     continue;
                 }
 
-                // Filter out already-expired burn-on-read posts
-                if (post.type === Posts.POST_TYPES.BURN_ON_READ && post.metadata?.expire_at) {
-                    const expireAt = post.metadata.expire_at;
-                    if (typeof expireAt === 'number' && expireAt <= Date.now()) {
+                // Filter out burn-on-read posts when disabled or expired
+                if (post.type === Posts.POST_TYPES.BURN_ON_READ) {
+                    // Skip if feature is disabled
+                    if (!isBorEnabled) {
+                        continue;
+                    }
+
+                    // Skip if already expired
+                    const expireAt = post.metadata?.expire_at;
+                    if (expireAt && typeof expireAt === 'number' && expireAt <= Date.now()) {
                         continue;
                     }
                 }
