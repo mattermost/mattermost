@@ -289,3 +289,5 @@ channels/db/migrations/postgres/000145_add_pkce_to_oauthauthdata.down.sql
 channels/db/migrations/postgres/000145_add_pkce_to_oauthauthdata.up.sql
 channels/db/migrations/postgres/000146_add_audience_and_resource_to_oauth.down.sql
 channels/db/migrations/postgres/000146_add_audience_and_resource_to_oauth.up.sql
+channels/db/migrations/postgres/000147_create_autotranslation_tables.down.sql
+channels/db/migrations/postgres/000147_create_autotranslation_tables.up.sql
