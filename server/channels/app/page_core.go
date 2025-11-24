@@ -575,8 +575,8 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 	return updatedPost, nil
 }
 
-// DeletePage deletes a page
-func (a *App) DeletePage(rctx request.CTX, pageID string) *model.AppError {
+// DeletePage deletes a page. If wikiId is provided, it will be included in the broadcast event.
+func (a *App) DeletePage(rctx request.CTX, pageID string, wikiId ...string) *model.AppError {
 	post, err := a.GetSinglePost(rctx, pageID, false)
 	if err != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
@@ -597,7 +597,12 @@ func (a *App) DeletePage(rctx request.CTX, pageID string) *model.AppError {
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	a.broadcastPageDeleted(pageID, "", post.ChannelId, rctx.Session().UserId)
+	// Use provided wikiId or empty string if not provided
+	wiki := ""
+	if len(wikiId) > 0 {
+		wiki = wikiId[0]
+	}
+	a.broadcastPageDeleted(pageID, wiki, post.ChannelId, rctx.Session().UserId)
 	return nil
 }
 

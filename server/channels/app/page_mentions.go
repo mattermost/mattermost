@@ -216,6 +216,7 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 				"page_id":           page.Id,
 				"wiki_id":           wikiId,
 				"mentioned_user_id": mentionedUserID,
+				"username":          mentionedUser.Username,
 				"page_title":        pageTitle,
 			},
 		}

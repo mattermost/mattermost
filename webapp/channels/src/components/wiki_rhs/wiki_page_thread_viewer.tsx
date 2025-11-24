@@ -394,6 +394,7 @@ const WikiPageThreadViewer = (props: Props) => {
             <CreateComment
                 isThreadView={props.isThreadView}
                 threadId={props.focusedInlineCommentId || props.selected?.id || ''}
+                channel={props.channel}
             />
         </div>
     );

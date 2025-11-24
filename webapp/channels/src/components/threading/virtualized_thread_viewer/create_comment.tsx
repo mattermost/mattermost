@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -23,6 +24,7 @@ type Props = {
     threadId: string;
     isThreadView?: boolean;
     placeholder?: string;
+    channel?: Channel;
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
@@ -30,16 +32,18 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     threadId,
     isThreadView,
     placeholder,
+    channel: channelProp,
 }: Props, ref) => {
     const getChannel = useMemo(makeGetChannel, []);
     const rootPost = useSelector((state: GlobalState) => getPost(state, threadId));
     const threadIsLimited = useSelector(getLimitedViews).threads[threadId];
-    const channel = useSelector((state: GlobalState) => {
+    const channelFromState = useSelector((state: GlobalState) => {
         if (threadIsLimited || !rootPost) {
             return null;
         }
         return getChannel(state, rootPost.channel_id);
     });
+    const channel = channelProp || channelFromState;
     if (!channel || threadIsLimited || !rootPost) {
         return null;
     }

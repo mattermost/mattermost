@@ -20,6 +20,10 @@ jest.mock('components/widgets/users/avatar', () => {
     });
 });
 
+jest.mock('components/profile_popover/profile_popover_controller', () => ({
+    ProfilePopoverController: jest.fn().mockImplementation(({children}) => children),
+}));
+
 describe('components/ActiveEditorsIndicator', () => {
     const baseProps = {
         wikiId: 'wiki123',
@@ -132,5 +136,68 @@ describe('components/ActiveEditorsIndicator', () => {
         renderWithContext(<ActiveEditorsIndicator {...baseProps}/>);
 
         expect(useActiveEditors).toHaveBeenCalledWith('wiki123', 'page123');
+    });
+
+    test('should wrap avatars with ProfilePopoverController for clickability', () => {
+        const editors = [
+            {
+                userId: 'user1',
+                lastActivity: Date.now(),
+                user: {
+                    id: 'user1',
+                    username: 'john.doe',
+                    last_picture_update: 123456,
+                },
+            },
+            {
+                userId: 'user2',
+                lastActivity: Date.now(),
+                user: {
+                    id: 'user2',
+                    username: 'jane.smith',
+                    last_picture_update: 654321,
+                },
+            },
+        ];
+        (useActiveEditors as jest.Mock).mockReturnValue(editors);
+
+        const ProfilePopoverController = require('components/profile_popover/profile_popover_controller').ProfilePopoverController;
+
+        renderWithContext(<ActiveEditorsIndicator {...baseProps}/>);
+
+        expect(ProfilePopoverController).toHaveBeenCalledTimes(2);
+        expect(ProfilePopoverController).toHaveBeenCalledWith(
+            expect.objectContaining({
+                userId: 'user1',
+                username: 'john.doe',
+                triggerComponentClass: 'active-editors-indicator__avatar-wrapper',
+            }),
+            expect.anything(),
+        );
+        expect(ProfilePopoverController).toHaveBeenCalledWith(
+            expect.objectContaining({
+                userId: 'user2',
+                username: 'jane.smith',
+                triggerComponentClass: 'active-editors-indicator__avatar-wrapper',
+            }),
+            expect.anything(),
+        );
+    });
+
+    test('should not wrap +N indicator with ProfilePopoverController', () => {
+        const editors = [
+            {userId: 'user1', lastActivity: Date.now(), user: {id: 'user1', username: 'user1', last_picture_update: 123}},
+            {userId: 'user2', lastActivity: Date.now(), user: {id: 'user2', username: 'user2', last_picture_update: 123}},
+            {userId: 'user3', lastActivity: Date.now(), user: {id: 'user3', username: 'user3', last_picture_update: 123}},
+            {userId: 'user4', lastActivity: Date.now(), user: {id: 'user4', username: 'user4', last_picture_update: 123}},
+        ];
+        (useActiveEditors as jest.Mock).mockReturnValue(editors);
+
+        const ProfilePopoverController = require('components/profile_popover/profile_popover_controller').ProfilePopoverController;
+
+        renderWithContext(<ActiveEditorsIndicator {...baseProps}/>);
+
+        expect(ProfilePopoverController).toHaveBeenCalledTimes(3);
+        expect(screen.getByText('+1')).toBeInTheDocument();
     });
 });

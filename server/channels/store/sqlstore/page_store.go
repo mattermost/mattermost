@@ -477,6 +477,13 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 		if title != "" {
 			if currentPost.Props == nil {
 				currentPost.Props = make(model.StringInterface)
+			} else {
+				// Deep copy Props to avoid modifying oldPost.Props
+				newProps := make(model.StringInterface, len(currentPost.Props))
+				for k, v := range currentPost.Props {
+					newProps[k] = v
+				}
+				currentPost.Props = newProps
 			}
 			currentPost.Props["title"] = title
 			needsHistory = true

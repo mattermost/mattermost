@@ -229,8 +229,15 @@ func sanitizeTipTapNode(node map[string]any) {
 
 func sanitizeURL(url string) string {
 	lower := strings.ToLower(strings.TrimSpace(url))
-	if strings.HasPrefix(lower, "javascript:") || strings.HasPrefix(lower, "data:") || strings.HasPrefix(lower, "vbscript:") {
+	if strings.HasPrefix(lower, "javascript:") || strings.HasPrefix(lower, "vbscript:") {
 		return ""
+	}
+	// Block dangerous data URIs but allow safe image data URIs
+	if strings.HasPrefix(lower, "data:") {
+		if strings.HasPrefix(lower, "data:image/") {
+			return url // Allow data:image/* URIs (svg, png, jpeg, etc.)
+		}
+		return "" // Block all other data: URIs (text/html, etc.)
 	}
 	return url
 }

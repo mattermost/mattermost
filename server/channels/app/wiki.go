@@ -339,7 +339,7 @@ func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.App
 		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	if deletePageErr := a.DeletePage(rctx, pageId); deletePageErr != nil {
+	if deletePageErr := a.DeletePage(rctx, pageId, wikiId); deletePageErr != nil {
 		return deletePageErr
 	}
 

@@ -47,6 +47,12 @@ export function useActiveEditors(wikiId: string, pageId: string): ActiveEditorWi
         cleanupIntervalRef.current = setInterval(() => {
             dispatch(removeStaleEditors(pageId));
         }, 60000);
+
+        return () => {
+            if (cleanupIntervalRef.current) {
+                clearInterval(cleanupIntervalRef.current);
+            }
+        };
     }, [pageId, wikiId, dispatch]);
 
     return editors;

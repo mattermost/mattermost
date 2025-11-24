@@ -3085,3 +3085,84 @@ export async function withRolePermissions(
         });
     };
 }
+
+/**
+ * Sets up WebSocket event logging for debugging multi-user real-time scenarios
+ * Intercepts both raw WebSocket messages AND Redux dispatch to capture events at both levels
+ * @param page - Playwright page object
+ * @param eventFilters - Array of strings to filter action types (default: PAGE, POST, WIKI, RECEIVED, DELETED, REMOVED, RENAMED)
+ */
+export async function setupWebSocketEventLogging(page: Page, eventFilters: string[] = ['PAGE', 'POST', 'WIKI', 'RECEIVED', 'DELETED', 'REMOVED', 'RENAMED']) {
+    await page.evaluate((filters) => {
+        (window as any).wsEvents = [];
+        (window as any).allActions = [];
+        (window as any).rawWebSocketMessages = [];
+
+        // Intercept raw WebSocket messages at the WebSocketClient level
+        const webSocketClient = (window as any).WebSocketClient;
+        if (webSocketClient && webSocketClient.prototype) {
+            const originalHandleEvent = webSocketClient.prototype.handleEvent;
+            if (originalHandleEvent) {
+                webSocketClient.prototype.handleEvent = function(msg: any) {
+                    if (msg && msg.event) {
+                        const event = String(msg.event).toUpperCase();
+                        if (event.includes('PAGE') || event.includes('POST') || event.includes('WIKI') || event.includes('DELETED')) {
+                            console.log('[RAW WebSocket]', msg.event, msg.data);
+                            (window as any).rawWebSocketMessages.push({
+                                event: msg.event,
+                                data: msg.data,
+                                time: Date.now(),
+                            });
+                        }
+                    }
+                    return originalHandleEvent.apply(this, arguments);
+                };
+            }
+        }
+
+        // Intercept Redux dispatch
+        const originalDispatch = (window as any).store?.dispatch;
+        if (originalDispatch) {
+            (window as any).store.dispatch = function(action: any) {
+                if (action && action.type) {
+                    (window as any).allActions.push({type: action.type, time: Date.now()});
+                    const type = String(action.type).toUpperCase();
+                    if (filters.some((filter: string) => type.includes(filter))) {
+                        console.log('[Redux Action]', action.type, action.data);
+                        (window as any).wsEvents.push({type: action.type, data: action.data, time: Date.now()});
+                    }
+                }
+                return originalDispatch.apply(this, arguments);
+            };
+        }
+    }, eventFilters);
+}
+
+/**
+ * Retrieves captured WebSocket events and prints debug information
+ * @param page - Playwright page object
+ * @param testName - Name of the test for debug output
+ * @returns Array of captured WebSocket events
+ */
+export async function getWebSocketEvents(page: Page, testName: string = 'Test'): Promise<any[]> {
+    const rawMessages = await page.evaluate(() => (window as any).rawWebSocketMessages || []);
+    const wsEvents = await page.evaluate(() => (window as any).wsEvents || []);
+    const allActionTypes = await page.evaluate(() => ((window as any).allActions || []).map((a: any) => a.type));
+    console.log(`[${testName}] RAW WebSocket messages:`, rawMessages);
+    console.log(`[${testName}] Total Redux actions:`, allActionTypes.length);
+    console.log(`[${testName}] Last 10 action types:`, allActionTypes.slice(-10));
+    console.log(`[${testName}] Redux WebSocket events:`, wsEvents);
+    return wsEvents;
+}
+
+/**
+ * Verifies that a page is NOT visible in the hierarchy panel
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page that should not be visible
+ * @param timeout - Timeout for the check (default: ELEMENT_TIMEOUT)
+ */
+export async function verifyPageNotInHierarchy(page: Page, pageTitle: string, timeout: number = ELEMENT_TIMEOUT) {
+    const hierarchyPanel = getHierarchyPanel(page);
+    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+    await expect(pageNode).not.toBeVisible({timeout});
+}

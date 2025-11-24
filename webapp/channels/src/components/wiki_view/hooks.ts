@@ -539,9 +539,11 @@ export function useWikiPageActions(
         }
     }, [conflictPageData, channelId, wikiId, location.pathname]);
 
-    const handleConflictCopyContent = useCallback(() => {
+    const handleConflictCopyContent = useCallback(async () => {
         if (conflictContentRef.current) {
-            navigator.clipboard.writeText(conflictContentRef.current);
+            const {extractPlaintextFromTipTapJSON} = await import('utils/tiptap_utils');
+            const plainText = extractPlaintextFromTipTapJSON(conflictContentRef.current);
+            navigator.clipboard.writeText(plainText || conflictContentRef.current);
         }
         setShowConflictModal(false);
     }, []);
