@@ -101,7 +101,7 @@ export type Props = {
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
-        revealBurnOnReadPost: (postId: string) => void;
+        revealBurnOnReadPost: (postId: string) => Promise<{data?: any; error?: any}>;
         burnPostNow?: (postId: string) => void;
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
     };
