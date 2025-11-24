@@ -191,6 +191,7 @@ const defaultServerConfig: AdminConfig = {
         EnableLocalMode: false,
         LocalModeSocketLocation: '/var/tmp/mattermost_local.socket',
         EnableAWSMetering: false,
+        AWSMeteringTimeoutSeconds: 30,
         SplitKey: '',
         FeatureFlagSyncIntervalSeconds: 30,
         DebugSplit: false,
@@ -715,6 +716,7 @@ const defaultServerConfig: AdminConfig = {
         AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
+        EnableGuestMagicLink: false,
     },
     ImageProxySettings: {
         Enable: false,
