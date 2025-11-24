@@ -1,1 +1,1 @@
-ALTER TABLE drafts DROP COLUMN IF EXISTS burn_on_read;
+ALTER TABLE drafts DROP COLUMN IF EXISTS burnonread;
