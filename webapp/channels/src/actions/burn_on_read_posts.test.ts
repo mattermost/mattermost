@@ -76,10 +76,8 @@ describe('burn_on_read_posts actions', () => {
 
             const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
 
-            // Should dispatch logError action
-            expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-                type: 'RECEIVED_ERROR',
-            }));
+            // Should dispatch logError thunk (which is a function, not a plain action)
+            expect(dispatch).toHaveBeenCalledWith(expect.any(Function));
 
             expect(result).toEqual({error: mockError});
         });
