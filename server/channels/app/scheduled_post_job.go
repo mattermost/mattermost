@@ -105,6 +105,7 @@ func (a *App) ProcessScheduledPosts(rctx request.CTX) {
 			mlog.Int("batch_number", batchCount),
 			mlog.Int("batch_size", len(scheduledPostsBatch)),
 			mlog.Int("successful", batchSuccessful),
+			mlog.Int("skipped", batchSkipped),
 			mlog.Int("failed", batchFailed),
 			mlog.Duration("batch_duration", batchDuration),
 		)
@@ -177,6 +178,7 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, scheduledPosts []*mode
 		// Error code without error indicates a validation failure (e.g., user deleted, channel archived).
 		// These are non-fatal "skipped" posts.
 		if errorCode != "" {
+			scheduledPost.ErrorCode = errorCode
 			rctx.Logger().Debug("Non-critical error when processing scheduled post", mlog.String("error_code", errorCode))
 
 			skippedCount++
@@ -208,7 +210,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			return model.ScheduledPostErrorCodeChannelNotFound, errors.Wrapf(appErr, "channel %s for scheduled post not found  %s", scheduledPost.ChannelId, scheduledPost.Id)
+			return model.ScheduledPostErrorCodeChannelNotFound, errors.Wrapf(appErr, "channel %s for scheduled post not found %s", scheduledPost.ChannelId, scheduledPost.Id)
 		}
 		return model.ScheduledPostErrorUnknownError, errors.Wrapf(appErr, "failed to get channel %s for scheduled post %s", scheduledPost.ChannelId, scheduledPost.Id)
 	}
@@ -371,12 +373,12 @@ func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts 
 }
 
 func (a *App) notifyUserAboutFailedScheduledMessages(rctx request.CTX, failedMessages []*model.ScheduledPost) error {
-	failedMessagesByUser := aggregateFailMessagesByUser(failedMessages)
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		return errors.Wrap(appErr, "failed to get system bot for notifications")
 	}
 
+	failedMessagesByUser := aggregateFailMessagesByUser(failedMessages)
 	for userId, userFailedMessages := range failedMessagesByUser {
 		a.Srv().Go(func(userId string, userFailedMessages []*model.ScheduledPost) func() {
 			return func() {
@@ -427,7 +429,6 @@ func (a *App) notifyUser(rctx request.CTX, userId string, userFailedMessages []*
 	for channelId := range channelIdsSet {
 		ch, err := a.GetChannel(rctx, channelId)
 		if err != nil {
-
 			// TODO: Decide what do to
 			rctx.Logger().Error("Failed to get channel", mlog.String("channel_id", channelId), mlog.Err(err))
 			channelNames[channelId] = T("app.scheduled_post.unknown_channel")
