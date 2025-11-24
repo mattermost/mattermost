@@ -203,7 +203,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         if (this.props.customProfileAttributeFields.length === 0) {
             this.props.getCustomProfileAttributeFields();
         }
-        (window as any).debug = this;
     }
 
     componentDidUpdate(prevProps: Props, prevState: State) {
@@ -337,7 +336,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
-        if (!this.state.user || this.state.user.auth_service) {
+        if (!this.state.user || this.state.user.auth_service !== '') {
             return;
         }
 
