@@ -141,14 +141,10 @@ describe('SystemUserDetail', () => {
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
-            const emailInputs = screen.getAllByDisplayValue(user.email);
-            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
-
-            if (emailInput) {
-                await userEventInstance.clear(emailInput);
-                await userEventInstance.type(emailInput, 'newemail@example.com');
-                expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
-            }
+            const emailInput = screen.getByLabelText('Email');
+            await userEventInstance.clear(emailInput);
+            await userEventInstance.type(emailInput, 'newemail@example.com');
+            expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
         test('should detect username changes and enable save', async () => {
@@ -157,14 +153,10 @@ describe('SystemUserDetail', () => {
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
-            const usernameInputs = screen.getAllByDisplayValue(user.username);
-            const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
-
-            if (usernameInput) {
-                await userEventInstance.clear(usernameInput);
-                await userEventInstance.type(usernameInput, 'newusername');
-                expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
-            }
+            const usernameInput = screen.getByPlaceholderText('Enter username');
+            await userEventInstance.clear(usernameInput);
+            await userEventInstance.type(usernameInput, 'newusername');
+            expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
         });
     });
 
@@ -175,16 +167,12 @@ describe('SystemUserDetail', () => {
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
-            const emailInputs = screen.getAllByDisplayValue(user.email);
-            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+            const emailInput = screen.getByLabelText('Email');
+            await userEventInstance.clear(emailInput);
+            await userEventInstance.type(emailInput, 'invalid-email');
 
-            if (emailInput) {
-                await userEventInstance.clear(emailInput);
-                await userEventInstance.type(emailInput, 'invalid-email');
-
-                // Navigation should still be blocked even with invalid email
-                expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
-            }
+            // Navigation should still be blocked even with invalid email
+            expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
         test('should not show validation error for valid email', async () => {
@@ -193,17 +181,13 @@ describe('SystemUserDetail', () => {
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
-            const emailInputs = screen.getAllByDisplayValue(user.email);
-            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+            const emailInput = screen.getByLabelText('Email');
+            await userEventInstance.clear(emailInput);
+            await userEventInstance.type(emailInput, 'valid@email.com');
 
-            if (emailInput) {
-                await userEventInstance.clear(emailInput);
-                await userEventInstance.type(emailInput, 'valid@email.com');
-
-                await waitFor(() => {
-                    expect(screen.queryByText('Invalid email address')).not.toBeInTheDocument();
-                });
-            }
+            await waitFor(() => {
+                expect(screen.queryByText('Invalid email address')).not.toBeInTheDocument();
+            });
         });
 
         test('should show validation error for empty email', async () => {
@@ -212,17 +196,13 @@ describe('SystemUserDetail', () => {
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
-            const emailInputs = screen.getAllByDisplayValue(user.email);
-            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+            const emailInput = screen.getByLabelText('Email');
+            await userEventInstance.clear(emailInput);
+            await userEventInstance.type(emailInput, '  ');
 
-            if (emailInput) {
-                await userEventInstance.clear(emailInput);
-                await userEventInstance.type(emailInput, '  ');
-
-                await waitFor(() => {
-                    expect(screen.getByText('Email cannot be empty')).toBeInTheDocument();
-                });
-            }
+            await waitFor(() => {
+                expect(screen.getByText('Email cannot be empty')).toBeInTheDocument();
+            });
         });
     });
 
@@ -233,17 +213,13 @@ describe('SystemUserDetail', () => {
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
-            const usernameInputs = screen.getAllByDisplayValue(user.username);
-            const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
+            const usernameInput = screen.getByPlaceholderText('Enter username');
+            await userEventInstance.clear(usernameInput);
+            await userEventInstance.type(usernameInput, '  ');
 
-            if (usernameInput) {
-                await userEventInstance.clear(usernameInput);
-                await userEventInstance.type(usernameInput, '  ');
-
-                await waitFor(() => {
-                    expect(screen.getByText('Username cannot be empty')).toBeInTheDocument();
-                });
-            }
+            await waitFor(() => {
+                expect(screen.getByText('Username cannot be empty')).toBeInTheDocument();
+            });
         });
     });
 
@@ -262,15 +238,12 @@ describe('SystemUserDetail', () => {
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
+            await userEventInstance.clear(authDataInput);
+            await userEventInstance.type(authDataInput, '  ');
 
-            if (authDataInput) {
-                await userEventInstance.clear(authDataInput);
-                await userEventInstance.type(authDataInput, '  ');
-
-                await waitFor(() => {
-                    expect(screen.getByText('Auth Data cannot be empty')).toBeInTheDocument();
-                });
-            }
+            await waitFor(() => {
+                expect(screen.getByText('Auth Data cannot be empty')).toBeInTheDocument();
+            });
         });
 
         test('should show validation error for authData exceeding 128 characters', async () => {
@@ -284,16 +257,13 @@ describe('SystemUserDetail', () => {
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
+            const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
+            await userEventInstance.clear(authDataInput);
+            await userEventInstance.type(authDataInput, longAuthData);
 
-            if (authDataInput) {
-                const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
-                await userEventInstance.clear(authDataInput);
-                await userEventInstance.type(authDataInput, longAuthData);
-
-                await waitFor(() => {
-                    expect(screen.getByText('Auth Data must be 128 characters or less')).toBeInTheDocument();
-                });
-            }
+            await waitFor(() => {
+                expect(screen.getByText('Auth Data must be 128 characters or less')).toBeInTheDocument();
+            });
         });
 
         test('should not show validation error for valid authData', async () => {
@@ -307,17 +277,14 @@ describe('SystemUserDetail', () => {
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
+            const validAuthData = 'a'.repeat(128); // Exactly 128 characters
+            await userEventInstance.clear(authDataInput);
+            await userEventInstance.type(authDataInput, validAuthData);
 
-            if (authDataInput) {
-                const validAuthData = 'a'.repeat(128); // Exactly 128 characters
-                await userEventInstance.clear(authDataInput);
-                await userEventInstance.type(authDataInput, validAuthData);
-
-                await waitFor(() => {
-                    expect(screen.queryByText('Auth Data must be 128 characters or less')).not.toBeInTheDocument();
-                    expect(screen.queryByText('Auth Data cannot be empty')).not.toBeInTheDocument();
-                });
-            }
+            await waitFor(() => {
+                expect(screen.queryByText('Auth Data must be 128 characters or less')).not.toBeInTheDocument();
+                expect(screen.queryByText('Auth Data cannot be empty')).not.toBeInTheDocument();
+            });
         });
     });
 
