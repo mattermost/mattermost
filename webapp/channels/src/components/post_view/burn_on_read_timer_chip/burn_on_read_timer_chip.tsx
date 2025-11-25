@@ -48,7 +48,7 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
     }, [onClick]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
             e.preventDefault();
             e.stopPropagation();
             onClick();

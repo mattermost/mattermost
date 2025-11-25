@@ -7,6 +7,9 @@ import {useIntl} from 'react-intl';
 import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+
 import './burn_on_read_concealed_placeholder.scss';
 
 type Props = {
@@ -35,7 +38,7 @@ function BurnOnReadConcealedPlaceholder({
     }, [postId, onReveal, loading]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if ((e.key === 'Enter' || e.key === ' ') && !loading) {
+        if ((isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) && !loading) {
             e.preventDefault();
             onReveal(postId);
         }
