@@ -4372,3 +4372,149 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		require.Greater(t, post2.Metadata.Files[0].DeleteAt, int64(0))
 	})
 }
+
+func TestFilterPostsByChannelPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Enable guest accounts
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+
+	// Create a guest user
+	guestUser := th.CreateGuest(t)
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guestUser.Id, "")
+	require.Nil(t, appErr)
+
+	// Create a private channel
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+
+	// Add guest to both channels
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, privateChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.AddUserToChannel(th.Context, guestUser, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	// Create posts in different channels
+	post1 := th.CreatePost(t, th.BasicChannel)
+	post2 := th.CreatePost(t, privateChannel)
+	post3 := th.CreatePost(t, th.BasicChannel)
+
+	t.Run("should filter posts when user has read_channel_content permission", func(t *testing.T) {
+		postList := model.NewPostList()
+		postList.Posts[post1.Id] = post1
+		postList.Posts[post2.Id] = post2
+		postList.Posts[post3.Id] = post3
+		postList.Order = []string{post1.Id, post2.Id, post3.Id}
+
+		// BasicUser should have access to all posts
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 3)
+		require.Len(t, postList.Order, 3)
+	})
+
+	t.Run("should filter posts when guest has read_channel_content permission", func(t *testing.T) {
+		postList := model.NewPostList()
+		postList.Posts[post1.Id] = post1
+		postList.Posts[post2.Id] = post2
+		postList.Posts[post3.Id] = post3
+		postList.Order = []string{post1.Id, post2.Id, post3.Id}
+
+		// Guest should have access to posts in channels they're members of
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 3) // All posts since guest is member of both channels
+		require.Len(t, postList.Order, 3)
+	})
+
+	t.Run("should filter posts when guest does not have read_channel_content permission", func(t *testing.T) {
+		// Get the channel_guest role and remove read_channel_content permission
+		channelGuestRole, appErr := th.App.GetRoleByName(th.Context, model.ChannelGuestRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := make([]string, len(channelGuestRole.Permissions))
+		copy(originalPermissions, channelGuestRole.Permissions)
+
+		// Remove read_channel_content and read_channel permissions
+		newPermissions := []string{}
+		for _, perm := range channelGuestRole.Permissions {
+			if perm != model.PermissionReadChannelContent.Id && perm != model.PermissionReadChannel.Id {
+				newPermissions = append(newPermissions, perm)
+			}
+		}
+
+		_, appErr = th.App.PatchRole(channelGuestRole, &model.RolePatch{
+			Permissions: &newPermissions,
+		})
+		require.Nil(t, appErr)
+
+		// Restore permissions after test
+		defer func() {
+			_, err := th.App.PatchRole(channelGuestRole, &model.RolePatch{
+				Permissions: &originalPermissions,
+			})
+			require.Nil(t, err)
+		}()
+
+		postList := model.NewPostList()
+		postList.Posts[post1.Id] = post1
+		postList.Posts[post2.Id] = post2
+		postList.Posts[post3.Id] = post3
+		postList.Order = []string{post1.Id, post2.Id, post3.Id}
+
+		// Guest should NOT have access to posts even though they're channel members
+		appErr = th.App.FilterPostsByChannelPermissions(th.Context, postList, guestUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+
+	t.Run("should handle empty post list", func(t *testing.T) {
+		postList := model.NewPostList()
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+
+	t.Run("should handle nil post list", func(t *testing.T) {
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should handle posts with empty channel IDs", func(t *testing.T) {
+		postList := model.NewPostList()
+		postWithoutChannel := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: "",
+			Message:   "test",
+		}
+		postList.Posts[postWithoutChannel.Id] = postWithoutChannel
+		postList.Order = []string{postWithoutChannel.Id}
+
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		// Post without channel ID should be filtered out
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+
+	t.Run("should handle posts from non-existent channels", func(t *testing.T) {
+		postList := model.NewPostList()
+		postWithInvalidChannel := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "test",
+		}
+		postList.Posts[postWithInvalidChannel.Id] = postWithInvalidChannel
+		postList.Order = []string{postWithInvalidChannel.Id}
+
+		appErr := th.App.FilterPostsByChannelPermissions(th.Context, postList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		// Post from non-existent channel should be filtered out
+		require.Len(t, postList.Posts, 0)
+		require.Len(t, postList.Order, 0)
+	})
+}

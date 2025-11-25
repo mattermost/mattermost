@@ -1768,7 +1768,71 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return nil, appErr
 	}
 
+	if appErr := a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID); appErr != nil {
+		return nil, appErr
+	}
+
 	return postSearchResults, nil
+}
+
+func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.PostList, userID string) *model.AppError {
+	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
+		return nil
+	}
+
+	channelIDsMap := make(map[string]bool)
+	channelIDs := []string{}
+	for _, post := range postList.Posts {
+		if post.ChannelId != "" && !channelIDsMap[post.ChannelId] {
+			channelIDsMap[post.ChannelId] = true
+			channelIDs = append(channelIDs, post.ChannelId)
+		}
+	}
+
+	channels := make(map[string]*model.Channel)
+	if len(channelIDs) > 0 {
+		channelList, err := a.GetChannels(rctx, channelIDs)
+		if err != nil {
+			// If we can't get channels, filter out all posts
+			postList.Posts = make(map[string]*model.Post)
+			postList.Order = []string{}
+			return nil
+		}
+		for _, channel := range channelList {
+			channels[channel.Id] = channel
+		}
+	}
+
+	channelReadPermission := make(map[string]bool)
+	filteredPosts := make(map[string]*model.Post)
+	filteredOrder := []string{}
+
+	for _, postID := range postList.Order {
+		post, ok := postList.Posts[postID]
+		if !ok {
+			continue
+		}
+
+		allowed, ok := channelReadPermission[post.ChannelId]
+		if !ok {
+			allowed = false
+			channel, ok := channels[post.ChannelId]
+			if ok {
+				allowed = a.HasPermissionToReadChannel(rctx, userID, channel)
+			}
+			channelReadPermission[post.ChannelId] = allowed
+		}
+
+		if allowed {
+			filteredPosts[postID] = post
+			filteredOrder = append(filteredOrder, postID)
+		}
+	}
+
+	postList.Posts = filteredPosts
+	postList.Order = filteredOrder
+
+	return nil
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
