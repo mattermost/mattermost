@@ -108,7 +108,7 @@ describe('components/AddUserToChannelModal', () => {
 
             const selection = {channel: TestHelper.getChannelMock({id: 'someChannelId', display_name: 'channelName'})};
             wrapper.instance().didSelectChannel(selection);
-            expect(props.actions.getChannelMember).toBeCalledWith('someChannelId', 'someUserId');
+            expect(props.actions.getChannelMember).toHaveBeenCalledWith('someChannelId', 'someUserId');
         });
 
         it('should match state on selection', async () => {
@@ -157,7 +157,7 @@ describe('components/AddUserToChannelModal', () => {
             const event: any = {stopPropagation: jest.fn(), preventDefault: jest.fn()};
             wrapper.instance().handleSubmit(event);
             expect(wrapper.state().saving).toBe(false);
-            expect(props.actions.addChannelMember).not.toBeCalled();
+            expect(props.actions.addChannelMember).not.toHaveBeenCalled();
         });
 
         it('should do nothing if user is a member of the selected channel', () => {
@@ -177,7 +177,7 @@ describe('components/AddUserToChannelModal', () => {
             const event: any = {stopPropagation: jest.fn(), preventDefault: jest.fn()};
             wrapper.instance().handleSubmit(event);
             expect(wrapper.state().saving).toBe(false);
-            expect(props.actions.addChannelMember).not.toBeCalled();
+            expect(props.actions.addChannelMember).not.toHaveBeenCalled();
         });
 
         it('should submit if user is not a member of the selected channel', () => {
@@ -195,7 +195,7 @@ describe('components/AddUserToChannelModal', () => {
             const event: any = {stopPropagation: jest.fn(), preventDefault: jest.fn()};
             wrapper.instance().handleSubmit(event);
             expect(wrapper.state().saving).toBe(true);
-            expect(props.actions.addChannelMember).toBeCalled();
+            expect(props.actions.addChannelMember).toHaveBeenCalled();
         });
 
         test('should match state when save is successful', async () => {

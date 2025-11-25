@@ -6,10 +6,10 @@ package api4
 import (
 	"context"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,18 +32,13 @@ func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
 }
 
 func TestGetFlaggingConfiguration(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
 
 	client := th.Client
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
@@ -58,7 +53,7 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
@@ -73,18 +68,13 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 }
 
 func TestSaveContentFlaggingSettings(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
 	t.Run("Should return 403 when user does not have manage system permission", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -101,7 +91,7 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 		}
 
 		// Use basic user who doesn't have manage system permission
-		th.LoginBasic()
+		th.LoginBasic(t)
 		resp, err := client.SaveContentFlaggingSettings(context.Background(), &config)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -109,7 +99,7 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 
 	t.Run("Should return 400 when config is invalid", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		// Invalid config - missing required fields
 		config := model.ContentFlaggingSettingsRequest{
@@ -125,7 +115,7 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 		}
 		config.SetDefaults()
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		resp, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &config)
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -133,7 +123,7 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 
 	t.Run("Should successfully save content flagging settings when user has manage system permission", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -157,19 +147,14 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetContentFlaggingSettings(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("Should return 403 when user does not have manage system permission", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		// Use basic user who doesn't have manage system permission
-		th.LoginBasic()
+		th.LoginBasic(t)
 		settings, resp, err := th.Client.GetContentFlaggingSettings(context.Background())
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -178,7 +163,7 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 
 	t.Run("Should successfully get content flagging settings when user has manage system permission", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		// First save some settings
 		appErr := setBasicCommonReviewerConfig(th)
@@ -200,12 +185,7 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetPostPropertyValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
@@ -216,7 +196,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -230,7 +210,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -257,7 +237,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -269,7 +249,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		response, err := client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive content",
@@ -282,17 +262,12 @@ func TestGetPostPropertyValues(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, propertyValues)
-		require.Len(t, propertyValues, 5)
+		require.Len(t, propertyValues, 6)
 	})
 }
 
 func TestGetFlaggedPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
@@ -303,7 +278,7 @@ func TestGetFlaggedPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -317,7 +292,7 @@ func TestGetFlaggedPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -362,7 +337,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -375,7 +350,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -388,7 +363,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 
 		// First flag the post
 		flagRequest := &model.FlagContentRequest{
@@ -406,28 +381,55 @@ func TestGetFlaggedPost(t *testing.T) {
 		require.NotNil(t, flaggedPost)
 		require.Equal(t, post.Id, flaggedPost.Id)
 	})
+
+	t.Run("Should return flagged post's file info", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		data, err2 := testutils.ReadTestFile("test.png")
+		require.NoError(t, err2)
+
+		fileResponse, _, err := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		post := th.CreatePostInChannelWithFiles(t, th.BasicChannel, fileInfo)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, 1, len(flaggedPost.Metadata.Files))
+		require.Equal(t, fileInfo.Id, flaggedPost.Metadata.Files[0].Id)
+	})
 }
 
 func TestFlagPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
 			Comment: "This is spam content",
@@ -440,14 +442,14 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
 			Comment: "This is spam content",
@@ -460,7 +462,7 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 404 when post does not exist", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
@@ -479,7 +481,7 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 403 when user does not have permission to view post", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
@@ -487,9 +489,9 @@ func TestFlagPost(t *testing.T) {
 		})
 
 		// Create a private channel and post
-		privateChannel := th.CreatePrivateChannel()
-		post := th.CreatePostWithClient(th.Client, privateChannel)
-		th.RemoveUserFromChannel(th.BasicUser, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t)
+		post := th.CreatePostWithClient(t, th.Client, privateChannel)
+		th.RemoveUserFromChannel(t, th.BasicUser, privateChannel)
 
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
@@ -503,7 +505,7 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should return 400 when content flagging is not enabled for the team", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -524,7 +526,7 @@ func TestFlagPost(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
 			Comment: "This is spam content",
@@ -537,12 +539,12 @@ func TestFlagPost(t *testing.T) {
 
 	t.Run("Should successfully flag a post when all conditions are met", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive data",
@@ -555,18 +557,13 @@ func TestFlagPost(t *testing.T) {
 }
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
 
 	client := th.Client
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
@@ -581,7 +578,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
@@ -596,7 +593,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 	t.Run("Should return Forbidden error when calling for a team without the team membership", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -617,11 +614,11 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 		// using basic user because the default user is a system admin, and they have
 		// access to all teams even without being an explicit team member
-		th.LoginBasic()
-		team := th.CreateTeam()
+		th.LoginBasic(t)
+		team := th.CreateTeam(t)
 		// unlinking from the created team as by default the team's creator is
 		// a team member, so we need to leave the team explicitly
-		th.UnlinkUserFromTeam(th.BasicUser, team)
+		th.UnlinkUserFromTeam(t, th.BasicUser, team)
 
 		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), team.Id)
 		require.Error(t, err)
@@ -629,7 +626,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 		require.Nil(t, status)
 
 		// now we will join the team and that will allow us to call the endpoint without error
-		th.LinkUserToTeam(th.BasicUser, team)
+		th.LinkUserToTeam(t, th.BasicUser, team)
 		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), team.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -638,18 +635,13 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 }
 
 func TestSearchReviewers(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
@@ -664,7 +656,7 @@ func TestSearchReviewers(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
@@ -679,7 +671,7 @@ func TestSearchReviewers(t *testing.T) {
 
 	t.Run("Should return 403 when user is not a reviewer", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -711,7 +703,7 @@ func TestSearchReviewers(t *testing.T) {
 
 	t.Run("Should successfully search reviewers when user is a reviewer", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
@@ -724,7 +716,7 @@ func TestSearchReviewers(t *testing.T) {
 
 	t.Run("Should successfully search reviewers when user is a team reviewer", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -756,25 +748,20 @@ func TestSearchReviewers(t *testing.T) {
 }
 
 func TestAssignContentFlaggingReviewer(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
-	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 
 	t.Run("Should return 501 when Enterprise Advanced license is not present even if feature is enabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -782,14 +769,14 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 
 	t.Run("Should return 501 when feature is disabled", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(false)
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -797,7 +784,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 
 	t.Run("Should return 404 when post does not exist", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		th.App.UpdateConfig(func(config *model.Config) {
 			config.ContentFlaggingSettings.EnableContentFlagging = model.NewPointer(true)
@@ -811,12 +798,12 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 
 	t.Run("Should return 400 when user ID is invalid", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, "invalidUserId")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -824,7 +811,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 
 	t.Run("Should return 403 when assigning user is not a reviewer", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -848,7 +835,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -856,11 +843,11 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 
 	t.Run("Should return 400 when assignee is not a reviewer", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		// Create another user who will not be a reviewer
-		nonReviewerUser := th.CreateUser()
-		th.LinkUserToTeam(nonReviewerUser, th.BasicTeam)
+		nonReviewerUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonReviewerUser, th.BasicTeam)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -879,7 +866,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		// Try to assign non-reviewer user
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, nonReviewerUser.Id)
 		require.Error(t, err)
@@ -888,11 +875,11 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 
 	t.Run("Should successfully assign reviewer when all conditions are met", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		// Create another reviewer user
-		reviewerUser := th.CreateUser()
-		th.LinkUserToTeam(reviewerUser, th.BasicTeam)
+		reviewerUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, reviewerUser, th.BasicTeam)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -911,7 +898,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 
 		// First flag the post so it can be assigned
 		flagRequest := &model.FlagContentRequest{
@@ -930,11 +917,11 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 
 	t.Run("Should successfully assign reviewer when user is team reviewer", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		defer th.RemoveLicense()
+		defer th.RemoveLicense(t)
 
 		// Create another reviewer user
-		reviewerUser := th.CreateUser()
-		th.LinkUserToTeam(reviewerUser, th.BasicTeam)
+		reviewerUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, reviewerUser, th.BasicTeam)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -958,7 +945,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 
 		// First flag the post so it can be assigned
 		flagRequest := &model.FlagContentRequest{

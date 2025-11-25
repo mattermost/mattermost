@@ -17,7 +17,7 @@ import (
 )
 
 // setupBulkClient creates a test bulk client with common setup
-func setupBulkClient(t *testing.T, flushBytes int, flushNumReqs int, flushInterval time.Duration) (*Bulk, *api4.TestHelper) {
+func setupBulkClient(t *testing.T, flushBytes int, flushNumReqs int, flushInterval time.Duration) *Bulk {
 	th := api4.SetupEnterprise(t)
 
 	if os.Getenv("IS_CI") == "true" {
@@ -48,7 +48,7 @@ func setupBulkClient(t *testing.T, flushBytes int, flushNumReqs int, flushInterv
 		time.Duration(*th.App.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second,
 		th.Server.Platform().Log())
 
-	return bulk, th
+	return bulk
 }
 
 // createTestPost creates a test post for indexing
@@ -62,8 +62,7 @@ func createTestPost(t *testing.T, message string) *common.ESPost {
 }
 
 func TestBulkProcessor(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -88,8 +87,7 @@ func TestBulkProcessor(t *testing.T) {
 }
 
 func TestNewBulk(t *testing.T) {
-	bulk, th := setupBulkClient(t, 1024, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 1024, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -108,8 +106,7 @@ func TestNewBulk(t *testing.T) {
 	})
 
 	t.Run("creates bulk client with periodic flusher", func(t *testing.T) {
-		bulkWithTimer, th2 := setupBulkClient(t, 1024, 10, 100*time.Millisecond)
-		defer th2.TearDown()
+		bulkWithTimer := setupBulkClient(t, 1024, 10, 100*time.Millisecond)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -129,8 +126,7 @@ func TestNewBulk(t *testing.T) {
 }
 
 func TestIndexOp(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -195,8 +191,7 @@ func TestIndexOp(t *testing.T) {
 
 	t.Run("auto flush on request threshold", func(t *testing.T) {
 		// Create a new client with low flush threshold
-		bulk2, th2 := setupBulkClient(t, 0, 2, 0)
-		defer th2.TearDown()
+		bulk2 := setupBulkClient(t, 0, 2, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -238,8 +233,7 @@ func TestIndexOp(t *testing.T) {
 }
 
 func TestDeleteOp(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -278,8 +272,7 @@ func TestDeleteOp(t *testing.T) {
 
 	t.Run("auto flush on request threshold", func(t *testing.T) {
 		// Create a new client with low flush threshold
-		bulk2, th2 := setupBulkClient(t, 0, 2, 0)
-		defer th2.TearDown()
+		bulk2 := setupBulkClient(t, 0, 2, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -316,8 +309,7 @@ func TestDeleteOp(t *testing.T) {
 }
 
 func TestFlush(t *testing.T) {
-	bulk, th := setupBulkClient(t, 0, 10, 0)
-	defer th.TearDown()
+	bulk := setupBulkClient(t, 0, 10, 0)
 	defer func() {
 		if os.Getenv("IS_CI") == "true" {
 			os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -357,8 +349,7 @@ func TestFlush(t *testing.T) {
 
 func TestStop(t *testing.T) {
 	t.Run("stop with pending operations", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 0, 10, 0)
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 0, 10, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -381,8 +372,7 @@ func TestStop(t *testing.T) {
 	})
 
 	t.Run("stop with no pending operations", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 0, 10, 0)
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 0, 10, 0)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -398,8 +388,7 @@ func TestStop(t *testing.T) {
 	})
 
 	t.Run("stop with periodic flusher", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 0, 10, 100*time.Millisecond)
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 0, 10, 100*time.Millisecond)
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -426,8 +415,7 @@ func TestStop(t *testing.T) {
 func TestFlushThresholds(t *testing.T) {
 	t.Run("flush on bytes threshold", func(t *testing.T) {
 		// Create a client with very small byte threshold
-		bulk, th := setupBulkClient(t, 100, 0, 0) // 100 bytes threshold
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 100, 0, 0) // 100 bytes threshold
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")
@@ -453,8 +441,7 @@ func TestFlushThresholds(t *testing.T) {
 	})
 
 	t.Run("no flush when thresholds not met", func(t *testing.T) {
-		bulk, th := setupBulkClient(t, 100000, 10, 0) // High thresholds
-		defer th.TearDown()
+		bulk := setupBulkClient(t, 100000, 10, 0) // High thresholds
 		defer func() {
 			if os.Getenv("IS_CI") == "true" {
 				os.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", "http://elasticsearch:9201")

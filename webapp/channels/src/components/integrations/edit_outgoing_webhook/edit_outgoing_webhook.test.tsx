@@ -115,8 +115,8 @@ describe('components/integrations/EditOutgoingWebhook', () => {
         instance.submitHook = jest.fn();
         wrapper.instance().editOutgoingHook(hook);
 
-        expect(instance.handleConfirmModal).not.toBeCalled();
-        expect(instance.submitHook).toBeCalled();
+        expect(instance.handleConfirmModal).not.toHaveBeenCalled();
+        expect(instance.submitHook).toHaveBeenCalled();
     });
 
     test('should have match when submitHook is called on success', async () => {

@@ -1185,10 +1185,6 @@
     "translation": "İstek geçersiz: client_id değeri hatalı."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "İstek geçersiz: İstemci parolası eksik."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "İstek geçersiz: İzin türü hatalı."
   },
@@ -5512,15 +5508,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 138+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 138+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 128+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -5532,7 +5528,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support_version",
@@ -10832,10 +10828,6 @@
     "translation": "Lütfen bu iletinin işaretlenme nedenini seçin."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Bu kaynağı görüntüleme izniniz yok."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Kısıtlanmış doğrudan ileti kanalına taslak kaydedilemez"
   },
@@ -10896,10 +10888,6 @@
     "translation": "İşaretlenmiş iletinin özellik değerleri kaydedilemiyor."
   },
   {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "İşaretlenmiş ileti yumuşak silinemiyor."
-  },
-  {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",
     "translation": "Kullanıcı yorumunun işaretlenmesi sıraya alınamadı"
   },
@@ -10941,7 +10929,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "İşaretlenmiş ileti geri alınırken veri tabanındaki ileti güncellenemedi."
+    "translation": "İşaretlenmiş ileti ve ilişkili verileri silinmekten geri alınırken veri tabanındaki ileti güncellenemedi."
   },
   {
     "id": "app.content_flagging.no_status_property.app_error",
@@ -10954,10 +10942,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "İşaretlenmiş ileti kalıcı olarak silinirken işaretlenmiş ileti durumu güncellenemedi."
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "İşaretlenmiş iletinin dosya bilgileri geri yüklenemedi."
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",
@@ -10986,5 +10970,145 @@
   {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
     "translation": "Kısıtlanmış bir doğrudan iletiye dosya yüklenemez."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "API yanıtının JSON kodlamasında bir sorunla karşılaşıldı"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "İçerik değerlendirici ayarları veri tabanından alınamadı"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "İçerik değerlendirici ayarları veri tabanına kaydedilemedi."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate adresi geçerli bir adres olmalı ve http:// ya da https:// ile başlamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Otomatik çeviri hizmeti sağlayıcı geçersiz. Boş olmamalı."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Otomatik çeviri hizmeti sağlayıcı desteklenmiyor."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Otomatik çeviri ayarları için alma zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Otomatik çeviri ayarları için yeni gönderi zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Otomatik çeviri ayarları için bildirim zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanal kimliği, işaretlenmiş iletinin kanal kimliğiyle eşleşmiyor."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Takım veya sistem izin şeması tarafından kısıtlanmış bir izin eklenemez."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Kullanıcı bir içerik değerlendirici değil."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Takım kimliği, işaretlenmiş iletinin takım kimliği ile eşleşmiyor."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "İçerik değerlendirici kimliği özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "İçerik değerlendirici ayarlandığında Durum özelliğinin değeri güncellenemedi."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "İşaretlenmiş iletinin içerik değerlendiricisi ayarlanamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "İşaretlenmiş ileti kimliği özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Şikayet edilen kullanıcı alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Şikayet edilen kullanıcı alanının değeri bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "İfade genel içerik değerlendiricilerinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "İşlaretlenmiş iletinin içerik değerlendiricisi iletileri aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Arama ifadesi sistem yöneticisi içerik değerlendiricileri içinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Arama ifadesi takım yöneticisi içerik değerlendirilerinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Arama ifadesi takım içerik denetleyicilerinde aranamadı."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kanal silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIChannelDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı takım silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPITeamDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Kalıcı kullanıcı silme özelliği açılmamış. Bu komutu kullanabilmek için ServiceSettings.EnableAPIUserDeletion seçeneği true olarak ayarlanmalıdır. Ayrıntılı bilgi almak için https://mattermost.com/pl/environment-configuration-settings adresine bakın."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Aracılar alınamadı."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM hizmetleri alınamadı."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Köprü çağrısı yapılamadı."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "İşaretlenmiş iletinin konu yanıtları alınamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Yöneten özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Durum özellik alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "İşaretlenmiş ileti için konu yanıtlarında özellik değerleri ayarlanamadı."
   }
 ]

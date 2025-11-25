@@ -3568,10 +3568,6 @@
     "translation": "invalid_request: Špatný grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Chybí client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Špatné client_id."
   },
@@ -10836,10 +10832,6 @@
     "translation": "Vyberte prosím důvod pro označení této zprávy."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Nemáte oprávnění k zobrazení tohoto prostředku."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Nelze uložit koncept do chráněného kanálu přímých zpráv"
   },
@@ -10878,5 +10870,9 @@
   {
     "id": "app.channel.get_common_teams.app_error",
     "translation": "Chyba při získávání společných týmů pro kanál"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Došlo k chybě při zpracování JSON pro odpověď API"
   }
 ]
