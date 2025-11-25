@@ -1,0 +1,64 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+@keyframes conceal-shimmer {
+    0% {
+        text-shadow:
+            -7px 0 5px rgba(var(--center-channel-color-rgb), 0.5),
+            7px 0 5px rgba(var(--center-channel-color-rgb), 0.5);
+    }
+    25% {
+        text-shadow:
+            0 -7px 5px rgba(var(--center-channel-color-rgb), 0.5),
+            0 7px 5px rgba(var(--center-channel-color-rgb), 0.5);
+    }
+    50% {
+        text-shadow:
+            7px 0 5px rgba(var(--center-channel-color-rgb), 0.5),
+            -7px 0 5px rgba(var(--center-channel-color-rgb), 0.5);
+    }
+    75% {
+        text-shadow:
+            0 7px 5px rgba(var(--center-channel-color-rgb), 0.5),
+            0 -7px 5px rgba(var(--center-channel-color-rgb), 0.5);
+    }
+    100% {
+        text-shadow:
+            -7px 0 5px rgba(var(--center-channel-color-rgb), 0.5),
+            7px 0 5px rgba(var(--center-channel-color-rgb), 0.5);
+    }
+}
+
+.BurnOnReadConcealedPlaceholder {
+    cursor: pointer;
+    user-select: none;
+
+    &__text {
+        overflow: hidden;
+        animation: conceal-shimmer 12s ease-in-out infinite;
+        color: var(--center-channel-color);
+        filter: blur(4px) contrast(2) brightness(1.8);
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &:hover &__text {
+        opacity: 0.95;
+    }
+
+    &--loading {
+        cursor: wait;
+        pointer-events: none;
+    }
+
+    &__error {
+        padding: 4px 8px;
+        border-radius: 4px;
+        margin-top: 4px;
+        background-color: var(--error-text, #D24B4E);
+        color: var(--button-color, #FFFFFF);
+        font-size: 12px;
+        text-align: center;
+    }
+}
