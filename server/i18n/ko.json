@@ -8071,7 +8071,7 @@
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
-    "translation": "{{{.Usernames}} 및 @{{.LastUsername}}은 이 팀의 멤버가 아니기 때문에 이 멘션에 대한 알림을 받지 못했습니다."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} didn't get notified by this mention because they aren't members of this team."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
