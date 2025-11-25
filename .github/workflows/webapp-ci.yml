@@ -94,6 +94,186 @@ jobs:
           disable_search: true
           files: ./webapp/channels/coverage/lcov.info
 
+  test-benchmark:
+    runs-on: ${{ matrix.os }}
+    permissions:
+      checks: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        config:
+          - name: "maxWorkers=100%"
+            test-command: "npm run test-ci"
+            jest-options: ""
+          - name: "maxWorkers=50%"
+            test-command: "cd channels && npm run test-ci:50"
+            jest-options: "--maxWorkers=50%"
+          - name: "runInBand"
+            test-command: "cd channels && npm run test-ci:runInBand"
+            jest-options: "--runInBand"
+    defaults:
+      run:
+        working-directory: webapp
+    name: "Test Benchmark: ${{ matrix.config.name }} (${{ matrix.os }})"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
+
+      - name: ci/test-with-benchmark
+        env:
+          NODE_OPTIONS: --max_old_space_size=5120
+        run: |
+          echo "::group::Test Configuration"
+          echo "Configuration: ${{ matrix.config.name }}"
+          echo "OS: ${{ matrix.os }}"
+          echo "Jest Options: ${{ matrix.config.jest-options }}"
+          echo "::endgroup::"
+
+          echo "::group::System Information"
+          echo "CPU Info:"
+          lscpu | grep -E "^(Model name|CPU\(s\)|Thread|Core)"
+          echo ""
+          echo "Memory Info:"
+          free -h
+          echo "::endgroup::"
+
+          # Capture start time
+          START_TIME=$(date +%s)
+
+          # Run tests
+          ${{ matrix.config.test-command }}
+          TEST_EXIT_CODE=$?
+
+          # Capture end time
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          MINUTES=$((DURATION / 60))
+          SECONDS=$((DURATION % 60))
+
+          echo "::group::Benchmark Results"
+          echo "=========================================="
+          echo "BENCHMARK RESULTS: ${{ matrix.config.name }} (${{ matrix.os }})"
+          echo "=========================================="
+          echo "Total Duration: ${MINUTES}m ${SECONDS}s (${DURATION}s)"
+          echo "OS: ${{ matrix.os }}"
+          echo "Jest Options: ${{ matrix.config.jest-options }}"
+          echo "Exit Code: ${TEST_EXIT_CODE}"
+          echo "=========================================="
+          echo "::endgroup::"
+
+          # Create benchmark summary for GitHub Actions Summary
+          echo "## 📊 Benchmark: ${{ matrix.config.name }} (${{ matrix.os }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Duration** | ${MINUTES}m ${SECONDS}s (${DURATION}s) |" >> $GITHUB_STEP_SUMMARY
+          echo "| **OS** | ${{ matrix.os }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Jest Options** | \`${{ matrix.config.jest-options }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Exit Code** | ${TEST_EXIT_CODE} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Save benchmark results to artifact
+          mkdir -p benchmark-results
+          cat > "benchmark-results/${{ matrix.config.name }}-${{ matrix.os }}.json" <<EOF
+          {
+            "configuration": "${{ matrix.config.name }}",
+            "os": "${{ matrix.os }}",
+            "jest_options": "${{ matrix.config.jest-options }}",
+            "duration_seconds": ${DURATION},
+            "duration_formatted": "${MINUTES}m ${SECONDS}s",
+            "exit_code": ${TEST_EXIT_CODE},
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Exit with the test exit code
+          exit ${TEST_EXIT_CODE}
+
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.config.name }}-${{ matrix.os }}
+          path: webapp/benchmark-results/
+          retention-days: 30
+          # Note: Artifact names contain special chars (%, =) but upload-artifact@v4 handles them correctly
+
+  benchmark-summary:
+    runs-on: ubuntu-22.04
+    needs: test-benchmark
+    if: always()
+    steps:
+      - name: Download all benchmark results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-benchmarks
+          pattern: benchmark-*
+
+      - name: Generate comparison summary
+        run: |
+          echo "# 🚀 Test Benchmark Comparison" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Create detailed table
+          echo "## Detailed Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Configuration | ubuntu-22.04 | ubuntu-24.04 | Difference |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------------|--------------|--------------|------------|" >> $GITHUB_STEP_SUMMARY
+
+          # Process each configuration
+          for config in "maxWorkers=100%" "maxWorkers=50%" "runInBand"; do
+            # Get durations for both OS versions
+            DURATION_22=$(find all-benchmarks -name "*${config}*22.04*.json" -exec jq -r '.duration_seconds' {} \; 2>/dev/null | head -1)
+            DURATION_24=$(find all-benchmarks -name "*${config}*24.04*.json" -exec jq -r '.duration_seconds' {} \; 2>/dev/null | head -1)
+
+            if [ -n "$DURATION_22" ] && [ -n "$DURATION_24" ]; then
+              # Format durations
+              MIN_22=$((DURATION_22 / 60))
+              SEC_22=$((DURATION_22 % 60))
+              MIN_24=$((DURATION_24 / 60))
+              SEC_24=$((DURATION_24 % 60))
+
+              # Calculate difference
+              DIFF=$((DURATION_24 - DURATION_22))
+              if [ $DIFF -gt 0 ]; then
+                DIFF_STR="+${DIFF}s (slower)"
+              elif [ $DIFF -lt 0 ]; then
+                DIFF_STR="${DIFF}s (faster)"
+              else
+                DIFF_STR="0s (same)"
+              fi
+
+              echo "| **${config}** | ${MIN_22}m ${SEC_22}s | ${MIN_24}m ${SEC_24}s | ${DIFF_STR} |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## All Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Configuration | OS | Duration | Duration (s) | Exit Code |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------------|-----|----------|--------------|-----------|" >> $GITHUB_STEP_SUMMARY
+
+          # Sort and display all results
+          find all-benchmarks -name "*.json" -type f | sort | while read file; do
+            CONFIG=$(jq -r '.configuration' "$file")
+            OS=$(jq -r '.os' "$file")
+            DURATION=$(jq -r '.duration_formatted' "$file")
+            DURATION_S=$(jq -r '.duration_seconds' "$file")
+            EXIT_CODE=$(jq -r '.exit_code' "$file")
+            STATUS_ICON="✅"
+            [ "$EXIT_CODE" != "0" ] && STATUS_ICON="❌"
+            echo "| $CONFIG | $OS | $DURATION | ${DURATION_S}s | $STATUS_ICON $EXIT_CODE |" >> $GITHUB_STEP_SUMMARY
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Benchmark completed at $(date -u)*" >> $GITHUB_STEP_SUMMARY
+
   build:
     runs-on: ubuntu-22.04
     defaults:
