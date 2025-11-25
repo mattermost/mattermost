@@ -358,6 +358,24 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 			s.Require().Contains(inactiveUserPool, user.Username)
 		}
 	})
+
+	s.RunForSystemAdminAndLocal("Get list of users with given role", func(c client.Client) {
+		printer.Clean()
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("per-page", "5"))
+		s.Require().NoError(cmd.Flags().Set("role", model.SystemAdminRoleId))
+
+		err := listUsersCmdF(c, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().GreaterOrEqual(len(printer.GetLines()), 1)
+		s.Len(printer.GetErrorLines(), 0)
+
+		line := printer.GetLines()[0]
+		user := line.(*model.User)
+
+		s.Require().Equal(s.th.SystemAdminUser.Username, user.Username)
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
