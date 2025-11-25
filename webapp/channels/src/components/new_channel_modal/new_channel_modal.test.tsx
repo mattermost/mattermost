@@ -399,6 +399,7 @@ describe('components/new_channel_modal', () => {
         expect(createChannelButton).toBeEnabled();
 
         // Submit
+        (createChannel as jest.Mock).mockResolvedValue({error: {message: 'Server error'}});
         await act(async () => userEvent.click(createChannelButton));
 
         const serverError = screen.getByText('Something went wrong. Please try again.');
