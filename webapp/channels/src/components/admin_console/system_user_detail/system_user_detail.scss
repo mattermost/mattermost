@@ -130,11 +130,11 @@
     }
 
     .password-confirmation-section {
+        padding: 12px;
+        border-radius: 4px;
         margin-top: 16px;
         margin-bottom: 16px;
-        padding: 12px;
         background-color: rgba(var(--center-channel-color-rgb), 0.04);
-        border-radius: 4px;
 
         .password-input-wrapper {
             margin-top: 12px;
