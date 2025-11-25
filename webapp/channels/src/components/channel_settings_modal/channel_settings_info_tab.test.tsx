@@ -164,9 +164,6 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.type(nameInput, 'Updated Channel Name');
         });
 
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
         // SaveChangesPanel should now be visible.
         expect(screen.queryByRole('button', {name: 'Save'})).toBeInTheDocument();
     });
@@ -194,9 +191,6 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.clear(headerInput);
             await userEvent.type(headerInput, 'Updated header');
         });
-
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Click the Save button in the SaveChangesPanel.
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -236,9 +230,6 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.type(headerInput, '  Header with whitespace  ');
         });
 
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
         // Click the Save button
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
@@ -252,9 +243,6 @@ describe('ChannelSettingsInfoTab', () => {
         });
 
         // Verify that the local state is updated with trimmed values
-        // Wait for the component to update after the save
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
         // The inputs should now have the trimmed values
         expect(screen.getByRole('textbox', {name: 'Channel name'})).toHaveValue('Channel Name With Whitespace');
         expect(screen.getByTestId('channel_settings_purpose_textbox')).toHaveValue('Purpose with whitespace');
@@ -284,9 +272,6 @@ describe('ChannelSettingsInfoTab', () => {
         // Click the Save button
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
         // SaveChangesPanel should now be hidden after the successful save
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
     });
@@ -301,9 +286,6 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, 'Updated Channel Name');
         });
-
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // SaveChangesPanel should now be visible.
         expect(screen.queryByRole('button', {name: 'Save'})).toBeInTheDocument();
@@ -331,9 +313,6 @@ describe('ChannelSettingsInfoTab', () => {
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, 'Updated Channel Name');
         });
-
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
 
         // Click the Save button.
         await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -363,9 +342,6 @@ describe('ChannelSettingsInfoTab', () => {
             nameInput.blur();
         });
 
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
         const errorPanel = errorMessage.closest('.SaveChangesPanel');
@@ -382,15 +358,14 @@ describe('ChannelSettingsInfoTab', () => {
         // Create a string that exceeds the allowed character limit
         const longPurpose = 'a'.repeat(1025);
 
-        // Wrap the interaction in act to handle state updates properly
-        await act(async () => {
-            const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
-            await userEvent.clear(purposeInput);
-            await userEvent.type(purposeInput, longPurpose);
-        });
+        // Use fireEvent for performance - no need to simulate individual keystrokes for validation tests
+        const purposeInput = screen.getByTestId('channel_settings_purpose_textbox');
+        await userEvent.click(purposeInput);
 
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Simulate pasting long content directly instead of typing character by character
+        await act(async () => {
+            await userEvent.paste(longPurpose);
+        });
 
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
@@ -408,15 +383,14 @@ describe('ChannelSettingsInfoTab', () => {
         // Create a string that exceeds the header character limit.
         const longHeader = 'a'.repeat(1025);
 
-        // Wrap the interaction in act to handle state updates properly
-        await act(async () => {
-            const headerInput = screen.getByTestId('channel_settings_header_textbox');
-            await userEvent.clear(headerInput);
-            await userEvent.type(headerInput, longHeader);
-        });
+        // Use fireEvent for performance - no need to simulate individual keystrokes for validation tests
+        const headerInput = screen.getByTestId('channel_settings_header_textbox');
+        await userEvent.click(headerInput);
 
-        // Add a small delay to ensure all state updates are processed
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        // Simulate pasting long content directly instead of typing character by character
+        await act(async () => {
+            await userEvent.paste(longHeader);
+        });
 
         // SaveChangesPanel should show error state.
         const errorMessage = screen.getByText(/There are errors in the form above/);
