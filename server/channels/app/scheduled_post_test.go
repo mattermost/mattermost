@@ -15,8 +15,8 @@ import (
 
 func TestSaveScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -230,7 +230,7 @@ func TestSaveScheduledPost(t *testing.T) {
 		})
 
 		// Create a DM channel between two users who don't share a team
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// Ensure the two users do not share a team
 		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
@@ -247,10 +247,10 @@ func TestSaveScheduledPost(t *testing.T) {
 		}
 
 		// Create separate teams for each user
-		team1 := th.CreateTeam()
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, team1)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		scheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
@@ -276,8 +276,8 @@ func TestSaveScheduledPost(t *testing.T) {
 
 func TestGetUserTeamScheduledPosts(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("should get created scheduled posts", func(t *testing.T) {
@@ -362,7 +362,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		}()
 
 		// create a dummy team
-		secondTeam := th.CreateTeam()
+		secondTeam := th.CreateTeam(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, secondTeam, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
@@ -377,7 +377,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// create a GM. Since a GM needs at least 3 users, we'll create a third user first
-		thirdUser := th.CreateUser()
+		thirdUser := th.CreateUser(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, thirdUser, thirdUser.Id)
 		require.Nil(t, appErr)
 
@@ -425,7 +425,7 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// create a GM. Since a GM needs at least 3 users, we'll create a third user first
-		thirdUser := th.CreateUser()
+		thirdUser := th.CreateUser(t)
 		_, appErr = th.App.JoinUserToTeam(th.Context, th.BasicTeam, thirdUser, thirdUser.Id)
 		require.Nil(t, appErr)
 
@@ -473,12 +473,12 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 
 	t.Run("should not be able to fetch scheduled posts for team user doesn't belong to", func(t *testing.T) {
 		// create a dummy team
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 		_, appErr := th.App.JoinUserToTeam(th.Context, team, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		// create a channel in this team
-		channel := th.CreateChannel(th.Context, team)
+		channel := th.CreateChannel(t, team)
 
 		// create scheduled post
 		scheduledPost1 := &model.ScheduledPost{
@@ -511,8 +511,8 @@ func TestGetUserTeamScheduledPosts(t *testing.T) {
 
 func TestUpdateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -677,8 +677,8 @@ func TestUpdateScheduledPost(t *testing.T) {
 	})
 
 	t.Run("should be able to update scheduled posts for channels user does not belong to", func(t *testing.T) {
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		scheduledPost := &model.ScheduledPost{
 			Draft: model.Draft{
@@ -694,7 +694,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.NotNil(t, createdScheduledPost)
 
 		// now user will leave the channel
-		appErr = th.RemoveUserFromChannel(th.BasicUser, channel)
+		appErr = th.RemoveUserFromChannel(t, th.BasicUser, channel)
 		require.Nil(t, appErr)
 
 		createdScheduledPost.Message = "Updated message"
@@ -725,8 +725,8 @@ func TestUpdateScheduledPost(t *testing.T) {
 
 func TestDeleteScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	user1ConnID := model.NewId()
 
 	t.Run("base case", func(t *testing.T) {
@@ -810,8 +810,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 
 func TestPublishScheduledPostEvent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	userID := th.BasicUser.Id
 

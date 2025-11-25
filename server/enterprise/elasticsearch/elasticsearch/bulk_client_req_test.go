@@ -15,7 +15,7 @@ import (
 )
 
 // setupBulkClient creates a test bulk client with common setup
-func setupBulkClient(t *testing.T, flushNumReqs int, flushInterval time.Duration) (*ReqBulkClient, *api4.TestHelper) {
+func setupBulkClient(t *testing.T, flushNumReqs int, flushInterval time.Duration) *ReqBulkClient {
 	th := api4.SetupEnterprise(t)
 
 	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
@@ -30,7 +30,7 @@ func setupBulkClient(t *testing.T, flushNumReqs int, flushInterval time.Duration
 		th.Server.Platform().Log())
 	require.NoError(t, err)
 
-	return bulkClient, th
+	return bulkClient
 }
 
 // createTestPost creates a test post for indexing
@@ -45,9 +45,8 @@ func createTestPost(t *testing.T, message string) *common.ESPost {
 
 func TestBulkProcessor(t *testing.T) {
 	th := api4.SetupEnterprise(t)
-	defer th.TearDown()
 
-	bulkClient, _ := setupBulkClient(t, *th.App.Config().ElasticsearchSettings.LiveIndexingBatchSize, 0)
+	bulkClient := setupBulkClient(t, *th.App.Config().ElasticsearchSettings.LiveIndexingBatchSize, 0)
 
 	post := createTestPost(t, "hello world")
 
@@ -66,8 +65,7 @@ func TestBulkProcessor(t *testing.T) {
 }
 
 func TestIndexOp(t *testing.T) {
-	bulkClient, th := setupBulkClient(t, 10, 0)
-	defer th.TearDown()
+	bulkClient := setupBulkClient(t, 10, 0)
 
 	t.Run("single index operation", func(t *testing.T) {
 		post := createTestPost(t, "test message")
@@ -97,8 +95,7 @@ func TestIndexOp(t *testing.T) {
 
 	t.Run("auto flush on threshold", func(t *testing.T) {
 		// Create a new client with low flush threshold
-		bulkClient2, th2 := setupBulkClient(t, 2, 0)
-		defer th2.TearDown()
+		bulkClient2 := setupBulkClient(t, 2, 0)
 
 		post1 := createTestPost(t, "first message")
 		err := bulkClient2.IndexOp(types.IndexOperation{
@@ -128,8 +125,7 @@ func TestIndexOp(t *testing.T) {
 }
 
 func TestDeleteOp(t *testing.T) {
-	bulkClient, th := setupBulkClient(t, 10, 0)
-	defer th.TearDown()
+	bulkClient := setupBulkClient(t, 10, 0)
 
 	t.Run("single delete operation", func(t *testing.T) {
 		docId := model.NewId()
@@ -159,8 +155,7 @@ func TestDeleteOp(t *testing.T) {
 
 	t.Run("auto flush on threshold", func(t *testing.T) {
 		// Create a new client with low flush threshold
-		bulkClient2, th2 := setupBulkClient(t, 2, 0)
-		defer th2.TearDown()
+		bulkClient2 := setupBulkClient(t, 2, 0)
 
 		// Add two delete operations
 		for range 2 {
@@ -185,8 +180,7 @@ func TestDeleteOp(t *testing.T) {
 }
 
 func TestFlush(t *testing.T) {
-	bulkClient, th := setupBulkClient(t, 10, 0)
-	defer th.TearDown()
+	bulkClient := setupBulkClient(t, 10, 0)
 
 	t.Run("flush with pending requests", func(t *testing.T) {
 		post := createTestPost(t, "test message")
@@ -214,8 +208,7 @@ func TestFlush(t *testing.T) {
 
 func TestStop(t *testing.T) {
 	t.Run("stop with pending requests", func(t *testing.T) {
-		bulkClient, th := setupBulkClient(t, 10, 0)
-		defer th.TearDown()
+		bulkClient := setupBulkClient(t, 10, 0)
 
 		post := createTestPost(t, "test message")
 
@@ -232,8 +225,7 @@ func TestStop(t *testing.T) {
 	})
 
 	t.Run("stop with no pending requests", func(t *testing.T) {
-		bulkClient, th := setupBulkClient(t, 10, 0)
-		defer th.TearDown()
+		bulkClient := setupBulkClient(t, 10, 0)
 
 		require.Equal(t, 0, bulkClient.pendingRequests)
 
@@ -243,8 +235,7 @@ func TestStop(t *testing.T) {
 	})
 
 	t.Run("stop with periodic flusher", func(t *testing.T) {
-		bulkClient, th := setupBulkClient(t, 10, 100*time.Millisecond)
-		defer th.TearDown()
+		bulkClient := setupBulkClient(t, 10, 100*time.Millisecond)
 
 		post := createTestPost(t, "test message")
 

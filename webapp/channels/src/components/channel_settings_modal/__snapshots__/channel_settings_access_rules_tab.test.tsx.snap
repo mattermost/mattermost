@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should match snapshot 1`] = `
 <div>
@@ -50,7 +50,7 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
       <p
         class="ChannelSettingsModal__autoSyncDescription"
       >
-        Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.
+        Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.
       </p>
     </div>
   </div>
