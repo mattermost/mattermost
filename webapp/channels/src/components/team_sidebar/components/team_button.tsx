@@ -103,7 +103,7 @@ export default function TeamButton({
             },
             {
                 teamName: displayName,
-            }); 
+            });
         }
 
         if (mentions && isNotCreateTeamButton) {
