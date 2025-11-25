@@ -187,6 +187,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     showSuccessMessage={false}
                     errorMessage={defineMessage({
                         id: 'admin.recycle.reloadFail',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Recycling unsuccessful: {error}',
                     })}
                     includeDetailedError={true}

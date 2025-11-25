@@ -112,6 +112,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     helpText={
                         <FormattedMessage
                             id='admin.site.localization.autoTranslationProviderDescription'
+                            // eslint-disable-next-line formatjs/enforce-placeholders -- values provided by providerHelpTextValues
                             defaultMessage='<strong>NOTE:</strong> If using external translation services (e.g., cloud based),{br}message data may be processed outside of your environment.'
                             values={providerHelpTextValues}
                         />

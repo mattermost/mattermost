@@ -26,6 +26,7 @@ describe('components/widgets/loadingLoadingSpinner', () => {
         renderWithContext(
             <LoadingSpinner
                 text={
+                    // eslint-disable-next-line formatjs/enforce-default-message -- test uses dynamic ID
                     <FormattedMessage id={messageId}/>
                 }
             />,

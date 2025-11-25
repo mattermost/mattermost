@@ -300,7 +300,6 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
     } else if (type === Constants.Integrations.OUTGOING_OAUTH_CONNECTIONS && outgoingOAuthConnection) {
         const clientId = outgoingOAuthConnection.client_id;
-        const clientSecret = outgoingOAuthConnection.client_secret;
         const username = outgoingOAuthConnection.credentials_username;
         const password = outgoingOAuthConnection.credentials_password;
 
@@ -343,9 +342,8 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <br/>
                 <FormattedMessage
                     id='add_outgoing_oauth_connection.clientSecret'
-                    defaultMessage='<b>Client Secret</b>: \*\*\*\*\*\*\*\*'
+                    defaultMessage='<b>Client Secret</b>: ********'
                     values={{
-                        secret: clientSecret,
                         b: (chunks) => <b>{chunks}</b>,
                     }}
                 />

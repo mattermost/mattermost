@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable formatjs/enforce-placeholders -- Admin request button uses runtime injection for error placeholder */
+
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';

@@ -530,7 +530,6 @@ function createStandardIntroMessage(
     locale: string,
     creatorName: string,
 ) {
-    const uiName = channel.display_name;
     let memberMessage;
     let teamInviteLink = null;
     const channelIsArchived = channel.delete_at !== 0;
@@ -577,7 +576,7 @@ function createStandardIntroMessage(
                 <FormattedMessage
                     id='intro_messages.noCreatorPrivate'
                     defaultMessage='Private channel created on {date}.'
-                    values={{name: (uiName), date}}
+                    values={{date}}
                 />
             );
         } else if (channel.type === Constants.OPEN_CHANNEL) {
@@ -585,7 +584,7 @@ function createStandardIntroMessage(
                 <FormattedMessage
                     id='intro_messages.noCreator'
                     defaultMessage='Public channel created on {date}.'
-                    values={{name: (uiName), date}}
+                    values={{date}}
                 />
             );
         }
@@ -596,7 +595,6 @@ function createStandardIntroMessage(
                     id='intro_messages.creatorPrivate'
                     defaultMessage='Private channel created by {creator} on {date}.'
                     values={{
-                        name: (uiName),
                         creator: (creatorName),
                         date,
                     }}
@@ -610,7 +608,6 @@ function createStandardIntroMessage(
                     id='intro_messages.creator'
                     defaultMessage='Public channel created by {creator} on {date}.'
                     values={{
-                        name: (uiName),
                         creator: (creatorName),
                         date,
                     }}

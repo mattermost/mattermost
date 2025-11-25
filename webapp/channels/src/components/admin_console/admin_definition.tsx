@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 /* eslint-disable max-lines */
+/* eslint-disable formatjs/enforce-placeholders -- Admin definition uses help_text_values and runtime injection for placeholders, which ESLint cannot statically analyze */
 
 import React from 'react';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
@@ -678,7 +679,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAttributeBasedAccessControl',
                                     label: defineMessage({id: 'admin.accesscontrol.enableTitle', defaultMessage: 'Allow attribute based access controls on this server'}),
-                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.'}),
+                                    help_text: defineMessage({id: 'admin.accesscontrol.enableDesc', defaultMessage: 'Allow access restrictions based on user attributes using custom access policies. To effectively use this feature, you must define user attributes in the {userAttributes} section.'}), // eslint-disable-line formatjs/enforce-placeholders -- userAttributes provided via help_text_values
                                     help_text_values: {
                                         userAttributes: (
                                             <a href='../system_attributes/user_attributes'>
@@ -789,7 +790,7 @@ const AdminDefinition: AdminDefinitionType = {
                             action: testSiteURL,
                             label: defineMessage({id: 'admin.service.testSiteURL', defaultMessage: 'Test Live URL'}),
                             loading: defineMessage({id: 'admin.service.testSiteURLTesting', defaultMessage: 'Testing...'}),
-                            error_message: defineMessage({id: 'admin.service.testSiteURLFail', defaultMessage: 'Test unsuccessful: {error}'}),
+                            error_message: defineMessage({id: 'admin.service.testSiteURLFail', defaultMessage: 'Test unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
                             success_message: defineMessage({id: 'admin.service.testSiteURLSuccess', defaultMessage: 'Test successful. This is a valid URL.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
@@ -926,7 +927,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'ServiceSettings.ManagedResourcePaths',
                             label: defineMessage({id: 'admin.service.managedResourcePaths', defaultMessage: 'Managed Resource Paths:'}),
-                            help_text: defineMessage({id: 'admin.service.managedResourcePathsDescription', defaultMessage: 'A comma-separated list of paths on the Mattermost server that are managed by another service. See <link>here</link> for more information.'}),
+                            help_text: defineMessage({id: 'admin.service.managedResourcePathsDescription', defaultMessage: 'A comma-separated list of paths on the Mattermost server that are managed by another service. See <link>here</link> for more information.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
                             help_text_markdown: false,
                             help_text_values: {
                                 link: (msg: string) => (
@@ -945,7 +946,7 @@ const AdminDefinition: AdminDefinitionType = {
                             action: reloadConfig,
                             key: 'ReloadConfigButton',
                             label: defineMessage({id: 'admin.reload.button', defaultMessage: 'Reload Configuration From Disk'}),
-                            help_text: defineMessage({id: 'admin.reload.reloadDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {featureName} feature to load the new settings while the server is running. The administrator should then use the {recycleDatabaseConnections} feature to recycle the database connections based on the new settings.'}),
+                            help_text: defineMessage({id: 'admin.reload.reloadDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {featureName} feature to load the new settings while the server is running. The administrator should then use the {recycleDatabaseConnections} feature to recycle the database connections based on the new settings.'}), // eslint-disable-line formatjs/enforce-placeholders -- featureName, recycleDatabaseConnections provided via help_text_values
                             help_text_values: {
                                 featureName: (
                                     <b>
@@ -966,7 +967,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     </a>
                                 ),
                             },
-                            error_message: defineMessage({id: 'admin.reload.reloadFail', defaultMessage: 'Reload unsuccessful: {error}'}),
+                            error_message: defineMessage({id: 'admin.reload.reloadFail', defaultMessage: 'Reload unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                         {
@@ -975,7 +976,7 @@ const AdminDefinition: AdminDefinitionType = {
                             action: invalidateAllCaches,
                             label: defineMessage({id: 'admin.purge.button', defaultMessage: 'Purge All Caches'}),
                             help_text: defineMessage({id: 'admin.purge.purgeDescription', defaultMessage: 'This will purge all the in-memory caches for things like sessions, accounts, channels, etc. Deployments using High Availability will attempt to purge all the servers in the cluster. Purging the caches may adversely impact performance.'}),
-                            error_message: defineMessage({id: 'admin.purge.purgeFail', defaultMessage: 'Purging unsuccessful: {error}'}),
+                            error_message: defineMessage({id: 'admin.purge.purgeFail', defaultMessage: 'Purging unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                         },
                     ],
@@ -1065,7 +1066,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'FileSettings.ExtractContent',
                             label: defineMessage({id: 'admin.image.extractContentTitle', defaultMessage: 'Enable document search by content:'}),
-                            help_text: defineMessage({id: 'admin.image.extractContentDescription', defaultMessage: 'When enabled, supported document types are searchable by their content. Search results for existing documents may be incomplete <link>until a data migration is executed</link>.'}),
+                            help_text: defineMessage({id: 'admin.image.extractContentDescription', defaultMessage: 'When enabled, supported document types are searchable by their content. Search results for existing documents may be incomplete <link>until a data migration is executed</link>.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
                             help_text_markdown: false,
                             help_text_values: {
                                 link: (msg: string) => (
@@ -1128,7 +1129,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'FileSettings.AmazonS3AccessKeyId',
                             label: defineMessage({id: 'admin.image.amazonS3IdTitle', defaultMessage: 'Amazon S3 Access Key ID:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3IdDescription', defaultMessage: '(Optional) Only required if you do not want to authenticate to S3 using an <link>IAM role</link>. Enter the Access Key ID provided by your Amazon EC2 administrator.'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3IdDescription', defaultMessage: '(Optional) Only required if you do not want to authenticate to S3 using an <link>IAM role</link>. Enter the Access Key ID provided by your Amazon EC2 administrator.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
                             help_text_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -1182,7 +1183,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'FileSettings.AmazonS3SSE',
                             label: defineMessage({id: 'admin.image.amazonS3SSETitle', defaultMessage: 'Enable Server-Side Encryption for Amazon S3:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SSEDescription', defaultMessage: 'When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3SSEDescription', defaultMessage: 'When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
                             help_text_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -1227,7 +1228,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TestS3Connection',
                             label: defineMessage({id: 'admin.s3.connectionS3Test', defaultMessage: 'Test Connection'}),
                             loading: defineMessage({id: 'admin.s3.testing', defaultMessage: 'Testing...'}),
-                            error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}),
+                            error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
                             success_message: defineMessage({id: 'admin.s3.s3Success', defaultMessage: 'Connection was successful'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                         },
@@ -1282,7 +1283,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'text',
                             key: 'FileSettings.ExportAmazonS3AccessKeyId',
                             label: defineMessage({id: 'admin.image.amazonS3IdTitle', defaultMessage: 'Amazon S3 Access Key ID:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3IdDescription', defaultMessage: '(Optional) Only required if you do not want to authenticate to S3 using an <link>IAM role</link>. Enter the Access Key ID provided by your Amazon EC2 administrator.'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3IdDescription', defaultMessage: '(Optional) Only required if you do not want to authenticate to S3 using an <link>IAM role</link>. Enter the Access Key ID provided by your Amazon EC2 administrator.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
                             help_text_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -1387,7 +1388,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'FileSettings.ExportAmazonS3SSE',
                             label: defineMessage({id: 'admin.image.amazonS3SSETitle', defaultMessage: 'Enable Server-Side Encryption for Amazon S3:'}),
-                            help_text: defineMessage({id: 'admin.image.amazonS3SSEDescription', defaultMessage: 'When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3SSEDescription', defaultMessage: 'When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.'}), // eslint-disable-line formatjs/enforce-placeholders -- link provided via help_text_values
                             help_text_values: {
                                 link: (msg: string) => (
                                     <ExternalLink
@@ -1422,7 +1423,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'TestS3Connection',
                             label: defineMessage({id: 'admin.s3.connectionS3Test', defaultMessage: 'Test Connection'}),
                             loading: defineMessage({id: 'admin.s3.testing', defaultMessage: 'Testing...'}),
-                            error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}),
+                            error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}), // eslint-disable-line formatjs/enforce-placeholders -- error provided at runtime
                             success_message: defineMessage({id: 'admin.s3.s3Success', defaultMessage: 'Connection was successful'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                             isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
@@ -4350,7 +4351,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     value: Constants.GOOGLE_SERVICE,
                                     display_name: defineMessage({id: 'admin.oauth.google', defaultMessage: 'Google Apps'}),
                                     isHidden: it.all(it.not(it.licensedForFeature('GoogleOAuth')), it.not(it.cloudLicensed)),
-                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter \"Mattermost - your-company-name\" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>\"your-mattermost-url/signup/google/complete\"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkApi>Google People API</linkApi> and click <strong>Enable</strong>.'}),
+                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter "Mattermost - your-company-name" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkApi>Google People API</linkApi> and click <strong>Enable</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (
@@ -4688,7 +4689,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     value: Constants.GOOGLE_SERVICE,
                                     display_name: defineMessage({id: 'admin.openid.google', defaultMessage: 'Google Apps'}),
-                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter \"Mattermost - your-company-name\" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>\"your-mattermost-url/signup/google/complete\"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkApi>Google People API</linkApi> and click <strong>Enable</strong>.'}),
+                                    help_text: defineMessage({id: 'admin.google.EnableMarkdownDesc', defaultMessage: '1. <linkLogin>Log in</linkLogin> to your Google account.\n2. Go to <linkConsole>https://console.developers.google.com</linkConsole>, click <strong>Credentials</strong> in the left hand side.\n 3. Under the <strong>Credentials</strong> header, click <strong>Create credentials</strong>, choose <strong>OAuth client ID</strong> and select <strong>Web Application</strong>.\n 4. Enter "Mattermost - your-company-name" as the <strong>Name</strong>.\n 5. Under <strong>Authorized redirect URIs</strong> enter <strong>"your-mattermost-url/signup/google/complete"</strong> (example: http://localhost:8065/signup/google/complete). Click <strong>Create</strong>.\n 6. Paste the <strong>Client ID</strong> and <strong>Client Secret</strong> to the fields below, then click <strong>Save</strong>.\n 7. Go to the <linkApi>Google People API</linkApi> and click <strong>Enable</strong>.'}),
                                     help_text_markdown: false,
                                     help_text_values: {
                                         linkLogin: (msg: string) => (

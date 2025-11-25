@@ -108,6 +108,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                 emptyTextSearch={
                     <FormattedMessage
                         id='installed_commands.search.empty'
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
                         defaultMessage='No slash commands match <b>{searchTerm}</b>'
                         values={{
                             b: (chunks) => <b>{chunks}</b>,

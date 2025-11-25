@@ -19,8 +19,6 @@ import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/i
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
-import values from '../../../packages/mattermost-redux/src/constants/permissions';
-
 const PAGE_SIZE = 200;
 
 type Props = {
@@ -146,9 +144,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
                 emptyTextSearch={
                     <FormattedMessage
                         id='installed_incoming_webhooks.emptySearch'
-
-                        // searchTerm injected internally
-                        // eslint-disable-next-line formatjs/enforce-placeholders
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- searchTerm provided by BackstageList
                         defaultMessage='No incoming webhooks match <strong>{searchTerm}</strong>'
                         values={{
                             strong: (chunks) => <strong>{chunks}</strong>,

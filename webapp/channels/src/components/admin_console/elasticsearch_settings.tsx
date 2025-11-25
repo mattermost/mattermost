@@ -456,6 +456,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     })}
                     errorMessage={defineMessage({
                         id: 'admin.elasticsearch.rebuildIndexSuccessfully.error',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Failed to trigger channels index rebuild job: {error}',
                     })}
                     disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
@@ -472,6 +473,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     })}
                     errorMessage={defineMessage({
                         id: 'admin.elasticsearch.purgeIndexesButton.error',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Failed to purge indexes: {error}',
                     })}
                     disabled={this.props.isDisabled || !this.state.canPurgeAndIndex}

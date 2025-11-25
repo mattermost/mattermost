@@ -181,7 +181,7 @@
   "add_outgoing_oauth_connection.client_secret.label": "Client Secret",
   "add_outgoing_oauth_connection.client_secret.required": "Client Secret for the OAuth connection is required.",
   "add_outgoing_oauth_connection.clientId": "<b>Client ID</b>: {id}",
-  "add_outgoing_oauth_connection.clientSecret": "<b>Client Secret</b>: \\*\\*\\*\\*\\*\\*\\*\\*",
+  "add_outgoing_oauth_connection.clientSecret": "<b>Client Secret</b>: ********",
   "add_outgoing_oauth_connection.confirm_save": "Save Outgoing OAuth Connection",
   "add_outgoing_oauth_connection.connected": "Connected to \"{connectionName}\"",
   "add_outgoing_oauth_connection.documentation_link": "Get help with <link>configuring outgoing OAuth connections</link>.",

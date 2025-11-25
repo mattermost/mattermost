@@ -49,10 +49,6 @@ const AttributeHelpText = memo(({attributeKey, attributeName, attributeType}: At
                 <FormattedMessage
                     id='admin.customProfileAttribWarning'
                     defaultMessage='(Warning) This attribute will be converted to a TEXT attribute, if the field is set to synchronize.'
-                    values={{
-                        name: attributeName,
-                        strong: (msg) => <strong>{msg}</strong>,
-                    }}
                 />
             </div>
         )}
