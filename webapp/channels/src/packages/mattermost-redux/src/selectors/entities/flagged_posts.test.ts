@@ -24,7 +24,12 @@ describe('selectors.entities.flaggedPosts', () => {
         hashtags: '',
         pending_post_id: '',
         reply_count: 0,
-        metadata: {},
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
         type: '',
     };
 
@@ -44,7 +49,12 @@ describe('selectors.entities.flaggedPosts', () => {
         hashtags: '',
         pending_post_id: '',
         reply_count: 0,
-        metadata: {},
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
         type: '',
     };
 
@@ -64,7 +74,12 @@ describe('selectors.entities.flaggedPosts', () => {
         hashtags: '',
         pending_post_id: '',
         reply_count: 0,
-        metadata: {},
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
         type: '',
     };
 
