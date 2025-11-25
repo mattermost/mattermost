@@ -1632,7 +1632,21 @@ func (s *Server) initJobs() {
 	s.platform.Jobs = s.Jobs
 }
 
+// ServerId returns the unique identifier for an installation of Mattermost servers.
+//
+// It is also known as the "telemetry id" or the "diagnostic id". Once generated
+// on first start, the value is persisted to the database and should remain static
+// for the lifetime of the installation.
+//
+// Only one server in a cluster will succeed in writing to the database on first
+// start, after which the other servers will converge on the same value. However,
+// to avoid race conditions between database master and replica nodes, we use the
+// value cached in the telemetry service below as authoritative, once set.
 func (s *Server) ServerId() string {
+	if s.telemetryService != nil && s.telemetryService.ServerID != "" {
+		return s.telemetryService.ServerID
+	}
+
 	props, err := s.Store().System().Get()
 	if err != nil {
 		return ""
