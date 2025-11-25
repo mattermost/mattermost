@@ -9,10 +9,10 @@ import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
+import {fetchFlaggedPosts} from 'mattermost-redux/actions/flagged_posts';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
-    getFlaggedPosts,
     getPinnedPosts,
     searchPostsWithParams,
     searchFilesWithParams,
@@ -322,35 +322,13 @@ export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean> {
 }
 
 export function showFlaggedPosts(): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const teamId = getCurrentTeamId(state);
-
+    return async (dispatch) => {
         dispatch({
             type: ActionTypes.UPDATE_RHS_STATE,
             state: RHSStates.FLAG,
         });
 
-        const results = await dispatch(getFlaggedPosts());
-        let data;
-        if ('data' in results) {
-            data = results.data;
-        }
-
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
-            },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
-                },
-            },
-        ]));
+        await dispatch(fetchFlaggedPosts(0));
 
         return {data: true};
     };
