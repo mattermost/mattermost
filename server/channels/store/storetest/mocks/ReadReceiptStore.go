@@ -81,6 +81,36 @@ func (_m *ReadReceiptStore) Get(rctx request.CTX, postID string, userID string) 
 	return r0, r1
 }
 
+// GetByPost provides a mock function with given fields: rctx, postID
+func (_m *ReadReceiptStore) GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error) {
+	ret := _m.Called(rctx, postID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByPost")
+	}
+
+	var r0 []*model.ReadReceipt
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.ReadReceipt, error)); ok {
+		return rf(rctx, postID)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.ReadReceipt); ok {
+		r0 = rf(rctx, postID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ReadReceipt)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, postID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetReadCountForPost provides a mock function with given fields: rctx, postID
 func (_m *ReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID string) (int64, error) {
 	ret := _m.Called(rctx, postID)
@@ -107,6 +137,39 @@ func (_m *ReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID string)
 	}
 
 	return r0, r1
+}
+
+// GetUnreadCountForPost provides a mock function with given fields: rctx, post
+func (_m *ReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error) {
+	ret := _m.Called(rctx, post)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUnreadCountForPost")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) (int64, error)); ok {
+		return rf(rctx, post)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) int64); ok {
+		r0 = rf(rctx, post)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post) error); ok {
+		r1 = rf(rctx, post)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// InvalidateReadReceiptForPostsCache provides a mock function with given fields: postID
+func (_m *ReadReceiptStore) InvalidateReadReceiptForPostsCache(postID string) {
+	_m.Called(postID)
 }
 
 // Save provides a mock function with given fields: rctx, receipt

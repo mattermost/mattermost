@@ -267,7 +267,6 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 
 	for _, post := range burnOnReadPosts {
 		tmpStore := s.SqlStore.TemporaryPost()
-
 		tps, ok := tmpStore.(*SqlTemporaryPostStore)
 		if !ok {
 			return nil, -1, errors.New("temporary post store is not a SqlTemporaryPostStore")
@@ -1058,6 +1057,14 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 		return err
 	}
 
+	if err = s.permanentTemporaryPosts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentReadReceipts(transaction, postIds); err != nil {
+		return err
+	}
+
 	query := s.getQueryBuilder().
 		Delete("Posts").
 		Where(
@@ -1111,6 +1118,14 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 
 	// Delete all the reactions on the comments
 	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentTemporaryPosts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentReadReceipts(transaction, postIds); err != nil {
 		return err
 	}
 
@@ -1194,6 +1209,14 @@ func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId stri
 			return err
 		}
 		time.Sleep(10 * time.Millisecond)
+
+		if err = s.permanentTemporaryPosts(transaction, ids); err != nil {
+			return err
+		}
+
+		if err = s.permanentReadReceipts(transaction, ids); err != nil {
+			return err
+		}
 
 		query := s.getQueryBuilder().
 			Delete("Posts").
@@ -2301,6 +2324,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {
+			// exclude burn on read posts from search results
+			if p.Type == model.PostTypeBurnOnRead {
+				continue
+			}
 			if searchType == "Hashtags" {
 				exactMatch := false
 				for tag := range strings.SplitSeq(p.Hashtags, " ") {
@@ -3039,6 +3066,30 @@ func (s *SqlPostStore) permanentDeleteReactions(transaction *sqlxTxWrapper, post
 		return errors.Wrap(err, "failed to delete Reactions")
 	}
 
+	return nil
+}
+
+func (s *SqlPostStore) permanentReadReceipts(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("ReadReceipts").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete ReadReceipts")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) permanentTemporaryPosts(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("TemporaryPosts").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete Threads")
+	}
 	return nil
 }
 
