@@ -353,6 +353,9 @@ function handleClose(failCount) {
     ]));
 }
 
+/**
+ * @param {import('@mattermost/client').WebSocketMessage} msg
+ */
 export function handleEvent(msg) {
     switch (msg.event) {
     case WebSocketEvents.Posted:
@@ -742,6 +745,9 @@ function debouncePostEvent(wait) {
 
 const handleNewPostEventDebounced = debouncePostEvent(100);
 
+/**
+ * @param {import('@mattermost/client').PostedMessage | import('@mattermost/client').EphemeralPostMessage} msg
+ */
 export function handleNewPostEvent(msg) {
     return (myDispatch, myGetState) => {
         const post = JSON.parse(msg.data.post);
@@ -799,6 +805,9 @@ export function handleNewPostEvents(queue) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').PostEditedMessage} msg
+ */
 export function handlePostEditEvent(msg) {
     // Store post
     const post = JSON.parse(msg.data.post);
@@ -814,6 +823,9 @@ export function handlePostEditEvent(msg) {
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 }
 
+/**
+ * @param {import('@mattermost/client').PostDeletedMessage} msg
+ */
 async function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.data.post);
 
@@ -855,6 +867,9 @@ async function handlePostDeleteEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').PostUnreadMessage} msg
+ */
 export function handlePostUnreadEvent(msg) {
     dispatch(
         {
@@ -872,6 +887,9 @@ export function handlePostUnreadEvent(msg) {
     );
 }
 
+/**
+ * @param {import('@mattermost/client').UserAddedToTeamMessage} msg
+ */
 async function handleTeamAddedEvent(msg) {
     await dispatch(TeamActions.getTeam(msg.data.team_id));
     await dispatch(TeamActions.getMyTeamMembers());
@@ -884,6 +902,9 @@ async function handleTeamAddedEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').UserRemovedFromTeamMessage} msg
+ */
 export function handleLeaveTeamEvent(msg) {
     const state = getState();
 
@@ -947,6 +968,9 @@ export function handleLeaveTeamEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').TeamMessage} msg
+ */
 function handleUpdateTeamEvent(msg) {
     const state = store.getState();
     const license = getLicense(state);
@@ -956,10 +980,16 @@ function handleUpdateTeamEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').UpdateTeamSchemeMessage} msg
+ */
 function handleUpdateTeamSchemeEvent() {
     dispatch(TeamActions.getMyTeamMembers());
 }
 
+/**
+ * @param {import('@mattermost/client').TeamMessage} msg
+ */
 function handleDeleteTeamEvent(msg) {
     const deletedTeam = JSON.parse(msg.data.team);
     const state = store.getState();
@@ -1022,6 +1052,9 @@ function handleDeleteTeamEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').TeamMemberRoleUpdatedMessage} msg
+ */
 function handleUpdateMemberRoleEvent(msg) {
     const memberData = JSON.parse(msg.data.member);
     const newRoles = memberData.roles.split(' ');
@@ -1034,14 +1067,23 @@ function handleUpdateMemberRoleEvent(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').DirectChannelCreatedMessage} msg
+ */
 function handleDirectAddedEvent(msg) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
+/**
+ * @param {import('@mattermost/client').GroupChannelCreatedMessage} msg
+ */
 function handleGroupAddedEvent(msg) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
+/**
+ * @param {import('@mattermost/client').UserAddedToChannelMessage} msg
+ */
 function handleUserAddedEvent(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1086,6 +1128,9 @@ function fetchChannelAndAddToSidebar(channelId) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').UserRemovedFromChannelMessage} msg
+ */
 export function handleUserRemovedEvent(msg) {
     const state = getState();
     const currentChannel = getCurrentChannel(state) || {};
@@ -1184,6 +1229,9 @@ export function handleUserRemovedEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').UserUpdatedMessage} msg
+ */
 export async function handleUserUpdatedEvent(msg) {
     // This websocket event is sent to all non-guest users on the server, so be careful requesting data from the server
     // in response to it. That can overwhelm the server if every connected user makes such a request at the same time.
@@ -1214,10 +1262,16 @@ export async function handleUserUpdatedEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelSchemeUpdatedMessage} msg
+ */
 function handleChannelSchemeUpdatedEvent(msg) {
     dispatch(getMyChannelMember(msg.broadcast.channel_id));
 }
 
+/**
+ * @param {import('@mattermost/client').RoleUpdatedMessage} msg
+ */
 function handleRoleUpdatedEvent(msg) {
     const role = JSON.parse(msg.data.role);
 
@@ -1227,6 +1281,9 @@ function handleRoleUpdatedEvent(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelCreatedMessage} msg
+ */
 function handleChannelCreatedEvent(msg) {
     return async (myDispatch, myGetState) => {
         const channelId = msg.data.channel_id;
@@ -1247,14 +1304,23 @@ function handleChannelCreatedEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelDeletedMessage} msg
+ */
 function handleChannelDeletedEvent(msg) {
     dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelRestoredMessage} msg
+ */
 function handleChannelUnarchivedEvent(msg) {
     dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
+/**
+ * @param {import('@mattermost/client').PreferenceChangedMessage} msg
+ */
 function handlePreferenceChangedEvent(msg) {
     const preference = JSON.parse(msg.data.preference);
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
@@ -1268,6 +1334,9 @@ function handlePreferenceChangedEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').PreferencesChangedMessage} msg
+ */
 function handlePreferencesChangedEvent(msg) {
     const preferences = JSON.parse(msg.data.preferences);
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
@@ -1281,6 +1350,9 @@ function handlePreferencesChangedEvent(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').PreferencesChangedMessage} msg
+ */
 function handlePreferencesDeletedEvent(msg) {
     const preferences = JSON.parse(msg.data.preferences);
     dispatch({type: PreferenceTypes.DELETED_PREFERENCES, data: preferences});
@@ -1294,6 +1366,9 @@ function addedNewGmUser(preference) {
     return preference.category === Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW && preference.value === 'true';
 }
 
+/**
+ * @param {import('@mattermost/client').StatusChangedMessage} msg
+ */
 export function handleStatusChangedEvent(msg) {
     return {
         type: UserTypes.RECEIVED_STATUSES,
@@ -1301,12 +1376,18 @@ export function handleStatusChangedEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').HelloMessage} msg
+ */
 function handleHelloEvent(msg) {
     dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
     dispatch(setServerHostname(msg.data.server_hostname));
 }
 
+/**
+ * @param {import('@mattermost/client').PostReactionMessage} msg
+ */
 function handleReactionAddedEvent(msg) {
     const reaction = JSON.parse(msg.data.reaction);
 
@@ -1332,6 +1413,9 @@ function setServerHostname(serverHostname) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').EmojiAddedMessage} msg
+ */
 function handleAddEmoji(msg) {
     const data = JSON.parse(msg.data.emoji);
 
@@ -1341,6 +1425,9 @@ function handleAddEmoji(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').PostReactionMessage} msg
+ */
 function handleReactionRemovedEvent(msg) {
     const reaction = JSON.parse(msg.data.reaction);
 
@@ -1350,12 +1437,18 @@ function handleReactionRemovedEvent(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').MultipleChannelsViewedMessage} msg
+ */
 function handleMultipleChannelsViewedEvent(msg) {
     if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
         dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
 }
 
+/**
+ * @param {import('@mattermost/client').PluginMessage} msg
+ */
 export function handlePluginEnabled(msg) {
     const manifest = msg.data.manifest;
     dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGIN, data: manifest});
@@ -1365,11 +1458,17 @@ export function handlePluginEnabled(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').PluginMessage} msg
+ */
 export function handlePluginDisabled(msg) {
     const manifest = msg.data.manifest;
     removePlugin(manifest);
 }
 
+/**
+ * @param {import('@mattermost/client').UserRoleUpdatedMessage} msg
+ */
 function handleUserRoleUpdated(msg) {
     const user = store.getState().entities.users.profiles[msg.data.user_id];
 
@@ -1387,10 +1486,16 @@ function handleUserRoleUpdated(msg) {
     }
 }
 
+/**
+ * @param {import('@mattermost/client').ConfigChangedMessage} msg
+ */
 function handleConfigChanged(msg) {
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: msg.data.config});
 }
 
+/**
+ * @param {import('@mattermost/client').LicenseChangedMessage} msg
+ */
 function handleLicenseChanged(msg) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
 
@@ -1398,10 +1503,16 @@ function handleLicenseChanged(msg) {
     dispatch(getServerLimits());
 }
 
+/**
+ * @param {import('@mattermost/client').PluginStatusesChangedMessage} msg
+ */
 function handlePluginStatusesChangedEvent(msg) {
     store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
+/**
+ * @param {import('@mattermost/client').OpenDialogMessage} msg
+ */
 function handleOpenDialogEvent(msg) {
     const data = (msg.data && msg.data.dialog) || {};
     const dialog = JSON.parse(data);
@@ -1417,6 +1528,9 @@ function handleOpenDialogEvent(msg) {
     store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
+/**
+ * @param {import('@mattermost/client').ReceivedGroupMessage} msg
+ */
 function handleGroupUpdatedEvent(msg) {
     const data = JSON.parse(msg.data.group);
     dispatch(
@@ -1446,6 +1560,9 @@ function handleMyGroupUpdate(groupMember) {
     ]));
 }
 
+/**
+ * @param {import('@mattermost/client').GroupMemberMessage} msg
+ */
 export function handleGroupAddedMemberEvent(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1466,6 +1583,9 @@ export function handleGroupAddedMemberEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').GroupMemberMessage} msg
+ */
 function handleGroupDeletedMemberEvent(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1494,6 +1614,9 @@ function handleGroupDeletedMemberEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').GroupAssociatedToTeamMessage} msg
+ */
 function handleGroupAssociatedToTeamEvent(msg) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_TEAM,
@@ -1501,6 +1624,9 @@ function handleGroupAssociatedToTeamEvent(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').GroupAssociatedToTeamMessage} msg
+ */
 function handleGroupNotAssociatedToTeamEvent(msg) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM,
@@ -1508,6 +1634,9 @@ function handleGroupNotAssociatedToTeamEvent(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').GroupAssociatedToChannelMessage} msg
+ */
 function handleGroupAssociatedToChannelEvent(msg) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL,
@@ -1515,6 +1644,9 @@ function handleGroupAssociatedToChannelEvent(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').GroupAssociatedToChannelMessage} msg
+ */
 function handleGroupNotAssociatedToChannelEvent(msg) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL,
@@ -1522,6 +1654,9 @@ function handleGroupNotAssociatedToChannelEvent(msg) {
     });
 }
 
+/**
+ * @param {import('@mattermost/client').SidebarCategoryCreatedMessage} msg
+ */
 function handleSidebarCategoryCreated(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1541,6 +1676,9 @@ function handleSidebarCategoryCreated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').SidebarCategoryUpdatedMessage} msg
+ */
 function handleSidebarCategoryUpdated(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1560,6 +1698,9 @@ function handleSidebarCategoryUpdated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').SidebarCategoryDeletedMessage} msg
+ */
 function handleSidebarCategoryDeleted(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1578,10 +1719,16 @@ function handleSidebarCategoryDeleted(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').SidebarCategoryOrderUpdatedMessage} msg
+ */
 function handleSidebarCategoryOrderUpdated(msg) {
     return receivedCategoryOrder(msg.broadcast.team_id, msg.data.order);
 }
 
+/**
+ * @param {import('@mattermost/client').UserActivationStatusChangedMessage} msg
+ */
 export function handleUserActivationStatusChange() {
     return (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1596,6 +1743,9 @@ export function handleUserActivationStatusChange() {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').CloudSubscriptionChangedMessage} msg
+ */
 export function handleCloudSubscriptionChanged(msg) {
     return (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1665,11 +1815,17 @@ export function handleAppsPluginDisabled() {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').FirstAdminVisitMarketplaceStatusReceivedMessage} msg
+ */
 function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg) {
     const receivedData = JSON.parse(msg.data.firstAdminVisitMarketplaceStatus);
     store.dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data: receivedData});
 }
 
+/**
+ * @param {import('@mattermost/client').ThreadReadChangedMessage} msg
+ */
 function handleThreadReadChanged(msg) {
     return (doDispatch, doGetState) => {
         if (msg.data.thread_id) {
@@ -1703,6 +1859,9 @@ function handleThreadReadChanged(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ThreadUpdatedMessage} msg
+ */
 function handleThreadUpdated(msg) {
     return (doDispatch, doGetState) => {
         let threadData;
@@ -1751,6 +1910,9 @@ function handleThreadUpdated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ThreadFollowedChangedMessage} msg
+ */
 function handleThreadFollowChanged(msg) {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
@@ -1762,6 +1924,9 @@ function handleThreadFollowChanged(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').PostAcknowledgementMessage} msg
+ */
 function handlePostAcknowledgementAdded(msg) {
     const data = JSON.parse(msg.data.acknowledgement);
 
@@ -1771,6 +1936,9 @@ function handlePostAcknowledgementAdded(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').PostAcknowledgementMessage} msg
+ */
 function handlePostAcknowledgementRemoved(msg) {
     const data = JSON.parse(msg.data.acknowledgement);
 
@@ -1780,6 +1948,9 @@ function handlePostAcknowledgementRemoved(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').PostDraftMessage} msg
+ */
 function handleUpsertDraftEvent(msg) {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
@@ -1790,6 +1961,9 @@ function handleUpsertDraftEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ScheduledPostMessage} msg
+ */
 function handleCreateScheduledPostEvent(msg) {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost);
@@ -1806,6 +1980,9 @@ function handleCreateScheduledPostEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ScheduledPostMessage} msg
+ */
 function handleUpdateScheduledPostEvent(msg) {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost);
@@ -1819,6 +1996,9 @@ function handleUpdateScheduledPostEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ScheduledPostMessage} msg
+ */
 function handleDeleteScheduledPostEvent(msg) {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost);
@@ -1832,6 +2012,9 @@ function handleDeleteScheduledPostEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').PostDraftMessage} msg
+ */
 function handleDeleteDraftEvent(msg) {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
@@ -1845,6 +2028,9 @@ function handleDeleteDraftEvent(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').PersistentNotificationTriggeredMessage} msg
+ */
 function handlePersistentNotification(msg) {
     return async (doDispatch) => {
         const post = JSON.parse(msg.data.post);
@@ -1853,6 +2039,9 @@ function handlePersistentNotification(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').HostedCustomerSignupProgressUpdatedMessage} msg
+ */
 function handleHostedCustomerSignupProgressUpdated(msg) {
     return {
         type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
@@ -1860,6 +2049,9 @@ function handleHostedCustomerSignupProgressUpdated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelBookmarkCreatedMessage} msg
+ */
 function handleChannelBookmarkCreated(msg) {
     const bookmark = JSON.parse(msg.data.bookmark);
 
@@ -1869,6 +2061,9 @@ function handleChannelBookmarkCreated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelBookmarkUpdatedMessage} msg
+ */
 function handleChannelBookmarkUpdated(msg) {
     return async (doDispatch) => {
         const {updated, deleted} = JSON.parse(msg.data.bookmarks);
@@ -1889,6 +2084,9 @@ function handleChannelBookmarkUpdated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelBookmarkDeletedMessage} msg
+ */
 function handleChannelBookmarkDeleted(msg) {
     const bookmark = JSON.parse(msg.data.bookmark);
 
@@ -1898,6 +2096,9 @@ function handleChannelBookmarkDeleted(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ChannelBookmarkSortedMessage} msg
+ */
 function handleChannelBookmarkSorted(msg) {
     const bookmarks = JSON.parse(msg.data.bookmarks);
 
@@ -1907,6 +2108,9 @@ function handleChannelBookmarkSorted(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').CPAValuesUpdatedMessage} msg
+ */
 export function handleCustomAttributeValuesUpdated(msg) {
     return {
         type: UserTypes.RECEIVED_CPA_VALUES,
@@ -1914,6 +2118,9 @@ export function handleCustomAttributeValuesUpdated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').CPAFieldCreatedMessage} msg
+ */
 export function handleCustomAttributesCreated(msg) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
@@ -1921,6 +2128,9 @@ export function handleCustomAttributesCreated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').CPAFieldUpdatedMessage} msg
+ */
 export function handleCustomAttributesUpdated(msg) {
     return (dispatch) => {
         const {field, delete_values: deleteValues} = msg.data;
@@ -1942,6 +2152,9 @@ export function handleCustomAttributesUpdated(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').CPAFieldDeletedMessage} msg
+ */
 export function handleCustomAttributesDeleted(msg) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
@@ -1949,6 +2162,9 @@ export function handleCustomAttributesDeleted(msg) {
     };
 }
 
+/**
+ * @param {import('@mattermost/client').ContentFlaggingReportValueUpdatedMessage} msg
+ */
 export function handleContentFlaggingReportValueChanged(msg) {
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
