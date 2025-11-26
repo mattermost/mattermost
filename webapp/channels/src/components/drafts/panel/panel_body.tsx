@@ -9,6 +9,8 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
+import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
+
 import PriorityLabels from 'components/advanced_text_editor/priority_labels';
 import BurnOnReadLabel from 'components/burn_on_read/burn_on_read_label';
 import FilePreview from 'components/file_preview';
@@ -55,6 +57,7 @@ function PanelBody({
     username,
 }: Props) {
     const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
+    const isBorFeatureEnabled = useSelector(isBurnOnReadEnabled);
 
     const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         handleFormattedTextClick(e, currentRelativeTeamUrl);
@@ -92,7 +95,7 @@ function PanelBody({
                                         requestedAck={priority.requested_ack}
                                     />
                                 )}
-                                {burnOnRead?.enabled && (
+                                {burnOnRead?.enabled && isBorFeatureEnabled && (
                                     <BurnOnReadLabel
                                         canRemove={false}
                                         onRemove={() => {}}

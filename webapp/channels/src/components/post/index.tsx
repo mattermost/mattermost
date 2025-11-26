@@ -28,7 +28,7 @@ import {revealBurnOnReadPost} from 'actions/burn_on_read_posts';
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
-import {isBurnOnReadEnabled, getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
+import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
@@ -224,7 +224,6 @@ function makeMapStateToProps() {
             canDelete: canDeletePost(state, post, channel),
             pluginActions: state.plugins.components.PostAction,
             shouldDisplayBurnOnReadConcealed: shouldDisplayConcealedPlaceholder(state, post.id),
-            isBurnOnReadEnabled: isBurnOnReadEnabled(state),
             burnOnReadDurationMinutes: getBurnOnReadDurationMinutes(state),
             burnOnReadSkipConfirmation: getBool(state, ReduxPreferences.CATEGORY_BURN_ON_READ, ReduxPreferences.BURN_ON_READ_SKIP_CONFIRMATION, false),
             isBurnOnReadPost: isPostBurnOnRead,

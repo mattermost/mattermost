@@ -129,7 +129,6 @@ export type Props = {
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
     shouldDisplayBurnOnReadConcealed?: boolean;
-    isBurnOnReadEnabled?: boolean;
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
 };
@@ -635,8 +634,10 @@ function PostComponent(props: Props) {
 
     // Burn-on-Read badge logic
     // Only show badge on first post in a series (not on consecutive posts)
+    // Note: Badge should display regardless of feature flag being enabled/disabled
+    // The feature flag only controls creation of NEW BoR messages, not display of existing ones
     let burnOnReadBadge;
-    if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost) {
+    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost) {
         const isSender = post.user_id === props.currentUserId;
         const revealed = typeof post.metadata?.expire_at === 'number';
 
@@ -651,8 +652,11 @@ function PostComponent(props: Props) {
         );
     }
 
+    // Burn-on-Read countdown timer chip
+    // Note: Timer should display regardless of feature flag being enabled/disabled
+    // The feature flag only controls creation of NEW BoR messages, not display of existing ones
     let burnOnReadTimerChip;
-    if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.metadata?.expire_at) {
+    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.metadata?.expire_at) {
         // Parse expire_at from metadata - it can be either number or string from API
         const expireAt = typeof post.metadata.expire_at === 'number' ? post.metadata.expire_at : parseInt(String(post.metadata.expire_at), 10);
 

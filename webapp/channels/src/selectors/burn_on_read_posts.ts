@@ -6,8 +6,6 @@ import type {Post} from '@mattermost/types/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
-
 import {PostTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -49,17 +47,14 @@ export function hasUserRevealedBurnOnReadPost(state: GlobalState, postId: string
 /**
  * Returns whether the specified Burn-on-Read post should display concealed placeholder.
  * This is true when:
- * - Feature is enabled
  * - Post is a BoR post
  * - Current user is NOT the sender
  * - Current user has NOT revealed the content yet
+ *
+ * Note: This should work regardless of feature flag being enabled/disabled.
+ * The feature flag only controls creation of NEW BoR messages, not display of existing ones.
  */
 export function shouldDisplayConcealedPlaceholder(state: GlobalState, postId: string): boolean {
-    // Feature flag check first
-    if (!isBurnOnReadEnabled(state)) {
-        return false;
-    }
-
     const post = getPost(state, postId);
     const currentUserId = getCurrentUserId(state);
 

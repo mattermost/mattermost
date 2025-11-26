@@ -147,7 +147,7 @@ describe('burn_on_read_posts selectors', () => {
             expect(shouldDisplayConcealedPlaceholder(mockState as GlobalState, 'normalPost')).toBe(false);
         });
 
-        it('should return false when feature flag is disabled', () => {
+        it('should return true even when feature flag is disabled (existing posts should work)', () => {
             const stateWithFeatureDisabled = {
                 ...mockState,
                 entities: {
@@ -163,8 +163,9 @@ describe('burn_on_read_posts selectors', () => {
                 },
             };
 
-            // Even though user2 is recipient and hasn't revealed borPost1, should return false because feature is disabled
-            expect(shouldDisplayConcealedPlaceholder(stateWithFeatureDisabled as GlobalState, 'borPost1')).toBe(false);
+            // user2 is recipient and hasn't revealed borPost1, should return true EVEN with feature disabled
+            // Feature flag only controls NEW message creation, not display of existing BoR posts
+            expect(shouldDisplayConcealedPlaceholder(stateWithFeatureDisabled as GlobalState, 'borPost1')).toBe(true);
         });
     });
 
