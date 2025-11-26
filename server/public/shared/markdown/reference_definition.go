@@ -3,6 +3,8 @@
 
 package markdown
 
+import "strings"
+
 type ReferenceDefinition struct {
 	RawDestination Range
 
