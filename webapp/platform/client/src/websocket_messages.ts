@@ -109,235 +109,176 @@ export const enum WebSocketEvents {
 }
 
 export type WebSocketMessage = (
-    BaseWebSocketMessage<WebSocketEvents.Typing, {
-        parent_id: string;
-        user_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.Posted, {
-        channel_type: ChannelType;
-        channel_display_name: string;
-        channel_name: string;
-        sender_name: string;
-        team_id: string;
-        set_online: boolean;
-        otherFile?: boolean;
-        image?: boolean;
-        post: JsonEncodedValue<Post>;
+    HelloMessage |
+    AuthenticationChallengeMessage |
+    ResponseMessage |
 
-        /**
+    PostedMessage |
+    PostEditedMessage |
+    PostDeletedMessage |
+    PostUnreadMessage |
+    EphemeralPostMessage |
+    PostReactionMessage |
+    PostAcknowledgementMessage |
+    PostDraftMessage |
+    PersistentNotificationTriggeredMessage |
+    ScheduledPostMessage |
+
+    ThreadUpdatedMessage |
+    ThreadFollowedChangedMessage |
+    ThreadReadChangedMessage |
+
+    ChannelCreatedMessage |
+    ChannelUpdatedMessage |
+    ChannelConvertedMessage |
+    ChannelSchemeUpdatedMessage |
+    ChannelDeletedMessage |
+    ChannelRestoredMessage |
+    DirectChannelCreatedMessage |
+    GroupChannelCreatedMessage |
+    UserAddedToChannelMessage |
+    UserRemovedFromChannelMessage |
+    ChannelMemberUpdatedMessage |
+    MultipleChannelsViewedMessage |
+
+    ChannelBookmarkCreatedMessage |
+    ChannelBookmarkUpdatedMessage |
+    ChannelBookmarkDeletedMessage |
+    ChannelBookmarkSortedMessage |
+
+    TeamMessage |
+    UpdateTeamSchemeMessage |
+    UserAddedToTeamMessage |
+    UserRemovedFromTeamMessage |
+    TeamMemberRoleUpdatedMessage |
+
+    NewUserMessage |
+    UserUpdatedMessage |
+    UserActivationStatusChangedMessage |
+    UserRoleUpdatedMessage |
+    StatusChangedMessage |
+    TypingMessage |
+
+    ReceivedGroupMessage |
+    GroupAssociatedToTeamMessage |
+    GroupAssociatedToChannelMesasge |
+    GroupMemberMessage |
+
+    PreferenceChangedMessage |
+    PreferencesChangedMessage |
+
+    SidebarCategoryCreatedMessage |
+    SidebarCategoryUpdatedMessage |
+    SidebarCategoryDeletedMessage |
+    SidebarCategoryOrderUpdatedMessage|
+
+    EmojiAddedMessage |
+
+    RoleUpdatedMessage |
+
+    ConfigChangedMessage |
+    GuestsDeactivatedMessage |
+    LicenseChangedMessage |
+    CloudSubscriptionChangedMessage |
+    FirstAdminVisitMarketplaceStatusReceivedMessage |
+    HostedCustomerSignupProgressUpdatedMessage |
+
+    CPAFieldCreatedMessage |
+    CPAFieldUpdatedMessage |
+    CPAFieldDeletedMessage |
+    CPAValuesUpdatedMessage |
+
+    ContentFlaggingReportValueUpdatedMessage |
+
+    PluginMessage |
+    PluginStatusesChangedMessage |
+    OpenDialogMessage |
+
+    BaseWebSocketMessage<WebSocketEvents.PresenceIndicator, unknown> |
+    BaseWebSocketMessage<WebSocketEvents.PostedNotifyAck, unknown>
+);
+
+// WebSocket-related messages
+
+export type HelloMessage = BaseWebSocketMessage<WebSocketEvents.Hello, {
+    server_version: string;
+    connection_id: string;
+    server_hostname?: string;
+}>;
+
+export type AuthenticationChallengeMessage = BaseWebSocketMessage<WebSocketEvents.AuthenticationChallenge, unknown>;
+
+export type ResponseMessage = BaseWebSocketMessage<WebSocketEvents.Response>;
+
+// Post, reactions, and acknowledgement messages
+
+export type PostedMessage = BaseWebSocketMessage<WebSocketEvents.Posted, {
+    channel_type: ChannelType;
+    channel_display_name: string;
+    channel_name: string;
+    sender_name: string;
+    team_id: string;
+    set_online: boolean;
+    otherFile?: boolean;
+    image?: boolean;
+    post: JsonEncodedValue<Post>;
+
+    /**
          * If the current user is mentioned by this post, this field will contain the ID of that user. Otherwise,
          * it will be empty.
          */
-        mentioned?: JsonEncodedValue<string[]>;
+    mentioned?: JsonEncodedValue<string[]>;
 
-        /**
+    /**
          * If the current user is following this post, this field will contain the ID of that user. Otherwise,
          * it will be empty.
          */
-        followers?: JsonEncodedValue<string[]>;
+    followers?: JsonEncodedValue<string[]>;
 
-        should_ack?: boolean;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PostEdited, {
-        post: JsonEncodedValue<Post>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PostDeleted, {
-        post: JsonEncodedValue<Post>;
+    should_ack?: boolean;
+}>;
 
-        /** The user ID of the user who deleted the post, only sent to admin users. */
-        delete_by?: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PostUnread, {
-        msg_count: number;
-        msg_count_root: number;
-        mention_count: number;
-        mention_count_root: number;
-        urgent_mention_count: number;
-        last_viewed_at: number;
-        post_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelConverted, {
-        channel_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelCreated, {
-        channel_id: string;
-        team_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelDeleted, {
-        channel_id: string;
-        delete_at: number;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelRestored, {
-        channel_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelUpdated, {
+export type PostEditedMessage = BaseWebSocketMessage<WebSocketEvents.PostEdited, {
+    post: JsonEncodedValue<Post>;
+}>;
 
-        // Normally, the channel field is sent, except in some cases where a shared channel is updated in which case
-        // the channel_id field is used.
+export type PostDeletedMessage = BaseWebSocketMessage<WebSocketEvents.PostDeleted, {
+    post: JsonEncodedValue<Post>;
 
-        channel?: JsonEncodedValue<Channel>;
-        channel_id?: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelMemberUpdated, {
-        channelMember: JsonEncodedValue<ChannelMembership>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelSchemeUpdated> |
-    BaseWebSocketMessage<WebSocketEvents.DirectAdded, {
-        creator_id: string;
-        teammate_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.GroupAdded, {
-        teammate_ids: JsonEncodedValue<string[]>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.NewUser, {
-        user_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.AddedToTeam, {
-        team_id: string;
-        user_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.LeaveTeam, {
-        user_id: string;
-        team_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.UpdateTeam | WebSocketEvents.DeleteTeam | WebSocketEvents.RestoreTeam, {
-        team: JsonEncodedValue<Team>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.UpdateTeamScheme, {
-        team: JsonEncodedValue<Team>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.UserAdded, {
-        user_id: string;
-        team_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.UserUpdated, {
+    /** The user ID of the user who deleted the post, only sent to admin users. */
+    delete_by?: string;
+}>;
 
-        /** This user may be missing sensitive data based on if the recipient is that user or an admin. */
-        user: UserProfile;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.UserRoleUpdated, {
-        user_id: string;
-        roles: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.MemberRoleUpdated, {
-        member: JsonEncodedValue<TeamMembership>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.UserRemoved, {
+export type PostUnreadMessage = BaseWebSocketMessage<WebSocketEvents.PostUnread, {
+    msg_count: number;
+    msg_count_root: number;
+    mention_count: number;
+    mention_count_root: number;
+    urgent_mention_count: number;
+    last_viewed_at: number;
+    post_id: string;
+}>;
 
-        /** The user ID of the user that was removed from the channel. It isn't sent to the user who was removed. */
-        user_id?: string;
+export type EphemeralPostMessage = BaseWebSocketMessage<WebSocketEvents.EphemeralMessage, {
+    post: JsonEncodedValue<Post>;
+}>;
 
-        /** The ID of the channel that the user was removed from. It's only sent to the user who was removed. */
-        channel_id?: string;
-
-        remover_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PreferenceChanged, {
-        preference: JsonEncodedValue<PreferenceType>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PreferencesChanged | WebSocketEvents.PreferencesDeleted, {
-        preferences: JsonEncodedValue<PreferenceType[]>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.EphemeralMessage, {
-        post: JsonEncodedValue<Post>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.StatusChange, {
-        status: UserStatus['status'];
-        user_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.Hello, {
-        server_version: string;
-        connection_id: string;
-        server_hostname?: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.AuthenticationChallenge, unknown> |
+export type PostReactionMessage =
     BaseWebSocketMessage<WebSocketEvents.ReactionAdded | WebSocketEvents.ReactionRemoved, {
         reaction: JsonEncodedValue<Reaction>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.Response> |
-    BaseWebSocketMessage<WebSocketEvents.EmojiAdded, {
-        emoji: JsonEncodedValue<Omit<CustomEmoji, 'category'>>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.MultipleChannelsViewed, {
-        channel_times: Record<string, number>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, {
-        plugin_statuses: PluginStatus[];
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSocketEvents.PluginDisabled, {
-        manifest: PluginManifest;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.RoleUpdated, {
-        role: JsonEncodedValue<Role>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.LicenseChanged, {
-        license: ClientLicense;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ConfigChanged, {
-        config: ClientConfig;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
-        dialog: JsonEncodedValue<OpenDialogRequest>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.GuestsDeactivated> |
-    BaseWebSocketMessage<WebSocketEvents.UserActivationStatusChange> |
-    BaseWebSocketMessage<WebSocketEvents.ReceivedGroup, {
-        group: JsonEncodedValue<Group>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ReceivedGroupAssociatedToTeam | WebSocketEvents.ReceivedGroupNotAssociatedToTeam, {
-        group_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ReceivedGroupAssociatedToChannel | WebSocketEvents.ReceivedGroupNotAssociatedToChannel, {
-        group_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.GroupMemberAdded | WebSocketEvents.GroupMemberDeleted, {
-        groupMember: JsonEncodedValue<GroupMember>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.SidebarCategoryCreated, {
-        category_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.SidebarCategoryUpdated, {
-        updatedCategories: JsonEncodedValue<ChannelCategory[]>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.SidebarCategoryDeleted, {
-        category_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.SidebarCategoryOrderUpdated, {
-        order: string[];
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.CloudSubscriptionChanged, {
-        limits?: Limits;
-        subscription: Subscription;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ThreadUpdated, {
-        thread: JsonEncodedValue<ThreadResponse>;
+    }>;
 
-        previous_unread_mentions?: number;
-        previous_unread_replies?: number;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ThreadFollowChanged, {
-        thread_id: string;
-        state: boolean;
-        reply_count: number;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, {
-        thread_id?: string;
-        timestamp: number;
-        unread_mentions?: number;
-        unread_replies?: number;
-        previous_unread_mentions?: number;
-        previous_unread_replies?: number;
-        channel_id?: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.FirstAdminVisitMarketplaceStatusReceived, {
-        firstAdminVisitMarketplaceStatus: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.DraftCreated | WebSocketEvents.DraftUpdated | WebSocketEvents.DraftDeleted, {
-        draft: JsonEncodedValue<Draft>;
-    }> |
+export type PostAcknowledgementMessage =
     BaseWebSocketMessage<WebSocketEvents.PostAcknowledgementAdded | WebSocketEvents.PostAcknowledgementRemoved, {
         acknowledgement: JsonEncodedValue<PostAcknowledgement>;
-    }> |
+    }>;
+
+export type PostDraftMessage =
+    BaseWebSocketMessage<WebSocketEvents.DraftCreated | WebSocketEvents.DraftUpdated | WebSocketEvents.DraftDeleted, {
+        draft: JsonEncodedValue<Draft>;
+    }>;
+
+export type PersistentNotificationTriggeredMessage =
     BaseWebSocketMessage<WebSocketEvents.PersistentNotificationTriggered, {
         post: JsonEncodedValue<Post>;
         channel_type: ChannelType;
@@ -348,45 +289,306 @@ export type WebSocketMessage = (
         otherFile?: boolean;
         image?: boolean;
         mentions?: JsonEncodedValue<string[]>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.HostedCustomerSignupProgressUpdated, {
-        progress: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkCreated | WebSocketEvents.ChannelBookmarkDeleted, {
-        bookmark: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkUpdated, {
+    }>;
 
-        // This field is misnamed, but it matches the name used by the server.
-        bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkSorted, {
-        bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo[]>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.PresenceIndicator, unknown> |
-    BaseWebSocketMessage<WebSocketEvents.PostedNotifyAck, unknown> |
+export type ScheduledPostMessage =
     BaseWebSocketMessage<WebSocketEvents.ScheduledPostCreated | WebSocketEvents.ScheduledPostUpdated | WebSocketEvents.ScheduledPostDeleted, {
         scheduledPost: JsonEncodedValue<ScheduledPost>;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.CPAFieldCreated, {
-        field: PropertyField;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.CPAFieldUpdated, {
-        field: PropertyField;
-        delete_values: boolean;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.CPAFieldDeleted, {
-        field_id: string;
-    }> |
-    BaseWebSocketMessage<WebSocketEvents.CPAValuesUpdated, {
-        user_id: string;
-        values: Array<PropertyValue<unknown>>;
-    }> |
+    }>;
+
+// Thread messages
+
+export type ThreadUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.ThreadUpdated, {
+    thread: JsonEncodedValue<ThreadResponse>;
+
+    previous_unread_mentions?: number;
+    previous_unread_replies?: number;
+}>;
+
+export type ThreadFollowedChangedMessage = BaseWebSocketMessage<WebSocketEvents.ThreadFollowChanged, {
+    thread_id: string;
+    state: boolean;
+    reply_count: number;
+}>;
+
+export type ThreadReadChangedMessage = BaseWebSocketMessage<WebSocketEvents.ThreadReadChanged, {
+    thread_id?: string;
+    timestamp: number;
+    unread_mentions?: number;
+    unread_replies?: number;
+    previous_unread_mentions?: number;
+    previous_unread_replies?: number;
+    channel_id?: string;
+}>;
+
+// Channel and channel member messages
+
+export type ChannelCreatedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelCreated, {
+    channel_id: string;
+    team_id: string;
+}>;
+
+export type ChannelUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelUpdated, {
+
+    // Normally, the channel field is sent, except in some cases where a shared channel is updated in which case
+    // the channel_id field is used.
+
+    channel?: JsonEncodedValue<Channel>;
+    channel_id?: string;
+}>;
+
+export type ChannelConvertedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelConverted, {
+    channel_id: string;
+}>;
+
+export type ChannelSchemeUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelSchemeUpdated>;
+
+export type ChannelDeletedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelDeleted, {
+    channel_id: string;
+    delete_at: number;
+}>;
+
+export type ChannelRestoredMessage = BaseWebSocketMessage<WebSocketEvents.ChannelRestored, {
+    channel_id: string;
+}>;
+
+export type DirectChannelCreatedMessage = BaseWebSocketMessage<WebSocketEvents.DirectAdded, {
+    creator_id: string;
+    teammate_id: string;
+}>;
+
+export type GroupChannelCreatedMessage = BaseWebSocketMessage<WebSocketEvents.GroupAdded, {
+    teammate_ids: JsonEncodedValue<string[]>;
+}>;
+
+export type UserAddedToChannelMessage = BaseWebSocketMessage<WebSocketEvents.UserAdded, {
+    user_id: string;
+    team_id: string;
+}>;
+
+export type UserRemovedFromChannelMessage = BaseWebSocketMessage<WebSocketEvents.UserRemoved, {
+
+    /** The user ID of the user that was removed from the channel. It isn't sent to the user who was removed. */
+    user_id?: string;
+
+    /** The ID of the channel that the user was removed from. It's only sent to the user who was removed. */
+    channel_id?: string;
+
+    remover_id: string;
+}>;
+
+export type ChannelMemberUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelMemberUpdated, {
+    channelMember: JsonEncodedValue<ChannelMembership>;
+}>;
+
+export type MultipleChannelsViewedMessage = BaseWebSocketMessage<WebSocketEvents.MultipleChannelsViewed, {
+    channel_times: Record<string, number>;
+}>;
+
+// Channel bookmark messages
+
+export type ChannelBookmarkCreatedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkCreated, {
+    bookmark: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
+}>;
+
+export type ChannelBookmarkUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkUpdated, {
+
+    // This field is misnamed, but it matches the name used by the server.
+    bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
+}>;
+
+export type ChannelBookmarkDeletedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkDeleted, {
+    bookmark: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
+}>;
+
+export type ChannelBookmarkSortedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkSorted, {
+    bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo[]>;
+}>;
+
+// Team and team member messages
+
+export type TeamMessage =
+    BaseWebSocketMessage<WebSocketEvents.UpdateTeam | WebSocketEvents.DeleteTeam | WebSocketEvents.RestoreTeam, {
+        team: JsonEncodedValue<Team>;
+    }>;
+
+export type UserAddedToTeamMessage = BaseWebSocketMessage<WebSocketEvents.AddedToTeam, {
+    team_id: string;
+    user_id: string;
+}>;
+
+export type UserRemovedFromTeamMessage = BaseWebSocketMessage<WebSocketEvents.LeaveTeam, {
+    user_id: string;
+    team_id: string;
+}>;
+
+export type UpdateTeamSchemeMessage = BaseWebSocketMessage<WebSocketEvents.UpdateTeamScheme, {
+    team: JsonEncodedValue<Team>;
+}>;
+
+export type TeamMemberRoleUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.MemberRoleUpdated, {
+    member: JsonEncodedValue<TeamMembership>;
+}>;
+
+// User and status messages
+
+export type NewUserMessage = BaseWebSocketMessage<WebSocketEvents.NewUser, {
+    user_id: string;
+}>;
+
+export type UserUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.UserUpdated, {
+
+    /** This user may be missing sensitive data based on if the recipient is that user or an admin. */
+    user: UserProfile;
+}>;
+
+export type UserActivationStatusChangedMessage = BaseWebSocketMessage<WebSocketEvents.UserActivationStatusChange>;
+
+export type UserRoleUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.UserRoleUpdated, {
+    user_id: string;
+    roles: string;
+}>;
+
+export type StatusChangedMessage = BaseWebSocketMessage<WebSocketEvents.StatusChange, {
+    status: UserStatus['status'];
+    user_id: string;
+}>;
+
+export type TypingMessage = BaseWebSocketMessage<WebSocketEvents.Typing, {
+    parent_id: string;
+    user_id: string;
+}>;
+
+// Group-related messages
+
+export type ReceivedGroupMessage = BaseWebSocketMessage<WebSocketEvents.ReceivedGroup, {
+    group: JsonEncodedValue<Group>;
+}>;
+
+export type GroupAssociatedToTeamMessage =
+    BaseWebSocketMessage<WebSocketEvents.ReceivedGroupAssociatedToTeam | WebSocketEvents.ReceivedGroupNotAssociatedToTeam, {
+        group_id: string;
+    }>;
+
+export type GroupAssociatedToChannelMesasge =
+    BaseWebSocketMessage<WebSocketEvents.ReceivedGroupAssociatedToChannel | WebSocketEvents.ReceivedGroupNotAssociatedToChannel, {
+        group_id: string;
+    }>;
+
+export type GroupMemberMessage =
+    BaseWebSocketMessage<WebSocketEvents.GroupMemberAdded | WebSocketEvents.GroupMemberDeleted, {
+        groupMember: JsonEncodedValue<GroupMember>;
+    }>;
+
+// Preference messages
+
+export type PreferenceChangedMessage = BaseWebSocketMessage<WebSocketEvents.PreferenceChanged, {
+    preference: JsonEncodedValue<PreferenceType>;
+}>;
+
+export type PreferencesChangedMessage =
+    BaseWebSocketMessage<WebSocketEvents.PreferencesChanged | WebSocketEvents.PreferencesDeleted, {
+        preferences: JsonEncodedValue<PreferenceType[]>;
+    }>;
+
+// Channel sidebar messages
+
+export type SidebarCategoryCreatedMessage = BaseWebSocketMessage<WebSocketEvents.SidebarCategoryCreated, {
+    category_id: string;
+}>;
+
+export type SidebarCategoryUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.SidebarCategoryUpdated, {
+    updatedCategories: JsonEncodedValue<ChannelCategory[]>;
+}>;
+
+export type SidebarCategoryDeletedMessage = BaseWebSocketMessage<WebSocketEvents.SidebarCategoryDeleted, {
+    category_id: string;
+}>;
+
+export type SidebarCategoryOrderUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.SidebarCategoryOrderUpdated, {
+    order: string[];
+}>;
+
+// Emoji messages
+
+export type EmojiAddedMessage = BaseWebSocketMessage<WebSocketEvents.EmojiAdded, {
+    emoji: JsonEncodedValue<Omit<CustomEmoji, 'category'>>;
+}>;
+
+// Role messages
+
+export type RoleUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.RoleUpdated, {
+    role: JsonEncodedValue<Role>;
+}>;
+
+// Configuration and license messages
+
+export type ConfigChangedMessage = BaseWebSocketMessage<WebSocketEvents.ConfigChanged, {
+    config: ClientConfig;
+}>;
+
+export type GuestsDeactivatedMessage = BaseWebSocketMessage<WebSocketEvents.GuestsDeactivated>;
+
+export type LicenseChangedMessage = BaseWebSocketMessage<WebSocketEvents.LicenseChanged, {
+    license: ClientLicense;
+}>;
+
+export type CloudSubscriptionChangedMessage = BaseWebSocketMessage<WebSocketEvents.CloudSubscriptionChanged, {
+    limits?: Limits;
+    subscription: Subscription;
+}>;
+
+export type FirstAdminVisitMarketplaceStatusReceivedMessage =
+    BaseWebSocketMessage<WebSocketEvents.FirstAdminVisitMarketplaceStatusReceived, {
+        firstAdminVisitMarketplaceStatus: string;
+    }>;
+
+export type HostedCustomerSignupProgressUpdatedMessage =
+    BaseWebSocketMessage<WebSocketEvents.HostedCustomerSignupProgressUpdated, {
+        progress: string;
+    }>
+
+// Custom properties messages
+
+export type CPAFieldCreatedMessage = BaseWebSocketMessage<WebSocketEvents.CPAFieldCreated, {
+    field: PropertyField;
+}>;
+
+export type CPAFieldUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.CPAFieldUpdated, {
+    field: PropertyField;
+    delete_values: boolean;
+}>;
+
+export type CPAFieldDeletedMessage = BaseWebSocketMessage<WebSocketEvents.CPAFieldDeleted, {
+    field_id: string;
+}>;
+
+export type CPAValuesUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.CPAValuesUpdated, {
+    user_id: string;
+    values: Array<PropertyValue<unknown>>;
+}>;
+
+// Content flagging messages
+
+export type ContentFlaggingReportValueUpdatedMessage =
     BaseWebSocketMessage<WebSocketEvents.ContentFlaggingReportValueUpdated, {
         property_values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
         target_id: string;
-    }>
-);
+    }>;
+
+// Plugin and integration messages
+
+export type PluginMessage = BaseWebSocketMessage<WebSocketEvents.PluginEnabled | WebSocketEvents.PluginDisabled, {
+    manifest: PluginManifest;
+}>;
+
+export type PluginStatusesChangedMessage = BaseWebSocketMessage<WebSocketEvents.PluginStatusesChanged, {
+    plugin_statuses: PluginStatus[];
+}>;
+
+export type OpenDialogMessage = BaseWebSocketMessage<WebSocketEvents.OpenDialog, {
+    dialog: JsonEncodedValue<OpenDialogRequest>;
+}>;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export type JsonEncodedValue<T> = string;
@@ -397,13 +599,6 @@ type BaseWebSocketMessage<Event extends WebSocketEvents, T = Record<string, neve
     broadcast: WebSocketBroadcast;
     seq: number;
 }
-
-// export type LegacyWebSocketMessage = {
-//     event: string;
-//     data: any;
-//     broadcast: WebSocketBroadcast;
-//     seq: number;
-// }
 
 export type WebSocketBroadcast = {
     omit_users: Record<string, boolean>;
