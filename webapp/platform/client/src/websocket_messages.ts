@@ -74,8 +74,8 @@ export const enum WebSocketEvents {
     ReceivedGroupNotAssociatedToTeam = 'received_group_not_associated_to_team',
     ReceivedGroupAssociatedToChannel = 'received_group_associated_to_channel',
     ReceivedGroupNotAssociatedToChannel = 'received_group_not_associated_to_channel',
-    GroupMemberDelete = 'group_member_deleted',
-    GroupMemberAdd = 'group_member_add',
+    GroupMemberDeleted = 'group_member_deleted',
+    GroupMemberAdded = 'group_member_add',
     SidebarCategoryCreated = 'sidebar_category_created',
     SidebarCategoryUpdated = 'sidebar_category_updated',
     SidebarCategoryDeleted = 'sidebar_category_deleted',
@@ -88,8 +88,8 @@ export const enum WebSocketEvents {
     DraftCreated = 'draft_created',
     DraftUpdated = 'draft_updated',
     DraftDeleted = 'draft_deleted',
-    AcknowledgementAdded = 'post_acknowledgement_added',
-    AcknowledgementRemoved = 'post_acknowledgement_removed',
+    PostAcknowledgementAdded = 'post_acknowledgement_added',
+    PostAcknowledgementRemoved = 'post_acknowledgement_removed',
     PersistentNotificationTriggered = 'persistent_notification_triggered',
     HostedCustomerSignupProgressUpdated = 'hosted_customer_signup_progress_updated',
     ChannelBookmarkCreated = 'channel_bookmark_created',
@@ -290,7 +290,7 @@ export type WebSocketMessage = (
     BaseWebSocketMessage<WebSocketEvents.ReceivedGroupAssociatedToChannel | WebSocketEvents.ReceivedGroupNotAssociatedToChannel, {
         group_id: string;
     }> |
-    BaseWebSocketMessage<WebSocketEvents.GroupMemberAdd | WebSocketEvents.GroupMemberDelete, {
+    BaseWebSocketMessage<WebSocketEvents.GroupMemberAdded | WebSocketEvents.GroupMemberDeleted, {
         groupMember: JsonEncodedValue<GroupMember>;
     }> |
     BaseWebSocketMessage<WebSocketEvents.SidebarCategoryCreated, {
@@ -335,7 +335,7 @@ export type WebSocketMessage = (
     BaseWebSocketMessage<WebSocketEvents.DraftCreated | WebSocketEvents.DraftUpdated | WebSocketEvents.DraftDeleted, {
         draft: JsonEncodedValue<Draft>;
     }> |
-    BaseWebSocketMessage<WebSocketEvents.AcknowledgementAdded | WebSocketEvents.AcknowledgementRemoved, {
+    BaseWebSocketMessage<WebSocketEvents.PostAcknowledgementAdded | WebSocketEvents.PostAcknowledgementRemoved, {
         acknowledgement: JsonEncodedValue<PostAcknowledgement>;
     }> |
     BaseWebSocketMessage<WebSocketEvents.PersistentNotificationTriggered, {
