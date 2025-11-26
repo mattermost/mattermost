@@ -133,7 +133,7 @@ export default class AboutBuildModal extends React.PureComponent<Props, State> {
             subTitle = (
                 <FormattedMessage
                     id='about.enterpriseEditionSt'
-                    defaultMessage='Modern communication from behind your firewall.'
+                    defaultMessage='Sovereign collaboration and workflow'
                 />
             );
 
