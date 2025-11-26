@@ -10193,6 +10193,10 @@
     "translation": "Invalid channel id."
   },
   {
+    "id": "model.draft.is_valid.burn_on_read.app_error",
+    "translation": "Invalid burn on read metadata."
+  },
+  {
     "id": "model.draft.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
