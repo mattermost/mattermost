@@ -2192,9 +2192,14 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			// Replace spaces within quoted strings with '<->'
 			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
 				// If the whole search term is a quoted string,
-				// we don't want to do stemming.
+				// we don't want to do stemming, except for @mentions.
 				if input == match {
-					simpleSearch = true
+					trimmed := strings.Trim(match, "\"")
+					// Only enable simple search for real phrases,
+					// not for "@username"style mention queries.
+					if !strings.HasPrefix(trimmed, "@") {
+						simpleSearch = true
+					}
 				}
 				return strings.Replace(match, " ", "<->", -1)
 			})

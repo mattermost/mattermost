@@ -290,6 +290,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchPostDeleted,
 		Tags: []string{EngineAll},
 	},
+	{
+		Name: "Quoted mention should no longer force simple search",
+		Fn:   testQuotedMentionDoesNotUseSimpleSearch,
+		Tags: []string{EngineAll},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -2110,4 +2115,41 @@ func testSearchPostDeleted(t *testing.T, th *SearchTestHelper) {
 		require.NoError(t, err)
 		require.Len(t, results.Posts, 0)
 	})
+}
+
+func testQuotedMentionDoesNotUseSimpleSearch(t *testing.T, th *SearchTestHelper) {
+	err := th.addUserToChannels(th.User, []string{th.ChannelAnotherTeam.Id})
+	require.NoError(t, err)
+	defer th.Store.Channel().RemoveMember(th.Context, th.ChannelAnotherTeam.Id, th.User.Id)
+
+	p1, err := th.createPost(
+		th.User.Id,
+		th.ChannelBasic.Id,
+		"hello @test.user this should match",
+		"",
+		model.PostTypeDefault,
+		0,
+		false,
+	)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	// Query: quoted mention
+	params := &model.SearchParams{
+		Terms: "\"@test.user\"",
+	}
+
+	results, err := th.Store.Post().SearchPostsForUser(
+		th.Context,
+		[]*model.SearchParams{params},
+		th.User.Id,
+		"",
+		0,
+		20,
+	)
+	require.NoError(t, err)
+
+	// One match expected
+	require.Len(t, results.Posts, 1)
+	th.checkPostInSearchResults(t, p1.Id, results.Posts)
 }
