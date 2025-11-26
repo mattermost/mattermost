@@ -28,18 +28,17 @@ func RenderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition) (
 }
 
 func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, isTightList bool) string {
+	var resultSb strings.Builder
+
 	switch v := block.(type) {
 	case *Document:
-		var resultSb strings.Builder
 		for _, block := range v.Children {
 			resultSb.WriteString(RenderBlockHTML(block, referenceDefinitions))
 		}
-		return resultSb.String()
 	case *Paragraph:
 		if len(v.Text) == 0 {
 			return ""
 		}
-		var resultSb strings.Builder
 		if !isTightList {
 			resultSb.WriteString("<p>")
 		}
@@ -49,9 +48,7 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		if !isTightList {
 			resultSb.WriteString("</p>")
 		}
-		return resultSb.String()
 	case *List:
-		var resultSb strings.Builder
 		if v.IsOrdered {
 			if v.OrderedStart != 1 {
 				resultSb.WriteString(fmt.Sprintf(`<ol start="%v">`, v.OrderedStart))
@@ -69,25 +66,19 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		} else {
 			resultSb.WriteString("</ul>")
 		}
-		return resultSb.String()
 	case *ListItem:
-		var resultSb strings.Builder
 		resultSb.WriteString("<li>")
 		for _, block := range v.Children {
 			resultSb.WriteString(renderBlockHTML(block, referenceDefinitions, isTightList))
 		}
 		resultSb.WriteString("</li>")
-		return resultSb.String()
 	case *BlockQuote:
-		var resultSb strings.Builder
 		resultSb.WriteString("<blockquote>")
 		for _, block := range v.Children {
 			resultSb.WriteString(RenderBlockHTML(block, referenceDefinitions))
 		}
 		resultSb.WriteString("</blockquote>")
-		return resultSb.String()
 	case *FencedCode:
-		var resultSb strings.Builder
 		if info := v.Info(); info != "" {
 			language := strings.Fields(info)[0]
 			resultSb.WriteString(`<pre><code class="language-` + htmlEscaper.Replace(language) + `">`)
@@ -96,12 +87,15 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		}
 		resultSb.WriteString(htmlEscaper.Replace(v.Code()))
 		resultSb.WriteString("</code></pre>")
-		return resultSb.String()
 	case *IndentedCode:
-		return "<pre><code>" + htmlEscaper.Replace(v.Code()) + "</code></pre>"
+		resultSb.WriteString("<pre><code>")
+		resultSb.WriteString(htmlEscaper.Replace(v.Code()))
+		resultSb.WriteString("</code></pre>")
 	default:
 		panic(fmt.Sprintf("missing case for type %T", v))
 	}
+
+	return resultSb.String()
 }
 
 func escapeURL(url string) (result string) {
