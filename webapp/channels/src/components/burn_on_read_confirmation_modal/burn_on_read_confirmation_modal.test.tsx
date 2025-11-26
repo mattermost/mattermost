@@ -19,11 +19,23 @@ describe('BurnOnReadConfirmationModal', () => {
         jest.clearAllMocks();
     });
 
-    it('should render when show is true', () => {
+    it('should render receiver delete message when show is true and isSenderDelete is false', () => {
         renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
 
         expect(screen.getByText('Delete Message Now?')).toBeInTheDocument();
-        expect(screen.getByText(/This will immediately remove this message for you/)).toBeInTheDocument();
+        expect(screen.getByText(/This message will be permanently deleted for you right away/)).toBeInTheDocument();
+    });
+
+    it('should render sender delete message when show is true and isSenderDelete is true', () => {
+        renderWithContext(
+            <BurnOnReadConfirmationModal
+                {...baseProps}
+                isSenderDelete={true}
+            />,
+        );
+
+        expect(screen.getByText('Delete Message Now?')).toBeInTheDocument();
+        expect(screen.getByText(/This message will be permanently deleted for all recipients right away/)).toBeInTheDocument();
     });
 
     it('should not render when show is false', () => {

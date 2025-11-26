@@ -12,9 +12,10 @@ interface Props {
     onCancel: () => void;
     loading?: boolean;
     showCheckbox?: boolean;
+    isSenderDelete?: boolean;
 }
 
-const BurnOnReadConfirmationModal = ({show, onConfirm, onCancel, loading = false, showCheckbox = false}: Props) => {
+const BurnOnReadConfirmationModal = ({show, onConfirm, onCancel, loading = false, showCheckbox = false, isSenderDelete = false}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleConfirm = useCallback((checked: boolean) => {
@@ -34,10 +35,15 @@ const BurnOnReadConfirmationModal = ({show, onConfirm, onCancel, loading = false
         defaultMessage: 'Delete Message Now?',
     });
 
-    const message = formatMessage({
-        id: 'post.burn_on_read.confirmation_modal.body',
-        defaultMessage: 'This will immediately remove this message for you. This action cannot be undone.',
-    });
+    const message = isSenderDelete ?
+        formatMessage({
+            id: 'post.burn_on_read.confirmation_modal.body_sender',
+            defaultMessage: 'This message will be permanently deleted for all recipients right away. This action can\'t be undone. Are you sure you want to delete this message?',
+        }) :
+        formatMessage({
+            id: 'post.burn_on_read.confirmation_modal.body_receiver',
+            defaultMessage: 'This message will be permanently deleted for you right away and can\'t be undone.',
+        });
 
     const confirmButtonText = loading ?
         formatMessage({

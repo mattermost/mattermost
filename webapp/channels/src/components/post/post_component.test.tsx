@@ -53,6 +53,8 @@ describe('PostComponent', () => {
             setRhsExpanded: jest.fn(),
             revealBurnOnReadPost: jest.fn(),
             savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
         },
     };
 

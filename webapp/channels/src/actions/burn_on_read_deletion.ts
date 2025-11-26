@@ -35,11 +35,21 @@ export function burnPostNow(postId: string): ActionFuncAsync<boolean> {
  * Also used when receiving WebSocket expiration event
  */
 export function handlePostExpired(postId: string): ActionFuncAsync<boolean> {
-    return async (dispatch) => {
+    return async (dispatch, getState) => {
+        // Get the full post object from state so we can properly remove it from all reducers
+        const state = getState();
+        const post = state.entities.posts.posts[postId];
+
+        if (!post) {
+            // Post already removed or doesn't exist
+            return {data: true};
+        }
+
         // Completely remove post from Redux state (client-side only, no API call)
+        // Pass full post object so postsInChannel reducer can access channel_id
         dispatch({
             type: PostTypes.POST_REMOVED,
-            data: {id: postId},
+            data: post,
         });
 
         return {data: true};

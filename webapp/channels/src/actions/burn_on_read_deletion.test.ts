@@ -55,14 +55,48 @@ describe('burn_on_read_deletion actions', () => {
     });
 
     describe('handlePostExpired', () => {
-        it('should dispatch POST_REMOVED action', async () => {
+        it('should dispatch POST_REMOVED action with full post object', async () => {
+            const mockPost = {
+                id: 'post123',
+                channel_id: 'channel1',
+                user_id: 'user1',
+                message: 'test',
+                create_at: 123456,
+            };
+
+            const mockGetState = () => ({
+                entities: {
+                    posts: {
+                        posts: {
+                            post123: mockPost,
+                        },
+                    },
+                },
+            } as any);
+
             const action = Actions.handlePostExpired('post123');
-            const result = await action(mockDispatch, () => ({} as any), undefined);
+            const result = await action(mockDispatch, mockGetState, undefined);
 
             expect(mockDispatch).toHaveBeenCalledWith({
                 type: PostTypes.POST_REMOVED,
-                data: {id: 'post123'},
+                data: mockPost,
             });
+            expect(result.data).toBe(true);
+        });
+
+        it('should return early if post does not exist', async () => {
+            const mockGetState = () => ({
+                entities: {
+                    posts: {
+                        posts: {},
+                    },
+                },
+            } as any);
+
+            const action = Actions.handlePostExpired('nonexistent');
+            const result = await action(mockDispatch, mockGetState, undefined);
+
+            expect(mockDispatch).not.toHaveBeenCalled();
             expect(result.data).toBe(true);
         });
     });

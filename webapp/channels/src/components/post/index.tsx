@@ -26,6 +26,7 @@ import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/use
 import {burnPostNow} from 'actions/burn_on_read_deletion';
 import {revealBurnOnReadPost} from 'actions/burn_on_read_posts';
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
 import {isBurnOnReadEnabled, getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
@@ -245,6 +246,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             revealBurnOnReadPost,
             burnPostNow,
             savePreferences,
+            openModal,
+            closeModal,
         }, dispatch),
     };
 }

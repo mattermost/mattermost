@@ -11,7 +11,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {Posts, Preferences} from 'mattermost-redux/constants/index';
+import {Posts} from 'mattermost-redux/constants/index';
 import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
@@ -42,13 +42,15 @@ import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
+import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
-import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes} from 'utils/constants';
+import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
+import type {ModalData} from 'types/actions';
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
 import {withPostErrorBoundary} from './post_error_boundary';
@@ -102,8 +104,10 @@ export type Props = {
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
         revealBurnOnReadPost: (postId: string) => Promise<{data?: any; error?: any}>;
-        burnPostNow?: (postId: string) => void;
+        burnPostNow?: (postId: string) => Promise<any>;
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
+        closeModal: (modalId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -149,8 +153,6 @@ function PostComponent(props: Props) {
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
     const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
     const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
-    const [showBurnConfirmModal, setShowBurnConfirmModal] = useState(false);
-    const [burnDeleting, setBurnDeleting] = useState(false);
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -451,59 +453,56 @@ function PostComponent(props: Props) {
         }
     }, [props.actions, formatMessage]);
 
-    const handleTimerChipClick = useCallback(async () => {
+    const handleTimerChipClick = useCallback(() => {
+        // Timer chip is only shown to receivers, so this is always a receiver delete (for themselves only)
         // Skip modal if preference is set
         if (props.burnOnReadSkipConfirmation) {
-            setBurnDeleting(true);
-
-            try {
-                await props.actions.burnPostNow?.(post.id);
-            } finally {
-                setBurnDeleting(false);
-            }
-
+            props.actions.burnPostNow?.(post.id);
             return;
         }
-        setShowBurnConfirmModal(true);
-    }, [props.burnOnReadSkipConfirmation, props.actions, post.id]);
+
+        // Open modal via Redux (zero overhead for non-BoR posts!)
+        const isSender = post.user_id === props.currentUserId;
+        const handlers = createBurnOnReadDeleteModalHandlers(
+            props.actions,
+            {
+                postId: post.id,
+                userId: props.currentUserId,
+                isSender,
+            },
+        );
+
+        props.actions.openModal({
+            modalId: ModalIdentifiers.BURN_ON_READ_CONFIRMATION,
+            dialogType: BurnOnReadConfirmationModal,
+            dialogProps: {
+                show: true,
+                ...handlers,
+            },
+        });
+    }, [props.burnOnReadSkipConfirmation, props.actions, post.id, post.user_id, props.currentUserId]);
 
     const handleBadgeClick = useCallback(() => {
-        // Always show modal for badge click (sender delete for everyone)
-        setShowBurnConfirmModal(true);
-    }, []);
+        // Flame icon is only shown to sender, so this is always a sender delete (for everyone)
+        const isSender = post.user_id === props.currentUserId;
+        const handlers = createBurnOnReadDeleteModalHandlers(
+            props.actions,
+            {
+                postId: post.id,
+                userId: props.currentUserId,
+                isSender,
+            },
+        );
 
-    const handleBurnConfirm = useCallback(async (skipConfirmation: boolean) => {
-        setBurnDeleting(true);
-
-        try {
-            const result = await props.actions.burnPostNow?.(post.id);
-
-            if (result && typeof result === 'object' && 'error' in result) {
-                // Error occurred, keep modal open so user can retry or cancel
-                return;
-            }
-
-            // Success - close modal
-            setShowBurnConfirmModal(false);
-
-            // Save preference if user checked "Do not ask me again"
-            if (skipConfirmation) {
-                const pref = {
-                    category: Preferences.CATEGORY_BURN_ON_READ,
-                    user_id: props.currentUserId,
-                    name: Preferences.BURN_ON_READ_SKIP_CONFIRMATION,
-                    value: 'true',
-                };
-                props.actions.savePreferences(props.currentUserId, [pref]);
-            }
-        } finally {
-            setBurnDeleting(false);
-        }
-    }, [props.actions, props.currentUserId, post.id]);
-
-    const handleBurnCancel = useCallback(() => {
-        setShowBurnConfirmModal(false);
-    }, []);
+        props.actions.openModal({
+            modalId: ModalIdentifiers.BURN_ON_READ_CONFIRMATION,
+            dialogType: BurnOnReadConfirmationModal,
+            dialogProps: {
+                show: true,
+                ...handlers,
+            },
+        });
+    }, [props.actions, post.id, post.user_id, props.currentUserId]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -842,13 +841,6 @@ function PostComponent(props: Props) {
                     </div>
                 </div>
             </PostAriaLabelDiv>
-            <BurnOnReadConfirmationModal
-                show={showBurnConfirmModal}
-                onConfirm={handleBurnConfirm}
-                onCancel={handleBurnCancel}
-                loading={burnDeleting}
-                showCheckbox={post.user_id !== props.currentUserId}
-            />
         </>
     );
 }
