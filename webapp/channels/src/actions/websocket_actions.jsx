@@ -5,6 +5,8 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import {WebSocketEvents} from '@mattermost/client';
+
 import {
     ChannelTypes,
     EmojiTypes,
@@ -353,237 +355,237 @@ function handleClose(failCount) {
 
 export function handleEvent(msg) {
     switch (msg.event) {
-    case SocketEvents.POSTED:
-    case SocketEvents.EPHEMERAL_MESSAGE:
+    case WebSocketEvents.Posted:
+    case WebSocketEvents.EphemeralMessage:
         handleNewPostEventDebounced(msg);
         break;
 
-    case SocketEvents.POST_EDITED:
+    case WebSocketEvents.PostEdited:
         handlePostEditEvent(msg);
         break;
 
-    case SocketEvents.POST_DELETED:
+    case WebSocketEvents.PostDeleted:
         handlePostDeleteEvent(msg);
         break;
 
-    case SocketEvents.POST_UNREAD:
+    case WebSocketEvents.PostUnread:
         handlePostUnreadEvent(msg);
         break;
 
-    case SocketEvents.LEAVE_TEAM:
+    case WebSocketEvents.LeaveTeam:
         handleLeaveTeamEvent(msg);
         break;
 
-    case SocketEvents.UPDATE_TEAM:
+    case WebSocketEvents.UpdateTeam:
         handleUpdateTeamEvent(msg);
         break;
 
-    case SocketEvents.UPDATE_TEAM_SCHEME:
+    case WebSocketEvents.UpdateTeamScheme:
         handleUpdateTeamSchemeEvent(msg);
         break;
 
-    case SocketEvents.DELETE_TEAM:
+    case WebSocketEvents.DeleteTeam:
         handleDeleteTeamEvent(msg);
         break;
 
-    case SocketEvents.ADDED_TO_TEAM:
+    case WebSocketEvents.AddedToTeam:
         handleTeamAddedEvent(msg);
         break;
 
-    case SocketEvents.USER_ADDED:
+    case WebSocketEvents.UserAdded:
         dispatch(handleUserAddedEvent(msg));
         break;
 
-    case SocketEvents.USER_REMOVED:
+    case WebSocketEvents.UserRemoved:
         handleUserRemovedEvent(msg);
         break;
 
-    case SocketEvents.USER_UPDATED:
+    case WebSocketEvents.UserUpdated:
         handleUserUpdatedEvent(msg);
         break;
 
-    case SocketEvents.CHANNEL_SCHEME_UPDATED:
+    case WebSocketEvents.ChannelSchemeUpdated:
         handleChannelSchemeUpdatedEvent(msg);
         break;
 
-    case SocketEvents.MEMBERROLE_UPDATED:
+    case WebSocketEvents.MemberRoleUpdated:
         handleUpdateMemberRoleEvent(msg);
         break;
 
-    case SocketEvents.ROLE_UPDATED:
+    case WebSocketEvents.RoleUpdated:
         handleRoleUpdatedEvent(msg);
         break;
 
-    case SocketEvents.CHANNEL_CREATED:
+    case WebSocketEvents.ChannelCreated:
         dispatch(handleChannelCreatedEvent(msg));
         break;
 
-    case SocketEvents.CHANNEL_DELETED:
+    case WebSocketEvents.ChannelDeleted:
         handleChannelDeletedEvent(msg);
         break;
 
-    case SocketEvents.CHANNEL_UNARCHIVED:
+    case WebSocketEvents.ChannelRestored:
         handleChannelUnarchivedEvent(msg);
         break;
 
-    case SocketEvents.CHANNEL_CONVERTED:
+    case WebSocketEvents.ChannelConverted:
         handleChannelConvertedEvent(msg);
         break;
 
-    case SocketEvents.CHANNEL_UPDATED:
+    case WebSocketEvents.ChannelUpdated:
         dispatch(handleChannelUpdatedEvent(msg));
         break;
 
-    case SocketEvents.CHANNEL_MEMBER_UPDATED:
+    case WebSocketEvents.ChannelMemberUpdated:
         handleChannelMemberUpdatedEvent(msg);
         break;
 
-    case SocketEvents.CHANNEL_BOOKMARK_CREATED:
+    case WebSocketEvents.ChannelBookmarkCreated:
         dispatch(handleChannelBookmarkCreated(msg));
         break;
 
-    case SocketEvents.CHANNEL_BOOKMARK_UPDATED:
+    case WebSocketEvents.ChannelBookmarkUpdated:
         dispatch(handleChannelBookmarkUpdated(msg));
         break;
 
-    case SocketEvents.CHANNEL_BOOKMARK_DELETED:
+    case WebSocketEvents.ChannelBookmarkDeleted:
         dispatch(handleChannelBookmarkDeleted(msg));
         break;
 
-    case SocketEvents.CHANNEL_BOOKMARK_SORTED:
+    case WebSocketEvents.ChannelBookmarkSorted:
         dispatch(handleChannelBookmarkSorted(msg));
         break;
 
-    case SocketEvents.DIRECT_ADDED:
+    case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
 
-    case SocketEvents.GROUP_ADDED:
+    case WebSocketEvents.GroupAdded:
         dispatch(handleGroupAddedEvent(msg));
         break;
 
-    case SocketEvents.PREFERENCE_CHANGED:
+    case WebSocketEvents.PreferenceChanged:
         handlePreferenceChangedEvent(msg);
         break;
 
-    case SocketEvents.PREFERENCES_CHANGED:
+    case WebSocketEvents.PreferencesChanged:
         handlePreferencesChangedEvent(msg);
         break;
 
-    case SocketEvents.PREFERENCES_DELETED:
+    case WebSocketEvents.PreferencesDeleted:
         handlePreferencesDeletedEvent(msg);
         break;
 
-    case SocketEvents.STATUS_CHANGED:
+    case WebSocketEvents.StatusChange:
         dispatch(handleStatusChangedEvent(msg));
         break;
 
-    case SocketEvents.HELLO:
+    case WebSocketEvents.Hello:
         handleHelloEvent(msg);
         break;
 
-    case SocketEvents.REACTION_ADDED:
+    case WebSocketEvents.ReactionAdded:
         handleReactionAddedEvent(msg);
         break;
 
-    case SocketEvents.REACTION_REMOVED:
+    case WebSocketEvents.ReactionRemoved:
         handleReactionRemovedEvent(msg);
         break;
 
-    case SocketEvents.EMOJI_ADDED:
+    case WebSocketEvents.EmojiAdded:
         handleAddEmoji(msg);
         break;
 
-    case SocketEvents.MULTIPLE_CHANNELS_VIEWED:
+    case WebSocketEvents.MultipleChannelsViewed:
         handleMultipleChannelsViewedEvent(msg);
         break;
 
-    case SocketEvents.PLUGIN_ENABLED:
+    case WebSocketEvents.PluginEnabled:
         handlePluginEnabled(msg);
         break;
 
-    case SocketEvents.PLUGIN_DISABLED:
+    case WebSocketEvents.PluginDisabled:
         handlePluginDisabled(msg);
         break;
 
-    case SocketEvents.USER_ROLE_UPDATED:
+    case WebSocketEvents.UserRoleUpdated:
         handleUserRoleUpdated(msg);
         break;
 
-    case SocketEvents.CONFIG_CHANGED:
+    case WebSocketEvents.ConfigChanged:
         handleConfigChanged(msg);
         break;
 
-    case SocketEvents.LICENSE_CHANGED:
+    case WebSocketEvents.LicenseChanged:
         handleLicenseChanged(msg);
         break;
 
-    case SocketEvents.PLUGIN_STATUSES_CHANGED:
+    case WebSocketEvents.PluginStatusesChanged:
         handlePluginStatusesChangedEvent(msg);
         break;
 
-    case SocketEvents.OPEN_DIALOG:
+    case WebSocketEvents.OpenDialog:
         handleOpenDialogEvent(msg);
         break;
 
-    case SocketEvents.RECEIVED_GROUP:
+    case WebSocketEvents.ReceivedGroup:
         handleGroupUpdatedEvent(msg);
         break;
 
-    case SocketEvents.GROUP_MEMBER_ADD:
+    case WebSocketEvents.GroupMemberAdded:
         dispatch(handleGroupAddedMemberEvent(msg));
         break;
 
-    case SocketEvents.GROUP_MEMBER_DELETED:
+    case WebSocketEvents.GroupMemberDeleted:
         dispatch(handleGroupDeletedMemberEvent(msg));
         break;
 
-    case SocketEvents.RECEIVED_GROUP_ASSOCIATED_TO_TEAM:
+    case WebSocketEvents.ReceivedGroupAssociatedToTeam:
         handleGroupAssociatedToTeamEvent(msg);
         break;
 
-    case SocketEvents.RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM:
+    case WebSocketEvents.ReceivedGroupNotAssociatedToTeam:
         handleGroupNotAssociatedToTeamEvent(msg);
         break;
 
-    case SocketEvents.RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL:
+    case WebSocketEvents.ReceivedGroupAssociatedToChannel:
         handleGroupAssociatedToChannelEvent(msg);
         break;
 
-    case SocketEvents.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL:
+    case WebSocketEvents.ReceivedGroupNotAssociatedToChannel:
         handleGroupNotAssociatedToChannelEvent(msg);
         break;
 
-    case SocketEvents.SIDEBAR_CATEGORY_CREATED:
+    case WebSocketEvents.SidebarCategoryCreated:
         dispatch(handleSidebarCategoryCreated(msg));
         break;
 
-    case SocketEvents.SIDEBAR_CATEGORY_UPDATED:
+    case WebSocketEvents.SidebarCategoryUpdated:
         dispatch(handleSidebarCategoryUpdated(msg));
         break;
 
-    case SocketEvents.SIDEBAR_CATEGORY_DELETED:
+    case WebSocketEvents.SidebarCategoryDeleted:
         dispatch(handleSidebarCategoryDeleted(msg));
         break;
-    case SocketEvents.SIDEBAR_CATEGORY_ORDER_UPDATED:
+    case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
         break;
-    case SocketEvents.USER_ACTIVATION_STATUS_CHANGED:
+    case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
-    case SocketEvents.CLOUD_SUBSCRIPTION_CHANGED:
+    case WebSocketEvents.CloudSubscriptionChanged:
         dispatch(handleCloudSubscriptionChanged(msg));
         break;
-    case SocketEvents.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED:
+    case WebSocketEvents.FirstAdminVisitMarketplaceStatusReceived:
         handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg);
         break;
-    case SocketEvents.THREAD_FOLLOW_CHANGED:
+    case WebSocketEvents.ThreadFollowChanged:
         dispatch(handleThreadFollowChanged(msg));
         break;
-    case SocketEvents.THREAD_READ_CHANGED:
+    case WebSocketEvents.ThreadReadChanged:
         dispatch(handleThreadReadChanged(msg));
         break;
-    case SocketEvents.THREAD_UPDATED:
+    case WebSocketEvents.ThreadUpdated:
         dispatch(handleThreadUpdated(msg));
         break;
     case SocketEvents.APPS_FRAMEWORK_REFRESH_BINDINGS:
@@ -595,47 +597,47 @@ export function handleEvent(msg) {
     case SocketEvents.APPS_FRAMEWORK_PLUGIN_DISABLED:
         dispatch(handleAppsPluginDisabled());
         break;
-    case SocketEvents.POST_ACKNOWLEDGEMENT_ADDED:
+    case WebSocketEvents.PostAcknowledgementAdded:
         dispatch(handlePostAcknowledgementAdded(msg));
         break;
-    case SocketEvents.POST_ACKNOWLEDGEMENT_REMOVED:
+    case WebSocketEvents.PostAcknowledgementRemoved:
         dispatch(handlePostAcknowledgementRemoved(msg));
         break;
-    case SocketEvents.DRAFT_CREATED:
-    case SocketEvents.DRAFT_UPDATED:
+    case WebSocketEvents.DraftCreated:
+    case WebSocketEvents.DraftUpdated:
         dispatch(handleUpsertDraftEvent(msg));
         break;
-    case SocketEvents.DRAFT_DELETED:
+    case WebSocketEvents.DraftDeleted:
         dispatch(handleDeleteDraftEvent(msg));
         break;
-    case SocketEvents.SCHEDULED_POST_CREATED:
+    case WebSocketEvents.ScheduledPostCreated:
         dispatch(handleCreateScheduledPostEvent(msg));
         break;
-    case SocketEvents.SCHEDULED_POST_UPDATED:
+    case WebSocketEvents.ScheduledPostUpdated:
         dispatch(handleUpdateScheduledPostEvent(msg));
         break;
-    case SocketEvents.SCHEDULED_POST_DELETED:
+    case WebSocketEvents.ScheduledPostDeleted:
         dispatch(handleDeleteScheduledPostEvent(msg));
         break;
-    case SocketEvents.PERSISTENT_NOTIFICATION_TRIGGERED:
+    case WebSocketEvents.PersistentNotificationTriggered:
         dispatch(handlePersistentNotification(msg));
         break;
-    case SocketEvents.HOSTED_CUSTOMER_SIGNUP_PROGRESS_UPDATED:
+    case WebSocketEvents.HostedCustomerSignupProgressUpdated:
         dispatch(handleHostedCustomerSignupProgressUpdated(msg));
         break;
-    case SocketEvents.CPA_VALUES_UPDATED:
+    case WebSocketEvents.CPAValuesUpdated:
         dispatch(handleCustomAttributeValuesUpdated(msg));
         break;
-    case SocketEvents.CPA_FIELD_CREATED:
+    case WebSocketEvents.CPAFieldCreated:
         dispatch(handleCustomAttributesCreated(msg));
         break;
-    case SocketEvents.CPA_FIELD_UPDATED:
+    case WebSocketEvents.CPAFieldUpdated:
         dispatch(handleCustomAttributesUpdated(msg));
         break;
-    case SocketEvents.CPA_FIELD_DELETED:
+    case WebSocketEvents.CPAFieldDeleted:
         dispatch(handleCustomAttributesDeleted(msg));
         break;
-    case SocketEvents.CONTENT_FLAGGING_REPORT_VALUE_CHANGED:
+    case WebSocketEvents.ContentFlaggingReportValueUpdated:
         dispatch(handleContentFlaggingReportValueChanged(msg));
         break;
     default:

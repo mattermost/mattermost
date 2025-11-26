@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {WebSocketEvents} from '@mattermost/client';
+
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
@@ -24,7 +26,7 @@ import store from 'stores/redux_store';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {SocketEvents, ActionTypes, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
@@ -230,7 +232,7 @@ jest.mock('actions/views/rhs', () => ({
 
 describe('handleEvent', () => {
     test('should dispatch channel updated event properly', () => {
-        const msg = {event: SocketEvents.CHANNEL_UPDATED};
+        const msg = {event: WebSocketEvents.ChannelUpdated};
 
         handleEvent(msg);
 
@@ -861,7 +863,7 @@ describe('handleCloudSubscriptionChanged', () => {
             id: 'newsub',
         };
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 limits: newLimits,
                 subscription: newSubscription,
@@ -900,7 +902,7 @@ describe('handleCloudSubscriptionChanged', () => {
             },
         };
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 limits: newLimits,
             },
@@ -934,7 +936,7 @@ describe('handleCloudSubscriptionChanged', () => {
         };
 
         const msg = {
-            event: SocketEvents.CLOUD_PRODUCT_LIMITS_CHANGED,
+            event: WebSocketEvents.CloudSubscriptionChanged,
             data: {
                 subscription: newSubscription,
             },
@@ -1294,7 +1296,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.AWAY,
@@ -1304,7 +1306,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.AWAY);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.ONLINE,
@@ -1314,7 +1316,7 @@ describe('handleStatusChangedEvent', () => {
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
 
         testStore.dispatch(handleStatusChangedEvent({
-            event: SocketEvents.STATUS_CHANGED,
+            event: WebSocketEvents.StatusChange,
             data: {
                 user_id: currentUserId,
                 status: UserStatuses.OFFLINE,
@@ -1346,7 +1348,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: currentUserId,
                 values: {field1: 'value1', field2: 'value2'},
@@ -1359,7 +1361,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
 
         // update one field, add new field
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: currentUserId,
                 values: {field1: 'valueChanged', field3: 'new field'},
@@ -1378,7 +1380,7 @@ describe('handleCustomAttributeValuesUpdated', () => {
         expect(stateUser(testStore.getState(), currentUserId)).toEqual({id: currentUserId});
 
         testStore.dispatch(handleCustomAttributeValuesUpdated({
-            event: SocketEvents.CPA_VALUES_UPDATED,
+            event: WebSocketEvents.CPAValuesUpdated,
             data: {
                 user_id: 'nonExistantUser',
                 values: {field1: 'value1', field2: 'value2'},
@@ -1408,7 +1410,7 @@ describe('handleCustomAttributeCRUD', () => {
         const testStore = realConfigureStore(makeInitialState());
 
         testStore.dispatch(handleCustomAttributesCreated({
-            event: SocketEvents.CPA_FIELD_CREATED,
+            event: WebSocketEvents.CPAFieldCreated,
             data: {
                 field: field1,
             },
@@ -1422,7 +1424,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // create second field
         testStore.dispatch(handleCustomAttributesCreated({
-            event: SocketEvents.CPA_FIELD_CREATED,
+            event: WebSocketEvents.CPAFieldCreated,
             data: {
                 field: field2,
             },
@@ -1436,7 +1438,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // update field
         testStore.dispatch(handleCustomAttributesUpdated({
-            event: SocketEvents.CPA_FIELD_UPDATED,
+            event: WebSocketEvents.CPAFieldUpdated,
             data: {
                 field: {...field1, name: 'Updated Name'},
             },
@@ -1450,7 +1452,7 @@ describe('handleCustomAttributeCRUD', () => {
 
         // delete field
         testStore.dispatch(handleCustomAttributesDeleted({
-            event: SocketEvents.CPA_FIELD_DELETED,
+            event: WebSocketEvents.CPAFieldDeleted,
             data: {
                 field_id: field1.id,
             },
@@ -1468,7 +1470,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1482,7 +1484,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field
             const updatedField = {...field1, name: 'Updated Field Name'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                 },
@@ -1514,7 +1516,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1523,7 +1525,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field with delete_values flag
             const updatedField = {...field1, type: 'select'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                     delete_values: true,
@@ -1561,7 +1563,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1570,7 +1572,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field but with delete_values flag set to false
             const updatedField = {...field1, name: 'Updated Field Name', type: 'text'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
                     delete_values: false,
@@ -1609,7 +1611,7 @@ describe('handleCustomAttributeCRUD', () => {
 
             // First create a field
             testStore.dispatch(handleCustomAttributesCreated({
-                event: SocketEvents.CPA_FIELD_CREATED,
+                event: WebSocketEvents.CPAFieldCreated,
                 data: {
                     field: field1,
                 },
@@ -1618,7 +1620,7 @@ describe('handleCustomAttributeCRUD', () => {
             // Update the field without specifying delete_values
             const updatedField = {...field1, type: 'number'};
             testStore.dispatch(handleCustomAttributesUpdated({
-                event: SocketEvents.CPA_FIELD_UPDATED,
+                event: WebSocketEvents.CPAFieldUpdated,
                 data: {
                     field: updatedField,
 
