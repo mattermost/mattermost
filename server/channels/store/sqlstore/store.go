@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"path"
@@ -111,6 +110,7 @@ type SqlStoreStores struct {
 	propertyValue              store.PropertyValueStore
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
+	autotranslation            store.AutoTranslationStore
 	ContentFlagging            store.ContentFlaggingStore
 }
 
@@ -130,7 +130,6 @@ type SqlStore struct {
 	stores            SqlStoreStores
 	settings          *model.SqlSettings
 	lockedToMaster    bool
-	context           context.Context
 	license           *model.License
 	licenseMutex      sync.RWMutex
 	logger            mlog.LoggerIFace
@@ -262,19 +261,12 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyValue = newPropertyValueStore(store)
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
+	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
 	return store, nil
-}
-
-func (ss *SqlStore) SetContext(context context.Context) {
-	ss.context = context
-}
-
-func (ss *SqlStore) Context() context.Context {
-	return ss.context
 }
 
 func (ss *SqlStore) Logger() mlog.LoggerIFace {
@@ -884,6 +876,10 @@ func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
 
 func (ss *SqlStore) Attributes() store.AttributesStore {
 	return ss.stores.Attributes
+}
+
+func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
+	return ss.stores.autotranslation
 }
 
 func (ss *SqlStore) DropAllTables() {

@@ -20,6 +20,7 @@ export type Params = {
     redirectUri: string | null;
     state: string | null;
     scope: string | null;
+    resource: string | null;
 }
 
 type Props = {
@@ -70,7 +71,10 @@ export default class Authorize extends React.PureComponent<Props, State> {
             clientId: searchParams.get('client_id'),
             redirectUri: searchParams.get('redirect_uri'),
             state: searchParams.get('state'),
-            scope: searchParams.get('store'),
+            scope: searchParams.get('scope'),
+            resource: searchParams.get('resource'),
+            codeChallenge: searchParams.get('code_challenge'),
+            codeChallengeMethod: searchParams.get('code_challenge_method'),
         };
 
         this.props.actions.allowOAuth2(params).then(

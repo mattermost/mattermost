@@ -86,7 +86,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
             />,
         );
         wrapper.find(PermissionGroup).first().prop('onChange')(['test_permission', 'test_permission2']);
-        expect(onToggle).toBeCalledWith('test', ['test_permission', 'test_permission2']);
+        expect(onToggle).toHaveBeenCalledWith('test', ['test_permission', 'test_permission2']);
     });
 
     test('should match snapshot on license without LDAPGroups', () => {
