@@ -1183,18 +1183,22 @@ type ContentFlaggingStore interface {
 }
 
 type ReadReceiptStore interface {
+	InvalidateReadReceiptForPostsCache(postID string)
 	Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
 	Delete(rctx request.CTX, postID, userID string) error
 	DeleteByPost(rctx request.CTX, postID string) error
 	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
+	GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error)
 	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
+	GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error)
 }
 
 type TemporaryPostStore interface {
+	InvalidateTemporaryPost(id string)
 	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
 	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
-	DeleteExpired(rctx request.CTX, expireAt int64) error
+	GetExpiredPosts(rctx request.CTX) ([]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

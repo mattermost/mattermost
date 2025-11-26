@@ -6810,6 +6810,22 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsForReporting", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -8313,6 +8329,22 @@ func (s *TimerLayerReadReceiptStore) Get(rctx request.CTX, postID string, userID
 	return result, err
 }
 
+func (s *TimerLayerReadReceiptStore) GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error) {
+	start := time.Now()
+
+	result, err := s.ReadReceiptStore.GetByPost(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.GetByPost", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID string) (int64, error) {
 	start := time.Now()
 
@@ -8327,6 +8359,37 @@ func (s *TimerLayerReadReceiptStore) GetReadCountForPost(rctx request.CTX, postI
 		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.GetReadCountForPost", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ReadReceiptStore.GetUnreadCountForPost(rctx, post)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.GetUnreadCountForPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReadReceiptStore) InvalidateReadReceiptForPostsCache(postID string) {
+	start := time.Now()
+
+	s.ReadReceiptStore.InvalidateReadReceiptForPostsCache(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.InvalidateReadReceiptForPostsCache", success, elapsed)
+	}
 }
 
 func (s *TimerLayerReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
@@ -11079,22 +11142,6 @@ func (s *TimerLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error
 	return err
 }
 
-func (s *TimerLayerTemporaryPostStore) DeleteExpired(rctx request.CTX, expireAt int64) error {
-	start := time.Now()
-
-	err := s.TemporaryPostStore.DeleteExpired(rctx, expireAt)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.DeleteExpired", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
 	start := time.Now()
 
@@ -11109,6 +11156,37 @@ func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.
 		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.Get", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.TemporaryPostStore.GetExpiredPosts(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.GetExpiredPosts", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerTemporaryPostStore) InvalidateTemporaryPost(id string) {
+	start := time.Now()
+
+	s.TemporaryPostStore.InvalidateTemporaryPost(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.InvalidateTemporaryPost", success, elapsed)
+	}
 }
 
 func (s *TimerLayerTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error) {
