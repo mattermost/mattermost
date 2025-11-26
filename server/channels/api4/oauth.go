@@ -342,6 +342,9 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Session and permission checks removed for DCR endpoint to allow external client registration
 
+	auditRec := c.MakeAuditRecord(model.AuditEventRegisterOAuthClient, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
 	var clientRequest model.ClientRegistrationRequest
 	if jsonErr := json.NewDecoder(r.Body).Decode(&clientRequest); jsonErr != nil {
 		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid JSON in request body")
@@ -351,6 +354,18 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
+	}
+
+	// Add DCR request parameters to audit record
+	model.AddEventParameterToAuditRec(auditRec, "redirect_uris", clientRequest.RedirectURIs)
+	if clientRequest.ClientName != nil {
+		model.AddEventParameterToAuditRec(auditRec, "client_name", *clientRequest.ClientName)
+	}
+	if clientRequest.TokenEndpointAuthMethod != nil {
+		model.AddEventParameterToAuditRec(auditRec, "token_endpoint_auth_method", *clientRequest.TokenEndpointAuthMethod)
+	}
+	if clientRequest.ClientURI != nil {
+		model.AddEventParameterToAuditRec(auditRec, "client_uri", *clientRequest.ClientURI)
 	}
 
 	// Check if OAuth service provider is enabled
@@ -399,6 +414,11 @@ func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(app)
+	auditRec.AddEventObjectType("oauth_app")
+	c.LogAudit("client_id=" + app.Id)
 
 	siteURL := *c.App.Config().ServiceSettings.SiteURL
 	response := app.ToClientRegistrationResponse(siteURL)
