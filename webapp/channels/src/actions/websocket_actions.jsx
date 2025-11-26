@@ -37,7 +37,6 @@ import {
     fetchAllMyTeamsChannels,
     fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
-import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
@@ -403,14 +402,6 @@ export function handleEvent(msg) {
         handleUserUpdatedEvent(msg);
         break;
 
-    case SocketEvents.ROLE_ADDED:
-        handleRoleAddedEvent(msg);
-        break;
-
-    case SocketEvents.ROLE_REMOVED:
-        handleRoleRemovedEvent(msg);
-        break;
-
     case SocketEvents.CHANNEL_SCHEME_UPDATED:
         handleChannelSchemeUpdatedEvent(msg);
         break;
@@ -579,9 +570,6 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.USER_ACTIVATION_STATUS_CHANGED:
         dispatch(handleUserActivationStatusChange());
-        break;
-    case SocketEvents.CLOUD_PAYMENT_STATUS_UPDATED:
-        dispatch(handleCloudPaymentStatusUpdated(msg));
         break;
     case SocketEvents.CLOUD_SUBSCRIPTION_CHANGED:
         dispatch(handleCloudSubscriptionChanged(msg));
@@ -1224,24 +1212,6 @@ export async function handleUserUpdatedEvent(msg) {
     }
 }
 
-function handleRoleAddedEvent(msg) {
-    const role = JSON.parse(msg.data.role);
-
-    dispatch({
-        type: RoleTypes.RECEIVED_ROLE,
-        data: role,
-    });
-}
-
-function handleRoleRemovedEvent(msg) {
-    const role = JSON.parse(msg.data.role);
-
-    dispatch({
-        type: RoleTypes.ROLE_DELETED,
-        data: role,
-    });
-}
-
 function handleChannelSchemeUpdatedEvent(msg) {
     dispatch(getMyChannelMember(msg.broadcast.channel_id));
 }
@@ -1622,10 +1592,6 @@ export function handleUserActivationStatusChange() {
             }
         }
     };
-}
-
-function handleCloudPaymentStatusUpdated() {
-    return (doDispatch) => doDispatch(getCloudSubscription());
 }
 
 export function handleCloudSubscriptionChanged(msg) {

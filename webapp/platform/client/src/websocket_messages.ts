@@ -59,7 +59,6 @@ export const enum WebSocketEvents {
     ReactionRemoved = 'reaction_removed',
     Response = 'response',
     EmojiAdded = 'emoji_added',
-    ChannelViewed = 'channel_viewed', // TODO This isn't currently used by the web app or server
     MultipleChannelsViewed = 'multiple_channels_viewed',
     PluginStatusesChanged = 'plugin_statuses_changed',
     PluginEnabled = 'plugin_enabled',
@@ -81,7 +80,6 @@ export const enum WebSocketEvents {
     SidebarCategoryUpdated = 'sidebar_category_updated',
     SidebarCategoryDeleted = 'sidebar_category_deleted',
     SidebarCategoryOrderUpdated = 'sidebar_category_order_updated',
-    CloudPaymentStatusUpdated = 'cloud_payment_status_updated', // TODO This isn't currently used by the web app or server
     CloudSubscriptionChanged = 'cloud_subscription_changed',
     ThreadUpdated = 'thread_updated',
     ThreadFollowChanged = 'thread_follow_changed',
@@ -246,7 +244,6 @@ export type WebSocketMessage = (
     BaseWebSocketMessage<WebSocketEvents.EmojiAdded, {
         emoji: JsonEncodedValue<Omit<CustomEmoji, 'category'>>;
     }> |
-    BaseWebSocketMessage<WebSocketEvents.ChannelViewed> |
     BaseWebSocketMessage<WebSocketEvents.MultipleChannelsViewed, {
         channel_times: Record<string, number>;
     }> |
