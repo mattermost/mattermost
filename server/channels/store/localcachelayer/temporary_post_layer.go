@@ -58,16 +58,3 @@ func (s LocalCacheTemporaryPostStore) Delete(rctx request.CTX, id string) error 
 	defer s.InvalidateTemporaryPost(id)
 	return s.TemporaryPostStore.Delete(rctx, id)
 }
-
-func (s LocalCacheTemporaryPostStore) DeleteExpired(rctx request.CTX, expireAt int64) error {
-	// For DeleteExpired, we purge the entire cache since we don't know which posts were deleted
-	defer func() {
-		if err := s.rootStore.temporaryPostCache.Purge(); err != nil {
-			s.rootStore.logger.Error("failed to purge temporary post cache", mlog.Err(err))
-		}
-		if s.rootStore.metrics != nil {
-			s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.temporaryPostCache.Name())
-		}
-	}()
-	return s.TemporaryPostStore.DeleteExpired(rctx, expireAt)
-}

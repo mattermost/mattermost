@@ -42,6 +42,9 @@ func readReceiptSliceColumns() []string {
 	}
 }
 
+func (s *SqlReadReceiptStore) InvalidateReadReceiptForPostsCache(postID string) {
+}
+
 func (s *SqlReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
 	query := s.getQueryBuilder().
 		Insert("ReadReceipts").
@@ -95,6 +98,19 @@ func (s *SqlReadReceiptStore) Get(rctx request.CTX, postID, userID string) (*mod
 	return &receipt, nil
 }
 
+func (s *SqlReadReceiptStore) GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error) {
+	query := s.selectQueryBuilder.
+		Where(sq.Eq{"PostId": postID})
+
+	var receipts []*model.ReadReceipt
+	err := s.GetReplica().SelectBuilder(&receipts, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get ReadReceipts for postId=%s", postID)
+	}
+
+	return receipts, nil
+}
+
 func (s *SqlReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID string) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*)").
@@ -108,4 +124,27 @@ func (s *SqlReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID strin
 	}
 
 	return count, nil
+}
+
+func (s *SqlReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error) {
+	// Count channel members who haven't read the post (excluding post author)
+	// LEFT JOIN with ReadReceipts to find members without a read receipt for this post
+	unreadQuery := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("ChannelMembers").
+		LeftJoin("ReadReceipts ON ChannelMembers.UserId = ReadReceipts.UserId AND ReadReceipts.PostId = ?", post.Id).
+		Where(sq.And{
+			sq.Eq{"ChannelMembers.ChannelId": post.ChannelId},
+			sq.NotEq{"ChannelMembers.UserId": post.UserId},
+			sq.Eq{"ReadReceipts.UserId": nil},
+		})
+
+	var unreadCount int64
+	err := s.GetReplica().GetBuilder(&unreadCount, unreadQuery)
+	if err != nil {
+		return -1, errors.Wrapf(err, "failed to get unread count for postId=%s channelId=%s", post.Id, post.ChannelId)
+	}
+
+	// Return true if no one is unread (all have read it)
+	return unreadCount, nil
 }

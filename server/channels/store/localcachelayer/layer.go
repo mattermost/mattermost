@@ -142,8 +142,9 @@ type LocalCacheStore struct {
 	contentFlagging      LocalCacheContentFlaggingStore
 	contentFlaggingCache cache.Cache
 
-	readReceipt      LocalCacheReadReceiptStore
-	readReceiptCache cache.Cache
+	readReceipt                 LocalCacheReadReceiptStore
+	readReceiptCache            cache.Cache
+	readReceiptPostReadersCache cache.Cache
 
 	temporaryPost      LocalCacheTemporaryPostStore
 	temporaryPostCache cache.Cache
@@ -416,6 +417,13 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}); err != nil {
 		return
 	}
+	if localCacheStore.readReceiptPostReadersCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ReadReceiptCacheSize,
+		Name:                   "ReadReceiptPostReaders",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForReadReceipts,
+	}); err != nil {
+		return
+	}
 	localCacheStore.readReceipt = LocalCacheReadReceiptStore{ReadReceiptStore: baseStore.ReadReceipt(), rootStore: &localCacheStore}
 
 	// Temporary Posts
@@ -656,6 +664,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.rolePermissionsCache)
 	s.doClearCacheCluster(s.userAutoTranslationCache)
 	s.doClearCacheCluster(s.readReceiptCache)
+	s.doClearCacheCluster(s.readReceiptPostReadersCache)
 	s.doClearCacheCluster(s.temporaryPostCache)
 }
 
