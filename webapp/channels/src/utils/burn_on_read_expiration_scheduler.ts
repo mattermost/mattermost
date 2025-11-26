@@ -176,7 +176,7 @@ class BurnOnReadExpirationScheduler {
     /**
      * Check all posts and expire any that have passed their expiration time + grace period
      */
-    private checkAndExpirePosts(): void {
+    public checkAndExpirePosts(): void {
         const now = Date.now();
         const expiredPosts: string[] = [];
 
@@ -200,7 +200,8 @@ class BurnOnReadExpirationScheduler {
                 try {
                     this.dispatch(handlePostExpired(postId));
                 } catch (error) {
-                    // Silently fail - errors are logged by Redux middleware
+                    // eslint-disable-next-line no-console
+                    console.error('[BurnOnRead] Failed to handle post expiration:', postId, error);
                 }
             }
         }
@@ -240,7 +241,8 @@ class BurnOnReadExpirationScheduler {
             try {
                 this.dispatch(handlePostExpired(postId));
             } catch (error) {
-                // Silently fail - errors are logged by Redux middleware
+                // eslint-disable-next-line no-console
+                console.error('[BurnOnRead] Failed to handle post expiration:', postId, error);
             }
         }
     }
@@ -261,13 +263,6 @@ class BurnOnReadExpirationScheduler {
 
         // Whichever expires first
         return Math.min(expireAt, maxExpireAt);
-    }
-
-    /**
-     * Force immediate check for expired posts (useful for testing/devtools)
-     */
-    public forceCheck(): void {
-        this.checkAndExpirePosts();
     }
 
     /**

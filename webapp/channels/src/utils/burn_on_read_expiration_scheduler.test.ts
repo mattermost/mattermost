@@ -237,7 +237,7 @@ describe('BurnOnReadExpirationScheduler', () => {
         });
     });
 
-    describe('forceCheck', () => {
+    describe('checkAndExpirePosts', () => {
         it('should immediately check and expire posts past grace period', () => {
             const expireAt = Date.now() + 5000; // 5 seconds in future
 
@@ -249,8 +249,8 @@ describe('BurnOnReadExpirationScheduler', () => {
             // Advance time past expiration + grace (2s)
             jest.setSystemTime(expireAt + 3000);
 
-            // Force check should expire it immediately
-            expirationScheduler.forceCheck();
+            // Manual check should expire it immediately
+            expirationScheduler.checkAndExpirePosts();
 
             expect(mockDispatch).toHaveBeenCalledTimes(1);
             expect(expirationScheduler.getState().activeTimers).toBe(0);
@@ -261,7 +261,7 @@ describe('BurnOnReadExpirationScheduler', () => {
 
             expirationScheduler.registerPost('post1', expireAt, null);
 
-            expirationScheduler.forceCheck();
+            expirationScheduler.checkAndExpirePosts();
 
             expect(mockDispatch).not.toHaveBeenCalled();
             expect(expirationScheduler.getState().activeTimers).toBe(1);

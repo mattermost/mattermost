@@ -288,12 +288,13 @@ describe('makeFilterPostsAndAddSeparators', () => {
 
         const result = filterPostsAndAddSeparators(state, {postIds, lastViewedAt, indicateNewMessages});
 
-        // Should include: regular posts 1001 and 1004
-        // Should exclude: ALL burn-on-read posts (1002, 1003) when feature is disabled
+        // Feature flag only controls creation, not display
+        // Should include: regular posts (1001, 1004) AND unrevealed BoR post (1002)
+        // Should exclude: ONLY expired BoR posts
         expect(result).toContain('1001');
         expect(result).toContain('1004');
-        expect(result).not.toContain('1002');
-        expect(result).not.toContain('1003');
+        expect(result).toContain('1002'); // Unrevealed BoR post - SHOWS (feature flag doesn't affect display)
+        expect(result).toContain('1003'); // Revealed BoR post (not expired yet) - SHOWS
     });
 
     it('new messages indicator', () => {

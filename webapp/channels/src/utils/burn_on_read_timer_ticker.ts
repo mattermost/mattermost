@@ -28,12 +28,10 @@ class BurnOnReadTimerTicker {
     public subscribe(callback: TickCallback): () => void {
         this.subscribers.add(callback);
 
-        // Start ticker if this is the first subscriber
         if (this.subscribers.size === 1) {
             this.start();
         }
 
-        // Return unsubscribe function
         return () => {
             this.unsubscribe(callback);
         };
@@ -41,12 +39,10 @@ class BurnOnReadTimerTicker {
 
     /**
      * Unsubscribe from timer tick events
-     * Automatically stops the ticker if this was the last subscriber
      */
     private unsubscribe(callback: TickCallback): void {
         this.subscribers.delete(callback);
 
-        // Stop ticker if no more subscribers
         if (this.subscribers.size === 0) {
             this.stop();
         }
@@ -54,23 +50,18 @@ class BurnOnReadTimerTicker {
 
     /**
      * Start the global ticker with drift correction
-     * Aligns ticks to second boundaries for accurate countdown displays
      */
     private start(): void {
         if (this.timerId) {
             return;
         }
 
-        // Listen for visibility changes to pause/resume ticker
         document.addEventListener('visibilitychange', this.handleVisibilityChange);
-
-        // Start ticking (will self-correct for drift)
         this.scheduleNextTick();
     }
 
     /**
-     * Schedule the next tick aligned to the second boundary
-     * Uses recursive setTimeout with drift correction instead of setInterval
+     * Schedule next tick aligned to second boundary
      */
     private scheduleNextTick(): void {
         const now = Date.now();
@@ -78,48 +69,38 @@ class BurnOnReadTimerTicker {
 
         this.timerId = setTimeout(() => {
             this.tick();
-            this.scheduleNextTick(); // Recursive - self-correcting!
+            this.scheduleNextTick();
         }, msUntilNextSecond);
     }
 
     /**
      * Execute a tick: broadcast current time to all subscribers
-     * Uses snapshot iteration to prevent concurrent modification issues
      */
     private tick(): void {
-        // Skip tick if tab is hidden (battery optimization)
         if (document.hidden) {
             return;
         }
 
         const now = Date.now();
-
-        // Snapshot subscribers before iteration to prevent concurrent modification bugs
-        // If a callback unsubscribes during iteration, it won't affect other callbacks
         const snapshot = Array.from(this.subscribers);
 
         snapshot.forEach((callback) => {
             try {
-                callback(now); // Pass timestamp for efficient calculations
+                callback(now);
             } catch (error) {
-                // Prevent one component's error from breaking all timers
-                // Errors are silently swallowed to keep ticker running
+                // eslint-disable-next-line no-console
+                console.error('[BurnOnRead] Timer callback error:', error);
             }
         });
     }
 
     /**
-     * Handle visibility changes for battery optimization
-     * Fires immediate catch-up tick when tab becomes visible
+     * Handle visibility changes
      */
     private handleVisibilityChange = (): void => {
         if (!document.hidden) {
-            // Tab became visible - fire immediate catch-up tick
-            // This ensures UI shows current time immediately after tab switch
             this.tick();
         }
-
-        // Note: No need to pause explicitly - tick() checks document.hidden
     };
 
     /**
