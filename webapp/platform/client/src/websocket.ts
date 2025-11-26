@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {WebSocketMessage} from './websocket_messages';
+
 const WEBSOCKET_HELLO = 'hello';
 
 export type MessageListener = (msg: WebSocketMessage) => void;
@@ -674,18 +676,4 @@ export default class WebSocketClient {
         };
         this.sendMessage('get_statuses_by_ids', data, callback);
     }
-}
-
-export type WebSocketBroadcast = {
-    omit_users: Record<string, boolean>;
-    user_id: string;
-    channel_id: string;
-    team_id: string;
-}
-
-export type WebSocketMessage<T = any> = {
-    event: string;
-    data: T;
-    broadcast: WebSocketBroadcast;
-    seq: number;
 }

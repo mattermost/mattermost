@@ -8,5 +8,6 @@ export {
     DEFAULT_LIMIT_BEFORE,
 } from './client4';
 
-export type {WebSocketMessage} from './websocket';
+export type {WebSocketMessage, WebSocketBroadcast} from './websocket_messages';
+export {WebSocketEvents} from './websocket_messages';
 export {default as WebSocketClient} from './websocket';

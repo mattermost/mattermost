@@ -142,14 +142,16 @@ export type IntegrationsState = {
     commands: IDMappedObjects<Command>;
     dialogArguments?: DialogArgs;
     dialogTriggerId: string;
-    dialog?: {
-        url: string;
-        dialog: Dialog;
-        trigger_id: string;
-    };
+    dialog?: OpenDialogRequest;
 };
 
-type Dialog = {
+export type OpenDialogRequest = {
+    trigger_id: string;
+    url: string;
+    dialog: Dialog;
+}
+
+export type Dialog = {
     callback_id?: string;
     elements?: DialogElement[];
     title: string;

@@ -53,6 +53,22 @@ export type UserThreadList = {
     threads: UserThreadWithPost[];
 }
 
+export type ThreadResponse = {
+
+    /** This is the ID of the thread, and that's the same as the ID of the root post of the thread. */
+    id: string;
+
+    reply_count: number;
+    last_reply_at: number;
+    last_viewed_at: number;
+    participants: UserProfile[];
+    post: Post;
+    unread_replies: number;
+    unread_mentions: number;
+    is_urgent: boolean;
+    delete_at: number;
+}
+
 export type ThreadsState = {
     threadsInTeam: RelationOneToMany<Team, UserThread>;
     unreadThreadsInTeam: RelationOneToMany<Team, UserThread>;
