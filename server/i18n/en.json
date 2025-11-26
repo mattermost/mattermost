@@ -2685,6 +2685,10 @@
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
   },
   {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "An error occurred while creating a burn-on-read post."
+  },
+  {
     "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
     "translation": "Cannot post to restricted direct message channel."
   },
@@ -2753,8 +2757,16 @@
     "translation": "Unable to get the pending post."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.app_error",
+    "translation": "An error occurred while processing burn-on-read post properties."
+  },
+  {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "The AI-generated user must be either the post creator or a bot."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Cannot retrieve link metadata for burn-on-read post permalink."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2781,6 +2793,10 @@
   {
     "id": "api.post.move_thread.no_permission",
     "translation": "You do not have permission to move this thread."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read posts cannot be updated."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2973,6 +2989,10 @@
   {
     "id": "api.reaction.save.archived_channel.app_error",
     "translation": "You cannot react in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "You cannot react to a burn-on-read post."
   },
   {
     "id": "api.reaction.save.restricted_dm.error",
@@ -7199,6 +7219,10 @@
     "translation": "The provided post history ID does not correspond to a post history item."
   },
   {
+    "id": "app.post.reveal_burn_on_read_posts_for_user.user_id_required.app_error",
+    "translation": "User ID is required to reveal burn-on-read posts."
+  },
+  {
     "id": "app.post.rewrite.agent_call_failed",
     "translation": "Failed to call AI agent."
   },
@@ -7371,6 +7395,10 @@
     "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
   },
   {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
     "id": "app.reveal_post.missing_expire_at.app_error",
     "translation": "The burn-on-read post is missing the required expiration time."
   },
@@ -7385,6 +7413,10 @@
   {
     "id": "app.reveal_post.read_receipt.get.error",
     "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Unable to get the unread count for the read receipt."
   },
   {
     "id": "app.reveal_post.read_receipt.save.error",

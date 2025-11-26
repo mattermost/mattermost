@@ -22,6 +22,9 @@ func (s SearchPostStore) indexPost(rctx request.CTX, post *model.Post) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
 			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+				if post.Type == model.PostTypeBurnOnRead {
+					return
+				}
 				channel, chanErr := s.rootStore.Channel().Get(post.ChannelId, true)
 				if chanErr != nil {
 					rctx.Logger().Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id), mlog.Err(chanErr))

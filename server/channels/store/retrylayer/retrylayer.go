@@ -8374,6 +8374,27 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 
 }
 
+func (s *RetryLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
@@ -10333,6 +10354,27 @@ func (s *RetryLayerReadReceiptStore) Get(rctx request.CTX, postID string, userID
 
 }
 
+func (s *RetryLayerReadReceiptStore) GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReadReceiptStore.GetByPost(rctx, postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID string) (int64, error) {
 
 	tries := 0
@@ -10351,6 +10393,33 @@ func (s *RetryLayerReadReceiptStore) GetReadCountForPost(rctx request.CTX, postI
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReadReceiptStore.GetUnreadCountForPost(rctx, post)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReadReceiptStore) InvalidateReadReceiptForPostsCache(postID string) {
+
+	s.ReadReceiptStore.InvalidateReadReceiptForPostsCache(postID)
 
 }
 
@@ -13921,27 +13990,6 @@ func (s *RetryLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error
 
 }
 
-func (s *RetryLayerTemporaryPostStore) DeleteExpired(rctx request.CTX, expireAt int64) error {
-
-	tries := 0
-	for {
-		err := s.TemporaryPostStore.DeleteExpired(rctx, expireAt)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
 
 	tries := 0
@@ -13960,6 +14008,33 @@ func (s *RetryLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.TemporaryPostStore.GetExpiredPosts(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerTemporaryPostStore) InvalidateTemporaryPost(id string) {
+
+	s.TemporaryPostStore.InvalidateTemporaryPost(id)
 
 }
 

@@ -1425,7 +1425,7 @@ func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.BurnOnRead || !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+	if !c.App.Config().FeatureFlags.BurnOnRead {
 		c.Err = model.NewAppError("revealPost", "api.post.reveal_post.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
