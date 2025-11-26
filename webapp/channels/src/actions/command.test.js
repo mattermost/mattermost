@@ -168,7 +168,7 @@ describe('executeCommand', () => {
 
             expect(result).toEqual({
                 error: {
-                    message: 'Keyboard shortcuts are not supported on your device',
+                    message: 'Keyboard shortcuts are not supported on your device.',
                 },
             });
         });

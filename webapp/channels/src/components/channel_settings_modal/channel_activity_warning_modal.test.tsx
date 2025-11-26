@@ -27,7 +27,7 @@ describe('ChannelActivityWarningModal', () => {
         );
 
         expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
-        expect(screen.getByText(/Everyone who gains access to this channel/)).toBeInTheDocument();
+        expect(screen.getByText(/Modifying access rules may allow new users/)).toBeInTheDocument();
         expect(screen.getByText(/I acknowledge this change will expose/)).toBeInTheDocument();
     });
 

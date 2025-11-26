@@ -56,7 +56,7 @@ describe('components/FlagPostModal', () => {
             baseState,
         );
 
-        await userEvent.click(screen.getByText('Select a reason for flagging'));
+        await userEvent.click(screen.getByText('Select a reason'));
 
         expect(screen.getByText('Reason 1')).toBeVisible();
         expect(screen.getByText('Reason 2')).toBeVisible();
@@ -107,7 +107,7 @@ describe('components/FlagPostModal', () => {
         );
 
         // Select a reason
-        await userEvent.click(screen.getByText('Select a reason for flagging'));
+        await userEvent.click(screen.getByText('Select a reason'));
         await userEvent.click(screen.getByText('Reason 1'));
 
         // Add a comment

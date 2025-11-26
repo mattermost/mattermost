@@ -155,7 +155,7 @@ describe('ChannelSettingsArchiveTab', () => {
         // Use the within function to scope the query to just the modal content
         const modalBody = screen.getByTestId('archiveChannelConfirmModal').querySelector('#confirmModalBody');
         expect(modalBody).toBeInTheDocument();
-        expect(modalBody).toHaveTextContent(/Archiving a channel removes it from the user interface/);
+        expect(modalBody).toHaveTextContent(/This will archive the channel from the team/);
     });
 
     it('should call deleteChannel which handles channel ID validation', async () => {
