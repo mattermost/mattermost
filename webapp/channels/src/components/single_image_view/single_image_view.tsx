@@ -71,7 +71,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
     checkThumbnailAvailability = () => {
         // Probe the thumbnail endpoint to see if it's rejected by a plugin
         // This allows plugins to control inline image display via thumbnail rejection when
-        // theres only one file in the post and we try to display it inline as a preview and
+        // there's only one file in the post and we try to display it inline as a preview and
         // not as a thumbnail.
         const {fileInfo} = this.props;
         if (!fileInfo || !fileInfo.has_preview_image) {
