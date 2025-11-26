@@ -33,6 +33,7 @@ test('shows page version history after multiple edits', {tag: '@pages'}, async (
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `History Wiki ${pw.random.id()}`);
@@ -121,6 +122,7 @@ test('enforces 10-version limit in page history', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Version Limit Wiki ${pw.random.id()}`);
@@ -158,6 +160,7 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Version History Wiki ${pw.random.id()}`);
@@ -194,6 +197,7 @@ test('restores previous page version from version history', {tag: '@pages'}, asy
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page with initial content
     await createWikiThroughUI(page, `Restore Wiki ${pw.random.id()}`);

@@ -72,6 +72,58 @@ func (a *App) extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[s
 	}
 }
 
+// GetPreviouslyNotifiedMentions retrieves the list of users who were previously notified
+func (a *App) GetPreviouslyNotifiedMentions(page *model.Post) []string {
+	if page.Props == nil {
+		return []string{}
+	}
+
+	notifiedInterface, exists := page.Props["notified_mentions"]
+	if !exists {
+		return []string{}
+	}
+
+	switch notified := notifiedInterface.(type) {
+	case []any:
+		result := make([]string, 0, len(notified))
+		for _, id := range notified {
+			if userID, ok := id.(string); ok {
+				result = append(result, userID)
+			}
+		}
+		return result
+	case []string:
+		return notified
+	default:
+		return []string{}
+	}
+}
+
+// SetNotifiedMentions updates the page props with the current list of notified users
+func (a *App) SetNotifiedMentions(page *model.Post, userIDs []string) {
+	if page.Props == nil {
+		page.Props = make(model.StringInterface)
+	}
+	page.Props["notified_mentions"] = userIDs
+}
+
+// CalculateMentionDelta returns users who should be newly notified
+func (a *App) CalculateMentionDelta(currentMentions, previouslyNotified []string) []string {
+	notifiedMap := make(map[string]bool)
+	for _, id := range previouslyNotified {
+		notifiedMap[id] = true
+	}
+
+	newMentions := make([]string, 0)
+	for _, id := range currentMentions {
+		if !notifiedMap[id] {
+			newMentions = append(newMentions, id)
+		}
+	}
+
+	return newMentions
+}
+
 // handlePageMentions extracts mentions from page content and sends notifications
 func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, content, authorUserID string) {
 	rctx.Logger().Debug("handlePageMentions called",
@@ -84,17 +136,30 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, 
 		return
 	}
 
-	mentionedUserIDs, extractErr := a.ExtractMentionsFromTipTapContent(content)
+	currentMentions, extractErr := a.ExtractMentionsFromTipTapContent(content)
 	if extractErr != nil {
 		rctx.Logger().Warn("Failed to extract mentions from page content", mlog.String("page_id", page.Id), mlog.Err(extractErr))
 		return
 	}
 
-	rctx.Logger().Debug("handlePageMentions: extracted mentions",
+	rctx.Logger().Debug("handlePageMentions: extracted current mentions",
 		mlog.String("page_id", page.Id),
-		mlog.Int("mention_count", len(mentionedUserIDs)))
+		mlog.Int("current_mention_count", len(currentMentions)))
 
-	if len(mentionedUserIDs) == 0 {
+	previouslyNotified := a.GetPreviouslyNotifiedMentions(page)
+
+	rctx.Logger().Debug("handlePageMentions: previous notifications",
+		mlog.String("page_id", page.Id),
+		mlog.Int("previously_notified_count", len(previouslyNotified)))
+
+	newMentions := a.CalculateMentionDelta(currentMentions, previouslyNotified)
+
+	rctx.Logger().Debug("handlePageMentions: calculated delta",
+		mlog.String("page_id", page.Id),
+		mlog.Int("new_mention_count", len(newMentions)))
+
+	if len(newMentions) == 0 {
+		rctx.Logger().Debug("No new mentions to notify", mlog.String("page_id", page.Id))
 		return
 	}
 
@@ -104,7 +169,16 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, 
 		return
 	}
 
-	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, mentionedUserIDs, content)
+	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, newMentions, content)
+
+	updatedPage := page.Clone()
+	a.SetNotifiedMentions(updatedPage, currentMentions)
+
+	if _, updateErr := a.Srv().Store().Post().Update(rctx, updatedPage, page.Clone()); updateErr != nil {
+		rctx.Logger().Warn("Failed to update page props with notified mentions",
+			mlog.String("page_id", page.Id),
+			mlog.Err(updateErr))
+	}
 }
 
 func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string, content string) {
@@ -139,19 +213,18 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			mlog.Int("mention_count", len(mentionedUserIDs)))
 	}
 
-	rctx.Logger().Debug("Starting channel post creation for page mentions",
-		mlog.String("page_id", page.Id),
-		mlog.Int("mention_count", len(mentionedUserIDs)))
-
-	wikiId, wikiErr := a.GetWikiIdForPage(rctx, page.Id)
-	if wikiErr != nil {
-		rctx.Logger().Warn("Failed to get wiki for page mention channel posts",
+	wikiId, wikiIdErr := a.GetWikiIdForPage(rctx, page.Id)
+	if wikiIdErr != nil {
+		rctx.Logger().Warn("Failed to get wiki ID for page mention channel posts",
 			mlog.String("page_id", page.Id),
-			mlog.Err(wikiErr))
+			mlog.Err(wikiIdErr))
 		return
 	}
 
-	rctx.Logger().Debug("Got wiki ID for page mention posts", mlog.String("wiki_id", wikiId))
+	rctx.Logger().Debug("Starting channel post creation for page mentions",
+		mlog.String("page_id", page.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.Int("mention_count", len(mentionedUserIDs)))
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {

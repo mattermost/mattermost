@@ -39,7 +39,7 @@ export function useActiveEditors(wikiId: string, pageId: string): ActiveEditorWi
 
     useEffect(() => {
         if (!pageId || !wikiId) {
-            return;
+            return undefined;
         }
 
         dispatch(fetchActiveEditors(wikiId, pageId));

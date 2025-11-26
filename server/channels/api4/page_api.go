@@ -157,6 +157,7 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Title        string `json:"title,omitempty"`
 		PageParentId string `json:"page_parent_id,omitempty"`
+		Content      string `json:"content,omitempty"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -188,7 +189,7 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page, appErr := c.App.CreateWikiPage(c.AppContext, c.Params.WikiId, req.PageParentId, req.Title, "", c.AppContext.Session().UserId, "")
+	page, appErr := c.App.CreateWikiPage(c.AppContext, c.Params.WikiId, req.PageParentId, req.Title, req.Content, c.AppContext.Session().UserId, "")
 	if appErr != nil {
 		c.Err = appErr
 		return

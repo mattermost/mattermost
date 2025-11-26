@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -1962,4 +1963,126 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	require.Equal(t, 409, err1.StatusCode)
 	require.Contains(t, err1.DetailedError, user2.Id, "Error should include ID of user who made the conflicting change")
 	require.Contains(t, err1.DetailedError, "modified_at=")
+}
+
+func TestConvertPlainTextToTipTapJSON(t *testing.T) {
+	t.Run("converts simple text to valid TipTap JSON", func(t *testing.T) {
+		plainText := "Hello World"
+		result := convertPlainTextToTipTapJSON(plainText)
+
+		require.NotEmpty(t, result)
+		require.True(t, isValidTipTapJSON(result), "converted text should be valid TipTap JSON")
+
+		var doc map[string]any
+		err := json.Unmarshal([]byte(result), &doc)
+		require.NoError(t, err)
+		require.Equal(t, "doc", doc["type"])
+	})
+
+	t.Run("converts multiline text to paragraphs", func(t *testing.T) {
+		plainText := "Line 1\nLine 2\nLine 3"
+		result := convertPlainTextToTipTapJSON(plainText)
+
+		require.True(t, isValidTipTapJSON(result))
+
+		var doc map[string]any
+		err := json.Unmarshal([]byte(result), &doc)
+		require.NoError(t, err)
+		content := doc["content"].([]any)
+		require.Equal(t, 3, len(content), "should have 3 paragraphs")
+	})
+
+	t.Run("handles empty text", func(t *testing.T) {
+		plainText := ""
+		result := convertPlainTextToTipTapJSON(plainText)
+
+		require.True(t, isValidTipTapJSON(result))
+
+		var doc map[string]any
+		err := json.Unmarshal([]byte(result), &doc)
+		require.NoError(t, err)
+		require.Equal(t, "doc", doc["type"])
+	})
+
+	t.Run("converts AI-style multiline summary", func(t *testing.T) {
+		aiSummary := `Summary of Discussion
+
+The team discussed implementing OAuth 2.0 with JWT tokens.
+Key points:
+- Better security
+- Refresh tokens for UX`
+
+		result := convertPlainTextToTipTapJSON(aiSummary)
+		require.True(t, isValidTipTapJSON(result), "AI summary should convert to valid TipTap JSON")
+	})
+}
+
+func TestIsValidTipTapJSON(t *testing.T) {
+	t.Run("validates correct TipTap JSON", func(t *testing.T) {
+		validJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello"}]}]}`
+		require.True(t, isValidTipTapJSON(validJSON))
+	})
+
+	t.Run("rejects invalid JSON", func(t *testing.T) {
+		invalidJSON := `{"invalid json`
+		require.False(t, isValidTipTapJSON(invalidJSON))
+	})
+
+	t.Run("rejects JSON without type doc", func(t *testing.T) {
+		wrongType := `{"type":"paragraph","content":[]}`
+		require.False(t, isValidTipTapJSON(wrongType))
+	})
+
+	t.Run("rejects plain text", func(t *testing.T) {
+		plainText := "This is plain text"
+		require.False(t, isValidTipTapJSON(plainText))
+	})
+
+	t.Run("validates empty TipTap document", func(t *testing.T) {
+		emptyDoc := `{"type":"doc","content":[]}`
+		require.True(t, isValidTipTapJSON(emptyDoc))
+	})
+}
+
+func TestCreatePageContentValidation(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	setupPagePermissions(th)
+
+	t.Run("accepts valid TipTap JSON", func(t *testing.T) {
+		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Valid content"}]}]}`
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", validContent, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+	})
+
+	t.Run("rejects malformed JSON starting with {", func(t *testing.T) {
+		invalidJSON := `{"invalid json without closing`
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", invalidJSON, th.BasicUser.Id, "")
+		require.NotNil(t, err)
+		require.Nil(t, page)
+		require.Equal(t, "app.page.create.invalid_content.app_error", err.Id)
+	})
+
+	t.Run("rejects valid JSON without type doc", func(t *testing.T) {
+		wrongTypeJSON := `{"type":"paragraph","content":[]}`
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", wrongTypeJSON, th.BasicUser.Id, "")
+		require.NotNil(t, err)
+		require.Nil(t, page)
+		require.Equal(t, "app.page.create.invalid_content.app_error", err.Id)
+	})
+
+	t.Run("auto-converts plain text to TipTap JSON", func(t *testing.T) {
+		plainText := "This is plain text that should be converted"
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test", "", plainText, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		pageContent, contentErr := th.App.Srv().Store().PageContent().Get(page.Id)
+		require.NoError(t, contentErr)
+		require.NotNil(t, pageContent)
+
+		jsonContent, jsonErr := pageContent.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+		require.True(t, isValidTipTapJSON(jsonContent), "auto-converted content should be valid TipTap JSON")
+	})
 }

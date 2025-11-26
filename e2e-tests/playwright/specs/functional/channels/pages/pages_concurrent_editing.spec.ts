@@ -114,6 +114,7 @@ test.skip('allows user to refresh and see latest changes during conflict', {tag:
     const {page: page1} = await pw.testBrowser.login(user1);
     const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wiki = await createWikiThroughUI(page1, `Conflict Wiki ${pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Conflict Page', 'Base content here');
@@ -182,6 +183,7 @@ test.skip('allows user to overwrite during conflict with confirmation', {tag: '@
     const {page: page1} = await pw.testBrowser.login(user1);
     const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Overwrite Test', 'Original text');
@@ -255,6 +257,7 @@ test.skip('shows visual indicator when another user is editing same page', {tag:
     const {page: page1} = await pw.testBrowser.login(user1);
     const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wiki = await createWikiThroughUI(page1, `Collaborative Wiki ${pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Collaborative Page', 'Shared content');
@@ -309,6 +312,7 @@ test.skip('preserves both users changes when merging non-conflicting edits', {ta
     const {page: page1} = await pw.testBrowser.login(user1);
     const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wiki = await createWikiThroughUI(page1, `Merge Wiki ${pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Merge Test', 'Section A content.\n\nSection B content.');

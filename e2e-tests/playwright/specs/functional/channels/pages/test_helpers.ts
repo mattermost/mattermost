@@ -345,12 +345,24 @@ export async function waitForWikiViewLoad(page: Page, timeout = 30000) {
     // Wait for the wiki view to be visible with retries to handle any temporary unmounts
     await wikiView.waitFor({state: 'visible', timeout});
 
-    // 3. If a loading indicator is present, wait until it disappears
+    // Wait for loading to complete by ensuring loading indicator is not visible
+    // This handles race conditions where loading indicator appears after initial check
     const loadingLocator = page.locator('[data-testid="wiki-view-loading"]');
-    const isLoadingVisible = await loadingLocator.isVisible({timeout: EDITOR_LOAD_WAIT}).catch(() => false);
-    if (isLoadingVisible) {
-        await loadingLocator.waitFor({state: 'hidden', timeout});
-    }
+
+    // Wait for the loading indicator to be detached/hidden
+    // Use 'detached' state which covers both "hidden" and "not in DOM" cases
+    // This properly handles:
+    // 1. Loading indicator never appears (immediate detached state)
+    // 2. Loading indicator currently visible (waits for it to be removed)
+    // 3. Loading indicator appears briefly then disappears (waits for detachment)
+    await loadingLocator.waitFor({state: 'detached', timeout: timeout}).catch(async () => {
+        // If still attached after timeout, check if it's at least hidden
+        const isStillVisible = await loadingLocator.isVisible().catch(() => false);
+        if (isStillVisible) {
+            throw new Error('Wiki loading indicator is still visible after timeout');
+        }
+        // Loading indicator is attached but hidden, which is acceptable
+    });
 
     // Small extra delay to give the hierarchy panel and other async tasks time
     // to settle before the caller continues with more specific assertions.
@@ -1865,7 +1877,6 @@ export async function addInlineCommentAndVerify(
 
         return null;
     } catch (error) {
-        console.error('Failed to add inline comment:', error);
         return null;
     }
 }
@@ -2158,46 +2169,23 @@ export async function deleteDefaultDraftThroughUI(page: Page) {
  * @returns The context menu locator
  */
 export async function openPageContextMenu(page: Page, pageId: string): Promise<Locator> {
-    console.log(`[DEBUG] openPageContextMenu - Looking for page: ${pageId}`);
-
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    console.log('[DEBUG] openPageContextMenu - Waiting for hierarchy panel...');
     await hierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-    console.log('[DEBUG] openPageContextMenu - Hierarchy panel is visible');
 
     const allNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]');
-    console.log('[DEBUG] openPageContextMenu - Waiting for hierarchy to load with nodes...');
     await allNodes.first().waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-    const nodeCount = await allNodes.count();
-    console.log(`[DEBUG] openPageContextMenu - Found ${nodeCount} nodes in hierarchy`);
-
-    for (let i = 0; i < nodeCount; i++) {
-        const node = allNodes.nth(i);
-        const nodePageId = await node.getAttribute('data-page-id');
-        const nodeIsDraft = await node.getAttribute('data-is-draft');
-        const title = await node.locator('[data-testid="page-tree-node-title"]').textContent();
-        console.log(`[DEBUG] openPageContextMenu - Node ${i}: pageId=${nodePageId}, isDraft=${nodeIsDraft}, title=${title}`);
-    }
-
     const pageNode = page.locator(`[data-testid="page-tree-node"][data-page-id="${pageId}"]`);
-    console.log(`[DEBUG] openPageContextMenu - Waiting for page node with ID: ${pageId}...`);
     await pageNode.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-    console.log('[DEBUG] openPageContextMenu - Page node is visible');
 
     await pageNode.scrollIntoViewIfNeeded();
-    console.log('[DEBUG] openPageContextMenu - Scrolled page node into view');
 
     const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
-    console.log('[DEBUG] openPageContextMenu - Waiting for menu button...');
     await expect(menuButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    console.log('[DEBUG] openPageContextMenu - Menu button is visible, clicking...');
     await menuButton.click();
 
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    console.log('[DEBUG] openPageContextMenu - Waiting for context menu...');
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    console.log('[DEBUG] openPageContextMenu - Context menu is visible');
 
     return contextMenu;
 }
@@ -2536,7 +2524,7 @@ export async function setupPageInEditMode(
 export async function typeInEditor(page: Page, text: string): Promise<void> {
     const editor = await getEditorAndWait(page);
     await editor.click();
-    await page.keyboard.type(text);
+    await editor.type(text);
     await page.waitForTimeout(SHORT_WAIT * 0.6);
 }
 
@@ -3107,7 +3095,6 @@ export async function setupWebSocketEventLogging(page: Page, eventFilters: strin
                     if (msg && msg.event) {
                         const event = String(msg.event).toUpperCase();
                         if (event.includes('PAGE') || event.includes('POST') || event.includes('WIKI') || event.includes('DELETED')) {
-                            console.log('[RAW WebSocket]', msg.event, msg.data);
                             (window as any).rawWebSocketMessages.push({
                                 event: msg.event,
                                 data: msg.data,
@@ -3128,7 +3115,6 @@ export async function setupWebSocketEventLogging(page: Page, eventFilters: strin
                     (window as any).allActions.push({type: action.type, time: Date.now()});
                     const type = String(action.type).toUpperCase();
                     if (filters.some((filter: string) => type.includes(filter))) {
-                        console.log('[Redux Action]', action.type, action.data);
                         (window as any).wsEvents.push({type: action.type, data: action.data, time: Date.now()});
                     }
                 }
@@ -3145,13 +3131,7 @@ export async function setupWebSocketEventLogging(page: Page, eventFilters: strin
  * @returns Array of captured WebSocket events
  */
 export async function getWebSocketEvents(page: Page, testName: string = 'Test'): Promise<any[]> {
-    const rawMessages = await page.evaluate(() => (window as any).rawWebSocketMessages || []);
     const wsEvents = await page.evaluate(() => (window as any).wsEvents || []);
-    const allActionTypes = await page.evaluate(() => ((window as any).allActions || []).map((a: any) => a.type));
-    console.log(`[${testName}] RAW WebSocket messages:`, rawMessages);
-    console.log(`[${testName}] Total Redux actions:`, allActionTypes.length);
-    console.log(`[${testName}] Last 10 action types:`, allActionTypes.slice(-10));
-    console.log(`[${testName}] Redux WebSocket events:`, wsEvents);
     return wsEvents;
 }
 
@@ -3165,4 +3145,29 @@ export async function verifyPageNotInHierarchy(page: Page, pageTitle: string, ti
     const hierarchyPanel = getHierarchyPanel(page);
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
     await expect(pageNode).not.toBeVisible({timeout});
+}
+
+/**
+ * Gets the page title input locator
+ * @param page - Playwright page object
+ * @returns The title input locator
+ */
+export function getPageTitleInput(page: Page): Locator {
+    return page.locator('[data-testid="wiki-page-title-input"]').first();
+}
+
+/**
+ * Selects a user from the mention dropdown after typing @username
+ * @param page - Playwright page object
+ * @param username - Username to select (without @ symbol)
+ */
+export async function selectMentionFromDropdown(page: Page, username: string): Promise<void> {
+    // Wait for mention dropdown to appear
+    const mentionDropdown = page.locator('.tiptap-mention-popup').first();
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // Select the user from dropdown
+    const userOption = page.locator(`[data-testid="mentionSuggestion_${username}"]`).first();
+    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await userOption.click();
 }

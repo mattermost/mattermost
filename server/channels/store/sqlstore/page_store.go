@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"maps"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -480,9 +481,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			} else {
 				// Deep copy Props to avoid modifying oldPost.Props
 				newProps := make(model.StringInterface, len(currentPost.Props))
-				for k, v := range currentPost.Props {
-					newProps[k] = v
-				}
+				maps.Copy(newProps, currentPost.Props)
 				currentPost.Props = newProps
 			}
 			currentPost.Props["title"] = title

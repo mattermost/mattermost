@@ -38,6 +38,7 @@ test('shows summarize to page option in post actions menu', {tag: '@pages'}, asy
 
     // # Create wiki first (required for page creation)
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     const wikiName = `Test Wiki ${pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
@@ -50,6 +51,7 @@ test('shows summarize to page option in post actions menu', {tag: '@pages'}, asy
 
     // # Navigate back to channel (messages view)
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create posts in the channel using API
     const rootPost = await createPostsForSummarization(
@@ -93,6 +95,7 @@ test('prompts for page title when summarize to page is clicked', {tag: '@pages'}
 
     // # Create wiki
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     const wikiName = `Test Wiki ${pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
@@ -105,6 +108,7 @@ test('prompts for page title when summarize to page is clicked', {tag: '@pages'}
 
     // # Navigate back to channel
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create posts
     const rootPost = await createPostsForSummarization(
@@ -161,6 +165,7 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 
     // # Create wiki
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     const wikiName = `Test Wiki ${pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
@@ -173,6 +178,7 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 
     // # Navigate back to channel
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create posts with meaningful content for summarization
     const rootPost = await createPostsForSummarization(
@@ -230,6 +236,19 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 
     // * Content should not be just the placeholder text
     expect(pageContent).not.toContain('Generating summary');
+
+    // # Try to enter Edit mode to verify content is valid TipTap JSON
+    const editButton = page.getByRole('button', {name: /Edit/i});
+    await editButton.click();
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // * Verify editor loaded successfully (no error state)
+    const editor = page.locator('[data-testid="page-editor"]').or(page.locator('.ProseMirror'));
+    await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify no error messages appear
+    const errorMessage = page.locator('[role="alert"]').or(page.getByText(/error|invalid|failed/i));
+    await expect(errorMessage).not.toBeVisible();
 });
 
 /**
@@ -243,6 +262,7 @@ test('hides summarize to page option when AI plugin is not available', {tag: '@p
 
     // # Create wiki
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     const wikiName = `Test Wiki ${pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
@@ -255,6 +275,7 @@ test('hides summarize to page option when AI plugin is not available', {tag: '@p
 
     // # Navigate back to channel
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create a post
     const postResponse = await adminClient.createPost({

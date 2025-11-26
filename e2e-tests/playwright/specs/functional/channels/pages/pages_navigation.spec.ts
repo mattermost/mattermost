@@ -14,6 +14,7 @@ test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async (
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Breadcrumb Wiki ${pw.random.id()}`);
@@ -63,6 +64,7 @@ test('displays page breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetup}
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wikiName = `Breadcrumb Wiki ${pw.random.id()}`;
@@ -95,6 +97,7 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wikiName = `Nav Wiki ${pw.random.id()}`;
@@ -129,6 +132,7 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and parent page through UI
     const wiki = await createWikiThroughUI(page, `Breadcrumb Wiki ${pw.random.id()}`);
@@ -170,6 +174,7 @@ test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `URL Routing Wiki ${pw.random.id()}`);
@@ -200,6 +205,7 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `Deep Link Wiki ${pw.random.id()}`);
@@ -235,6 +241,7 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and 3 pages through UI
     const wiki = await createWikiThroughUI(page, `Navigation Wiki ${pw.random.id()}`);
@@ -311,6 +318,7 @@ test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sh
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `404 Test Wiki ${pw.random.id()}`);
@@ -341,6 +349,7 @@ test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Refresh Test Wiki ${pw.random.id()}`);
@@ -383,6 +392,7 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Fullscreen Wiki ${pw.random.id()}`);

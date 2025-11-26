@@ -18,9 +18,9 @@
     }
 
     &__avatar-wrapper {
-        cursor: pointer;
         display: inline-flex;
         border-radius: 50%;
+        cursor: pointer;
         transition: opacity 0.15s ease;
 
         &:hover {

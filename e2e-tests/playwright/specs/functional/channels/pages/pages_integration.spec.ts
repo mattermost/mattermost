@@ -51,6 +51,7 @@ test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Integration Wiki ${pw.random.id()}`);
@@ -80,6 +81,7 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Draft Flow Wiki ${pw.random.id()}`);
@@ -99,6 +101,7 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
 
     // # Step 2: Navigate away (without publishing)
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Step 3: Return to wiki by clicking the wiki tab
     const wikiTab = page.getByRole('tab', {name: wiki.title});
@@ -137,6 +140,7 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `Comment Preservation Wiki ${pw.random.id()}`);
@@ -180,6 +184,7 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const uniqueTerm = `SearchTerm${await pw.random.id()}`;
@@ -224,6 +229,7 @@ test('creates multi-level hierarchy with comments and breadcrumb navigation', {t
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Hierarchy Flow Wiki ${pw.random.id()}`);
@@ -270,6 +276,7 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Delete Flow Wiki ${pw.random.id()}`);
@@ -307,6 +314,7 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Rename Flow Wiki ${pw.random.id()}`);
@@ -364,6 +372,7 @@ test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and pages through UI
     const wiki = await createWikiThroughUI(page, `Deep Link Flow Wiki ${pw.random.id()}`);
@@ -408,6 +417,7 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Complex Workflow Wiki ${pw.random.id()}`);
@@ -462,6 +472,7 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Draft Recovery Wiki ${pw.random.id()}`);
@@ -534,6 +545,7 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Move Page Wiki ${pw.random.id()}`);
@@ -578,6 +590,7 @@ test('searches pages with filters and verifies results', {tag: '@pages'}, async 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const searchTerm = `FilterTest${pw.random.id()}`;

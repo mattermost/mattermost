@@ -91,6 +91,7 @@ test('disables bookmark button when no channel selected', {tag: '@pages'}, async
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
@@ -121,6 +122,7 @@ test('cancels bookmark creation and closes modal', {tag: '@pages'}, async ({pw, 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
@@ -157,6 +159,7 @@ test('creates bookmark in same channel as page', {tag: '@pages'}, async ({pw, sh
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);

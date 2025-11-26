@@ -141,7 +141,7 @@ const PageLinkModal = ({
                     htmlFor='link-text-input'
                     className='PageLinkModal__label'
                 >
-                    {'Link text (optional)'}
+                    {'Link text'}
                 </label>
                 <input
                     id='link-text-input'

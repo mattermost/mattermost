@@ -10,6 +10,7 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki
     const wiki = await createWikiThroughUI(page, `Navigation Test Wiki ${pw.random.id()}`);

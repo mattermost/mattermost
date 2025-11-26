@@ -6389,6 +6389,22 @@ func (s *TimerLayerPageDraftContentStore) Get(userId string, wikiId string, draf
 	return result, err
 }
 
+func (s *TimerLayerPageDraftContentStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error) {
+	start := time.Now()
+
+	result, err := s.PageDraftContentStore.GetActiveEditorsForPage(pageId, minUpdateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageDraftContentStore.GetActiveEditorsForPage", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPageDraftContentStore) GetForWiki(userId string, wikiId string) ([]*model.PageDraftContent, error) {
 	start := time.Now()
 
@@ -7072,6 +7088,22 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsCreatedAt", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsForReporting", success, elapsed)
 	}
 	return result, err
 }

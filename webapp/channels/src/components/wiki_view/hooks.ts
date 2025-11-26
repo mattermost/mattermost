@@ -331,60 +331,20 @@ export function useWikiPageActions(
         return undefined;
     }, [channelId, pageId, wikiId, currentPage, dispatch, history, location]);
 
-    const handleTitleChange = useCallback((newTitle: string) => {
-        // Update ref immediately
-        latestTitleRef.current = newTitle;
-
-        if (!wikiId || !currentDraft) {
-            return;
-        }
-
-        if (autosaveTimeoutRef.current) {
-            clearTimeout(autosaveTimeoutRef.current);
-        }
-
-        // Capture draft details and generation in closure to prevent stale data
-        const draftId = currentDraft.rootId;
-        const content = latestContentRef.current || currentDraft.message || '';
-        const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
-        const additionalProps = extractDraftAdditionalProps(currentDraft);
-        const capturedTitle = newTitle;
-        const capturedGeneration = draftGenerationRef.current;
-
-        autosaveTimeoutRef.current = setTimeout(() => {
-            // Verify we're still editing the same draft AND generation before saving
-            if (!currentDraft || currentDraft.rootId !== draftId || draftGenerationRef.current !== capturedGeneration) {
-                return;
-            }
-
-            dispatch(savePageDraft(
-                channelId,
-                wikiId,
-                draftId,
-                content,
-                capturedTitle,
-                pageIdFromDraft,
-                additionalProps,
-            ));
-        }, 500);
-    }, [channelId, wikiId, currentDraft, dispatch]);
-
-    // Store the latest values in refs to avoid recreating handleContentChange
     const channelIdRef = useRef(channelId);
     const wikiIdRef = useRef(wikiId);
     const currentDraftRef = useRef(currentDraft);
     const dispatchRef = useRef(dispatch);
 
-    // Update refs on every render
     channelIdRef.current = channelId;
     wikiIdRef.current = wikiId;
     currentDraftRef.current = currentDraft;
     dispatchRef.current = dispatch;
 
-    const handleContentChange = useCallback((newContent: string) => {
-        // Update ref immediately
-        latestContentRef.current = newContent;
-
+    const scheduleAutosave = useCallback((options: {
+        content?: string;
+        title?: string;
+    }) => {
         if (!wikiIdRef.current || !currentDraftRef.current) {
             return;
         }
@@ -393,20 +353,17 @@ export function useWikiPageActions(
             clearTimeout(autosaveTimeoutRef.current);
         }
 
-        // Capture draft details and generation in closure to prevent stale data
-        // IMPORTANT: Capture from currentDraft prop (via ref) at call time, before any draft switches
         const capturedDraft = currentDraftRef.current;
         const draftId = capturedDraft.rootId;
-        const title = latestTitleRef.current || capturedDraft.props?.title || '';
+        const content = options.content ?? (latestContentRef.current || capturedDraft.message || '');
+        const title = options.title ?? (latestTitleRef.current || capturedDraft.props?.title || '');
         const pageIdFromDraft = capturedDraft.props?.page_id as string | undefined;
         const additionalProps = extractDraftAdditionalProps(capturedDraft);
-        const capturedContent = newContent;
         const capturedChannelId = channelIdRef.current;
         const capturedWikiId = wikiIdRef.current;
         const capturedGeneration = draftGenerationRef.current;
 
         autosaveTimeoutRef.current = setTimeout(() => {
-            // Verify we're still editing the same draft AND generation before saving
             if (!currentDraftRef.current || currentDraftRef.current.rootId !== draftId || draftGenerationRef.current !== capturedGeneration) {
                 return;
             }
@@ -414,14 +371,24 @@ export function useWikiPageActions(
             dispatchRef.current(savePageDraft(
                 capturedChannelId,
                 capturedWikiId,
-                draftId ?? '',
-                capturedContent,
+                draftId,
+                content,
                 title,
                 pageIdFromDraft,
                 additionalProps,
             ));
         }, 500);
-    }, []); // Empty deps - stable function reference
+    }, []);
+
+    const handleTitleChange = useCallback((newTitle: string) => {
+        latestTitleRef.current = newTitle;
+        scheduleAutosave({title: newTitle});
+    }, [scheduleAutosave]);
+
+    const handleContentChange = useCallback((newContent: string) => {
+        latestContentRef.current = newContent;
+        scheduleAutosave({content: newContent});
+    }, [scheduleAutosave]);
 
     const handlePublish = useCallback(async () => {
         if (!wikiId || !currentDraft) {

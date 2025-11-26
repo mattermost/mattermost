@@ -31,6 +31,7 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Permission Wiki ${pw.random.id()}`);
@@ -119,6 +120,7 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `Edit Permission Wiki ${pw.random.id()}`);
@@ -157,6 +159,7 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
 
     const {page, channelsPage} = await pw.testBrowser.login(createdAdminUser);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `Admin Delete Wiki ${pw.random.id()}`);
@@ -272,6 +275,7 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
     // # Create wiki and page as regular user first
     const {page: userPage, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wiki = await createWikiThroughUI(userPage, `Readonly Wiki ${pw.random.id()}`);
     const testPage = await createPageThroughUI(userPage, 'Protected Page', 'Protected content');

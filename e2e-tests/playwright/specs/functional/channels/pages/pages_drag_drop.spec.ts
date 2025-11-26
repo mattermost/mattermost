@@ -26,6 +26,7 @@ test.skip('makes page a child via drag-drop', {tag: '@pages'}, async ({pw, share
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Drag Wiki ${pw.random.id()}`);
@@ -110,6 +111,7 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Promote Wiki ${pw.random.id()}`);

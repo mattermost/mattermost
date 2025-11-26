@@ -17,6 +17,7 @@ test('renames wiki through channel tab bar menu', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const originalWikiName = `Original Wiki ${pw.random.id()}`;
     const newWikiName = `Renamed Wiki ${pw.random.id()}`;
@@ -57,6 +58,7 @@ test('deletes wiki when wiki tab is deleted', {tag: '@pages'}, async ({pw, share
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wikiName = `Delete Test Wiki ${pw.random.id()}`;
 
@@ -104,6 +106,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const originalName = `Sync Test Wiki ${pw.random.id()}`;
     const updatedName = `Updated Sync Wiki ${pw.random.id()}`;
@@ -116,6 +119,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
 
     // # Navigate back to channel to rename through wiki tab
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible and rename through wiki tab menu
@@ -160,6 +164,7 @@ test('navigates to channel when deleting wiki tab while viewing wiki', {tag: '@p
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wikiName = `Nav Test Wiki ${pw.random.id()}`;
 
@@ -171,6 +176,7 @@ test('navigates to channel when deleting wiki tab while viewing wiki', {tag: '@p
 
     // # Navigate to channel to delete wiki tab
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible
@@ -200,6 +206,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const originalWikiName = 'Original Navigation Wiki ' + pw.random.id();
     const newWikiName = 'Renamed Navigation Wiki ' + pw.random.id();
@@ -219,6 +226,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
 
     // # Navigate back to channel to rename wiki
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible and rename wiki through wiki tab menu
@@ -311,6 +319,7 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const originalWikiName = 'Original Hierarchy Wiki ' + pw.random.id();
     const newWikiName = 'Renamed Hierarchy Wiki ' + pw.random.id();
@@ -330,6 +339,7 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
 
     // # Navigate to channel and rename wiki
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible
@@ -400,6 +410,7 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wikiName = 'Deletion Test Wiki ' + pw.random.id();
 
@@ -414,6 +425,7 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
 
     // # Navigate back to channel and delete wiki
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible

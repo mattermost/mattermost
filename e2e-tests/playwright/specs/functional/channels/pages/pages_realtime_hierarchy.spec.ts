@@ -79,7 +79,6 @@ test('removes page from source wiki hierarchy when moved to different wiki', {ta
                     // Capture page/post/wiki-related actions
                     const type = String(action.type).toUpperCase();
                     if (type.includes('PAGE') || type.includes('POST') || type.includes('WIKI') || type.includes('RECEIVED') || type.includes('REMOVED')) {
-                        console.log('[WS Event]', action.type, action.data);
                         (window as any).wsEvents.push({type: action.type, data: action.data, time: Date.now()});
                     }
                 }
@@ -111,12 +110,6 @@ test('removes page from source wiki hierarchy when moved to different wiki', {ta
     await user2Page.waitForTimeout(WEBSOCKET_WAIT); // Allow WebSocket message to propagate
 
     // # Debug: Print captured WebSocket events
-    const wsEvents = await user2Page.evaluate(() => (window as any).wsEvents || []);
-    const allActionTypes = await user2Page.evaluate(() => ((window as any).allActions || []).map((a: any) => a.type));
-    console.log('[Test 3 - Page Moved] Total Redux actions:', allActionTypes.length);
-    console.log('[Test 3 - Page Moved] Last 10 action types:', allActionTypes.slice(-10));
-    console.log('[Test 3 - Page Moved] WebSocket events received by user2:', JSON.stringify(wsEvents, null, 2));
-
     const user2PageNode = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
     await expect(user2PageNode).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
@@ -161,8 +154,12 @@ test('shows notification and redirects when viewed page is deleted by another us
         'delete_page_private_channel',
     ]);
 
-    // # User 2 logs in and views the page
-    const {page: user2Page} = await pw.testBrowser.login(user2);
+    // # User 2 logs in and navigates to the channel FIRST (to ensure proper channel context)
+    const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+    await channelsPage2.goto(team.name, channel.name);
+    await channelsPage2.toBeVisible();
+
+    // # Then navigate to the page
     const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
     await user2Page.goto(wikiPageUrl);
     await user2Page.waitForLoadState('networkidle');
@@ -179,7 +176,6 @@ test('shows notification and redirects when viewed page is deleted by another us
         if (originalDispatch) {
             (window as any).store.dispatch = function(action: any) {
                 if (action.type && action.type.includes('PAGE') || action.type && action.type.includes('POST')) {
-                    console.log('[WS Event]', action.type, action.data);
                     (window as any).wsEvents.push({type: action.type, data: action.data, time: Date.now()});
                 }
                 return originalDispatch.apply(this, arguments);
@@ -195,10 +191,6 @@ test('shows notification and redirects when viewed page is deleted by another us
     // This might show a notification, redirect, or error message
     // Implementation-specific behavior - check for common patterns
     await user2Page.waitForTimeout(WEBSOCKET_WAIT); // Allow WebSocket notification
-
-    // # Debug: Print captured WebSocket events
-    const wsEvents = await user2Page.evaluate(() => (window as any).wsEvents || []);
-    console.log('[Test 4 - Page Delete] WebSocket events received by user2:', JSON.stringify(wsEvents, null, 2));
 
     // Check if redirected away from page (URL change) or if error shown
     const currentUrl = user2Page.url();
@@ -285,7 +277,6 @@ test('updates page title in hierarchy when renamed by another user', {tag: '@pag
                     // Capture page/post/wiki-related actions
                     const type = String(action.type).toUpperCase();
                     if (type.includes('PAGE') || type.includes('POST') || type.includes('WIKI') || type.includes('RECEIVED') || type.includes('RENAMED')) {
-                        console.log('[WS Event]', action.type, action.data);
                         (window as any).wsEvents.push({type: action.type, data: action.data, time: Date.now()});
                     }
                 }
@@ -301,13 +292,6 @@ test('updates page title in hierarchy when renamed by another user', {tag: '@pag
 
     // * Verify new title appears in user2's hierarchy (real-time)
     await user2Page.waitForTimeout(WEBSOCKET_WAIT); // Allow WebSocket message to propagate
-
-    // # Debug: Print captured WebSocket events
-    const wsEvents = await user2Page.evaluate(() => (window as any).wsEvents || []);
-    const allActionTypes = await user2Page.evaluate(() => ((window as any).allActions || []).map((a: any) => a.type));
-    console.log('[Test 5 - Page Renamed] Total Redux actions:', allActionTypes.length);
-    console.log('[Test 5 - Page Renamed] ALL action types:', JSON.stringify(allActionTypes, null, 2));
-    console.log('[Test 5 - Page Renamed] WebSocket events received by user2:', JSON.stringify(wsEvents, null, 2));
 
     await verifyPageInHierarchy(user2Page, newTitle, 5000);
 
@@ -350,7 +334,6 @@ test('shows new child page in hierarchy when added by another user', {tag: '@pag
         const text = msg.text();
         // Capture all console logs (not just specific patterns)
         consoleLogs.push(text);
-        console.log('[User2 Browser]', text);
     });
 
 
@@ -457,18 +440,12 @@ test('removes page from hierarchy for other users when page is deleted', {tag: '
     const isPageGoneRealtime = await user2PageNode.isVisible().then(() => false).catch(() => true);
 
     if (!isPageGoneRealtime) {
-        console.log('[Test] Page NOT removed via WebSocket - verifying server state with refresh');
-
         // # Refresh the page to verify server state
         await user2Page.reload();
         await user2Page.waitForLoadState('networkidle');
 
         // * Verify page is gone after refresh (confirms server-side deletion worked)
         await verifyPageNotInHierarchy(user2Page, pageTitle);
-        console.log('[Test] ✓ Page IS deleted on server (confirmed via refresh)');
-        console.log('[Test] ✗ But WebSocket real-time update did NOT work');
-    } else {
-        console.log('[Test] ✓ Page removed via WebSocket real-time update');
     }
 
     await user2Page.close();

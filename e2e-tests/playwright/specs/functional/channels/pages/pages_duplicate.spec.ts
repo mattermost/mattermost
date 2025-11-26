@@ -15,6 +15,7 @@ test('duplicates page to same wiki with default title', {tag: '@pages'}, async (
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and original page through UI
     const wiki = await createWikiThroughUI(page, `Duplicate Wiki ${pw.random.id()}`);
@@ -50,6 +51,7 @@ test('duplicates child page at same level as source', {tag: '@pages'}, async ({p
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and parent page
     await createWikiThroughUI(page, `Hierarchy Wiki ${pw.random.id()}`);
@@ -98,6 +100,7 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page with content
     await createWikiThroughUI(page, `Content Wiki ${pw.random.id()}`);
@@ -135,6 +138,7 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and root-level pages
     await createWikiThroughUI(page, `Root Level Wiki ${pw.random.id()}`);

@@ -32,6 +32,7 @@ test('creates wiki and root page through full UI flow', {tag: '@pages'}, async (
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through bookmarks UI
     const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
@@ -57,6 +58,7 @@ test('creates child page under parent', {tag: '@pages'}, async ({pw, sharedPages
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
@@ -81,6 +83,7 @@ test('views published page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `View Wiki ${pw.random.id()}`);
@@ -101,6 +104,7 @@ test('updates existing page content', {tag: '@pages'}, async ({pw, sharedPagesSe
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Update Wiki ${pw.random.id()}`);
@@ -124,6 +128,7 @@ test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Delete Wiki ${pw.random.id()}`);
@@ -151,6 +156,7 @@ test('wiki starts with default draft page', {tag: '@pages'}, async ({pw, sharedP
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `New Wiki ${pw.random.id()}`);
@@ -169,6 +175,7 @@ test('shows empty state after deleting default draft', {tag: '@pages'}, async ({
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `Empty Wiki ${pw.random.id()}`);
@@ -191,6 +198,7 @@ test('displays multiple pages in hierarchy', {tag: '@pages'}, async ({pw, shared
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `Multi Page Wiki ${pw.random.id()}`);
@@ -216,6 +224,7 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Meta Wiki ${pw.random.id()}`);

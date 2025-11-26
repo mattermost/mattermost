@@ -53,6 +53,7 @@ test('creates inline comment on selected text', {tag: '@pages'}, async ({pw, sha
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiAndPage(page, `Comment Wiki ${pw.random.id()}`, 'Test Page', 'This is important text');
@@ -85,6 +86,7 @@ test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiAndPage(page, `Reply Wiki ${pw.random.id()}`, 'Discussion Page', 'This feature needs discussion about implementation details');
@@ -116,6 +118,7 @@ test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, shar
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Setup: Create wiki, page, add comment, and publish
     const {marker} = await setupPageWithComment(
@@ -152,6 +155,7 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${pw.random.id()}`);
@@ -204,6 +208,7 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const {wiki, page: testPage} = await createWikiAndPage(page, `Markers Wiki ${pw.random.id()}`, 'Design Doc', 'The UI design uses primary color blue and secondary color green');
@@ -239,6 +244,7 @@ test('preserves inline comment position after nearby text edits', {tag: '@pages'
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiAndPage(page, `Edit Preserve Wiki ${pw.random.id()}`, 'Editable Page', 'The quick brown fox jumps over the lazy dog');
@@ -273,6 +279,7 @@ test('deletes inline comment and removes marker', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiAndPage(page, `Delete Comment Wiki ${pw.random.id()}`, 'Page With Comment', 'This text has a comment');
@@ -304,6 +311,7 @@ test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sh
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page with inline comment
     await createWikiAndPage(page, `RHS Wiki ${pw.random.id()}`, 'Product Specs', 'The performance metrics need review');
@@ -348,6 +356,7 @@ test('clicks active comment marker to close RHS', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiAndPage(page, `Toggle RHS Wiki ${pw.random.id()}`, 'Design Doc', 'The color scheme needs adjustment');
@@ -378,6 +387,7 @@ test('closes RHS via close button', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiAndPage(page, `Close RHS Wiki ${pw.random.id()}`, 'Requirements', 'Security requirements must be defined');
@@ -406,6 +416,7 @@ test('switches between multiple comment threads in RHS', {tag: '@pages'}, async 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const {wiki, page: testPage} = await createWikiAndPage(page, `Multi Thread Wiki ${pw.random.id()}`, 'Architecture', 'The frontend uses React and backend uses Node.js');
@@ -442,6 +453,7 @@ test('switches between Page Comments and All Threads tabs in RHS', {tag: '@pages
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and pages through UI
     await createWikiAndPage(page, `Tab Switch Wiki ${pw.random.id()}`, 'First Page', 'Content for first page');
@@ -498,6 +510,7 @@ test('displays all threads from multiple pages in All Threads tab', {tag: '@page
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `All Threads Wiki ${pw.random.id()}`);
@@ -551,6 +564,7 @@ test('displays correct anchor text for each inline comment in wiki RHS', {tag: '
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiAndPage(page, `Anchor Test Wiki ${pw.random.id()}`, 'Multiple Anchors Test', 'First section with unique content. Second section with different content. Third section with more content.');
@@ -612,6 +626,7 @@ test('creates inline comment from formatting bar with correct anchor text', {tag
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Format Bar Wiki ${pw.random.id()}`);
@@ -666,6 +681,7 @@ test('displays correct anchor text for each thread in global Threads view', {tag
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     await createWikiThroughUI(page, `Threads Anchor Test Wiki ${pw.random.id()}`);
@@ -796,6 +812,7 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Setup: Create wiki, page, add comment, and publish
     const {marker} = await setupPageWithComment(

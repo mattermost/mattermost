@@ -306,9 +306,6 @@ export function reconnect() {
         const wikiId = wikiMatch[1];
         const timestamp = Date.now();
 
-        // eslint-disable-next-line
-        console.log(`[WebSocket] Reconnected - invalidating pages for wiki ${wikiId}`);
-
         dispatch({
             type: WikiTypes.INVALIDATE_PAGES,
             data: {wikiId, timestamp},
@@ -1016,6 +1013,10 @@ export function handlePageTitleUpdatedEvent(msg) {
     const updatedPage = {
         ...existingPage,
         message: title,
+        props: {
+            ...existingPage.props,
+            title,
+        },
         update_at: updateAt,
     };
 
@@ -2018,17 +2019,39 @@ function handlePostAcknowledgementRemoved(msg) {
 }
 
 function handleUpsertDraftEvent(msg) {
-    return async (doDispatch) => {
+    return async (doDispatch, doGetState) => {
         const draft = JSON.parse(msg.data.draft);
 
         // Check if this is a page draft (has wiki_id field)
         if (draft.wiki_id) {
+            const pageId = draft.draft_id;
+
+            // Check if the page has already been published
+            // This prevents race condition where a draft_updated event arrives after the page was published
+            const state = doGetState();
+            const existingPage = getPost(state, pageId);
+
+            // If page exists and this draft is older than or equal to the published page, skip it
+            // This allows newer drafts (from other users editing after publish) to still appear
+            if (existingPage && draft.update_at <= existingPage.update_at) {
+                // Still update active editors for collaborative editing indicators
+                const userId = draft.user_id;
+                const timestamp = draft.update_at;
+                const isCreate = msg.event === SocketEvents.DRAFT_CREATED;
+
+                const activeEditorAction = isCreate ?
+                    handleActiveEditorDraftCreated(pageId, userId, timestamp) :
+                    handleActiveEditorDraftUpdated(pageId, userId, timestamp);
+
+                doDispatch(activeEditorAction);
+                return;
+            }
+
             // Handle page draft
             const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.draft_id);
             transformedDraft.value.show = true;
 
             // Update active editors for this page
-            const pageId = draft.draft_id;
             const userId = draft.user_id;
             const timestamp = draft.update_at;
             const isCreate = msg.event === SocketEvents.DRAFT_CREATED;

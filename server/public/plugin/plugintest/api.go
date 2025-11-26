@@ -760,6 +760,38 @@ func (_m *API) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserA
 	return r0, r1
 }
 
+// CreateWikiPage provides a mock function with given fields: wikiID, title, content, userID
+func (_m *API) CreateWikiPage(wikiID string, title string, content string, userID string) (*model.Post, *model.AppError) {
+	ret := _m.Called(wikiID, title, content, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateWikiPage")
+	}
+
+	var r0 *model.Post
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.Post, *model.AppError)); ok {
+		return rf(wikiID, title, content, userID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.Post); ok {
+		r0 = rf(wikiID, title, content, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string) *model.AppError); ok {
+		r1 = rf(wikiID, title, content, userID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // DeleteChannel provides a mock function with given fields: channelId
 func (_m *API) DeleteChannel(channelId string) *model.AppError {
 	ret := _m.Called(channelId)
@@ -2043,6 +2075,36 @@ func (_m *API) GetFileLink(fileId string) (string, *model.AppError) {
 
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(fileId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetFirstWikiForChannel provides a mock function with given fields: channelID
+func (_m *API) GetFirstWikiForChannel(channelID string) (string, *model.AppError) {
+	ret := _m.Called(channelID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetFirstWikiForChannel")
+	}
+
+	var r0 string
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) (string, *model.AppError)); ok {
+		return rf(channelID)
+	}
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(channelID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(channelID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

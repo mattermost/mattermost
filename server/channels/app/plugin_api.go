@@ -1644,3 +1644,28 @@ func (api *PluginAPI) LinkPageToFirstWiki(pageID, channelID string) *model.AppEr
 	wikiID := wikis[0].Id
 	return api.app.AddPageToWiki(api.ctx, pageID, wikiID)
 }
+
+// GetFirstWikiForChannel retrieves the ID of the first wiki in the given channel.
+// If no wiki exists, an error is returned.
+func (api *PluginAPI) GetFirstWikiForChannel(channelID string) (string, *model.AppError) {
+	wikis, err := api.app.GetWikisForChannel(api.ctx, channelID, false)
+	if err != nil {
+		return "", err
+	}
+
+	if len(wikis) == 0 {
+		return "", model.NewAppError("GetFirstWikiForChannel", "api.plugin.get_first_wiki.no_wiki", nil, "no wiki found for channel", http.StatusNotFound)
+	}
+
+	return wikis[0].Id, nil
+}
+
+// CreateWikiPage creates a new wiki page with the given title and content on behalf of the specified user.
+// Returns the created page post.
+func (api *PluginAPI) CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError) {
+	page, err := api.app.CreateWikiPage(api.ctx, wikiID, "", title, content, userID, "")
+	if err != nil {
+		return nil, err
+	}
+	return page, nil
+}

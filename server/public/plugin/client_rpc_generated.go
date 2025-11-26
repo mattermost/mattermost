@@ -7910,3 +7910,93 @@ func (s *apiRPCServer) DeletePropertyValuesForField(args *Z_DeletePropertyValues
 	}
 	return nil
 }
+
+type Z_LinkPageToFirstWikiArgs struct {
+	A string
+	B string
+}
+
+type Z_LinkPageToFirstWikiReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) LinkPageToFirstWiki(pageID, channelID string) *model.AppError {
+	_args := &Z_LinkPageToFirstWikiArgs{pageID, channelID}
+	_returns := &Z_LinkPageToFirstWikiReturns{}
+	if err := g.client.Call("Plugin.LinkPageToFirstWiki", _args, _returns); err != nil {
+		log.Printf("RPC call to LinkPageToFirstWiki API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) LinkPageToFirstWiki(args *Z_LinkPageToFirstWikiArgs, returns *Z_LinkPageToFirstWikiReturns) error {
+	if hook, ok := s.impl.(interface {
+		LinkPageToFirstWiki(pageID, channelID string) *model.AppError
+	}); ok {
+		returns.A = hook.LinkPageToFirstWiki(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API LinkPageToFirstWiki called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetFirstWikiForChannelArgs struct {
+	A string
+}
+
+type Z_GetFirstWikiForChannelReturns struct {
+	A string
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetFirstWikiForChannel(channelID string) (string, *model.AppError) {
+	_args := &Z_GetFirstWikiForChannelArgs{channelID}
+	_returns := &Z_GetFirstWikiForChannelReturns{}
+	if err := g.client.Call("Plugin.GetFirstWikiForChannel", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFirstWikiForChannel API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetFirstWikiForChannel(args *Z_GetFirstWikiForChannelArgs, returns *Z_GetFirstWikiForChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFirstWikiForChannel(channelID string) (string, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetFirstWikiForChannel(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetFirstWikiForChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreateWikiPageArgs struct {
+	A string
+	B string
+	C string
+	D string
+}
+
+type Z_CreateWikiPageReturns struct {
+	A *model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError) {
+	_args := &Z_CreateWikiPageArgs{wikiID, title, content, userID}
+	_returns := &Z_CreateWikiPageReturns{}
+	if err := g.client.Call("Plugin.CreateWikiPage", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateWikiPage API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateWikiPage(args *Z_CreateWikiPageArgs, returns *Z_CreateWikiPageReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateWikiPage(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API CreateWikiPage called but not implemented."))
+	}
+	return nil
+}

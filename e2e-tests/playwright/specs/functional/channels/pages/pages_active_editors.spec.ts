@@ -35,7 +35,6 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
 
     // # Publish the page
     await publishPage(page1);
-    await page1.screenshot({path: '/tmp/test-user1-after-publish.png', fullPage: true});
 
     // # Get page ID from URL
     const pageUrl = page1.url();
@@ -49,33 +48,25 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     // # User 2 logs in and navigates directly to the wiki page
     const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
 
-    await page2.screenshot({path: '/tmp/test-user2-after-login.png', fullPage: true});
-
     // Navigate to the channel first to ensure proper authentication
     await channelsPage2.goto(team.name, channel.name);
-    await page2.screenshot({path: '/tmp/test-user2-after-goto-channel.png', fullPage: true});
+    await channelsPage2.toBeVisible();
 
     // Now navigate to the specific page
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
-    await page2.screenshot({path: '/tmp/test-user2-after-navigate.png', fullPage: true});
 
     // # Start editing the page
     await enterEditMode(page2);
-    await page2.screenshot({path: '/tmp/test-user2-after-enter-edit-mode.png', fullPage: true});
 
     const editor2 = await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 editing');
-    await page2.screenshot({path: '/tmp/test-user2-after-typing.png', fullPage: true});
 
     // # Wait for draft to save
     await page2.waitForTimeout(AUTOSAVE_WAIT);
-    await page2.screenshot({path: '/tmp/test-user2-after-draft-save.png', fullPage: true});
 
     // * User 1 should see active editors indicator showing User 2
-    await page1.screenshot({path: '/tmp/test-user1-before-active-editor-check.png', fullPage: true});
     const activeEditorsIndicator = page1.locator('.active-editors-indicator');
     await expect(activeEditorsIndicator).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    await page1.screenshot({path: '/tmp/test-user1-active-editor-visible.png', fullPage: true});
 
     // * Verify the indicator shows 1 person editing
     await expect(activeEditorsIndicator).toContainText('1 person editing');
@@ -189,6 +180,7 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
     const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
 
     await channelsPage2.goto(team.name, channel.name);
+    await channelsPage2.toBeVisible();
     await page2.waitForLoadState('networkidle');
 
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
@@ -222,6 +214,7 @@ test('does not show current user in active editors list', {tag: '@pages'}, async
     // # User logs in and creates a draft
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     const wiki = await createWikiThroughUI(page, `Self Edit Wiki ${pw.random.id()}`);
 
@@ -313,7 +306,11 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
 });
 
 /**
- * @objective Verify active editors indicator updates when user navigates away without deleting draft
+ * @objective Verify active editors indicator updates immediately when user navigates away without deleting draft
+ *
+ * Note: This test is skipped because full page navigation (page.goto) cannot reliably send
+ * authenticated requests during beforeunload. The system relies on 5-minute stale cleanup for this case.
+ * React Router navigation (test below) works correctly with immediate cleanup.
  */
 test.skip('removes editor from indicator when user navigates away', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
     const {team, user, adminClient} = sharedPagesSetup;
@@ -345,7 +342,11 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     const pageId = pageUrl.split('/').pop();
 
     // # User 2 starts editing
-    const {page: page2} = await pw.testBrowser.login(user2);
+    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+
+    await channelsPage2.goto(team.name, channel.name);
+    await channelsPage2.toBeVisible();
+    await page2.waitForLoadState('networkidle');
 
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
 
@@ -362,18 +363,105 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
 
     // # User 2 navigates away WITHOUT deleting draft (draft persists)
     await page2.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
-    await page2.waitForTimeout(AUTOSAVE_WAIT);
+    await page2.waitForTimeout(WEBSOCKET_WAIT);
 
-    // * Active editors indicator should disappear for User 1 within 60 seconds (stale cleanup interval)
-    // Note: This relies on the frontend's stale cleanup mechanism since we're NOT deleting the draft
-    await expect(activeEditorsIndicator).not.toBeVisible({timeout: STALE_CLEANUP_TIMEOUT});
+    // * Active editors indicator should disappear immediately for User 1
+    // Note: Client sends PAGE_EDITOR_STOPPED via beforeunload handler (sendBeacon for page navigations)
+    await expect(activeEditorsIndicator).not.toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // # Verify draft still exists for User 2 (can resume editing)
     await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
 
-    // * Draft should be restored when returning to the page
-    const draftIndicator = page2.locator('[data-testid="draft-indicator"]');
-    const hasUnsavedChanges = await draftIndicator.isVisible().catch(() => false);
+    // # Click Edit button to resume editing the draft
+    await enterEditMode(page2);
+
+    // * Editor should show existing draft content when returning
+    const editorContent = page2.locator('.ProseMirror');
+    await expect(editorContent).toContainText('User 2 editing');
+
+    await page2.close();
+});
+
+/**
+ * @objective Verify active editors are removed when navigating to a different page within the wiki
+ */
+test('removes editor when navigating to different wiki page', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    // # Create a second user
+    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+    // # User 1 creates a wiki with two pages
+    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
+    await channelsPage1.goto(team.name, channel.name);
+
+    const wiki = await createWikiThroughUI(page1, `Wiki Navigation Test ${pw.random.id()}`);
+
+    // # Create first page
+    const newPageButton1 = getNewPageButton(page1);
+    await newPageButton1.click();
+    await fillCreatePageModal(page1, 'Page A');
+    const editor1 = await getEditorAndWait(page1);
+    await typeInEditor(page1, 'Content for Page A');
+    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await publishPage(page1);
+
+    const pageAUrl = page1.url();
+    const pageAId = pageAUrl.split('/').pop();
+
+    // # Create second page
+    const newPageButton2 = getNewPageButton(page1);
+    await newPageButton2.click();
+    await fillCreatePageModal(page1, 'Page B');
+    const editor2 = await getEditorAndWait(page1);
+    await typeInEditor(page1, 'Content for Page B');
+    await page1.waitForTimeout(WEBSOCKET_WAIT);
+    await publishPage(page1);
+
+    const pageBUrl = page1.url();
+    const pageBId = pageBUrl.split('/').pop();
+
+    // # User 1 navigates to Page A and waits there
+    await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, pageAId);
+
+    // # User 2 starts editing Page A
+    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+
+    await channelsPage2.goto(team.name, channel.name);
+    await channelsPage2.toBeVisible();
+    await page2.waitForLoadState('networkidle');
+
+    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageAId);
+    await enterEditMode(page2);
+
+    const editorA = await getEditorAndWait(page2);
+    await typeInEditor(page2, ' User 2 editing Page A');
+    await page2.waitForTimeout(AUTOSAVE_WAIT);
+
+    // * User 1 should see User 2 in active editors on Page A (via real-time WebSocket)
+    const activeEditorsIndicatorA = page1.locator('.active-editors-indicator');
+    await expect(activeEditorsIndicatorA).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+    await expect(activeEditorsIndicatorA).toContainText('1 person editing');
+
+    // # User 2 navigates to Page B (different page in same wiki)
+    await clickPageInHierarchy(page2, 'Page B');
+    await page2.waitForTimeout(WEBSOCKET_WAIT);
+
+    // * User 1 should no longer see User 2 in active editors on Page A
+    await expect(activeEditorsIndicatorA).not.toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+    // # User 2 starts editing Page B
+    await enterEditMode(page2);
+    const editorB = await getEditorAndWait(page2);
+    await typeInEditor(page2, ' User 2 editing Page B');
+    await page2.waitForTimeout(AUTOSAVE_WAIT);
+
+    // * User 1 navigates to Page B and sees User 2 there
+    await clickPageInHierarchy(page1, 'Page B');
+    const activeEditorsIndicatorB = page1.locator('.active-editors-indicator');
+    await expect(activeEditorsIndicatorB).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+    await expect(activeEditorsIndicatorB).toContainText('1 person editing');
 
     await page2.close();
 });

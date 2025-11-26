@@ -17,6 +17,7 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `XSS Test Wiki ${pw.random.id()}`);
@@ -65,6 +66,7 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `XSS Title Wiki ${pw.random.id()}`);
@@ -109,6 +111,7 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, share
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `SQL Test Wiki ${pw.random.id()}`);
@@ -149,6 +152,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Validation Wiki ${pw.random.id()}`);

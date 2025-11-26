@@ -14,6 +14,7 @@ test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Search Wiki ${pw.random.id()}`);
@@ -52,6 +53,7 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Tree Filter Wiki ${pw.random.id()}`);
@@ -102,6 +104,7 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Global Search Wiki ${pw.random.id()}`);
@@ -136,6 +139,7 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Content Global Search Wiki ${pw.random.id()}`);

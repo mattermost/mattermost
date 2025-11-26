@@ -14,6 +14,7 @@ test('displays author avatar and username in draft editor', {tag: '@pages'}, asy
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Avatar Wiki ${pw.random.id()}`);
@@ -47,6 +48,7 @@ test('includes accessibility label for author section', {tag: '@pages'}, async (
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `A11y Wiki ${pw.random.id()}`);
@@ -73,6 +75,7 @@ test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sh
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and draft
     const wiki = await createWikiThroughUI(page, `Persist Wiki ${pw.random.id()}`);
@@ -108,6 +111,7 @@ test('does not show author avatar in published page view', {tag: '@pages'}, asyn
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and draft
     const wiki = await createWikiThroughUI(page, `Published Wiki ${pw.random.id()}`);

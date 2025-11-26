@@ -15,6 +15,7 @@ test('opens slash command menu when typing / on blank line', {tag: '@pages'}, as
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Command Wiki ${pw.random.id()}`);
@@ -42,6 +43,7 @@ test('does not open slash command menu when / typed mid-line', {tag: '@pages'}, 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Mid Line Wiki ${pw.random.id()}`);
@@ -77,6 +79,7 @@ test('opens slash command menu when / typed at start of new line', {tag: '@pages
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash New Line Wiki ${pw.random.id()}`);
@@ -117,6 +120,7 @@ test('filters slash command menu items by typing search query', {tag: '@pages'},
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Filter Wiki ${pw.random.id()}`);
@@ -179,6 +183,7 @@ test('inserts heading 1 when selected from slash command menu', {tag: '@pages'},
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Insert Wiki ${pw.random.id()}`);
@@ -210,6 +215,7 @@ test('inserts bulleted list when selected from slash command menu', {tag: '@page
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash List Wiki ${pw.random.id()}`);
@@ -248,6 +254,7 @@ test('opens image insertion when selected from slash command menu', {tag: '@page
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Image Wiki ${pw.random.id()}`);
@@ -323,6 +330,7 @@ test('navigates slash command menu with arrow keys and selects with Enter', {tag
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Nav Wiki ${pw.random.id()}`);
@@ -359,6 +367,7 @@ test('closes slash command menu when pressing Escape', {tag: '@pages'}, async ({
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Escape Wiki ${pw.random.id()}`);
@@ -386,6 +395,7 @@ test('closes slash command menu when clicking away', {tag: '@pages'}, async ({pw
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash Click Away Wiki ${pw.random.id()}`);
@@ -417,6 +427,7 @@ test('verifies ESC key closes slash command menu', {tag: '@pages'}, async ({pw, 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Slash ESC Key Wiki ${pw.random.id()}`);
@@ -452,6 +463,7 @@ test('displays placeholder text in empty editor', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Placeholder Test Wiki ${pw.random.id()}`);
@@ -491,6 +503,7 @@ test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Placeholder Line Wiki ${pw.random.id()}`);

@@ -42,6 +42,7 @@ test('shows AI rewrite button when text is selected', {tag: '@pages'}, async ({p
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `AI Test Wiki ${pw.random.id()}`);
@@ -94,6 +95,7 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `AI Menu Test Wiki ${pw.random.id()}`);
@@ -152,6 +154,7 @@ test('displays all 7 rewrite actions in menu', {tag: '@pages'}, async ({pw, shar
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `AI Actions Test Wiki ${pw.random.id()}`);
@@ -211,6 +214,7 @@ test('gracefully degrades when AI plugin is not available', {tag: '@pages'}, asy
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `No AI Wiki ${pw.random.id()}`);
@@ -264,6 +268,7 @@ test('shows AI rewrite in inline comment toolbar when viewing page', {tag: '@pag
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page with content
     const wiki = await createWikiThroughUI(page, `AI Inline Test Wiki ${pw.random.id()}`);
@@ -318,6 +323,7 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `AI Integration Test Wiki ${pw.random.id()}`);
@@ -429,6 +435,7 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `AI Error Test Wiki ${pw.random.id()}`);

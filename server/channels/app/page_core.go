@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -259,6 +260,39 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		}
 	}
 
+	// VALIDATE OR AUTO-CONVERT CONTENT
+	if content != "" {
+		trimmedContent := strings.TrimSpace(content)
+
+		// If content looks like JSON (starts with {), validate it
+		if strings.HasPrefix(trimmedContent, "{") {
+			var testJSON map[string]any
+			if err := json.Unmarshal([]byte(content), &testJSON); err != nil {
+				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "content must be valid JSON", http.StatusBadRequest).Wrap(err)
+			}
+
+			// Valid JSON but not TipTap format - reject it
+			// TipTap documents must have type:"doc"
+			docType, ok := testJSON["type"].(string)
+			if !ok || docType != "doc" {
+				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "content must be valid TipTap JSON with type: doc", http.StatusBadRequest)
+			}
+		} else {
+			// Not JSON - treat as plain text and auto-convert to TipTap JSON
+			rctx.Logger().Info("Auto-converting plain text content to TipTap JSON",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", channelID),
+				mlog.Int("content_length", len(content)))
+
+			content = convertPlainTextToTipTapJSON(content)
+
+			// Extract search text from plain content if not provided
+			if searchText == "" {
+				searchText = content
+			}
+		}
+	}
+
 	page := &model.Post{
 		Type:         model.PostTypePage,
 		ChannelId:    channelID,
@@ -286,8 +320,6 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	if enrichErr := a.EnrichPageWithProperties(rctx, createdPage); enrichErr != nil {
 		return nil, enrichErr
 	}
-
-	a.handlePageMentions(rctx, createdPage, channelID, content, userID)
 
 	return createdPage, nil
 }
@@ -871,4 +903,69 @@ func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 		mlog.String("channel_id", page.ChannelId))
 
 	a.Publish(message)
+}
+
+// isValidTipTapJSON checks if the given content is valid TipTap JSON format
+func isValidTipTapJSON(content string) bool {
+	// Quick check: TipTap JSON always starts with {"type":"doc"
+	if !strings.HasPrefix(strings.TrimSpace(content), "{") {
+		return false
+	}
+
+	// Parse as JSON to verify structure
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(content), &doc); err != nil {
+		return false
+	}
+
+	// TipTap documents must have type:"doc"
+	docType, ok := doc["type"].(string)
+	return ok && docType == "doc"
+}
+
+// convertPlainTextToTipTapJSON converts plain text content to TipTap JSON format
+func convertPlainTextToTipTapJSON(plainText string) string {
+	// Split into paragraphs
+	paragraphs := strings.Split(plainText, "\n")
+
+	// Build TipTap content nodes
+	contentNodes := make([]map[string]any, 0, len(paragraphs))
+
+	for _, para := range paragraphs {
+		trimmed := strings.TrimSpace(para)
+
+		// Skip empty paragraphs but keep as empty paragraph for structure
+		if trimmed == "" {
+			contentNodes = append(contentNodes, map[string]any{
+				"type": "paragraph",
+			})
+			continue
+		}
+
+		// Create paragraph node with text content
+		contentNodes = append(contentNodes, map[string]any{
+			"type": "paragraph",
+			"content": []map[string]any{
+				{
+					"type": "text",
+					"text": trimmed,
+				},
+			},
+		})
+	}
+
+	// Build final TipTap document
+	doc := map[string]any{
+		"type":    "doc",
+		"content": contentNodes,
+	}
+
+	// Marshal to JSON
+	jsonBytes, err := json.Marshal(doc)
+	if err != nil {
+		// Fallback: return empty document
+		return `{"type":"doc","content":[]}`
+	}
+
+	return string(jsonBytes)
 }

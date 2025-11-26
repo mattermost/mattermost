@@ -52,16 +52,18 @@ const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => 
             }}
         >
             <div className='inline-comment-toolbar'>
-                <button
-                    type='button'
-                    onClick={handleAIClick}
-                    className='inline-comment-toolbar__icon-btn'
-                    aria-label='AI assistant'
-                    title='AI assistant'
-                    data-testid='inline-comment-ai-button'
-                >
-                    <i className='icon icon-creation-outline'/>
-                </button>
+                {onAIRewrite && (
+                    <button
+                        type='button'
+                        onClick={handleAIClick}
+                        className='inline-comment-toolbar__icon-btn'
+                        aria-label='AI assistant'
+                        title='AI assistant'
+                        data-testid='inline-comment-ai-button'
+                    >
+                        <i className='icon icon-creation-outline'/>
+                    </button>
+                )}
                 <button
                     type='button'
                     onClick={handleCommentClick}

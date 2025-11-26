@@ -17,6 +17,7 @@ test('parent page content renders after breadcrumb navigation from child page', 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and parent page
     const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);

@@ -10,6 +10,7 @@ test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki
     const wiki = await createWikiThroughUI(page, `Minimal Test Wiki ${pw.random.id()}`);

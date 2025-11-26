@@ -4746,9 +4746,10 @@ export default class Client4 {
     };
 
     notifyPageEditorStopped = (wikiId: string, pageId: string) => {
+        // Use keepalive to ensure request completes even if page is navigating away
         return this.doFetch<null>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}/editor_stopped`,
-            {method: 'POST'},
+            {method: 'POST', keepalive: true},
         );
     };
 

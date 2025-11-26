@@ -56,7 +56,7 @@ const (
 	PostTypeMe                   = "me"
 	PostTypePage                 = "page"
 	PostTypePageComment          = "page_comment"
-	PostTypePageMention          = "system_page_mention"
+	PostTypePageMention          = "page_mention"
 	PostTypeWikiAdded            = "system_wiki_added"
 	PostTypeWikiDeleted          = "system_wiki_deleted"
 	PostTypePageAdded            = "system_page_added"

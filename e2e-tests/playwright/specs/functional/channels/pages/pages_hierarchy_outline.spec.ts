@@ -39,6 +39,7 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Outline Wiki ${pw.random.id()}`);
@@ -135,6 +136,7 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Outline Wiki ${pw.random.id()}`);
@@ -202,6 +204,7 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Outline Click Wiki ${pw.random.id()}`);
@@ -277,6 +280,7 @@ test('preserves outline visibility setting when navigating between pages', {tag:
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Persist Outline Wiki ${pw.random.id()}`);

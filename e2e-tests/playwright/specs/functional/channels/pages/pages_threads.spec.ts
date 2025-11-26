@@ -29,6 +29,7 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page with content
     const wiki = await createWikiThroughUI(page, `Threads Wiki ${pw.random.id()}`);
@@ -92,6 +93,7 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Comments Wiki ${pw.random.id()}`);
@@ -152,6 +154,7 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Replies Wiki ${pw.random.id()}`);
@@ -213,6 +216,7 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${pw.random.id()}`);

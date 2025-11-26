@@ -6,6 +6,7 @@ import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
+import {Client4} from 'mattermost-redux/client';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -240,6 +241,28 @@ const WikiView = () => {
             }
         }
     }, [pageId, draftId, wikiId, dispatch]);
+
+    // Notify server when user stops editing a published page draft
+    React.useEffect(() => {
+        // Only track editing when editing a PUBLISHED page (not pure drafts)
+        // Pure drafts are single-user by definition - no active editors tracking needed
+        if (!isDraft || !wikiId || !draftId) {
+            return undefined;
+        }
+
+        // Get the published page ID from the draft
+        const pageId = currentDraft?.props?.page_id || publishedPageForDraft?.id;
+        if (!pageId) {
+            return undefined;
+        }
+
+        // Cleanup function: notify server when navigating away or unmounting
+        return () => {
+            Client4.notifyPageEditorStopped(wikiId, pageId).catch(() => {
+                // Silently handle errors - this is best-effort notification
+            });
+        };
+    }, [isDraft, wikiId, draftId, currentDraft?.props?.page_id, publishedPageForDraft?.id]);
 
     // Auto-select page when at wiki root
     React.useEffect(() => {
@@ -522,7 +545,7 @@ const WikiView = () => {
                                 };
                                 return <WikiPageEditor {...editorProps}/>;
                             })()}
-                            {pageId && (
+                            {pageId && (currentPage || isLoading) && (
                                 <PageViewer
                                     key={pageId}
                                     pageId={pageId}
