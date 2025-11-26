@@ -27,7 +27,7 @@ func RenderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition) (
 	return renderBlockHTML(block, referenceDefinitions, false)
 }
 
-func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, isTightList bool) (result string) {
+func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, isTightList bool) string {
 	switch v := block.(type) {
 	case *Document:
 		var resultSb strings.Builder
@@ -37,7 +37,7 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		return resultSb.String()
 	case *Paragraph:
 		if len(v.Text) == 0 {
-			return
+			return ""
 		}
 		var resultSb strings.Builder
 		if !isTightList {
@@ -87,19 +87,21 @@ func renderBlockHTML(block Block, referenceDefinitions []*ReferenceDefinition, i
 		resultSb.WriteString("</blockquote>")
 		return resultSb.String()
 	case *FencedCode:
+		var resultSb strings.Builder
 		if info := v.Info(); info != "" {
 			language := strings.Fields(info)[0]
-			result += `<pre><code class="language-` + htmlEscaper.Replace(language) + `">`
+			resultSb.WriteString(`<pre><code class="language-` + htmlEscaper.Replace(language) + `">`)
 		} else {
-			result += "<pre><code>"
+			resultSb.WriteString("<pre><code>")
 		}
-		result += htmlEscaper.Replace(v.Code()) + "</code></pre>"
+		resultSb.WriteString(htmlEscaper.Replace(v.Code()))
+		resultSb.WriteString("</code></pre>")
+		return resultSb.String()
 	case *IndentedCode:
-		result += "<pre><code>" + htmlEscaper.Replace(v.Code()) + "</code></pre>"
+		return "<pre><code>" + htmlEscaper.Replace(v.Code()) + "</code></pre>"
 	default:
 		panic(fmt.Sprintf("missing case for type %T", v))
 	}
-	return
 }
 
 func escapeURL(url string) (result string) {
@@ -196,7 +198,7 @@ func renderImageAltText(children []Inline) string {
 	return resultSb.String()
 }
 
-func renderImageChildAltText(inline Inline) (result string) {
+func renderImageChildAltText(inline Inline) string {
 	switch v := inline.(type) {
 	case *Text:
 		return v.Text
@@ -213,5 +215,5 @@ func renderImageChildAltText(inline Inline) (result string) {
 		}
 		return resultSb.String()
 	}
-	return
+	return ""
 }
