@@ -123,6 +123,20 @@ export type WebSocketMessage = (
         otherFile?: boolean;
         image?: boolean;
         post: JsonEncodedValue<Post>;
+
+        /**
+         * If the current user is mentioned by this post, this field will contain the ID of that user. Otherwise,
+         * it will be empty.
+         */
+        mentioned?: JsonEncodedValue<string[]>;
+
+        /**
+         * If the current user is following this post, this field will contain the ID of that user. Otherwise,
+         * it will be empty.
+         */
+        followers?: JsonEncodedValue<string[]>;
+
+        should_ack?: boolean;
     }> |
     BaseWebSocketMessage<WebSocketEvents.PostEdited, {
         post: JsonEncodedValue<Post>;
