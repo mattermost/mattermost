@@ -8246,6 +8246,9 @@ func TestUserUpdateEvents(t *testing.T) {
 			assert.Equal(t, th.BasicUser.Id, eventUser.Id)
 			assert.Equal(t, expectedNickname, eventUser.Nickname)
 
+			// Some fields must always be sanitized
+			CheckUserSanitization(t, eventUser)
+
 			return eventUser
 		}
 
@@ -8296,6 +8299,9 @@ func TestUserUpdateEvents(t *testing.T) {
 			require.True(t, ok, "expected user")
 			assert.Equal(t, th.BasicUser.Id, eventUser.Id)
 			assert.Equal(t, expectedUsername, eventUser.Username)
+
+			// Some fields must always be sanitized
+			CheckUserSanitization(t, eventUser)
 
 			return eventUser
 		}
