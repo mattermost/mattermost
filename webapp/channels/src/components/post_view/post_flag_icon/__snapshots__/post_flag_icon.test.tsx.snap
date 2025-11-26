@@ -11,7 +11,7 @@ exports[`components/post_view/PostFlagIcon should match snapshot 1`] = `
   }
 >
   <button
-    aria-label="save"
+    aria-label="save message"
     className="post-menu__item"
     id="CENTER_flagIcon_post_id"
     onClick={[Function]}

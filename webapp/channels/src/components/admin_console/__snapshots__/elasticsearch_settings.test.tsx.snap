@@ -365,7 +365,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Purge Index"
+            defaultMessage="Purge Indexes"
             id="admin.elasticsearch.purgeIndexesButton"
           />
         }
@@ -857,7 +857,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="Purge Index"
+            defaultMessage="Purge Indexes"
             id="admin.elasticsearch.purgeIndexesButton"
           />
         }

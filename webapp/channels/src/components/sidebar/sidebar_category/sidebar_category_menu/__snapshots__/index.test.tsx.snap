@@ -106,7 +106,7 @@ exports[`components/sidebar/sidebar_category/sidebar_category_menu should match 
       id="sortByMostRecent-test_category_id"
       labels={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="Recent Activity"
+          defaultMessage="Recent activity"
           id="sidebar.sortedByRecencyLabel"
         />
       }

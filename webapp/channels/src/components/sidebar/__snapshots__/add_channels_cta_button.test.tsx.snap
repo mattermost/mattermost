@@ -20,12 +20,12 @@ exports[`components/new_channel_modal should match snapshot 1`] = `
         className="icon-plus-box"
       />
       <span>
-        Add Channels
+        Add channels
       </span>
     </div>
   </button>
   <Menu
-    ariaLabel="Add Channels Dropdown"
+    ariaLabel="Add Channel Dropdown"
     id="AddChannelCtaDropdown"
   >
     <Memo(MenuGroup)>
@@ -70,7 +70,7 @@ exports[`components/new_channel_modal should match snapshot when user has only j
       className="icon-plus-box"
     />
     <span>
-      Add Channels
+      Add channels
     </span>
   </div>
 </button>
