@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/MenuItemAction > should match snapshot 1`] = `
+<div>
+  <button
+    class="style--none"
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      Whatever
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/MenuItemAction > should match snapshot with extra text 1`] = `
+<div>
+  <button
+    class="style--none MenuItem__with-help"
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      Whatever
+    </span>
+    <span
+      class="MenuItem__help-text"
+    >
+      Extra Text
+    </span>
+  </button>
+</div>
+`;

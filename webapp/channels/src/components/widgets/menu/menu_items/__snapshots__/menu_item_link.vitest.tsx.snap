@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/MenuItemLink > should match snapshot 1`] = `
+<div>
+  <a
+    class=""
+    href="/wherever"
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      Whatever
+    </span>
+  </a>
+</div>
+`;

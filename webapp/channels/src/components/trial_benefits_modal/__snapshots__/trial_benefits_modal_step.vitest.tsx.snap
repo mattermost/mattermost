@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/trial_benefits_modal/trial_benefits_modal_step > should match snapshot 1`] = `
+<div>
+  <div
+    class="TrialBenefitsModalStep slide-container"
+    id="trialBenefitsModalStep-stepId"
+  >
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/trial_benefits_modal/trial_benefits_modal_step > should match snapshot with optional params 1`] = `
+<div>
+  <div
+    class="TrialBenefitsModalStep slide-container"
+    id="trialBenefitsModalStep-stepId"
+  >
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+    <a
+      class="TrialBenefitsModalStepMore learn-more-button"
+    >
+      button
+    </a>
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+    <div
+      class="bottom-text-left-message"
+    >
+      Step bottom message
+    </div>
+  </div>
+</div>
+`;

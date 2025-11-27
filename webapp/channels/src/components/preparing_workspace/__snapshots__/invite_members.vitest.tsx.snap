@@ -1,0 +1,215 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`InviteMembers component > should match snapshot 1`] = `
+<div>
+  <div
+    class="InviteMembers-body test-class"
+  >
+    <div
+      class="SingleColumnLayout"
+      style="width: 547px;"
+    >
+      <div>
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-bottom: 50px; margin-left: 50px; height: calc(25vh);"
+        />
+        <div>
+          Previous step
+        </div>
+        <h1
+          class="PreparingWorkspaceTitle"
+        >
+          Invite your team members
+        </h1>
+        <p
+          class="PreparingWorkspaceDescription"
+        >
+          Collaboration is tough by yourself. Invite a few team members using the invitation link below.
+        </p>
+        <div
+          class="PreparingWorkspacePageBody"
+        >
+          <div
+            class="InviteMembersLink"
+          >
+            <input
+              aria-label="team invite link"
+              class="InviteMembersLink__input"
+              data-testid="shareLinkInput"
+              readonly=""
+              type="text"
+              value="https://my-org.mattermost.com/config/signup_user_complete/?id=1234"
+            />
+            <button
+              class="InviteMembersLink__button"
+              data-testid="shareLinkInputButton"
+            >
+              <i
+                class="icon icon-link-variant"
+              />
+              Copy Link
+            </button>
+          </div>
+        </div>
+        <div
+          class="InviteMembers__submit"
+        >
+          <button
+            class="primary-button"
+          >
+            Finish setup
+          </button>
+        </div>
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-top: 50px; margin-left: 50px; height: calc(35vh);"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`InviteMembers component > should match snapshot when it is cloud 1`] = `
+<div>
+  <div
+    class="InviteMembers-body test-class"
+  >
+    <div
+      class="SingleColumnLayout"
+      style="width: 547px;"
+    >
+      <div>
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-bottom: 50px; margin-left: 50px; height: calc(25vh);"
+        />
+        <div>
+          Previous step
+        </div>
+        <h1
+          class="PreparingWorkspaceTitle"
+        >
+          Invite your team members
+        </h1>
+        <p
+          class="PreparingWorkspaceDescription"
+        >
+          Collaboration is tough by yourself. Invite a few team members. Separate each email address with a space or comma.
+        </p>
+        <div
+          class="PreparingWorkspacePageBody"
+        >
+          <div
+            class="UsersEmailsInput empty no-selections css-b62m3t-container"
+          >
+            <span
+              class="css-1f43avz-a11yText-A11yText"
+              id="react-select-2-live-region"
+            />
+            <span
+              aria-atomic="false"
+              aria-live="polite"
+              aria-relevant="additions text"
+              class="css-1f43avz-a11yText-A11yText"
+              role="log"
+            >
+              <span
+                id="aria-selection"
+              />
+              <span
+                id="aria-focused"
+              />
+              <span
+                id="aria-results"
+              />
+              <span
+                id="aria-guidance"
+              >
+                Use Up and Down to choose options, press Enter to select the currently focused option, press Escape to exit the menu, press Tab to select the option and exit the menu.
+              </span>
+            </span>
+            <div
+              class="users-emails-input__control users-emails-input__control--is-focused users-emails-input__control--menu-is-open css-t3ipsp-control"
+            >
+              <div
+                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-hlgwow"
+              >
+                <div
+                  class="users-emails-input__placeholder css-10imb99-placeholder"
+                  id="react-select-2-placeholder"
+                >
+                  Enter email addresses
+                </div>
+                <div
+                  class="users-emails-input__input-container css-11wvis5"
+                  data-value=""
+                >
+                  <input
+                    aria-activedescendant=""
+                    aria-autocomplete="list"
+                    aria-controls="react-select-2-listbox"
+                    aria-describedby="react-select-2-placeholder"
+                    aria-expanded="true"
+                    aria-haspopup="true"
+                    aria-label="Add or Invite People"
+                    autocapitalize="none"
+                    autocomplete="off"
+                    autocorrect="off"
+                    class="users-emails-input__input"
+                    id="react-select-2-input"
+                    role="combobox"
+                    spellcheck="false"
+                    style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                    tabindex="0"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="users-emails-input__menu css-1nmdiq5-menu"
+            >
+              <div
+                aria-multiselectable="true"
+                class="users-emails-input__menu-list users-emails-input__menu-list--is-multi css-qr46ko"
+                id="react-select-2-listbox"
+                role="listbox"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="InviteMembers__submit"
+        >
+          <button
+            class="primary-button"
+            disabled=""
+          >
+            Send invites
+          </button>
+          <div
+            class="InviteMembersLink"
+          >
+            <button
+              class="InviteMembersLink__button--single"
+              data-testid="shareLinkInputButton"
+            >
+              <i
+                class="icon icon-content-copy"
+              />
+              Copy Link
+            </button>
+          </div>
+        </div>
+        <div
+          class="PageLine PageLine--no-left"
+          style="margin-top: 50px; margin-left: 50px; height: calc(35vh);"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

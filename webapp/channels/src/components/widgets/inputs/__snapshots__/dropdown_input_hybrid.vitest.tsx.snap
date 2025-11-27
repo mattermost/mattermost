@@ -1,0 +1,94 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/widgets/inputs/DropdownInputHybrid > should match snapshot 1`] = `
+<div>
+  <div
+    class="DropdownInput hybrid_container"
+    style="width: 100%;"
+  >
+    <fieldset
+      class="Input_fieldset Input_fieldset___legend"
+    >
+      <legend
+        class="Input_legend Input_legend___focus"
+      >
+        Channel Message Retention
+      </legend>
+      <div
+        class="Input_wrapper input_hybrid_wrapper"
+        style="max-width: 0;"
+      >
+        <input
+          class="Input form-control"
+          name="Input_channel_message_retention"
+          placeholder="Channel Message Retention"
+          type="text"
+          value=""
+        />
+      </div>
+      <div
+        class="Input_wrapper dropdown_hybrid_wrapper showInput"
+        style="width: 100%;"
+      >
+        <div
+          class="Input Input__focus css-b62m3t-container"
+          id="DropdownInput_channel_message_retention"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-2-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="DropdownInput__controlContainer"
+          >
+            <div
+              class="css-1bhmcib-control"
+            >
+              <div
+                class="css-hlgwow"
+              >
+                <div
+                  class="css-1dimb5e-singleValue"
+                >
+                  Keep Forever
+                </div>
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-readonly="true"
+                  class="css-1s80ejz-dummyInput-DummyInput"
+                  id="react-select-2-input"
+                  inputmode="none"
+                  role="combobox"
+                  tabindex="0"
+                  value=""
+                />
+              </div>
+              <div
+                class="DropdownInput__indicatorsContainer"
+              >
+                <div
+                  class="css-1wy0on6"
+                >
+                  <i
+                    class="icon icon-chevron-down"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+  </div>
+</div>
+`;

@@ -1,0 +1,83 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {describe, test, expect, vi} from 'vitest';
+
+import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+
+import DataGrid from './data_grid';
+
+describe('components/admin_console/data_grid/DataGrid', () => {
+    const baseProps = {
+        page: 1,
+        startCount: 0,
+        endCount: 0,
+        total: 0,
+        loading: false,
+
+        nextPage: vi.fn(),
+        previousPage: vi.fn(),
+        onSearch: vi.fn(),
+
+        rows: [],
+        columns: [],
+        term: '',
+    };
+
+    test('should match snapshot with no items found', () => {
+        const {container} = renderWithIntl(
+            <DataGrid
+                {...baseProps}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot while loading', () => {
+        const {container} = renderWithIntl(
+            <DataGrid
+                {...baseProps}
+                loading={true}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot with content and custom styling on rows', () => {
+        const {container} = renderWithIntl(
+            <DataGrid
+                {...baseProps}
+                rows={[
+                    {cells: {name: 'Joe Schmoe', team: 'Admin Team'}},
+                    {cells: {name: 'Foo Bar', team: 'Admin Team'}},
+                    {cells: {name: 'Some Guy', team: 'Admin Team'}},
+                ]}
+                columns={[
+                    {name: 'Name', field: 'name', width: 3, overflow: 'hidden'},
+                    {name: 'Team', field: 'team', textAlign: 'center'},
+                ]}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot with custom classes', () => {
+        const {container} = renderWithIntl(
+            <DataGrid
+                {...baseProps}
+                rows={[
+                    {cells: {name: 'Joe Schmoe', team: 'Admin Team'}},
+                    {cells: {name: 'Foo Bar', team: 'Admin Team'}},
+                    {cells: {name: 'Some Guy', team: 'Admin Team'}},
+                ]}
+                columns={[
+                    {name: 'Name', field: 'name'},
+                    {name: 'Team', field: 'team'},
+                ]}
+                className={'customTable'}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+});
