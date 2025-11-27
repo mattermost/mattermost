@@ -3,7 +3,7 @@
 
 import {jest} from '@jest/globals';
 
-const monacoMock = {
+const monacoMock: any = {
     editor: {
         create: jest.fn(),
         defineTheme: jest.fn(),
