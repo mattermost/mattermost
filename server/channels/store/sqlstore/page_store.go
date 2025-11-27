@@ -741,7 +741,7 @@ func (s *SqlPageStore) GetCommentsForPage(pageID string, includeDeleted bool) (*
 	// - Inline comments: RootId is empty AND Props->>'page_id' = pageID AND Type = 'page_comment'
 	// - Replies to inline comments: Props->>'page_id' = pageID AND RootId not empty/not pageID AND Type = 'page_comment'
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(postSliceColumns()...).
 		From("Posts").
 		Where(sq.Or{
 			sq.And{

@@ -137,7 +137,7 @@ export default function useWords(highestLimit: LimitSummary | false, isAdminUser
                 id: 'workspace_limits.menu_limit.messages',
                 defaultMessage: 'Total messages',
             }),
-            description: intl.formatMessage<ReactNode>(
+            description: intl.formatMessage(
                 description,
                 values,
             ),
