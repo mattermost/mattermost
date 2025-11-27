@@ -45,7 +45,7 @@ function File({
         }
 
         // Don't show blurred preview for rejected files
-        if (miniPreview && !isFileRejected) {
+        if (miniPreview) {
             return `data:${mimeType};base64,${miniPreview}`;
         }
         return getFileThumbnailUrl(id);
