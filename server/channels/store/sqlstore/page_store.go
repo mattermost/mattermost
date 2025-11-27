@@ -19,12 +19,26 @@ import (
 
 type SqlPageStore struct {
 	*SqlStore
+	pageContentQuery sq.SelectBuilder
 }
 
 func newSqlPageStore(sqlStore *SqlStore) store.PageStore {
-	return &SqlPageStore{
+	s := &SqlPageStore{
 		SqlStore: sqlStore,
 	}
+
+	s.pageContentQuery = s.getQueryBuilder().
+		Select(
+			"PageId",
+			"Content",
+			"SearchText",
+			"CreateAt",
+			"UpdateAt",
+			"DeleteAt",
+		).
+		From("PageContents")
+
+	return s
 }
 
 func (s *SqlPageStore) CreatePage(rctx request.CTX, post *model.Post, content, searchText string) (*model.Post, error) {
@@ -582,7 +596,10 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 		return nil
 	})
 
-	return &currentPost, err
+	if err != nil {
+		return nil, err
+	}
+	return &currentPost, nil
 }
 
 // createPageVersionHistory creates a historical snapshot of a page and its content
@@ -709,4 +726,330 @@ func (s *SqlPageStore) GetPageVersionHistory(pageId string) ([]*model.Post, erro
 	}
 
 	return posts, nil
+}
+
+func (s *SqlPageStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
+	if pageID == "" {
+		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+
+	pl := model.NewPostList()
+
+	// Build query: Get page + all comments/replies (exclude system posts)
+	// - Page itself: Id = pageID AND Type = 'page'
+	// - Regular comments and replies: RootId = pageID AND Type = 'page_comment'
+	// - Inline comments: RootId is empty AND Props->>'page_id' = pageID AND Type = 'page_comment'
+	// - Replies to inline comments: Props->>'page_id' = pageID AND RootId not empty/not pageID AND Type = 'page_comment'
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Or{
+			sq.And{
+				sq.Eq{"Id": pageID},
+				sq.Eq{"Type": model.PostTypePage},
+			},
+			sq.And{
+				sq.Eq{"RootId": pageID},
+				sq.Eq{"Type": model.PostTypePageComment},
+			},
+			sq.And{
+				sq.Expr("Props->>'page_id' = ?", pageID),
+				sq.Eq{"RootId": ""},
+				sq.Eq{"Type": model.PostTypePageComment},
+			},
+			sq.And{
+				sq.Expr("Props->>'page_id' = ?", pageID),
+				sq.NotEq{"RootId": ""},
+				sq.NotEq{"RootId": pageID},
+				sq.Eq{"Type": model.PostTypePageComment},
+			},
+		}).
+		OrderBy("CreateAt ASC")
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	// Execute query
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build GetCommentsForPage query")
+	}
+
+	var posts []*model.Post
+	err = s.GetReplica().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get comments for page with id=%s", pageID)
+	}
+
+	// Build PostList
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	return pl, nil
+}
+
+// PageContent operations
+// PageStore owns both Posts (Type='page') and PageContents tables for transactional atomicity
+
+func (s *SqlPageStore) SavePageContent(pageContent *model.PageContent) (*model.PageContent, error) {
+	pageContent.PreSave()
+
+	if err := pageContent.IsValid(); err != nil {
+		return nil, err
+	}
+
+	contentJSON, jsonErr := pageContent.GetDocumentJSON()
+	if jsonErr != nil {
+		return nil, errors.Wrap(jsonErr, "failed to serialize PageContent document")
+	}
+
+	query := s.getQueryBuilder().
+		Insert("PageContents").
+		Columns("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(pageContent.PageId, contentJSON, pageContent.SearchText, pageContent.CreateAt, pageContent.UpdateAt, pageContent.DeleteAt)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "page_content_insert_tosql")
+	}
+
+	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to save PageContent with pageId=%s", pageContent.PageId)
+	}
+
+	return pageContent, nil
+}
+
+func (s *SqlPageStore) GetPageContent(pageID string) (*model.PageContent, error) {
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "DeleteAt": 0})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "page_content_tosql")
+	}
+
+	var pageContent model.PageContent
+	var contentJSON string
+
+	if err := s.GetReplica().QueryRow(queryString, args...).Scan(
+		&pageContent.PageId,
+		&contentJSON,
+		&pageContent.SearchText,
+		&pageContent.CreateAt,
+		&pageContent.UpdateAt,
+		&pageContent.DeleteAt,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PageContent", pageID)
+		}
+		return nil, errors.Wrapf(err, "failed to get PageContent with pageId=%s", pageID)
+	}
+
+	if err := pageContent.SetDocumentJSON(contentJSON); err != nil {
+		return nil, errors.Wrap(err, "failed to parse PageContent document")
+	}
+
+	return &pageContent, nil
+}
+
+func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageContent, error) {
+	if len(pageIDs) == 0 {
+		return []*model.PageContent{}, nil
+	}
+
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "DeleteAt": 0})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "page_content_getmany_tosql")
+	}
+
+	rows, err := s.GetReplica().Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get PageContents with pageIds=%v", pageIDs)
+	}
+	defer rows.Close()
+
+	pageContents := []*model.PageContent{}
+	for rows.Next() {
+		var pageContent model.PageContent
+		var contentJSON string
+
+		if err := rows.Scan(
+			&pageContent.PageId,
+			&contentJSON,
+			&pageContent.SearchText,
+			&pageContent.CreateAt,
+			&pageContent.UpdateAt,
+			&pageContent.DeleteAt,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan PageContent row")
+		}
+
+		if err := pageContent.SetDocumentJSON(contentJSON); err != nil {
+			return nil, errors.Wrapf(err, "failed to parse PageContent document for pageId=%s", pageContent.PageId)
+		}
+
+		pageContents = append(pageContents, &pageContent)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error iterating PageContent rows")
+	}
+
+	return pageContents, nil
+}
+
+func (s *SqlPageStore) GetPageContentWithDeleted(pageID string) (*model.PageContent, error) {
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "page_content_tosql")
+	}
+
+	var pageContent model.PageContent
+	var contentJSON string
+
+	if err := s.GetReplica().QueryRow(queryString, args...).Scan(
+		&pageContent.PageId,
+		&contentJSON,
+		&pageContent.SearchText,
+		&pageContent.CreateAt,
+		&pageContent.UpdateAt,
+		&pageContent.DeleteAt,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PageContent", pageID)
+		}
+		return nil, errors.Wrapf(err, "failed to get PageContent with pageId=%s", pageID)
+	}
+
+	if err := pageContent.SetDocumentJSON(contentJSON); err != nil {
+		return nil, errors.Wrap(err, "failed to parse PageContent document")
+	}
+
+	return &pageContent, nil
+}
+
+func (s *SqlPageStore) GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.PageContent, error) {
+	if len(pageIDs) == 0 {
+		return []*model.PageContent{}, nil
+	}
+
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "page_content_getmany_withdeleted_tosql")
+	}
+
+	rows, err := s.GetReplica().Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get PageContents (including deleted) with pageIds=%v", pageIDs)
+	}
+	defer rows.Close()
+
+	pageContents := []*model.PageContent{}
+	for rows.Next() {
+		var pageContent model.PageContent
+		var contentJSON string
+
+		if err := rows.Scan(
+			&pageContent.PageId,
+			&contentJSON,
+			&pageContent.SearchText,
+			&pageContent.CreateAt,
+			&pageContent.UpdateAt,
+			&pageContent.DeleteAt,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan PageContent row")
+		}
+
+		if err := pageContent.SetDocumentJSON(contentJSON); err != nil {
+			return nil, errors.Wrapf(err, "failed to parse PageContent document for pageId=%s", pageContent.PageId)
+		}
+
+		pageContents = append(pageContents, &pageContent)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error iterating PageContent rows")
+	}
+
+	return pageContents, nil
+}
+
+func (s *SqlPageStore) UpdatePageContent(pageContent *model.PageContent) (*model.PageContent, error) {
+	pageContent.PreSave()
+
+	if err := pageContent.IsValid(); err != nil {
+		return nil, err
+	}
+
+	contentJSON, jsonErr := pageContent.GetDocumentJSON()
+	if jsonErr != nil {
+		return nil, errors.Wrap(jsonErr, "failed to serialize PageContent document")
+	}
+
+	query := s.getQueryBuilder().
+		Update("PageContents").
+		Set("Content", contentJSON).
+		Set("SearchText", pageContent.SearchText).
+		Set("UpdateAt", pageContent.UpdateAt).
+		Where(sq.Eq{"PageId": pageContent.PageId})
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to update PageContent with pageId=%s", pageContent.PageId)
+	}
+
+	if err := s.checkRowsAffected(result, "PageContent", pageContent.PageId); err != nil {
+		return nil, err
+	}
+
+	return pageContent, nil
+}
+
+func (s *SqlPageStore) DeletePageContent(pageID string) error {
+	query := s.buildSoftDeleteQuery("PageContents", "PageId", pageID, true)
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to soft-delete PageContent with pageId=%s", pageID)
+	}
+
+	return s.checkRowsAffected(result, "PageContent", pageID)
+}
+
+func (s *SqlPageStore) PermanentDeletePageContent(pageID string) error {
+	query := s.getQueryBuilder().
+		Delete("PageContents").
+		Where(sq.Eq{"PageId": pageID})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "page_content_permanent_delete_tosql")
+	}
+
+	_, err = s.GetMaster().Exec(queryString, args...)
+	if err != nil {
+		return errors.Wrapf(err, "failed to permanently delete PageContent with pageId=%s", pageID)
+	}
+
+	return nil
+}
+
+func (s *SqlPageStore) RestorePageContent(pageID string) error {
+	query := s.buildRestoreQuery("PageContents", "PageId", pageID)
+
+	result, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to restore PageContent with pageId=%s", pageID)
+	}
+
+	return s.checkRowsAffected(result, "PageContent", pageID)
 }

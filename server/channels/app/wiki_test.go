@@ -569,7 +569,7 @@ func TestDuplicatePage(t *testing.T) {
 		require.Equal(t, th.BasicChannel.Id, duplicatedPage.ChannelId, "Should be in same channel")
 		require.Empty(t, duplicatedPage.PageParentId, "Should be root level")
 
-		duplicatedContent, contentErr := th.App.Srv().Store().PageContent().Get(duplicatedPage.Id)
+		duplicatedContent, contentErr := th.App.Srv().Store().Page().GetPageContent(duplicatedPage.Id)
 		require.NoError(t, contentErr)
 		duplicatedContentJSON, jsonErr := duplicatedContent.GetDocumentJSON()
 		require.NoError(t, jsonErr)

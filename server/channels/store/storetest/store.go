@@ -72,7 +72,6 @@ type Store struct {
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 	WikiStore                       mocks.WikiStore
-	PageContentStore                mocks.PageContentStore
 	PageStore                       mocks.PageStore
 }
 
@@ -173,9 +172,6 @@ func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 func (s *Store) Wiki() store.WikiStore {
 	return &s.WikiStore
 }
-func (s *Store) PageContent() store.PageContentStore {
-	return &s.PageContentStore
-}
 func (s *Store) Page() store.PageStore {
 	return &s.PageStore
 }
@@ -233,7 +229,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
 		&s.WikiStore,
-		&s.PageContentStore,
 		&s.PageStore,
 	)
 }

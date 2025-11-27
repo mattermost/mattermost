@@ -1425,7 +1425,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		commentsForPage, appErr := th.App.Srv().Store().Post().GetCommentsForPage(testPage2.Id, false)
+		commentsForPage, appErr := th.App.Srv().Store().Page().GetCommentsForPage(testPage2.Id, false)
 		require.NoError(t, appErr)
 		require.NotNil(t, commentsForPage)
 

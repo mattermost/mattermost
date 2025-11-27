@@ -45,4 +45,19 @@ type PageStore interface {
 
 	// GetPageVersionHistory fetches the version history for a page (limited to PostEditHistoryLimit versions)
 	GetPageVersionHistory(pageID string) ([]*model.Post, error)
+
+	// GetCommentsForPage fetches all comments and replies for a page
+	GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error)
+
+	// PageContent operations (PageContents table)
+	// PageStore owns both Posts (Type='page') and PageContents tables for transactional atomicity
+	SavePageContent(pageContent *model.PageContent) (*model.PageContent, error)
+	GetPageContent(pageID string) (*model.PageContent, error)
+	GetManyPageContents(pageIDs []string) ([]*model.PageContent, error)
+	GetPageContentWithDeleted(pageID string) (*model.PageContent, error)
+	GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.PageContent, error)
+	UpdatePageContent(pageContent *model.PageContent) (*model.PageContent, error)
+	DeletePageContent(pageID string) error
+	PermanentDeletePageContent(pageID string) error
+	RestorePageContent(pageID string) error
 }

@@ -2146,7 +2146,7 @@ func testSearchWikiPages(t *testing.T, th *SearchTestHelper) {
 		UpdateAt:   model.GetMillis(),
 	}
 
-	_, err = th.Store.PageContent().Save(pageContent)
+	_, err = th.Store.Page().SavePageContent(pageContent)
 	require.NoError(t, err)
 
 	t.Run("Should find wiki page by content in PageContents table", func(t *testing.T) {

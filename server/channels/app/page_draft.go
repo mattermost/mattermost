@@ -805,7 +805,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 
 	// Load page content for the response (PageContent table stores the actual content)
 	// This is separate from enrichment and fetches the full page content
-	pageContent, contentErr := a.Srv().Store().PageContent().Get(savedPost.Id)
+	pageContent, contentErr := a.Srv().Store().Page().GetPageContent(savedPost.Id)
 	if contentErr != nil {
 		rctx.Logger().Warn("Failed to fetch page content after publish", mlog.String("page_id", savedPost.Id), mlog.Err(contentErr))
 		// Don't fail the whole operation, just return without content

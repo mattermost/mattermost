@@ -44,7 +44,6 @@ type RetryLayer struct {
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
-	PageContentStore                store.PageContentStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -171,10 +170,6 @@ func (s *RetryLayer) OAuth() store.OAuthStore {
 
 func (s *RetryLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return s.OutgoingOAuthConnectionStore
-}
-
-func (s *RetryLayer) PageContent() store.PageContentStore {
-	return s.PageContentStore
 }
 
 func (s *RetryLayer) Plugin() store.PluginStore {
@@ -414,11 +409,6 @@ type RetryLayerOAuthStore struct {
 
 type RetryLayerOutgoingOAuthConnectionStore struct {
 	store.OutgoingOAuthConnectionStore
-	Root *RetryLayer
-}
-
-type RetryLayerPageContentStore struct {
-	store.PageContentStore
 	Root *RetryLayer
 }
 
@@ -7789,195 +7779,6 @@ func (s *RetryLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 
 }
 
-func (s *RetryLayerPageContentStore) Delete(pageID string) error {
-
-	tries := 0
-	for {
-		err := s.PageContentStore.Delete(pageID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) Get(pageID string) (*model.PageContent, error) {
-
-	tries := 0
-	for {
-		result, err := s.PageContentStore.Get(pageID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) GetMany(pageIDs []string) ([]*model.PageContent, error) {
-
-	tries := 0
-	for {
-		result, err := s.PageContentStore.GetMany(pageIDs)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) GetManyWithDeleted(pageIDs []string) ([]*model.PageContent, error) {
-
-	tries := 0
-	for {
-		result, err := s.PageContentStore.GetManyWithDeleted(pageIDs)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) GetWithDeleted(pageID string) (*model.PageContent, error) {
-
-	tries := 0
-	for {
-		result, err := s.PageContentStore.GetWithDeleted(pageID)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) PermanentDelete(pageID string) error {
-
-	tries := 0
-	for {
-		err := s.PageContentStore.PermanentDelete(pageID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) Restore(pageID string) error {
-
-	tries := 0
-	for {
-		err := s.PageContentStore.Restore(pageID)
-		if err == nil {
-			return nil
-		}
-		if !isRepeatableError(err) {
-			return err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) Save(pageContent *model.PageContent) (*model.PageContent, error) {
-
-	tries := 0
-	for {
-		result, err := s.PageContentStore.Save(pageContent)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPageContentStore) Update(pageContent *model.PageContent) (*model.PageContent, error) {
-
-	tries := 0
-	for {
-		result, err := s.PageContentStore.Update(pageContent)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 
 	tries := 0
@@ -8304,27 +8105,6 @@ func (s *RetryLayerPostStore) Get(rctx request.CTX, id string, opts model.GetPos
 	tries := 0
 	for {
 		result, err := s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetCommentsForPage(pageID, includeDeleted)
 		if err == nil {
 			return result, nil
 		}
@@ -17969,7 +17749,6 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.NotifyAdminStore = &RetryLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &RetryLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &RetryLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
-	newStore.PageContentStore = &RetryLayerPageContentStore{PageContentStore: childStore.PageContent(), Root: &newStore}
 	newStore.PluginStore = &RetryLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &RetryLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &RetryLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

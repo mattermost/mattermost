@@ -76,7 +76,7 @@ func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *
 			nil, "post is not a page", http.StatusBadRequest)
 	}
 
-	postList, appErr := a.Srv().Store().Post().GetCommentsForPage(pageID, false)
+	postList, appErr := a.Srv().Store().Page().GetCommentsForPage(pageID, false)
 	if appErr != nil {
 		return nil, model.NewAppError("GetPageComments",
 			"app.page.get_comments.store_error.app_error",

@@ -615,7 +615,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.not_a_page", nil, "", http.StatusBadRequest)
 	}
 
-	sourceContent, contentErr := a.Srv().Store().PageContent().Get(sourcePageId)
+	sourceContent, contentErr := a.Srv().Store().Page().GetPageContent(sourcePageId)
 	if contentErr != nil {
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.content_not_found", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 	}

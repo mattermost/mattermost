@@ -3418,66 +3418,6 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	return meta, nil
 }
 
-// GetCommentsForPage retrieves all comments and replies for a page using the flat model
-// Returns the page itself plus all comments/replies
-// Inline comments have empty RootId and are identified by Props->'page_id'
-// Regular comments have RootId = pageId
-func (s *SqlPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
-	if pageID == "" {
-		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
-	}
-
-	pl := model.NewPostList()
-
-	// Build query: Get page + all comments/replies (exclude system posts)
-	// - Page itself: Id = pageID AND Type = 'page'
-	// - Regular comments and replies: RootId = pageID AND Type = 'page_comment'
-	// - Inline comments: RootId is empty AND Props->>'page_id' = pageID AND Type = 'page_comment'
-	query := s.getQueryBuilder().
-		Select("*").
-		From("Posts").
-		Where(sq.Or{
-			sq.And{
-				sq.Eq{"Id": pageID},
-				sq.Eq{"Type": model.PostTypePage},
-			},
-			sq.And{
-				sq.Eq{"RootId": pageID},
-				sq.Eq{"Type": model.PostTypePageComment},
-			},
-			sq.And{
-				sq.Expr("Props->>'page_id' = ?", pageID),
-				sq.Eq{"RootId": ""},
-				sq.Eq{"Type": model.PostTypePageComment},
-			},
-		}).
-		OrderBy("CreateAt ASC")
-
-	if !includeDeleted {
-		query = query.Where(sq.Eq{"DeleteAt": 0})
-	}
-
-	// Execute query
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to build GetCommentsForPage query")
-	}
-
-	var posts []*model.Post
-	err = s.GetReplica().Select(&posts, queryString, args...)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get comments for page with id=%s", pageID)
-	}
-
-	// Build PostList
-	for _, post := range posts {
-		pl.AddPost(post)
-		pl.AddOrder(post.Id)
-	}
-
-	return pl, nil
-}
-
 func (s *SqlPostStore) RefreshPostStats() error {
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		// CONCURRENTLY is not used deliberately because as per Postgres docs,

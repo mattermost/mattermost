@@ -43,7 +43,6 @@ type TimerLayer struct {
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
-	PageContentStore                store.PageContentStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -170,10 +169,6 @@ func (s *TimerLayer) OAuth() store.OAuthStore {
 
 func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return s.OutgoingOAuthConnectionStore
-}
-
-func (s *TimerLayer) PageContent() store.PageContentStore {
-	return s.PageContentStore
 }
 
 func (s *TimerLayer) Plugin() store.PluginStore {
@@ -413,11 +408,6 @@ type TimerLayerOAuthStore struct {
 
 type TimerLayerOutgoingOAuthConnectionStore struct {
 	store.OutgoingOAuthConnectionStore
-	Root *TimerLayer
-}
-
-type TimerLayerPageContentStore struct {
-	store.PageContentStore
 	Root *TimerLayer
 }
 
@@ -6331,150 +6321,6 @@ func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 	return result, err
 }
 
-func (s *TimerLayerPageContentStore) Delete(pageID string) error {
-	start := time.Now()
-
-	err := s.PageContentStore.Delete(pageID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Delete", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerPageContentStore) Get(pageID string) (*model.PageContent, error) {
-	start := time.Now()
-
-	result, err := s.PageContentStore.Get(pageID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Get", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPageContentStore) GetMany(pageIDs []string) ([]*model.PageContent, error) {
-	start := time.Now()
-
-	result, err := s.PageContentStore.GetMany(pageIDs)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.GetMany", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPageContentStore) GetManyWithDeleted(pageIDs []string) ([]*model.PageContent, error) {
-	start := time.Now()
-
-	result, err := s.PageContentStore.GetManyWithDeleted(pageIDs)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.GetManyWithDeleted", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPageContentStore) GetWithDeleted(pageID string) (*model.PageContent, error) {
-	start := time.Now()
-
-	result, err := s.PageContentStore.GetWithDeleted(pageID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.GetWithDeleted", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPageContentStore) PermanentDelete(pageID string) error {
-	start := time.Now()
-
-	err := s.PageContentStore.PermanentDelete(pageID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.PermanentDelete", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerPageContentStore) Restore(pageID string) error {
-	start := time.Now()
-
-	err := s.PageContentStore.Restore(pageID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Restore", success, elapsed)
-	}
-	return err
-}
-
-func (s *TimerLayerPageContentStore) Save(pageContent *model.PageContent) (*model.PageContent, error) {
-	start := time.Now()
-
-	result, err := s.PageContentStore.Save(pageContent)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Save", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPageContentStore) Update(pageContent *model.PageContent) (*model.PageContent, error) {
-	start := time.Now()
-
-	result, err := s.PageContentStore.Update(pageContent)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Update", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerPluginStore) CompareAndDelete(keyVal *model.PluginKeyValue, oldValue []byte) (bool, error) {
 	start := time.Now()
 
@@ -6742,22 +6588,6 @@ func (s *TimerLayerPostStore) Get(rctx request.CTX, id string, opts model.GetPos
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.Get", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
-	start := time.Now()
-
-	result, err := s.PostStore.GetCommentsForPage(pageID, includeDeleted)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetCommentsForPage", success, elapsed)
 	}
 	return result, err
 }
@@ -14286,7 +14116,6 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
-	newStore.PageContentStore = &TimerLayerPageContentStore{PageContentStore: childStore.PageContent(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

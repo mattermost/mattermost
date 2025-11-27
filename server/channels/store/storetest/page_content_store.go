@@ -85,7 +85,7 @@ func testSavePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		}
 
-		saved, saveErr := ss.PageContent().Save(pc)
+		saved, saveErr := ss.Page().SavePageContent(pc)
 		require.NoError(t, saveErr)
 		require.NotNil(t, saved)
 		require.Equal(t, page.Id, saved.PageId)
@@ -113,7 +113,7 @@ func testSavePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		}
 
-		_, saveErr := ss.PageContent().Save(pc)
+		_, saveErr := ss.Page().SavePageContent(pc)
 		require.Error(t, saveErr)
 	})
 }
@@ -174,11 +174,11 @@ func testGetPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		},
 	}
-	_, err = ss.PageContent().Save(pc)
+	_, err = ss.Page().SavePageContent(pc)
 	require.NoError(t, err)
 
 	t.Run("get existing page content", func(t *testing.T) {
-		retrieved, getErr := ss.PageContent().Get(page.Id)
+		retrieved, getErr := ss.Page().GetPageContent(page.Id)
 		require.NoError(t, getErr)
 		require.NotNil(t, retrieved)
 		require.Equal(t, page.Id, retrieved.PageId)
@@ -187,7 +187,7 @@ func testGetPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("fails to get non-existent page content", func(t *testing.T) {
-		_, getErr := ss.PageContent().Get(model.NewId())
+		_, getErr := ss.Page().GetPageContent(model.NewId())
 		require.Error(t, getErr)
 
 		var nfErr *store.ErrNotFound
@@ -254,14 +254,14 @@ func testGetManyPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 				},
 			},
 		}
-		_, saveErr := ss.PageContent().Save(pc)
+		_, saveErr := ss.Page().SavePageContent(pc)
 		require.NoError(t, saveErr)
 	}
 
 	t.Run("get multiple page contents", func(t *testing.T) {
 		pageIDs := []string{pages[0].Id, pages[1].Id, pages[2].Id}
 
-		retrieved, getErr := ss.PageContent().GetMany(pageIDs)
+		retrieved, getErr := ss.Page().GetManyPageContents(pageIDs)
 		require.NoError(t, getErr)
 		require.Len(t, retrieved, 3)
 
@@ -284,13 +284,13 @@ func testGetManyPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			allPageIDs = append(allPageIDs, page.Id)
 		}
 
-		retrieved, getErr := ss.PageContent().GetMany(allPageIDs)
+		retrieved, getErr := ss.Page().GetManyPageContents(allPageIDs)
 		require.NoError(t, getErr)
 		require.Len(t, retrieved, 5)
 	})
 
 	t.Run("get many with empty list returns empty result", func(t *testing.T) {
-		retrieved, getErr := ss.PageContent().GetMany([]string{})
+		retrieved, getErr := ss.Page().GetManyPageContents([]string{})
 		require.NoError(t, getErr)
 		require.Empty(t, retrieved)
 	})
@@ -298,7 +298,7 @@ func testGetManyPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("get many with non-existent IDs returns only existing content", func(t *testing.T) {
 		mixedIDs := []string{pages[0].Id, model.NewId(), pages[2].Id, model.NewId()}
 
-		retrieved, getErr := ss.PageContent().GetMany(mixedIDs)
+		retrieved, getErr := ss.Page().GetManyPageContents(mixedIDs)
 		require.NoError(t, getErr)
 		require.Len(t, retrieved, 2)
 
@@ -312,11 +312,11 @@ func testGetManyPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("get many excludes soft-deleted content", func(t *testing.T) {
-		deleteErr := ss.PageContent().Delete(pages[1].Id)
+		deleteErr := ss.Page().DeletePageContent(pages[1].Id)
 		require.NoError(t, deleteErr)
 
 		pageIDs := []string{pages[0].Id, pages[1].Id, pages[2].Id}
-		retrieved, getErr := ss.PageContent().GetMany(pageIDs)
+		retrieved, getErr := ss.Page().GetManyPageContents(pageIDs)
 		require.NoError(t, getErr)
 		require.Len(t, retrieved, 2)
 
@@ -386,7 +386,7 @@ func testUpdatePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		},
 	}
-	saved, err := ss.PageContent().Save(pc)
+	saved, err := ss.Page().SavePageContent(pc)
 	require.NoError(t, err)
 
 	t.Run("update existing page content", func(t *testing.T) {
@@ -410,7 +410,7 @@ func testUpdatePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		}
 
-		updated, updateErr := ss.PageContent().Update(saved)
+		updated, updateErr := ss.Page().UpdatePageContent(saved)
 		require.NoError(t, updateErr)
 		require.NotNil(t, updated)
 		require.Contains(t, updated.SearchText, "Updated content")
@@ -428,7 +428,7 @@ func testUpdatePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		nonExistent.PreSave()
 
-		_, updateErr := ss.PageContent().Update(nonExistent)
+		_, updateErr := ss.Page().UpdatePageContent(nonExistent)
 		require.Error(t, updateErr)
 
 		var nfErr *store.ErrNotFound
@@ -491,14 +491,14 @@ func testDeletePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		},
 	}
-	_, err = ss.PageContent().Save(pc)
+	_, err = ss.Page().SavePageContent(pc)
 	require.NoError(t, err)
 
 	t.Run("delete existing page content", func(t *testing.T) {
-		deleteErr := ss.PageContent().Delete(page.Id)
+		deleteErr := ss.Page().DeletePageContent(page.Id)
 		require.NoError(t, deleteErr)
 
-		_, getErr := ss.PageContent().Get(page.Id)
+		_, getErr := ss.Page().GetPageContent(page.Id)
 		require.Error(t, getErr)
 
 		var nfErr *store.ErrNotFound
@@ -506,7 +506,7 @@ func testDeletePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("fails to delete non-existent page content", func(t *testing.T) {
-		deleteErr := ss.PageContent().Delete(model.NewId())
+		deleteErr := ss.Page().DeletePageContent(model.NewId())
 		require.Error(t, deleteErr)
 
 		var nfErr *store.ErrNotFound
@@ -574,11 +574,11 @@ func testPageContentLargeDocument(t *testing.T, rctx request.CTX, ss store.Store
 			},
 		}
 
-		saved, saveErr := ss.PageContent().Save(pc)
+		saved, saveErr := ss.Page().SavePageContent(pc)
 		require.NoError(t, saveErr)
 		require.NotNil(t, saved)
 
-		retrieved, getErr := ss.PageContent().Get(page.Id)
+		retrieved, getErr := ss.Page().GetPageContent(page.Id)
 		require.NoError(t, getErr)
 		require.NotNil(t, retrieved)
 		require.Len(t, retrieved.Content.Content, 100)
@@ -700,7 +700,7 @@ func testPageContentSearchTextExtraction(t *testing.T, rctx request.CTX, ss stor
 			},
 		}
 
-		saved, saveErr := ss.PageContent().Save(pc)
+		saved, saveErr := ss.Page().SavePageContent(pc)
 		require.NoError(t, saveErr)
 		require.NotNil(t, saved)
 
@@ -767,17 +767,17 @@ func testGetPageContentWithDeleted(t *testing.T, rctx request.CTX, ss store.Stor
 			},
 		},
 	}
-	_, err = ss.PageContent().Save(pc)
+	_, err = ss.Page().SavePageContent(pc)
 	require.NoError(t, err)
 
 	t.Run("GetWithDeleted returns soft-deleted content", func(t *testing.T) {
-		deleteErr := ss.PageContent().Delete(page.Id)
+		deleteErr := ss.Page().DeletePageContent(page.Id)
 		require.NoError(t, deleteErr)
 
-		_, getErr := ss.PageContent().Get(page.Id)
+		_, getErr := ss.Page().GetPageContent(page.Id)
 		require.Error(t, getErr)
 
-		retrieved, getWithDeletedErr := ss.PageContent().GetWithDeleted(page.Id)
+		retrieved, getWithDeletedErr := ss.Page().GetPageContentWithDeleted(page.Id)
 		require.NoError(t, getWithDeletedErr)
 		require.NotNil(t, retrieved)
 		require.Equal(t, page.Id, retrieved.PageId)
@@ -841,20 +841,20 @@ func testRestorePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		},
 	}
-	_, err = ss.PageContent().Save(pc)
+	_, err = ss.Page().SavePageContent(pc)
 	require.NoError(t, err)
 
 	t.Run("Restore clears DeleteAt and makes content accessible", func(t *testing.T) {
-		deleteErr := ss.PageContent().Delete(page.Id)
+		deleteErr := ss.Page().DeletePageContent(page.Id)
 		require.NoError(t, deleteErr)
 
-		_, getErr := ss.PageContent().Get(page.Id)
+		_, getErr := ss.Page().GetPageContent(page.Id)
 		require.Error(t, getErr)
 
-		restoreErr := ss.PageContent().Restore(page.Id)
+		restoreErr := ss.Page().RestorePageContent(page.Id)
 		require.NoError(t, restoreErr)
 
-		restored, getErr := ss.PageContent().Get(page.Id)
+		restored, getErr := ss.Page().GetPageContent(page.Id)
 		require.NoError(t, getErr)
 		require.NotNil(t, restored)
 		require.Equal(t, page.Id, restored.PageId)
@@ -882,10 +882,10 @@ func testRestorePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 				Content: []map[string]any{},
 			},
 		}
-		_, err = ss.PageContent().Save(pc2)
+		_, err = ss.Page().SavePageContent(pc2)
 		require.NoError(t, err)
 
-		restoreErr := ss.PageContent().Restore(page2.Id)
+		restoreErr := ss.Page().RestorePageContent(page2.Id)
 		require.Error(t, restoreErr)
 
 		var nfErr *store.ErrNotFound
@@ -948,17 +948,17 @@ func testPermanentDeletePageContent(t *testing.T, rctx request.CTX, ss store.Sto
 			},
 		},
 	}
-	_, err = ss.PageContent().Save(pc)
+	_, err = ss.Page().SavePageContent(pc)
 	require.NoError(t, err)
 
 	t.Run("PermanentDelete removes content from database", func(t *testing.T) {
-		permanentDeleteErr := ss.PageContent().PermanentDelete(page.Id)
+		permanentDeleteErr := ss.Page().PermanentDeletePageContent(page.Id)
 		require.NoError(t, permanentDeleteErr)
 
-		_, getErr := ss.PageContent().Get(page.Id)
+		_, getErr := ss.Page().GetPageContent(page.Id)
 		require.Error(t, getErr)
 
-		_, getWithDeletedErr := ss.PageContent().GetWithDeleted(page.Id)
+		_, getWithDeletedErr := ss.Page().GetPageContentWithDeleted(page.Id)
 		require.Error(t, getWithDeletedErr)
 
 		var nfErr *store.ErrNotFound
@@ -966,7 +966,7 @@ func testPermanentDeletePageContent(t *testing.T, rctx request.CTX, ss store.Sto
 	})
 
 	t.Run("PermanentDelete succeeds even if content does not exist", func(t *testing.T) {
-		permanentDeleteErr := ss.PageContent().PermanentDelete(model.NewId())
+		permanentDeleteErr := ss.Page().PermanentDeletePageContent(model.NewId())
 		require.NoError(t, permanentDeleteErr)
 	})
 }

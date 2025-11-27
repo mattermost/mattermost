@@ -1057,7 +1057,7 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		SearchText: "Test page 1 content",
 	}
-	_, err = ss.PageContent().Save(page1Content)
+	_, err = ss.Page().SavePageContent(page1Content)
 	require.NoError(t, err)
 
 	page2Content := &model.PageContent{
@@ -1068,7 +1068,7 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		SearchText: "Test page 2 content",
 	}
-	_, err = ss.PageContent().Save(page2Content)
+	_, err = ss.Page().SavePageContent(page2Content)
 	require.NoError(t, err)
 
 	pageDraft := &model.PageDraftContent{
@@ -1118,20 +1118,20 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		assert.Len(t, page2Props, 0)
 
-		page1ContentDeleted, err := ss.PageContent().Get(page1.Id)
+		page1ContentDeleted, err := ss.Page().GetPageContent(page1.Id)
 		assert.Nil(t, page1ContentDeleted)
 		assert.Error(t, err)
 
-		page2ContentDeleted, err := ss.PageContent().Get(page2.Id)
+		page2ContentDeleted, err := ss.Page().GetPageContent(page2.Id)
 		assert.Nil(t, page2ContentDeleted)
 		assert.Error(t, err)
 
-		page1ContentWithDeleted, err := ss.PageContent().GetWithDeleted(page1.Id)
+		page1ContentWithDeleted, err := ss.Page().GetPageContentWithDeleted(page1.Id)
 		require.NoError(t, err)
 		assert.NotNil(t, page1ContentWithDeleted)
 		assert.NotEqual(t, int64(0), page1ContentWithDeleted.DeleteAt)
 
-		page2ContentWithDeleted, err := ss.PageContent().GetWithDeleted(page2.Id)
+		page2ContentWithDeleted, err := ss.Page().GetPageContentWithDeleted(page2.Id)
 		require.NoError(t, err)
 		assert.NotNil(t, page2ContentWithDeleted)
 		assert.NotEqual(t, int64(0), page2ContentWithDeleted.DeleteAt)

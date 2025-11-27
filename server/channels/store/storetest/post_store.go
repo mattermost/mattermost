@@ -6470,7 +6470,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		inlineComment2, err = ss.Post().Save(rctx, inlineComment2)
 		require.NoError(t, err)
 
-		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -6524,7 +6524,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		reply, err = ss.Post().Save(rctx, reply)
 		require.NoError(t, err)
 
-		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -6568,7 +6568,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.Post().Delete(rctx, inlineComment.Id, model.GetMillis(), userID)
 		require.NoError(t, err)
 
-		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -6608,7 +6608,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.Post().Delete(rctx, inlineComment.Id, model.GetMillis(), userID)
 		require.NoError(t, err)
 
-		result, getErr := ss.Post().GetCommentsForPage(page.Id, true)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, true)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -6630,7 +6630,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		page, err = ss.Post().Save(rctx, page)
 		require.NoError(t, err)
 
-		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -6639,7 +6639,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("returns error for invalid pageID", func(t *testing.T) {
-		result, getErr := ss.Post().GetCommentsForPage("", false)
+		result, getErr := ss.Page().GetCommentsForPage("", false)
 		require.Error(t, getErr)
 		require.Nil(t, result)
 
@@ -6650,7 +6650,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("returns empty list for non-existent page", func(t *testing.T) {
 		nonExistentPageID := model.NewId()
 
-		result, getErr := ss.Post().GetCommentsForPage(nonExistentPageID, false)
+		result, getErr := ss.Page().GetCommentsForPage(nonExistentPageID, false)
 		require.NoError(t, getErr)
 		require.NotNil(t, result)
 
@@ -6704,7 +6704,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		comment2, err = ss.Post().Save(rctx, comment2)
 		require.NoError(t, err)
 
-		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		result, getErr := ss.Page().GetCommentsForPage(page.Id, false)
 		require.NoError(t, getErr)
 
 		require.Len(t, result.Order, 3)
@@ -6776,7 +6776,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
-		pageContent, contentErr := ss.PageContent().Get(page.Id)
+		pageContent, contentErr := ss.Page().GetPageContent(page.Id)
 		require.NoError(t, contentErr)
 		require.NotNil(t, pageContent)
 
@@ -6808,7 +6808,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		require.Equal(t, "Updated Title", updatedPost.Props["title"])
 
-		pageContent, contentErr := ss.PageContent().Get(page.Id)
+		pageContent, contentErr := ss.Page().GetPageContent(page.Id)
 		require.NoError(t, contentErr)
 
 		actualContentJSON, jsonErr := pageContent.GetDocumentJSON()
@@ -6858,7 +6858,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		page, err = ss.Post().Save(rctx, page)
 		require.NoError(t, err)
 
-		_, contentErr := ss.PageContent().Get(page.Id)
+		_, contentErr := ss.Page().GetPageContent(page.Id)
 		require.Error(t, contentErr, "should not have content initially")
 
 		contentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First content"}]}]}`
@@ -6868,7 +6868,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
-		pageContent, getErr := ss.PageContent().Get(page.Id)
+		pageContent, getErr := ss.Page().GetPageContent(page.Id)
 		require.NoError(t, getErr, "content should now exist")
 
 		actualContentJSON, jsonErr := pageContent.GetDocumentJSON()
@@ -6899,7 +6899,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = initialContent.SetDocumentJSON(initialContentJSON)
 		require.NoError(t, err)
 
-		_, err = ss.PageContent().Save(initialContent)
+		_, err = ss.Page().SavePageContent(initialContent)
 		require.NoError(t, err)
 
 		updatedContentJSON := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
@@ -6909,7 +6909,7 @@ func testUpdatePageWithContent(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, updateErr)
 		require.NotNil(t, updatedPost)
 
-		pageContent, getErr := ss.PageContent().Get(page.Id)
+		pageContent, getErr := ss.Page().GetPageContent(page.Id)
 		require.NoError(t, getErr)
 
 		actualContentJSON, jsonErr := pageContent.GetDocumentJSON()

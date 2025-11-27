@@ -59,7 +59,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.Equal(t, "Test Page", page.Props["title"])
 		require.NotEmpty(t, page.Id)
 
-		pageContent, contentErr := th.App.Srv().Store().PageContent().Get(page.Id)
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
 		require.NoError(t, contentErr)
 		require.NotNil(t, pageContent)
 		require.Equal(t, page.Id, pageContent.PageId)
@@ -71,7 +71,7 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		pageContent, contentErr := th.App.Srv().Store().PageContent().Get(page.Id)
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
 		require.NoError(t, contentErr)
 		require.NotNil(t, pageContent)
 
@@ -189,7 +189,7 @@ func TestUpdatePage(t *testing.T) {
 		require.NotNil(t, updatedPage)
 		require.Equal(t, "Updated Title", updatedPage.Props["title"])
 
-		pageContent, contentErr := th.App.Srv().Store().PageContent().Get(updatedPage.Id)
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(updatedPage.Id)
 		require.NoError(t, contentErr)
 		jsonContent, jsonErr := pageContent.GetDocumentJSON()
 		require.NoError(t, jsonErr)
@@ -224,7 +224,7 @@ func TestDeletePage(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", `{"type":"doc","content":[{"type":"paragraph"}]}`, th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		pageContent, getErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		pageContent, getErr := th.App.Srv().Store().Page().GetPageContent(createdPage.Id)
 		require.NoError(t, getErr)
 		require.NotNil(t, pageContent, "PageContent should exist before deletion")
 
@@ -236,7 +236,7 @@ func TestDeletePage(t *testing.T) {
 		require.NotNil(t, deletedPage)
 		require.NotEqual(t, int64(0), deletedPage.DeleteAt, "Post should be soft-deleted")
 
-		_, getContentErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		_, getContentErr := th.App.Srv().Store().Page().GetPageContent(createdPage.Id)
 		require.Error(t, getContentErr, "PageContent should be deleted")
 		var nfErr *store.ErrNotFound
 		require.ErrorAs(t, getContentErr, &nfErr, "Should return NotFound error for deleted PageContent")
@@ -328,7 +328,7 @@ func TestRestorePage(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", pageContent, th.BasicUser.Id, "searchable text")
 		require.Nil(t, err)
 
-		originalContent, getErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		originalContent, getErr := th.App.Srv().Store().Page().GetPageContent(createdPage.Id)
 		require.NoError(t, getErr)
 		require.NotNil(t, originalContent)
 
@@ -339,10 +339,10 @@ func TestRestorePage(t *testing.T) {
 		require.NoError(t, getErr)
 		require.NotEqual(t, int64(0), deletedPage.DeleteAt, "Post should be soft-deleted")
 
-		_, getContentErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		_, getContentErr := th.App.Srv().Store().Page().GetPageContent(createdPage.Id)
 		require.Error(t, getContentErr, "Get() should not return soft-deleted PageContent")
 
-		deletedContent, getErr := th.App.Srv().Store().PageContent().GetWithDeleted(createdPage.Id)
+		deletedContent, getErr := th.App.Srv().Store().Page().GetPageContentWithDeleted(createdPage.Id)
 		require.NoError(t, getErr, "GetWithDeleted() should return soft-deleted PageContent")
 		require.NotNil(t, deletedContent)
 		require.NotEqual(t, int64(0), deletedContent.DeleteAt, "PageContent should have DeleteAt set")
@@ -355,7 +355,7 @@ func TestRestorePage(t *testing.T) {
 		require.NotNil(t, restoredPost, "restoredPost should not be nil")
 		require.Equal(t, int64(0), restoredPost.DeleteAt, "Post should be restored (DeleteAt = 0)")
 
-		restoredContent, getErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		restoredContent, getErr := th.App.Srv().Store().Page().GetPageContent(createdPage.Id)
 		require.NoError(t, getErr, "PageContent should be accessible after restoration")
 		require.NotNil(t, restoredContent)
 		require.Equal(t, int64(0), restoredContent.DeleteAt, "PageContent DeleteAt should be cleared")
@@ -394,7 +394,7 @@ func TestPermanentDeletePage(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, createdPage.Id)
 		require.Nil(t, err)
 
-		deletedContent, getErr := th.App.Srv().Store().PageContent().GetWithDeleted(createdPage.Id)
+		deletedContent, getErr := th.App.Srv().Store().Page().GetPageContentWithDeleted(createdPage.Id)
 		require.NoError(t, getErr, "Content should still exist after soft delete")
 		require.NotNil(t, deletedContent)
 
@@ -404,7 +404,7 @@ func TestPermanentDeletePage(t *testing.T) {
 		_, getErr = th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
 		require.Error(t, getErr, "Post should be permanently deleted")
 
-		_, getErr = th.App.Srv().Store().PageContent().GetWithDeleted(createdPage.Id)
+		_, getErr = th.App.Srv().Store().Page().GetPageContentWithDeleted(createdPage.Id)
 		require.Error(t, getErr, "PageContent should be permanently deleted")
 	})
 
@@ -1784,7 +1784,7 @@ func TestPageVersionHistory(t *testing.T) {
 		require.NotNil(t, historicalPost, "Historical post should exist")
 
 		// Verify historical PageContents exists
-		historicalContent, contentErr := th.App.Srv().Store().PageContent().GetWithDeleted(historicalPost.Id)
+		historicalContent, contentErr := th.App.Srv().Store().Page().GetPageContentWithDeleted(historicalPost.Id)
 		require.NoError(t, contentErr, "Historical PageContents should exist")
 		require.NotNil(t, historicalContent)
 		require.Greater(t, historicalContent.DeleteAt, int64(0), "Historical content should be marked as deleted")
@@ -1839,7 +1839,7 @@ func TestPageVersionHistory(t *testing.T) {
 		require.Equal(t, "Original Title", restoredPost.Props["title"], "Title should be restored")
 
 		// Verify content restored
-		restoredContent, contentErr := th.App.Srv().Store().PageContent().Get(page.Id)
+		restoredContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
 		require.NoError(t, contentErr)
 		contentJSON, _ := restoredContent.GetDocumentJSON()
 		require.Contains(t, contentJSON, "Original Content", "Content should be restored")
@@ -1868,7 +1868,7 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 	require.Equal(t, newContent, updatedPage.Message)
 	require.Greater(t, updatedPage.UpdateAt, baseUpdateAt)
 
-	pageContent, contentErr := th.App.Srv().Store().PageContent().Get(updatedPage.Id)
+	pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(updatedPage.Id)
 	require.NoError(t, contentErr)
 	jsonContent, jsonErr := pageContent.GetDocumentJSON()
 	require.NoError(t, jsonErr)
@@ -2077,7 +2077,7 @@ func TestCreatePageContentValidation(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, page)
 
-		pageContent, contentErr := th.App.Srv().Store().PageContent().Get(page.Id)
+		pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(page.Id)
 		require.NoError(t, contentErr)
 		require.NotNil(t, pageContent)
 

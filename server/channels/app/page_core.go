@@ -348,7 +348,7 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 	}
 
 	rctx.Logger().Debug("GetPage: fetching content", mlog.String("page_id", pageID))
-	pageContent, contentErr := a.Srv().Store().PageContent().Get(pageID)
+	pageContent, contentErr := a.Srv().Store().Page().GetPageContent(pageID)
 	if contentErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(contentErr, &nfErr) {
@@ -408,9 +408,9 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	var contentErr error
 
 	if includeDeleted {
-		pageContents, contentErr = a.Srv().Store().PageContent().GetManyWithDeleted(pageIDs)
+		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContentsWithDeleted(pageIDs)
 	} else {
-		pageContents, contentErr = a.Srv().Store().PageContent().GetMany(pageIDs)
+		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContents(pageIDs)
 	}
 	if contentErr != nil {
 		rctx.Logger().Error("loadPageContentForPostList: error fetching PageContents", mlog.Int("count", len(pageIDs)), mlog.Bool("include_deleted", includeDeleted), mlog.Err(contentErr))
@@ -638,7 +638,7 @@ func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
 		return err
 	}
 
-	if err := a.Srv().Store().PageContent().Restore(pageID); err != nil {
+	if err := a.Srv().Store().Page().RestorePageContent(pageID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
 			return model.NewAppError("RestorePage",
@@ -697,7 +697,7 @@ func (a *App) PermanentDeletePage(rctx request.CTX, pageID string) *model.AppErr
 
 	rctx.Logger().Info("Permanently deleting page", mlog.String("page_id", pageID))
 
-	if err := a.Srv().Store().PageContent().PermanentDelete(pageID); err != nil {
+	if err := a.Srv().Store().Page().PermanentDeletePageContent(pageID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
 			rctx.Logger().Warn("Failed to permanently delete PageContent",
@@ -790,7 +790,7 @@ func (a *App) RestorePageVersion(
 	toRestorePostVersion *model.Post,
 ) (*model.Post, *model.AppError) {
 	// Step 1: Get historical PageContents
-	historicalContent, storeErr := a.Srv().Store().PageContent().GetWithDeleted(restoreVersionID)
+	historicalContent, storeErr := a.Srv().Store().Page().GetPageContentWithDeleted(restoreVersionID)
 	if storeErr != nil {
 		var notFoundErr *store.ErrNotFound
 		if errors.As(storeErr, &notFoundErr) {
