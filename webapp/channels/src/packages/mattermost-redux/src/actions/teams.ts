@@ -587,7 +587,7 @@ export function sendEmailInvitesToTeamGracefully(teamId: string, emails: string[
     });
 }
 
-export function sendEmailGuestInvitesToChannelsGracefully(teamId: string, channelIds: string[], emails: string[], message: string) {
+export function sendEmailGuestInvitesToChannelsGracefully(teamId: string, channelIds: string[], emails: string[], message: string, guestMagicLink = false) {
     return bindClientFunc({
         clientFunc: Client4.sendEmailGuestInvitesToChannelsGracefully,
         params: [
@@ -595,6 +595,7 @@ export function sendEmailGuestInvitesToChannelsGracefully(teamId: string, channe
             channelIds,
             emails,
             message,
+            guestMagicLink,
         ],
     });
 }

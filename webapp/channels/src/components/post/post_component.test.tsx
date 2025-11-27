@@ -50,6 +50,7 @@ describe('PostComponent', () => {
             closeRightHandSide: jest.fn(),
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),
+            revealBurnOnReadPost: jest.fn(),
         },
     };
 
@@ -548,6 +549,110 @@ describe('PostComponent', () => {
             renderWithContext(<PostComponent {...props}/>);
 
             expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('AI-generated indicator', () => {
+        const aiGeneratedPost = TestHelper.getPostMock({
+            channel_id: channel.id,
+            props: {
+                ai_generated_by: 'ai_user_id',
+                ai_generated_by_username: 'aibot',
+            },
+        });
+
+        test('should show AI-generated indicator for AI posts in non-compact mode', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: false,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
+        });
+
+        test('should not show AI-generated indicator for regular posts', () => {
+            const regularPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+            });
+            const props = {
+                ...baseProps,
+                post: regularPost,
+                compactDisplay: false,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+        });
+
+        test('should not show AI-generated indicator for consecutive posts', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: false,
+                isConsecutivePost: true,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+        });
+
+        test('should show AI-generated indicator in PostUserProfile for compact mode in CENTER', () => {
+            const props = {
+                ...baseProps,
+                post: aiGeneratedPost,
+                compactDisplay: true,
+                location: Locations.CENTER,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            // In compact CENTER mode, indicator is rendered by PostUserProfile (after username)
+            // Verify it appears exactly once
+            const indicators = screen.queryAllByLabelText(/AI-generated|Message posted by/);
+            expect(indicators.length).toBe(1);
+        });
+
+        test('should hide AI-generated indicator for consecutive posts in threads', () => {
+            const threadPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+                root_id: 'root_post_id',
+                props: {
+                    ai_generated_by: 'ai_user_id',
+                    ai_generated_by_username: 'aibot',
+                },
+            });
+            const props = {
+                ...baseProps,
+                post: threadPost,
+                compactDisplay: false,
+                isConsecutivePost: true,
+                location: Locations.RHS_COMMENT,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.queryByLabelText(/AI-generated|Message posted by/)).not.toBeInTheDocument();
+        });
+
+        test('should show AI-generated indicator for non-consecutive posts in threads', () => {
+            const threadPost = TestHelper.getPostMock({
+                channel_id: channel.id,
+                root_id: 'root_post_id',
+                props: {
+                    ai_generated_by: 'ai_user_id',
+                    ai_generated_by_username: 'aibot',
+                },
+            });
+            const props = {
+                ...baseProps,
+                post: threadPost,
+                compactDisplay: false,
+                isConsecutivePost: false,
+                location: Locations.RHS_COMMENT,
+            };
+            renderWithContext(<PostComponent {...props}/>);
+
+            expect(screen.getByLabelText('Message posted by @aibot')).toBeInTheDocument();
         });
     });
 });
