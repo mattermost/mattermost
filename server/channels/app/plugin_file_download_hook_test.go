@@ -554,12 +554,13 @@ func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
 		mockAPI.On("LogInfo", mock.Anything, mock.Anything).Maybe().Return(nil)
-		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 			if args.String(0) == "Hook called" {
-				downloadType := args.String(3)
+				downloadType := args.String(2)
 				downloadTypesReceived = append(downloadTypesReceived, model.FileDownloadType(downloadType))
 			}
 		}).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
 		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
