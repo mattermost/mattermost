@@ -533,7 +533,7 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.Config().FeatureFlags.EnableShiftEscapeToMarkAllRead {
-		c.Err = model.NewAppError("readAllMessages", "api.feature_disabled", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("readAllMessages", "api.mark_all_as_read.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -1767,7 +1767,7 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func readAllInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.Config().FeatureFlags.EnableShiftEscapeToMarkAllRead {
-		c.Err = model.NewAppError("readAllInTeam", "api.feature_disabled", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("readAllInTeam", "api.mark_all_as_read.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
