@@ -4619,10 +4619,14 @@ components:
           items:
             $ref: "#/components/schemas/AccessControlPolicyActiveUpdate"
     AccessControlPolicyActiveUpdate:
-      description: The ID of the policy.
-          active:
-            type: boolean
-            description: The active status of the policy.
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the policy.
+        active:
+          type: boolean
+          description: The active status of the policy.
     Wiki:
       type: object
       properties:
