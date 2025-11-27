@@ -34,6 +34,7 @@ import {
     markPostAsUnread,
 } from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
+import {isBurnOnReadPost} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isPageCommentResolved} from 'selectors/wiki_posts';
@@ -131,6 +132,7 @@ function makeMapStateToProps() {
             isMilitaryTime,
             canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
             canFlagContent,
+            isBurnOnReadPost: isBurnOnReadPost(state, post.id),
             isPageComment: isPageCommentPost,
             isCommentResolved: isResolved,
             wikiId,
