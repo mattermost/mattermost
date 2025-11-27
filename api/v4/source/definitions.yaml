@@ -4652,8 +4652,3 @@ components:
           description: The time in milliseconds a wiki was deleted
           type: integer
           format: int64
-externalDocs:
-  description: Find out more about Mattermost
-  url: 'https://about.mattermost.com'
-security:
-  - bearerAuth: []
