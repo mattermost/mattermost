@@ -272,3 +272,358 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		assert.Empty(t, rejectionReason)
 	})
 }
+
+// TestHookFileWillBeDownloadedHeadRequests tests that HEAD requests trigger the FileWillBeDownloaded hook
+func TestHookFileWillBeDownloadedHeadRequests(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("HEAD request to file endpoint triggers hook - rejection", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogWarn", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogWarn", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+				p.API.LogInfo("Blocking file download", "file_id", info.Id, "download_type", string(downloadType))
+				return "File download blocked by security policy"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Upload a file first
+		fileInfo, appErr := th.App.UploadFile(th.Context, []byte("test content"), th.BasicChannel.Id, "test.txt")
+		require.Nil(t, appErr)
+		require.NotNil(t, fileInfo)
+
+		// Get the file info to pass to the hook
+		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
+		require.Nil(t, appErr)
+
+		// Create plugin context
+		pluginContext := &plugin.Context{
+			RequestId: th.Context.RequestId(),
+			SessionId: th.Context.Session().Id,
+		}
+
+		// Simulate calling the hook for a file download
+		var rejectionReason string
+		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+			if rejectionReason != "" {
+				return false // Stop execution if hook rejects
+			}
+			return true
+		}, plugin.FileWillBeDownloadedID)
+
+		// Verify the file download was rejected
+		assert.NotEmpty(t, rejectionReason)
+		assert.Contains(t, rejectionReason, "blocked by security policy")
+		mockAPI.AssertExpectations(t)
+	})
+
+	t.Run("HEAD request to thumbnail endpoint triggers hook - rejection", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogWarn", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogWarn", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+				// Only block thumbnail requests
+				if downloadType == model.FileDownloadTypeThumbnail {
+					p.API.LogInfo("Blocking thumbnail download", "file_id", info.Id)
+					return "Thumbnail download blocked"
+				}
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Upload a file
+		fileInfo, appErr := th.App.UploadFile(th.Context, []byte("test content"), th.BasicChannel.Id, "test.txt")
+		require.Nil(t, appErr)
+		require.NotNil(t, fileInfo)
+
+		// Get the file info
+		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
+		require.Nil(t, appErr)
+
+		// Create plugin context
+		pluginContext := &plugin.Context{
+			RequestId: th.Context.RequestId(),
+			SessionId: th.Context.Session().Id,
+		}
+
+		// Call the hook for thumbnail download type
+		var rejectionReason string
+		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
+			return rejectionReason == ""
+		}, plugin.FileWillBeDownloadedID)
+
+		// Verify the thumbnail download was rejected
+		assert.NotEmpty(t, rejectionReason)
+		assert.Contains(t, rejectionReason, "Thumbnail download blocked")
+		mockAPI.AssertExpectations(t)
+	})
+
+	t.Run("HEAD request to preview endpoint triggers hook - rejection", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogWarn", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogWarn", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+				// Only block preview requests
+				if downloadType == model.FileDownloadTypePreview {
+					p.API.LogInfo("Blocking preview download", "file_id", info.Id)
+					return "Preview download blocked"
+				}
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Upload a file
+		fileInfo, appErr := th.App.UploadFile(th.Context, []byte("test content"), th.BasicChannel.Id, "test.txt")
+		require.Nil(t, appErr)
+		require.NotNil(t, fileInfo)
+
+		// Get the file info
+		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
+		require.Nil(t, appErr)
+
+		// Create plugin context
+		pluginContext := &plugin.Context{
+			RequestId: th.Context.RequestId(),
+			SessionId: th.Context.Session().Id,
+		}
+
+		// Call the hook for preview download type
+		var rejectionReason string
+		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypePreview)
+			return rejectionReason == ""
+		}, plugin.FileWillBeDownloadedID)
+
+		// Verify the preview download was rejected
+		assert.NotEmpty(t, rejectionReason)
+		assert.Contains(t, rejectionReason, "Preview download blocked")
+		mockAPI.AssertExpectations(t)
+	})
+
+	t.Run("HEAD request to file endpoint triggers hook - allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+				p.API.LogInfo("Allowing file download", "file_id", info.Id, "download_type", string(downloadType))
+				return "" // Allow download
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Upload a file
+		fileInfo, appErr := th.App.UploadFile(th.Context, []byte("test content"), th.BasicChannel.Id, "test.txt")
+		require.Nil(t, appErr)
+		require.NotNil(t, fileInfo)
+
+		// Get the file info
+		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
+		require.Nil(t, appErr)
+
+		// Create plugin context
+		pluginContext := &plugin.Context{
+			RequestId: th.Context.RequestId(),
+			SessionId: th.Context.Session().Id,
+		}
+
+		// Call the hook
+		var rejectionReason string
+		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+			return rejectionReason == ""
+		}, plugin.FileWillBeDownloadedID)
+
+		// Verify the file download was allowed
+		assert.Empty(t, rejectionReason)
+		mockAPI.AssertExpectations(t)
+	})
+
+	t.Run("HEAD and GET with different download types", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		downloadTypesReceived := []model.FileDownloadType{}
+
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil).Maybe()
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			if args.String(0) == "Hook called" {
+				downloadType := args.String(3)
+				downloadTypesReceived = append(downloadTypesReceived, model.FileDownloadType(downloadType))
+			}
+		}).Maybe().Return(nil)
+		mockAPI.On("LogInfo", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Maybe().Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+				p.API.LogInfo("Hook called", "download_type", string(downloadType))
+				return "" // Allow download
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Upload a file
+		fileInfo, appErr := th.App.UploadFile(th.Context, []byte("test content"), th.BasicChannel.Id, "test.txt")
+		require.Nil(t, appErr)
+
+		info, appErr := th.App.GetFileInfo(th.Context, fileInfo.Id)
+		require.Nil(t, appErr)
+
+		pluginContext := &plugin.Context{
+			RequestId: th.Context.RequestId(),
+			SessionId: th.Context.Session().Id,
+		}
+
+		// Test File download type
+		var rejectionReason string
+		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
+			return rejectionReason == ""
+		}, plugin.FileWillBeDownloadedID)
+
+		// Test Thumbnail download type
+		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeThumbnail)
+			return rejectionReason == ""
+		}, plugin.FileWillBeDownloadedID)
+
+		// Test Preview download type
+		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypePreview)
+			return rejectionReason == ""
+		}, plugin.FileWillBeDownloadedID)
+
+		// Verify all three download types were received
+		assert.Len(t, downloadTypesReceived, 3)
+		assert.Contains(t, downloadTypesReceived, model.FileDownloadTypeFile)
+		assert.Contains(t, downloadTypesReceived, model.FileDownloadTypeThumbnail)
+		assert.Contains(t, downloadTypesReceived, model.FileDownloadTypePreview)
+
+		mockAPI.AssertExpectations(t)
+	})
+}
