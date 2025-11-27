@@ -37,8 +37,8 @@
     }
 
     a[href]:after {
-        content: " (" attr(href) ")";
         color: #666;
+        content: " (" attr(href) ")";
         font-size: 0.8em;
     }
 
