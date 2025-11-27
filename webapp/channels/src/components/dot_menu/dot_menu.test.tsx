@@ -210,6 +210,7 @@ describe('components/dot_menu/DotMenu', () => {
         isMilitaryTime: false,
         canMove: true,
         isBurnOnReadPost: false,
+        isUnrevealedBurnOnReadPost: false,
     };
 
     test('should show edit menu, on Center', async () => {

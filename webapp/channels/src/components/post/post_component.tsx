@@ -604,7 +604,10 @@ function PostComponent(props: Props) {
         />
     ) : null;
     const channelDisplayName = getChannelName();
-    const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
+
+    // Don't show reactions for unrevealed BoR posts - users can't react to concealed content
+    const showReactions = (props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts) &&
+        !props.shouldDisplayBurnOnReadConcealed;
 
     const getTestId = () => {
         let idPrefix: string;

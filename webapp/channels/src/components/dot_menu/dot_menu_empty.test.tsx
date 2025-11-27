@@ -116,6 +116,7 @@ describe('components/dot_menu/DotMenu returning empty ("")', () => {
             isMilitaryTime: false,
             canMove: true,
             isBurnOnReadPost: false,
+            isUnrevealedBurnOnReadPost: false,
         };
 
         renderWithContext(

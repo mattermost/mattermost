@@ -35,7 +35,7 @@ import {
     markPostAsUnread,
 } from 'actions/post_actions';
 import {openModal, closeModal} from 'actions/views/modals';
-import {isBurnOnReadPost} from 'selectors/burn_on_read_posts';
+import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -128,6 +128,7 @@ function makeMapStateToProps() {
             canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
             canFlagContent,
             isBurnOnReadPost: isBurnOnReadPost(state, post.id),
+            isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
         };
     };
 }

@@ -154,6 +154,7 @@ type Props = {
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
     isBurnOnReadPost: boolean;
+    isUnrevealedBurnOnReadPost: boolean;
 }
 
 type State = {
@@ -645,7 +646,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         timezone={this.props.timezone}
                     />
                 }
-                {!isSystemMessage &&
+                {!isSystemMessage && !this.props.isUnrevealedBurnOnReadPost &&
                     <Menu.Item
                         id={`save_post_${this.props.post.id}`}
                         data-testid={`save_post_${this.props.post.id}`}
@@ -655,7 +656,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleFlagMenuItemActivated}
                     />
                 }
-                {Boolean(!isSystemMessage && !this.props.isReadOnly) &&
+                {Boolean(!isSystemMessage && !this.props.isReadOnly && !this.props.isUnrevealedBurnOnReadPost) &&
                     <Menu.Item
                         id={`${this.props.post.is_pinned ? 'unpin' : 'pin'}_post_${this.props.post.id}`}
                         data-testid={`pin_post_${this.props.post.id}`}
