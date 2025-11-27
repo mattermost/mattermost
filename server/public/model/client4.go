@@ -733,7 +733,7 @@ func (c *Client4) DoAPIDeleteJSON(ctx context.Context, url string, data any) (*h
 // DoAPIRequestWithHeaders makes an HTTP request with the specified method, URL, and custom headers.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIRequestWithHeaders(ctx context.Context, method, url, data string, headers map[string]string) (*http.Response, error) {
-	return c.doAPIRequestReader(ctx, method, url, "", strings.NewReader(data), headers)
+	return c.doAPIRequestReader(ctx, method, c.APIURL+url, "", strings.NewReader(data), headers)
 }
 
 func (c *Client4) doAPIRequest(ctx context.Context, method, url, data, etag string) (*http.Response, error) {
@@ -7037,7 +7037,7 @@ func (c *Client4) DownloadExport(ctx context.Context, name string, wr io.Writer,
 			HeaderRange: fmt.Sprintf("bytes=%d-", offset),
 		}
 	}
-	r, err := c.DoAPIRequestWithHeaders(ctx, http.MethodGet, c.APIURL+c.exportRoute(name), "", headers)
+	r, err := c.DoAPIRequestWithHeaders(ctx, http.MethodGet, route, "", headers)
 	if err != nil {
 		return 0, BuildResponse(r), err
 	}
