@@ -17,11 +17,10 @@ func TestCreateRecap(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("create recap with valid channels", func(t *testing.T) {
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 		channelIds := []string{th.BasicChannel.Id, channel2.Id}
 
 		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
@@ -35,11 +34,11 @@ func TestCreateRecap(t *testing.T) {
 
 	t.Run("create recap with channel user is not member of", func(t *testing.T) {
 		// Create a private channel and add only BasicUser2
-		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		// Remove BasicUser if they were added automatically
 		_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		// Ensure BasicUser2 is a member instead
-		th.AddUserToChannel(th.BasicUser2, privateChannel)
+		th.AddUserToChannel(t, th.BasicUser2, privateChannel)
 
 		// Try to create recap as BasicUser who is not a member
 		channelIds := []string{privateChannel.Id}
@@ -55,8 +54,7 @@ func TestGetRecap(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("get recap by owner", func(t *testing.T) {
 		recap := &model.Recap{
@@ -127,8 +125,7 @@ func TestGetRecapsForUser(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("get recaps for user", func(t *testing.T) {
 		// Create multiple recaps for the user
@@ -195,8 +192,7 @@ func TestMarkRecapAsRead(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("mark recap as read by owner", func(t *testing.T) {
 		recap := &model.Recap{
