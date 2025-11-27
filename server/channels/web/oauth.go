@@ -44,8 +44,8 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods(http.MethodGet)
 
-	// Entra ID (Office365) token-based authentication endpoint
-	w.MainRouter.Handle("/oauth/entra", w.APIHandler(loginWithEntraIdToken)).Methods(http.MethodPost)
+	// Intune MAM authentication endpoint
+	w.MainRouter.Handle("/oauth/intune", w.APIHandler(loginWithIntune)).Methods(http.MethodPost)
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
 	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
@@ -629,24 +629,32 @@ func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.R
 	}
 }
 
-func loginWithEntraIdToken(c *Context, w http.ResponseWriter, r *http.Request) {
-	var req model.EntraLoginRequest
+// loginWithIntune handles authentication using Microsoft Intune MAM with Entra ID tokens
+func loginWithIntune(c *Context, w http.ResponseWriter, r *http.Request) {
+	var req model.IntuneLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request_body", err)
 		return
 	}
 
-	if req.IdToken == "" {
-		c.SetInvalidParam("id_token")
+	if req.AccessToken == "" {
+		c.SetInvalidParam("access_token")
 		return
 	}
 
-	// Authenticate user via id_token
-	user, err := c.App.LoginByEntraIdToken(c.AppContext, req.IdToken)
+	auditRec := c.MakeAuditRecord("login_with_intune", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	// Authenticate user via Intune MAM
+	user, err := c.App.LoginByIntune(c.AppContext, req.AccessToken)
 	if err != nil {
 		c.Err = err
 		return
 	}
+
+	auditRec.AddMeta("obtained_user_id", user.Id)
+	c.LogAuditWithUserId(user.Id, "obtained user")
 
 	isMobile := req.DeviceId != ""
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, req.DeviceId, isMobile, true, false)
@@ -660,6 +668,9 @@ func loginWithEntraIdToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderToken, session.Token)
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success")
 
 	user.Sanitize(map[string]bool{})
 	w.Header().Set("Content-Type", "application/json")

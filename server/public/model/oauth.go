@@ -19,20 +19,13 @@ const (
 	OAuthActionMobile     = "mobile"
 )
 
-// OAuthContextKey is the type for context keys used in OAuth flows
-type OAuthContextKey string
-
-// Context keys for OAuth flows - accessible across all packages
-const (
-	ServerConfigContextKey         OAuthContextKey = "server_config"
-	ServerLicenseContextKey        OAuthContextKey = "server_license"
-	EntraTokenValidationContextKey OAuthContextKey = "entra_token_validation"
-)
-
-// EntraLoginRequest represents a login request using an MSAL id_token from Azure AD/Entra
-type EntraLoginRequest struct {
-	IdToken  string `json:"id_token"`
-	DeviceId string `json:"device_id"`
+// IntuneLoginRequest represents a login request using an MSAL access_token from Azure AD/Entra
+// for Intune MAM authentication. The access_token is used instead of id_token to validate
+// the audience claim against the customer's tenant-specific IntuneScope, ensuring proper
+// tenant isolation.
+type IntuneLoginRequest struct {
+	AccessToken string `json:"access_token"`
+	DeviceId    string `json:"device_id"`
 }
 
 type OAuthApp struct {

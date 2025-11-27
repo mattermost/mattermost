@@ -420,12 +420,21 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {
-			intuneEnabled := *c.NativeAppSettings.EnableIntuneMAM &&
-				*c.Office365Settings.Enable &&
-				*c.Office365Settings.DirectoryId != "" && *c.Office365Settings.Id != ""
+			// Check IntuneSettings configuration
+			intuneEnabled := c.IntuneSettings.Enable != nil && *c.IntuneSettings.Enable &&
+				c.IntuneSettings.TenantId != nil && *c.IntuneSettings.TenantId != "" &&
+				c.IntuneSettings.ClientId != nil && *c.IntuneSettings.ClientId != ""
+
 			props["IntuneMAMEnabled"] = strconv.FormatBool(intuneEnabled)
+
 			if intuneEnabled {
-				props["IntuneScope"] = fmt.Sprintf("api://%s/login.mattermost", *c.Office365Settings.Id)
+				// Use IntuneSettings for scope
+				props["IntuneScope"] = fmt.Sprintf("api://%s/login.mattermost", *c.IntuneSettings.ClientId)
+
+				// Expose AuthService if set
+				if c.IntuneSettings.AuthService != nil && *c.IntuneSettings.AuthService != "" {
+					props["IntuneAuthService"] = *c.IntuneSettings.AuthService
+				}
 			}
 		}
 	}

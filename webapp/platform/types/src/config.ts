@@ -810,6 +810,14 @@ export type NativeAppSettings = {
     EnableIntuneMAM: boolean;
 };
 
+export type IntuneSettings = {
+    Enable: boolean;
+    TenantId?: string;
+    ClientId?: string;
+    ClientSecret?: string;
+    AuthService?: string;
+};
+
 export type ClusterSettings = {
     Enable: boolean;
     ClusterName: string;
@@ -1053,6 +1061,7 @@ export type AdminConfig = {
     LocalizationSettings: LocalizationSettings;
     SamlSettings: SamlSettings;
     NativeAppSettings: NativeAppSettings;
+    IntuneSettings: IntuneSettings;
     ClusterSettings: ClusterSettings;
     MetricsSettings: MetricsSettings;
     ExperimentalSettings: ExperimentalSettings;

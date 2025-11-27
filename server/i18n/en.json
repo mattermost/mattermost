@@ -4411,88 +4411,20 @@
     "translation": "CWS token is not valid"
   },
   {
-    "id": "api.user.login_by_entra.account_locked.app_error",
-    "translation": "Your account is locked. Please contact your system administrator."
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Your account has been locked. Please contact your system administrator."
   },
   {
-    "id": "api.user.login_by_entra.bot_login_forbidden.app_error",
-    "translation": "Bot accounts cannot login via Entra ID."
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot accounts cannot sign in using Microsoft authentication."
   },
   {
-    "id": "api.user.login_by_entra.config_not_found.app_error",
-    "translation": "Server configuration not found."
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune authentication is not available."
   },
   {
-    "id": "api.user.login_by_entra.invalid_audience.app_error",
-    "translation": "Invalid token audience."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_auth_data.app_error",
-    "translation": "Missing user ID from authentication token."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_claims.app_error",
-    "translation": "Failed to extract token claims."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_config.app_error",
-    "translation": "Invalid server configuration."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_issuer.app_error",
-    "translation": "Invalid token issuer."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_license.app_error",
-    "translation": "Invalid server license."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_tenant.app_error",
-    "translation": "Token tenant does not match configured tenant."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_tenant_id.app_error",
-    "translation": "Invalid tenant ID configuration."
-  },
-  {
-    "id": "api.user.login_by_entra.invalid_token.app_error",
-    "translation": "Invalid authentication token."
-  },
-  {
-    "id": "api.user.login_by_entra.license_not_found.app_error",
-    "translation": "Server license not found."
-  },
-  {
-    "id": "api.user.login_by_entra.license_required.app_error",
-    "translation": "Enterprise Advanced license required for Entra ID authentication."
-  },
-  {
-    "id": "api.user.login_by_entra.mam_not_enabled.app_error",
-    "translation": "Intune MAM is not enabled."
-  },
-  {
-    "id": "api.user.login_by_entra.missing_email.app_error",
-    "translation": "Missing email or username in token."
-  },
-  {
-    "id": "api.user.login_by_entra.missing_oid.app_error",
-    "translation": "Missing user ID in token."
-  },
-  {
-    "id": "api.user.login_by_entra.office365_not_configured.app_error",
-    "translation": "Office365 authentication is not configured."
-  },
-  {
-    "id": "api.user.login_by_entra.office365_not_enabled.app_error",
-    "translation": "Office365 authentication is not enabled."
-  },
-  {
-    "id": "api.user.login_by_entra.parse.app_error",
-    "translation": "Failed to parse authentication token."
-  },
-  {
-    "id": "api.user.login_by_entra.token_expired.app_error",
-    "translation": "Authentication token has expired."
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
@@ -8669,6 +8601,38 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
+    "id": "ent.intune.login.account_creation_blocked.app_error",
+    "translation": "Your account isn't fully set up yet. Please sign in to Mattermost via the web or desktop app first."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authentication failed. Please try again or contact your system administrator."
+  },
+  {
+    "id": "ent.intune.login.ldap_user_missing.app_error",
+    "translation": "Authentication failed. Please contact your system administrator."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authentication failed. Invalid configuration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authentication failed. Please try again."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authentication failed. Required user information is missing."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authentication session has expired. Please try signing in again."
+  },
+  {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
@@ -9895,6 +9859,42 @@
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service must be either 'office365' or 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID must be a valid UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_secret.app_error",
+    "translation": "Intune MAM Client Secret is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM requires OpenID Connect (Office 365) to be enabled when Auth Service is set to 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM requires SAML to be enabled when Auth Service is set to 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID must be a valid UUID."
   },
   {
     "id": "model.config.is_valid.invalid_redis_db.app_error",

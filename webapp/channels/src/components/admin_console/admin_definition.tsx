@@ -86,6 +86,7 @@ import {
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
 import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
 import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
+import MobileSecuritySVG from './feature_discovery/features/images/mobile_security_svg';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -2132,63 +2133,146 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'MobileSecuritySettings',
                     name: defineMessage({id: 'admin.mobileSecurity.title', defaultMessage: 'Mobile Security'}),
-                    settings: [
+                    sections: [
                         {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileEnableBiometrics',
-                            label: defineMessage({id: 'admin.mobileSecurity.biometricsTitle', defaultMessage: 'Enable Biometric Authentication:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.biometricsDescription', defaultMessage: 'Enforces biometric authentication (with PIN/passcode fallback) before accessing the app. Users will be prompted based on session activity and server switching rules.'}),
+                            key: 'MobileSecuritySettings.General',
+                            title: 'General Mobile Security',
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.general.description', defaultMessage: 'Configure device security features for the mobile app.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileEnableBiometrics',
+                                    label: defineMessage({id: 'admin.mobileSecurity.biometricsTitle', defaultMessage: 'Enable Biometric Authentication:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.biometricsDescription', defaultMessage: 'Enforces biometric authentication (with PIN/passcode fallback) before accessing the app. Users will be prompted based on session activity and server switching rules.'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobilePreventScreenCapture',
+                                    label: defineMessage({id: 'admin.mobileSecurity.screenCaptureTitle', defaultMessage: 'Prevent Screen Capture:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.screenCaptureDescription', defaultMessage: 'Blocks screenshots and screen recordings when using the mobile app. Screenshots will appear blank, and screen recordings will blur (iOS) or show a black screen (Android). Also applies when switching apps.'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileJailbreakProtection',
+                                    label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileEnableSecureFilePreview',
+                                    label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: "Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app's cache and cannot be exported or shared."}),
+                                    help_text_values: {
+                                        mobileAllowDownloads: (
+                                            <a href='../site_config/file_sharing_downloads'>
+                                                <b>
+                                                    <FormattedMessage
+                                                        id='admin.mobileSecurity.mobileAllowDownloads'
+                                                        defaultMessage='Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile'
+                                                    />
+                                                </b>
+                                            </a>
+                                        ),
+                                    },
+                                    isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'NativeAppSettings.MobileAllowPdfLinkNavigation',
+                                    label: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationTitle', defaultMessage: 'Allow Link Navigation in Secure PDFs:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationDescription', defaultMessage: 'Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app. Has no effect when Secure File Preview Mode is disabled.'}),
+                                    isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
+                                    isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                                },
+                            ],
                         },
                         {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobilePreventScreenCapture',
-                            label: defineMessage({id: 'admin.mobileSecurity.screenCaptureTitle', defaultMessage: 'Prevent Screen Capture:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.screenCaptureDescription', defaultMessage: 'Blocks screenshots and screen recordings when using the mobile app. Screenshots will appear blank, and screen recordings will blur (iOS) or show a black screen (Android). Also applies when switching apps.'}),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileJailbreakProtection',
-                            label: defineMessage({id: 'admin.mobileSecurity.jailbreakTitle', defaultMessage: 'Enable Jailbreak/Root Protection:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.jailbreakDescription', defaultMessage: 'Prevents access to the app on devices detected as jailbroken or rooted. If a device fails the security check, users will be denied access or prompted to switch to a compliant server.'}),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileEnableSecureFilePreview',
-                            label: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewTitle', defaultMessage: 'Enable Secure File Preview Mode:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.secureFilePreviewDescription', defaultMessage: 'Prevents file downloads, previews, and sharing for most file types, even if {mobileAllowDownloads} is enabled. Allows in-app previews for PDFs, videos, and images only. Files are stored temporarily in the app’s cache and cannot be exported or shared.'}),
-                            help_text_values: {
-                                mobileAllowDownloads: (
-                                    <a href='../site_config/file_sharing_downloads'>
-                                        <b>
-                                            <FormattedMessage
-                                                id='admin.mobileSecurity.mobileAllowDownloads'
-                                                defaultMessage='Site Configuration > File Sharing and Downloads > Allow File Downloads on Mobile'
-                                            />
-                                        </b>
-                                    </a>
-                                ),
+                            key: 'MobileSecuritySettings.Intune',
+                            title: 'Microsoft Intune',
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.intune.description', defaultMessage: 'Configure Microsoft Intune Mobile Application Management (MAM) for enterprise mobile device management.'}),
+                            license_sku: LicenseSkus.EnterpriseAdvanced,
+                            component: LicensedSectionContainer,
+                            componentProps: {
+                                requiredSku: LicenseSkus.EnterpriseAdvanced,
+                                featureDiscoveryConfig: {
+                                    featureName: 'intune_mam',
+                                    title: defineMessage({id: 'admin.intune_feature_discovery.title', defaultMessage: 'Authenticate mobile users with Microsoft Entra ID and enforce Intune MAM policies'}),
+                                    description: defineMessage({id: 'admin.intune_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Microsoft Intune Mobile Application Management (MAM) to authenticate mobile users via Microsoft Entra ID (Azure AD) and enforce enterprise mobile security policies across iOS and Android devices.'}),
+                                    learnMoreURL: 'https://docs.mattermost.com/deployment/intune-mam.html',
+                                    svgImage: MobileSecuritySVG,
+                                },
                             },
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'NativeAppSettings.MobileAllowPdfLinkNavigation',
-                            label: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationTitle', defaultMessage: 'Allow Link Navigation in Secure PDFs:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.allowPdfLinkNavigationDescription', defaultMessage: 'Enables tapping links inside PDFs when Secure File Preview Mode is active. Links will open in the device browser or supported app. Has no effect when Secure File Preview Mode is disabled.'}),
-                            isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'NativeAppSettings.EnableIntuneMAM',
-                            label: defineMessage({id: 'admin.mobileSecurity.enableIntuneMAMTitle', defaultMessage: 'Enable Microsoft Intune MAM:'}),
-                            help_text: defineMessage({id: 'admin.mobileSecurity.enableIntuneMAMDescription', defaultMessage: 'When true, enables Microsoft Intune Mobile Application Management (MAM) for the Mattermost mobile app. Users can authenticate using their Azure AD/Entra ID credentials via MSAL tokens. Requires Azure AD/Entra ID (Office365) to be configured with a valid Directory ID and Client ID.'}),
-                            isHidden: it.not(it.all(
-                                it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                                it.configIsTrue('Office365Settings', 'Enable'),
-                                it.configIsTrue('Office365Settings', 'DirectoryId'),
-                                it.configIsTrue('Office365Settings', 'Id'),
-                            )),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'IntuneSettings.Enable',
+                                    label: defineMessage({id: 'admin.intune.enableTitle', defaultMessage: 'Enable Microsoft Intune MAM:'}),
+                                    help_text: defineMessage({id: 'admin.intune.enableDescription', defaultMessage: 'When enabled, allows mobile users to authenticate using Microsoft Entra ID (Azure AD) credentials via MSAL tokens and enforces Intune Mobile Application Management policies.'}),
+                                },
+                                {
+                                    type: 'dropdown',
+                                    key: 'IntuneSettings.AuthService',
+                                    label: defineMessage({id: 'admin.intune.authServiceTitle', defaultMessage: 'Auth Provider:'}),
+                                    help_text: defineMessage({id: 'admin.intune.authServiceDescription', defaultMessage: 'Select which authentication service Intune users will be mapped to. Choose "OpenID Connect" if users login via Office 365 on other clients, or "SAML 2.0" if users login via SAML with Entra ID as the identity provider.'}),
+                                    options: [
+                                        {
+                                            value: '',
+                                            display_name: defineMessage({id: 'admin.intune.authServicePlaceholder', defaultMessage: 'Select an auth provider'}),
+                                        },
+                                        {
+                                            value: 'office365',
+                                            display_name: defineMessage({id: 'admin.intune.authServiceOffice365', defaultMessage: 'OpenID Connect (Office 365)'}),
+                                            isHidden: it.configIsFalse('Office365Settings', 'Enable'),
+                                        },
+                                        {
+                                            value: 'saml',
+                                            display_name: defineMessage({id: 'admin.intune.authServiceSaml', defaultMessage: 'SAML 2.0'}),
+                                            isHidden: it.configIsFalse('SamlSettings', 'Enable'),
+                                        },
+                                    ],
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable'),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'IntuneSettings.TenantId',
+                                    label: defineMessage({id: 'admin.intune.tenantIdTitle', defaultMessage: 'Tenant ID:'}),
+                                    help_text: defineMessage({id: 'admin.intune.tenantIdDescription', defaultMessage: 'The Microsoft Entra ID (Azure AD) Tenant ID (also called Directory ID). This is a UUID that identifies your organization in Microsoft Entra ID.'}),
+                                    placeholder: defineMessage({id: 'admin.intune.tenantIdPlaceholder', defaultMessage: 'E.g.: "12345678-1234-1234-1234-123456789012"'}),
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
+                                    default: (value, config, state) => {
+                                        if (state['IntuneSettings.Enable'] && !state['IntuneSettings.TenantId']) {
+                                            if (state['IntuneSettings.AuthService'] === 'office365' && config.Office365Settings?.DirectoryId) {
+                                                return config.Office365Settings?.DirectoryId;
+                                            }
+                                        }
+                                        return '';
+                                    },
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'IntuneSettings.ClientId',
+                                    label: defineMessage({id: 'admin.intune.clientIdTitle', defaultMessage: 'Application (Client) ID:'}),
+                                    help_text: defineMessage({id: 'admin.intune.clientIdDescription', defaultMessage: 'The Application (Client) ID for your Intune MAM app registration in Microsoft Entra ID. This is a UUID that identifies your application.'}),
+                                    placeholder: defineMessage({id: 'admin.intune.clientIdPlaceholder', defaultMessage: 'E.g.: "87654321-4321-4321-4321-210987654321"'}),
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
+                                    default: (value, config, state) => {
+                                        if (state['IntuneSettings.Enable'] && !state['IntuneSettings.TenantId']) {
+                                            if (state['IntuneSettings.AuthService'] === 'office365' && config.Office365Settings?.Id) {
+                                                return config.Office365Settings?.Id;
+                                            }
+                                        }
+                                        return '';
+                                    },
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'IntuneSettings.ClientSecret',
+                                    label: defineMessage({id: 'admin.intune.clientSecretTitle', defaultMessage: 'Client Secret:'}),
+                                    help_text: defineMessage({id: 'admin.intune.clientSecretDescription', defaultMessage: 'The Client Secret for your Intune MAM app registration. This secret is used to authenticate token validation requests to Microsoft Entra ID.'}),
+                                    placeholder: defineMessage({id: 'admin.intune.clientSecretPlaceholder', defaultMessage: 'E.g.: "abc123def456..."'}),
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
+                                },
+                            ],
                         },
                     ],
                 },

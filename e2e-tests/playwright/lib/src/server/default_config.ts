@@ -563,6 +563,13 @@ const defaultServerConfig: AdminConfig = {
         MobileAllowPdfLinkNavigation: false,
         EnableIntuneMAM: false,
     },
+    IntuneSettings: {
+        Enable: false,
+        TenantId: '',
+        ClientId: '',
+        ClientSecret: '',
+        AuthService: '',
+    },
     CacheSettings: {
         CacheType: 'lru',
         RedisAddress: '',
