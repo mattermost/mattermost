@@ -467,11 +467,11 @@ type Z_DbLogErrorArgs struct {
 
 type Z_DbLogErrorReturns struct{}
 
-func (g *dbRPCClient) LogError(msg string, keyValuePairs ...any) {
+func (db *dbRPCClient) LogError(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_DbLogErrorArgs{msg, stringifiedPairs}
 	_returns := &Z_DbLogErrorReturns{}
-	if err := g.client.Call("Plugin.LogError", _args, _returns); err != nil {
+	if err := db.client.Call("Plugin.LogError", _args, _returns); err != nil {
 		log.Printf("RPC call to LogError API failed: %s", err.Error())
 	}
 }
@@ -483,12 +483,12 @@ type Z_DbLogWarnArgs struct {
 
 type Z_DbLogWarnReturns struct{}
 
-func (g *dbRPCClient) LogWarn(msg string, keyValuePairs ...any) {
+func (db *dbRPCClient) LogWarn(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_DbLogWarnArgs{msg, stringifiedPairs}
 	_returns := &Z_DbLogWarnReturns{}
-	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
-		g.LogError("RPC call to LogWarn API failed", mlog.Err(err))
+	if err := db.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
+		db.LogError("RPC call to LogWarn API failed", mlog.Err(err))
 	}
 }
 
@@ -499,12 +499,12 @@ type Z_DbLogInfoArgs struct {
 
 type Z_DbLogInfoReturns struct{}
 
-func (g *dbRPCClient) LogInfo(msg string, keyValuePairs ...any) {
+func (db *dbRPCClient) LogInfo(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_DbLogInfoArgs{msg, stringifiedPairs}
 	_returns := &Z_DbLogInfoReturns{}
-	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
-		g.LogError("RPC call to LogInfo API failed", mlog.Err(err))
+	if err := db.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
+		db.LogError("RPC call to LogInfo API failed", mlog.Err(err))
 	}
 }
 
@@ -515,11 +515,11 @@ type Z_DbLogDebugArgs struct {
 
 type Z_DbLogDebugReturns struct{}
 
-func (g *dbRPCClient) LogDebug(msg string, keyValuePairs ...any) {
+func (db *dbRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
 	_args := &Z_DbLogDebugArgs{msg, stringifiedPairs}
 	_returns := &Z_DbLogDebugReturns{}
-	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
-		g.LogError("RPC call to LogDebug API failed: %s", mlog.Err(err))
+	if err := db.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
+		db.LogError("RPC call to LogDebug API failed: %s", mlog.Err(err))
 	}
 }
