@@ -424,15 +424,14 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"Intune MAM enabled with Enterprise Advanced license and Office365 configured",
+			"Intune MAM enabled with Enterprise Advanced license and Office365 AuthService",
 			&model.Config{
-				NativeAppSettings: model.NativeAppSettings{
-					EnableIntuneMAM: model.NewPointer(true),
-				},
-				Office365Settings: model.Office365Settings{
-					Enable:      model.NewPointer(true),
-					DirectoryId: model.NewPointer("test-directory-id"),
-					Id:          model.NewPointer("test-client-id"),
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(model.ServiceOffice365),
 				},
 			},
 			"",
@@ -442,19 +441,18 @@ func TestGetClientConfig(t *testing.T) {
 			},
 			map[string]string{
 				"IntuneMAMEnabled": "true",
-				"IntuneScope":      "api://test-client-id/login.mattermost",
+				"IntuneScope":      "api://87654321-4321-4321-4321-210987654321/login.mattermost",
 			},
 		},
 		{
-			"Intune MAM disabled when Office365 is disabled",
+			"Intune MAM disabled when not enabled",
 			&model.Config{
-				NativeAppSettings: model.NativeAppSettings{
-					EnableIntuneMAM: model.NewPointer(true),
-				},
-				Office365Settings: model.Office365Settings{
-					Enable:      model.NewPointer(false),
-					DirectoryId: model.NewPointer("test-directory-id"),
-					Id:          model.NewPointer("test-client-id"),
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(false),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(model.ServiceOffice365),
 				},
 			},
 			"",
@@ -467,15 +465,14 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"Intune MAM disabled when DirectoryId is missing",
+			"Intune MAM disabled when TenantId is missing",
 			&model.Config{
-				NativeAppSettings: model.NativeAppSettings{
-					EnableIntuneMAM: model.NewPointer(true),
-				},
-				Office365Settings: model.Office365Settings{
-					Enable:      model.NewPointer(true),
-					DirectoryId: model.NewPointer(""),
-					Id:          model.NewPointer("test-client-id"),
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer(""),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(model.ServiceOffice365),
 				},
 			},
 			"",
@@ -488,15 +485,14 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
-			"Intune MAM disabled when Client ID is missing",
+			"Intune MAM disabled when ClientId is missing",
 			&model.Config{
-				NativeAppSettings: model.NativeAppSettings{
-					EnableIntuneMAM: model.NewPointer(true),
-				},
-				Office365Settings: model.Office365Settings{
-					Enable:      model.NewPointer(true),
-					DirectoryId: model.NewPointer("test-directory-id"),
-					Id:          model.NewPointer(""),
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer(""),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(model.ServiceOffice365),
 				},
 			},
 			"",
@@ -511,13 +507,12 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Intune MAM not exposed with lower license tier",
 			&model.Config{
-				NativeAppSettings: model.NativeAppSettings{
-					EnableIntuneMAM: model.NewPointer(true),
-				},
-				Office365Settings: model.Office365Settings{
-					Enable:      model.NewPointer(true),
-					DirectoryId: model.NewPointer("test-directory-id"),
-					Id:          model.NewPointer("test-client-id"),
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(model.ServiceOffice365),
 				},
 			},
 			"",
@@ -530,18 +525,82 @@ func TestGetClientConfig(t *testing.T) {
 		{
 			"Intune MAM not exposed without license",
 			&model.Config{
-				NativeAppSettings: model.NativeAppSettings{
-					EnableIntuneMAM: model.NewPointer(true),
-				},
-				Office365Settings: model.Office365Settings{
-					Enable:      model.NewPointer(true),
-					DirectoryId: model.NewPointer("test-directory-id"),
-					Id:          model.NewPointer("test-client-id"),
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(model.ServiceOffice365),
 				},
 			},
 			"",
 			nil,
 			map[string]string{},
+		},
+		{
+			"Intune MAM enabled with Enterprise Advanced license and SAML AuthService",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(model.UserAuthServiceSaml),
+				},
+				SamlSettings: model.SamlSettings{
+					Enable: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled":  "true",
+				"IntuneScope":       "api://87654321-4321-4321-4321-210987654321/login.mattermost",
+				"IntuneAuthService": "saml",
+			},
+		},
+		{
+			"Intune MAM disabled when AuthService is missing",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer("test-secret"),
+					AuthService:  model.NewPointer(""),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
+		{
+			"Intune MAM disabled when ClientSecret is missing",
+			&model.Config{
+				IntuneSettings: model.IntuneSettings{
+					Enable:       model.NewPointer(true),
+					TenantId:     model.NewPointer("12345678-1234-1234-1234-123456789012"),
+					ClientId:     model.NewPointer("87654321-4321-4321-4321-210987654321"),
+					ClientSecret: model.NewPointer(""),
+					AuthService:  model.NewPointer(model.ServiceOffice365),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
 		},
 	}
 

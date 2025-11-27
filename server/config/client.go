@@ -421,9 +421,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {
 			// Check IntuneSettings configuration
-			intuneEnabled := c.IntuneSettings.Enable != nil && *c.IntuneSettings.Enable &&
-				c.IntuneSettings.TenantId != nil && *c.IntuneSettings.TenantId != "" &&
-				c.IntuneSettings.ClientId != nil && *c.IntuneSettings.ClientId != ""
+			intuneEnabled := (c.IntuneSettings.Enable != nil && *c.IntuneSettings.Enable && c.IntuneSettings.IsValid() == nil)
 
 			props["IntuneMAMEnabled"] = strconv.FormatBool(intuneEnabled)
 
