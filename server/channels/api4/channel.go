@@ -551,8 +551,8 @@ func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-		times, err := c.App.MarkAllDirectAndGroupMessagesViewed(c.AppContext, c.Params.UserId, c.AppContext.Session().Id, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
-		if err != nil {
+	times, err := c.App.MarkAllDirectAndGroupMessagesViewed(c.AppContext, c.Params.UserId, c.AppContext.Session().Id, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -1791,7 +1791,7 @@ func readAllInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	times, err := c.App.MarkTeamChannelsAndThreadsViewed(c.AppContext, c.Params.TeamId, c.Params.UserId, c.AppContext.Session().Id, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
-		if err != nil {
+	if err != nil {
 		c.Err = err
 		return
 	}

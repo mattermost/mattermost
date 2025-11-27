@@ -3755,8 +3755,7 @@ func TestReadAllMessages(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.EnableShiftEscapeToMarkAllRead = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 
@@ -3844,8 +3843,7 @@ func TestReadAllInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.EnableShiftEscapeToMarkAllRead = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 	client := th.Client
 	user := th.BasicUser
 	team := th.BasicTeam
@@ -3921,9 +3919,9 @@ func TestReadAllInTeam(t *testing.T) {
 	})
 
 	t.Run("Should handle empty channel list gracefully", func(t *testing.T) {
-		newTeam := th.CreateTeam()
-		th.LinkUserToTeam(user, newTeam)
-		
+		newTeam := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, newTeam)
+
 		channelResponse, _, err := client.ReadAllInTeam(context.Background(), user.Id, newTeam.Id)
 
 		require.NoError(t, err)
@@ -3932,8 +3930,8 @@ func TestReadAllInTeam(t *testing.T) {
 	})
 
 	t.Run("Should only mark channels in the specified team", func(t *testing.T) {
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(user, team2)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team2)
 
 		channelTeam1, _, err := client.CreateChannel(context.Background(), &model.Channel{
 			TeamId:      team.Id,

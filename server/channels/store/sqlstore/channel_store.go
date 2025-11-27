@@ -2215,15 +2215,15 @@ func (s SqlChannelStore) GetMessagesWithUnreadAndMentions(rctx request.CTX, user
 	).From("ChannelMembers").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
 		Where(sq.And{
-			sq.Eq {
+			sq.Eq{
 				"ChannelMembers.UserId": userID,
 			},
 			sq.Or{
-                    sq.Eq{"Type": "D"},  // Direct Messages
-                    sq.Eq{"Type": "G"},  // Group Messages
-                },
+				sq.Eq{"Type": "D"}, // Direct Messages
+				sq.Eq{"Type": "G"}, // Group Messages
+			},
 		})
-		
+
 	queryString, args, err := query.ToSql()
 
 	if err != nil {

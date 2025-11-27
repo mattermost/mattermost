@@ -3177,7 +3177,6 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 	if err != nil {
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.thread.mark_all_channels_and_threads.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	
 
 	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, user.NotifyProps)
 	if err != nil {
@@ -3221,7 +3220,7 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 	return times, nil
 }
 
-func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID string, currentSessionID string, isCRTEnabled bool)(map[string]int64, *model.AppError) {
+func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID string, currentSessionID string, isCRTEnabled bool) (map[string]int64, *model.AppError) {
 	user, err := a.Srv().Store().User().Get(rctx.Context(), userID)
 	if err != nil {
 		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
