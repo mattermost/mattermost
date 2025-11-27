@@ -115,7 +115,6 @@ type SqlStoreStores struct {
 	wiki                       store.WikiStore
 	pageContent                store.PageContentStore
 	page                       store.PageStore
-	pageDraftContent           store.PageDraftContentStore
 }
 
 type SqlStore struct {
@@ -270,7 +269,6 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.wiki = newSqlWikiStore(store)
 	store.stores.pageContent = newSqlPageContentStore(store)
 	store.stores.page = newSqlPageStore(store)
-	store.stores.pageDraftContent = newSqlPageDraftContentStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1086,8 +1084,4 @@ func (ss *SqlStore) PageContent() store.PageContentStore {
 
 func (ss *SqlStore) Page() store.PageStore {
 	return ss.stores.page
-}
-
-func (ss *SqlStore) PageDraftContent() store.PageDraftContentStore {
-	return ss.stores.pageDraftContent
 }

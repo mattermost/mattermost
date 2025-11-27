@@ -9,7 +9,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {buildTree} from 'selectors/pages_hierarchy';
 
-import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
+import {setupWikiTestContext, createTestPage, requireServer, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PageTreeView from './page_tree_view';
@@ -18,6 +18,7 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
     let testContext: WikiTestContext;
 
     beforeAll(async () => {
+        await requireServer();
         testContext = await setupWikiTestContext();
 
         // Create test pages with hierarchy

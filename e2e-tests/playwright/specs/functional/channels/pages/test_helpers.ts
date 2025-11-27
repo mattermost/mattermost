@@ -209,8 +209,7 @@ export async function fillCreatePageModal(page: Page, pageTitle: string) {
  * @returns The link modal locator
  */
 export async function openPageLinkModal(editor: Locator): Promise<Locator> {
-    const isMac = process.platform === 'darwin';
-    const modifierKey = isMac ? 'Meta' : 'Control';
+    const modifierKey = getModifierKey();
     await editor.press(`${modifierKey}+KeyL`);
 
     const page = editor.page();
@@ -230,10 +229,10 @@ export async function openPageLinkModalViaButton(page: Page): Promise<Locator> {
     // Type some text and select it (required for link insertion)
     await editor.click();
     await editor.pressSequentially('test text', {delay: 10});
-    await page.keyboard.press('Meta+A'); // Mac: Cmd+A, select all
+    await pressModifierKey(page, 'a');
 
     // Use keyboard shortcut Mod-L to open link modal (more reliable than bubble menu)
-    await page.keyboard.press('Meta+l'); // Mac: Cmd+L
+    await pressModifierKey(page, 'l');
 
     // Wait for the link modal to appear
     const linkModal = page.locator('[data-testid="page-link-modal"]').first();
@@ -2299,7 +2298,7 @@ export async function editPageThroughUI(page: Page, newContent: string, clearExi
 
     // Clear existing content if requested
     if (clearExisting) {
-        await page.keyboard.press('Control+A');
+        await selectAllText(page);
         await page.keyboard.press('Backspace');
         await page.waitForTimeout(SHORT_WAIT / 2.5);
     } else {
@@ -3170,4 +3169,27 @@ export async function selectMentionFromDropdown(page: Page, username: string): P
     const userOption = page.locator(`[data-testid="mentionSuggestion_${username}"]`).first();
     await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await userOption.click();
+}
+
+/**
+ * Logs in as a user and navigates to a channel, waiting for the page to be fully loaded
+ * This is a common pattern used in most pages tests
+ *
+ * @param pw - Playwright wrapper with testBrowser
+ * @param user - User profile to login as
+ * @param teamName - Team name to navigate to
+ * @param channelName - Channel name to navigate to
+ * @returns The page and channelsPage objects for further interactions
+ */
+export async function loginAndNavigateToChannel(
+    pw: any,
+    user: any,
+    teamName: string,
+    channelName: string,
+): Promise<{page: Page; channelsPage: any}> {
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(teamName, channelName);
+    await page.waitForLoadState('networkidle');
+    await channelsPage.toBeVisible();
+    return {page, channelsPage};
 }

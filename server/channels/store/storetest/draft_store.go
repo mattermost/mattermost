@@ -533,7 +533,9 @@ func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 func clearDrafts(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Helper()
 
-	_, err := ss.GetInternalMasterDB().Exec("DELETE FROM Drafts")
+	_, err := ss.GetInternalMasterDB().Exec("DELETE FROM PageDraftContents")
+	require.NoError(t, err)
+	_, err = ss.GetInternalMasterDB().Exec("DELETE FROM Drafts")
 	require.NoError(t, err)
 }
 
@@ -548,11 +550,20 @@ func makeDrafts(t *testing.T, ss store.Store, count int, message string) {
 	}
 
 	for i := 1; i <= count; i++ {
-		_, err := ss.Draft().Upsert(&model.Draft{
+		channel := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel " + model.NewId(),
+			Name:        "channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(nil, channel, 9999)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().Upsert(&model.Draft{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			UserId:    model.NewId(),
-			ChannelId: model.NewId(),
+			ChannelId: channel.Id,
 			Message:   message,
 		})
 		require.NoError(t, err)
@@ -614,11 +625,20 @@ func makeDraftsWithNonDeletedPosts(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Helper()
 
 	for i := 1; i <= count; i++ {
+		channel := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel " + model.NewId(),
+			Name:        "channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(rctx, channel, 9999)
+		require.NoError(t, err)
+
 		post, err := ss.Post().Save(rctx, &model.Post{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			UserId:    model.NewId(),
-			ChannelId: model.NewId(),
+			ChannelId: channel.Id,
 			Message:   message,
 		})
 		require.NoError(t, err)
@@ -645,12 +665,21 @@ func makeDraftsWithDeletedPosts(t *testing.T, rctx request.CTX, ss store.Store, 
 	t.Helper()
 
 	for i := 1; i <= count; i++ {
+		channel := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel " + model.NewId(),
+			Name:        "channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(rctx, channel, 9999)
+		require.NoError(t, err)
+
 		post, err := ss.Post().Save(rctx, &model.Post{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			DeleteAt:  model.GetMillis(),
 			UserId:    model.NewId(),
-			ChannelId: model.NewId(),
+			ChannelId: channel.Id,
 			Message:   message,
 		})
 		require.NoError(t, err)

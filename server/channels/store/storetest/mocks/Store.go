@@ -786,26 +786,6 @@ func (_m *Store) PageContent() store.PageContentStore {
 	return r0
 }
 
-// PageDraftContent provides a mock function with no fields
-func (_m *Store) PageDraftContent() store.PageDraftContentStore {
-	ret := _m.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for PageDraftContent")
-	}
-
-	var r0 store.PageDraftContentStore
-	if rf, ok := ret.Get(0).(func() store.PageDraftContentStore); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.PageDraftContentStore)
-		}
-	}
-
-	return r0
-}
-
 // Plugin provides a mock function with no fields
 func (_m *Store) Plugin() store.PluginStore {
 	ret := _m.Called()

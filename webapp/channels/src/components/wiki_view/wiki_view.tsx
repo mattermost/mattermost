@@ -11,13 +11,12 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadPageDraftsForWiki} from 'actions/page_drafts';
-import {loadPages} from 'actions/pages';
 import {openPagesPanel, closePagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
+import {loadWikiBundle} from 'actions/wiki_actions';
 import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
-import {getPage, getPages, getPagesLastInvalidated, getDraftsLastInvalidated} from 'selectors/pages';
+import {getPage, getPages} from 'selectors/pages';
 import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
@@ -127,22 +126,13 @@ const WikiView = () => {
     // Track if we're navigating to select a draft
     const isSelectingDraftRef = React.useRef(false);
 
-    const lastPagesInvalidated = useSelector((state: GlobalState) => getPagesLastInvalidated(state, wikiId));
-    const lastDraftsInvalidated = useSelector((state: GlobalState) => getDraftsLastInvalidated(state, wikiId));
-
-    // Load pages when they are invalidated
+    // Load wiki data (pages, drafts) on wiki change
+    // Uses cache-first pattern: only fetches pages if not already loaded
     React.useEffect(() => {
         if (wikiId) {
-            dispatch(loadPages(wikiId));
+            dispatch(loadWikiBundle(wikiId));
         }
-    }, [wikiId, lastPagesInvalidated, dispatch]);
-
-    // Load drafts when they are invalidated
-    React.useEffect(() => {
-        if (wikiId) {
-            dispatch(loadPageDraftsForWiki(wikiId));
-        }
-    }, [wikiId, lastDraftsInvalidated, dispatch]);
+    }, [wikiId, dispatch]);
 
     const {isLoading} = useWikiPageData(
         pageId,

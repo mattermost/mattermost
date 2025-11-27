@@ -74,6 +74,7 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
+import {PostTypes as Posts} from 'mattermost-redux/constants/posts';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
@@ -109,6 +110,7 @@ import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
 import {transformPageServerDraft} from 'actions/page_drafts';
+import {loadPage} from 'actions/pages';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
@@ -119,6 +121,7 @@ import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
+import {reloadWikiBundle} from 'actions/wiki_actions';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
@@ -304,12 +307,9 @@ export function reconnect() {
 
     if (wikiMatch && wikiMatch[1]) {
         const wikiId = wikiMatch[1];
-        const timestamp = Date.now();
 
-        dispatch({
-            type: WikiTypes.INVALIDATE_PAGES,
-            data: {wikiId, timestamp},
-        });
+        // Force reload to ensure we have latest data after reconnect
+        dispatch(reloadWikiBundle(wikiId));
     }
 
     dispatch(resetWsErrorCount());
@@ -815,7 +815,7 @@ export function handleNewPostEvent(msg) {
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
         // If this is a page, add it to the wiki pages store
-        if (post.props?.is_page && post.props?.wiki_id) {
+        if (post.type === Posts.PAGE && post.props?.wiki_id) {
             myDispatch({
                 type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
                 data: {page: post, wikiId: post.props.wiki_id},
@@ -882,7 +882,7 @@ export function handlePostEditEvent(msg) {
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
     // If this is a page, update it in the wiki pages store
-    if (post.props?.is_page && post.props?.wiki_id) {
+    if (post.type === Posts.PAGE && post.props?.wiki_id) {
         dispatch({
             type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
             data: {page: post, wikiId: post.props.wiki_id},
@@ -1032,17 +1032,25 @@ export function handlePageTitleUpdatedEvent(msg) {
     ]));
 }
 
-export function handlePageMovedEvent(msg) {
+export async function handlePageMovedEvent(msg) {
     const pageId = msg.data.page_id;
     const newParentId = msg.data.new_parent_id;
     const wikiId = msg.data.wiki_id;
+    const sourceWikiId = msg.data.source_wiki_id;
     const updateAt = msg.data.update_at;
 
     const state = getState();
-    const existingPage = getPost(state, pageId);
+    let existingPage = getPost(state, pageId);
 
+    // If page doesn't exist locally, fetch it from the server
+    // This handles the case where a page is moved to a wiki that the user is currently viewing
+    // but hasn't loaded the source wiki
     if (!existingPage) {
-        return;
+        const result = await dispatch(loadPage(pageId, wikiId));
+        if (result.error) {
+            return;
+        }
+        existingPage = result.data;
     }
 
     const updatedPage = {
@@ -1055,7 +1063,7 @@ export function handlePageMovedEvent(msg) {
         update_at: updateAt,
     };
 
-    dispatch(batchActions([
+    const actions = [
         {
             type: PostTypes.RECEIVED_POST,
             data: updatedPage,
@@ -1064,7 +1072,16 @@ export function handlePageMovedEvent(msg) {
             type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
             data: {page: updatedPage, wikiId},
         },
-    ]));
+    ];
+
+    if (sourceWikiId && sourceWikiId !== wikiId) {
+        actions.push({
+            type: WikiTypes.REMOVED_PAGE_FROM_WIKI,
+            data: {pageId, wikiId: sourceWikiId},
+        });
+    }
+
+    dispatch(batchActions(actions));
 }
 
 export function handleWikiUpdatedEvent(msg) {

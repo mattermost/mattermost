@@ -116,6 +116,7 @@ const PageTreeNode = ({
             style={{paddingLeft: `${paddingLeft}px`, opacity: isLoading ? 0.6 : 1}}
             data-testid='page-tree-node'
             data-page-id={node.id}
+            data-depth={node.depth}
             data-is-draft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
             onContextMenu={handleContextMenu}
         >

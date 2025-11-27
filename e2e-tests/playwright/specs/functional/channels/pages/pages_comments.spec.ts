@@ -175,28 +175,45 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
 
     await publishPage(page);
 
-    // Note: Adding multiple comments programmatically is complex, so we verify UI behavior if comments exist
+    // # Enter edit mode and add both inline comments
+    await enterEditMode(page);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // Add first comment
+    await addInlineCommentInEditMode(page, 'Comment on section 1', 'Section 1 needs work');
+
+    // Close RHS if it opened after first comment
+    await closeWikiRHS(page).catch(() => {}); // Ignore error if already closed
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // Add second comment
+    await addInlineCommentInEditMode(page, 'Comment on section 2', 'Section 2 looks good');
+
+    // Close RHS after second comment before publishing
+    await closeWikiRHS(page).catch(() => {}); // Ignore error if already closed
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // # Publish page with both comments
+    await publishPage(page);
+
+    // * Verify both comment markers exist
     const commentMarkers = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]');
     const markerCount = await commentMarkers.count();
+    expect(markerCount).toBeGreaterThanOrEqual(2);
 
-    if (markerCount >= 2) {
-        // # Click first marker
-        await commentMarkers.first().click();
+    // * Verify each marker is clickable and opens RHS
+    const marker1 = commentMarkers.nth(0);
+    const marker2 = commentMarkers.nth(1);
 
-        const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
-        await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        // # Try to navigate to next comment
-        const nextButton = rhs.locator('button[aria-label*="Next"], button:has-text("Next")').first();
-        await expect(nextButton).toBeVisible();
-        await nextButton.click();
-        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+    await marker1.click();
+    const rhs = page.locator('[data-testid="wiki-rhs"]');
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(rhs).toContainText('Comment on section 1');
 
-        // * Verify navigation occurred (RHS content changed)
-        const prevButton = rhs.locator('button[aria-label*="Previous"], button[aria-label*="Prev"]').first();
-        await expect(prevButton).toBeVisible();
-        await prevButton.click();
-        await page.waitForTimeout(UI_MICRO_WAIT * 3);
-    }
+    await marker2.click();
+    await page.waitForTimeout(SHORT_WAIT);
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(rhs).toContainText('Comment on section 2');
 });
 
 /**
@@ -210,29 +227,70 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    // # Create wiki and page through UI
-    const {wiki, page: testPage} = await createWikiAndPage(page, `Markers Wiki ${pw.random.id()}`, 'Design Doc', 'The UI design uses primary color blue and secondary color green');
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Markers Wiki ${pw.random.id()}`);
 
-    // * Verify page content loaded
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toContainText('The UI design');
+    // # Create page with multiple paragraphs through UI
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Design Doc');
 
-    // Note: Actual comment creation would require complex text selection
-    // This test verifies that if markers exist, they are displayable and clickable
+    const editor = getEditor(page);
+    await editor.click();
+    await editor.type('The UI design uses primary color blue.');
+    await editor.press('Enter');
+    await editor.type('It also uses secondary color green.');
+
+    await publishPage(page);
+
+    // # Enter edit mode and add both inline comments
+    await enterEditMode(page);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to be fully ready
+
+    // Add first comment
+    await addInlineCommentInEditMode(page, 'Comment on primary color', 'primary color blue');
+
+    // Close RHS if it opened after first comment
+    await closeWikiRHS(page).catch(() => {}); // Ignore error if already closed
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // Add second comment
+    await addInlineCommentInEditMode(page, 'Comment on secondary color', 'secondary color green');
+
+    // Close RHS after second comment before publishing
+    await closeWikiRHS(page).catch(() => {}); // Ignore error if already closed
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // # Publish page with both comments
+    await publishPage(page);
+
+    // * Verify both comment markers exist
     const commentMarkers = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]');
     const markerCount = await commentMarkers.count();
+    expect(markerCount).toBeGreaterThanOrEqual(2);
 
-    if (markerCount > 0) {
-        // * Verify each marker is clickable
-        for (let i = 0; i < Math.min(markerCount, 3); i++) {
-            const marker = commentMarkers.nth(i);
-            await expect(marker).toBeVisible();
-            // Verify marker has an ID
-            const hasId = await marker.getAttribute('data-comment-id') !== null ||
-                            await marker.getAttribute('id') !== null;
-            expect(hasId || true).toBe(true); // Flexible check
-        }
-    }
+    // * Verify each marker is visible and has an ID
+    const marker1 = commentMarkers.nth(0);
+    const marker2 = commentMarkers.nth(1);
+
+    await expect(marker1).toBeVisible();
+    await expect(marker2).toBeVisible();
+
+    // * Verify each marker has a unique ID attribute
+    const marker1Id = await marker1.getAttribute('data-comment-id') || await marker1.getAttribute('id');
+    const marker2Id = await marker2.getAttribute('data-comment-id') || await marker2.getAttribute('id');
+
+    expect(marker1Id).toBeTruthy();
+    expect(marker2Id).toBeTruthy();
+    expect(marker1Id).not.toBe(marker2Id);
+
+    // * Verify each marker is clickable
+    await marker1.click();
+    const rhs = page.locator('[data-testid="wiki-rhs"]');
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    await marker2.click();
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -418,30 +476,71 @@ test('switches between multiple comment threads in RHS', {tag: '@pages'}, async 
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    // # Create wiki and page through UI
-    const {wiki, page: testPage} = await createWikiAndPage(page, `Multi Thread Wiki ${pw.random.id()}`, 'Architecture', 'The frontend uses React and backend uses Node.js');
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Multi Thread Wiki ${pw.random.id()}`);
 
+    // # Create page with multiple paragraphs through UI
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Architecture');
+
+    const editor = getEditor(page);
+    await editor.click();
+    await editor.type('The frontend uses React for the UI.');
+    await editor.press('Enter');
+    await editor.type('The backend uses Node.js for the API.');
+
+    await publishPage(page);
+
+    // # Enter edit mode and add both inline comments
+    await enterEditMode(page);
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // Add first comment
+    await addInlineCommentInEditMode(page, 'Comment on frontend', 'frontend uses React');
+
+    // Close RHS if it opened after first comment
+    await closeWikiRHS(page).catch(() => {}); // Ignore error if already closed
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // Add second comment
+    await addInlineCommentInEditMode(page, 'Comment on backend', 'backend uses Node.js');
+
+    // Close RHS after second comment before publishing
+    await closeWikiRHS(page).catch(() => {}); // Ignore error if already closed
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // # Publish page with both comments
+    await publishPage(page);
+
+    // * Verify both comment markers exist
     const commentMarkers = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]');
     const markerCount = await commentMarkers.count();
+    expect(markerCount).toBeGreaterThanOrEqual(2);
 
-    if (markerCount >= 2) {
-        const rhs = page.locator('[data-testid="wiki-rhs"]');
+    const rhs = page.locator('[data-testid="wiki-rhs"]');
 
-        // # Click first marker
-        await commentMarkers.nth(0).click();
-        await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // # Click first marker
+    await commentMarkers.nth(0).click();
+    await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        const firstContent = await rhs.textContent();
+    // Wait for RHS to load comment content (not just "ThreadLoading")
+    await page.waitForTimeout(SHORT_WAIT);
 
-        // # Click second marker
-        await commentMarkers.nth(1).click();
+    // * Capture first comment content
+    const firstContent = await rhs.textContent();
+    expect(firstContent).toContain('frontend uses React');
 
-        await page.waitForTimeout(SHORT_WAIT);
-        const secondContent = await rhs.textContent();
+    // # Click second marker
+    await commentMarkers.nth(1).click();
+    await page.waitForTimeout(SHORT_WAIT);
 
-        // * Verify content changed (different comments)
-        expect(firstContent).not.toEqual(secondContent);
-    }
+    // * Verify content changed to second comment
+    const secondContent = await rhs.textContent();
+    expect(secondContent).toContain('backend uses Node.js');
+
+    // * Verify contents are different
+    expect(firstContent).not.toEqual(secondContent);
 });
 
 /**
@@ -520,6 +619,11 @@ test('displays all threads from multiple pages in All Threads tab', {tag: '@page
     await enterEditMode(page);
     await addInlineCommentAndVerify(page, 'First page comment', undefined, true);
 
+    // # Create second page with inline comment
+    await createPageThroughUI(page, 'Backend Page', 'Backend design needs discussion');
+    await enterEditMode(page);
+    await addInlineCommentAndVerify(page, 'Second page comment', undefined, true);
+
     // # Reload page and open RHS via toggle comments button to show tabs
     await page.reload();
     await page.waitForLoadState('networkidle');
@@ -533,26 +637,18 @@ test('displays all threads from multiple pages in All Threads tab', {tag: '@page
     const allThreadsContent = rhs.locator('[data-testid="wiki-rhs-all-threads-content"]');
     await expect(allThreadsContent).toBeVisible();
 
-    // * Verify either empty state or threads list is displayed
-    const emptyState = allThreadsContent.locator('[data-testid="wiki-rhs-all-threads-empty"]');
+    // * Verify threads list is visible (not empty state since we created comments)
     const threadsList = allThreadsContent.locator('[data-testid="wiki-rhs-all-threads"]');
+    await expect(threadsList).toBeVisible();
 
-    // Check which state is present
-    const threadsCount = await threadsList.count();
+    // * Verify threads are grouped by page
+    const pageGroups = threadsList.locator('.WikiRHS__page-thread-group');
+    const groupCount = await pageGroups.count();
+    expect(groupCount).toBeGreaterThanOrEqual(2); // Should have at least 2 pages with threads
 
-    if (threadsCount === 0) {
-        // * Verify empty state message
-        await expect(emptyState).toBeVisible();
-        await expect(emptyState).toContainText('No comment threads in this wiki yet');
-    } else {
-        // * Verify threads list is visible
-        await expect(threadsList).toBeVisible();
-
-        // * Verify threads are grouped by page
-        const pageGroups = threadsList.locator('.WikiRHS__page-thread-group');
-        const groupCount = await pageGroups.count();
-        expect(groupCount).toBeGreaterThanOrEqual(1);
-    }
+    // * Verify threads from both pages are present
+    await expect(threadsList).toContainText('Architecture Page');
+    await expect(threadsList).toContainText('Backend Page');
 });
 
 /**

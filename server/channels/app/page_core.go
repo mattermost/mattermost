@@ -408,26 +408,13 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	var contentErr error
 
 	if includeDeleted {
-		pageContents = make([]*model.PageContent, 0, len(pageIDs))
-		for _, pageID := range pageIDs {
-			content, err := a.Srv().Store().PageContent().GetWithDeleted(pageID)
-			if err != nil {
-				var nfErr *store.ErrNotFound
-				if errors.As(err, &nfErr) {
-					rctx.Logger().Warn("loadPageContentForPostList: PageContent not found for historical page", mlog.String("page_id", pageID))
-					continue
-				}
-				rctx.Logger().Error("loadPageContentForPostList: error fetching PageContent", mlog.String("page_id", pageID), mlog.Err(err))
-				return model.NewAppError("loadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			pageContents = append(pageContents, content)
-		}
+		pageContents, contentErr = a.Srv().Store().PageContent().GetManyWithDeleted(pageIDs)
 	} else {
 		pageContents, contentErr = a.Srv().Store().PageContent().GetMany(pageIDs)
-		if contentErr != nil {
-			rctx.Logger().Error("loadPageContentForPostList: error fetching PageContents", mlog.Int("count", len(pageIDs)), mlog.Err(contentErr))
-			return model.NewAppError("loadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
-		}
+	}
+	if contentErr != nil {
+		rctx.Logger().Error("loadPageContentForPostList: error fetching PageContents", mlog.Int("count", len(pageIDs)), mlog.Bool("include_deleted", includeDeleted), mlog.Err(contentErr))
+		return model.NewAppError("loadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 	}
 
 	contentMap := make(map[string]*model.PageContent, len(pageContents))
@@ -537,6 +524,26 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
 	}
 
+	// Check for conflicts (business logic - following MM pattern)
+	if !force && baseUpdateAt != 0 && post.UpdateAt != baseUpdateAt {
+		modifiedBy := post.UserId
+		if lastModifiedBy, ok := post.Props["last_modified_by"].(string); ok && lastModifiedBy != "" {
+			modifiedBy = lastModifiedBy
+		}
+		modifiedAt := post.UpdateAt
+
+		rctx.Logger().Info("Page update conflict detected",
+			mlog.String("page_id", pageID),
+			mlog.String("modified_by", modifiedBy),
+			mlog.Int("modified_at", modifiedAt),
+			mlog.Int("base_update_at", baseUpdateAt))
+
+		appErr := model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
+			nil, "page was modified by another user", http.StatusConflict)
+		appErr.DetailedError = fmt.Sprintf("modified_by=%s,modified_at=%d", modifiedBy, modifiedAt)
+		return nil, appErr
+	}
+
 	if title != "" {
 		post.Props["title"] = title
 	}
@@ -547,37 +554,8 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 
 	post.Props["last_modified_by"] = session.UserId
 
-	updatedPost, storeErr := a.Srv().Store().Page().Update(post, baseUpdateAt, force)
+	updatedPost, storeErr := a.Srv().Store().Page().Update(post)
 	if storeErr != nil {
-		var conflictErr *store.ErrConflict
-		if errors.As(storeErr, &conflictErr) {
-			currentPage, getErr := a.GetSinglePost(rctx, pageID, false)
-			if getErr != nil {
-				rctx.Logger().Error("Failed to fetch current page after conflict",
-					mlog.String("page_id", pageID),
-					mlog.Err(getErr))
-				return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
-					nil, "page was modified by another user", http.StatusConflict)
-			}
-
-			modifiedBy := currentPage.UserId
-			if lastModifiedBy, ok := currentPage.Props["last_modified_by"].(string); ok && lastModifiedBy != "" {
-				modifiedBy = lastModifiedBy
-			}
-			modifiedAt := currentPage.UpdateAt
-
-			rctx.Logger().Info("Page update conflict detected",
-				mlog.String("page_id", pageID),
-				mlog.String("modified_by", modifiedBy),
-				mlog.Int("modified_at", modifiedAt),
-				mlog.Int("base_update_at", baseUpdateAt))
-
-			appErr := model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
-				nil, "page was modified by another user", http.StatusConflict)
-			appErr.DetailedError = fmt.Sprintf("modified_by=%s,modified_at=%d", modifiedBy, modifiedAt)
-			return nil, appErr
-		}
-
 		var notFoundErr *store.ErrNotFound
 		if errors.As(storeErr, &notFoundErr) {
 			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error",
@@ -680,6 +658,22 @@ func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
 
 	a.invalidateCacheForChannelPosts(restoredPost.ChannelId)
 
+	if enrichErr := a.EnrichPageWithProperties(rctx, restoredPost); enrichErr != nil {
+		rctx.Logger().Warn("Failed to enrich restored page",
+			mlog.String("page_id", pageID),
+			mlog.Err(enrichErr))
+	}
+
+	wikiId, wikiErr := a.GetWikiIdForPage(rctx, pageID)
+	if wikiErr != nil {
+		rctx.Logger().Warn("Could not get wiki ID for restored page, broadcasting with empty wiki ID",
+			mlog.String("page_id", pageID),
+			mlog.Err(wikiErr))
+		wikiId = ""
+	}
+
+	a.BroadcastPagePublished(restoredPost, wikiId, restoredPost.ChannelId, "", session.UserId)
+
 	rctx.Logger().Info("Restored page", mlog.String("page_id", pageID))
 	return nil
 }
@@ -732,7 +726,7 @@ func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActive
 		mlog.Int("five_minutes_ago", fiveMinutesAgo),
 		mlog.Int("current_time", model.GetMillis()))
 
-	drafts, err := a.Srv().Store().PageDraftContent().GetActiveEditorsForPage(pageId, fiveMinutesAgo)
+	drafts, err := a.Srv().Store().Draft().GetActiveEditorsForPage(pageId, fiveMinutesAgo)
 	if err != nil {
 		rctx.Logger().Error("Failed to get active editors", mlog.Err(err))
 		return nil, model.NewAppError("App.GetPageActiveEditors", "app.page.get_active_editors.get_drafts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

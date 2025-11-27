@@ -110,13 +110,13 @@ test('updates existing page content', {tag: '@pages'}, async ({pw, sharedPagesSe
     await createWikiThroughUI(page, `Update Wiki ${pw.random.id()}`);
     await createPageThroughUI(page, 'Page to Update', 'Original content');
 
-    // # Edit the page
-    await editPageThroughUI(page, ' Updated content');
+    // # Edit the page by replacing content
+    await editPageThroughUI(page, 'Completely new updated content', true);
 
-    // * Verify updated content displayed
+    // * Verify original content was replaced (not appended)
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toContainText('Original content');
-    await expect(pageContent).toContainText('Updated content');
+    await expect(pageContent).toContainText('Completely new updated content');
+    await expect(pageContent).not.toContainText('Original content');
 });
 
 /**
@@ -234,14 +234,16 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
     const metadata = page.locator('[data-testid="page-viewer-meta"]');
     await expect(metadata).toBeVisible();
 
-    // * Verify author is displayed
+    // * Verify author displays correct username
     const author = page.locator('[data-testid="page-viewer-author"]');
     await expect(author).toBeVisible();
     await expect(author).toContainText('By');
+    await expect(author).toContainText(user.username);
 
-    // * Verify status is displayed
+    // * Verify status displays "In progress" (default status for published pages)
     const status = page.locator('[data-testid="page-viewer-status"]');
     await expect(status).toBeVisible();
+    await expect(status).toContainText('In progress');
 });
 
 test.skip('exports page to PDF', {tag: '@pages'}, async ({pw}) => {

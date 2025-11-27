@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,53 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
-
-func TestPageStore_Update_OptimisticLocking(t *testing.T) {
-	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
-		channel := &model.Channel{
-			TeamId:      model.NewId(),
-			DisplayName: "Test Channel",
-			Name:        "zz" + model.NewId() + "b",
-			Type:        model.ChannelTypeOpen,
-		}
-		_, err := ss.Channel().Save(rctx, channel, 1000)
-		require.NoError(t, err)
-
-		originalContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
-		post := &model.Post{
-			ChannelId: channel.Id,
-			UserId:    model.NewId(),
-			Type:      model.PostTypePage,
-			Props:     map[string]any{"title": "Original Title"},
-		}
-
-		createdPost, createErr := ss.Page().CreatePage(rctx, post, originalContent, "original content")
-		require.NoError(t, createErr)
-		require.NotNil(t, createdPost)
-
-		time.Sleep(10 * time.Millisecond)
-
-		baseUpdateAt := createdPost.UpdateAt
-
-		updatedContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated by User 1"}]}]}`
-		createdPost.Message = updatedContent
-		createdPost.Props["title"] = "Updated Title by User 1"
-		updatedPost1, err1 := ss.Page().Update(createdPost, baseUpdateAt, false)
-		require.NoError(t, err1)
-		require.NotNil(t, updatedPost1)
-		assert.Equal(t, updatedContent, updatedPost1.Message)
-		assert.Equal(t, "Updated Title by User 1", updatedPost1.Props["title"])
-
-		updatedContent2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated by User 2"}]}]}`
-		createdPost.Message = updatedContent2
-		createdPost.Props["title"] = "Updated Title by User 2"
-		_, err2 := ss.Page().Update(createdPost, baseUpdateAt, false)
-		require.Error(t, err2)
-
-		var conflictErr *store.ErrConflict
-		require.ErrorAs(t, err2, &conflictErr)
-	})
-}
 
 func TestPageStore_Update_DeletedPageReturns404(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -97,8 +49,6 @@ func TestPageStore_Update_DeletedPageReturns404(t *testing.T) {
 		_, execErr := sqlStore.GetMaster().Exec(queryStr, args...)
 		require.NoError(t, execErr)
 
-		baseUpdateAt := post.UpdateAt
-
 		deleteQuery := sqlStore.getQueryBuilder().
 			Update("Posts").
 			Set("DeleteAt", model.GetMillis()).
@@ -111,7 +61,7 @@ func TestPageStore_Update_DeletedPageReturns404(t *testing.T) {
 		require.NoError(t, execErr)
 
 		post.Message = "Updated Title"
-		_, err = ss.Page().Update(post, baseUpdateAt, false)
+		_, err = ss.Page().Update(post)
 		require.Error(t, err)
 
 		var notFoundErr *store.ErrNotFound
@@ -128,7 +78,7 @@ func TestPageStore_Update_NonExistentPageReturns404(t *testing.T) {
 			UpdateAt: model.GetMillis(),
 		}
 
-		_, err := ss.Page().Update(post, model.GetMillis(), false)
+		_, err := ss.Page().Update(post)
 		require.Error(t, err)
 
 		var notFoundErr *store.ErrNotFound
@@ -171,7 +121,7 @@ func TestPageStore_Update_RegularPostsUnaffected(t *testing.T) {
 			UpdateAt: model.GetMillis(),
 		}
 
-		_, err = ss.Page().Update(regularPostWithPageType, createdPost.UpdateAt, false)
+		_, err = ss.Page().Update(regularPostWithPageType)
 		require.Error(t, err)
 
 		var notFoundErr *store.ErrNotFound

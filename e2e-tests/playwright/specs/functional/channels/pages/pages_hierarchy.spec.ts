@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, navigateToPage, getBreadcrumb, getHierarchyPanel, deletePageWithOption, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, UI_MICRO_WAIT} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, navigateToPage, getBreadcrumb, verifyBreadcrumbContains, getHierarchyPanel, deletePageWithOption, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, UI_MICRO_WAIT} from './test_helpers';
 
 /**
  * @objective Verify page hierarchy expansion and collapse functionality
@@ -31,13 +31,25 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPage
     const parentNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
     await expect(parentNode).toBeVisible();
 
-    // * Verify child node is visible (parent should be auto-expanded after child creation)
+    // * Verify parent has expand button (indicates it has children)
+    const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
+    await expect(expandButton).toBeVisible();
+
+    // * Verify child node is visible in hierarchy (parent should be auto-expanded after child creation)
     const childNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + childPage.id + '"]');
     await expect(childNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
+    // * Verify parent-child relationship: child appears AFTER parent in DOM order
+    const allNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]');
+    const parentIndex = await allNodes.evaluateAll((nodes, pId) => {
+        return nodes.findIndex(n => n.getAttribute('data-page-id') === pId);
+    }, parentPage.id);
+    const childIndex = await allNodes.evaluateAll((nodes, cId) => {
+        return nodes.findIndex(n => n.getAttribute('data-page-id') === cId);
+    }, childPage.id);
+    expect(childIndex).toBeGreaterThan(parentIndex); // Child must come after parent in DOM
+
     // # Collapse parent node
-    const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    await expect(expandButton).toBeVisible();
     await expandButton.click();
     await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
@@ -120,16 +132,9 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     const page2AsChild = hierarchyPanel.locator('[data-page-id="' + page2.id + '"]').first();
     await expect(page2AsChild).toBeVisible();
 
-    // Verify Page 2 is indented (child level) under Page 1
-    // by checking it appears after Page 1 in the DOM
-    const allPageNodes = hierarchyPanel.locator('[data-page-id]');
-    const page1Index = await allPageNodes.evaluateAll((nodes, p1Id) => {
-        return nodes.findIndex(n => n.getAttribute('data-page-id') === p1Id);
-    }, page1.id);
-    const page2Index = await allPageNodes.evaluateAll((nodes, p2Id) => {
-        return nodes.findIndex(n => n.getAttribute('data-page-id') === p2Id);
-    }, page2.id);
-    expect(page2Index).toBeGreaterThan(page1Index);
+    // * Verify Page 2 has correct depth (depth=1 indicates child of Page 1 which is at depth=0)
+    await expect(page1Node).toHaveAttribute('data-depth', '0');
+    await expect(page2AsChild).toHaveAttribute('data-depth', '1');
 
     // # Wait for websocket event to propagate
     await page.waitForTimeout(500);
@@ -339,6 +344,11 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     const movedPageNode = hierarchyPanel.locator('[data-page-id="' + pageToMove.id + '"]').first();
     await expect(movedPageNode).toBeVisible();
 
+    // * Verify correct hierarchy depth: Parent (0) > Existing Child (1) > Page to Move (2)
+    await expect(parentNode).toHaveAttribute('data-depth', '0');
+    await expect(existingChildNode).toHaveAttribute('data-depth', '1');
+    await expect(movedPageNode).toHaveAttribute('data-depth', '2');
+
     // # Wait for websocket event to propagate
     await page.waitForTimeout(500);
 
@@ -438,6 +448,11 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     // * Verify Page to Move is now visible as a child of Child in Wiki 2
     const movedPageNode = hierarchyPanel.locator('[data-page-id="' + pageToMove.id + '"]').first();
     await expect(movedPageNode).toBeVisible();
+
+    // * Verify correct hierarchy depth: Parent (0) > Child (1) > Page to Move (2)
+    await expect(parentNode).toHaveAttribute('data-depth', '0');
+    await expect(childNode).toHaveAttribute('data-depth', '1');
+    await expect(movedPageNode).toHaveAttribute('data-depth', '2');
 
     // # Click on moved page to view it and verify breadcrumbs
     await movedPageNode.click();
@@ -580,9 +595,26 @@ test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw,
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toContainText('Content at level 10');
 
-    // * Verify breadcrumb shows full hierarchy
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    // * Verify breadcrumb shows full hierarchy with all 10 levels
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible();
+
+    // * Verify all ancestor pages appear in breadcrumb (Level 1-10)
+    await verifyBreadcrumbContains(page, 'Level 1');
+    await verifyBreadcrumbContains(page, 'Level 2');
+    await verifyBreadcrumbContains(page, 'Level 3');
+    await verifyBreadcrumbContains(page, 'Level 4');
+    await verifyBreadcrumbContains(page, 'Level 5');
+    await verifyBreadcrumbContains(page, 'Level 6');
+    await verifyBreadcrumbContains(page, 'Level 7');
+    await verifyBreadcrumbContains(page, 'Level 8');
+    await verifyBreadcrumbContains(page, 'Level 9');
+    await verifyBreadcrumbContains(page, 'Level 10');
+
+    // * Verify breadcrumb has all expected links (at least 9 ancestor links)
+    const breadcrumbLinks = breadcrumb.locator('a');
+    const linkCount = await breadcrumbLinks.count();
+    expect(linkCount).toBeGreaterThanOrEqual(9); // At minimum, 9 ancestor links (current page may not be a link)
 });
 
 /**
@@ -782,15 +814,27 @@ test('deletes page with children - move to root option', {tag: '@pages'}, async 
 
     // # Create parent page with child through UI
     const parentPage = await createPageThroughUI(page, 'Parent to Delete', 'Parent content');
-    await createChildPageThroughContextMenu(page, parentPage.id!, 'Child to Preserve', 'Child content');
+    const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child to Preserve', 'Child content');
 
     // # Delete parent page with move-to-parent option (preserves children)
     await deletePageWithOption(page, parentPage.id!, 'move-to-parent');
 
-    // * Verify parent is deleted but child is preserved
+    // * Verify parent is deleted
     const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).not.toContainText('Parent to Delete');
+
+    // * Verify child is preserved
     await expect(hierarchyPanel).toContainText('Child to Preserve');
+
+    // * Verify child moved to root level (not nested under any other page)
+    const childNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);
+    await expect(childNode).toBeVisible();
+
+    // * Verify child is at root level by checking it's NOT nested inside another page-tree-node
+    // Root-level pages are direct children of the tree container, not nested in other page nodes
+    const nestedChildNode = hierarchyPanel.locator('[data-testid="page-tree-node"] [data-testid="page-tree-node"]').filter({has: page.locator(`[data-page-id="${childPage.id}"]`)});
+    const isNested = await nestedChildNode.count();
+    expect(isNested).toBe(0); // Should be 0 because child is at root level, not nested
 });
 
 /**
@@ -815,11 +859,14 @@ test('creates child page via context menu', {tag: '@pages'}, async ({pw, sharedP
 
     // * Verify child page appears under parent in hierarchy
     const hierarchyPanel = getHierarchyPanel(page);
-    await expect(hierarchyPanel).toContainText('Child via Context Menu');
+    const parentNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
+    const childNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-page-id="' + childPage.id + '"]');
 
-    // * Verify child page is clickable and loads correctly
-    const childNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + childPage.id + '"]');
     await expect(childNode).toBeVisible();
+
+    // * Verify correct parent-child depth relationship
+    await expect(parentNode).toHaveAttribute('data-depth', '0');
+    await expect(childNode).toHaveAttribute('data-depth', '1');
 });
 
 /**

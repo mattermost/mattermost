@@ -16,16 +16,19 @@ import {
     createWikiThroughUI,
     deletePageViaActionsMenu,
     enterEditMode,
+    fillAndSubmitCommentModal,
     fillCreatePageModal,
     getBreadcrumb,
     getEditorAndWait,
     getHierarchyPanel,
     getNewPageButton,
     navigateToPage,
+    openInlineCommentModal,
     openMovePageModal,
     openPageActionsMenu,
     publishCurrentPage,
     publishPage,
+    selectTextInEditor,
     toggleCommentResolution,
     verifyBreadcrumbContains,
     verifyBreadcrumbDoesNotContain,
@@ -64,6 +67,18 @@ test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'
 
     // * Verify child page was created with correct content
     await verifyPageContentContains(page, 'Child page content');
+
+    // # Step 3: Add inline comment to child page
+    await enterEditMode(page);
+    await addInlineCommentInEditMode(page, 'Integration test comment');
+    await publishPage(page);
+
+    // * Verify comment marker visible
+    const commentMarker = await verifyCommentMarkerVisible(page);
+
+    // * Verify comment accessible via RHS
+    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
+    await verifyWikiRHSContent(page, rhs, ['Integration test comment']);
 
     // * Verify hierarchy exists (child is under parent)
     const hierarchyPanel = getHierarchyPanel(page);
@@ -216,8 +231,17 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
     await page.goBack();
     await page.waitForLoadState('networkidle');
 
-    // * Verify back on search results or wiki home
+    // * Verify search input is visible (confirms we're back in the wiki view)
     await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify we can still perform searches
+    await searchInput.clear();
+    await searchInput.fill(uniqueTerm);
+    await waitForSearchDebounce(page);
+
+    // * Verify search results are functional
+    const searchResultAfterBack = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
+    await expect(searchResultAfterBack).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -357,10 +381,16 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     // * Verify breadcrumb shows new parent title
     await verifyBreadcrumbContains(page, newTitle);
 
+    // * Verify breadcrumb no longer shows old title
+    await verifyBreadcrumbDoesNotContain(page, oldTitle);
+
     // * Verify hierarchy panel shows new title
     const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(hierarchyPanel).toContainText(newTitle);
+
+    // * Verify hierarchy panel no longer shows old title
+    await expect(hierarchyPanel).not.toContainText(oldTitle, {timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -428,24 +458,28 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
     // # Step 2: Create child pages
     const childPage = await createChildPageThroughContextMenu(page, rootPage.id!, 'Requirements', 'Project requirements');
 
-    // # Step 3: Add inline comment to requirements
-    const commentAdded = await addInlineCommentAndPublish(page, 'Requirements', 'Need to review these requirements', true);
+    // # Step 3: Enter edit mode to add inline comment
+    await enterEditMode(page);
 
-    // # Step 4: Reply to comment (only if comment was added successfully)
-    if (commentAdded) {
-        const marker = await verifyCommentMarkerVisible(page);
-        const rhs = await clickCommentMarkerAndOpenRHS(page, marker);
+    // # Step 4: Select text and add inline comment
+    await selectTextInEditor(page);
+    const commentModal = await openInlineCommentModal(page);
+    await fillAndSubmitCommentModal(page, commentModal, 'Need to review these requirements');
 
-        // # Add reply
-        await addReplyToCommentThread(page, rhs, 'Requirements approved');
+    // # Publish page
+    await publishPage(page);
 
-        // # Step 5: Resolve comment
-        await toggleCommentResolution(page, rhs);
-    } else {
-        await page.waitForLoadState('networkidle');
-    }
+    // # Step 5: Reply to comment
+    const marker = await verifyCommentMarkerVisible(page);
+    const rhs = await clickCommentMarkerAndOpenRHS(page, marker);
 
-    // # Step 6: Navigate via breadcrumb
+    // # Add reply
+    await addReplyToCommentThread(page, rhs, 'Requirements approved');
+
+    // # Step 6: Resolve comment
+    await toggleCommentResolution(page, rhs);
+
+    // # Step 7: Navigate via breadcrumb
     const breadcrumb = getBreadcrumb(page);
     await breadcrumb.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     const rootLink = breadcrumb.locator('text="Root Project Page"').first();
@@ -456,7 +490,7 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
     // * Verify on root page
     await verifyPageContentContains(page, 'Root project documentation');
 
-    // # Step 7: Verify hierarchy shows all pages
+    // # Step 8: Verify hierarchy shows all pages
     await verifyHierarchyContains(page, 'Root Project Page');
     await verifyHierarchyContains(page, 'Requirements');
 
@@ -573,12 +607,27 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
     const parentBNode = hierarchyPanel.locator('text="Parent B"').first();
     await expect(parentBNode).toBeVisible();
-    // Expand Parent B if needed
+
+    // Expand Parent B to verify child is there
     await parentBNode.click();
     await page.waitForTimeout(SHORT_WAIT);
 
-    const childNode = hierarchyPanel.locator('text="Child Page to Move"').first();
-    await expect(childNode).toBeVisible({timeout: WEBSOCKET_WAIT});
+    const childUnderParentB = hierarchyPanel.locator('text="Child Page to Move"').first();
+    await expect(childUnderParentB).toBeVisible({timeout: WEBSOCKET_WAIT});
+
+    // * Verify child is NO LONGER under Parent A
+    const parentANode = hierarchyPanel.locator('text="Parent A"').first();
+    await expect(parentANode).toBeVisible();
+
+    // Expand Parent A to check it doesn't contain the child anymore
+    await parentANode.click();
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // Check that under Parent A's subtree, the child is not present
+    // We need to be more specific: look for the child as a descendant of Parent A's tree node
+    const parentATreeNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-page-id="' + parentA.id + '"]');
+    const childUnderParentA = parentATreeNode.locator('text="Child Page to Move"');
+    await expect(childUnderParentA).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**

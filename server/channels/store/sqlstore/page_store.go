@@ -217,12 +217,9 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
 	return err
 }
 
-// Update updates a page with optimistic locking (first-one-wins)
-// baseUpdateAt is the UpdateAt timestamp the client last saw
-// force bypasses optimistic locking when user explicitly confirms overwrite
-// Returns store.ErrConflict if page was modified since baseUpdateAt (unless force=true)
+// Update updates a page (following MM pattern - no business logic, just UPDATE)
 // Returns store.ErrNotFound if page doesn't exist or was deleted
-func (s *SqlPageStore) Update(page *model.Post, baseUpdateAt int64, force bool) (*model.Post, error) {
+func (s *SqlPageStore) Update(page *model.Post) (*model.Post, error) {
 	if page.Type != model.PostTypePage {
 		return nil, fmt.Errorf("Update can only be used for page-type posts")
 	}
@@ -260,11 +257,6 @@ func (s *SqlPageStore) Update(page *model.Post, baseUpdateAt int64, force bool) 
 
 		if currentPost.DeleteAt != 0 {
 			return store.NewErrNotFound("Post", page.Id)
-		}
-
-		// Check optimistic locking unless force=true or baseUpdateAt=0 (new page)
-		if !force && baseUpdateAt != 0 && currentPost.UpdateAt != baseUpdateAt {
-			return store.NewErrConflict("Post", nil, fmt.Sprintf("page_id=%s base_update_at=%d", page.Id, baseUpdateAt))
 		}
 
 		// Fetch current PageContent before update (for version history)
@@ -308,7 +300,7 @@ func (s *SqlPageStore) Update(page *model.Post, baseUpdateAt int64, force bool) 
 
 		rowsAffected, _ := result.RowsAffected()
 		if rowsAffected == 0 {
-			return store.NewErrConflict("Post", nil, fmt.Sprintf("page_id=%s base_update_at=%d", page.Id, baseUpdateAt))
+			return store.NewErrNotFound("Post", page.Id)
 		}
 
 		// Update PageContents if content exists

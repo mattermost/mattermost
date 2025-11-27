@@ -2731,7 +2731,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 				},
 			},
 		}
-		savedDraft, storeErr := th.App.Srv().Store().PageDraftContent().Upsert(draft)
+		savedDraft, storeErr := th.App.Srv().Store().Draft().UpsertPageDraftContent(draft)
 		require.NoError(t, storeErr)
 		require.NotNil(t, savedDraft)
 
@@ -2772,7 +2772,7 @@ func TestGetPageActiveEditors(t *testing.T) {
 				},
 			},
 		}
-		savedDraft2, storeErr := th.App.Srv().Store().PageDraftContent().Upsert(draft2)
+		savedDraft2, storeErr := th.App.Srv().Store().Draft().UpsertPageDraftContent(draft2)
 		require.NoError(t, storeErr)
 		require.NotNil(t, savedDraft2)
 

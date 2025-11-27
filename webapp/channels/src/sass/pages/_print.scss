@@ -1,0 +1,49 @@
+@media print {
+    .sidebar,
+    .app-bar,
+    .app__body .channel-header,
+    .wiki-navigation,
+    .PagesHierarchyPanel,
+    .PagePane__header,
+    .WikiView__hamburgerButton,
+    .comment-section,
+    .floating-buttons,
+    .RhsContainer {
+        display: none !important;
+    }
+
+    body {
+        padding: 0;
+        margin: 0;
+    }
+
+    .WikiView {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .PagePane {
+        width: 100% !important;
+        padding: 20mm !important;
+        margin: 0 !important;
+    }
+
+    .PagePane__content {
+        max-width: 100%;
+    }
+
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+        color: #666;
+        font-size: 0.8em;
+    }
+
+    img {
+        max-width: 100% !important;
+        page-break-inside: avoid;
+    }
+}

@@ -377,3 +377,30 @@ export async function waitForServer(maxAttempts = 5, delayMs = 1000): Promise<bo
     }
     return false;
 }
+
+export async function isServerAvailable(): Promise<boolean> {
+    try {
+        const ping = await Client4.ping(false);
+        return ping.status === 'OK';
+    } catch (error) {
+        return false;
+    }
+}
+
+export async function requireServer(): Promise<void> {
+    const available = await isServerAvailable();
+    if (!available) {
+        console.warn(`
+⚠️  Mattermost server not available on ${TEST_CONFIG.serverUrl}
+   These integration tests require a running server.
+   Skipping tests...
+
+   To run these tests:
+   1. cd server
+   2. make run-server
+   3. Wait for server to start
+   4. Re-run tests
+`);
+        throw new Error('Server not available - tests skipped');
+    }
+}

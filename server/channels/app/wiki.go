@@ -596,16 +596,11 @@ func (a *App) MovePageToWiki(rctx request.CTX, pageId, targetWikiId string, pare
 		mlog.String("channel_id", ctx.page.ChannelId),
 		mlog.String("user_id", rctx.Session().UserId))
 
-	// Broadcast page_published event to target wiki so other users see the new page
-	// Pass source wiki ID so clients can remove the page from the source wiki
-	a.BroadcastPagePublished(ctx.page, targetWikiId, ctx.page.ChannelId, "", rctx.Session().UserId, sourceWikiId)
-
-	// Also broadcast page_moved event with parent change information
 	var newParentId string
 	if parentPageId != nil {
 		newParentId = *parentPageId
 	}
-	a.BroadcastPageMoved(pageId, ctx.page.PageParentId, newParentId, targetWikiId, ctx.page.ChannelId, ctx.page.UpdateAt)
+	a.BroadcastPageMoved(pageId, ctx.page.PageParentId, newParentId, targetWikiId, ctx.page.ChannelId, ctx.page.UpdateAt, sourceWikiId)
 
 	return nil
 }

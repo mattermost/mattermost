@@ -17,6 +17,7 @@ describe('components/ConflictWarningModal', () => {
         update_at: 1234567990,
         delete_at: 0,
         edit_at: 0,
+        is_pinned: false,
         user_id: 'user123',
         channel_id: 'channel123',
         root_id: '',
@@ -28,7 +29,13 @@ describe('components/ConflictWarningModal', () => {
         },
         hashtags: '',
         pending_post_id: '',
-        metadata: {},
+        reply_count: 0,
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
     };
 
     const baseProps = {

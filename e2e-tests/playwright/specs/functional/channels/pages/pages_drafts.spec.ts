@@ -254,11 +254,15 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
     // # Navigate back to check drafts section
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
 
-    // * Verify drafts exist in hierarchy (drafts are integrated in tree with data-is-draft attribute)
+    // * Verify both explicitly created drafts exist in hierarchy (drafts are integrated in tree with data-is-draft attribute)
     const hierarchyPanel = getHierarchyPanel(page);
-    const draftNodes = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]');
-    const draftCount = await draftNodes.count();
-    expect(draftCount).toBeGreaterThanOrEqual(1); // At least one draft should be visible
+
+    // Check for our specific drafts by name (more robust than counting all drafts)
+    const draft1Node = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft 1'});
+    const draft2Node = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft 2'});
+
+    await expect(draft1Node).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(draft2Node).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });
 
 /**

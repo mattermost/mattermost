@@ -14,7 +14,6 @@ import {
     openBookmarksTab,
     verifyBookmarkExists,
     verifyBookmarkNotExists,
-    EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
 
@@ -55,13 +54,18 @@ test('creates bookmark from page to another channel', {tag: '@pages'}, async ({p
     // # Click Bookmark button to create bookmark
     const bookmarkButton = modal.getByRole('button', {name: 'Bookmark'});
     await expect(bookmarkButton).toBeEnabled();
-    await bookmarkButton.click();
+
+    // * Wait for bookmark creation API call to complete
+    const [response] = await Promise.all([
+        page.waitForResponse((resp) => resp.url().includes('/api/v4/channels/') && resp.url().includes('/bookmarks') && resp.request().method() === 'POST'),
+        bookmarkButton.click(),
+    ]);
+
+    // * Verify bookmark was created successfully
+    expect(response.status()).toBe(201);
 
     // * Verify modal closes
     await expect(modal).not.toBeVisible();
-
-    // Wait for bookmark to be created (give time for async dispatch to complete)
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Navigate to target channel
     await channelsPage.goto(team.name, targetChannel.name);

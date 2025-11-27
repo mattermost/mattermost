@@ -39,12 +39,9 @@ type PageStore interface {
 	// UpdatePageWithContent updates a page's title and/or content and creates edit history
 	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)
 
-	// Update updates a page with optimistic locking (first-one-wins)
-	// baseUpdateAt is the UpdateAt timestamp the client last saw
-	// force bypasses optimistic locking when user explicitly confirms overwrite
-	// Returns ErrConflict if page was modified since baseUpdateAt (unless force=true)
+	// Update updates a page (following MM pattern - no business logic, just UPDATE)
 	// Returns ErrNotFound if page doesn't exist or was deleted
-	Update(page *model.Post, baseUpdateAt int64, force bool) (*model.Post, error)
+	Update(page *model.Post) (*model.Post, error)
 
 	// GetPageVersionHistory fetches the version history for a page (limited to PostEditHistoryLimit versions)
 	GetPageVersionHistory(pageID string) ([]*model.Post, error)

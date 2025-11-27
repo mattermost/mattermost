@@ -101,7 +101,6 @@ type Store interface {
 	Wiki() WikiStore
 	PageContent() PageContentStore
 	Page() PageStore
-	PageDraftContent() PageDraftContentStore
 }
 
 type RetentionPolicyStore interface {
@@ -1057,6 +1056,7 @@ type PostPriorityStore interface {
 }
 
 type DraftStore interface {
+	// Draft metadata methods (Drafts table)
 	Upsert(d *model.Draft) (*model.Draft, error)
 	UpsertPageDraft(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
@@ -1069,14 +1069,17 @@ type DraftStore interface {
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
 	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
-}
 
-type PageDraftContentStore interface {
-	Upsert(content *model.PageDraftContent) (*model.PageDraftContent, error)
-	Get(userId, wikiId, draftId string) (*model.PageDraftContent, error)
-	Delete(userId, wikiId, draftId string) error
-	GetForWiki(userId, wikiId string) ([]*model.PageDraftContent, error)
+	// Page draft content methods (PageDraftContents table) - DraftStore owns both tables (MM pattern)
+	UpsertPageDraftContent(content *model.PageDraftContent) (*model.PageDraftContent, error)
+	GetPageDraftContent(userId, wikiId, draftId string) (*model.PageDraftContent, error)
+	DeletePageDraftContent(userId, wikiId, draftId string) error
+	GetPageDraftContentsForWiki(userId, wikiId string) ([]*model.PageDraftContent, error)
 	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error)
+
+	// Transactional methods - manage both Drafts and PageDraftContents atomically
+	UpsertPageDraftWithTransaction(content *model.PageDraftContent, draft *model.Draft) (*model.PageDraftContent, *model.Draft, error)
+	DeletePageDraftWithTransaction(userId, wikiId, channelId, draftId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1217,6 +1220,7 @@ type PageContentStore interface {
 	Get(pageID string) (*model.PageContent, error)
 	GetMany(pageIDs []string) ([]*model.PageContent, error)
 	GetWithDeleted(pageID string) (*model.PageContent, error)
+	GetManyWithDeleted(pageIDs []string) ([]*model.PageContent, error)
 	Update(pageContent *model.PageContent) (*model.PageContent, error)
 	Delete(pageID string) error
 	PermanentDelete(pageID string) error

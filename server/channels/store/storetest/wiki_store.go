@@ -933,7 +933,7 @@ func testCreateWikiWithDefaultPage(t *testing.T, rctx request.CTX, ss store.Stor
 		assert.Equal(t, wiki.Title, savedWiki.Title)
 		assert.Equal(t, wiki.Description, savedWiki.Description)
 
-		pageDrafts, err := ss.PageDraftContent().GetForWiki(user.Id, savedWiki.Id)
+		pageDrafts, err := ss.Draft().GetPageDraftContentsForWiki(user.Id, savedWiki.Id)
 		require.NoError(t, err)
 		require.Len(t, pageDrafts, 1)
 		assert.Equal(t, user.Id, pageDrafts[0].UserId)
@@ -1083,7 +1083,7 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	if err != nil {
 		require.NoError(t, err)
 	}
-	_, err = ss.PageDraftContent().Upsert(pageDraft)
+	_, err = ss.Draft().UpsertPageDraftContent(pageDraft)
 	require.NoError(t, err)
 
 	t.Run("delete all pages and drafts for wiki", func(t *testing.T) {
@@ -1136,7 +1136,7 @@ func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.NotNil(t, page2ContentWithDeleted)
 		assert.NotEqual(t, int64(0), page2ContentWithDeleted.DeleteAt)
 
-		pageDrafts, err := ss.PageDraftContent().GetForWiki(user.Id, wiki.Id)
+		pageDrafts, err := ss.Draft().GetPageDraftContentsForWiki(user.Id, wiki.Id)
 		require.NoError(t, err)
 		assert.Len(t, pageDrafts, 0)
 	})
@@ -1382,7 +1382,7 @@ func testMoveWikiToChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 		CreateAt: model.GetMillis(),
 		UpdateAt: model.GetMillis(),
 	}
-	_, err = ss.PageDraftContent().Upsert(draft)
+	_, err = ss.Draft().UpsertPageDraftContent(draft)
 	require.NoError(t, err)
 
 	t.Run("successfully move wiki with nested pages to new channel", func(t *testing.T) {

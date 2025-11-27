@@ -261,9 +261,9 @@ func (_m *PageStore) GetPageVersionHistory(pageID string) ([]*model.Post, error)
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: page, baseUpdateAt, force
-func (_m *PageStore) Update(page *model.Post, baseUpdateAt int64, force bool) (*model.Post, error) {
-	ret := _m.Called(page, baseUpdateAt, force)
+// Update provides a mock function with given fields: page
+func (_m *PageStore) Update(page *model.Post) (*model.Post, error) {
+	ret := _m.Called(page)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -271,19 +271,19 @@ func (_m *PageStore) Update(page *model.Post, baseUpdateAt int64, force bool) (*
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Post, int64, bool) (*model.Post, error)); ok {
-		return rf(page, baseUpdateAt, force)
+	if rf, ok := ret.Get(0).(func(*model.Post) (*model.Post, error)); ok {
+		return rf(page)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Post, int64, bool) *model.Post); ok {
-		r0 = rf(page, baseUpdateAt, force)
+	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
+		r0 = rf(page)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Post, int64, bool) error); ok {
-		r1 = rf(page, baseUpdateAt, force)
+	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
+		r1 = rf(page)
 	} else {
 		r1 = ret.Error(1)
 	}

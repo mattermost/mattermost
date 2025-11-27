@@ -13,7 +13,7 @@ import {TableRow} from '@tiptap/extension-table-row';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {useEditor, EditorContent, type Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import React, {useEffect, useState, useMemo, useCallback} from 'react';
+import React, {useEffect, useState, useMemo, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import ImageResize from 'tiptap-extension-resize-image';
@@ -192,6 +192,7 @@ const TipTapEditor = ({
     const dispatch = useDispatch();
     const intl = useIntl();
     const currentTeam = useSelector(getCurrentTeam);
+    const editorRef = useRef<Editor | null>(null);
 
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [selectedText, setSelectedText] = useState('');
@@ -337,8 +338,7 @@ const TipTapEditor = ({
 
                     input.onchange = async (e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
-                        // eslint-disable-next-line no-underscore-dangle
-                        const currentEditor = (window as any).__tiptapEditor;
+                        const currentEditor = editorRef.current;
                         if (file && currentEditor) {
                             await handleImageUpload(currentEditor, file);
                         }
@@ -554,13 +554,21 @@ const TipTapEditor = ({
     const {additionalControl: rewriteControl, openRewriteMenu} = usePageRewrite(editor, setServerError);
 
     useEffect(() => {
+        editorRef.current = editor;
+
+        // Expose editor for E2E testing
         if (editor) {
             // eslint-disable-next-line no-underscore-dangle
             (window as any).__tiptapEditor = editor;
         }
+
         return () => {
+            editorRef.current = null;
             // eslint-disable-next-line no-underscore-dangle
-            (window as any).__tiptapEditor = null;
+            if ((window as any).__tiptapEditor === editor) {
+                // eslint-disable-next-line no-underscore-dangle
+                delete (window as any).__tiptapEditor;
+            }
         };
     }, [editor]);
 

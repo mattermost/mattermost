@@ -3,21 +3,19 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createTestChannel, createTestUserInTeam, createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT, UI_MICRO_WAIT, pressModifierKey} from './test_helpers';
+import {createTestChannel, createTestUserInTeam, createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText, getHierarchyPanel, loginAndNavigateToChannel, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT, UI_MICRO_WAIT, pressModifierKey} from './test_helpers';
 
 /**
- * @objective Verify editor handles large content without performance degradation
+ * @objective Verify editor handles large content correctly
  *
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test('handles large content without performance degradation', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('handles large content correctly', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Large Content Wiki ${pw.random.id()}`);
@@ -82,9 +80,7 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Unicode Wiki ${pw.random.id()}`);
@@ -155,9 +151,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     // # Create another user to mention
     const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Mention Wiki ${pw.random.id()}`);
@@ -216,9 +210,7 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     // # Create another channel to mention
     const mentionedChannel = await createTestChannel(adminClient, team.id, `mentioned-channel-${pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Channel Mention Wiki ${pw.random.id()}`);
@@ -291,9 +283,7 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'user1');
     const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'user2');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Multi Mention Wiki ${pw.random.id()}`);
@@ -306,12 +296,41 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     // # Wait for editor to be visible
     const editor = await getEditorAndWait(page);
 
-    // # Type multiple mentions in editor
-    await typeInEditor(page, `Task assigned to @${user1.username} and reviewed by @${user2.username}`);
+    // # Type first mention in editor
+    await editor.click();
+    await editor.type(`Task assigned to @${user1.username}`);
 
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    // * Verify first mention suggestion dropdown appears
+    const mentionDropdown = page.locator('.tiptap-mention-popup').first();
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // * Verify both mentions appear in editor
+    // # Select the first mentioned user from dropdown
+    const userOption1 = page.locator(`[data-testid="mentionSuggestion_${user1.username}"]`).first();
+    await expect(userOption1).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await userOption1.click();
+
+    // * Verify first mention is properly created with data-id attribute
+    await page.waitForTimeout(SHORT_WAIT);
+    const userMentionInEditor1 = editor.locator(`.mention[data-id="${user1.id}"]`);
+    await expect(userMentionInEditor1).toBeVisible();
+
+    // # Type second mention in editor
+    await editor.type(` and reviewed by @${user2.username}`);
+
+    // * Verify second mention suggestion dropdown appears
+    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Select the second mentioned user from dropdown
+    const userOption2 = page.locator(`[data-testid="mentionSuggestion_${user2.username}"]`).first();
+    await expect(userOption2).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await userOption2.click();
+
+    // * Verify second mention is properly created with data-id attribute
+    await page.waitForTimeout(SHORT_WAIT);
+    const userMentionInEditor2 = editor.locator(`.mention[data-id="${user2.id}"]`);
+    await expect(userMentionInEditor2).toBeVisible();
+
+    // * Verify both mentions appear in editor text content
     const editorContent = await editor.textContent();
     expect(editorContent).toContain(user1.username);
     expect(editorContent).toContain(user2.username);
@@ -325,6 +344,15 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText(user1.username);
     await expect(pageContent).toContainText(user2.username);
+
+    // * Verify both mention elements with data-id attributes are properly rendered
+    const userMention1 = pageContent.locator(`.mention[data-id="${user1.id}"]`).first();
+    await expect(userMention1).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(userMention1).toContainText(user1.username);
+
+    const userMention2 = pageContent.locator(`.mention[data-id="${user2.id}"]`).first();
+    await expect(userMention2).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(userMention2).toContainText(user2.username);
 });
 
 /**
@@ -337,9 +365,7 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
     // # Create another user to mention
     const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'matttest');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Mention Bug Wiki ${pw.random.id()}`);
@@ -410,9 +436,7 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'alice');
     const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'bob');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Multi Mention Bug Wiki ${pw.random.id()}`);
@@ -479,9 +503,7 @@ test('shows mention dropdown on second attempt after canceling first', {tag: '@p
     // # Create a user to mention
     const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'testuser');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Dropdown Bug Wiki ${pw.random.id()}`);
@@ -639,9 +661,7 @@ test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, asy
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Link Test Wiki ${pw.random.id()}`);
@@ -678,9 +698,7 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Filter Wiki ${pw.random.id()}`);
@@ -742,15 +760,13 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Insert Link Wiki ${pw.random.id()}`);
 
     // # Create target page to link to
-    await createPageThroughUI(page, 'Target Page');
+    const targetPage = await createPageThroughUI(page, 'Target Page');
     await waitForPageInHierarchy(page, 'Target Page');
 
     // # Create new page for linking
@@ -791,9 +807,10 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     const pageLink = editor.locator('a').filter({hasText: 'test text'}).first();
     await expect(pageLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // * Verify link href contains the page ID
+    // * Verify link href contains the target page ID
     const href = await pageLink.getAttribute('href');
     expect(href).toBeTruthy();
+    expect(href).toContain(targetPage.id);
 });
 
 /**
@@ -803,15 +820,13 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Navigation Wiki ${pw.random.id()}`);
 
     // # Create target page with distinctive content
-    await createPageThroughUI(page, 'Linked Target Page', 'This is the linked page content');
+    const targetPage = await createPageThroughUI(page, 'Linked Target Page', 'This is the linked page content');
     await waitForPageInHierarchy(page, 'Linked Target Page');
 
     // # Create source page with link
@@ -830,12 +845,15 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
 
     await typeInEditor(page, 'Navigate here: ');
 
-    // # Insert page link via toolbar button
-    const linkModal = await openPageLinkModalViaButton(page);
+    // # Open link modal using keyboard shortcut (without selecting text)
+    await pressModifierKey(page, 'l');
+
+    // # Wait for link modal to appear
+    const linkModal = page.locator('[data-testid="page-link-modal"]').first();
     await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Search for the target page (modal only shows first 10, so we need to search)
-    const searchInput = linkModal.locator('input[type="text"]').first();
+    const searchInput = linkModal.locator('input[id="page-search-input"]');
     await searchInput.fill('Linked Target Page');
 
     // # Wait for search to filter results
@@ -843,6 +861,10 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
 
     const targetPageOption = linkModal.locator('text="Linked Target Page"').first();
     await targetPageOption.click();
+
+    // # Fill in the link text input with the target page name
+    const linkTextInput = linkModal.locator('input[id="link-text-input"]');
+    await linkTextInput.fill('Linked Target Page');
 
     // # Click Insert Link button
     const insertLinkButton = linkModal.locator('button:has-text("Insert Link")');
@@ -858,12 +880,25 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     // * Verify page is published
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toBeVisible();
-    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for page to fully render
+    await expect(pageContent).toContainText('Navigate here:', {timeout: ELEMENT_TIMEOUT});
 
-    // # Click on the page link in the hierarchy panel instead (more reliable)
-    const hierarchyPanel = getHierarchyPanel(page);
-    const targetPageInHierarchy = hierarchyPanel.locator('text="Linked Target Page"').first();
-    await targetPageInHierarchy.click();
+    // Wait for the edit button to appear, confirming the page is in view mode
+    const editButton = page.getByRole('button', {name: 'Edit', exact: true});
+    await expect(editButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Click on the actual link in the page content to verify it works
+    const pageLink = pageContent.locator('a:has-text("Linked Target Page")');
+    await expect(pageLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // Get the href for verification
+    const linkHref = await pageLink.getAttribute('href');
+    expect(linkHref).toContain(targetPage.id);
+
+    // * Click the link and verify navigation to target page (links navigate in same tab)
+    await pageLink.click();
+
+    // Wait for navigation to complete
+    await page.waitForLoadState('networkidle');
 
     // * Verify navigation by checking content changed to target page
     const targetPageContent = page.locator('[data-testid="page-viewer-content"]');
@@ -877,10 +912,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Multi Link Wiki ${pw.random.id()}`);
@@ -1034,8 +1066,7 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
     // # Create a unique channel for this test (to avoid cross-wiki page pollution)
     const uniqueChannel = await createTestChannel(adminClient, team.id, `empty-test-${pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, uniqueChannel.name);
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, uniqueChannel.name);
 
     // # Create wiki through UI (but don't create any pages)
     const wiki = await createWikiThroughUI(page, `Empty Wiki ${pw.random.id()}`);
@@ -1063,9 +1094,7 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Escape Wiki ${pw.random.id()}`);
@@ -1109,9 +1138,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Hierarchy Wiki ${pw.random.id()}`);
@@ -1208,9 +1235,7 @@ test('formatting buttons show correct active state for text formatting', {tag: '
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Formatting Wiki ${pw.random.id()}`);
@@ -1310,9 +1335,7 @@ test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pag
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Character Limit Wiki ${pw.random.id()}`);
@@ -1399,9 +1422,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Image Paste Wiki ${pw.random.id()}`);
@@ -1520,9 +1541,7 @@ test('formatting bar includes divider button from shared registry', {tag: '@page
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
     const wiki = await createWikiThroughUI(page, `Formatting Bar Wiki ${pw.random.id()}`);

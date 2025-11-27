@@ -113,7 +113,7 @@ func testPageDraftContentUpsertInsert(t *testing.T, rctx request.CTX, ss store.S
 			Content: content,
 		}
 
-		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		savedContent, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 		require.NotNil(t, savedContent)
 		assert.Equal(t, pageDraftContent.UserId, savedContent.UserId)
@@ -143,7 +143,7 @@ func testPageDraftContentUpsertInsert(t *testing.T, rctx request.CTX, ss store.S
 			Content: emptyContent,
 		}
 
-		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		savedContent, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 		assert.Equal(t, "", savedContent.Title)
 
@@ -213,7 +213,7 @@ func testPageDraftContentUpsertUpdate(t *testing.T, rctx request.CTX, ss store.S
 			Content: initialContent,
 		}
 
-		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		savedContent, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 		initialCreateAt := savedContent.CreateAt
 		initialUpdateAt := savedContent.UpdateAt
@@ -238,7 +238,7 @@ func testPageDraftContentUpsertUpdate(t *testing.T, rctx request.CTX, ss store.S
 		pageDraftContent.Title = "Updated Title"
 		pageDraftContent.Content = updatedContent
 
-		updatedContentResult, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		updatedContentResult, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated Title", updatedContentResult.Title)
 
@@ -248,7 +248,7 @@ func testPageDraftContentUpsertUpdate(t *testing.T, rctx request.CTX, ss store.S
 		assert.Equal(t, initialCreateAt, updatedContentResult.CreateAt)
 		assert.Greater(t, updatedContentResult.UpdateAt, initialUpdateAt)
 
-		retrievedContent, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
+		retrievedContent, err := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated Title", retrievedContent.Title)
 
@@ -302,11 +302,11 @@ func testPageDraftContentGet(t *testing.T, rctx request.CTX, ss store.Store) {
 		Title:   "Test Draft",
 		Content: content,
 	}
-	_, err = ss.PageDraftContent().Upsert(pageDraftContent)
+	_, err = ss.Draft().UpsertPageDraftContent(pageDraftContent)
 	require.NoError(t, err)
 
 	t.Run("get existing page draft content", func(t *testing.T) {
-		retrieved, getErr := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
+		retrieved, getErr := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, getErr)
 		assert.Equal(t, pageDraftContent.UserId, retrieved.UserId)
 		assert.Equal(t, pageDraftContent.WikiId, retrieved.WikiId)
@@ -353,7 +353,7 @@ func testPageDraftContentGetNotFound(t *testing.T, rctx request.CTX, ss store.St
 	require.NoError(t, err)
 
 	t.Run("get non-existent page draft", func(t *testing.T) {
-		_, getErr := ss.PageDraftContent().Get(user.Id, wiki.Id, model.NewId())
+		_, getErr := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, model.NewId())
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -369,10 +369,10 @@ func testPageDraftContentGetNotFound(t *testing.T, rctx request.CTX, ss store.St
 			Title:   "Test Draft",
 			Content: content,
 		}
-		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		_, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 
-		_, getErr := ss.PageDraftContent().Get(model.NewId(), wiki.Id, pageDraftContent.DraftId)
+		_, getErr := ss.Draft().GetPageDraftContent(model.NewId(), wiki.Id, pageDraftContent.DraftId)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -388,10 +388,10 @@ func testPageDraftContentGetNotFound(t *testing.T, rctx request.CTX, ss store.St
 			Title:   "Test Draft",
 			Content: content,
 		}
-		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		_, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 
-		_, getErr := ss.PageDraftContent().Get(user.Id, model.NewId(), pageDraftContent.DraftId)
+		_, getErr := ss.Draft().GetPageDraftContent(user.Id, model.NewId(), pageDraftContent.DraftId)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -444,13 +444,13 @@ func testPageDraftContentDelete(t *testing.T, rctx request.CTX, ss store.Store) 
 			Title:   "Test Draft",
 			Content: content,
 		}
-		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		_, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 
-		deleteErr := ss.PageDraftContent().Delete(user.Id, wiki.Id, pageDraftContent.DraftId)
+		deleteErr := ss.Draft().DeletePageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, deleteErr)
 
-		_, getErr := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
+		_, getErr := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		assert.Error(t, getErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, getErr, &nfErr)
@@ -494,7 +494,7 @@ func testPageDraftContentDeleteNotFound(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, err)
 
 	t.Run("delete non-existent page draft", func(t *testing.T) {
-		deleteErr := ss.PageDraftContent().Delete(user.Id, wiki.Id, model.NewId())
+		deleteErr := ss.Draft().DeletePageDraftContent(user.Id, wiki.Id, model.NewId())
 		assert.Error(t, deleteErr)
 		var nfErr *store.ErrNotFound
 		assert.ErrorAs(t, deleteErr, &nfErr)
@@ -553,7 +553,7 @@ func testPageDraftContentGetForWiki(t *testing.T, rctx request.CTX, ss store.Sto
 		Title:   "Draft 1",
 		Content: content,
 	}
-	_, err = ss.PageDraftContent().Upsert(draft1)
+	_, err = ss.Draft().UpsertPageDraftContent(draft1)
 	require.NoError(t, err)
 
 	draft2 := &model.PageDraftContent{
@@ -563,7 +563,7 @@ func testPageDraftContentGetForWiki(t *testing.T, rctx request.CTX, ss store.Sto
 		Title:   "Draft 2",
 		Content: content,
 	}
-	_, err = ss.PageDraftContent().Upsert(draft2)
+	_, err = ss.Draft().UpsertPageDraftContent(draft2)
 	require.NoError(t, err)
 
 	draft3 := &model.PageDraftContent{
@@ -573,11 +573,11 @@ func testPageDraftContentGetForWiki(t *testing.T, rctx request.CTX, ss store.Sto
 		Title:   "Draft 3",
 		Content: content,
 	}
-	_, err = ss.PageDraftContent().Upsert(draft3)
+	_, err = ss.Draft().UpsertPageDraftContent(draft3)
 	require.NoError(t, err)
 
 	t.Run("get all drafts for wiki", func(t *testing.T) {
-		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, wiki1.Id)
+		drafts, getErr := ss.Draft().GetPageDraftContentsForWiki(user.Id, wiki1.Id)
 		require.NoError(t, getErr)
 		assert.Len(t, drafts, 2)
 		for _, d := range drafts {
@@ -594,13 +594,13 @@ func testPageDraftContentGetForWiki(t *testing.T, rctx request.CTX, ss store.Sto
 		emptyWiki, err := ss.Wiki().Save(emptyWiki)
 		require.NoError(t, err)
 
-		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, emptyWiki.Id)
+		drafts, getErr := ss.Draft().GetPageDraftContentsForWiki(user.Id, emptyWiki.Id)
 		require.NoError(t, getErr)
 		assert.Empty(t, drafts)
 	})
 
 	t.Run("get drafts for non-existent wiki", func(t *testing.T) {
-		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, model.NewId())
+		drafts, getErr := ss.Draft().GetPageDraftContentsForWiki(user.Id, model.NewId())
 		require.NoError(t, getErr)
 		assert.Empty(t, drafts)
 	})
@@ -652,7 +652,7 @@ func testPageDraftContentGetForWikiOrdering(t *testing.T, rctx request.CTX, ss s
 			Title:   "First Draft",
 			Content: content,
 		}
-		_, err := ss.PageDraftContent().Upsert(draft1)
+		_, err := ss.Draft().UpsertPageDraftContent(draft1)
 		require.NoError(t, err)
 
 		draft2 := &model.PageDraftContent{
@@ -662,7 +662,7 @@ func testPageDraftContentGetForWikiOrdering(t *testing.T, rctx request.CTX, ss s
 			Title:   "Second Draft",
 			Content: content,
 		}
-		_, err = ss.PageDraftContent().Upsert(draft2)
+		_, err = ss.Draft().UpsertPageDraftContent(draft2)
 		require.NoError(t, err)
 
 		draft3 := &model.PageDraftContent{
@@ -672,10 +672,10 @@ func testPageDraftContentGetForWikiOrdering(t *testing.T, rctx request.CTX, ss s
 			Title:   "Third Draft",
 			Content: content,
 		}
-		_, err = ss.PageDraftContent().Upsert(draft3)
+		_, err = ss.Draft().UpsertPageDraftContent(draft3)
 		require.NoError(t, err)
 
-		drafts, getErr := ss.PageDraftContent().GetForWiki(user.Id, wiki.Id)
+		drafts, getErr := ss.Draft().GetPageDraftContentsForWiki(user.Id, wiki.Id)
 		require.NoError(t, getErr)
 		require.Len(t, drafts, 3)
 
@@ -793,11 +793,11 @@ func testPageDraftContentJSONBSerialization(t *testing.T, rctx request.CTX, ss s
 			Content: complexContent,
 		}
 
-		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		savedContent, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 		assertContentEquals(t, complexContent, savedContent.Content)
 
-		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
+		retrieved, err := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 		assertContentEquals(t, complexContent, retrieved.Content)
 
@@ -829,10 +829,10 @@ func testPageDraftContentJSONBSerialization(t *testing.T, rctx request.CTX, ss s
 			Content: specialContent,
 		}
 
-		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		_, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 
-		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
+		retrieved, err := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 
 		assert.Equal(t, specialContent.Type, retrieved.Content.Type)
@@ -913,11 +913,11 @@ func testPageDraftContentLargeContent(t *testing.T, rctx request.CTX, ss store.S
 			Content: largeContent,
 		}
 
-		savedContent, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		savedContent, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 		assertContentEquals(t, largeContent, savedContent.Content)
 
-		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
+		retrieved, err := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 		assertContentEquals(t, largeContent, retrieved.Content)
 
@@ -954,10 +954,10 @@ func testPageDraftContentLargeContent(t *testing.T, rctx request.CTX, ss store.S
 			Content: veryLargeContent,
 		}
 
-		_, err := ss.PageDraftContent().Upsert(pageDraftContent)
+		_, err := ss.Draft().UpsertPageDraftContent(pageDraftContent)
 		require.NoError(t, err)
 
-		retrieved, err := ss.PageDraftContent().Get(user.Id, wiki.Id, pageDraftContent.DraftId)
+		retrieved, err := ss.Draft().GetPageDraftContent(user.Id, wiki.Id, pageDraftContent.DraftId)
 		require.NoError(t, err)
 
 		retrievedJSON, _ := json.Marshal(retrieved.Content)

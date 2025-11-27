@@ -13,7 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {transformPageServerDraft} from 'actions/page_drafts';
 
-import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
+import {setupWikiTestContext, createTestPage, requireServer, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
@@ -25,6 +25,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     let testContext: WikiTestContext;
 
     beforeAll(async () => {
+        await requireServer();
         testContext = await setupWikiTestContext();
 
         // Create test pages with hierarchy

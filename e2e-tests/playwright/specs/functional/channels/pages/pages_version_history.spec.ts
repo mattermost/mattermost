@@ -20,6 +20,7 @@ import {
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
+    WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
     PAGE_LOAD_TIMEOUT,
 } from './test_helpers';
@@ -186,6 +187,18 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
 
     // * Verify version history modal displays correctly (2 historical versions, current version excluded)
     await verifyVersionHistoryModal(page, 'Version History Page', 2);
+
+    // * Verify version history items display timestamps and authors
+    const historyItems = getVersionHistoryItems(page);
+    const firstItem = historyItems.first();
+
+    // * Verify timestamp is displayed (e.g., "5 seconds ago", "1 minute ago", "Today")
+    await expect(firstItem).toContainText(/(\d+\s+(second|minute|hour|day)s?\s+ago|Today|Yesterday)/i, {timeout: ELEMENT_TIMEOUT});
+
+    // * Expand first item to verify author is displayed
+    await firstItem.click();
+    await page.waitForTimeout(SHORT_WAIT);
+    await expect(firstItem).toContainText(user.username, {timeout: ELEMENT_TIMEOUT});
 });
 
 /**
@@ -230,10 +243,23 @@ test('restores previous page version from version history', {tag: '@pages'}, asy
     const versionModal = getVersionHistoryModal(page);
     await expect(versionModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
+    // # Wait for WebSocket event to propagate and update stores
+    await page.waitForTimeout(WEBSOCKET_WAIT);
+
     // * Verify page content shows the restored version (Version 2)
     const wikiView = page.locator('[data-testid="wiki-view"]');
     await expect(wikiView).toContainText('Version 2: First edit');
     await expect(wikiView).not.toContainText('Version 3: Second edit');
+
+    // * Verify the page in hierarchy panel is still accessible (validates wiki store update)
+    // This ensures the RECEIVED_PAGE_IN_WIKI action was dispatched via WebSocket
+    const hierarchyPageNode = getPageTreeNodeByTitle(page, 'Restore Test Page');
+    await expect(hierarchyPageNode).toBeVisible();
+
+    // * Verify clicking the page in hierarchy still works (validates page metadata in wiki store)
+    await hierarchyPageNode.click();
+    await page.waitForTimeout(SHORT_WAIT);
+    await expect(wikiView).toContainText('Version 2: First edit');
 
     // # Reopen version history to verify restore created a new version
     await openVersionHistoryModal(page, 'Restore Test Page');

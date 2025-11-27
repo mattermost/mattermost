@@ -209,23 +209,53 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     // # Test special characters that might break URLs
     await titleInput.clear();
     await page.waitForTimeout(UI_MICRO_WAIT);
-    await titleInput.fill('Page / With \\ Slashes');
+    const specialCharTitle = 'Page / With \\ Slashes';
+    await titleInput.fill(specialCharTitle);
     await page.waitForTimeout(UI_MICRO_WAIT * 3); // Wait for title to be saved
 
     await publishButton.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(EDITOR_LOAD_WAIT); // Additional wait for page render
 
-    // * Verify either sanitized or published successfully (implementation-specific)
-    // Page should either:
-    // 1. Sanitize the slashes and publish
-    // 2. Show validation error
-    // 3. URL-encode the title
-    const pageVisible = await page.locator('[data-testid="page-viewer-content"]').isVisible().catch(() => false);
-    const editorVisible = await page.locator('.ProseMirror').first().isVisible().catch(() => false);
+    // * Verify either sanitized/encoded and published, or validation error shown
+    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewerVisible = await pageViewer.isVisible().catch(() => false);
+    const editorStillVisibleAfterPublish = await page.locator('.ProseMirror').first().isVisible().catch(() => false);
 
-    // Should be in one state or the other (not crashed)
-    expect(pageVisible || editorVisible).toBe(true);
+    if (pageViewerVisible) {
+        // * Page published successfully - verify title handling
+        const publishedTitle = page.locator('[data-testid="page-viewer-title"]');
+        const titleText = await publishedTitle.textContent();
+
+        // Title should exist and be visible (not null/empty)
+        expect(titleText).toBeTruthy();
+
+        // Verify title contains the core text
+        expect(titleText).toMatch(/Page.*With.*Slashes/i);
+
+        // * Verify URL is still functional despite special characters in title
+        // The URL should be properly encoded, not broken by the slashes in the title
+        const currentUrl = page.url();
+        expect(currentUrl).toContain('/wiki/');
+
+        // * Verify page viewer is accessible (doesn't crash with special char titles)
+        await expect(pageViewer).toBeVisible();
+    } else if (editorStillVisibleAfterPublish) {
+        // * Validation error shown - verify error message exists
+        const validationError = page.locator('[data-testid="title-error"], .error-message, .validation-error, [data-testid="announcement-bar"]').first();
+        const errorVisible = await validationError.isVisible().catch(() => false);
+
+        expect(errorVisible).toBe(true);
+
+        if (errorVisible) {
+            const errorText = await validationError.textContent();
+            // Error should mention invalid characters or title validation
+            expect(errorText).toMatch(/invalid|character|title|slash/i);
+        }
+    } else {
+        // * If neither state is visible, the page crashed - fail the test
+        throw new Error('Page neither published nor showed validation error - possible crash');
+    }
 });
 
 /**

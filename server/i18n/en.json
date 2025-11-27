@@ -2629,12 +2629,52 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.page.duplicate.invalid_channel_type",
+    "translation": "Cannot duplicate page to this channel type."
+  },
+  {
+    "id": "api.page.permission.guest_cannot_modify",
+    "translation": "Guests cannot modify pages."
+  },
+  {
+    "id": "api.page.permission.invalid_channel_type",
+    "translation": "Invalid channel type for page operations."
+  },
+  {
+    "id": "api.page.permission.no_channel_access",
+    "translation": "You do not have access to this channel."
+  },
+  {
+    "id": "api.page.publish.circular_reference.app_error",
+    "translation": "Cannot publish page: circular reference detected."
+  },
+  {
+    "id": "api.page.publish.parent_different_channel.app_error",
+    "translation": "Cannot publish page: parent page is in a different channel."
+  },
+  {
+    "id": "api.page.publish.parent_not_found.app_error",
+    "translation": "Cannot publish page: parent page not found."
+  },
+  {
+    "id": "api.page.publish.parent_not_page.app_error",
+    "translation": "Cannot publish page: parent is not a page."
+  },
+  {
     "id": "api.payload.parse.error",
     "translation": "An error occurred while parsing the payload."
   },
   {
+    "id": "api.plugin.get_first_wiki.no_wiki",
+    "translation": "No wiki found."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
+  },
+  {
+    "id": "api.plugin.link_page_to_wiki.no_wiki",
+    "translation": "No wiki found to link page."
   },
   {
     "id": "api.plugin.upload.array.app_error",
@@ -2769,6 +2809,10 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.get_page_children.permissions.app_error",
+    "translation": "You do not have permission to view page children."
   },
   {
     "id": "api.post.get_posts_for_reporting.channel_not_found",
@@ -4707,6 +4751,142 @@
     "translation": "Server is busy, non-critical services are temporarily unavailable."
   },
   {
+    "id": "api.wiki.add.already_attached",
+    "translation": "Page is already attached to this wiki."
+  },
+  {
+    "id": "api.wiki.add.channel_mismatch",
+    "translation": "Page channel does not match wiki channel."
+  },
+  {
+    "id": "api.wiki.add.not_a_page",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "api.wiki.breadcrumb.invalid_wiki",
+    "translation": "Invalid wiki for breadcrumb."
+  },
+  {
+    "id": "api.wiki.create.deleted_channel.forbidden.app_error",
+    "translation": "Cannot create wiki in archived channel."
+  },
+  {
+    "id": "api.wiki.create_comment.invalid_wiki",
+    "translation": "Invalid wiki for comment."
+  },
+  {
+    "id": "api.wiki.create_comment.not_page.app_error",
+    "translation": "Cannot create comment: post is not a page."
+  },
+  {
+    "id": "api.wiki.create_comment_reply.invalid_wiki",
+    "translation": "Invalid wiki for comment reply."
+  },
+  {
+    "id": "api.wiki.create_comment_reply.not_page.app_error",
+    "translation": "Cannot create comment reply: post is not a page."
+  },
+  {
+    "id": "api.wiki.delete.channel_mismatch",
+    "translation": "Page channel does not match wiki channel."
+  },
+  {
+    "id": "api.wiki.delete.not_a_page",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "api.wiki.get_comments.invalid_wiki",
+    "translation": "Invalid wiki for comments."
+  },
+  {
+    "id": "api.wiki.get_page.invalid_wiki",
+    "translation": "Invalid wiki for page."
+  },
+  {
+    "id": "api.wiki.get_page.wiki_deleted",
+    "translation": "Wiki has been deleted."
+  },
+  {
+    "id": "api.wiki.get_page_active_editors.not_a_page",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "api.wiki.get_page_version_history.not_a_page",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "api.wiki.move_page.invalid_wiki",
+    "translation": "Invalid wiki for page move."
+  },
+  {
+    "id": "api.wiki.permission.app_error",
+    "translation": "You do not have permission to perform this wiki operation."
+  },
+  {
+    "id": "api.wiki.permission.direct_or_group_channels.app_error",
+    "translation": "Wiki operations are not allowed in direct or group messages."
+  },
+  {
+    "id": "api.wiki.permission.direct_or_group_channels_by_guests.app_error",
+    "translation": "Guests cannot perform wiki operations in direct or group messages."
+  },
+  {
+    "id": "api.wiki.permission.forbidden.app_error",
+    "translation": "You do not have permission to access this wiki."
+  },
+  {
+    "id": "api.wiki.resolve_comment.deleted.app_error",
+    "translation": "Cannot resolve deleted comment."
+  },
+  {
+    "id": "api.wiki.resolve_comment.not_comment.app_error",
+    "translation": "Post is not a comment."
+  },
+  {
+    "id": "api.wiki.resolve_comment.not_inline.app_error",
+    "translation": "Comment is not an inline comment."
+  },
+  {
+    "id": "api.wiki.resolve_comment.wrong_page.app_error",
+    "translation": "Comment does not belong to this page."
+  },
+  {
+    "id": "api.wiki.unresolve_comment.deleted.app_error",
+    "translation": "Cannot unresolve deleted comment."
+  },
+  {
+    "id": "api.wiki.unresolve_comment.not_comment.app_error",
+    "translation": "Post is not a comment."
+  },
+  {
+    "id": "api.wiki.unresolve_comment.not_inline.app_error",
+    "translation": "Comment is not an inline comment."
+  },
+  {
+    "id": "api.wiki.unresolve_comment.wrong_page.app_error",
+    "translation": "Comment does not belong to this page."
+  },
+  {
+    "id": "api.wiki.update_page_parent.invalid_wiki",
+    "translation": "Invalid wiki for page parent update."
+  },
+  {
+    "id": "api.wiki.update_page_parent.not_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "api.wiki.update_page_parent.parent_different_wiki",
+    "translation": "Parent page is in a different wiki."
+  },
+  {
+    "id": "api.wiki.update_page_parent.parent_not_found",
+    "translation": "Parent page not found."
+  },
+  {
+    "id": "api.wiki.update_page_parent.parent_not_page",
+    "translation": "Parent is not a page."
+  },
+  {
     "id": "api4.plugin.reattachPlugin.invalid_request",
     "translation": "Failed to parse request"
   },
@@ -4859,8 +5039,24 @@
     "translation": "Could not get existing bookmark to update."
   },
   {
+    "id": "app.channel.bookmark.no_permission_to_page_channel.app_error",
+    "translation": "You do not have permission to access the page's channel."
+  },
+  {
+    "id": "app.channel.bookmark.not_a_page.app_error",
+    "translation": "Cannot create bookmark from non-page post."
+  },
+  {
+    "id": "app.channel.bookmark.page_missing_wiki_id.app_error",
+    "translation": "Cannot create bookmark. Page is missing wiki_id."
+  },
+  {
     "id": "app.channel.bookmark.save.app_error",
     "translation": "Could not save bookmark."
+  },
+  {
+    "id": "app.channel.bookmark.site_url_required.app_error",
+    "translation": "Cannot create page bookmark. SiteURL must be configured in System Console."
   },
   {
     "id": "app.channel.bookmark.update.app_error",
@@ -4877,22 +5073,6 @@
   {
     "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
     "translation": "Could not sort the bookmark. Not found."
-  },
-  {
-    "id": "app.channel.bookmark.not_a_page.app_error",
-    "translation": "Cannot create bookmark from non-page post."
-  },
-  {
-    "id": "app.channel.bookmark.no_permission_to_page_channel.app_error",
-    "translation": "You do not have permission to access the page's channel."
-  },
-  {
-    "id": "app.channel.bookmark.page_missing_wiki_id.app_error",
-    "translation": "Cannot create bookmark. Page is missing wiki_id."
-  },
-  {
-    "id": "app.channel.bookmark.site_url_required.app_error",
-    "translation": "Cannot create page bookmark. SiteURL must be configured in System Console."
   },
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
@@ -5607,14 +5787,6 @@
     "translation": "Wiki not found for page draft."
   },
   {
-    "id": "app.draft.delete_page_content.app_error",
-    "translation": "Unable to delete page draft content."
-  },
-  {
-    "id": "app.draft.delete_page_metadata.app_error",
-    "translation": "Unable to delete page draft metadata."
-  },
-  {
     "id": "app.draft.feature_disabled",
     "translation": "Drafts feature is disabled."
   },
@@ -5671,10 +5843,6 @@
     "translation": "Unable to get wiki page draft metadata."
   },
   {
-    "id": "app.draft.get_wiki_drafts.app_error",
-    "translation": "Unable to get wiki drafts."
-  },
-  {
     "id": "app.draft.publish_page.content_error",
     "translation": "Unable to resolve page draft content for publishing."
   },
@@ -5691,6 +5859,10 @@
     "translation": "Unable to save the Draft."
   },
   {
+    "id": "app.draft.save_page.app_error",
+    "translation": "Unable to save page draft."
+  },
+  {
     "id": "app.draft.save_page.channel_not_found.app_error",
     "translation": "Channel not found for page draft."
   },
@@ -5705,14 +5877,6 @@
   {
     "id": "app.draft.save_page.wiki_not_found.app_error",
     "translation": "Wiki not found for page draft."
-  },
-  {
-    "id": "app.draft.save_page_content.app_error",
-    "translation": "Unable to save page draft content."
-  },
-  {
-    "id": "app.draft.save_page_metadata.app_error",
-    "translation": "Unable to save page draft metadata."
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
@@ -6827,6 +6991,346 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.page.calculate_depth.get_ancestors_error",
+    "translation": "Unable to get page ancestors for depth calculation."
+  },
+  {
+    "id": "app.page.calculate_depth.not_found",
+    "translation": "Page not found for depth calculation."
+  },
+  {
+    "id": "app.page.change_parent.circular_reference.app_error",
+    "translation": "Cannot change parent: would create circular reference."
+  },
+  {
+    "id": "app.page.change_parent.get_ancestors.app_error",
+    "translation": "Unable to get page ancestors."
+  },
+  {
+    "id": "app.page.change_parent.invalid_parent.app_error",
+    "translation": "Invalid parent page."
+  },
+  {
+    "id": "app.page.change_parent.max_depth_exceeded.app_error",
+    "translation": "Changing parent would exceed maximum hierarchy depth."
+  },
+  {
+    "id": "app.page.change_parent.not_found.app_error",
+    "translation": "Page not found for parent change."
+  },
+  {
+    "id": "app.page.create.invalid_content.app_error",
+    "translation": "Invalid content for page."
+  },
+  {
+    "id": "app.page.create.invalid_parent.app_error",
+    "translation": "Parent page not found."
+  },
+  {
+    "id": "app.page.create.max_depth_exceeded.app_error",
+    "translation": "Page hierarchy cannot exceed maximum depth of {{.MaxDepth}} levels."
+  },
+  {
+    "id": "app.page.create.missing_title.app_error",
+    "translation": "Title is required for pages."
+  },
+  {
+    "id": "app.page.create.parent_different_channel.app_error",
+    "translation": "Parent page must be in the same channel."
+  },
+  {
+    "id": "app.page.create.parent_not_page.app_error",
+    "translation": "Parent must be a page."
+  },
+  {
+    "id": "app.page.create.permissions.app_error",
+    "translation": "You do not have permission to create a page."
+  },
+  {
+    "id": "app.page.create.store_error.app_error",
+    "translation": "Unable to create page."
+  },
+  {
+    "id": "app.page.create.title_too_long.app_error",
+    "translation": "Page title is too long."
+  },
+  {
+    "id": "app.page.create_comment.not_a_page.app_error",
+    "translation": "Cannot create comment: post is not a page."
+  },
+  {
+    "id": "app.page.create_comment.page_not_found.app_error",
+    "translation": "Page not found for comment."
+  },
+  {
+    "id": "app.page.create_comment_reply.page_not_found.app_error",
+    "translation": "Page not found for comment reply."
+  },
+  {
+    "id": "app.page.create_comment_reply.parent_not_comment.app_error",
+    "translation": "Parent post is not a comment."
+  },
+  {
+    "id": "app.page.create_comment_reply.parent_not_found.app_error",
+    "translation": "Parent comment not found."
+  },
+  {
+    "id": "app.page.create_comment_reply.reply_to_reply_not_allowed.app_error",
+    "translation": "Cannot reply to a comment reply."
+  },
+  {
+    "id": "app.page.delete.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.delete.not_found.app_error",
+    "translation": "Page not found for deletion."
+  },
+  {
+    "id": "app.page.delete.store_error.app_error",
+    "translation": "Unable to delete page."
+  },
+  {
+    "id": "app.page.duplicate.channel_deleted",
+    "translation": "Cannot duplicate page to archived channel."
+  },
+  {
+    "id": "app.page.duplicate.content_not_found",
+    "translation": "Page content not found for duplication."
+  },
+  {
+    "id": "app.page.duplicate.cross_channel_not_supported",
+    "translation": "Cross-channel page duplication is not supported."
+  },
+  {
+    "id": "app.page.duplicate.not_a_page",
+    "translation": "Source post is not a page."
+  },
+  {
+    "id": "app.page.duplicate.serialize_content_failed",
+    "translation": "Unable to serialize page content."
+  },
+  {
+    "id": "app.page.duplicate.source_not_found",
+    "translation": "Source page not found for duplication."
+  },
+  {
+    "id": "app.page.duplicate.target_wiki_not_found",
+    "translation": "Target wiki not found for duplication."
+  },
+  {
+    "id": "app.page.get.content.app_error",
+    "translation": "Unable to get page content."
+  },
+  {
+    "id": "app.page.get.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.get.not_found.app_error",
+    "translation": "Page not found."
+  },
+  {
+    "id": "app.page.get.serialize_content.app_error",
+    "translation": "Unable to serialize page content."
+  },
+  {
+    "id": "app.page.get_active_editors.get_drafts.app_error",
+    "translation": "Unable to get active editors."
+  },
+  {
+    "id": "app.page.get_comments.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.get_comments.page_not_found.app_error",
+    "translation": "Page not found for comments."
+  },
+  {
+    "id": "app.page.get_comments.store_error.app_error",
+    "translation": "Unable to get page comments."
+  },
+  {
+    "id": "app.page.get_field.app_error",
+    "translation": "Unable to get page field."
+  },
+  {
+    "id": "app.page.get_group.app_error",
+    "translation": "Unable to get page group."
+  },
+  {
+    "id": "app.page.get_status.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.get_status.page_not_found.app_error",
+    "translation": "Page not found."
+  },
+  {
+    "id": "app.page.get_status_field.app_error",
+    "translation": "Unable to get page status field."
+  },
+  {
+    "id": "app.page.get_version_history.app_error",
+    "translation": "Unable to get page version history."
+  },
+  {
+    "id": "app.page.move.channel_not_found",
+    "translation": "Channel not found for page move."
+  },
+  {
+    "id": "app.page.move.circular_reference",
+    "translation": "Cannot move page: would create circular reference."
+  },
+  {
+    "id": "app.page.move.cross_channel_not_supported",
+    "translation": "Cross-channel page moves are not supported."
+  },
+  {
+    "id": "app.page.move.failed",
+    "translation": "Failed to move page."
+  },
+  {
+    "id": "app.page.move.get_descendants_failed",
+    "translation": "Unable to get page descendants."
+  },
+  {
+    "id": "app.page.move.not_a_page",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.move.page_not_found",
+    "translation": "Page not found for move."
+  },
+  {
+    "id": "app.page.move.parent_not_a_page",
+    "translation": "Parent must be a page."
+  },
+  {
+    "id": "app.page.move.parent_not_found",
+    "translation": "Parent page not found."
+  },
+  {
+    "id": "app.page.move.parent_wiki_not_found",
+    "translation": "Parent page's wiki not found."
+  },
+  {
+    "id": "app.page.move.parent_wrong_wiki",
+    "translation": "Parent page must be in the target wiki."
+  },
+  {
+    "id": "app.page.move.self_parent",
+    "translation": "Cannot move page to itself as parent."
+  },
+  {
+    "id": "app.page.move.source_wiki_error",
+    "translation": "Error getting source wiki."
+  },
+  {
+    "id": "app.page.move.source_wiki_not_found",
+    "translation": "Source wiki not found."
+  },
+  {
+    "id": "app.page.move.target_wiki_not_found",
+    "translation": "Target wiki not found for page move."
+  },
+  {
+    "id": "app.page.move.wiki_channel_mismatch",
+    "translation": "Wiki and channel do not match."
+  },
+  {
+    "id": "app.page.permanent_delete.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.permanent_delete.not_found.app_error",
+    "translation": "Page not found for deletion."
+  },
+  {
+    "id": "app.page.restore.content_error.app_error",
+    "translation": "Unable to restore page content."
+  },
+  {
+    "id": "app.page.restore.get_content.app_error",
+    "translation": "Unable to get page content for restore."
+  },
+  {
+    "id": "app.page.restore.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.restore.not_deleted.app_error",
+    "translation": "Page is not deleted."
+  },
+  {
+    "id": "app.page.restore.not_found.app_error",
+    "translation": "Page not found for restore."
+  },
+  {
+    "id": "app.page.restore.post_error.app_error",
+    "translation": "Unable to restore page post."
+  },
+  {
+    "id": "app.page.restore.serialize_content.app_error",
+    "translation": "Unable to serialize page content for restore."
+  },
+  {
+    "id": "app.page.restore.update_content.app_error",
+    "translation": "Unable to update page content during restore."
+  },
+  {
+    "id": "app.page.restore.update_fileids.app_error",
+    "translation": "Unable to update page file IDs during restore."
+  },
+  {
+    "id": "app.page.restore.update_title.app_error",
+    "translation": "Unable to update page title during restore."
+  },
+  {
+    "id": "app.page.set_status.app_error",
+    "translation": "Unable to set page status."
+  },
+  {
+    "id": "app.page.set_status.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.set_status.page_not_found.app_error",
+    "translation": "Page not found."
+  },
+  {
+    "id": "app.page.update.conflict.app_error",
+    "translation": "Page update conflict detected. Please refresh and try again."
+  },
+  {
+    "id": "app.page.update.invalid_content.app_error",
+    "translation": "Invalid content for page update."
+  },
+  {
+    "id": "app.page.update.not_a_page.app_error",
+    "translation": "Post is not a page."
+  },
+  {
+    "id": "app.page.update.not_found.app_error",
+    "translation": "Page not found for update."
+  },
+  {
+    "id": "app.page.update.store_error.app_error",
+    "translation": "Unable to update page in store."
+  },
+  {
+    "id": "app.page.update.title_too_long.app_error",
+    "translation": "Page title is too long."
+  },
+  {
+    "id": "app.page.validate_status.invalid_value",
+    "translation": "Invalid status value."
+  },
+  {
+    "id": "app.page.validate_status.no_options",
+    "translation": "No status options available."
+  },
+  {
     "id": "app.pap.access_control.channel_group_constrained",
     "translation": "Channel is group constrained and cannot have access control policies applied."
   },
@@ -6933,250 +7437,6 @@
   {
     "id": "app.pap.update_access_control_policy_active.app_error",
     "translation": "Could not change active status of access control policy."
-  },
-  {
-    "id": "app.page.create.invalid_content.app_error",
-    "translation": "Invalid content for page."
-  },
-  {
-    "id": "app.page.create.invalid_parent.app_error",
-    "translation": "Parent page not found."
-  },
-  {
-    "id": "app.page.create.max_depth_exceeded.app_error",
-    "translation": "Page hierarchy cannot exceed maximum depth of {{.MaxDepth}} levels."
-  },
-  {
-    "id": "app.page.create.missing_title.app_error",
-    "translation": "Title is required for pages."
-  },
-  {
-    "id": "app.page.create.parent_different_channel.app_error",
-    "translation": "Parent page must be in the same channel."
-  },
-  {
-    "id": "app.page.create.parent_not_page.app_error",
-    "translation": "Parent must be a page."
-  },
-  {
-    "id": "app.page.create.permissions.app_error",
-    "translation": "You do not have permission to create a page."
-  },
-  {
-    "id": "app.page.create.save_content.app_error",
-    "translation": "Unable to save page content."
-  },
-  {
-    "id": "app.page.create.title_too_long.app_error",
-    "translation": "Page title is too long."
-  },
-  {
-    "id": "app.page.calculate_depth.get_ancestors_error",
-    "translation": "Unable to get page ancestors for depth calculation."
-  },
-  {
-    "id": "app.page.calculate_depth.not_found",
-    "translation": "Page not found for depth calculation."
-  },
-  {
-    "id": "app.page.change_parent.circular_reference.app_error",
-    "translation": "Cannot change parent: would create circular reference."
-  },
-  {
-    "id": "app.page.change_parent.get_ancestors.app_error",
-    "translation": "Unable to get page ancestors."
-  },
-  {
-    "id": "app.page.change_parent.invalid_parent.app_error",
-    "translation": "Invalid parent page."
-  },
-  {
-    "id": "app.page.change_parent.max_depth_exceeded.app_error",
-    "translation": "Changing parent would exceed maximum hierarchy depth."
-  },
-  {
-    "id": "app.page.change_parent.not_found.app_error",
-    "translation": "Page not found for parent change."
-  },
-  {
-    "id": "app.page.delete.not_a_page.app_error",
-    "translation": "Post is not a page."
-  },
-  {
-    "id": "app.page.delete.not_found.app_error",
-    "translation": "Page not found for deletion."
-  },
-  {
-    "id": "app.page.duplicate.channel_deleted",
-    "translation": "Cannot duplicate page to archived channel."
-  },
-  {
-    "id": "app.page.duplicate.content_not_found",
-    "translation": "Page content not found for duplication."
-  },
-  {
-    "id": "app.page.duplicate.cross_channel_not_supported",
-    "translation": "Cross-channel page duplication is not supported."
-  },
-  {
-    "id": "app.page.duplicate.not_a_page",
-    "translation": "Source post is not a page."
-  },
-  {
-    "id": "app.page.duplicate.serialize_content_failed",
-    "translation": "Unable to serialize page content."
-  },
-  {
-    "id": "app.page.duplicate.source_not_found",
-    "translation": "Source page not found for duplication."
-  },
-  {
-    "id": "app.page.duplicate.target_wiki_not_found",
-    "translation": "Target wiki not found for duplication."
-  },
-  {
-    "id": "app.page.get.content.app_error",
-    "translation": "Unable to get page content."
-  },
-  {
-    "id": "app.page.get.not_a_page.app_error",
-    "translation": "Post is not a page."
-  },
-  {
-    "id": "app.page.get.not_found.app_error",
-    "translation": "Page not found."
-  },
-  {
-    "id": "app.page.get.serialize_content.app_error",
-    "translation": "Unable to serialize page content."
-  },
-  {
-    "id": "app.page.get_field.app_error",
-    "translation": "Unable to get page field."
-  },
-  {
-    "id": "app.page.get_group.app_error",
-    "translation": "Unable to get page group."
-  },
-  {
-    "id": "app.page.get_status.not_a_page.app_error",
-    "translation": "Post is not a page."
-  },
-  {
-    "id": "app.page.get_status.page_not_found.app_error",
-    "translation": "Page not found."
-  },
-  {
-    "id": "app.page.get_status_field.app_error",
-    "translation": "Unable to get page status field."
-  },
-  {
-    "id": "app.page.get_version_history.app_error",
-    "translation": "Unable to get page version history."
-  },
-  {
-    "id": "app.page.move.channel_not_found",
-    "translation": "Channel not found for page move."
-  },
-  {
-    "id": "app.page.move.circular_reference",
-    "translation": "Cannot move page: would create circular reference."
-  },
-  {
-    "id": "app.page.move.cross_channel_not_supported",
-    "translation": "Cross-channel page moves are not supported."
-  },
-  {
-    "id": "app.page.move.failed",
-    "translation": "Failed to move page."
-  },
-  {
-    "id": "app.page.move.get_descendants_failed",
-    "translation": "Unable to get page descendants."
-  },
-  {
-    "id": "app.page.move.not_a_page",
-    "translation": "Post is not a page."
-  },
-  {
-    "id": "app.page.move.page_not_found",
-    "translation": "Page not found for move."
-  },
-  {
-    "id": "app.page.move.parent_not_a_page",
-    "translation": "Parent must be a page."
-  },
-  {
-    "id": "app.page.move.parent_not_found",
-    "translation": "Parent page not found."
-  },
-  {
-    "id": "app.page.move.parent_wiki_not_found",
-    "translation": "Parent page's wiki not found."
-  },
-  {
-    "id": "app.page.move.parent_wrong_wiki",
-    "translation": "Parent page must be in the target wiki."
-  },
-  {
-    "id": "app.page.move.self_parent",
-    "translation": "Cannot move page to itself as parent."
-  },
-  {
-    "id": "app.page.move.source_wiki_error",
-    "translation": "Error getting source wiki."
-  },
-  {
-    "id": "app.page.move.source_wiki_not_found",
-    "translation": "Source wiki not found."
-  },
-  {
-    "id": "app.page.move.target_wiki_not_found",
-    "translation": "Target wiki not found for page move."
-  },
-  {
-    "id": "app.page.move.wiki_channel_mismatch",
-    "translation": "Wiki and channel do not match."
-  },
-  {
-    "id": "app.page.set_status.app_error",
-    "translation": "Unable to set page status."
-  },
-  {
-    "id": "app.page.set_status.not_a_page.app_error",
-    "translation": "Post is not a page."
-  },
-  {
-    "id": "app.page.set_status.page_not_found.app_error",
-    "translation": "Page not found."
-  },
-  {
-    "id": "app.page.update.invalid_content.app_error",
-    "translation": "Invalid content for page update."
-  },
-  {
-    "id": "app.page.update.not_a_page.app_error",
-    "translation": "Post is not a page."
-  },
-  {
-    "id": "app.page.update.not_found.app_error",
-    "translation": "Page not found for update."
-  },
-  {
-    "id": "app.page.update.store_error.app_error",
-    "translation": "Unable to update page in store."
-  },
-  {
-    "id": "app.page.update.title_too_long.app_error",
-    "translation": "Page title is too long."
-  },
-  {
-    "id": "app.page.validate_status.invalid_value",
-    "translation": "Invalid status value."
-  },
-  {
-    "id": "app.page.validate_status.no_options",
-    "translation": "No status options available."
   },
   {
     "id": "app.pdp.access_evaluation.app_error",
@@ -7391,12 +7651,24 @@
     "translation": "Unable to get user counts with posts."
   },
   {
+    "id": "app.post.change_page_parent.app_error",
+    "translation": "Unable to change page parent."
+  },
+  {
+    "id": "app.post.change_page_parent.not_found",
+    "translation": "Page not found for parent change."
+  },
+  {
     "id": "app.post.cloud.get.app_error",
     "translation": "Can not fetch the post as it is past the cloud's plan limit."
   },
   {
     "id": "app.post.create_post.shared_dm_or_gm.app_error",
     "translation": "Cannot create the post in a DM or GM with remote users"
+  },
+  {
+    "id": "app.post.create_thread_entry.app_error",
+    "translation": "Unable to create thread entry."
   },
   {
     "id": "app.post.delete.app_error",
@@ -7411,12 +7683,40 @@
     "translation": "Unable to get the post."
   },
   {
+    "id": "app.post.get_channel_pages.app_error",
+    "translation": "Unable to get channel pages."
+  },
+  {
     "id": "app.post.get_direct_posts.app_error",
     "translation": "Unable to get direct posts."
   },
   {
     "id": "app.post.get_flagged_posts.app_error",
     "translation": "Unable to get the flagged posts."
+  },
+  {
+    "id": "app.post.get_page_ancestors.app_error",
+    "translation": "Unable to get page ancestors."
+  },
+  {
+    "id": "app.post.get_page_ancestors.not_found",
+    "translation": "Page not found for ancestors."
+  },
+  {
+    "id": "app.post.get_page_children.app_error",
+    "translation": "Unable to get page children."
+  },
+  {
+    "id": "app.post.get_page_children.parent.app_error",
+    "translation": "Unable to get parent page."
+  },
+  {
+    "id": "app.post.get_page_descendants.app_error",
+    "translation": "Unable to get page descendants."
+  },
+  {
+    "id": "app.post.get_page_descendants.not_found",
+    "translation": "Page not found for descendants."
   },
   {
     "id": "app.post.get_post_after_time.app_error",
@@ -7489,6 +7789,10 @@
   {
     "id": "app.post.overwrite.app_error",
     "translation": "Unable to overwrite the Post."
+  },
+  {
+    "id": "app.post.page_comment_thread.membership_error",
+    "translation": "Unable to verify thread membership."
   },
   {
     "id": "app.post.permanent_delete_by_channel.app_error",
@@ -8517,6 +8821,90 @@
     "translation": "Password is not valid"
   },
   {
+    "id": "app.webhooks.analytics_incoming_count.app_error",
+    "translation": "Unable to count the incoming webhooks."
+  },
+  {
+    "id": "app.webhooks.analytics_outgoing_count.app_error",
+    "translation": "Unable to count the outgoing webhooks."
+  },
+  {
+    "id": "app.webhooks.delete_incoming.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.delete_outgoing.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_channel.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.get_incoming_by_user.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_incoming_count.app_error",
+    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
+  },
+  {
+    "id": "app.webhooks.get_outgoing.app_error",
+    "translation": "Unable to get the webhook."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_channel.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.get_outgoing_by_team.app_error",
+    "translation": "Unable to get the webhooks."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "Unable to delete the webhook."
+  },
+  {
+    "id": "app.webhooks.save_incoming.app_error",
+    "translation": "Unable to save the IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_incoming.existing.app_error",
+    "translation": "You cannot overwrite an existing IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.app_error",
+    "translation": "Unable to save the OutgoingWebhook."
+  },
+  {
+    "id": "app.webhooks.save_outgoing.override.app_error",
+    "translation": "You cannot overwrite an existing OutgoingWebhook."
+  },
+  {
+    "id": "app.webhooks.update_incoming.app_error",
+    "translation": "Unable to update the IncomingWebhook."
+  },
+  {
+    "id": "app.webhooks.update_outgoing.app_error",
+    "translation": "Unable to update the webhook."
+  },
+  {
     "id": "app.wiki.add_page.app_error",
     "translation": "Unable to add page to wiki."
   },
@@ -8607,90 +8995,6 @@
   {
     "id": "app.wiki.update.deleted_channel.app_error",
     "translation": "Cannot update wiki in archived channel."
-  },
-  {
-    "id": "app.webhooks.analytics_incoming_count.app_error",
-    "translation": "Unable to count the incoming webhooks."
-  },
-  {
-    "id": "app.webhooks.analytics_outgoing_count.app_error",
-    "translation": "Unable to count the outgoing webhooks."
-  },
-  {
-    "id": "app.webhooks.delete_incoming.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "app.webhooks.delete_outgoing.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "app.webhooks.get_incoming.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "app.webhooks.get_incoming_by_channel.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "app.webhooks.get_incoming_by_user.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "app.webhooks.get_incoming_count.app_error",
-    "translation": "Unable to get the webhook for teamID={{.TeamID}}, userID={{.UserID}}, err={{.Error}}."
-  },
-  {
-    "id": "app.webhooks.get_outgoing.app_error",
-    "translation": "Unable to get the webhook."
-  },
-  {
-    "id": "app.webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "app.webhooks.get_outgoing_by_team.app_error",
-    "translation": "Unable to get the webhooks."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "app.webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Unable to delete the webhook."
-  },
-  {
-    "id": "app.webhooks.save_incoming.app_error",
-    "translation": "Unable to save the IncomingWebhook."
-  },
-  {
-    "id": "app.webhooks.save_incoming.existing.app_error",
-    "translation": "You cannot overwrite an existing IncomingWebhook."
-  },
-  {
-    "id": "app.webhooks.save_outgoing.app_error",
-    "translation": "Unable to save the OutgoingWebhook."
-  },
-  {
-    "id": "app.webhooks.save_outgoing.override.app_error",
-    "translation": "You cannot overwrite an existing OutgoingWebhook."
-  },
-  {
-    "id": "app.webhooks.update_incoming.app_error",
-    "translation": "Unable to update the IncomingWebhook."
-  },
-  {
-    "id": "app.webhooks.update_outgoing.app_error",
-    "translation": "Unable to update the webhook."
   },
   {
     "id": "basic_security_check.url.too_long_error",
@@ -10653,6 +10957,10 @@
     "translation": "Draft Message property is longer than the maximum permitted length."
   },
   {
+    "id": "model.draft.is_valid.page_draft_message.app_error",
+    "translation": "Invalid page draft message."
+  },
+  {
     "id": "model.draft.is_valid.priority.app_error",
     "translation": "Invalid priority"
   },
@@ -10671,6 +10979,10 @@
   {
     "id": "model.draft.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.draft.is_valid.wiki_id.app_error",
+    "translation": "Invalid wiki ID in draft."
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -11069,6 +11381,58 @@
     "translation": "Update at must be a valid time."
   },
   {
+    "id": "model.page_content.is_valid.content_invalid.app_error",
+    "translation": "Invalid page content."
+  },
+  {
+    "id": "model.page_content.is_valid.content_too_large.app_error",
+    "translation": "Page content exceeds maximum size."
+  },
+  {
+    "id": "model.page_content.is_valid.create_at.app_error",
+    "translation": "Invalid page content create time."
+  },
+  {
+    "id": "model.page_content.is_valid.page_id.app_error",
+    "translation": "Invalid page ID in page content."
+  },
+  {
+    "id": "model.page_content.is_valid.update_at.app_error",
+    "translation": "Invalid page content update time."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.content_invalid.app_error",
+    "translation": "Invalid page draft content."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.content_too_large.app_error",
+    "translation": "Page draft content exceeds maximum size."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.create_at.app_error",
+    "translation": "Invalid page draft content create time."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.draft_id.app_error",
+    "translation": "Invalid draft ID in page draft content."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.title_too_long.app_error",
+    "translation": "Page draft title is too long."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.update_at.app_error",
+    "translation": "Invalid page draft content update time."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.user_id.app_error",
+    "translation": "Invalid user ID in page draft content."
+  },
+  {
+    "id": "model.page_draft_content.is_valid.wiki_id.app_error",
+    "translation": "Invalid wiki ID in page draft content."
+  },
+  {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command."
   },
@@ -11155,6 +11519,14 @@
   {
     "id": "model.post.is_valid.original_id.app_error",
     "translation": "Invalid original id."
+  },
+  {
+    "id": "model.post.is_valid.page_parent_id.app_error",
+    "translation": "Invalid page parent ID."
+  },
+  {
+    "id": "model.post.is_valid.page_parent_id_self.app_error",
+    "translation": "Page cannot be its own parent."
   },
   {
     "id": "model.post.is_valid.props.app_error",
@@ -11589,6 +11961,38 @@
     "translation": "Unable to connect to the WebSocket server."
   },
   {
+    "id": "model.wiki.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID for wiki."
+  },
+  {
+    "id": "model.wiki.is_valid.create_at.app_error",
+    "translation": "Invalid wiki create time."
+  },
+  {
+    "id": "model.wiki.is_valid.description_length.app_error",
+    "translation": "Wiki description is too long."
+  },
+  {
+    "id": "model.wiki.is_valid.icon_length.app_error",
+    "translation": "Wiki icon is too long."
+  },
+  {
+    "id": "model.wiki.is_valid.id.app_error",
+    "translation": "Invalid wiki ID."
+  },
+  {
+    "id": "model.wiki.is_valid.title.app_error",
+    "translation": "Wiki title is required."
+  },
+  {
+    "id": "model.wiki.is_valid.title_length.app_error",
+    "translation": "Wiki title is too long."
+  },
+  {
+    "id": "model.wiki.is_valid.update_at.app_error",
+    "translation": "Invalid wiki update time."
+  },
+  {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to {{.URL}} to accept them and then try logging into Mattermost again."
   },
@@ -11935,61 +12339,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
-  },
-  {
-    "id": "conflict_warning.title",
-    "translation": "Page Was Modified"
-  },
-  {
-    "id": "conflict_warning.message",
-    "translation": "Someone else modified this page while you were editing. What would you like to do?"
-  },
-  {
-    "id": "conflict_warning.page_title",
-    "translation": "Page: {title}"
-  },
-  {
-    "id": "conflict_warning.last_modified",
-    "translation": "Last modified: {time}"
-  },
-  {
-    "id": "conflict_warning.view_changes",
-    "translation": "View Changes"
-  },
-  {
-    "id": "conflict_warning.copy_content",
-    "translation": "Copy My Content"
-  },
-  {
-    "id": "conflict_warning.overwrite",
-    "translation": "Overwrite Changes"
-  },
-  {
-    "id": "conflict_warning.cancel",
-    "translation": "Cancel"
-  },
-  {
-    "id": "unsaved_draft_modal.title",
-    "translation": "Unsaved Draft Exists"
-  },
-  {
-    "id": "unsaved_draft_modal.message",
-    "translation": "You have an unsaved draft for this page. What would you like to do?"
-  },
-  {
-    "id": "unsaved_draft_modal.created_at",
-    "translation": "Draft created: {time}"
-  },
-  {
-    "id": "unsaved_draft_modal.resume_draft",
-    "translation": "Resume Draft"
-  },
-  {
-    "id": "unsaved_draft_modal.discard_draft",
-    "translation": "Discard Draft"
-  },
-  {
-    "id": "unsaved_draft_modal.cancel",
-    "translation": "Cancel"
   }
 ]

@@ -41,7 +41,7 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
-	// Step 1: Save content to PageDraftContents table
+	// Prepare content for PageDraftContents table
 	pageDraftContent := &model.PageDraftContent{
 		UserId:  userId,
 		WikiId:  wikiId,
@@ -54,21 +54,7 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 			nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	// DEBUG: Log what we're about to upsert
-	rctx.Logger().Info("About to upsert PageDraftContent",
-		mlog.String("user_id", pageDraftContent.UserId),
-		mlog.String("wiki_id", pageDraftContent.WikiId),
-		mlog.String("draft_id", pageDraftContent.DraftId),
-		mlog.String("title", pageDraftContent.Title),
-		mlog.String("page_id_param", pageId))
-
-	savedContent, err := a.Srv().Store().PageDraftContent().Upsert(pageDraftContent)
-	if err != nil {
-		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page_content.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Step 2: Save metadata to Drafts table
+	// Prepare metadata for Drafts table
 	if props == nil {
 		props = make(map[string]any)
 	}
@@ -76,7 +62,6 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		props["page_id"] = pageId
 	}
 
-	// DEBUG: Log props before and after setting
 	rctx.Logger().Info("=== [SavePageDraftWithMetadata] Props received ===",
 		mlog.String("draft_id", draftId),
 		mlog.Any("props", props),
@@ -92,12 +77,11 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		WikiId:    wikiId,
 		ChannelId: channel.Id,
 		RootId:    draftId,
-		Message:   "", // Page drafts store content in PageDraftContents, not Message
+		Message:   "",
 		FileIds:   []string{},
 	}
 	draft.SetProps(props)
 
-	// DEBUG: Log draft props after SetProps
 	draftProps := draft.GetProps()
 	rctx.Logger().Info("=== [SavePageDraftWithMetadata] Draft props after SetProps ===",
 		mlog.String("draft_id", draftId),
@@ -109,10 +93,18 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		rctx.Logger().Debug("[APP] original_page_update_at NOT in draft")
 	}
 
-	savedDraft, draftErr := a.Srv().Store().Draft().UpsertPageDraft(draft)
-	if draftErr != nil {
-		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page_metadata.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(draftErr)
+	rctx.Logger().Info("About to upsert page draft with transaction",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("draft_id", draftId),
+		mlog.String("title", title),
+		mlog.String("page_id_param", pageId))
+
+	// Save both content and metadata in a single transaction (DraftStore owns both tables - MM pattern)
+	savedContent, savedDraft, err := a.Srv().Store().Draft().UpsertPageDraftWithTransaction(pageDraftContent, draft)
+	if err != nil {
+		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Step 3: Return combined PageDraft
@@ -160,8 +152,8 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, draftId string) (*m
 		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
 	}
 
-	// Fetch content from PageDraftContents table
-	content, err := a.Srv().Store().PageDraftContent().Get(userId, wikiId, draftId)
+	// Fetch content from PageDraftContents table (DraftStore owns both tables - MM pattern)
+	content, err := a.Srv().Store().Draft().GetPageDraftContent(userId, wikiId, draftId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
@@ -227,20 +219,14 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) 
 			mlog.String("user_id", userId))
 	}
 
-	// Delete from PageDraftContents table
-	if err := a.Srv().Store().PageDraftContent().Delete(userId, wikiId, draftId); err != nil {
+	// Delete from both PageDraftContents and Drafts tables in a single transaction (DraftStore owns both tables - MM pattern)
+	if err := a.Srv().Store().Draft().DeletePageDraftWithTransaction(userId, wikiId, wiki.ChannelId, draftId); err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
 			return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
 				nil, "", http.StatusNotFound).Wrap(err)
 		}
-		return model.NewAppError("DeletePageDraft", "app.draft.delete_page_content.app_error",
-			nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Delete from Drafts table using channelId
-	if err := a.Srv().Store().Draft().Delete(userId, wiki.ChannelId, draftId); err != nil {
-		return model.NewAppError("DeletePageDraft", "app.draft.delete_page_metadata.app_error",
+		return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -278,8 +264,8 @@ func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*
 		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
-	// Fetch content from PageDraftContents table
-	contents, err := a.Srv().Store().PageDraftContent().GetForWiki(userId, wikiId)
+	// Fetch content from PageDraftContents table (DraftStore owns both tables - MM pattern)
+	contents, err := a.Srv().Store().Draft().GetPageDraftContentsForWiki(userId, wikiId)
 	if err != nil {
 		rctx.Logger().Error("Failed to get page draft contents for wiki",
 			mlog.String("user_id", userId),
@@ -696,7 +682,7 @@ func (a *App) BroadcastPageTitleUpdated(pageId, title, wikiId, channelId string,
 }
 
 // BroadcastPageMoved broadcasts a page hierarchy change to all clients with access to the channel
-func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, channelId string, updateAt int64) {
+func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, channelId string, updateAt int64, sourceWikiId ...string) {
 	mlog.Info("Broadcasting page moved event",
 		mlog.String("page_id", pageId),
 		mlog.String("old_parent_id", oldParentId),
@@ -710,6 +696,9 @@ func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, chann
 	message.Add("new_parent_id", newParentId)
 	message.Add("wiki_id", wikiId)
 	message.Add("update_at", updateAt)
+	if len(sourceWikiId) > 0 && sourceWikiId[0] != "" && sourceWikiId[0] != wikiId {
+		message.Add("source_wiki_id", sourceWikiId[0])
+	}
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId: channelId,
 	})

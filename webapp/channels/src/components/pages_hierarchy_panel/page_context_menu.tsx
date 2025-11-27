@@ -19,6 +19,7 @@ export const MENU_OPTION_IDS = {
     MOVE: 'move',
     BOOKMARK_IN_CHANNEL: 'bookmark-in-channel',
     DUPLICATE: 'duplicate',
+    EXPORT_PDF: 'export-pdf',
     VERSION_HISTORY: 'version-history',
     DELETE: 'delete',
     OPEN_NEW_WINDOW: 'open-new-window',
@@ -117,6 +118,11 @@ const PageContextMenu = ({
         onClose();
     }, [pageLink, onClose]);
 
+    const handleExportPDF = useCallback(() => {
+        window.print();
+        onClose();
+    }, [onClose]);
+
     const menuOptions: MenuOption[] = [
         {
             id: MENU_OPTION_IDS.NEW_CHILD,
@@ -175,6 +181,12 @@ const PageContextMenu = ({
                 onDuplicate?.();
                 onClose();
             },
+        },
+        {
+            id: MENU_OPTION_IDS.EXPORT_PDF,
+            label: 'Export to PDF',
+            icon: 'icon-file-pdf-box',
+            action: handleExportPDF,
         },
         {separator: true, id: 'sep2', label: '', icon: '', action: () => {}},
         {

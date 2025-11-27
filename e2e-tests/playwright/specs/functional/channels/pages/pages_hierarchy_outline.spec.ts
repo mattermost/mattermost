@@ -189,10 +189,58 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     // # Show outline for the page using right-click (more reliable after navigation)
     await showPageOutlineViaRightClick(page, 'Page with Headings');
 
-    // * Verify outline is visible and headings appear
+    // * Verify initial outline headings appear
     await verifyOutlineHeadingVisible(page, 'Heading 1', HIERARCHY_TIMEOUT);
     await verifyOutlineHeadingVisible(page, 'Heading 2', HIERARCHY_TIMEOUT);
     await verifyOutlineHeadingVisible(page, 'Heading 3', HIERARCHY_TIMEOUT);
+
+    // # Edit the page and change the headings to test UPDATE behavior
+    await enterEditMode(page);
+    await waitForEditModeReady(page);
+
+    await editor.click();
+
+    // # Clear content using select all + delete
+    await selectAllText(page);
+    await page.keyboard.press('Backspace');
+    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+
+    // # Add different headings with new names
+    await addHeadingToEditor(page, 1, 'Updated Heading 1');
+    await editor.press('Enter');
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
+    await editor.type('Updated content');
+    await editor.press('Enter');
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    await addHeadingToEditor(page, 2, 'New Heading 2');
+    await editor.press('Enter');
+    await page.waitForTimeout(UI_MICRO_WAIT * 3);
+    await editor.type('New content');
+    await editor.press('Enter');
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // # Publish the updated page
+    await publishCurrentPage(page);
+
+    // # Ensure outline is still shown after publish (it should persist)
+    const outlineInTree = await getPageOutlineInHierarchy(page, 'Page with Headings');
+    const outlineVisible = await outlineInTree.isVisible({timeout: 1000}).catch(() => false);
+
+    // If outline collapsed after edit, show it again
+    if (!outlineVisible) {
+        await showPageOutlineViaRightClick(page, 'Page with Headings');
+    }
+
+    // * Verify outline reflects the CHANGES (old headings gone, new headings present)
+    await verifyOutlineHeadingVisible(page, 'Updated Heading 1', HIERARCHY_TIMEOUT);
+    await verifyOutlineHeadingVisible(page, 'New Heading 2', HIERARCHY_TIMEOUT);
+
+    // * Verify old headings are no longer in outline
+    const oldHeading1 = page.locator('[role="treeitem"]').filter({hasText: /^Heading 1$/}).first();
+    const oldHeading3 = page.locator('[role="treeitem"]').filter({hasText: /^Heading 3$/}).first();
+    expect(await oldHeading1.isVisible().catch(() => false)).toBe(false);
+    expect(await oldHeading3.isVisible().catch(() => false)).toBe(false);
 });
 
 /**
@@ -351,8 +399,9 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     // # Hide outline for Page 1
     await hidePageOutline(page, page1.id);
 
-    // * Verify outline is collapsed
-    const page1OutlineHeading = page.locator('[role="treeitem"]').filter({hasText: /^Page 1 Heading$/}).first();
+    // * Verify outline is collapsed (scoped to Page 1's outline container)
+    const page1OutlineContainer = await getPageOutlineInHierarchy(page, 'Page 1 with Headings');
+    const page1OutlineHeading = page1OutlineContainer.locator('[role="treeitem"]').filter({hasText: /^Page 1 Heading$/}).first();
     const isCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
     expect(isCollapsed).toBe(false);
 
@@ -363,7 +412,7 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify outline remains collapsed after navigation
+    // * Verify outline remains collapsed after navigation (scoped to Page 1's outline)
     const stillCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
     expect(stillCollapsed).toBe(false);
 });

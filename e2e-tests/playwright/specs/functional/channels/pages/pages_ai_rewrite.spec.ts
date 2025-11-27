@@ -389,10 +389,13 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
     expect(contentChanged).toBeTruthy();
     expect(finalContent).not.toBe(originalText);
 
-    // * Verify the new content is better (has proper grammar)
-    // The AI should have fixed "has bad grammar and needs fix" to something like "has bad grammar and needs to be fixed"
-    expect(finalContent?.toLowerCase()).toContain('text');
-    expect(finalContent?.toLowerCase()).not.toBe(originalText.toLowerCase());
+    // * Verify the AI actually fixed the grammatical error
+    // Original: "needs fix" (incorrect - ends abruptly without proper verb form)
+    // Expected: "needs fixing", "needs to be fixed", "needs correction", or similar grammatically correct form
+    const contentLower = finalContent?.toLowerCase() || '';
+    expect(contentLower).not.toMatch(/needs fix[^a-z]|needs fix$/); // "needs fix" not followed by letters
+    expect(contentLower).toMatch(/needs (to be )?(fix(ed|ing)|correction|improving)/); // Proper grammar
+    expect(contentLower).toContain('text'); // Core content preserved
 
     // * Verify editor is still functional after AI rewrite
     // Wait for any UI updates to settle after AI rewrite
@@ -452,34 +455,60 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
         test.skip(true, 'AI plugin not configured - skipping AI rewrite test');
         return;
     }
-    await editor.click();
-    await page.keyboard.type('Test content for error handling.');
-    await selectTextInEditor(page);
 
-    // # Open AI menu
-    await waitForFormattingBar(page);
-    const aiRewriteButton = getAIRewriteButton(page);
-    await aiRewriteButton.click();
-
-    // # Try to trigger rewrite without selecting an agent (if dropdown allows it)
-    // Or with invalid content - testing error handling
-    const improveButton = page.locator('text=Improve writing');
-
-    // * If action fails, UI should handle gracefully
-    // Editor should remain functional and show error if applicable
-    await improveButton.click().catch(() => {
-        // It's okay if this fails - we're testing error handling
+    // # Mock AI API to return 500 error
+    await page.route('**/api/v4/posts/rewrite', (route) => {
+        route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                id: 'app.post.rewrite.error',
+                message: 'AI service is temporarily unavailable',
+                status_code: 500,
+            }),
+        });
     });
 
-    // * Verify editor is still functional after error
+    await editor.click();
+    const originalText = 'Test content for error handling.';
+    await page.keyboard.type(originalText);
+
+    // # Select text and open AI menu
+    await selectTextInEditor(page);
+    await waitForFormattingBar(page);
+
+    const aiRewriteButton = getAIRewriteButton(page);
+    await aiRewriteButton.click();
+    await page.waitForTimeout(SHORT_WAIT);
+
+    // # Click "Improve writing" action to trigger the mocked error
+    const improveButton = page.locator('text=Improve writing');
+    await expect(improveButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await improveButton.click();
+
+    // * Verify loading state appears briefly
+    const loadingIndicator = page.locator('.loading-spinner, [class*="processing"], [class*="loading"]').first();
+    await loadingIndicator.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT}).catch(() => {
+        // Loading might be too fast
+    });
+
+    // * Wait for error to be processed
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // Close the menu by pressing Escape
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
+    // * Verify original text is preserved (error didn't corrupt content)
+    const currentContent = await editor.textContent();
+    expect(currentContent).toContain(originalText);
 
-    await editor.click();
+    // * Verify processing state has ended (no infinite loading)
+    await expect(loadingIndicator).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify editor is still functional after error
+    await closeAIRewriteMenu(page);
+
+    // Re-query editor after error handling
+    const editorAfterError = await getEditorAndWait(page);
+    await editorAfterError.click();
     await page.keyboard.press('End');
     await page.keyboard.type(' More text.');
-    await expect(editor).toContainText('More text.');
+    await expect(editorAfterError).toContainText('More text.');
 });
