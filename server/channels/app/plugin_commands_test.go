@@ -15,8 +15,7 @@ import (
 
 func TestPluginCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	args := &model.CommandArgs{}
 	args.TeamId = th.BasicTeam.Id

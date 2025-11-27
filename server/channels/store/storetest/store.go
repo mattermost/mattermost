@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -58,7 +57,6 @@ type Store struct {
 	ProductNoticesStore             mocks.ProductNoticesStore
 	DraftStore                      mocks.DraftStore
 	logger                          mlog.LoggerIFace
-	context                         context.Context
 	NotifyAdminStore                mocks.NotifyAdminStore
 	PostPriorityStore               mocks.PostPriorityStore
 	PostAcknowledgementStore        mocks.PostAcknowledgementStore
@@ -71,12 +69,11 @@ type Store struct {
 	PropertyValueStore              mocks.PropertyValueStore
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 	AttributesStore                 mocks.AttributesStore
+	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 	RecapStore                      mocks.RecapStore
 }
 
-func (s *Store) SetContext(context context.Context)            { s.context = context }
-func (s *Store) Context() context.Context                      { return s.context }
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                   { return &s.ChannelStore }
@@ -164,6 +161,10 @@ func (s *Store) AccessControlPolicy() store.AccessControlPolicyStore {
 func (s *Store) Attributes() store.AttributesStore {
 	return &s.AttributesStore
 }
+func (s *Store) AutoTranslation() store.AutoTranslationStore {
+	return &s.AutoTranslationStore
+}
+
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
@@ -221,6 +222,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ScheduledPostStore,
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
+		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
 		&s.RecapStore,
 	)

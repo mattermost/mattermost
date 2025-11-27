@@ -85,6 +85,6 @@ describe('components/admin_console/permission_schemes_settings/permission_descri
         expect(wrapper).toMatchSnapshot();
 
         wrapper.find('a').simulate('click');
-        expect(selectRow).toBeCalled();
+        expect(selectRow).toHaveBeenCalled();
     });
 });

@@ -8,6 +8,7 @@ import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
 import ScheduledPostIndicator from './scheduled_post_indicator';
+import FlagPostConfirmationDialog from './flag_post_confirmation_dialog';
 
 import {duration, hexToRgb} from '@/util';
 import {waitUntil} from '@/test_action';
@@ -23,6 +24,9 @@ export default class ChannelsCenterView {
     readonly postEdit;
     readonly editedPostIcon;
     readonly channelBanner;
+    readonly flagPostConfirmationDialog;
+    readonly messageDeleted;
+    readonly postText;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -35,6 +39,13 @@ export default class ChannelsCenterView {
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
+        this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
+            page.locator('#FlagPostModal div.modal-content'),
+            page,
+        );
+        this.messageDeleted = (postId: string) =>
+            this.container.locator(`#${postId}_message >> text=(message deleted)`);
+        this.postText = (postID: string) => this.container.locator(`#postMessageText_${postID}`);
     }
 
     async toBeVisible() {
@@ -164,5 +175,14 @@ export default class ChannelsCenterView {
 
         const actualText = await strikethroughText.textContent();
         expect(actualText).toBe(text);
+    }
+
+    async messageDeletedVisible(isVisible: boolean = false, postId: string, message: string) {
+        await expect(this.messageDeleted(postId)).toBeVisible({visible: isVisible});
+        if (!isVisible) {
+            const postMessageText = this.postText(postId);
+            const postMessageTextContent = await postMessageText.textContent();
+            expect(postMessageTextContent).toBe(message);
+        }
     }
 }
