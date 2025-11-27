@@ -71,9 +71,9 @@ const CodePreview = ({
 
         const handleReceivedCode = async (data: string | Node) => {
             let code = data as string;
-            const dataAsNode = data as Node;  
+            const dataAsNode = data as Node;
 
-            if (dataAsNode.nodeName === '#document') {  
+            if (dataAsNode.nodeName === '#document') {
                 code = new XMLSerializer().serializeToString(dataAsNode);
             }
 
