@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// TRUE ZERO-MOCK VERSION - Uses real API and real channels
-
 import {render, fireEvent, waitFor} from '@testing-library/react';
 import Image from '@tiptap/extension-image';
 import {Table} from '@tiptap/extension-table';

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// TRUE ZERO-MOCK VERSION - Uses real API and real channels
-
 import {Editor} from '@tiptap/core';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
@@ -10,56 +8,73 @@ import Text from '@tiptap/extension-text';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {Client4} from 'mattermost-redux/client';
-
-import {setupTestContext, cleanupOrphanedTestResources, type TestContext} from 'tests/api_test_helpers';
-
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 
-describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
-    let testContext: TestContext;
+describe('createChannelMentionSuggestion', () => {
+    const mockChannel1: Channel = {
+        id: 'channel-1',
+        name: 'town-square',
+        display_name: 'Town Square',
+        type: 'O',
+        team_id: 'team-1',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        header: '',
+        purpose: '',
+        last_post_at: 0,
+        total_msg_count: 0,
+        extra_update_at: 0,
+        creator_id: 'user-1',
+        scheme_id: null,
+        group_constrained: null,
+        shared: null,
+        total_msg_count_root: 0,
+        policy_id: null,
+        last_root_post_at: 0,
+    };
 
-    beforeAll(async () => {
-        // Clean up any orphaned test channels from previous interrupted runs
-        await cleanupOrphanedTestResources();
+    const mockChannel2: Channel = {
+        id: 'channel-2',
+        name: 'off-topic',
+        display_name: 'Off-Topic',
+        type: 'O',
+        team_id: 'team-1',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        header: '',
+        purpose: '',
+        last_post_at: 0,
+        total_msg_count: 0,
+        extra_update_at: 0,
+        creator_id: 'user-1',
+        scheme_id: null,
+        group_constrained: null,
+        shared: null,
+        total_msg_count_root: 0,
+        policy_id: null,
+        last_root_post_at: 0,
+    };
 
-        // Setup test context (creates new test channel)
-        try {
-            testContext = await setupTestContext();
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.warn('Failed to setup test context - skipping tests that require backend:', error);
-        }
-    }, 30000);
+    const mockChannels = [mockChannel1, mockChannel2];
 
-    afterAll(async () => {
-        if (testContext) {
-            await testContext.cleanup();
-        }
-    }, 30000);
-
-    // Real autocompleteChannels function using Client4
-    const createRealAutocompleteChannels = (teamId: string) => {
+    const createMockAutocompleteChannels = (channels: Channel[]) => {
         return (term: string, success: (channels: Channel[]) => void, error: () => void) => {
-            Client4.autocompleteChannels(teamId, term).
-                then((channels) => {
-                    success(channels);
-                }).
-                catch(() => {
-                    error();
-                });
+            const filtered = channels.filter((ch) =>
+                ch.name.includes(term.toLowerCase()) ||
+                ch.display_name.toLowerCase().includes(term.toLowerCase())
+            );
+            success(filtered);
             return Promise.resolve({data: true});
         };
     };
 
     const getDefaultProps = () => {
-        if (!testContext) {
-            throw new Error('Test context not initialized - backend may not be running');
-        }
         return {
-            channelId: testContext.channel.id,
-            teamId: testContext.team.id,
-            autocompleteChannels: createRealAutocompleteChannels(testContext.team.id),
+            channelId: 'channel-1',
+            teamId: 'team-1',
+            autocompleteChannels: createMockAutocompleteChannels(mockChannels),
             delayChannelAutocomplete: false,
         };
     };
@@ -97,7 +112,7 @@ describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
         });
     });
 
-    describe('items function - using REAL ChannelMentionProvider and API', () => {
+    describe('items function - using mocked ChannelMentionProvider', () => {
         it('should filter out loading placeholders from results', async () => {
             const config = createChannelMentionSuggestion(getDefaultProps());
             const result = await config.items!({query: '', editor: createTestEditor()});
@@ -114,6 +129,14 @@ describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
                 expect(channel).toHaveProperty('name');
                 expect(channel).toHaveProperty('display_name');
             });
+        });
+
+        it('should filter channels based on query', async () => {
+            const config = createChannelMentionSuggestion(getDefaultProps());
+            const result = await config.items!({query: 'town', editor: createTestEditor()});
+
+            expect(result.length).toBeGreaterThan(0);
+            expect(result.some((ch: Channel) => ch.name.includes('town'))).toBe(true);
         });
     });
 
@@ -133,8 +156,8 @@ describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
         });
     });
 
-    describe('integration with REAL ChannelMentionProvider', () => {
-        it('should respect delayChannelAutocomplete prop in real provider', () => {
+    describe('integration with mocked ChannelMentionProvider', () => {
+        it('should respect delayChannelAutocomplete prop', () => {
             const configWithDelay = createChannelMentionSuggestion({
                 ...getDefaultProps(),
                 delayChannelAutocomplete: true,

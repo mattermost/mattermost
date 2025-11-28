@@ -1242,7 +1242,7 @@ func buildChannelModerations(rctx request.CTX, channelType model.ChannelType, me
 			Enabled: higherScopedMemberPermissions[permissionKey],
 		}
 
-		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" {
+		if permissionKey == "manage_members" || permissionKey == "manage_bookmarks" || permissionKey == "manage_wikis" || permissionKey == "manage_pages" {
 			roles.Guests = nil
 		} else {
 			roles.Guests = &model.ChannelModeratedRole{

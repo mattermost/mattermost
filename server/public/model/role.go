@@ -668,6 +668,24 @@ func isModeratedBookmarkPermission(permission string) bool {
 	return false
 }
 
+func isModeratedWikiPermission(permission string) bool {
+	for _, mwp := range ModeratedWikiPermissions {
+		if mwp.Id == permission {
+			return true
+		}
+	}
+	return false
+}
+
+func isModeratedPagePermission(permission string) bool {
+	for _, mpp := range ModeratedPagePermissions {
+		if mpp.Id == permission {
+			return true
+		}
+	}
+	return false
+}
+
 // GetChannelModeratedPermissions returns a map of channel moderated permissions that the role has access to
 func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[string]bool {
 	moderatedPermissions := make(map[string]bool)
@@ -698,6 +716,14 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 				} else if isModeratedBookmarkPermission(moderated) {
 					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionAddBookmarkPublicChannel.Id
 					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionAddBookmarkPrivateChannel.Id
+					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
+				} else if isModeratedWikiPermission(moderated) {
+					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionCreateWikiPublicChannel.Id
+					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionCreateWikiPrivateChannel.Id
+					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
+				} else if isModeratedPagePermission(moderated) {
+					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionCreatePagePublicChannel.Id
+					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionCreatePagePrivateChannel.Id
 					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
 				} else {
 					moderatedPermissions[moderatedPermissionValue] = true
@@ -899,10 +925,12 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionCreatePagePublicChannel.Id,
 			PermissionReadPagePublicChannel.Id,
 			PermissionEditPagePublicChannel.Id,
+			PermissionEditOthersPagePublicChannel.Id,
 			PermissionDeletePagePublicChannel.Id,
 			PermissionCreatePagePrivateChannel.Id,
 			PermissionReadPagePrivateChannel.Id,
 			PermissionEditPagePrivateChannel.Id,
+			PermissionEditOthersPagePrivateChannel.Id,
 			PermissionDeletePagePrivateChannel.Id,
 		},
 		SchemeManaged: true,
