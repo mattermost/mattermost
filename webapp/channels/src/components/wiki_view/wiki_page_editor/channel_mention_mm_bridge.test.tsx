@@ -60,10 +60,10 @@ describe('createChannelMentionSuggestion', () => {
     const mockChannels = [mockChannel1, mockChannel2];
 
     const createMockAutocompleteChannels = (channels: Channel[]) => {
-        return (term: string, success: (channels: Channel[]) => void, error: () => void) => {
+        return (term: string, success: (channels: Channel[]) => void, _error: () => void) => {
             const filtered = channels.filter((ch) =>
                 ch.name.includes(term.toLowerCase()) ||
-                ch.display_name.toLowerCase().includes(term.toLowerCase())
+                ch.display_name.toLowerCase().includes(term.toLowerCase()),
             );
             success(filtered);
             return Promise.resolve({data: true});
