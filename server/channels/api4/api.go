@@ -101,6 +101,8 @@ type Routes struct {
 
 	Jobs *mux.Router // 'api/v4/jobs'
 
+	Recaps *mux.Router // 'api/v4/recaps'
+
 	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
 
 	License *mux.Router // 'api/v4/license'
@@ -256,6 +258,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Public = api.BaseRoutes.APIRoot.PathPrefix("/public").Subrouter()
 	api.BaseRoutes.Reactions = api.BaseRoutes.APIRoot.PathPrefix("/reactions").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.APIRoot.PathPrefix("/jobs").Subrouter()
+	api.BaseRoutes.Recaps = api.BaseRoutes.APIRoot.PathPrefix("/recaps").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
 
@@ -337,6 +340,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitDataRetention()
 	api.InitBrand()
 	api.InitJob()
+	api.InitRecap()
 	api.InitCommand()
 	api.InitStatus()
 	api.InitWebSocket()
