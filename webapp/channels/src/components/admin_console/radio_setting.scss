@@ -1,0 +1,19 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.RadioSetting {
+    margin-top: 8px;
+    margin-right: 0;
+    margin-bottom: 0;
+
+    &__text {
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    &:disabled &__text {
+        cursor: not-allowed;
+    }
+}

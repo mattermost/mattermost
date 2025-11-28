@@ -20,8 +20,7 @@ func TestPostAcknowledgementsApp(t *testing.T) {
 
 func testSaveAcknowledgementForPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("save acknowledgment for post should save acknowledgement", func(t *testing.T) {
 		post, err := th.App.CreatePostAsUser(th.Context, &model.Post{
@@ -63,8 +62,8 @@ func testSaveAcknowledgementForPost(t *testing.T) {
 
 func testDeleteAcknowledgementForPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	post, err1 := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
@@ -136,8 +135,8 @@ func testDeleteAcknowledgementForPost(t *testing.T) {
 
 func testGetAcknowledgementsForPostList(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	p1, err := th.App.CreatePostAsUser(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,

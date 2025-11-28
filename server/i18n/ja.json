@@ -1182,10 +1182,6 @@
     "translation": "不正なリクエスト: client_idが不正です。"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "不正なリクエスト: client_secretが存在しません。"
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "不正なリクエスト: grant_typeが不正です。"
   },
@@ -10924,10 +10920,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "フラグ立てした投稿を完全に削除する際、投稿のステータスを更新できませんでした。"
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "フラグ立てした投稿のファイル情報を復元できませんでした。"
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",

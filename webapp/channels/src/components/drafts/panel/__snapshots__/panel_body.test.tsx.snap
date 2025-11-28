@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/drafts/panel/panel_body should have called handleFormattedTextClick 1`] = `
 <Provider
@@ -639,15 +639,13 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                   aria-hidden="true"
                                   className="Tag__icon"
                                 >
-                                  <AlertCircleOutlineIcon
-                                    size={10}
-                                  >
+                                  <AlertCircleOutlineIcon>
                                     <svg
                                       fill="currentColor"
-                                      height={10}
+                                      height="1em"
                                       version="1.1"
                                       viewBox="0 0 24 24"
-                                      width={10}
+                                      width="1em"
                                       xmlns="http://www.w3.org/2000/svg"
                                     >
                                       <path

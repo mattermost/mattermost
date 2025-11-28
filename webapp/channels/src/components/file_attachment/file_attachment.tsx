@@ -55,6 +55,7 @@ type Props = PropsFromRedux & {
     handleFileDropdownOpened?: (open: boolean) => void;
     disableThumbnail?: boolean;
     disableActions?: boolean;
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
 };
 
 export default function FileAttachment(props: Props) {
@@ -345,6 +346,7 @@ export default function FileAttachment(props: Props) {
                 canDownload={props.canDownloadFiles}
                 handleImageClick={onAttachmentClick}
                 iconClass={'post-image__download'}
+                overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
             >
                 <i className='icon icon-download-outline'/>
             </FilenameOverlay>

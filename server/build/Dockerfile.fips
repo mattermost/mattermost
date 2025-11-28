@@ -42,6 +42,7 @@ FROM cgr.dev/mattermost.com/glibc-openssl-fips:15@sha256:7947eecc0d82fa3bc661aac
 # Some ENV variables
 ENV PATH="/mattermost/bin:${PATH}"
 ENV MM_SERVICESETTINGS_ENABLELOCALMODE="true"
+ENV MM_INSTALL_TYPE="docker"
 
 # Copy over metadata files needed by runtime
 COPY --from=builder /etc/mime.types /etc
