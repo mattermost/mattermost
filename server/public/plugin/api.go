@@ -860,6 +860,13 @@ type API interface {
 	// Minimum server version: 5.6
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
+	// SendToastMessage sends a toast notification to a specific user.
+	// The options parameter allows customization of the toast appearance.
+	//
+	// @tag Frontend
+	// Minimum server version: 11.3
+	SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError
+
 	// Plugin Section
 
 	// GetPlugins will return a list of plugin manifests for currently active plugins.
