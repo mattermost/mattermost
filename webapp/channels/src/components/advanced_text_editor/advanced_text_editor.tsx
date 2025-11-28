@@ -46,6 +46,7 @@ import {OnboardingTourSteps, OnboardingTourStepsForGuestUsers, TutorialTourName}
 import {SendMessageTour} from 'components/tours/onboarding_tour';
 
 import useDidUpdate from 'hooks/useDidUpdate';
+import useGetAgentsBridgeEnabled from 'hooks/useGetAgentsBridgeEnabled';
 import Constants, {
     Locations,
     StoragePrefixes,
@@ -76,11 +77,14 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
+import UnifiedLabelsWrapper from './unified_labels_wrapper';
+import useBurnOnRead from './use_burn_on_read';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
+import useRewrite from './use_rewrite';
 import useSubmit from './use_submit';
 import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
@@ -177,6 +181,7 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
+    const aiRewriteEnabled = useGetAgentsBridgeEnabled();
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -227,7 +232,6 @@ const AdvancedTextEditor = ({
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
-    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -309,6 +313,12 @@ const AdvancedTextEditor = ({
     useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
+    const {
+        additionalControl: aiRewriteAdditionalControl,
+        isProcessing: rewriteIsProcessing,
+    } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
+    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
+
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
         rootId,
@@ -342,7 +352,11 @@ const AdvancedTextEditor = ({
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
-    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
+    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+    const {
+        labels: burnOnReadLabels,
+        additionalControl: burnOnReadAdditionalControl,
+    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -387,6 +401,22 @@ const AdvancedTextEditor = ({
             metadata: {},
         });
     }, [handleDraftChange, channelId, rootId]);
+
+    // Unified handler to remove all labels (priority + burn on read)
+    const handleRemoveAllLabels = useCallback(() => {
+        // Remove both priority and burn_on_read in a single draft update
+        const updatedDraft = {
+            ...draft,
+        };
+
+        // Remove both priority and burn_on_read from metadata
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+        const {priority: _priority, burn_on_read: _burnOnRead, ...restMetadata} = updatedDraft.metadata || {};
+        updatedDraft.metadata = restMetadata;
+
+        handleDraftChange(updatedDraft, {instant: true});
+        focusTextbox();
+    }, [draft, handleDraftChange, focusTextbox]);
 
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
@@ -649,7 +679,7 @@ const AdvancedTextEditor = ({
         createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
 
-    const messageValue = isDisabled ? '' : draft.message_source || draft.message;
+    const messageValue = isDisabled && !rewriteIsProcessing ? '' : draft.message_source || draft.message;
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
@@ -678,8 +708,10 @@ const AdvancedTextEditor = ({
 
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
+        aiRewriteEnabled && aiRewriteAdditionalControl,
+        !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -775,9 +807,18 @@ const AdvancedTextEditor = ({
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
-                        {!isInEditMode && priorityLabels}
+                        {!isInEditMode && (priorityLabels || burnOnReadLabels) && (
+                            <div className='AdvancedTextEditor__labels'>
+                                <UnifiedLabelsWrapper
+                                    priorityLabels={priorityLabels}
+                                    burnOnReadLabels={burnOnReadLabels}
+                                    onRemoveAll={handleRemoveAllLabels}
+                                    canRemove={!showPreview}
+                                />
+                            </div>
+                        )}
                         <Textbox
-                            hasLabels={isInEditMode ? false : Boolean(priorityLabels)}
+                            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
@@ -795,7 +836,7 @@ const AdvancedTextEditor = ({
                             channelId={channelId}
                             id={textboxId}
                             ref={textboxRef!}
-                            disabled={isDisabled}
+                            disabled={isDisabled && !rewriteIsProcessing}
                             characterLimit={maxPostSize}
                             preview={showPreview}
                             badConnection={badConnection}

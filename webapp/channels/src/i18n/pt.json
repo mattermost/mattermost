@@ -283,7 +283,6 @@
   "admin.access_control.policy.channels_affected": "Tem a certeza que deseja guardar e aplicar a política de controlo de acesso?",
   "admin.access_control.policy.edit_policy.access_rules.subtitle": "Selecione os atributos e os valores de utilizador como regras para restringir a associação ao canal.",
   "admin.access_control.policy.edit_policy.access_rules.title": "Regras de acesso baseadas em atributos",
-  "admin.access_control.policy.edit_policy.autoSyncMembership": "Adicionar membros automaticamente com base nas regras de acesso:",
   "admin.access_control.policy.edit_policy.channel_selector.addChannels": "Adicionar canais",
   "admin.access_control.policy.edit_policy.channel_selector.remove": "Remover",
   "admin.access_control.policy.edit_policy.channel_selector.subtitle": "Adicione canais em que esta política de acesso baseada em atributos será aplicada.",

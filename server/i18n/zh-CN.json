@@ -1182,10 +1182,6 @@
     "translation": "invalid_request：错误的 client_id。"
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request：缺少 client_secret。"
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request：错误的 grant_type。"
   },
@@ -5487,7 +5483,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -5499,15 +5495,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "版本 128+"
+    "translation": "版本 140 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "版本 138+"
+    "translation": "版本 140 及以上"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "版本 138+"
+    "translation": "版本 140 及以上"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10788,5 +10784,321 @@
   {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "收到来自交互式对话提交的无效响应。"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "频道 ID 与被标记消息的频道 ID 不匹配。"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "无法添加被团队或系统权限方案限制的权限。"
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "无法更新受限的私信频道。"
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "无法在受限的私信中发送消息。"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "请添加评论，说明您标记此消息的原因。"
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "消息标记原因不能超过 {{.MaxLength}} 个字符。"
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "此团队未启用内容标记功能。"
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "被标记的消息必须处于待处理或已分配状态，才能进行保留或删除。"
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "为消息标记指定的原因未知。"
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "请选择标记此消息的原因。"
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "该用户不是内容审核员。"
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "无法将草稿保存到受限的私信频道。"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "为 API 响应编码 JSON 时遇到错误。"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "无法上传文件到受限的私信中。"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "无法上传文件到受限的私信中。"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "无法向受限的私信频道发送消息。"
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "无法在受限的私信频道中删除消息。"
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "无法在受限的私信频道中更新消息。"
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "无法在受限的私信频道中更新消息。"
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "无法在受限的私信中添加表情。"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "无法在受限的私信中添加表情。"
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "团队 ID 与被标记消息的团队 ID 不匹配。"
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "永久频道删除功能未启用。必须将 ServiceSettings.EnableAPIChannelDeletion 设置为 true 才能使用此命令。详情请参阅：https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "永久团队删除功能未启用。必须将 ServiceSettings.EnableAPITeamDeletion 设置为 true 才能使用此命令。详情请参阅：https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "永久用户删除功能未启用。必须将 ServiceSettings.EnableAPIUserDeletion 设置为 true 才能使用此命令。详情请参阅：https://mattermost.com/pl/environment-configuration-settings"
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "获取代理失败。"
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "桥接调用失败。"
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "获取 LLM 服务失败。"
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "桥接调用失败。"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "获取频道的常用团队时出错。"
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "未找到审核员 ID 属性字段。"
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "设置审核员时更新状态属性值失败。"
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "设置被标记消息的审核员失败。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "无法标记此消息，因为它已被标记。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "无法标记此消息，该消息已在先前的标记请求中被移除。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "无法标记此消息，该消息已在先前的标记请求中被保留。"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "无法标记此消息，因为其状态未知。"
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "无法为被标记消息保存属性值。"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "序列化标记者评论失败。"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "序列化标记者原因失败。"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "@{{.username}} 的消息已被标记为审核。内容审核员审核完成后，您将收到通知。 "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "获取内容标记机器人失败。"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "从数据库获取内容审核员设置失败。"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "获取状态属性字段失败。"
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "获取被标记消息的回复线程失败。"
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "在团队中搜索审核员失败。"
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "序列化审核员评论失败。"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "恢复被标记消息时更新消息状态失败。 "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "尝试恢复被标记消息及相关数据时，更新数据库中的消息失败。"
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "序列化内容标记属性值以在 WebSocket 事件中发送失败。"
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "未找到被标记消息 ID 属性字段。"
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "未找到管理人属性字段。"
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "未找到举报用户字段。"
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "未找到举报用户字段的值。"
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "未找到状态属性字段。"
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "无法获取被标记消息，因为该消息未被标记。"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "永久删除被标记消息时，使用已清理消息覆盖原消息失败。"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "序列化审核员评论失败"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "永久删除被标记消息时，更新被标记消息状态失败。"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "将内容审核员设置保存到数据库失败。"
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "在常用审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "搜索内容标记属性字段失败。"
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "从数据库获取消息的内容标记属性值失败。"
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "搜索被标记消息的审核员消息失败。"
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "搜索被标记消息的属性值失败。"
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "在系统管理员审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "在团队管理员审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "在团队审核员中搜索该词条失败。"
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "为被标记消息设置回复线程的属性值失败。"
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "从数据库中永久删除消息优先级数据失败。"
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "无法在受限的私信中安排消息发送。"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "内容审核"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "无法上传文件到受限的私信。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate 的 URL 必须为有效的 URL，并且以 http:// 或 https:// 开头。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "无效的自动翻译服务提供商，不能为空。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "不支持的自动翻译服务提供商。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "自动翻译设置的获取超时无效。必须为正数。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "自动翻译设置的新消息超时无效。必须为正数。"
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "自动翻译设置的通知超时无效。必须为正数。"
   }
 ]

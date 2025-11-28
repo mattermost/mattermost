@@ -5,8 +5,6 @@ import React, {useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
-import type {GlobalState} from '@mattermost/types/store';
-
 import {fetchChannelsAndMembers, selectChannel} from 'mattermost-redux/actions/channels';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
@@ -14,11 +12,15 @@ import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {markThreadAsRead} from 'actions/views/threads';
+
 import ThreadPane from 'components/threading/global_threads/thread_pane';
 import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import {usePost} from 'hooks/usePost';
+
+import type {GlobalState} from 'types/store';
 
 export default function ThreadPopout() {
     const dispatch = useDispatch();
@@ -56,6 +58,22 @@ export default function ThreadPopout() {
             dispatch(getThread(currentUserId, teamId, postId));
         }
     }, [postId, dispatch, currentUserId, teamId]);
+
+    useEffect(() => {
+        function handleFocus() {
+            window.isActive = true;
+            dispatch(markThreadAsRead(postId));
+        }
+        function handleBlur() {
+            window.isActive = false;
+        }
+        window.addEventListener('focus', handleFocus);
+        window.addEventListener('blur', handleBlur);
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('blur', handleBlur);
+        };
+    }, []);
 
     if (!thread) {
         return null;

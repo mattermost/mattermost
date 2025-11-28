@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
 <Memo(Settings)
@@ -8,6 +8,7 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
 >
   <RadioInput
     checked={false}
+    className="RadioSetting"
     dataTestId="Engineering"
     disabled={false}
     handleChange={[Function]}
@@ -19,6 +20,7 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
   />
   <RadioInput
     checked={true}
+    className="RadioSetting"
     dataTestId="Sales"
     disabled={false}
     handleChange={[Function]}
@@ -30,6 +32,7 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
   />
   <RadioInput
     checked={false}
+    className="RadioSetting"
     dataTestId="Administration"
     disabled={false}
     handleChange={[Function]}

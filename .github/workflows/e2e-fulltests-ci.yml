@@ -46,9 +46,14 @@ on:
         type: string
         description: Enable Playwright run
         default: "true"
+      FIPS_ENABLED:
+        type: string
+        description: When true, use mattermost-enterprise-fips-edition image for testing instead of standard enterprise edition
+        default: "false"
+        required: false
 
 concurrency:
-  group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
+  group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.FIPS_ENABLED }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
 jobs:
@@ -79,6 +84,7 @@ jobs:
       ROLLING_RELEASE_SERVER_IMAGE: "${{ steps.generate.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
       WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
       CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
+      FIPS_SUFFIX: "${{ steps.generate.outputs.FIPS_SUFFIX }}"
     env:
       GH_TOKEN: "${{ github.token }}"
       REF: "${{ inputs.ref || github.sha }}"
@@ -86,6 +92,7 @@ jobs:
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
       ROLLING_RELEASE_FROM_TAG: "${{ inputs.ROLLING_RELEASE_FROM_TAG }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      FIPS_ENABLED: "${{ inputs.FIPS_ENABLED }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_CYPRESS_PR: >-
         --stage="@prod"
@@ -196,16 +203,25 @@ jobs:
               *) echo "Invalid MM_SERVICE_OVERRIDE value: $SVC_OP"; exit 1 ;;
             esac
           done
+          # Determine server image name and FIPS suffix based on FIPS_ENABLED parameter
+          if [ "$FIPS_ENABLED" = "true" ]; then
+            SERVER_IMAGE_NAME="mattermost-enterprise-fips-edition"
+            FIPS_SUFFIX="_fips"
+          else
+            SERVER_IMAGE_NAME="mattermost-enterprise-edition"
+            FIPS_SUFFIX=""
+          fi
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
+          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}${FIPS_SUFFIX}-${BUILD_ID_SUFFIX}"
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
-          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/${SERVER_IMAGE_NAME}:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "FIPS_SUFFIX=${FIPS_SUFFIX}" >> $GITHUB_OUTPUT
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
-          echo "status_check_context=E2E Tests/test${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+          echo "status_check_context=E2E Tests/test${FIPS_SUFFIX}${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
           echo "TESTCASE_FAILURE_FATAL=${TESTCASE_FAILURE_FATAL}" >> $GITHUB_OUTPUT
