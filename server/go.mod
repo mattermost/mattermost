@@ -19,7 +19,6 @@ require (
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/elastic/go-elasticsearch/v8 v8.19.0
 	github.com/fatih/color v1.18.0
-	github.com/fsnotify/fsnotify v1.9.0
 	github.com/getsentry/sentry-go v0.36.0
 	github.com/goccy/go-yaml v1.18.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
@@ -119,6 +118,7 @@ require (
 	github.com/fatih/set v0.2.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
+	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gigawattio/window v0.0.0-20180317192513-0f5467e35573 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.7 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
