@@ -3,12 +3,11 @@
 
 import {vi} from 'vitest';
 
-// Mock mattermost-redux store to avoid require() issues
-vi.mock('mattermost-redux/store', () => ({
-    default: vi.fn(() => ({
-        dispatch: vi.fn(),
-        getState: vi.fn(() => ({})),
-        subscribe: vi.fn(),
-        replaceReducer: vi.fn(),
-    })),
-}));
+// Mock mattermost-redux store to avoid require() issues with configureStore
+// This mock provides the actual configureStore implementation directly
+vi.mock('mattermost-redux/store', async () => {
+    const actual = await vi.importActual<typeof import('packages/mattermost-redux/src/store/configureStore')>('packages/mattermost-redux/src/store/configureStore');
+    return {
+        default: actual.default,
+    };
+});

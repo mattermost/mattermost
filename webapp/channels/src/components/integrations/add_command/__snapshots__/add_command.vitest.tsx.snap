@@ -1,0 +1,305 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/AddCommand > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-content row"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/test/integrations/commands"
+        >
+          Slash Commands
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        <span>
+          Add
+        </span>
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the slash command settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="128"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Describe your slash command.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="trigger"
+          >
+            Command Trigger Word
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="trigger"
+              maxlength="128"
+              placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character.
+            </div>
+            <div
+              class="form__help"
+            >
+              Examples: client, employee, patient, weather
+            </div>
+            <div
+              class="form__help"
+            >
+              Reserved: 
+              <a
+                href="https://mattermost.com/pl/custom-slash-commands?utm_source=mattermost&utm_medium=in-product&utm_content=abstract_command&uid=&sid=&edition=team&server_version="
+                location="abstract_command"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                See built-in slash commands
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="url"
+          >
+            Request URL
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              autocomplete="off"
+              class="form-control"
+              id="url"
+              maxlength="1024"
+              placeholder="Must start with http:// or https://"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run.
+            </div>
+            <div
+              class="form__help"
+            >
+              You can connect commands to 
+              <a
+                href="https://mattermost.com/pl/outgoing-oauth-connections"
+              >
+                outgoing OAuth connections
+              </a>
+              .
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="method"
+          >
+            Request Method
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="method"
+            >
+              <option
+                value="P"
+              >
+                POST
+              </option>
+              <option
+                value="G"
+              >
+                GET
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Response Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="64"
+              placeholder="Username"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, your Mattermost username is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconUrl"
+          >
+            Response Icon
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconUrl"
+              maxlength="1024"
+              placeholder="https://www.example.com/myicon.png"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="autocomplete"
+          >
+            Autocomplete
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="autocomplete"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Show your slash command on the autocomplete list when someone types "/" in the input box.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/test/integrations/commands"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveCommand"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;

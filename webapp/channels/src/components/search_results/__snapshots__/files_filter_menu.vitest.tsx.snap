@@ -1,0 +1,270 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on all filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on audio filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          class="icon-dot"
+        />
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on code filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          class="icon-dot"
+        />
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on documents filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          class="icon-dot"
+        />
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on images filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          class="icon-dot"
+        />
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on presentations filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          class="icon-dot"
+        />
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on spreadsheets filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          class="icon-dot"
+        />
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/FilesFilterMenu > should match snapshot, on video filter selected 1`] = `
+<div>
+  <div
+    class="FilesFilterMenu"
+  >
+    <div
+      class="MenuWrapper "
+    >
+      <button
+        class="sc-bcPLoT eddQmF action-icon dots-icon"
+        id="filesFilterButton"
+        type="button"
+      >
+        <i
+          class="icon-dot"
+        />
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+`;

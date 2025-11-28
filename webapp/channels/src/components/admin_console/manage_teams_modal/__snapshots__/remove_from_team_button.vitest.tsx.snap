@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`RemoveFromTeamButton > should match snapshot init 1`] = `
+<div>
+  <button
+    class="btn btn-danger"
+    type="button"
+  >
+    Remove from Team
+  </button>
+</div>
+`;
