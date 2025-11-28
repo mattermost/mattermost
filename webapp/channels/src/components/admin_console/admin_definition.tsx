@@ -86,7 +86,7 @@ import {
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
 import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
 import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
-import MobileSecuritySVG from './feature_discovery/features/images/mobile_security_svg';
+import IntuneMAMSvg from './feature_discovery/features/images/intune_mam_svg';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -2189,17 +2189,17 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             key: 'MobileSecuritySettings.Intune',
                             title: 'Microsoft Intune',
-                            description: defineMessage({id: 'admin.mobileSecurity.sections.intune.description', defaultMessage: 'Configure Microsoft Intune Mobile Application Management (MAM) for enterprise mobile device management.'}),
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.intune.description', defaultMessage: 'Configure Microsoft Intune Mobile Application Management (MAM) for App Protection Policies.'}),
                             license_sku: LicenseSkus.EnterpriseAdvanced,
                             component: LicensedSectionContainer,
                             componentProps: {
                                 requiredSku: LicenseSkus.EnterpriseAdvanced,
                                 featureDiscoveryConfig: {
                                     featureName: 'intune_mam',
-                                    title: defineMessage({id: 'admin.intune_feature_discovery.title', defaultMessage: 'Authenticate mobile users with Microsoft Entra ID and enforce Intune MAM policies'}),
-                                    description: defineMessage({id: 'admin.intune_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Microsoft Intune Mobile Application Management (MAM) to authenticate mobile users via Microsoft Entra ID (Azure AD) and enforce enterprise mobile security policies across iOS and Android devices.'}),
+                                    title: defineMessage({id: 'admin.intune_feature_discovery.title', defaultMessage: 'Protect mobile data with Microsoft Intune App Protection Policies (MAM) and Entra ID authentication'}),
+                                    description: defineMessage({id: 'admin.intune_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Microsoft Intune Mobile Application Management (MAM) to enforce App Protection Policies (APP) on Mattermost Mobile. Users sign in with Microsoft Entra ID (Azure AD), and Intune MAM applies data protection, selective wipe, and compliance policies on supported iOS devices.'}),
                                     learnMoreURL: 'https://docs.mattermost.com/deployment/intune-mam.html',
-                                    svgImage: MobileSecuritySVG,
+                                    svgImage: IntuneMAMSvg,
                                 },
                             },
                             settings: [
@@ -2207,13 +2207,17 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'bool',
                                     key: 'IntuneSettings.Enable',
                                     label: defineMessage({id: 'admin.intune.enableTitle', defaultMessage: 'Enable Microsoft Intune MAM:'}),
-                                    help_text: defineMessage({id: 'admin.intune.enableDescription', defaultMessage: 'When enabled, allows mobile users to authenticate using Microsoft Entra ID (Azure AD) credentials via MSAL tokens and enforces Intune Mobile Application Management policies.'}),
+                                    help_text: defineMessage({id: 'admin.intune.enableDescription', defaultMessage: 'When enabled, Mattermost Mobile uses Microsoft Entra ID (Azure AD) for app authentication and policy enforcement. Users authenticate using MSAL tokens, and Intune MAM policies (App Protection Policies) are applied to protect corporate data.'}),
+                                    help_text_markdown: true,
                                 },
                                 {
                                     type: 'dropdown',
                                     key: 'IntuneSettings.AuthService',
                                     label: defineMessage({id: 'admin.intune.authServiceTitle', defaultMessage: 'Auth Provider:'}),
-                                    help_text: defineMessage({id: 'admin.intune.authServiceDescription', defaultMessage: 'Select which authentication service Intune users will be mapped to. Choose "OpenID Connect" if users login via Office 365 on other clients, or "SAML 2.0" if users login via SAML with Entra ID as the identity provider.'}),
+                                    help_text: defineMessage({id: 'admin.intune.authServiceDescription', defaultMessage: `Select how users authenticate into Mattermost.
+* OpenID Connect – Use when users sign in to Mattermost via Microsoft 365 / Entra ID using OIDC.
+* SAML 2.0 – Use when users authenticate via a SAML provider that ultimately maps to Microsoft Entra ID.
+Choose the option that matches how your organization already authenticates users into Mattermost on other clients.`}),
                                     options: [
                                         {
                                             value: '',
@@ -2236,7 +2240,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'text',
                                     key: 'IntuneSettings.TenantId',
                                     label: defineMessage({id: 'admin.intune.tenantIdTitle', defaultMessage: 'Tenant ID:'}),
-                                    help_text: defineMessage({id: 'admin.intune.tenantIdDescription', defaultMessage: 'The Microsoft Entra ID (Azure AD) Tenant ID (also called Directory ID). This is a UUID that identifies your organization in Microsoft Entra ID.'}),
+                                    help_text: defineMessage({id: 'admin.intune.tenantIdDescription', defaultMessage: 'The Microsoft Entra ID (Azure AD) Tenant ID (also called the Directory ID).\nThis is the globally unique identifier that represents your organization in Microsoft Entra ID.\nMattermost uses this ID to validate tokens issued for Intune MAM.'}),
                                     placeholder: defineMessage({id: 'admin.intune.tenantIdPlaceholder', defaultMessage: 'E.g.: "12345678-1234-1234-1234-123456789012"'}),
                                     isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
                                     default: (value, config, state) => {
@@ -2252,7 +2256,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'text',
                                     key: 'IntuneSettings.ClientId',
                                     label: defineMessage({id: 'admin.intune.clientIdTitle', defaultMessage: 'Application (Client) ID:'}),
-                                    help_text: defineMessage({id: 'admin.intune.clientIdDescription', defaultMessage: 'The Application (Client) ID for your Intune MAM app registration in Microsoft Entra ID. This is a UUID that identifies your application.'}),
+                                    help_text: defineMessage({id: 'admin.intune.clientIdDescription', defaultMessage: 'The Application (Client) ID of your Intune MAM–enabled app registration in Microsoft Entra ID.\nThis is the client identifier that the Mattermost Mobile app uses to request MSAL tokens for Intune MAM enrollment and policy evaluation.'}),
                                     placeholder: defineMessage({id: 'admin.intune.clientIdPlaceholder', defaultMessage: 'E.g.: "87654321-4321-4321-4321-210987654321"'}),
                                     isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
                                     default: (value, config, state) => {
@@ -2268,7 +2272,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'text',
                                     key: 'IntuneSettings.ClientSecret',
                                     label: defineMessage({id: 'admin.intune.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                                    help_text: defineMessage({id: 'admin.intune.clientSecretDescription', defaultMessage: 'The Client Secret for your Intune MAM app registration. This secret is used to authenticate token validation requests to Microsoft Entra ID.'}),
+                                    help_text: defineMessage({id: 'admin.intune.clientSecretDescription', defaultMessage: 'The Client Secret for your Intune MAM app registration.\nThis secret is used by the Mattermost server to validate MSAL tokens with Microsoft Entra ID and ensure that app-level policies apply correctly.'}),
                                     placeholder: defineMessage({id: 'admin.intune.clientSecretPlaceholder', defaultMessage: 'E.g.: "abc123def456..."'}),
                                     isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
                                 },
