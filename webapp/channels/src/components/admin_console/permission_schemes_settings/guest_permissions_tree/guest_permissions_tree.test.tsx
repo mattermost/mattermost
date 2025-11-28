@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {shallow, type ShallowWrapper} from 'enzyme';
 import React from 'react';
 
 import GuestPermissionsTree from 'components/admin_console/permission_schemes_settings/guest_permissions_tree/guest_permissions_tree';
 import PermissionGroup from 'components/admin_console/permission_schemes_settings/permission_group';
+import type {Permission} from 'components/admin_console/permission_schemes_settings/permissions_tree/types';
 
+import {LicenseSkus} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/admin_console/permission_schemes_settings/permission_tree', () => {
@@ -23,7 +25,7 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         parentRole: undefined,
         readOnly: false,
         license: {
-            LDAPGroups: 'true',
+            SkuShortName: LicenseSkus.Professional,
             IsLicensed: 'true',
         },
     };
@@ -89,13 +91,46 @@ describe('components/admin_console/permission_schemes_settings/permission_tree',
         expect(onToggle).toHaveBeenCalledWith('test', ['test_permission', 'test_permission2']);
     });
 
-    test('should match snapshot on license without LDAPGroups', () => {
-        const wrapper = shallow(
-            <GuestPermissionsTree
-                {...defaultProps}
-                license={{}}
-            />,
-        );
-        expect(wrapper).toMatchSnapshot();
+    describe('USE_GROUP_MENTIONS permission', () => {
+        const hasGroupMentionsPermission = (wrapper: ShallowWrapper): boolean => {
+            const permissionGroup = wrapper.find(PermissionGroup).first();
+            const permissions = permissionGroup.prop('permissions') as Array<Permission | string>;
+            return permissions.some((permission: Permission | string) => {
+                if (typeof permission === 'object' && permission.permissions) {
+                    return permission.permissions.includes('use_group_mentions');
+                }
+                return permission === 'use_group_mentions';
+            });
+        };
+
+        [LicenseSkus.Professional, LicenseSkus.Enterprise, LicenseSkus.EnterpriseAdvanced, LicenseSkus.Entry].forEach((sku) => {
+            test(`should include group mentions for ${sku} license`, () => {
+                const wrapper = shallow(
+                    <GuestPermissionsTree
+                        {...defaultProps}
+                        license={{
+                            SkuShortName: sku,
+                            IsLicensed: 'true',
+                        }}
+                    />,
+                );
+                expect(hasGroupMentionsPermission(wrapper)).toBe(true);
+            });
+        });
+
+        [LicenseSkus.Starter, LicenseSkus.E10, ''].forEach((sku) => {
+            test(`should NOT include group mentions for ${sku || 'unlicensed'}`, () => {
+                const wrapper = shallow(
+                    <GuestPermissionsTree
+                        {...defaultProps}
+                        license={{
+                            SkuShortName: sku,
+                            IsLicensed: sku === '' ? 'false' : 'true',
+                        }}
+                    />,
+                );
+                expect(hasGroupMentionsPermission(wrapper)).toBe(false);
+            });
+        });
     });
 });
