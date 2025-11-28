@@ -692,8 +692,11 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 				}
 				responseConnection.Close()
 			}()
+		} else {
+			r.Body.Close()
 		}
 	} else {
+		r.Body.Close()
 		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))
 	}
 
