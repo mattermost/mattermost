@@ -1,0 +1,31 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.autotranslation-section-header {
+    display: flex;
+    width: 100%;
+    min-width: 0; // prevents overflow in flex layouts
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.autotranslation-section-toggle {
+    display: flex;
+    align-items: center;
+    align-self: center;
+}
+
+.localization-section-title {
+    margin: unset;
+    font-size: 16px;
+}
+
+.localization-section-description {
+    margin-bottom: 0;
+    color: var(--center-channel-color-72);
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 400;
+}
+

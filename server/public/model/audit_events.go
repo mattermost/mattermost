@@ -11,6 +11,7 @@ const (
 	AuditEventDeleteAccessControlPolicy = "deleteAccessControlPolicy" // delete access control policy
 	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
+	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 )
 
 // Audit & Certificates
@@ -426,4 +427,14 @@ const (
 	AuditEventRegenOutgoingHookToken  = "regenOutgoingHookToken"  // regenerate authentication token
 	AuditEventUpdateIncomingHook      = "updateIncomingHook"      // update incoming webhook
 	AuditEventUpdateOutgoingHook      = "updateOutgoingHook"      // update outgoing webhook
+)
+
+// Content Flagging
+const (
+	AuditEventFlagPost                     = "flagPost"                     // flag post for review
+	AuditEventGetFlaggedPost               = "getFlaggedPost"               // get flagged post details
+	AuditEventPermanentlyRemoveFlaggedPost = "permanentlyRemoveFlaggedPost" // permanently remove flagged post
+	AuditEventKeepFlaggedPost              = "keepFlaggedPost"              // keep flagged post
+	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
+	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 )

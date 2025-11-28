@@ -484,6 +484,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
+    REMOVE_FLAGGED_POST: 'remove_flagged_post',
 };
 
 export const UserStatuses = {
@@ -701,6 +702,7 @@ export const SocketEvents = {
     CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
     CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
     CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
+    CONTENT_FLAGGING_REPORT_VALUE_CHANGED: 'content_flagging_report_value_updated',
 };
 
 export const TutorialSteps = {
@@ -825,6 +827,7 @@ export const PostTypes = {
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
     CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
+    BURN_ON_READ: 'burn_on_read',
 };
 
 export const StatTypes = keyMirror({
@@ -1196,6 +1199,7 @@ export const PermissionsScope = {
     [Permissions.INVITE_GUEST]: 'team_scope',
     [Permissions.ADD_USER_TO_TEAM]: 'team_scope',
     [Permissions.MANAGE_SLASH_COMMANDS]: 'team_scope',
+    [Permissions.MANAGE_OWN_SLASH_COMMANDS]: 'team_scope',
     [Permissions.MANAGE_OTHERS_SLASH_COMMANDS]: 'team_scope',
     [Permissions.CREATE_PUBLIC_CHANNEL]: 'team_scope',
     [Permissions.CREATE_PRIVATE_CHANNEL]: 'team_scope',
@@ -1229,11 +1233,13 @@ export const PermissionsScope = {
     [Permissions.UPLOAD_FILE]: 'channel_scope',
     [Permissions.GET_PUBLIC_LINK]: 'system_scope',
     [Permissions.MANAGE_INCOMING_WEBHOOKS]: 'team_scope',
+    [Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]: 'team_scope',
+    [Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK]: 'team_scope',
     [Permissions.MANAGE_OTHERS_INCOMING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OUTGOING_WEBHOOKS]: 'team_scope',
+    [Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS]: 'team_scope',
     [Permissions.MANAGE_OAUTH]: 'system_scope',
-    [Permissions.MANAGE_SYSTEM_WIDE_OAUTH]: 'system_scope',
     [Permissions.CREATE_POST]: 'channel_scope',
     [Permissions.CREATE_POST_PUBLIC]: 'channel_scope',
     [Permissions.EDIT_POST]: 'channel_scope',
@@ -1382,15 +1388,16 @@ export const DefaultRolePermissions = {
         Permissions.IMPORT_TEAM,
         Permissions.MANAGE_TEAM_ROLES,
         Permissions.MANAGE_CHANNEL_ROLES,
-        Permissions.MANAGE_SLASH_COMMANDS,
+        Permissions.MANAGE_OWN_SLASH_COMMANDS,
         Permissions.MANAGE_OTHERS_SLASH_COMMANDS,
-        Permissions.MANAGE_INCOMING_WEBHOOKS,
-        Permissions.MANAGE_OUTGOING_WEBHOOKS,
+        Permissions.MANAGE_OWN_INCOMING_WEBHOOKS,
+        Permissions.MANAGE_OTHERS_INCOMING_WEBHOOKS,
+        Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK,
+        Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS,
+        Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS,
         Permissions.DELETE_POST,
         Permissions.DELETE_OTHERS_POSTS,
-        Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS,
         Permissions.ADD_REACTION,
-        Permissions.MANAGE_OTHERS_INCOMING_WEBHOOKS,
         Permissions.USE_CHANNEL_MENTIONS,
         Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
         Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE,
@@ -1482,20 +1489,8 @@ export const ZoomSettings = {
 };
 
 export const DataSpillagePropertyNames = {
-    Status: 'Status',
-    FlaggedBy: 'Flagged by',
-    Reason: 'Reason',
-    Comment: 'Comment',
-    ReportingTime: 'Reporting Time',
-    ReviewingUser: 'Reviewing User',
-    ActionBy: 'Action By',
-    ActionComment: 'Action Comment',
-    ActionTime: 'Action Time',
-    Message: 'Message',
-    PostedIn: 'Posted in',
-    Team: 'Team',
-    PostedBy: 'Posted by',
-    PostedAt: 'Posted at',
+    FlaggedBy: 'reporting_user_id',
+    Status: 'status',
 };
 
 export const Constants = {
@@ -1633,6 +1628,7 @@ export const Constants = {
     EMAIL_SERVICE: 'email',
     LDAP_SERVICE: 'ldap',
     SAML_SERVICE: 'saml',
+    MAGIC_LINK_SERVICE: 'guest_magic_link',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
     PASSWORD_CHANGE: 'password_change',
@@ -2075,8 +2071,12 @@ export const Constants = {
     EMOJI_PATH: '/static/emoji',
     RECENT_EMOJI_KEY: 'recentEmojis',
     DEFAULT_WEBHOOK_LOGO: logoWebhook,
-    MHPNS_US: 'https://push.mattermost.com',
-    MHPNS_DE: 'https://hpns-de.mattermost.com',
+    MHPNS_LEGACY_US: 'https://push.mattermost.com',
+    MHPNS_LEGACY_DE: 'https://hpns-de.mattermost.com',
+    MHPNS_GLOBAL: 'https://global.push.mattermost.com',
+    MHPNS_US: 'https://us.push.mattermost.com',
+    MHPNS_DE: 'https://eu.push.mattermost.com',
+    MHPNS_JP: 'https://ap.push.mattermost.com',
     MTPNS: 'https://push-test.mattermost.com',
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes

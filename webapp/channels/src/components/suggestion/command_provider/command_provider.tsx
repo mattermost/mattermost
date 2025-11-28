@@ -163,7 +163,8 @@ export default class CommandProvider extends Provider {
     handleMobile(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
         const {teamId} = this.props;
 
-        const command = pretext.toLowerCase();
+        const spaceIndex = pretext.indexOf(' ');
+        const command = spaceIndex === -1 ? pretext.toLowerCase() : pretext.slice(0, spaceIndex).toLowerCase() + pretext.slice(spaceIndex);
         Client4.getCommandsList(teamId).then(
             (data) => {
                 let matches: AutocompleteSuggestion[] = [];
@@ -201,7 +202,7 @@ export default class CommandProvider extends Provider {
                 matches = matches.sort((a, b) => a.Suggestion.localeCompare(b.Suggestion));
 
                 resultCallback({
-                    matchedPretext: command,
+                    matchedPretext: pretext,
                     groups: [commandsGroup(matches)],
                 });
             },
@@ -209,7 +210,8 @@ export default class CommandProvider extends Provider {
     }
 
     handleWebapp(pretext: string, resultCallback: ResultsCallback<AutocompleteSuggestion>) {
-        const command = pretext.toLowerCase();
+        const spaceIndex = pretext.indexOf(' ');
+        const command = spaceIndex === -1 ? pretext.toLowerCase() : pretext.slice(0, spaceIndex).toLowerCase() + pretext.slice(spaceIndex);
 
         const {teamId, channelId, rootId} = this.props;
         const args: CommandArgs = {
@@ -273,7 +275,7 @@ export default class CommandProvider extends Provider {
                 }
 
                 resultCallback({
-                    matchedPretext: command,
+                    matchedPretext: pretext,
                     groups: [commandsGroup(matches)],
                 });
             }),

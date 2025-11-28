@@ -111,6 +111,8 @@ export type OAuthApp = {
     'callback_urls': string[];
     'homepage': string;
     'is_trusted': boolean;
+    'is_dynamically_registered'?: boolean;
+    'is_public'?: boolean;
 };
 
 export type OutgoingOAuthConnection = {
@@ -192,6 +194,9 @@ export type DialogElement = {
         value: any;
     }>;
     refresh?: boolean;
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
 };
 
 export type SubmitDialogResponse = {

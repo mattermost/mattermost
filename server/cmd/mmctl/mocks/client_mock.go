@@ -1149,10 +1149,10 @@ func (mr *MockClientMockRecorder) GetPing(arg0 interface{}) *gomock.Call {
 }
 
 // GetPingWithFullServerStatus mocks base method.
-func (m *MockClient) GetPingWithFullServerStatus(arg0 context.Context) (map[string]string, *model.Response, error) {
+func (m *MockClient) GetPingWithFullServerStatus(arg0 context.Context) (map[string]interface{}, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPingWithFullServerStatus", arg0)
-	ret0, _ := ret[0].(map[string]string)
+	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -1165,10 +1165,10 @@ func (mr *MockClientMockRecorder) GetPingWithFullServerStatus(arg0 interface{}) 
 }
 
 // GetPingWithOptions mocks base method.
-func (m *MockClient) GetPingWithOptions(arg0 context.Context, arg1 model.SystemPingOptions) (map[string]string, *model.Response, error) {
+func (m *MockClient) GetPingWithOptions(arg0 context.Context, arg1 model.SystemPingOptions) (map[string]interface{}, *model.Response, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPingWithOptions", arg0, arg1)
-	ret0, _ := ret[0].(map[string]string)
+	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -1226,6 +1226,22 @@ func (m *MockClient) GetPostsForChannel(arg0 context.Context, arg1 string, arg2,
 func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3, arg4, arg5, arg6 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForChannel", reflect.TypeOf((*MockClient)(nil).GetPostsForChannel), arg0, arg1, arg2, arg3, arg4, arg5, arg6)
+}
+
+// GetPostsForReporting mocks base method.
+func (m *MockClient) GetPostsForReporting(arg0 context.Context, arg1 model.ReportPostOptions, arg2 model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostsForReporting", arg0, arg1, arg2)
+	ret0, _ := ret[0].(*model.ReportPostListResponse)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPostsForReporting indicates an expected call of GetPostsForReporting.
+func (mr *MockClientMockRecorder) GetPostsForReporting(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsForReporting", reflect.TypeOf((*MockClient)(nil).GetPostsForReporting), arg0, arg1, arg2)
 }
 
 // GetPostsSince mocks base method.

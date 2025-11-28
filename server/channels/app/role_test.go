@@ -80,8 +80,7 @@ func TestGetAllRoles(t *testing.T) {
 
 // testPermissionInheritance tests 48 combinations of scheme, permission, role data.
 func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th *TestHelper, testData permissionInheritanceTestData)) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense(""))
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -123,14 +122,14 @@ func testPermissionInheritance(t *testing.T, testCallback func(t *testing.T, th 
 		require.Nil(t, appErr)
 	}()
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 	defer func() {
 		appErr = th.App.PermanentDeleteTeamId(th.Context, team.Id)
 		require.Nil(t, appErr)
 	}()
 
 	// Make a channel
-	channel := th.CreateChannel(th.Context, team)
+	channel := th.CreateChannel(t, team)
 	defer func() {
 		appErr = th.App.PermanentDeleteChannel(th.Context, channel)
 		require.Nil(t, appErr)

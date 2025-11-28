@@ -329,15 +329,21 @@ func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID str
 		if err != nil {
 			return nil, err
 		}
-		var isBot bool
+		var isPluginOwnedBot bool
 		for _, user := range users {
 			if user.IsBot {
-				isBot = true
-				break
+				isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+				if err != nil {
+					return nil, err
+				}
+				if isOwnedByCurrentUserOrPlugin {
+					isPluginOwnedBot = true
+					break
+				}
 			}
 		}
 		// if one of the users is a bot, don't restrict to team members
-		if !isBot {
+		if !isPluginOwnedBot {
 			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 			if err != nil {
 				return nil, err
@@ -1092,10 +1098,10 @@ func (a *App) PatchChannelModerationsForChannel(rctx request.CTX, channel *model
 
 	for _, moderationPatch := range channelModerationsPatch {
 		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !higherScopedMemberPermissions[*moderationPatch.Name] {
-			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+			return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error", nil, "", http.StatusForbidden)
 		}
 		if moderationPatch.Roles.Guests != nil && *moderationPatch.Roles.Guests && !higherScopedGuestPermissions[*moderationPatch.Name] {
-			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+			return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error", nil, "", http.StatusForbidden)
 		}
 	}
 
@@ -2732,6 +2738,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(userIDToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
+	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userIDToRemove, channel.Id)
+	a.Srv().Store().AutoTranslation().InvalidateUserLocaleCache(userIDToRemove)
 
 	var actorUser *model.User
 	if removerUserId != "" {
@@ -3698,9 +3706,18 @@ func (a *App) GetDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, channe
 		Active:      true,
 	})
 
-	userIDs := make([]string, len(users))
-	for i := range users {
-		userIDs[i] = users[i].Id
+	userIDs := make([]string, 0, len(users))
+	for _, user := range users {
+		if user.IsBot {
+			isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+			if err != nil {
+				return nil, err
+			}
+			if isOwnedByCurrentUserOrPlugin {
+				continue
+			}
+		}
+		userIDs = append(userIDs, user.Id)
 	}
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
