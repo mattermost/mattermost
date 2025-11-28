@@ -2208,16 +2208,13 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'IntuneSettings.Enable',
                                     label: defineMessage({id: 'admin.intune.enableTitle', defaultMessage: 'Enable Microsoft Intune MAM:'}),
                                     help_text: defineMessage({id: 'admin.intune.enableDescription', defaultMessage: 'When enabled, Mattermost Mobile uses Microsoft Entra ID (Azure AD) for app authentication and policy enforcement. Users authenticate using MSAL tokens, and Intune MAM policies (App Protection Policies) are applied to protect corporate data.'}),
-                                    help_text_markdown: true,
                                 },
                                 {
                                     type: 'dropdown',
                                     key: 'IntuneSettings.AuthService',
                                     label: defineMessage({id: 'admin.intune.authServiceTitle', defaultMessage: 'Auth Provider:'}),
-                                    help_text: defineMessage({id: 'admin.intune.authServiceDescription', defaultMessage: `Select how users authenticate into Mattermost.
-* OpenID Connect – Use when users sign in to Mattermost via Microsoft 365 / Entra ID using OIDC.
-* SAML 2.0 – Use when users authenticate via a SAML provider that ultimately maps to Microsoft Entra ID.
-Choose the option that matches how your organization already authenticates users into Mattermost on other clients.`}),
+                                    help_text: defineMessage({id: 'admin.intune.authServiceDescription', defaultMessage: 'Select how users authenticate into Mattermost.\n* **OpenID Connect** – Use when users sign in to Mattermost via Microsoft 365 / Entra ID using OIDC.\n* **SAML 2.0** – Use when users authenticate via a SAML provider that ultimately maps to Microsoft Entra ID.\nChoose the option that matches how your organization already authenticates users into Mattermost on other clients.'}),
+                                    help_text_markdown: true,
                                     options: [
                                         {
                                             value: '',

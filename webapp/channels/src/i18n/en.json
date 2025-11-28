@@ -1384,7 +1384,7 @@
   "admin.integrations.integrationManagement.title": "Integration Management",
   "admin.intune_feature_discovery.description": "With Mattermost Enterprise Advanced, you can enable Microsoft Intune Mobile Application Management (MAM) to enforce App Protection Policies (APP) on Mattermost Mobile. Users sign in with Microsoft Entra ID (Azure AD), and Intune MAM applies data protection, selective wipe, and compliance policies on supported iOS devices.",
   "admin.intune_feature_discovery.title": "Protect mobile data with Microsoft Intune App Protection Policies (MAM) and Entra ID authentication",
-  "admin.intune.authServiceDescription": "Select how users authenticate into Mattermost.\n* OpenID Connect – Use when users sign in to Mattermost via Microsoft 365 / Entra ID using OIDC.\n* SAML 2.0 – Use when users authenticate via a SAML provider that ultimately maps to Microsoft Entra ID.\n\nChoose the option that matches how your organization already authenticates users into Mattermost on other clients.",
+  "admin.intune.authServiceDescription": "Select how users authenticate into Mattermost.\n* **OpenID Connect** – Use when users sign in to Mattermost via Microsoft 365 / Entra ID using OIDC.\n* **SAML 2.0** – Use when users authenticate via a SAML provider that ultimately maps to Microsoft Entra ID.\nChoose the option that matches how your organization already authenticates users into Mattermost on other clients.",
   "admin.intune.authServiceOffice365": "OpenID Connect (Office 365)",
   "admin.intune.authServicePlaceholder": "Select an auth provider",
   "admin.intune.authServiceSaml": "SAML 2.0",
