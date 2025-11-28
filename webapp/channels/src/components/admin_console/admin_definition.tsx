@@ -57,7 +57,7 @@ import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
-import CustomEnableDisableGuestAccountsMagicLinkSetting from './custom_enable_disable_guest_accounts_magic_link_setting';
+import CustomEnableDisableGuestAccountsMagicLinkSetting, {searchableStrings as magicLinkSearchableStrings} from './custom_enable_disable_guest_accounts_magic_link_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
@@ -4987,6 +4987,7 @@ const AdminDefinition: AdminDefinitionType = {
             guest_access: {
                 url: 'authentication/guest_access',
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
+                searchableStrings: magicLinkSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('GuestAccounts')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
