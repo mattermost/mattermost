@@ -233,7 +233,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         placeholder={focused ? '' : formatAsString(intl.formatMessage, placeholder)}
                         components={{
                             IndicatorsContainer,
-                            Option,
+                            Option: Option as React.ComponentType<OptionProps<T, false, GroupBase<T>>>,
                             Control,
                         }}
                         className={classNames('Input', className, {Input__focus: showLegend})}

@@ -1,102 +1,115 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import Tag from './tag';
 
-describe('components/primitives/tag/Tag', () => {
-    test('should match the snapshot on show', () => {
-        const wrapper = shallow(
+describe('components/widgets/tag/Tag', () => {
+    test('should render tag with text and default classes', () => {
+        render(
             <Tag
                 className={'test'}
                 text={'Test text'}
             />,
         );
-        expect(wrapper.hasClass('Tag')).toBe(true);
-        expect(wrapper.hasClass('Tag--xs')).toBe(true);
-        expect(wrapper.hasClass('Tag--lowercase')).toBe(true);
-        expect(wrapper.hasClass('test')).toBe(true);
-        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
-        expect(wrapper).toMatchSnapshot();
+
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
+        expect(tag).toBeInTheDocument();
+        expect(tag).toHaveClass('Tag', 'Tag--xs', 'test');
     });
 
-    test('should match the snapshot with icon', () => {
-        const wrapper = shallow(
+    test('should render tag with icon', () => {
+        const {container} = render(
             <Tag
                 className={'test'}
                 text={'Test text'}
                 icon={'alert-circle-outline'}
             />,
         );
-        expect(wrapper.hasClass('Tag')).toBe(true);
-        expect(wrapper.find('.Tag__icon').exists()).toBe(true);
-        expect(wrapper.find(AlertCircleOutlineIcon).exists()).toEqual(true);
-        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
-        expect(wrapper).toMatchSnapshot();
+
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
+        expect(tag).toBeInTheDocument();
+        expect(tag).toHaveClass('Tag', 'Tag--xs', 'test');
+
+        // Check that the icon is rendered (AlertCircleOutlineIcon renders an svg)
+        const icon = container.querySelector('svg');
+        expect(icon).toBeInTheDocument();
     });
 
-    test('should match the snapshot with uppercase prop', () => {
-        const wrapper = shallow(
+    test('should render tag with uppercase styling', () => {
+        render(
             <Tag
                 className={'test'}
                 text={'Test text'}
                 uppercase={true}
             />,
         );
-        expect(wrapper.hasClass('Tag')).toBe(true);
-        expect(wrapper.hasClass('Tag--uppercase')).toBe(true);
-        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
-        expect(wrapper).toMatchSnapshot();
+
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
+        expect(tag).toBeInTheDocument();
+        expect(tag).toHaveClass('Tag', 'Tag--xs', 'test');
+
+        // uppercase prop is used internally by styled-components for CSS styling
+        expect(tag).toHaveStyle({textTransform: 'uppercase'});
     });
 
-    test('should match the snapshot with size "sm"', () => {
-        const wrapper = shallow(
+    test('should render tag with size "sm"', () => {
+        render(
             <Tag
                 className={'test'}
                 text={'Test text'}
                 size={'sm'}
             />,
         );
-        expect(wrapper.hasClass('Tag')).toBe(true);
-        expect(wrapper.hasClass('Tag--sm')).toBe(true);
-        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
-        expect(wrapper).toMatchSnapshot();
+
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
+        expect(tag).toBeInTheDocument();
+        expect(tag).toHaveClass('Tag', 'Tag--sm', 'test');
     });
 
-    test('should match the snapshot with "success" variant', () => {
-        const wrapper = shallow(
+    test('should render tag with "success" variant', () => {
+        render(
             <Tag
                 className={'test'}
                 text={'Test text'}
                 variant={'success'}
             />,
         );
-        expect(wrapper.hasClass('Tag')).toBe(true);
-        expect(wrapper.hasClass('Tag--success')).toBe(true);
-        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
-        expect(wrapper).toMatchSnapshot();
+
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
+        expect(tag).toBeInTheDocument();
+        expect(tag).toHaveClass('Tag', 'Tag--success', 'Tag--xs', 'test');
     });
 
-    test('should transform into a button if onClick provided', () => {
+    test('should render as button and handle click when onClick provided', async () => {
         const click = jest.fn();
-        const wrapper = shallow(
+        render(
             <Tag
                 className={'test'}
                 text={'Test text'}
                 onClick={click}
             />,
         );
-        expect(wrapper.type()).toBe('button');
-        expect(wrapper.hasClass('Tag')).toBe(true);
-        expect(wrapper.hasClass('Tag--clickable')).toBe(true);
-        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
-        wrapper.simulate('click');
-        expect(click).toBeCalled();
-        expect(wrapper).toMatchSnapshot();
+
+        const tag = screen.getByRole('button', {name: 'Test text'});
+        expect(tag).toBeInTheDocument();
+        expect(tag).toHaveClass('Tag', 'Tag--xs', 'test');
+
+        await userEvent.click(tag);
+        expect(click).toHaveBeenCalledTimes(1);
     });
 });
 

@@ -13,6 +13,11 @@
     gap: 8px;
     line-height: 20px;
 
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
     input[type="radio"] {
         position: relative;
         display: grid;
@@ -35,6 +40,10 @@
 
         &:checked::before {
             transform: scale(1);
+        }
+
+        &:disabled {
+            cursor: not-allowed;
         }
 
         &::before {

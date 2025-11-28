@@ -32,7 +32,6 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 		defer os.Unsetenv("MM_LOGSETTINGS_CONSOLELEVEL")
 
 		th := SetupEnterprise(t)
-		defer th.TearDown()
 
 		// Verify the console level was set from the environment variable
 		config := th.App.Config()
@@ -51,7 +50,6 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 		th1 := SetupEnterprise(t)
 		config1 := th1.App.Config()
 		defaultConsoleLevel := *config1.LogSettings.ConsoleLevel
-		th1.TearDown()
 
 		// Now test with MM_LOGSETTINGS_CONSOLELEVEL set
 		os.Setenv("MM_LOGSETTINGS_CONSOLELEVEL", "DEBUG")
@@ -60,7 +58,6 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 		th2 := SetupEnterprise(t)
 		config2 := th2.App.Config()
 		customConsoleLevel := *config2.LogSettings.ConsoleLevel
-		th2.TearDown()
 
 		// Verify our manual implementation works
 		assert.Equal(t, mlog.LvlStdLog.Name, defaultConsoleLevel, "Default should be stdlog")

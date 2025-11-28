@@ -20,6 +20,7 @@ export default class PostDotMenu {
     readonly editMenuItem;
     readonly copyTextMenuItem;
     readonly deleteMenuItem;
+    readonly flagMessageMenuItem;
 
     constructor(container: Locator) {
         this.container = container;
@@ -40,9 +41,14 @@ export default class PostDotMenu {
         this.editMenuItem = getMenuItem('Edit');
         this.copyTextMenuItem = getMenuItem('Copy Text');
         this.deleteMenuItem = getMenuItem('Delete');
+        this.flagMessageMenuItem = getMenuItem('Flag Message');
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async flagMessageMenuItemNotToBeVisible() {
+        await expect(this.flagMessageMenuItem).not.toBeVisible();
     }
 }

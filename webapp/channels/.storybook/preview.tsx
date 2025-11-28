@@ -7,6 +7,7 @@ import {createMemoryHistory} from 'history';
 
 import configureStore from '../src/store';
 import en from '../src/i18n/en.json';
+import {getThemeOptions, THEME_KEYS, type ThemeKey, applyThemeToStorybook, getTheme} from './theme-utils';
 
 // Import main Mattermost styles - this includes Bootstrap, Font Awesome, and all component styles
 // The sass-loader is configured with proper includePaths to resolve @use statements
@@ -54,39 +55,69 @@ const preview: Preview = {
             },
         },
         backgrounds: {
-            default: 'mattermost',
-            values: [
-                {
-                    name: 'mattermost',
-                    value: '#ffffff',
-                },
-                {
-                    name: 'dark',
-                    value: '#1e1e1e',
-                },
-            ],
+            default: 'Center Channel',
+            options: {
+                'center': {name: 'Center Channel', value: 'var(--center-channel-bg)'},
+                'header': {name: 'Global Header', value: 'var(--sidebar-header-bg)'},
+                'sidebar': {name: 'Sidebar', value: 'var(--sidebar-bg)'},
+            },
+        },
+        layout: 'centered',
+    },
+    globalTypes: {
+        theme: {
+            description: 'Mattermost Theme',
+            defaultValue: THEME_KEYS.DENIM,
+            toolbar: {
+                title: 'Theme',
+                icon: 'paintbrush',
+                items: getThemeOptions(),
+                dynamicTitle: true,
+            },
         },
     },
+
     decorators: [
-        (Story) => {
+        (Story, context) => {
             const history = createMemoryHistory();
+
+            // Get theme from globals context
+            const themeKey = (context.globals.theme || THEME_KEYS.DENIM) as ThemeKey;
+
+            // Theme wrapper component to handle theme application with useEffect
+            const ThemeWrapper: React.FC<{children: React.ReactNode}> = ({children}) => {
+                const themeObject = getTheme(themeKey);
+
+                React.useEffect(() => {
+                    applyThemeToStorybook(themeObject);
+                }, [themeObject]);
+
+                return <>{children}</>;
+            };
+
             return (
-                <Provider store={store}>
-                    <IntlProvider
-                        locale="en"
-                        messages={en}
-                        defaultLocale="en"
-                    >
-                        <Router history={history}>
-                            <div className="app__body" style={{padding: '20px', minHeight: '100vh'}}>
+                <ThemeWrapper>
+                    <Provider store={store}>
+                        <IntlProvider
+                            locale="en"
+                            messages={en}
+                            defaultLocale="en"
+                        >
+                            <Router history={history}>
                                 <Story />
-                            </div>
-                        </Router>
-                    </IntlProvider>
-                </Provider>
+                            </Router>
+                        </IntlProvider>
+                    </Provider>
+                </ThemeWrapper>
             );
         },
     ],
+
+    initialGlobals: {
+        backgrounds: {
+            value: 'center'
+        }
+    }
 };
 
 export default preview;
