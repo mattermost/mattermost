@@ -81,6 +81,13 @@ func (s LocalCacheReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadRe
 	return s.ReadReceiptStore.Save(rctx, receipt)
 }
 
+func (s LocalCacheReadReceiptStore) Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
+	defer func() {
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.readReceiptCache, fmt.Sprintf("%s:%s", receipt.PostID, receipt.UserID), nil)
+	}()
+	return s.ReadReceiptStore.Update(rctx, receipt)
+}
+
 func (s LocalCacheReadReceiptStore) Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error) {
 	// no need to store the entire struct in cache, just the expireAt would be sufficient
 	// as other two fields are part of the cache key

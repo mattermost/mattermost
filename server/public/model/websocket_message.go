@@ -100,6 +100,7 @@ const (
 	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
 	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
 	WebsocketEventPostRevealed                        WebsocketEventType = "post_revealed"
+	WebsocketEventPostBurned                          WebsocketEventType = "post_burned"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"

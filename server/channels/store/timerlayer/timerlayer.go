@@ -8408,6 +8408,22 @@ func (s *TimerLayerReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadR
 	return result, err
 }
 
+func (s *TimerLayerReadReceiptStore) Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
+	start := time.Now()
+
+	result, err := s.ReadReceiptStore.Update(rctx, receipt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRemoteClusterStore) Delete(remoteClusterID string) (bool, error) {
 	start := time.Now()
 
