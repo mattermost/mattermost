@@ -7,14 +7,14 @@ import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {renderWithContext, cleanup, act} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, cleanup, act, screen, fireEvent, waitFor} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AddUsersToTeamModal from './add_users_to_team_modal';
 
 describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal', () => {
     beforeEach(() => {
-        vi.useFakeTimers();
+        vi.useFakeTimers({shouldAdvanceTime: true});
     });
 
     afterEach(async () => {
@@ -71,21 +71,21 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
     };
 
     test('should match snapshot with 2 users', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <AddUsersToTeamModal
                     {...baseProps}
                 />,
             );
-            container = result.container;
+            baseElement = result.baseElement;
             vi.runAllTimers();
         });
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should match snapshot with 2 users, 1 included and 1 removed', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <AddUsersToTeamModal
@@ -94,9 +94,72 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
                     excludeUsers={{[user1.id]: user1}}
                 />,
             );
-            container = result.container;
+            baseElement = result.baseElement;
             vi.runAllTimers();
         });
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
+    });
+
+    test('should match state when handleHide is called', async () => {
+        // handleHide sets show state to false
+        let baseElement: HTMLElement;
+        await act(async () => {
+            const result = renderWithContext(
+                <AddUsersToTeamModal {...baseProps}/>,
+            );
+            baseElement = result.baseElement;
+            vi.runAllTimers();
+        });
+
+        // Modal should be visible initially
+        expect(baseElement!.querySelector('#addUsersToTeamModal')).toBeInTheDocument();
+
+        // Click close button to trigger handleHide
+        const closeButton = screen.getByLabelText('Close');
+        await act(async () => {
+            fireEvent.click(closeButton);
+        });
+
+        // Modal should start hiding (onExited will be called when animation completes)
+    });
+
+    test('should search', async () => {
+        const searchProfiles = vi.fn().mockResolvedValue({data: []});
+        const getProfilesNotInTeam = vi.fn().mockResolvedValue({data: []});
+        const props = {
+            ...baseProps,
+            actions: {
+                searchProfiles,
+                getProfilesNotInTeam,
+            },
+        };
+
+        await act(async () => {
+            renderWithContext(
+                <AddUsersToTeamModal {...props}/>,
+            );
+            vi.runAllTimers();
+        });
+
+        // Wait for the search input to be available
+        const searchInput = await waitFor(() => screen.getByLabelText('Search and add members'));
+
+        // Search with a term - should call searchProfiles
+        await act(async () => {
+            fireEvent.change(searchInput, {target: {value: 'foo'}});
+        });
+
+        await waitFor(() => {
+            expect(searchProfiles).toHaveBeenCalled();
+        });
+
+        // Search with empty term - should call getProfilesNotInTeam
+        await act(async () => {
+            fireEvent.change(searchInput, {target: {value: ''}});
+        });
+
+        await waitFor(() => {
+            expect(getProfilesNotInTeam).toHaveBeenCalled();
+        });
     });
 });

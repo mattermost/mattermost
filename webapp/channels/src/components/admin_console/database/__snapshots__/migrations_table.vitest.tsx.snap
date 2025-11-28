@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/MigrationsTable > should match snapshot when there are no migrations 1`] = `
+<div>
+  <div
+    class="MigrationsTable migrations-table__panel"
+  >
+    <div
+      class="help-text"
+    >
+      All applied migrations.
+    </div>
+    <div
+      class="migrations-table__table"
+    >
+      <table
+        class="table"
+        data-testid="migrationsTable"
+      >
+        <thead>
+          <tr>
+            <th>
+              Version
+            </th>
+            <th>
+              Name
+            </th>
+          </tr>
+        </thead>
+        <tbody />
+      </table>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,115 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting > renders correctly > when disabled 1`] = `
+<div>
+  <fieldset
+    class="form-group"
+    data-testid="MySetting"
+    id="MySetting"
+  >
+    <legend
+      class="control-label form-legend col-sm-4"
+    >
+      Enable Guest Access: 
+    </legend>
+    <div
+      class="col-sm-8"
+    >
+      <label
+        class="sc-bcPLoT eTrMuN"
+      >
+        <input
+          data-testid="MySettingtrue"
+          id="MySettingtrue"
+          name="MySetting"
+          type="radio"
+          value="true"
+        />
+        True
+      </label>
+      <label
+        class="sc-bcPLoT eTrMuN"
+      >
+        <input
+          checked=""
+          data-testid="MySettingfalse"
+          id="MySettingfalse"
+          name="MySetting"
+          type="radio"
+          value="false"
+        />
+        False
+      </label>
+      <div
+        class="help-text"
+        data-testid="MySettinghelp-text"
+      >
+        When true, external guest can be invited to channels within teams. Please see 
+        <a
+          href="/admin_console/user_management/permissions/system_scheme"
+        >
+          Permissions Schemes
+        </a>
+         for which roles can invite guests.
+      </div>
+    </div>
+  </fieldset>
+</div>
+`;
+
+exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting > renders correctly > when enabled 1`] = `
+<div>
+  <fieldset
+    class="form-group"
+    data-testid="MySetting"
+    id="MySetting"
+  >
+    <legend
+      class="control-label form-legend col-sm-4"
+    >
+      Enable Guest Access: 
+    </legend>
+    <div
+      class="col-sm-8"
+    >
+      <label
+        class="sc-bcPLoT eTrMuN"
+      >
+        <input
+          checked=""
+          data-testid="MySettingtrue"
+          id="MySettingtrue"
+          name="MySetting"
+          type="radio"
+          value="true"
+        />
+        True
+      </label>
+      <label
+        class="sc-bcPLoT eTrMuN"
+      >
+        <input
+          data-testid="MySettingfalse"
+          id="MySettingfalse"
+          name="MySetting"
+          type="radio"
+          value="false"
+        />
+        False
+      </label>
+      <div
+        class="help-text"
+        data-testid="MySettinghelp-text"
+      >
+        When true, external guest can be invited to channels within teams. Please see 
+        <a
+          href="/admin_console/user_management/permissions/system_scheme"
+        >
+          Permissions Schemes
+        </a>
+         for which roles can invite guests.
+      </div>
+    </div>
+  </fieldset>
+</div>
+`;

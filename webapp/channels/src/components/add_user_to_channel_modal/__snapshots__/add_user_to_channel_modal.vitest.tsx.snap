@@ -1,7 +1,116 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`components/AddUserToChannelModal > should match snapshot 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="addChannelModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal--overflow modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="addChannelModalLabel"
+            >
+              Add Fake Person to a Channel
+            </h1>
+          </div>
+          <form
+            role="form"
+          >
+            <div
+              class="modal-body"
+            >
+              <div
+                class="modal__hint"
+              >
+                Type to find a channel. Use ↑↓ to browse, ↵ to select, ESC to dismiss.
+              </div>
+              <div
+                class="pos-relative"
+              >
+                <div
+                  class=""
+                >
+                  <div
+                    class="input-wrapper"
+                  >
+                    <input
+                      aria-autocomplete="list"
+                      aria-controls="suggestionList"
+                      aria-expanded="false"
+                      autocomplete="off"
+                      class="form-control focused"
+                      maxlength="64"
+                      role="combobox"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+              <div />
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="btn btn-tertiary"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                class="btn btn-primary"
+                disabled=""
+                id="add-user-to-channel-modal__add-button"
+                type="button"
+              >
+                Add
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

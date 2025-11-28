@@ -35,11 +35,11 @@ describe('component/add_users_to_group_modal', () => {
     };
 
     test('should match snapshot', () => {
-        const {container} = renderWithContext(
+        const {baseElement} = renderWithContext(
             <AddUsersToGroupModal
                 {...baseProps}
             />,
         );
-        expect(container).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 });

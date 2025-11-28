@@ -1,0 +1,1429 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ClusterSettings > should match snapshot, compression disabled 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        High Availability
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <div
+            class="loading-screen"
+            style="position: relative;"
+          >
+            <div
+              class="loading__content"
+            >
+              <p>
+                Loading
+              </p>
+              <div
+                class="round round-1"
+              />
+              <div
+                class="round round-2"
+              />
+              <div
+                class="round round-3"
+              />
+            </div>
+          </div>
+          <div
+            class="banner"
+          >
+            Changing properties in this section will require a server restart before taking effect.
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="Enable"
+            id="Enable"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable High Availability Mode:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="Enabletrue"
+                  id="Enabletrue"
+                  name="Enable"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="Enablefalse"
+                  id="Enablefalse"
+                  name="Enable"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="Enablehelp-text"
+              >
+                When true, Mattermost will run in High Availability mode. Please see 
+                <a
+                  href="https://mattermost.com/pl/high-availability-cluster?utm_source=mattermost&utm_medium=in-product&utm_content=cluster_settings&uid=&sid=&edition=team&server_version="
+                  location="cluster_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  documentation
+                </a>
+                 to learn more about configuring High Availability for Mattermost.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="ClusterName"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="ClusterNameinput"
+                id="ClusterName"
+                maxlength="-1"
+                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="ClusterNamehelp-text"
+              >
+                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="OverrideHostname"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="OverrideHostnameinput"
+                id="OverrideHostname"
+                maxlength="-1"
+                placeholder="E.g.: \\"app-server-01\\""
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="OverrideHostnamehelp-text"
+              >
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="UseIPAddress"
+            id="UseIPAddress"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Use IP Address:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="UseIPAddresstrue"
+                  id="UseIPAddresstrue"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="UseIPAddressfalse"
+                  id="UseIPAddressfalse"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="UseIPAddresshelp-text"
+              >
+                When true, the cluster will attempt to communicate via IP Address vs using the hostname.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipEncryption"
+            id="EnableGossipEncryption"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip encryption:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipEncryptiontrue"
+                  id="EnableGossipEncryptiontrue"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipEncryptionfalse"
+                  id="EnableGossipEncryptionfalse"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipEncryptionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be encrypted.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipCompression"
+            id="EnableGossipCompression"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip compression:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipCompressiontrue"
+                  id="EnableGossipCompressiontrue"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipCompressionfalse"
+                  id="EnableGossipCompressionfalse"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipCompressionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="GossipPort"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="GossipPortinput"
+                id="GossipPort"
+                maxlength="-1"
+                placeholder="E.g.: \\"8074\\""
+                type="text"
+                value="8074"
+              />
+              <div
+                class="help-text"
+                data-testid="GossipPorthelp-text"
+              >
+                The port used for the gossip protocol. Both UDP and TCP should be allowed on this port.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`components/ClusterSettings > should match snapshot, compression enabled 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        High Availability
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <div
+            class="loading-screen"
+            style="position: relative;"
+          >
+            <div
+              class="loading__content"
+            >
+              <p>
+                Loading
+              </p>
+              <div
+                class="round round-1"
+              />
+              <div
+                class="round round-2"
+              />
+              <div
+                class="round round-3"
+              />
+            </div>
+          </div>
+          <div
+            class="banner"
+          >
+            Changing properties in this section will require a server restart before taking effect.
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="Enable"
+            id="Enable"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable High Availability Mode:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="Enabletrue"
+                  id="Enabletrue"
+                  name="Enable"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="Enablefalse"
+                  id="Enablefalse"
+                  name="Enable"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="Enablehelp-text"
+              >
+                When true, Mattermost will run in High Availability mode. Please see 
+                <a
+                  href="https://mattermost.com/pl/high-availability-cluster?utm_source=mattermost&utm_medium=in-product&utm_content=cluster_settings&uid=&sid=&edition=team&server_version="
+                  location="cluster_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  documentation
+                </a>
+                 to learn more about configuring High Availability for Mattermost.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="ClusterName"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="ClusterNameinput"
+                id="ClusterName"
+                maxlength="-1"
+                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="ClusterNamehelp-text"
+              >
+                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="OverrideHostname"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="OverrideHostnameinput"
+                id="OverrideHostname"
+                maxlength="-1"
+                placeholder="E.g.: \\"app-server-01\\""
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="OverrideHostnamehelp-text"
+              >
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="UseIPAddress"
+            id="UseIPAddress"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Use IP Address:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="UseIPAddresstrue"
+                  id="UseIPAddresstrue"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="UseIPAddressfalse"
+                  id="UseIPAddressfalse"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="UseIPAddresshelp-text"
+              >
+                When true, the cluster will attempt to communicate via IP Address vs using the hostname.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipEncryption"
+            id="EnableGossipEncryption"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip encryption:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipEncryptiontrue"
+                  id="EnableGossipEncryptiontrue"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipEncryptionfalse"
+                  id="EnableGossipEncryptionfalse"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipEncryptionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be encrypted.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipCompression"
+            id="EnableGossipCompression"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip compression:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipCompressiontrue"
+                  id="EnableGossipCompressiontrue"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipCompressionfalse"
+                  id="EnableGossipCompressionfalse"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipCompressionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="GossipPort"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="GossipPortinput"
+                id="GossipPort"
+                maxlength="-1"
+                placeholder="E.g.: \\"8074\\""
+                type="text"
+                value="8074"
+              />
+              <div
+                class="help-text"
+                data-testid="GossipPorthelp-text"
+              >
+                The port used for the gossip protocol. Both UDP and TCP should be allowed on this port.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`components/ClusterSettings > should match snapshot, encryption disabled 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        High Availability
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <div
+            class="loading-screen"
+            style="position: relative;"
+          >
+            <div
+              class="loading__content"
+            >
+              <p>
+                Loading
+              </p>
+              <div
+                class="round round-1"
+              />
+              <div
+                class="round round-2"
+              />
+              <div
+                class="round round-3"
+              />
+            </div>
+          </div>
+          <div
+            class="banner"
+          >
+            Changing properties in this section will require a server restart before taking effect.
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="Enable"
+            id="Enable"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable High Availability Mode:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="Enabletrue"
+                  id="Enabletrue"
+                  name="Enable"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="Enablefalse"
+                  id="Enablefalse"
+                  name="Enable"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="Enablehelp-text"
+              >
+                When true, Mattermost will run in High Availability mode. Please see 
+                <a
+                  href="https://mattermost.com/pl/high-availability-cluster?utm_source=mattermost&utm_medium=in-product&utm_content=cluster_settings&uid=&sid=&edition=team&server_version="
+                  location="cluster_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  documentation
+                </a>
+                 to learn more about configuring High Availability for Mattermost.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="ClusterName"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="ClusterNameinput"
+                id="ClusterName"
+                maxlength="-1"
+                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="ClusterNamehelp-text"
+              >
+                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="OverrideHostname"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="OverrideHostnameinput"
+                id="OverrideHostname"
+                maxlength="-1"
+                placeholder="E.g.: \\"app-server-01\\""
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="OverrideHostnamehelp-text"
+              >
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="UseIPAddress"
+            id="UseIPAddress"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Use IP Address:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="UseIPAddresstrue"
+                  id="UseIPAddresstrue"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="UseIPAddressfalse"
+                  id="UseIPAddressfalse"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="UseIPAddresshelp-text"
+              >
+                When true, the cluster will attempt to communicate via IP Address vs using the hostname.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipEncryption"
+            id="EnableGossipEncryption"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip encryption:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipEncryptiontrue"
+                  id="EnableGossipEncryptiontrue"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipEncryptionfalse"
+                  id="EnableGossipEncryptionfalse"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipEncryptionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be encrypted.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipCompression"
+            id="EnableGossipCompression"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip compression:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipCompressiontrue"
+                  id="EnableGossipCompressiontrue"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipCompressionfalse"
+                  id="EnableGossipCompressionfalse"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipCompressionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="GossipPort"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="GossipPortinput"
+                id="GossipPort"
+                maxlength="-1"
+                placeholder="E.g.: \\"8074\\""
+                type="text"
+                value="8074"
+              />
+              <div
+                class="help-text"
+                data-testid="GossipPorthelp-text"
+              >
+                The port used for the gossip protocol. Both UDP and TCP should be allowed on this port.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`components/ClusterSettings > should match snapshot, encryption enabled 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        High Availability
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <div
+            class="loading-screen"
+            style="position: relative;"
+          >
+            <div
+              class="loading__content"
+            >
+              <p>
+                Loading
+              </p>
+              <div
+                class="round round-1"
+              />
+              <div
+                class="round round-2"
+              />
+              <div
+                class="round round-3"
+              />
+            </div>
+          </div>
+          <div
+            class="banner"
+          >
+            Changing properties in this section will require a server restart before taking effect.
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="Enable"
+            id="Enable"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable High Availability Mode:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="Enabletrue"
+                  id="Enabletrue"
+                  name="Enable"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="Enablefalse"
+                  id="Enablefalse"
+                  name="Enable"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="Enablehelp-text"
+              >
+                When true, Mattermost will run in High Availability mode. Please see 
+                <a
+                  href="https://mattermost.com/pl/high-availability-cluster?utm_source=mattermost&utm_medium=in-product&utm_content=cluster_settings&uid=&sid=&edition=team&server_version="
+                  location="cluster_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  documentation
+                </a>
+                 to learn more about configuring High Availability for Mattermost.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="ClusterName"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ClusterNamelabel"
+              for="ClusterName"
+            >
+              Cluster Name:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="ClusterNameinput"
+                id="ClusterName"
+                maxlength="-1"
+                placeholder="E.g.: \\"Production\\" or \\"Staging\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="ClusterNamehelp-text"
+              >
+                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="OverrideHostname"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="OverrideHostnamelabel"
+              for="OverrideHostname"
+            >
+              Override Hostname:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="OverrideHostnameinput"
+                id="OverrideHostname"
+                maxlength="-1"
+                placeholder="E.g.: \\"app-server-01\\""
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="OverrideHostnamehelp-text"
+              >
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="UseIPAddress"
+            id="UseIPAddress"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Use IP Address:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="UseIPAddresstrue"
+                  id="UseIPAddresstrue"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="UseIPAddressfalse"
+                  id="UseIPAddressfalse"
+                  name="UseIPAddress"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="UseIPAddresshelp-text"
+              >
+                When true, the cluster will attempt to communicate via IP Address vs using the hostname.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipEncryption"
+            id="EnableGossipEncryption"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip encryption:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipEncryptiontrue"
+                  id="EnableGossipEncryptiontrue"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipEncryptionfalse"
+                  id="EnableGossipEncryptionfalse"
+                  name="EnableGossipEncryption"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipEncryptionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be encrypted.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="EnableGossipCompression"
+            id="EnableGossipCompression"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Gossip compression:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="EnableGossipCompressiontrue"
+                  id="EnableGossipCompressiontrue"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="EnableGossipCompressionfalse"
+                  id="EnableGossipCompressionfalse"
+                  name="EnableGossipCompression"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="EnableGossipCompressionhelp-text"
+              >
+                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="GossipPort"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="GossipPortlabel"
+              for="GossipPort"
+            >
+              Gossip Port:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="GossipPortinput"
+                id="GossipPort"
+                maxlength="-1"
+                placeholder="E.g.: \\"8074\\""
+                type="text"
+                value="8074"
+              />
+              <div
+                class="help-text"
+                data-testid="GossipPorthelp-text"
+              >
+                The port used for the gossip protocol. Both UDP and TCP should be allowed on this port.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;

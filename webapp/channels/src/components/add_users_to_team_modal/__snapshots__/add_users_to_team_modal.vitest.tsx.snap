@@ -1,13 +1,580 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > should match snapshot with 2 users 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="dialog"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      class="fade in modal"
+      id="addUsersToTeamModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-direct-channels modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+            >
+              Add New Members to 
+              <strong>
+                test-team
+              </strong>
+               Team
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="multi-select__container react-select"
+                >
+                  <div
+                    class="css-1dedlln"
+                    id="selectItems"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-2-live-region"
+                    >
+                      <span
+                        id="aria-selection"
+                      >
+                        option , selected.
+                      </span>
+                      <span
+                        id="aria-focused"
+                      />
+                      <span
+                        id="aria-results"
+                      />
+                      <span
+                        id="aria-guidance"
+                      >
+                        Search and add members is focused ,type to refine list, press Down to open the menu,  press left to focus selected values
+                      </span>
+                    </span>
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="react-select-auto react-select__control react-select-auto react-select__control--is-focused css-t3ipsp-control"
+                    >
+                      <div
+                        class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+                      >
+                        <div
+                          class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                          id="react-select-2-placeholder"
+                        >
+                          Search and add members
+                        </div>
+                        <div
+                          class="react-select-auto react-select__input-container css-19bb58m"
+                          data-value=""
+                        >
+                          <input
+                            aria-activedescendant=""
+                            aria-autocomplete="list"
+                            aria-describedby="react-select-2-placeholder"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-invalid="false"
+                            aria-label="Search and add members"
+                            autocapitalize="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            class="react-select-auto react-select__input"
+                            id="react-select-2-input"
+                            role="combobox"
+                            spellcheck="false"
+                            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                            tabindex="0"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary "
+                    data-testid="saveSetting"
+                    id="saveItems"
+                    type="submit"
+                  >
+                    <span>
+                      Add
+                    </span>
+                  </button>
+                </div>
+                <div
+                  class="multi-select__help"
+                  id="multiSelectHelpMemberInfo"
+                >
+                  <div
+                    id="numPeopleRemaining"
+                  >
+                    Use ↑↓ to browse, ↵ to select. You can add 20 more people. 
+                  </div>
+                </div>
+              </div>
+              <div
+                aria-live="polite"
+                class="multi-select__wrapper"
+              >
+                <div
+                  class="more-modal__list"
+                >
+                  <div
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    2 results found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
+                  >
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/userid1/image"
+                          />
+                        </span>
+                      </span>
+                      <div
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameuser-1"
+                          >
+                            @user-1
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to team"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/userid2/image"
+                          />
+                        </span>
+                      </span>
+                      <div
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameuser-2"
+                          >
+                            @user-2
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to team"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="multi-select__help"
+                id="multiSelectMessageNote"
+              />
+              <div
+                class="filter-controls"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > should match snapshot with 2 users, 1 included and 1 removed 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="dialog"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      class="fade in modal"
+      id="addUsersToTeamModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-direct-channels modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+            >
+              Add New Members to 
+              <strong>
+                test-team
+              </strong>
+               Team
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="multi-select__container react-select"
+                >
+                  <div
+                    class="css-1dedlln"
+                    id="selectItems"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-3-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="react-select-auto react-select__control css-13cymwt-control"
+                    >
+                      <div
+                        class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+                      >
+                        <div
+                          class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                          id="react-select-3-placeholder"
+                        >
+                          Search and add members
+                        </div>
+                        <div
+                          class="react-select-auto react-select__input-container css-19bb58m"
+                          data-value=""
+                        >
+                          <input
+                            aria-activedescendant=""
+                            aria-autocomplete="list"
+                            aria-describedby="react-select-3-placeholder"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-invalid="false"
+                            aria-label="Search and add members"
+                            autocapitalize="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            class="react-select-auto react-select__input"
+                            id="react-select-3-input"
+                            role="combobox"
+                            spellcheck="false"
+                            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                            tabindex="0"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary "
+                    data-testid="saveSetting"
+                    id="saveItems"
+                    type="submit"
+                  >
+                    <span>
+                      Add
+                    </span>
+                  </button>
+                </div>
+                <div
+                  class="multi-select__help"
+                  id="multiSelectHelpMemberInfo"
+                >
+                  <div
+                    id="numPeopleRemaining"
+                  >
+                    Use ↑↓ to browse, ↵ to select. You can add 20 more people. 
+                  </div>
+                </div>
+              </div>
+              <div
+                aria-live="polite"
+                class="multi-select__wrapper"
+              >
+                <div
+                  class="more-modal__list"
+                >
+                  <div
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    2 results found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
+                  >
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/userid2/image"
+                          />
+                        </span>
+                      </span>
+                      <div
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameuser-2"
+                          >
+                            @user-2
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to team"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/userid-not-removed/image"
+                          />
+                        </span>
+                      </span>
+                      <div
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameuser-not-removed"
+                          >
+                            @user-not-removed
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to team"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="multi-select__help"
+                id="multiSelectMessageNote"
+              />
+              <div
+                class="filter-controls"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

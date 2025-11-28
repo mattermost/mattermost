@@ -1,0 +1,502 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/DatabaseSettings > should match snapshot 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        Database Settings
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <div
+            class="banner"
+          >
+            Changing properties in this section will require a server restart before taking effect.
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="DriverName"
+            >
+              Driver Name:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                disabled=""
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+              >
+                Set the database driver in the config.json file.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="DataSource"
+            >
+              Data Source:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                disabled=""
+                type="text"
+                value="**********@localhost/mattermost_test?sslmode=disable&connect_timeout=10"
+              />
+              <div
+                class="help-text"
+              >
+                Set the database source in the config.json file.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="maxIdleConns"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxIdleConnslabel"
+              for="maxIdleConns"
+            >
+              Maximum Idle Connections:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="maxIdleConnsinput"
+                id="maxIdleConns"
+                maxlength="-1"
+                placeholder="E.g.: \\"10\\""
+                type="text"
+                value="10"
+              />
+              <div
+                class="help-text"
+                data-testid="maxIdleConnshelp-text"
+              >
+                Maximum number of idle connections held open to the database.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="maxOpenConns"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxOpenConnslabel"
+              for="maxOpenConns"
+            >
+              Maximum Open Connections:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="maxOpenConnsinput"
+                id="maxOpenConns"
+                maxlength="-1"
+                placeholder="E.g.: \\"10\\""
+                type="text"
+                value="100"
+              />
+              <div
+                class="help-text"
+                data-testid="maxOpenConnshelp-text"
+              >
+                Maximum number of open connections held open to the database.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="queryTimeout"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="queryTimeoutlabel"
+              for="queryTimeout"
+            >
+              Query Timeout:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="queryTimeoutinput"
+                id="queryTimeout"
+                maxlength="-1"
+                placeholder="E.g.: \\"30\\""
+                type="text"
+                value="10"
+              />
+              <div
+                class="help-text"
+                data-testid="queryTimeouthelp-text"
+              >
+                The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="connMaxLifetimeMilliseconds"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connMaxLifetimeMillisecondslabel"
+              for="connMaxLifetimeMilliseconds"
+            >
+              Maximum Connection Lifetime:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="connMaxLifetimeMillisecondsinput"
+                id="connMaxLifetimeMilliseconds"
+                maxlength="-1"
+                placeholder="E.g.: \\"3600000\\""
+                type="text"
+                value="10"
+              />
+              <div
+                class="help-text"
+                data-testid="connMaxLifetimeMillisecondshelp-text"
+              >
+                Maximum lifetime for a connection to the database in milliseconds.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="connMaxIdleTimeMilliseconds"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connMaxIdleTimeMillisecondslabel"
+              for="connMaxIdleTimeMilliseconds"
+            >
+              Maximum Connection Idle Time:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="connMaxIdleTimeMillisecondsinput"
+                id="connMaxIdleTimeMilliseconds"
+                maxlength="-1"
+                placeholder="E.g.: \\"300000\\""
+                type="text"
+                value="20"
+              />
+              <div
+                class="help-text"
+                data-testid="connMaxIdleTimeMillisecondshelp-text"
+              >
+                Maximum idle time for a connection to the database in milliseconds.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="minimumHashtagLength"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="minimumHashtagLengthlabel"
+              for="minimumHashtagLength"
+            >
+              Minimum Hashtag Length:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="minimumHashtagLengthinput"
+                id="minimumHashtagLength"
+                maxlength="-1"
+                placeholder="E.g.: \\"3\\""
+                type="text"
+                value="10"
+              />
+              <div
+                class="help-text"
+                data-testid="minimumHashtagLengthhelp-text"
+              >
+                Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, 
+                <a
+                  href="https://dev.mysql.com/doc/refman/8.0/en/fulltext-fine-tuning.html"
+                  location="database_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  see documentation
+                </a>
+                .
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="trace"
+            id="trace"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              SQL Statement Logging: 
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="tracetrue"
+                  id="tracetrue"
+                  name="trace"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="tracefalse"
+                  id="tracefalse"
+                  name="trace"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="tracehelp-text"
+              >
+                (Development Mode) When true, executing SQL statements are written to the log.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+          >
+            <div
+              class="col-sm-offset-4 col-sm-8"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary"
+                  type="button"
+                >
+                  Recycle Database Connections
+                </button>
+              </div>
+              <div
+                class="help-text"
+              >
+                Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the 
+                <a
+                  href="../environment/web_server"
+                >
+                  <b>
+                    Environment &gt; Web Server &gt; Reload Configuration from Disk
+                  </b>
+                </a>
+                 feature to load the new settings while the server is running. The administrator should then use 
+                <b>
+                  Recycle Database Connections
+                </b>
+                 feature to recycle the database connections based on the new settings.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="disableDatabaseSearch"
+            id="disableDatabaseSearch"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Disable database search: 
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="disableDatabaseSearchtrue"
+                  id="disableDatabaseSearchtrue"
+                  name="disableDatabaseSearch"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="disableDatabaseSearchfalse"
+                  id="disableDatabaseSearchfalse"
+                  name="disableDatabaseSearch"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="disableDatabaseSearchhelp-text"
+              >
+                Disables the use of the database to perform searches. Should only be used when other 
+                <a
+                  href="https://mattermost.com/pl/setup-elasticsearch?utm_source=mattermost&utm_medium=in-product&utm_content=database_settings&uid=&sid=&edition=team&server_version="
+                  location="database_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  search engines
+                </a>
+                 are configured.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Schema Migrations:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <div
+                class="migrations-table-setting"
+              >
+                <div
+                  class="MigrationsTable migrations-table__panel"
+                >
+                  <div
+                    class="help-text"
+                  >
+                    All applied migrations.
+                  </div>
+                  <div
+                    class="migrations-table__table"
+                  >
+                    <table
+                      class="table"
+                      data-testid="migrationsTable"
+                    >
+                      <thead>
+                        <tr>
+                          <th>
+                            Version
+                          </th>
+                          <th>
+                            Name
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody />
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="activeSearchBackend"
+            >
+              Active Search Backend:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                disabled=""
+                id="activeSearchBackend"
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+              >
+                Shows the currently active backend used for search. Values can be none, database, elasticsearch.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;

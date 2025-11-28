@@ -1,0 +1,402 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/group_settings/group_details/GroupDetails > should match snapshot, with everything closed 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header with-back"
+    >
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/user_management/groups"
+        />
+        Group Configuration
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="banner info"
+        >
+          <div
+            class="banner__content"
+          >
+            Configure default teams and channels and view users belonging to this group.
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix "
+          id="group_profile"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Group Profile
+              </h3>
+              <div
+                class="mt-2"
+              >
+                The name for this group.
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-profile form-horizontal"
+            id="groupDisplayName"
+          >
+            <div
+              class="group-profile-field form-group mb-0"
+            >
+              <label
+                class="control-label col-sm-4"
+                for="groupDisplayNameInput"
+              >
+                Name:
+              </label>
+              <div
+                class="col-sm-8"
+              >
+                <div
+                  class="icon-over-input"
+                />
+                <input
+                  class="form-control group-at-mention-input"
+                  disabled=""
+                  id="groupDisplayNameInput"
+                  type="text"
+                  value="Group"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-settings"
+          >
+            <div
+              class="group-settings--body"
+            >
+              <div
+                class="section-separator"
+              >
+                <hr
+                  class="separator__hr"
+                />
+              </div>
+              <div>
+                <div
+                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                >
+                  <label
+                    class="line-switch__label"
+                  >
+                    Enable Group Mention
+                  </label>
+                  <div
+                    class="line-switch__toggle"
+                    data-testid="allowReferenceSwitch"
+                  >
+                    <button
+                      aria-pressed="false"
+                      class="btn btn-lg btn-toggle"
+                      data-testid="allowReferenceSwitch-button"
+                      id="allowReferenceSwitch"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <div
+                        class="handle"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="row"
+                >
+                  <div
+                    class="col-sm-10"
+                  >
+                    <div
+                      class="help-text-small help-text-no-padding "
+                    >
+                      When enabled, this group can be mentioned in other channels and teams. This may result in the group member list being visible to all users.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix "
+          id="group_teams_and_channels"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team and Channel Membership
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Set default teams and channels for group members. Teams added will include default channels, town-square, and off-topic. Adding a channel without setting the team will add the implied team to the listing below.
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <div
+                class="group-profile-add-menu"
+              >
+                <div
+                  class="MenuWrapper "
+                >
+                  <button
+                    class="btn btn-primary"
+                    id="add_team_or_channel"
+                    type="button"
+                  >
+                    Add Team or Channel
+                    <i
+                      class="fa fa-caret-down"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-teams-and-channels"
+          >
+            <div
+              class="group-teams-and-channels-loading"
+            >
+              <i
+                class="fa fa-spinner fa-pulse fa-2x"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix "
+          id="group_users"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Users
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Listing of users in Mattermost associated with this group.
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-users"
+          >
+            <div
+              class="group-users--header"
+            />
+            <div
+              class="group-users--body"
+            >
+              <div
+                class="group-users-loading active"
+              >
+                <i
+                  class="fa fa-spinner fa-pulse fa-2x"
+                />
+              </div>
+              <div
+                class="group-users-row"
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-lg"
+                  loading="lazy"
+                  src="/api/v4/users/77777777777777777777777777/image"
+                />
+                <div
+                  class="user-data"
+                >
+                  <div
+                    class="name-row"
+                  >
+                    <span
+                      class="username"
+                    >
+                      @undefined
+                    </span>
+                    -
+                    <span
+                      class="display-name"
+                    >
+                      undefined undefined
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      class="email-label"
+                    >
+                      Email:
+                    </span>
+                    <span
+                      class="email"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="group-users-row"
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-lg"
+                  loading="lazy"
+                  src="/api/v4/users/88888888888888888888888888/image"
+                />
+                <div
+                  class="user-data"
+                >
+                  <div
+                    class="name-row"
+                  >
+                    <span
+                      class="username"
+                    >
+                      @undefined
+                    </span>
+                    -
+                    <span
+                      class="display-name"
+                    >
+                      undefined undefined
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      class="email-label"
+                    >
+                      Email:
+                    </span>
+                    <span
+                      class="email"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="group-users-row"
+              >
+                <img
+                  alt="user profile image"
+                  class="Avatar Avatar-lg"
+                  loading="lazy"
+                  src="/api/v4/users/99999999999999999999999999/image"
+                />
+                <div
+                  class="user-data"
+                >
+                  <div
+                    class="name-row"
+                  >
+                    <span
+                      class="username"
+                    >
+                      @undefined
+                    </span>
+                    -
+                    <span
+                      class="display-name"
+                    >
+                      undefined undefined
+                    </span>
+                  </div>
+                  <div>
+                    <span
+                      class="email-label"
+                    >
+                      Email:
+                    </span>
+                    <span
+                      class="email"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="group-users--footer"
+            >
+              <div
+                class="counter"
+              >
+                1 - 20 of 20
+              </div>
+              <button
+                class="btn btn-tertiary prev disabled"
+                disabled=""
+                type="button"
+              >
+                <i
+                  class="icon icon-chevron-left"
+                  title="Previous Icon"
+                />
+              </button>
+              <button
+                class="btn btn-tertiary next disabled"
+                disabled=""
+                type="button"
+              >
+                <i
+                  class="icon icon-chevron-right"
+                  title="Next Icon"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/user_management/groups"
+        id="cancelButtonSettings"
+      >
+        Cancel
+      </a>
+      <div
+        class="error-message"
+      />
+    </div>
+  </div>
+</div>
+`;

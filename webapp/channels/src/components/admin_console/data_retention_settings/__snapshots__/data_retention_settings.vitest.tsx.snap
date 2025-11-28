@@ -1,0 +1,952 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings > should match snapshot with Global Policies disabled 1`] = `
+<div>
+  <div
+    class="wrapper--fixed DataRetentionSettings"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Global retention policy
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Keep messages and files for a set amount of time.
+              </div>
+            </div>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Custom retention policies
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Customize how long specific teams and channels will keep messages.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add policy
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Policy log
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Daily log of messages and files removed based on the policies defined above.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              disabled=""
+            >
+              Run Deletion Job Now
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings > should match snapshot with custom policy 1`] = `
+<div>
+  <div
+    class="wrapper--fixed DataRetentionSettings"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Global retention policy
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Keep messages and files for a set amount of time.
+              </div>
+            </div>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Custom retention policies
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Customize how long specific teams and channels will keep messages.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add policy
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_footer"
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    1 - 1 of 1
+                    <button
+                      aria-label="Previous page"
+                      class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      disabled=""
+                      type="button"
+                    >
+                      <i
+                        class="icon icon-chevron-left"
+                        title="Previous Icon"
+                      />
+                    </button>
+                    <button
+                      aria-label="Next page"
+                      class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      disabled=""
+                      type="button"
+                    >
+                      <i
+                        class="icon icon-chevron-right"
+                        title="Next Icon"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Policy log
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Daily log of messages and files removed based on the policies defined above.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Run Deletion Job Now
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings > should match snapshot with custom policy keep forever 1`] = `
+<div>
+  <div
+    class="wrapper--fixed DataRetentionSettings"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Global retention policy
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Keep messages and files for a set amount of time.
+              </div>
+            </div>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Custom retention policies
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Customize how long specific teams and channels will keep messages.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add policy
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_footer"
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    1 - 1 of 1
+                    <button
+                      aria-label="Previous page"
+                      class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+                      disabled=""
+                      type="button"
+                    >
+                      <i
+                        class="icon icon-chevron-left"
+                        title="Previous Icon"
+                      />
+                    </button>
+                    <button
+                      aria-label="Next page"
+                      class="btn btn-quaternary btn-icon btn-sm next disabled"
+                      disabled=""
+                      type="button"
+                    >
+                      <i
+                        class="icon icon-chevron-right"
+                        title="Next Icon"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Policy log
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Daily log of messages and files removed based on the policies defined above.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Run Deletion Job Now
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/data_retention_settings > should match snapshot with no custom policies 1`] = `
+<div>
+  <div
+    class="wrapper--fixed DataRetentionSettings"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Data Retention Policies
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Global retention policy
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Keep messages and files for a set amount of time.
+              </div>
+            </div>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="global_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_row"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Custom retention policies
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Customize how long specific teams and channels will keep messages.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add policy
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              id="custom_policy_table"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_header"
+                />
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_loading"
+                  >
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
+                    </span>
+                    Loading
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Policy log
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Daily log of messages and files removed based on the policies defined above.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Run Deletion Job Now
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="JobTable job-table__panel job-table__data-retention"
+            >
+              <div
+                class="job-table__create-button"
+              >
+                <div
+                  class="help-text"
+                >
+                  <div>
+                    Daily time to check policies and run delete job:
+                    <span
+                      class="JobSelectedtime"
+                    >
+                      <b>
+                        12:15 AM (UTC)
+                      </b>
+                    </span>
+                    <a
+                      class="EditJobTime"
+                    >
+                      Edit
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="job-table__table"
+              >
+                <table
+                  class="table"
+                  data-testid="jobTable"
+                >
+                  <thead>
+                    <tr>
+                      <th>
+                        Status
+                      </th>
+                      <th>
+                        Finish Time
+                      </th>
+                      <th>
+                        Run Time
+                      </th>
+                      <th
+                        colspan="3"
+                      >
+                        Details
+                      </th>
+                      <th
+                        class="cancel-button-field"
+                      />
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

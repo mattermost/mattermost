@@ -36,15 +36,15 @@ describe('components/AddGroupsToTeamModal', () => {
     };
 
     test('should match snapshot', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <AddGroupsToTeamModal {...baseProps}/>,
             );
-            container = result.container;
+            baseElement = result.baseElement;
             vi.runAllTimers();
         });
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should have called onExited when handleExit is called', async () => {
@@ -126,15 +126,15 @@ describe('components/AddGroupsToTeamModal', () => {
     });
 
     test('should match when renderOption is called', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <AddGroupsToTeamModal {...baseProps}/>,
             );
-            container = result.container;
+            baseElement = result.baseElement;
             vi.runAllTimers();
         });
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should match when renderValue is called', async () => {

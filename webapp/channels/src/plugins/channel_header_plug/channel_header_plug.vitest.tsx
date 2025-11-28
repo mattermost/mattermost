@@ -78,7 +78,7 @@ describe('plugins/ChannelHeaderPlug', () => {
     });
 
     test(`should render ${maxComponentsBeforeDropdown} plugs in the header`, async () => {
-        const components = [];
+        const components: Array<ReturnType<typeof makeTestPlug>> = [];
         for (let i = 0; i < maxComponentsBeforeDropdown; i++) {
             components.push(makeTestPlug(i));
         }
@@ -99,7 +99,7 @@ describe('plugins/ChannelHeaderPlug', () => {
     });
 
     test(`should render more than ${maxComponentsBeforeDropdown} plugs in a dropdown`, async () => {
-        const components = [];
+        const components: Array<ReturnType<typeof makeTestPlug>> = [];
         for (let i = 0; i < maxComponentsBeforeDropdown + 1; i++) {
             components.push(makeTestPlug(i));
         }

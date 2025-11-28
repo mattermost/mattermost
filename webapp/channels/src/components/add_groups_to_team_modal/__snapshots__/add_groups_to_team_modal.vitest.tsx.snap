@@ -1,13 +1,357 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`components/AddGroupsToTeamModal > should match snapshot 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="dialog"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      class="fade in modal"
+      id="addGroupsToTeamModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-direct-channels modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+            >
+              Add New Groups to 
+              <strong>
+                foo
+              </strong>
+               Team
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="multi-select__container react-select"
+                >
+                  <div
+                    class="css-1dedlln"
+                    id="selectItems"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-2-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="react-select-auto react-select__control css-13cymwt-control"
+                    >
+                      <div
+                        class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+                      >
+                        <div
+                          class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                          id="react-select-2-placeholder"
+                        >
+                          Search and add groups
+                        </div>
+                        <div
+                          class="react-select-auto react-select__input-container css-19bb58m"
+                          data-value=""
+                        >
+                          <input
+                            aria-activedescendant=""
+                            aria-autocomplete="list"
+                            aria-describedby="react-select-2-placeholder"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-invalid="false"
+                            aria-label="Search and add groups"
+                            autocapitalize="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            class="react-select-auto react-select__input"
+                            id="react-select-2-input"
+                            role="combobox"
+                            spellcheck="false"
+                            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                            tabindex="0"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary "
+                    data-testid="saveSetting"
+                    id="saveItems"
+                    type="submit"
+                  >
+                    <span>
+                      Add
+                    </span>
+                  </button>
+                </div>
+                <div
+                  class="multi-select__help"
+                  id="multiSelectHelpMemberInfo"
+                >
+                  <div
+                    id="numGroupsRemaining"
+                  >
+                    Use ↑↓ to browse, ↵ to select. You can add 10 more groups. 
+                  </div>
+                </div>
+              </div>
+              <div
+                aria-live="polite"
+                class="multi-select__wrapper"
+              >
+                <div
+                  class="no-channel-message"
+                  tabindex="0"
+                >
+                  <p
+                    class="primary-message"
+                  >
+                    No results found matching 
+                    <b />
+                  </p>
+                </div>
+              </div>
+              <div
+                class="multi-select__help"
+                id="multiSelectMessageNote"
+              />
+              <div
+                class="filter-controls"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/AddGroupsToTeamModal > should match when renderOption is called 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="dialog"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      class="fade in modal"
+      id="addGroupsToTeamModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-direct-channels modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+            >
+              Add New Groups to 
+              <strong>
+                foo
+              </strong>
+               Team
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="multi-select__container react-select"
+                >
+                  <div
+                    class="css-1dedlln"
+                    id="selectItems"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-10-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="react-select-auto react-select__control css-13cymwt-control"
+                    >
+                      <div
+                        class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+                      >
+                        <div
+                          class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                          id="react-select-10-placeholder"
+                        >
+                          Search and add groups
+                        </div>
+                        <div
+                          class="react-select-auto react-select__input-container css-19bb58m"
+                          data-value=""
+                        >
+                          <input
+                            aria-activedescendant=""
+                            aria-autocomplete="list"
+                            aria-describedby="react-select-10-placeholder"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-invalid="false"
+                            aria-label="Search and add groups"
+                            autocapitalize="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            class="react-select-auto react-select__input"
+                            id="react-select-10-input"
+                            role="combobox"
+                            spellcheck="false"
+                            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                            tabindex="0"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary "
+                    data-testid="saveSetting"
+                    id="saveItems"
+                    type="submit"
+                  >
+                    <span>
+                      Add
+                    </span>
+                  </button>
+                </div>
+                <div
+                  class="multi-select__help"
+                  id="multiSelectHelpMemberInfo"
+                >
+                  <div
+                    id="numGroupsRemaining"
+                  >
+                    Use ↑↓ to browse, ↵ to select. You can add 10 more groups. 
+                  </div>
+                </div>
+              </div>
+              <div
+                aria-live="polite"
+                class="multi-select__wrapper"
+              >
+                <div
+                  class="no-channel-message"
+                  tabindex="0"
+                >
+                  <p
+                    class="primary-message"
+                  >
+                    No results found matching 
+                    <b />
+                  </p>
+                </div>
+              </div>
+              <div
+                class="multi-select__help"
+                id="multiSelectMessageNote"
+              />
+              <div
+                class="filter-controls"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

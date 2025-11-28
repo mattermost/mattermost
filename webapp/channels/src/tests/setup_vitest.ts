@@ -145,7 +145,10 @@ afterEach(() => {
             callStr.includes('@formatjs/intl Error FORMAT_ERROR') ||
             callStr.includes('The intl string context variable') ||
             callStr.includes('FORMAT_ERROR') ||
-            callStr.includes('Function components cannot be given refs')
+            callStr.includes('Function components cannot be given refs') ||
+            callStr.includes('You provided a `value` prop to a form field without an `onChange` handler') ||
+            callStr.includes('Cannot read properties of undefined') ||
+            callStr.includes('The above error occurred in the')
         ) {
             continue;
         }

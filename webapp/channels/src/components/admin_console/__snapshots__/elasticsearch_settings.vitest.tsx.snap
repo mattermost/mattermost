@@ -1,0 +1,1397 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ElasticSearchSettings > should match snapshot, disabled 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        Elasticsearch
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <fieldset
+            class="form-group"
+            data-testid="enableIndexing"
+            id="enableIndexing"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Elasticsearch Indexing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="enableIndexingtrue"
+                  id="enableIndexingtrue"
+                  name="enableIndexing"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="enableIndexingfalse"
+                  id="enableIndexingfalse"
+                  name="enableIndexing"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableIndexinghelp-text"
+              >
+                When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Elasticsearch for search queries" is enabled. 
+                <a
+                  href="https://mattermost.com/pl/setup-elasticsearch?utm_source=mattermost&utm_medium=in-product&utm_content=elasticsearch_settings&uid=&sid=&edition=team&server_version="
+                  location="elasticsearch_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Learn more about Elasticsearch in our documentation.
+                </a>
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="backend"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="backendlabel"
+              for="backend"
+            >
+              Backend type:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="backendinput"
+                disabled=""
+                id="backend"
+                maxlength="-1"
+                placeholder="E.g.: \\"elasticsearch\\""
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="backendhelp-text"
+              >
+                The type of the search backend.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="connectionUrl"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connectionUrllabel"
+              for="connectionUrl"
+            >
+              Server Connection Address:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="connectionUrlinput"
+                disabled=""
+                id="connectionUrl"
+                maxlength="-1"
+                placeholder="E.g.: \\"https://elasticsearch.example.org:9200\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="connectionUrlhelp-text"
+              >
+                The address of the Elasticsearch server. 
+                <a
+                  href="https://mattermost.com/pl/setup-elasticsearch?utm_source=mattermost&utm_medium=in-product&utm_content=elasticsearch_settings&uid=&sid=&edition=team&server_version="
+                  location="elasticsearch_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Please see documentation with server setup instructions.
+                </a>
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="ca"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="calabel"
+              for="ca"
+            >
+              CA path:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="cainput"
+                disabled=""
+                id="ca"
+                maxlength="-1"
+                placeholder="E.g.: \\"./elasticsearch/ca.pem\\""
+                type="text"
+                value="test.ca"
+              />
+              <div
+                class="help-text"
+                data-testid="cahelp-text"
+              >
+                (Optional) Custom Certificate Authority certificates for the Elasticsearch server. Leave this empty to use the default CAs from the operating system.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="clientCert"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientCertlabel"
+              for="clientCert"
+            >
+              Client Certificate path:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="clientCertinput"
+                disabled=""
+                id="clientCert"
+                maxlength="-1"
+                placeholder="E.g.: \\"./elasticsearch/client-cert.pem\\""
+                type="text"
+                value="test.crt"
+              />
+              <div
+                class="help-text"
+                data-testid="clientCerthelp-text"
+              >
+                (Optional) The client certificate for the connection to the Elasticsearch server in the PEM format.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="clientKey"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientKeylabel"
+              for="clientKey"
+            >
+              Client Certificate Key path:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="clientKeyinput"
+                disabled=""
+                id="clientKey"
+                maxlength="-1"
+                placeholder="E.g.: \\"./elasticsearch/client-key.pem\\""
+                type="text"
+                value="test.key"
+              />
+              <div
+                class="help-text"
+                data-testid="clientKeyhelp-text"
+              >
+                (Optional) The key for the client certificate in the PEM format.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="skipTLSVerification"
+            id="skipTLSVerification"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Skip TLS Verification:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  data-testid="skipTLSVerificationtrue"
+                  disabled=""
+                  id="skipTLSVerificationtrue"
+                  name="skipTLSVerification"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  checked=""
+                  data-testid="skipTLSVerificationfalse"
+                  disabled=""
+                  id="skipTLSVerificationfalse"
+                  name="skipTLSVerification"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="skipTLSVerificationhelp-text"
+              >
+                When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="username"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="usernamelabel"
+              for="username"
+            >
+              Server Username:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="usernameinput"
+                disabled=""
+                id="username"
+                maxlength="-1"
+                placeholder="E.g.: \\"elastic\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="usernamehelp-text"
+              >
+                (Optional) The username to authenticate to the Elasticsearch server.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="password"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="passwordlabel"
+              for="password"
+            >
+              Server Password:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="passwordinput"
+                disabled=""
+                id="password"
+                maxlength="-1"
+                placeholder="E.g.: \\"yourpassword\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="passwordhelp-text"
+              >
+                (Optional) The password to authenticate to the Elasticsearch server.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="sniff"
+            id="sniff"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Cluster Sniffing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  data-testid="snifftrue"
+                  disabled=""
+                  id="snifftrue"
+                  name="sniff"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  checked=""
+                  data-testid="snifffalse"
+                  disabled=""
+                  id="snifffalse"
+                  name="sniff"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="sniffhelp-text"
+              >
+                When true, sniffing finds and connects to all data nodes in your cluster automatically.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            id="testConfig"
+          >
+            <div
+              class="col-sm-offset-4 col-sm-8"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary"
+                  disabled=""
+                  type="button"
+                >
+                  Test Connection
+                </button>
+              </div>
+              <div
+                class="help-text"
+              >
+                Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle "Enable Elasticsearch Indexing".
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Bulk Indexing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <div
+                class="job-table-setting"
+              >
+                <div
+                  class="JobTable job-table__panel"
+                >
+                  <div
+                    class="job-table__create-button"
+                  >
+                    <div>
+                      <button
+                        class="btn btn-tertiary"
+                        disabled=""
+                        type="button"
+                      >
+                        Index Now
+                      </button>
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                    </div>
+                  </div>
+                  <div
+                    class="job-table__table"
+                  >
+                    <table
+                      class="table"
+                      data-testid="jobTable"
+                    >
+                      <thead>
+                        <tr>
+                          <th>
+                            Status
+                          </th>
+                          <th>
+                            Finish Time
+                          </th>
+                          <th>
+                            Run Time
+                          </th>
+                          <th
+                            colspan="3"
+                          >
+                            Details
+                          </th>
+                          <th
+                            class="cancel-button-field"
+                          />
+                        </tr>
+                      </thead>
+                      <tbody />
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            id="rebuildChannelsIndexButton"
+          >
+            <label
+              class="control-label col-sm-4"
+            >
+              Rebuild Channels Index
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary"
+                  disabled=""
+                  type="button"
+                >
+                  Rebuild Channels Index
+                </button>
+              </div>
+              <div
+                class="help-text"
+              >
+                This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+
+                <b>
+                  Note- Please ensure no other indexing job is in progress in the table above.
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            id="purgeIndexesSection"
+          >
+            <label
+              class="control-label col-sm-4"
+            >
+              Purge Indexes:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary"
+                  disabled=""
+                  type="button"
+                >
+                  Purge Index
+                </button>
+              </div>
+              <div
+                class="help-text"
+              >
+                Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="ignoredPurgeIndexes"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ignoredPurgeIndexeslabel"
+              for="ignoredPurgeIndexes"
+            >
+              Indexes to skip while purging:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="ignoredPurgeIndexesinput"
+                disabled=""
+                id="ignoredPurgeIndexes"
+                maxlength="-1"
+                placeholder="E.g.: .opendistro*,.security*"
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="ignoredPurgeIndexeshelp-text"
+              >
+                When filled in, these indexes will be ignored during the purge, separated by commas.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="enableSearching"
+            id="enableSearching"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Elasticsearch for search queries:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  data-testid="enableSearchingtrue"
+                  disabled=""
+                  id="enableSearchingtrue"
+                  name="enableSearching"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  checked=""
+                  data-testid="enableSearchingfalse"
+                  disabled=""
+                  id="enableSearchingfalse"
+                  name="enableSearching"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableSearchinghelp-text"
+              >
+                Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="enableAutocomplete"
+            id="enableAutocomplete"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Elasticsearch for autocomplete queries:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  data-testid="enableAutocompletetrue"
+                  disabled=""
+                  id="enableAutocompletetrue"
+                  name="enableAutocomplete"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT gnfUDj"
+              >
+                <input
+                  checked=""
+                  data-testid="enableAutocompletefalse"
+                  disabled=""
+                  id="enableAutocompletefalse"
+                  name="enableAutocomplete"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableAutocompletehelp-text"
+              >
+                Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used.
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`components/ElasticSearchSettings > should match snapshot, enabled 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        Elasticsearch
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <fieldset
+            class="form-group"
+            data-testid="enableIndexing"
+            id="enableIndexing"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Elasticsearch Indexing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="enableIndexingtrue"
+                  id="enableIndexingtrue"
+                  name="enableIndexing"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="enableIndexingfalse"
+                  id="enableIndexingfalse"
+                  name="enableIndexing"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableIndexinghelp-text"
+              >
+                When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Elasticsearch for search queries" is enabled. 
+                <a
+                  href="https://mattermost.com/pl/setup-elasticsearch?utm_source=mattermost&utm_medium=in-product&utm_content=elasticsearch_settings&uid=&sid=&edition=team&server_version="
+                  location="elasticsearch_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Learn more about Elasticsearch in our documentation.
+                </a>
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="backend"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="backendlabel"
+              for="backend"
+            >
+              Backend type:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="backendinput"
+                id="backend"
+                maxlength="-1"
+                placeholder="E.g.: \\"elasticsearch\\""
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="backendhelp-text"
+              >
+                The type of the search backend.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="connectionUrl"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="connectionUrllabel"
+              for="connectionUrl"
+            >
+              Server Connection Address:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="connectionUrlinput"
+                id="connectionUrl"
+                maxlength="-1"
+                placeholder="E.g.: \\"https://elasticsearch.example.org:9200\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="connectionUrlhelp-text"
+              >
+                The address of the Elasticsearch server. 
+                <a
+                  href="https://mattermost.com/pl/setup-elasticsearch?utm_source=mattermost&utm_medium=in-product&utm_content=elasticsearch_settings&uid=&sid=&edition=team&server_version="
+                  location="elasticsearch_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Please see documentation with server setup instructions.
+                </a>
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="ca"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="calabel"
+              for="ca"
+            >
+              CA path:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="cainput"
+                id="ca"
+                maxlength="-1"
+                placeholder="E.g.: \\"./elasticsearch/ca.pem\\""
+                type="text"
+                value="test.ca"
+              />
+              <div
+                class="help-text"
+                data-testid="cahelp-text"
+              >
+                (Optional) Custom Certificate Authority certificates for the Elasticsearch server. Leave this empty to use the default CAs from the operating system.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="clientCert"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientCertlabel"
+              for="clientCert"
+            >
+              Client Certificate path:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="clientCertinput"
+                id="clientCert"
+                maxlength="-1"
+                placeholder="E.g.: \\"./elasticsearch/client-cert.pem\\""
+                type="text"
+                value="test.crt"
+              />
+              <div
+                class="help-text"
+                data-testid="clientCerthelp-text"
+              >
+                (Optional) The client certificate for the connection to the Elasticsearch server in the PEM format.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="clientKey"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="clientKeylabel"
+              for="clientKey"
+            >
+              Client Certificate Key path:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="clientKeyinput"
+                id="clientKey"
+                maxlength="-1"
+                placeholder="E.g.: \\"./elasticsearch/client-key.pem\\""
+                type="text"
+                value="test.key"
+              />
+              <div
+                class="help-text"
+                data-testid="clientKeyhelp-text"
+              >
+                (Optional) The key for the client certificate in the PEM format.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="skipTLSVerification"
+            id="skipTLSVerification"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Skip TLS Verification:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="skipTLSVerificationtrue"
+                  id="skipTLSVerificationtrue"
+                  name="skipTLSVerification"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="skipTLSVerificationfalse"
+                  id="skipTLSVerificationfalse"
+                  name="skipTLSVerification"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="skipTLSVerificationhelp-text"
+              >
+                When true, Mattermost will not require the Elasticsearch certificate to be signed by a trusted Certificate Authority.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="username"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="usernamelabel"
+              for="username"
+            >
+              Server Username:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="usernameinput"
+                id="username"
+                maxlength="-1"
+                placeholder="E.g.: \\"elastic\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="usernamehelp-text"
+              >
+                (Optional) The username to authenticate to the Elasticsearch server.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="password"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="passwordlabel"
+              for="password"
+            >
+              Server Password:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="passwordinput"
+                id="password"
+                maxlength="-1"
+                placeholder="E.g.: \\"yourpassword\\""
+                type="text"
+                value="test"
+              />
+              <div
+                class="help-text"
+                data-testid="passwordhelp-text"
+              >
+                (Optional) The password to authenticate to the Elasticsearch server.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="sniff"
+            id="sniff"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Cluster Sniffing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="snifftrue"
+                  id="snifftrue"
+                  name="sniff"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="snifffalse"
+                  id="snifffalse"
+                  name="sniff"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="sniffhelp-text"
+              >
+                When true, sniffing finds and connects to all data nodes in your cluster automatically.
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            id="testConfig"
+          >
+            <div
+              class="col-sm-offset-4 col-sm-8"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary"
+                  type="button"
+                >
+                  Test Connection
+                </button>
+              </div>
+              <div
+                class="help-text"
+              >
+                Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle "Enable Elasticsearch Indexing".
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Bulk Indexing:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <div
+                class="job-table-setting"
+              >
+                <div
+                  class="JobTable job-table__panel"
+                >
+                  <div
+                    class="job-table__create-button"
+                  >
+                    <div>
+                      <button
+                        class="btn btn-tertiary"
+                        type="button"
+                      >
+                        Index Now
+                      </button>
+                    </div>
+                    <div
+                      class="help-text"
+                    >
+                      All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.
+                    </div>
+                  </div>
+                  <div
+                    class="job-table__table"
+                  >
+                    <table
+                      class="table"
+                      data-testid="jobTable"
+                    >
+                      <thead>
+                        <tr>
+                          <th>
+                            Status
+                          </th>
+                          <th>
+                            Finish Time
+                          </th>
+                          <th>
+                            Run Time
+                          </th>
+                          <th
+                            colspan="3"
+                          >
+                            Details
+                          </th>
+                          <th
+                            class="cancel-button-field"
+                          />
+                        </tr>
+                      </thead>
+                      <tbody />
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            id="rebuildChannelsIndexButton"
+          >
+            <label
+              class="control-label col-sm-4"
+            >
+              Rebuild Channels Index
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary"
+                  type="button"
+                >
+                  Rebuild Channels Index
+                </button>
+              </div>
+              <div
+                class="help-text"
+              >
+                This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+
+                <b>
+                  Note- Please ensure no other indexing job is in progress in the table above.
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            id="purgeIndexesSection"
+          >
+            <label
+              class="control-label col-sm-4"
+            >
+              Purge Indexes:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <div>
+                <button
+                  class="btn btn-tertiary"
+                  type="button"
+                >
+                  Purge Index
+                </button>
+              </div>
+              <div
+                class="help-text"
+              >
+                Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="ignoredPurgeIndexes"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="ignoredPurgeIndexeslabel"
+              for="ignoredPurgeIndexes"
+            >
+              Indexes to skip while purging:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="ignoredPurgeIndexesinput"
+                id="ignoredPurgeIndexes"
+                maxlength="-1"
+                placeholder="E.g.: .opendistro*,.security*"
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="ignoredPurgeIndexeshelp-text"
+              >
+                When filled in, these indexes will be ignored during the purge, separated by commas.
+              </div>
+            </div>
+          </div>
+          <fieldset
+            class="form-group"
+            data-testid="enableSearching"
+            id="enableSearching"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Elasticsearch for search queries:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="enableSearchingtrue"
+                  id="enableSearchingtrue"
+                  name="enableSearching"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="enableSearchingfalse"
+                  id="enableSearchingfalse"
+                  name="enableSearching"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableSearchinghelp-text"
+              >
+                Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.
+              </div>
+            </div>
+          </fieldset>
+          <fieldset
+            class="form-group"
+            data-testid="enableAutocomplete"
+            id="enableAutocomplete"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Elasticsearch for autocomplete queries:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="enableAutocompletetrue"
+                  id="enableAutocompletetrue"
+                  name="enableAutocomplete"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="enableAutocompletefalse"
+                  id="enableAutocompletefalse"
+                  name="enableAutocomplete"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="enableAutocompletehelp-text"
+              >
+                Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used.
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;

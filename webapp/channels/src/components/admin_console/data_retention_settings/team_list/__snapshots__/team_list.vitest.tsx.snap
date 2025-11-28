@@ -1,0 +1,768 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/data_retention_settings/team_list > should match snapshot 1`] = `
+<div>
+  <div
+    class="PolicyTeamsList"
+  >
+    <div
+      class="DataGrid customTable"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-team-1"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="name Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      na
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  name
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-team-1"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 1 of 1
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/data_retention_settings/team_list > should match snapshot with paging 1`] = `
+<div>
+  <div
+    class="PolicyTeamsList"
+  >
+    <div
+      class="DataGrid customTable"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+        />
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id0"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN0 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN0
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id0"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id1"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN1 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN1
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id1"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id2"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN2 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN2
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id2"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id3"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN3 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN3
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id3"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id4"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN4 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN4
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id4"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id5"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN5 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN5
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id5"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id6"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN6 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN6
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id6"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id7"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN7 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN7
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id7"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id8"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN8 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN8
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id8"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+          >
+            <div
+              class="TeamList__nameColumn"
+              id="team-name-id9"
+            >
+              <div
+                class="TeamList__lowerOpacity"
+              >
+                <div
+                  class="TeamIcon TeamIcon__sm no-hover"
+                >
+                  <div
+                    class="TeamIcon__content no-hover"
+                  >
+                    <div
+                      aria-label="DN9 Team Initials"
+                      class="TeamIcon__initials TeamIcon__initials__sm"
+                      data-testid="teamIconInitial"
+                      role="img"
+                    >
+                      DN
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="TeamList__nameText"
+              >
+                <b
+                  data-testid="team-display-name"
+                >
+                  DN9
+                </b>
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell TeamList__actionColumn"
+            style="text-align: right;"
+          >
+            <a
+              class="group-actions TeamList_editText"
+              href="#"
+              id="remove-team-id9"
+            >
+              Remove
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 10 of 30
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next "
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
