@@ -1,0 +1,49 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/analytics/line_chart.tsx > should match snapshot, loaded without data 1`] = `
+<div>
+  <div
+    class="col-sm-12"
+  >
+    <div
+      class="total-count by-day"
+    >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="content"
+      >
+        <h5>
+          Not enough data for a meaningful representation.
+        </h5>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/analytics/line_chart.tsx > should match snapshot, on loading 1`] = `
+<div>
+  <div
+    class="col-sm-12"
+  >
+    <div
+      class="total-count by-day"
+    >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="content"
+      >
+        Loading...
+      </div>
+    </div>
+  </div>
+</div>
+`;

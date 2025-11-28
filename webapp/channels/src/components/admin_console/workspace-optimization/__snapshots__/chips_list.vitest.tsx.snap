@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/workspace-optimization/chips_list > should match snapshot 1`] = `
+<div>
+  <button
+    class="sc-bcPLoT fumPla info"
+  >
+    Suggestions: 3
+  </button>
+  <button
+    class="sc-bcPLoT fumPla warning"
+  >
+    Warnings: 2
+  </button>
+  <button
+    class="sc-bcPLoT fumPla error"
+  >
+    Problems: 1
+  </button>
+</div>
+`;

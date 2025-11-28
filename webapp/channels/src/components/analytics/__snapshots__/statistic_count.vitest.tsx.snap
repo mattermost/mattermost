@@ -1,0 +1,82 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/analytics/statistic_count.tsx > should match snapshot, loaded 1`] = `
+<div>
+  <div
+    class="grid-statistics__card"
+  >
+    <div
+      class="total-count"
+    >
+      <div
+        class="title"
+        data-testid="undefinedTitle"
+      >
+        Test
+        <i
+          class="fa test-icon"
+        />
+      </div>
+      <div
+        class="content"
+      >
+        4
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/analytics/statistic_count.tsx > should match snapshot, loaded with zero value 1`] = `
+<div>
+  <div
+    class="grid-statistics__card"
+  >
+    <div
+      class="total-count"
+    >
+      <div
+        class="title"
+        data-testid="undefinedTitle"
+      >
+        Test Zero
+        <i
+          class="fa test-icon"
+        />
+      </div>
+      <div
+        class="content"
+      >
+        0
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/analytics/statistic_count.tsx > should match snapshot, on loading 1`] = `
+<div>
+  <div
+    class="grid-statistics__card"
+  >
+    <div
+      class="total-count"
+    >
+      <div
+        class="title"
+        data-testid="undefinedTitle"
+      >
+        Test
+        <i
+          class="fa test-icon"
+        />
+      </div>
+      <div
+        class="content"
+      >
+        Loading...
+      </div>
+    </div>
+  </div>
+</div>
+`;

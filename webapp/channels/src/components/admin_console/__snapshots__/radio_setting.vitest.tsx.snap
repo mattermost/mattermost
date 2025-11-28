@@ -1,0 +1,71 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/RadioSetting > should match snapshot 1`] = `
+<div>
+  <div
+    class="form-group"
+    data-testid="string.id"
+  >
+    <label
+      class="control-label col-sm-4"
+      for="string.id"
+    >
+      some label
+    </label>
+    <div
+      class="col-sm-8"
+    >
+      <label
+        class="RadioSetting__label"
+      >
+        <input
+          class="RadioSetting__input"
+          name="string.id"
+          type="radio"
+          value="Engineering"
+        />
+        <span
+          class="RadioSetting__text"
+        >
+          this is engineering
+        </span>
+      </label>
+      <label
+        class="RadioSetting__label"
+      >
+        <input
+          checked=""
+          class="RadioSetting__input"
+          name="string.id"
+          type="radio"
+          value="Sales"
+        />
+        <span
+          class="RadioSetting__text"
+        >
+          this is sales
+        </span>
+      </label>
+      <label
+        class="RadioSetting__label"
+      >
+        <input
+          class="RadioSetting__input"
+          name="string.id"
+          type="radio"
+          value="Administration"
+        />
+        <span
+          class="RadioSetting__text"
+        >
+          this is administration
+        </span>
+      </label>
+      <div
+        class="help-text"
+        data-testid="string.idhelp-text"
+      />
+    </div>
+  </div>
+</div>
+`;
