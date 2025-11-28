@@ -164,7 +164,7 @@
   "add_oauth_app.icon.help": "(Optional) Specify the URL of the image for your OAuth 2.0 application. Use either HTTP or HTTPS in the URL.",
   "add_oauth_app.name.help": "Specify the display name of your OAuth 2.0 application. You can use up to 64 characters.",
   "add_oauth_app.nameRequired": "Name for the OAuth 2.0 application is required.",
-  "add_oauth_app.public.help": "If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret.",
+  "add_oauth_app.public.help": "If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created.",
   "add_oauth_app.trusted.help": "If true, the OAuth 2.0 application is considered trusted by the Mattermost server and does not require the user to accept authorization. If false, a window opens to ask the user to accept or deny the authorization.",
   "add_oauth_app.url": "<b>URL(s)</b>: {url}",
   "add_outgoing_oauth_connection.add": "Add",

@@ -115,6 +115,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           >
             <input
               checked={false}
+              disabled={true}
               name="is_public"
               onChange={[Function]}
               type="radio"
@@ -130,6 +131,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           >
             <input
               checked={true}
+              disabled={true}
               name="is_public"
               onChange={[Function]}
               type="radio"
@@ -144,7 +146,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret."
+              defaultMessage="If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created."
               id="add_oauth_app.public.help"
             />
           </div>
@@ -479,6 +481,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           >
             <input
               checked={false}
+              disabled={true}
               name="is_public"
               onChange={[Function]}
               type="radio"
@@ -494,6 +497,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           >
             <input
               checked={true}
+              disabled={true}
               name="is_public"
               onChange={[Function]}
               type="radio"
@@ -508,7 +512,7 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret."
+              defaultMessage="If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created."
               id="add_oauth_app.public.help"
             />
           </div>
