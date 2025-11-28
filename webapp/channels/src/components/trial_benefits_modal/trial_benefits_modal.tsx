@@ -15,13 +15,13 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import Carousel from 'components/common/carousel/carousel';
-import useOpenInvitePeopleModal from 'components/common/hooks/useOpenInvitePeopleModal';
-import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
-import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
-import PersonWithChecklistSvg from 'components/common/svg_images_components/person_with_checklist';
-import SuccessSvg from 'components/common/svg_images_components/success_svg';
+import Carousel from 'components/carousel';
+import GuestAccessSvg from 'components/svg_images_components/guest_access_svg';
+import MonitorImacLikeSVG from 'components/svg_images_components/monitor_imaclike_svg';
+import PersonWithChecklistSvg from 'components/svg_images_components/person_with_checklist';
+import SuccessSvg from 'components/svg_images_components/success_svg';
 
+import useOpenInvitePeopleModal from 'hooks/useOpenInvitePeopleModal';
 import {ConsolePages, DocLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';

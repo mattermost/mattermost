@@ -15,12 +15,12 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {NotifyStatus} from 'components/common/hooks/useGetNotifyAdmin';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import {useNotifyAdmin} from 'components/notify_admin_cta/notify_admin_cta';
 
+import {NotifyStatus} from 'hooks/useGetNotifyAdmin';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {ModalIdentifiers, AboutLinks, LicenseLinks} from 'utils/constants';
 

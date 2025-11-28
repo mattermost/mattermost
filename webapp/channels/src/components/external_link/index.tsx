@@ -5,8 +5,8 @@
 
 import React, {forwardRef} from 'react';
 
-import type {ExternalLinkQueryParams} from 'components/common/hooks/use_external_link';
-import {useExternalLink} from 'components/common/hooks/use_external_link';
+import type {ExternalLinkQueryParams} from 'hooks/use_external_link';
+import {useExternalLink} from 'hooks/use_external_link';
 
 type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string;

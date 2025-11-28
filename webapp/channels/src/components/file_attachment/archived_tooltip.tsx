@@ -4,8 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
-
+import useGetLimits from 'hooks/useGetLimits';
 import {asGBString} from 'utils/limits';
 
 export default function ArchivedTooltip() {

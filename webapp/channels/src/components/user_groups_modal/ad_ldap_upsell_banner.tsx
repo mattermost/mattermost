@@ -14,9 +14,9 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {CloudProducts, LicenseSkus} from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
 

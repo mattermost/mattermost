@@ -5,10 +5,10 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 
-import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
 
+import type {LimitSummary} from 'hooks/useGetHighestThresholdCloudLimit';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {MattermostFeatures, LicenseSkus} from 'utils/constants';
 import {limitThresholds, asGBString, inK, LimitTypes} from 'utils/limits';
 

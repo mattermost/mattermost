@@ -12,11 +12,12 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
-import {useChannel} from 'components/common/hooks/useChannel';
-import {useContentFlaggingConfig} from 'components/common/hooks/useContentFlaggingFields';
-import {useUser} from 'components/common/hooks/useUser';
 import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
+
+import {useChannel} from 'hooks/useChannel';
+import {useContentFlaggingConfig} from 'hooks/useContentFlaggingFields';
+import {useUser} from 'hooks/useUser';
 
 import './remove_flagged_message_confirmation_modal.scss';
 

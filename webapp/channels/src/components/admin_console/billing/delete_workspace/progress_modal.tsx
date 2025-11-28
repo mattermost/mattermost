@@ -7,10 +7,10 @@ import {useDispatch} from 'react-redux';
 
 import {closeModal} from 'actions/views/modals';
 
-import BackgroundSvg from 'components/common/svg_images_components/background_svg';
-import CreditCardSvg from 'components/common/svg_images_components/credit_card_svg';
 import IconMessage from 'components/purchase_modal/icon_message';
 import RootPortal from 'components/root_portal';
+import BackgroundSvg from 'components/svg_images_components/background_svg';
+import CreditCardSvg from 'components/svg_images_components/credit_card_svg';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
 import {ModalIdentifiers} from 'utils/constants';

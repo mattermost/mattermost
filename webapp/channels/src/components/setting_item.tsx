@@ -7,7 +7,7 @@ import React, {useRef} from 'react';
 import type SettingItemMinComponent from 'components/setting_item_min';
 import SettingItemMin from 'components/setting_item_min';
 
-import useDidUpdate from './common/hooks/useDidUpdate';
+import useDidUpdate from 'hooks/useDidUpdate';
 
 type Props = {
 

@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import PaymentSuccessStandardSvg from 'components/common/svg_images_components/payment_success_standard_svg';
+import PaymentSuccessStandardSvg from 'components/svg_images_components/payment_success_standard_svg';
 
 import {MattermostLink, ModalIdentifiers} from 'utils/constants';
 
