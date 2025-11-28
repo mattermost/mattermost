@@ -26,6 +26,8 @@ export type PropertyField = {
     delete_at: number;
 };
 
+export type NameMappedPropertyFields = {[key: PropertyField['name']]: PropertyField};
+
 export type PropertyValue<T> = {
     id: string;
     target_id: string;
@@ -64,6 +66,7 @@ export type UserPropertyField = PropertyField & {
         options?: PropertyFieldOption[];
         ldap?: string;
         saml?: string;
+        managed?: string;
     };
 };
 
@@ -73,5 +76,9 @@ export type SelectPropertyField = PropertyField & {
         options?: PropertyFieldOption[];
     };
 }
+
+export const supportsOptions = (field: UserPropertyField) => {
+    return field.type === 'select' || field.type === 'multiselect';
+};
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;

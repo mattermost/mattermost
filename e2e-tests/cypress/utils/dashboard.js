@@ -10,23 +10,15 @@
  */
 
 const fs = require('fs');
-
 const readFile = require('util').promisify(fs.readFile);
 
 const axios = require('axios');
-const axiosRetry = require('axios-retry');
 const chalk = require('chalk');
 const mime = require('mime-types');
 
 require('dotenv').config();
 
-const maxRetry = 5;
 const timeout = 60 * 1000;
-
-axiosRetry(axios, {
-    retries: maxRetry,
-    retryDelay: axiosRetry.exponentialDelay,
-});
 
 const {
     AUTOMATION_DASHBOARD_URL,

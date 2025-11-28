@@ -38,7 +38,7 @@ import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
-import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
+import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
@@ -47,10 +47,10 @@ import * as Utils from 'utils/utils';
 import type {ModalData} from 'types/actions';
 
 import PostReminderSubMenu from './post_reminder_submenu';
-import {trackDotMenuEvent} from './utils';
-import type {ChangeEvent} from './utils';
 
 import './dot_menu.scss';
+
+type ChangeEvent = React.KeyboardEvent | React.MouseEvent;
 
 type ShortcutKeyProps = {
     shortcutKey: string;
@@ -136,6 +136,7 @@ type Props = {
     isFollowingThread?: boolean;
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
+    isBurnOnReadPost: boolean;
 }
 
 type State = {
@@ -202,13 +203,11 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.setState({canEdit: false});
     };
 
-    handleFlagMenuItemActivated = (e: ChangeEvent) => {
+    handleFlagMenuItemActivated = () => {
         if (this.props.isFlagged) {
             this.props.actions.unflagPost(this.props.post.id);
-            trackDotMenuEvent(e, TELEMETRY_LABELS.UNSAVE);
         } else {
             this.props.actions.flagPost(this.props.post.id);
-            trackDotMenuEvent(e, TELEMETRY_LABELS.SAVE);
         }
     };
 
@@ -218,32 +217,27 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         }
     };
 
-    copyLink = (e: ChangeEvent) => {
+    copyLink = () => {
         Utils.copyToClipboard(`${this.props.teamUrl}/pl/${this.props.post.id}`);
-        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_LINK);
     };
 
-    copyText = (e: ChangeEvent) => {
+    copyText = () => {
         Utils.copyToClipboard(this.props.post.message_source || this.props.post.message);
-        trackDotMenuEvent(e, TELEMETRY_LABELS.COPY_TEXT);
     };
 
-    handlePinMenuItemActivated = (e: ChangeEvent): void => {
+    handlePinMenuItemActivated = (): void => {
         if (this.props.post.is_pinned) {
             this.props.actions.unpinPost(this.props.post.id);
-            trackDotMenuEvent(e, TELEMETRY_LABELS.UNPIN);
         } else {
             this.props.actions.pinPost(this.props.post.id);
-            trackDotMenuEvent(e, TELEMETRY_LABELS.PIN);
         }
     };
 
-    handleMarkPostAsUnread = (e: ChangeEvent): void => {
+    handleMarkPostAsUnread = (): void => {
         this.props.actions.markPostAsUnread(this.props.post, this.props.location);
-        trackDotMenuEvent(e, TELEMETRY_LABELS.UNREAD);
     };
 
-    handleDeleteMenuItemActivated = (e: ChangeEvent): void => {
+    handleDeleteMenuItemActivated = (): void => {
         const deletePostModalData = {
             modalId: ModalIdentifiers.DELETE_POST,
             dialogType: DeletePostModal,
@@ -254,8 +248,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(deletePostModalData);
-
-        trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
     };
 
     handleFlagPostMenuItemClicked = () => {
@@ -277,7 +269,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             return;
         }
 
-        trackDotMenuEvent(e, TELEMETRY_LABELS.MOVE_THREAD);
         const moveThreadModalData = {
             modalId: ModalIdentifiers.MOVE_THREAD_MODAL,
             dialogType: MoveThreadModal,
@@ -289,14 +280,13 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.openModal(moveThreadModalData);
     };
 
-    handleForwardMenuItemActivated = (e: ChangeEvent): void => {
+    handleForwardMenuItemActivated = (): void => {
         if (!this.canPostBeForwarded) {
             // adding this early return since only hiding the Item from the menu is not enough,
             // since a user can always use the Shortcuts to activate the function as well
             return;
         }
 
-        trackDotMenuEvent(e, TELEMETRY_LABELS.FORWARD);
         const forwardPostModalData = {
             modalId: ModalIdentifiers.FORWARD_POST_MODAL,
             dialogType: ForwardPostModal,
@@ -308,17 +298,16 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.actions.openModal(forwardPostModalData);
     };
 
-    handleEditMenuItemActivated = (e: ChangeEvent): void => {
+    handleEditMenuItemActivated = (): void => {
         this.props.handleDropdownOpened?.(false);
         this.props.actions.setEditingPost(
             this.props.post.id,
             this.props.location === Locations.CENTER ? 'post_textbox' : 'reply_textbox',
             this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT || this.props.location === Locations.SEARCH,
         );
-        trackDotMenuEvent(e, TELEMETRY_LABELS.EDIT);
     };
 
-    handleSetThreadFollow = (e: ChangeEvent) => {
+    handleSetThreadFollow = () => {
         const {actions, teamId, threadId, userId, isFollowingThread, isMentionedInRootPost} = this.props;
         let followingThread: boolean;
 
@@ -329,11 +318,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         } else {
             followingThread = !isFollowingThread;
         }
-        if (followingThread) {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.FOLLOW);
-        } else {
-            trackDotMenuEvent(e, TELEMETRY_LABELS.UNFOLLOW);
-        }
         actions.setThreadFollow(
             userId,
             teamId,
@@ -343,7 +327,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     handleCommentClick = (e: ChangeEvent) => {
-        trackDotMenuEvent(e, TELEMETRY_LABELS.REPLY);
         this.props.handleCommentClick?.(e);
     };
 
@@ -365,37 +348,37 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             // edit post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.E):
             forceCloseMenu();
-            this.handleEditMenuItemActivated(event);
+            this.handleEditMenuItemActivated();
             break;
 
             // follow thread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && !isShiftKeyPressed:
             forceCloseMenu();
-            this.handleSetThreadFollow(event);
+            this.handleSetThreadFollow();
             break;
 
             // forward post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.F) && isShiftKeyPressed:
             forceCloseMenu();
-            this.handleForwardMenuItemActivated(event);
+            this.handleForwardMenuItemActivated();
             break;
 
             // copy link
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.K):
             forceCloseMenu();
-            this.copyLink(event);
+            this.copyLink();
             break;
 
             // copy text
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.C):
             forceCloseMenu();
-            this.copyText(event);
+            this.copyText();
             break;
 
             // delete post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.DELETE):
             forceCloseMenu();
-            this.handleDeleteMenuItemActivated(event);
+            this.handleDeleteMenuItemActivated();
             break;
 
         // move thread
@@ -407,19 +390,19 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             // pin / unpin
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.P):
             forceCloseMenu();
-            this.handlePinMenuItemActivated(event);
+            this.handlePinMenuItemActivated();
             break;
 
             // save / unsave
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.S):
             forceCloseMenu();
-            this.handleFlagMenuItemActivated(event);
+            this.handleFlagMenuItemActivated();
             break;
 
             // mark as unread
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.U):
             forceCloseMenu();
-            this.handleMarkPostAsUnread(event);
+            this.handleMarkPostAsUnread();
             break;
         }
     };
@@ -433,8 +416,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
+        const isBurnOnReadPost = this.props.isBurnOnReadPost;
 
-        this.canPostBeForwarded = !(isSystemMessage);
+        this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
 
         const forwardPostItemText = (
             <span className={'dot-menu__item-new-badge'}>
@@ -527,7 +511,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     class: 'hidden-xs',
                 }}
             >
-                {!isSystemMessage && this.props.location === Locations.CENTER &&
+                {!isSystemMessage && !isBurnOnReadPost && this.props.location === Locations.CENTER &&
                     <Menu.Item
                         id={`reply_to_post_${this.props.post.id}`}
                         data-testid={`reply_to_post_${this.props.post.id}`}
@@ -575,6 +559,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }
                 {Boolean(
                     !isSystemMessage &&
+                        !isBurnOnReadPost &&
                         this.props.isCollapsedThreadsEnabled &&
                         (this.props.location === Locations.CENTER ||
                             this.props.location === Locations.RHS_ROOT ||
@@ -651,7 +636,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}
-                {!isSystemMessage &&
+                {!isSystemMessage && !isBurnOnReadPost &&
                     <Menu.Item
                         id={`permalink_${this.props.post.id}`}
                         data-testid={`permalink_${this.props.post.id}`}
@@ -665,8 +650,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.copyLink}
                     />
                 }
-                {!isSystemMessage && <Menu.Separator/>}
-                {this.state.canEdit &&
+                {!isSystemMessage && !isBurnOnReadPost && <Menu.Separator/>}
+                {this.state.canEdit && !isBurnOnReadPost &&
                     <Menu.Item
                         id={`edit_post_${this.props.post.id}`}
                         data-testid={`edit_post_${this.props.post.id}`}
@@ -680,7 +665,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleEditMenuItemActivated}
                     />
                 }
-                {!isSystemMessage &&
+                {!isSystemMessage && !isBurnOnReadPost &&
                     <Menu.Item
                         id={`copy_${this.props.post.id}`}
                         data-testid={`copy_${this.props.post.id}`}

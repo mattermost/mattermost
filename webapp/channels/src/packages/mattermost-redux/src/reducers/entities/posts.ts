@@ -20,7 +20,7 @@ import type {
 } from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
@@ -275,6 +275,28 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
                 ...state[postId],
                 is_pinned: isPinned,
                 last_update_at: updateAt,
+            },
+        };
+    }
+
+    case PostTypes.REVEAL_BURN_ON_READ_SUCCESS: {
+        const {post, expireAt} = action.data;
+
+        if (!state[post.id]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [post.id]: {
+                ...state[post.id],
+                ...post,
+                props: {
+                    ...state[post.id].props,
+                    ...post.props,
+                    revealed: true,
+                    expire_at: expireAt,
+                },
             },
         };
     }
@@ -1509,6 +1531,16 @@ export function limitedViews(
         // If limits change and there is no message limit any more (e.g. upgrade to non limited plan),
         // this state is stale and should be dumped.
         if (!limits?.messages || (!limits?.messages?.history && limits?.messages?.history !== 0)) {
+            return zeroStateLimitedViews;
+        }
+        return state;
+    }
+    case LimitsTypes.RECEIVED_APP_LIMITS: {
+        const serverLimits = action.data;
+
+        // If server limits change and there is no post history limit any more (e.g. upgrade to unlimited plan),
+        // this state is stale and should be dumped.
+        if (!serverLimits?.postHistoryLimit || serverLimits.postHistoryLimit <= 0) {
             return zeroStateLimitedViews;
         }
         return state;

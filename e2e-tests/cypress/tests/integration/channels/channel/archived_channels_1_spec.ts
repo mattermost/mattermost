@@ -12,6 +12,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
+
 import {getRandomId} from '../../../utils';
 
 describe('Leave an archived channel', () => {

@@ -31,6 +31,8 @@ export type OwnProps = {
     isEditHistory?: boolean;
     disableDownload?: boolean;
     disableActions?: boolean;
+    usePostAsSource?: boolean;
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
 }
 
 function makeMapStateToProps() {
@@ -42,7 +44,13 @@ function makeMapStateToProps() {
 
         var fileInfos: FileInfo[];
 
-        if (ownProps.isEditHistory) {
+        if (ownProps.usePostAsSource) {
+            if (ownProps.post.metadata && ownProps.post.metadata.files) {
+                fileInfos = ownProps.post.metadata.files;
+            } else {
+                fileInfos = [];
+            }
+        } else if (ownProps.isEditHistory) {
             fileInfos = getFilesForEditHistory(state, ownProps.post);
         } else {
             fileInfos = selectFilesForPost(state, postId);

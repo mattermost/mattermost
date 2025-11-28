@@ -76,6 +76,7 @@ export type ClientConfig = {
     EnableFile: string;
     EnableGifPicker: string;
     EnableGuestAccounts: string;
+    EnableGuestMagicLink: string;
     EnableIncomingWebhooks: string;
     EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
@@ -130,8 +131,6 @@ export type ClientConfig = {
     FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
 
-    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
-    FeatureFlagChannelAdminManageABACRules?: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -228,6 +227,10 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+
+    // Burn on Read Settings
+    EnableBurnOnRead: string;
+    BurnOnReadDurationMinutes: string;
 
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
@@ -387,7 +390,7 @@ export type ServiceSettings = {
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
     ExperimentalEnableHardenedMode: boolean;
-    StrictCSRFEnforcement: boolean;
+    ExperimentalStrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
     EnableBotAccountCreation: boolean;
@@ -401,6 +404,7 @@ export type ServiceSettings = {
     PostPriority: boolean;
     EnableAPIChannelDeletion: boolean;
     EnableAWSMetering: boolean;
+    AWSMeteringTimeoutSeconds: number;
     SplitKey: string;
     FeatureFlagSyncIntervalSeconds: number;
     DebugSplit: boolean;
@@ -485,7 +489,6 @@ export type LogSettings = {
     FileLocation: string;
     EnableWebhookDebugging: boolean;
     EnableDiagnostics: boolean;
-    VerboseDiagnostics: boolean;
     EnableSentry: boolean;
     AdvancedLoggingJSON: Record<string, any>;
     MaxFieldSize: number;
@@ -599,7 +602,7 @@ export type EmailSettings = {
     SendPushNotifications: boolean;
     PushNotificationServer: string;
     PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
-    PushNotificationServerLocation: 'us' | 'de';
+    PushNotificationServerLocation: 'global' | 'us' | 'de' | 'jp';
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;
@@ -740,6 +743,20 @@ export type LocalizationSettings = {
     DefaultClientLocale: string;
     AvailableLocales: string;
     EnableExperimentalLocales: boolean;
+};
+
+export type AutoTranslationSettings = {
+    Enable: boolean;
+    Provider: '' | 'libretranslate';
+    LibreTranslate: {
+        URL: string;
+        APIKey: string;
+    };
+    TimeoutMs: {
+        NewPost: number;
+        Fetch: number;
+        Notification: number;
+    };
 };
 
 export type SamlSettings = {
@@ -944,6 +961,7 @@ export type GuestAccountsSettings = {
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
+    EnableGuestMagicLink: boolean;
 };
 
 export type ImageProxySettings = {
@@ -961,11 +979,7 @@ export type CloudSettings = {
     PreviewModalBucketURL: string;
 };
 
-export type FeatureFlags = Record<string, string | boolean> & {
-
-    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this property when feature is GA
-    ChannelAdminManageABACRules?: string;
-};
+export type FeatureFlags = Record<string, string | boolean>;
 
 export type ImportSettings = {
     Directory: string;
@@ -1059,6 +1073,7 @@ export type AdminConfig = {
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
+    AutoTranslationSettings: AutoTranslationSettings;
 };
 
 export type ReplicaLagSetting = {

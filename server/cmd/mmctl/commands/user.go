@@ -89,25 +89,6 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 	RunE:    withClient(sendPasswordResetEmailCmdF),
 }
 
-var UpdateUserEmailCmd = &cobra.Command{
-	Use:        "email [user] [new email]",
-	Short:      "Change email of the user",
-	Long:       "Change the email address associated with a user.",
-	Example:    "  user email testuser user@example.com",
-	Deprecated: "Please use 'mmctl user edit email' instead.",
-	RunE:       withClient(updateUserEmailCmdF),
-}
-
-var UpdateUsernameCmd = &cobra.Command{
-	Use:        "username [user] [new username]",
-	Short:      "Change username of the user",
-	Long:       "Change username of the user.",
-	Example:    "  user username testuser newusername",
-	Deprecated: "Please use 'mmctl user edit username' instead.",
-	Args:       cobra.ExactArgs(2),
-	RunE:       withClient(updateUsernameCmdF),
-}
-
 var ChangePasswordUserCmd = &cobra.Command{
 	Use:   "change-password <user>",
 	Short: "Changes a user's password",
@@ -382,9 +363,10 @@ func init() {
 
 	ListUsersCmd.Flags().Int("page", 0, "Page number to fetch for the list of users")
 	ListUsersCmd.Flags().Int("per-page", DefaultPageSize, "Number of users to be fetched")
-	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
+	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignored if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
-	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetch")
+	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetched")
+	ListUsersCmd.Flags().String("role", "", "If supplied, only users with the given role will be fetched")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -441,8 +423,6 @@ Global Flags:
 		UserCreateCmd,
 		UserInviteCmd,
 		SendPasswordResetEmailCmd,
-		UpdateUserEmailCmd,
-		UpdateUsernameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
 		UserEditCmd,
@@ -642,62 +622,6 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 	return result.ErrorOrNil()
 }
 
-func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
-	if len(args) != 2 {
-		return errors.New("expected two arguments. See help text for details")
-	}
-
-	newEmail := args[1]
-
-	if !model.IsValidEmail(newEmail) {
-		return errors.New("invalid email: '" + newEmail + "'")
-	}
-
-	user, err := getUserFromArg(c, args[0])
-	if err != nil {
-		return err
-	}
-
-	user.Email = newEmail
-
-	ruser, _, err := c.UpdateUser(context.TODO(), user)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	printer.PrintT("User {{.Username}} updated successfully", ruser)
-
-	return nil
-}
-
-func updateUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
-	newUsername := args[1]
-
-	if !model.IsValidUsername(newUsername) {
-		return errors.New("invalid username: '" + newUsername + "'")
-	}
-
-	user := getUserFromUserArg(c, args[0])
-	if user == nil {
-		return errors.New("unable to find user '" + args[0] + "'")
-	}
-
-	user.Username = newUsername
-
-	ruser, _, err := c.UpdateUser(context.TODO(), user)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	printer.PrintT("User {{.Username}} updated successfully", ruser)
-
-	return nil
-}
-
 func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	password, _ := cmd.Flags().GetString("password")
 	current, _ := cmd.Flags().GetString("current")
@@ -867,6 +791,7 @@ func ResetListUsersCmd(t *testing.T) *cobra.Command {
 	require.NoError(t, ListUsersCmd.Flags().Set("per-page", "200"))
 	require.NoError(t, ListUsersCmd.Flags().Set("all", "false"))
 	require.NoError(t, ListUsersCmd.Flags().Set("team", ""))
+	require.NoError(t, ListUsersCmd.Flags().Set("role", ""))
 	require.NoError(t, ListUsersCmd.Flags().Set("inactive", "false"))
 
 	return ListUsersCmd
@@ -895,6 +820,11 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		return err
 	}
 
+	roleName, err := command.Flags().GetString("role")
+	if err != nil {
+		return err
+	}
+
 	if showAll {
 		page = 0
 	}
@@ -915,8 +845,12 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 	if team != nil {
 		params.Add("in_team", team.Id)
 	}
+	if roleName != "" {
+		params.Add("role", roleName)
+	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
+
 	for {
 		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params.Encode(), "")
 		if err != nil {
@@ -975,18 +909,20 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
 	users, err := getUsersFromArgs(c, userArgs)
 	if err != nil {
-		printer.PrintError(err.Error())
+		return err
 	}
+
+	var multiErr *multierror.Error
 	for _, user := range users {
 		bot, _, err := c.ConvertUserToBot(context.TODO(), user.Id)
 		if err != nil {
-			printer.PrintError(err.Error())
+			multiErr = multierror.Append(multiErr, err)
 			continue
 		}
 
 		printer.PrintT("{{.Username}} converted to bot.", bot)
 	}
-	return nil
+	return multiErr.ErrorOrNil()
 }
 
 func convertBotToUser(c client.Client, cmd *cobra.Command, userArgs []string) error {

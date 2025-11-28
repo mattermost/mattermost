@@ -27,8 +27,7 @@ import {
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {getTeamByName as getTeamByNameAction} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences, General} from 'mattermost-redux/constants';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {Preferences} from 'mattermost-redux/constants';
 import {
     getChannel,
     getChannelsNameMapInTeam,
@@ -42,9 +41,9 @@ import {
     getTeamMemberships,
     isTeamSameWithCurrentTeam,
 } from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {blendColors, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {displayUsername, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {searchForTerm} from 'actions/post_actions';
 import {addUserToTeam} from 'actions/team_actions';
@@ -57,7 +56,9 @@ import type {TextboxElement} from 'components/textbox';
 import {getHistory} from 'utils/browser_history';
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import * as Keyboard from 'utils/keyboard';
+import {FOCUS_REPLY_POST, isPopoutWindow, sendToParent} from 'utils/popouts/popout_windows';
 import * as UserAgent from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
@@ -354,6 +355,8 @@ export function toRgbValues(hexStr: string): string {
 }
 
 export function applyTheme(theme: Theme) {
+    DesktopApp.updateTheme({...theme, isUsingSystemTheme: false});
+
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.75));
@@ -1287,7 +1290,7 @@ function isChannelOrPermalink(link: string) {
     return match;
 }
 
-export async function handleFormattedTextClick(e: React.MouseEvent, currentRelativeTeamUrl = '') {
+export async function handleFormattedTextClick(e: React.UIEvent, currentRelativeTeamUrl = '') {
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
     const channelMentionAttribute = (e.target as any).getAttributeNode('data-channel-mention');
@@ -1299,7 +1302,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
     } else if (linkAttribute) {
         const MIDDLE_MOUSE_BUTTON = 1;
 
-        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+        if (!isMouseEvent(e) || !(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
             e.preventDefault();
 
             const state = store.getState();
@@ -1375,7 +1378,11 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
             e.stopPropagation();
 
             if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
-                store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
+                if (isPopoutWindow()) {
+                    sendToParent(FOCUS_REPLY_POST, match.postId ?? '', linkAttribute.value);
+                } else {
+                    store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
+                }
             } else {
                 getHistory().push(linkAttribute.value);
             }
@@ -1384,6 +1391,10 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
         e.preventDefault();
         getHistory().push(currentRelativeTeamUrl + '/channels/' + channelMentionAttribute.value);
     }
+}
+
+function isMouseEvent(e: React.UIEvent): e is React.MouseEvent {
+    return 'button' in e;
 }
 
 export function isEmptyObject(object: any) {
@@ -1586,47 +1597,6 @@ export function numberToFixedDynamic(num: number, places: number): string {
     return str.slice(0, indexToExclude);
 }
 
-const TrackFlowRoles: Record<string, string> = {
-    fa: Constants.FIRST_ADMIN_ROLE,
-    sa: General.SYSTEM_ADMIN_ROLE,
-    su: General.SYSTEM_USER_ROLE,
-};
-
-export function getTrackFlowRole(state: GlobalState) {
-    let trackFlowRole = 'su';
-
-    if (isFirstAdmin(state)) {
-        trackFlowRole = 'fa';
-    } else if (isSystemAdmin(getCurrentUser(state).roles)) {
-        trackFlowRole = 'sa';
-    }
-
-    return trackFlowRole;
-}
-
-export const getRoleForTrackFlow = createSelector(
-    'getRoleForTrackFlow',
-    getTrackFlowRole,
-    (trackFlowRole) => {
-        const startedByRole = TrackFlowRoles[trackFlowRole];
-
-        return {started_by_role: startedByRole};
-    },
-);
-
-export function getSbr() {
-    const params = new URLSearchParams(window.location.search);
-    const sbr = params.get('sbr') ?? '';
-    return sbr;
-}
-
-export function getRoleFromTrackFlow() {
-    const sbr = getSbr();
-    const startedByRole = TrackFlowRoles[sbr] ?? '';
-
-    return {started_by_role: startedByRole};
-}
-
 export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Record<string, Locale>) {
     if (locale && locale !== 'en' && !loadedLocales[locale]) {
         try {
@@ -1639,32 +1609,6 @@ export function getDatePickerLocalesForDateFns(locale: string, loadedLocales: Re
     }
 
     return loadedLocales;
-}
-
-export function getMediumFromTrackFlow() {
-    const params = new URLSearchParams(window.location.search);
-    const source = params.get('md') ?? '';
-
-    return {source};
-}
-
-const TrackFlowSources: Record<string, string> = {
-    wd: 'webapp-desktop',
-    wm: 'webapp-mobile',
-    d: 'desktop-app',
-};
-
-function getTrackFlowSource() {
-    if (UserAgent.isMobile()) {
-        return TrackFlowSources.wm;
-    } else if (UserAgent.isDesktopApp()) {
-        return TrackFlowSources.d;
-    }
-    return TrackFlowSources.wd;
-}
-
-export function getSourceForTrackFlow() {
-    return {source: getTrackFlowSource()};
 }
 
 export function a11yFocus(element: HTMLElement | null | undefined, keyboardOnly = true) {

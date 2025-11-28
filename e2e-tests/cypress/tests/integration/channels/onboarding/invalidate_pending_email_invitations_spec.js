@@ -13,7 +13,6 @@
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../support/env';
 import {getRandomId} from '../../../utils';
-
 import {inviteUserByEmail, verifyEmailInviteAndVisitLink, signupAndVerifyTutorial} from '../team_settings/helpers';
 
 describe('Onboarding', () => {

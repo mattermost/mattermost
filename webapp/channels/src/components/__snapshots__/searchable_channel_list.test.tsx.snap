@@ -1,11 +1,11 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/SearchableChannelList should match init snapshot 1`] = `
 <div
   className="filtered-user-list"
 >
   <div
-    className="filter-row filter-row--full"
+    className="filter-row"
   >
     <span
       aria-hidden="true"

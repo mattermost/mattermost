@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,8 +25,7 @@ import (
 )
 
 func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupSharedChannels(t).InitBasic(t)
 
 	ss := th.App.Srv().Store()
 
@@ -82,7 +80,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create a shared channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -130,7 +128,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.True(t, channel.IsShared(), "Channel should be marked as shared")
 
 		// Create a user and add to team
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
@@ -140,7 +138,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for the user to be locally added before checking for sync
 		require.Eventually(t, func() bool {
-			_, memberErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+			_, memberErr := ss.Channel().GetMember(th.Context, channel.Id, user.Id)
 			return memberErr == nil
 		}, 5*time.Second, 100*time.Millisecond, "User should be locally added to channel")
 
@@ -156,7 +154,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 10*time.Second, 200*time.Millisecond, "All async sync tasks should be completed")
 
 		// Verify the user is a member at the receiver end
-		member, memberErr := ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+		member, memberErr := ss.Channel().GetMember(th.Context, channel.Id, user.Id)
 		require.NoError(t, memberErr)
 		require.Equal(t, user.Id, member.UserId)
 
@@ -184,7 +182,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for the removal to be processed with extended timeout
 		require.Eventually(t, func() bool {
-			_, err = ss.Channel().GetMember(context.Background(), channel.Id, user.Id)
+			_, err = ss.Channel().GetMember(th.Context, channel.Id, user.Id)
 			return err != nil
 		}, 30*time.Second, 300*time.Millisecond, "User should not be a member after removal")
 	})
@@ -210,7 +208,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create channel but DON'T share it yet
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 
 		// Create self-referential remote cluster
 		selfCluster = &model.RemoteCluster{
@@ -233,7 +231,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		numRegularUsers := (batchSize * 2) + 5 // Back to original
 		regularUserIDs := make([]string, numRegularUsers)
 		for i := range numRegularUsers {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			regularUserIDs[i] = user.Id
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
@@ -243,7 +241,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Add users that should be synced (including bots and system admins)
 		// Add a bot
-		bot := th.CreateBot()
+		bot := th.CreateBot(t)
 		botUser, appErr := th.App.GetUser(bot.UserId)
 		require.Nil(t, appErr)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, bot.UserId, th.BasicUser.Id)
@@ -252,7 +250,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Add a system admin
-		systemAdmin := th.CreateUser()
+		systemAdmin := th.CreateUser(t)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, systemAdmin.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.UpdateUserRoles(th.Context, systemAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
@@ -261,7 +259,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Add a guest user (should be synced)
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.AddUserToChannel(th.Context, guest, channel, false)
@@ -389,7 +387,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -434,8 +432,8 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		require.True(t, channel.IsShared(), "Channel should be marked as shared")
 
 		// Add first batch of users
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user1.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
@@ -492,7 +490,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond, "Cursor should be updated after first sync")
 
 		// Add another user after cursor update
-		user3 := th.CreateUser()
+		user3 := th.CreateUser(t)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user3.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.AddUserToChannel(th.Context, user3, channel, false)
@@ -564,7 +562,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -613,7 +611,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// Add a user to sync
-		testUser := th.CreateUser()
+		testUser := th.CreateUser(t)
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, testUser.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.AddUserToChannel(th.Context, testUser, channel, false)
@@ -703,7 +701,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -751,7 +749,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Phase 1: Add initial batch of users
 		initialUsers := make([]*model.User, 10)
 		for i := range 10 {
-			initialUsers[i] = th.CreateUser()
+			initialUsers[i] = th.CreateUser(t)
 			_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, initialUsers[i].Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
 			_, appErr = th.App.AddUserToChannel(th.Context, initialUsers[i], channel, false)
@@ -796,7 +794,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Add 5 new users
 		newUsers := make([]*model.User, 5)
 		for i := range 5 {
-			newUsers[i] = th.CreateUser()
+			newUsers[i] = th.CreateUser(t)
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, newUsers[i].Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
 			_, appErr = th.App.AddUserToChannel(th.Context, newUsers[i], channel, false)
@@ -903,7 +901,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}()
 
 		// Create a new team for this test to avoid team member limits
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 
 		// Create and share channel in the new team
 		channel := &model.Channel{
@@ -958,7 +956,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Add users to channel - they should sync to all remote clusters
 		users := make([]*model.User, 5)
 		for i := range 5 {
-			users[i] = th.CreateUser()
+			users[i] = th.CreateUser(t)
 			_, _, addErr := th.App.AddUserToTeam(th.Context, team.Id, users[i].Id, th.BasicUser.Id)
 			require.Nil(t, addErr)
 			_, addErr = th.App.AddUserToChannel(th.Context, users[i], channel, false)
@@ -999,7 +997,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}
 
 		// Create a new user that will be added "by cluster-2"
-		userFromCluster2 := th.CreateUser()
+		userFromCluster2 := th.CreateUser(t)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, team.Id, userFromCluster2.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
@@ -1039,7 +1037,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		}, 10*time.Second, 100*time.Millisecond, "Change should propagate to other clusters")
 
 		// Verify the user was added locally
-		member, memberErr := ss.Channel().GetMember(context.Background(), channel.Id, userFromCluster2.Id)
+		member, memberErr := ss.Channel().GetMember(th.Context, channel.Id, userFromCluster2.Id)
 		require.NoError(t, memberErr, "User should be a member after receiving sync from cluster-2")
 		require.Equal(t, userFromCluster2.Id, member.UserId)
 
@@ -1108,7 +1106,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create and share channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -1154,7 +1152,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Add users to the channel after disabling the feature flag
 		for range 3 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
 			_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
@@ -1209,7 +1207,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create channel and share it
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -1256,7 +1254,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Add some users to sync
 		for range 3 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
 			_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
@@ -1333,7 +1331,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		defer testServer.Close()
 
 		// Create channel and share it
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    th.BasicTeam.Id,
@@ -1375,7 +1373,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Add users to sync - use more than batch size to test batch sync
 		// Default batch size is 20, so use 25 users to ensure batch processing
 		for range 25 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
 			_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
@@ -1407,7 +1405,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Add more users to ensure we still have > 20 total for batch sync
 		for range 5 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, user.Id, th.BasicUser.Id)
 			require.Nil(t, appErr)
 			_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
@@ -1453,32 +1451,32 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var totalSyncMessages int32
 
 		// Create users
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		user3 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
 
 		// Add users to team
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		th.LinkUserToTeam(user2, th.BasicTeam)
-		th.LinkUserToTeam(user3, th.BasicTeam)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
 
 		// Create multiple shared channels
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel3 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		channel3 := th.CreateChannel(t, th.BasicTeam)
 
 		// Add users to multiple shared channels
 		// user1 in all channels
-		th.AddUserToChannel(user1, channel1)
-		th.AddUserToChannel(user1, channel2)
-		th.AddUserToChannel(user1, channel3)
+		th.AddUserToChannel(t, user1, channel1)
+		th.AddUserToChannel(t, user1, channel2)
+		th.AddUserToChannel(t, user1, channel3)
 
 		// user2 in two channels
-		th.AddUserToChannel(user2, channel1)
-		th.AddUserToChannel(user2, channel2)
+		th.AddUserToChannel(t, user2, channel1)
+		th.AddUserToChannel(t, user2, channel2)
 
 		// user3 in one channel
-		th.AddUserToChannel(user3, channel3)
+		th.AddUserToChannel(t, user3, channel3)
 
 		// First create the remote cluster with a placeholder URL
 		selfCluster := &model.RemoteCluster{
@@ -1732,7 +1730,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	defer testServer.Close()
 
 	// 	// Create and share channel
-	// 	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	// 	channel := th.CreateChannel(t, th.BasicTeam)
 	// 	sc := &model.SharedChannel{
 	// 		ChannelId: channel.Id,
 	// 		TeamId:    th.BasicTeam.Id,
@@ -1772,8 +1770,8 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	require.NoError(t, err)
 
 	// 	// Phase 1: Create users for conflict scenarios
-	// 	conflictUser1 := th.CreateUser()
-	// 	conflictUser2 := th.CreateUser()
+	// 	conflictUser1 := th.CreateUser(t)
+	// 	conflictUser2 := th.CreateUser(t)
 
 	// 	// Add users to team
 	// 	for _, user := range []*model.User{conflictUser1, conflictUser2} {
@@ -1893,7 +1891,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	// 	}, 15*time.Second, 200*time.Millisecond, "Cluster should have updated sync cursor")
 
 	// 	// Phase 8: Test that new operations after conflict resolution work correctly
-	// 	newUser := th.CreateUser()
+	// 	newUser := th.CreateUser(t)
 	// 	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, newUser.Id, th.BasicUser.Id)
 	// 	require.Nil(t, appErr)
 	// 	_, appErr = th.App.AddUserToChannel(th.Context, newUser, channel, false)

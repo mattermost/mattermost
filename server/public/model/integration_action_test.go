@@ -4,10 +4,13 @@
 package model
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"io"
+	"math/big"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +18,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// failingSigner is a test implementation of crypto.Signer that always returns an error
+type failingSigner struct {
+	err error
+}
+
+func (f *failingSigner) Public() crypto.PublicKey {
+	return nil
+}
+
+func (f *failingSigner) Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) (signature []byte, err error) {
+	return nil, f.err
+}
 
 func TestPostAction_IsValid(t *testing.T) {
 	tests := map[string]struct {
@@ -254,6 +270,64 @@ func TestPostAction_IsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateTriggerId(t *testing.T) {
+	t.Run("should succeed with valid key", func(t *testing.T) {
+		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+
+		userId := NewId()
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		assert.Nil(t, appErr)
+		assert.NotEmpty(t, clientTriggerId)
+		assert.NotEmpty(t, triggerId)
+	})
+
+	t.Run("should handle signer that returns error", func(t *testing.T) {
+		// Create a signer that always returns an error
+		badSigner := &failingSigner{err: assert.AnError}
+
+		userId := NewId()
+		_, _, appErr := GenerateTriggerId(userId, badSigner)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
+		assert.NotEmpty(t, appErr.Error())
+	})
+
+	t.Run("should handle invalid ECDSA key with nil D value", func(t *testing.T) {
+		// Create an invalid ECDSA key with nil D (private key component)
+		// This would normally panic in crypto/ecdsa, but our recover handler catches it
+		invalidKey := &ecdsa.PrivateKey{
+			PublicKey: ecdsa.PublicKey{
+				Curve: elliptic.P256(),
+				X:     nil,
+				Y:     nil,
+			},
+			D: nil,
+		}
+
+		userId := NewId()
+		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
+		assert.Contains(t, appErr.Error(), "invalid signing key")
+	})
+
+	t.Run("should handle ECDSA key with zero D value", func(t *testing.T) {
+		// Create an ECDSA key with D set to zero (invalid private key)
+		invalidKey := &ecdsa.PrivateKey{
+			PublicKey: ecdsa.PublicKey{
+				Curve: elliptic.P256(),
+			},
+			D: big.NewInt(0),
+		}
+
+		userId := NewId()
+		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
+	})
 }
 
 func TestTriggerIdDecodeAndVerification(t *testing.T) {
@@ -675,6 +749,195 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "Placeholder cannot be longer than 150 characters")
 	})
+
+	t.Run("should pass with select element with dynamic data_source", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "https://example.com/api/options",
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail dynamic data_source without data_source_url", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName: "Dynamic data_source",
+			Name:        "dynamic_field",
+			Type:        "select",
+			DataSource:  "dynamic",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "dynamic data_source requires data_source_url")
+	})
+
+	t.Run("should fail dynamic data_source with malformed URL", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "not-a-valid-url",
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "invalid data_source_url for dynamic select")
+	})
+
+	t.Run("should pass dynamic data_source with HTTP URL", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "http://example.com/api/options",
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should pass dynamic data_source with plugin URL", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "/plugins/myplugin/api/options",
+		})
+		err := request.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should fail dynamic data_source with static options", func(t *testing.T) {
+		request := getBaseOpenDialogRequest()
+		request.Dialog.Elements = append(request.Dialog.Elements, DialogElement{
+			DisplayName:   "Dynamic data_source",
+			Name:          "dynamic_field",
+			Type:          "select",
+			DataSource:    "dynamic",
+			DataSourceURL: "https://example.com/api/options",
+			Options: []*PostActionOptions{
+				{Text: "Option 1", Value: "opt1"},
+			},
+		})
+		err := request.IsValid()
+		assert.ErrorContains(t, err, "dynamic select element should not have static options")
+	})
+}
+
+func TestIsValidLookupURL(t *testing.T) {
+	tests := map[string]struct {
+		url      string
+		expected bool
+	}{
+		"valid HTTPS URL": {
+			url:      "https://example.com/api/lookup",
+			expected: true,
+		},
+		"valid HTTP URL": {
+			url:      "http://example.com/api/lookup",
+			expected: true,
+		},
+		"valid plugin path": {
+			url:      "/plugins/myplugin/lookup",
+			expected: true,
+		},
+		"empty URL": {
+			url:      "",
+			expected: false,
+		},
+		"path traversal attack": {
+			url:      "/plugins/../../../etc/passwd",
+			expected: false,
+		},
+		"double slash in plugin path": {
+			url:      "/plugins//myplugin/lookup",
+			expected: false,
+		},
+		"invalid scheme": {
+			url:      "ftp://example.com/lookup",
+			expected: false,
+		},
+		"relative path": {
+			url:      "relative/path",
+			expected: false,
+		},
+		"localhost HTTPS": {
+			url:      "https://localhost:8080/api/lookup",
+			expected: true,
+		},
+		"localhost HTTP": {
+			url:      "http://localhost:8080/api/lookup",
+			expected: true,
+		},
+		"127.0.0.1 HTTP": {
+			url:      "http://127.0.0.1:8080/api/lookup",
+			expected: true,
+		},
+		"malformed URL": {
+			url:      "not-a-url",
+			expected: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			result := IsValidLookupURL(tc.url)
+			assert.Equal(t, tc.expected, result, "IsValidLookupURL(%q) = %v, want %v", tc.url, result, tc.expected)
+		})
+	}
+}
+
+func TestDialogSelectOption(t *testing.T) {
+	t.Run("should create valid option", func(t *testing.T) {
+		option := DialogSelectOption{
+			Text:  "Test Option",
+			Value: "test_value",
+		}
+		assert.Equal(t, "Test Option", option.Text)
+		assert.Equal(t, "test_value", option.Value)
+	})
+
+	t.Run("should handle empty values", func(t *testing.T) {
+		option := DialogSelectOption{
+			Text:  "",
+			Value: "",
+		}
+		assert.Equal(t, "", option.Text)
+		assert.Equal(t, "", option.Value)
+	})
+}
+
+func TestLookupDialogResponse(t *testing.T) {
+	t.Run("should create valid response", func(t *testing.T) {
+		response := LookupDialogResponse{
+			Items: []DialogSelectOption{
+				{Text: "Option 1", Value: "value1"},
+				{Text: "Option 2", Value: "value2"},
+			},
+		}
+		assert.Len(t, response.Items, 2)
+		assert.Equal(t, "Option 1", response.Items[0].Text)
+		assert.Equal(t, "value1", response.Items[0].Value)
+	})
+
+	t.Run("should handle empty response", func(t *testing.T) {
+		response := LookupDialogResponse{
+			Items: []DialogSelectOption{},
+		}
+		assert.Empty(t, response.Items)
+	})
+
+	t.Run("should handle nil items", func(t *testing.T) {
+		response := LookupDialogResponse{}
+		assert.Nil(t, response.Items)
+	})
 }
 
 func TestDialogElementMultiSelectValidation(t *testing.T) {
@@ -909,5 +1172,300 @@ func TestIsMultiSelectDefaultInOptions(t *testing.T) {
 		}
 		result := isMultiSelectDefaultInOptions("opt1,opt2", optionsWithNil)
 		assert.False(t, result)
+	})
+}
+
+func TestSubmitDialogResponse_IsValid(t *testing.T) {
+	validDialog := &Dialog{
+		Title: "Test Dialog",
+	}
+
+	tests := map[string]struct {
+		response *SubmitDialogResponse
+		wantErr  string
+	}{
+		"error takes precedence - with error field": {
+			response: &SubmitDialogResponse{
+				Error: "something went wrong",
+				Type:  "invalid_type",
+				Form:  validDialog,
+			},
+			wantErr: "",
+		},
+		"error takes precedence - with errors field": {
+			response: &SubmitDialogResponse{
+				Errors: map[string]string{"field1": "required"},
+				Type:   "invalid_type",
+				Form:   validDialog,
+			},
+			wantErr: "",
+		},
+		"valid empty type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "",
+			},
+			wantErr: "",
+		},
+		"valid ok type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "ok",
+			},
+			wantErr: "",
+		},
+		"valid navigate type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "navigate",
+			},
+			wantErr: "",
+		},
+		"valid form type with valid form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+				Form: validDialog,
+			},
+			wantErr: "",
+		},
+		"invalid empty type with form": {
+			response: &SubmitDialogResponse{
+				Type: "",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"\"",
+		},
+		"invalid ok type with form": {
+			response: &SubmitDialogResponse{
+				Type: "ok",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"ok\"",
+		},
+		"invalid navigate type with form": {
+			response: &SubmitDialogResponse{
+				Type: "navigate",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"navigate\"",
+		},
+		"invalid form type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+			},
+			wantErr: "form field is required for form type",
+		},
+		"invalid form type with invalid form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+				Form: &Dialog{}, // Invalid dialog
+			},
+			wantErr: "invalid form: 1 error occurred:\n\t* invalid dialog title \"\"",
+		},
+		"invalid type": {
+			response: &SubmitDialogResponse{
+				Type: "invalid",
+			},
+			wantErr: "invalid type \"invalid\", must be one of: empty, ok, form, navigate",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tt.response.IsValid()
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestValidateDateFormat(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+	}{
+		{"valid YYYY-MM-DD format", "2025-01-15", false},
+		{"valid date with leading zeros", "2025-01-01", false},
+		{"valid leap year date", "2024-02-29", false},
+		{"invalid format missing day", "2025-01", true},
+		{"invalid format with slashes", "2025/01/15", true},
+		{"invalid month", "2025-13-01", true},
+		{"invalid day", "2025-01-32", true},
+		{"invalid leap year", "2023-02-29", true},
+		{"empty string", "", false}, // Empty string is valid (no error)
+		{"partial date", "2025", true},
+		{"valid datetime format (should extract date)", "2025-01-15T10:30:00", true},
+		{"valid datetime with timezone", "2025-01-15T10:30:00Z", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateDateFormat(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateDateTimeFormat(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+	}{
+		{"valid RFC3339 format", "2025-01-15T10:30:00Z", false},
+		{"valid with timezone offset", "2025-01-15T10:30:00-05:00", false},
+		{"valid with positive timezone", "2025-01-15T10:30:00+02:00", false},
+		{"valid with milliseconds", "2025-01-15T10:30:00.123Z", false},
+		{"valid format without timezone", "2025-01-15T10:30:00", false},
+		{"valid format without seconds", "2025-01-15T10:30", false},
+		{"invalid date part", "2025-13-01T10:30:00Z", true},
+		{"invalid time part", "2025-01-15T25:30:00Z", true},
+		{"invalid timezone format", "2025-01-15T10:30:00GMT", true},
+		{"date only format", "2025-01-15", true},
+		{"empty string", "", false}, // Empty string is valid (no error)
+		{"invalid format with space", "2025-01-15 10:30:00", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateDateTimeFormat(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestDialogElementDateTimeValidation(t *testing.T) {
+	t.Run("should validate DialogElement with date/datetime type", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test Date",
+			Name:        "test_date",
+			Type:        "date",
+			MinDate:     "2025-01-01",
+			MaxDate:     "2025-12-31",
+			Optional:    false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should validate DialogElement with datetime type and time properties", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			MinDate:      "2025-01-01",
+			MaxDate:      "2025-12-31",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject DialogElement with invalid min_date", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test Date",
+			Name:        "test_date",
+			Type:        "date",
+			MinDate:     "invalid-date",
+			Optional:    false,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid date format")
+	})
+
+	t.Run("should reject DialogElement with invalid time_interval", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: -1, // Invalid
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval")
+	})
+
+	t.Run("should reject DialogElement with time_interval that is not a divisor of 1440", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: 729, // Invalid - not a divisor of 1440
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "divisor of 1440")
+	})
+
+	t.Run("should accept DialogElement with valid time_interval divisors", func(t *testing.T) {
+		validIntervals := []int{1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 72, 90, 120, 180, 240, 360, 480, 720, 1440}
+
+		for _, interval := range validIntervals {
+			element := DialogElement{
+				DisplayName:  "Test DateTime",
+				Name:         "test_datetime",
+				Type:         "datetime",
+				TimeInterval: interval,
+				Optional:     false,
+			}
+			err := element.IsValid()
+			assert.NoError(t, err, "time_interval %d should be valid", interval)
+		}
+	})
+
+	t.Run("should reject DialogElement with invalid time_interval non-divisors", func(t *testing.T) {
+		invalidIntervals := []int{7, 11, 13, 17, 23, 25, 33, 37, 50, 55, 70, 100, 300, 500, 729, 1000}
+
+		for _, interval := range invalidIntervals {
+			element := DialogElement{
+				DisplayName:  "Test DateTime",
+				Name:         "test_datetime",
+				Type:         "datetime",
+				TimeInterval: interval,
+				Optional:     false,
+			}
+			err := element.IsValid()
+			assert.Error(t, err, "time_interval %d should be invalid", interval)
+			assert.Contains(t, err.Error(), "divisor of 1440")
+		}
+	})
+
+	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
+		// Valid with default 60-minute interval
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: DefaultTimeIntervalMinutes,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+
+		// Invalid with default 60-minute interval
+		element = DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: 0, // Should use default of 60
+			Optional:     false,
+		}
+		err = element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval of 0 will be reset to default")
 	})
 }

@@ -777,7 +777,7 @@ func isValidGuestRoles(data UserImportData) bool {
 					guestTeamCount++
 				}
 
-				if team.Channels == nil {
+				if team.Channels == nil || len(*team.Channels) == 0 {
 					continue
 				}
 

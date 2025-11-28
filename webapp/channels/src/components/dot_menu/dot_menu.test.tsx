@@ -19,8 +19,6 @@ import DotMenu from './dot_menu';
 
 import DotMenuRoot from './index';
 
-jest.mock('./utils');
-
 describe('components/dot_menu/DotMenu', () => {
     const latestPost = {
         id: 'latest_post_id',
@@ -208,6 +206,7 @@ describe('components/dot_menu/DotMenu', () => {
         userId: 'user_id_1',
         isMilitaryTime: false,
         canMove: true,
+        isBurnOnReadPost: false,
     };
 
     test('should show edit menu, on Center', async () => {

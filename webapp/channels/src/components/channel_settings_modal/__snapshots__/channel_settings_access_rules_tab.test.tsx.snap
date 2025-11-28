@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should match snapshot 1`] = `
 <div>
@@ -19,11 +19,40 @@ exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should 
         Select user attributes and values as rules to restrict channel membership
       </p>
     </div>
-    <p
-      class="ChannelSettingsModal__accessRulesDescription"
+    <hr
+      class="ChannelSettingsModal__divider"
+    />
+    <div
+      class="ChannelSettingsModal__autoSyncSection"
     >
-      Select attributes and values that users must match in addition to access this channel. All selected attributes are required.
-    </p>
+      <div
+        class="ChannelSettingsModal__autoSyncCheckboxContainer"
+      >
+        <input
+          class="ChannelSettingsModal__autoSyncCheckbox"
+          disabled=""
+          id="autoSyncMembersCheckbox"
+          name="autoSyncMembers"
+          type="checkbox"
+        />
+        <label
+          class="ChannelSettingsModal__autoSyncLabel"
+          for="autoSyncMembersCheckbox"
+          title="Auto-add is disabled because no access rules are defined"
+        >
+          <span
+            class="ChannelSettingsModal__autoSyncText disabled"
+          >
+            Auto-add members based on access rules
+          </span>
+        </label>
+      </div>
+      <p
+        class="ChannelSettingsModal__autoSyncDescription"
+      >
+        Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.
+      </p>
+    </div>
   </div>
 </div>
 `;

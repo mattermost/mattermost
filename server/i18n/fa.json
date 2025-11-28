@@ -2896,14 +2896,6 @@
     "translation": "حساب های مهمان غیرفعال شده است"
   },
   {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "تلاش برای استفاده از ویژگی آزمایشی ClientSideCertEnable بدون مجوز معتبر شرکت."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "سعی در ورود به سیستم با استفاده از ویژگی آزمایشی ClientSideCert بدون ارائه گواهی معتبر است."
-  },
-  {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "ورود بات ممنوع است."
   },
@@ -6649,10 +6641,6 @@
     "translation": "پیکربندی داده شده ادغام نشد."
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "قالب جدید برای پیکربندی سرویس گیرنده هنوز پشتیبانی نمی شود. لطفا format=old را در رشته جستجو مشخص کنید."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "شانه بالا"
   },
@@ -7187,10 +7175,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: بد grant_type."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: گم شده client_secret."
   },
   {
     "id": "api.command_invite.channel.app_error",

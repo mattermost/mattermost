@@ -17,10 +17,12 @@ import {
 } from 'actions/post_actions';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
+import {focusPost} from 'components/permalink_view/actions';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useReadout} from 'hooks/useReadout';
+import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -45,7 +47,8 @@ function ThreadMenu({
     hasUnreads,
     children,
 }: Props) {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const dispatch = useDispatch();
     const {
         params: {
@@ -84,6 +87,12 @@ function ThreadMenu({
         unreadTimestamp,
     ]);
 
+    const popout = useCallback(() => {
+        popoutThread(intl, threadId, team, (postId, returnTo) => {
+            dispatch(focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true}));
+        });
+    }, [threadId, team, intl, dispatch, currentUserId]);
+
     return (
         <MenuWrapper
             stopPropagationOnToggle={true}
@@ -96,6 +105,17 @@ function ThreadMenu({
                 })}
                 openLeft={true}
             >
+                {!canPopout() && (
+                    <Menu.ItemAction
+                        buttonClass='PopoutMenuItem'
+                        text={formatMessage({
+                            id: 'threading.threadMenu.openInNewWindow',
+                            defaultMessage: 'Open in new window',
+                        })}
+                        onClick={popout}
+                        icon={<i className='icon icon-dock-window'/>}
+                    />
+                )}
                 <Menu.ItemAction
                     {...isFollowing ? {
                         text: formatMessage({

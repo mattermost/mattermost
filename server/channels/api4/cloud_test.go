@@ -54,8 +54,7 @@ func TestGetSubscription(t *testing.T) {
 
 	t.Run("NON Admin users receive the user facing subscription", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -81,8 +80,7 @@ func TestGetSubscription(t *testing.T) {
 
 	t.Run("Admin users receive the full subscription information", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -111,8 +109,7 @@ func TestValidateBusinessEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Returns forbidden for invalid business email", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -138,8 +135,7 @@ func TestValidateBusinessEmail(t *testing.T) {
 
 	t.Run("Validate business email for admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -165,15 +161,14 @@ func TestValidateBusinessEmail(t *testing.T) {
 
 	t.Run("Empty body returns bad request", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		r, err := th.SystemAdminClient.DoAPIPostBytes(context.Background(), "/cloud/validate-business-email", nil)
+		r, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/cloud/validate-business-email", "")
 		require.Error(t, err)
 		closeBody(r)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
@@ -184,8 +179,7 @@ func TestValidateWorkspaceBusinessEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("validate the Cloud Customer has used a valid email to create the workspace", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -217,8 +211,7 @@ func TestValidateWorkspaceBusinessEmail(t *testing.T) {
 
 	t.Run("validate the Cloud Customer has used a invalid email to create the workspace and must validate admin email", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -255,8 +248,7 @@ func TestValidateWorkspaceBusinessEmail(t *testing.T) {
 
 	t.Run("Error while grabbing the cloud customer returns bad request", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)
@@ -282,7 +274,7 @@ func TestValidateWorkspaceBusinessEmail(t *testing.T) {
 		}()
 		th.App.Srv().Cloud = &cloud
 
-		r, err := th.SystemAdminClient.DoAPIPostBytes(context.Background(), "/cloud/validate-workspace-business-email", nil)
+		r, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/cloud/validate-workspace-business-email", "")
 		require.Error(t, err)
 		closeBody(r)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode, "Status Bad Request")
@@ -358,8 +350,7 @@ func TestGetCloudProducts(t *testing.T) {
 	}
 	t.Run("get products for admins", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)
 		require.NoError(t, err)
@@ -382,8 +373,7 @@ func TestGetCloudProducts(t *testing.T) {
 
 	t.Run("get products for non admins", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 		require.NoError(t, err)

@@ -84,10 +84,10 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
                     values={
                         {
                             trialEndDay: freeTrialEndDay,
-                            openModalLink: (msg: string) => (
+                            openModalLink: (msg) => (
                                 <a
                                     className='open-trial-benefits-modal style-link'
-                                    onClick={isAdmin ? openTrialBenefitsModal : () => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
+                                    onClick={isAdmin ? openTrialBenefitsModal : () => openPricingModal()}
                                 >
                                     {msg}
                                 </a>
@@ -106,10 +106,10 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
             defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>'
             values={
                 {
-                    openModalLink: (msg: string) => (
+                    openModalLink: (msg) => (
                         <a
                             className='open-see-plans-modal style-link'
-                            onClick={() => openPricingModal({trackingLocation: 'menu_cloud_trial'})}
+                            onClick={() => openPricingModal()}
                         >
                             {msg}
                         </a>

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot when no teams are found 1`] = `
 <Fragment>
@@ -6,20 +6,8 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
   <AbstractList
     actions={
       Object {
-        "getTeamMembersForUser": [MockFunction],
-        "getTeamsData": [MockFunction] {
-          "calls": Array [
-            Array [
-              "1234",
-            ],
-          ],
-          "results": Array [
-            Object {
-              "type": "return",
-              "value": Promise {},
-            },
-          ],
-        },
+        "getTeamMembersForUser": [Function],
+        "getTeamsData": [Function],
         "removeUserFromTeam": [MockFunction],
         "updateTeamMemberSchemeRoles": [MockFunction],
       }
@@ -82,20 +70,8 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
   <AbstractList
     actions={
       Object {
-        "getTeamMembersForUser": [MockFunction],
-        "getTeamsData": [MockFunction] {
-          "calls": Array [
-            Array [
-              "1234",
-            ],
-          ],
-          "results": Array [
-            Object {
-              "type": "return",
-              "value": Promise {},
-            },
-          ],
-        },
+        "getTeamMembersForUser": [Function],
+        "getTeamsData": [Function],
         "removeUserFromTeam": [MockFunction],
         "updateTeamMemberSchemeRoles": [MockFunction],
       }

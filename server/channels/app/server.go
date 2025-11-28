@@ -117,7 +117,7 @@ type Server struct {
 
 	timezones *timezones.Timezones
 
-	htmlTemplateWatcher     *templates.Container
+	htmlTemplates           *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
 	clusterLeaderListenerId string
@@ -144,6 +144,7 @@ type Server struct {
 	Cloud                   einterfaces.CloudInterface
 	IPFiltering             einterfaces.IPFilteringInterface
 	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
+	PushProxy               einterfaces.PushProxyInterface
 
 	ch *Channels
 }
@@ -327,23 +328,18 @@ func NewServer(options ...Option) (*Server, error) {
 	if !ok {
 		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
-	htmlTemplateWatcher, errorsChan, err2 := templates.NewWithWatcher(templatesDir)
+	htmlTemplates, err2 := templates.New(templatesDir)
 	if err2 != nil {
 		return nil, errors.Wrap(err2, "cannot initialize server templates")
 	}
-	s.Go(func() {
-		for err2 := range errorsChan {
-			mlog.Warn("Server templates error", mlog.Err(err2))
-		}
-	})
-	s.htmlTemplateWatcher = htmlTemplateWatcher
+	s.htmlTemplates = htmlTemplates
 
-	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.platform.SearchEngine, s.Log(), *s.Config().LogSettings.VerboseDiagnostics)
+	s.telemetryService, err = telemetry.New(New(ServerConnector(s.Channels())), s.Store(), s.Log())
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize telemetry service")
 	}
 
-	s.platform.SetTelemetryId(s.TelemetryId()) // TODO: move this into platform once telemetry service moved to platform.
+	s.platform.SetTelemetryId(s.ServerId()) // TODO: move this into platform once telemetry service moved to platform.
 
 	emailService, err := email.NewService(email.ServiceConfig{
 		ConfigFn:           s.platform.Config,
@@ -438,6 +434,12 @@ func NewServer(options ...Option) (*Server, error) {
 			if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 				mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
 			}
+		} else if *oldCfg.GuestAccountsSettings.EnableGuestMagicLink && !*newCfg.GuestAccountsSettings.EnableGuestMagicLink {
+			// Only run this if guest magic link accounts are still enabled
+			c := request.EmptyContext(s.Log())
+			if appErr := appInstance.DeactivateMagicLinkGuests(c); appErr != nil {
+				mlog.Error("Unable to deactivate guest magic link accounts", mlog.Err(appErr))
+			}
 		}
 	})
 
@@ -447,6 +449,14 @@ func NewServer(options ...Option) (*Server, error) {
 		c := request.EmptyContext(s.Log())
 		if appErr := appInstance.DeactivateGuests(c); appErr != nil {
 			mlog.Error("Unable to deactivate guest accounts", mlog.Err(appErr))
+		}
+	} else if !*s.platform.Config().GuestAccountsSettings.EnableGuestMagicLink {
+		// Disable guest magic link accounts on first run if guest magic link accounts are disabled
+		// and only if guest accounts are still enabled
+		appInstance := New(ServerConnector(s.Channels()))
+		c := request.EmptyContext(s.Log())
+		if appErr := appInstance.DeactivateMagicLinkGuests(c); appErr != nil {
+			mlog.Error("Unable to deactivate guest magic link accounts", mlog.Err(appErr))
 		}
 	}
 
@@ -484,17 +494,6 @@ func (s *Server) runJobs() {
 	})
 	s.Go(func() {
 		runSecurityJob(s)
-	})
-	s.Go(func() {
-		firstRun, appErr := s.getFirstServerRunTimestamp()
-		if appErr != nil {
-			mlog.Warn("Fetching time of first server run failed. Setting to 'now'.")
-			if err := s.ensureFirstServerRunTimestamp(); err != nil {
-				mlog.Error("Failed to set first server run timestamp to current time", mlog.Err(err))
-			}
-			firstRun = utils.MillisFromTime(time.Now())
-		}
-		s.telemetryService.RunTelemetryJob(firstRun)
 	})
 	s.Go(func() {
 		runSessionCleanupJob(s)
@@ -644,11 +643,7 @@ func (s *Server) Shutdown() {
 	s.RemoveLicenseListener(s.loggerLicenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 
-	err := s.telemetryService.Shutdown()
-	if err != nil {
-		s.Log().Warn("Unable to cleanly shutdown telemetry client", mlog.Err(err))
-	}
-
+	var err error
 	s.serviceMux.RLock()
 	if s.sharedChannelService != nil {
 		if err = s.sharedChannelService.Shutdown(); err != nil {
@@ -667,7 +662,6 @@ func (s *Server) Shutdown() {
 	// Push notification hub needs to be shutdown after HTTP server
 	// to prevent stray requests from generating a push notification after it's shut down.
 	s.StopPushNotificationsHubWorkers()
-	s.htmlTemplateWatcher.Close()
 
 	s.platform.StopSearchEngine()
 
@@ -1200,7 +1194,10 @@ func runReportToAWSMeterJob(s *Server) {
 }
 
 func doReportUsageToAWSMeteringService(s *Server) {
-	awsMeter := awsmeter.New(s.Store(), s.platform.Config())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*s.platform.Config().ServiceSettings.AWSMeteringTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	awsMeter := awsmeter.New(ctx, s.Store(), s.platform.Config())
 	if awsMeter == nil {
 		mlog.Error("Cannot obtain instance of AWS Metering Service.")
 		return
@@ -1208,7 +1205,8 @@ func doReportUsageToAWSMeteringService(s *Server) {
 
 	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 	reports := awsMeter.GetUserCategoryUsage(dimensions, time.Now().UTC(), time.Now().Add(-model.AwsMeteringReportInterval*time.Hour).UTC())
-	if err := awsMeter.ReportUserCategoryUsage(reports); err != nil {
+
+	if err := awsMeter.ReportUserCategoryUsage(ctx, reports); err != nil {
 		mlog.Error("Failed to report usage to AWS Metering Service", mlog.Err(err))
 	}
 }
@@ -1361,7 +1359,7 @@ func (s *Server) doLicenseExpirationCheck() {
 		return
 	}
 
-	if license.IsCloud() {
+	if license.IsCloud() || license.IsMattermostEntry() {
 		return
 	}
 
@@ -1468,6 +1466,11 @@ func (s *Server) initJobs() {
 		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
+	if pushProxyInterface != nil {
+		builder := pushProxyInterface(New(ServerConnector(s.Channels())))
+		s.Jobs.RegisterJobType(model.JobTypePushProxyAuth, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
 	s.Jobs.RegisterJobType(
 		model.JobTypeMigrations,
 		migrations.MakeWorker(s.Jobs, s.Store()),
@@ -1545,7 +1548,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeResendInvitationEmail,
-		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store(), s.telemetryService),
+		resend_invitation_email.MakeWorker(s.Jobs, New(ServerConnector(s.Channels())), s.Store()),
 		nil,
 	)
 
@@ -1623,11 +1626,12 @@ func (s *Server) initJobs() {
 	s.platform.Jobs = s.Jobs
 }
 
-func (s *Server) TelemetryId() string {
-	if s.telemetryService == nil {
+func (s *Server) ServerId() string {
+	props, err := s.Store().System().Get()
+	if err != nil {
 		return ""
 	}
-	return s.telemetryService.TelemetryID
+	return props[model.SystemServerId]
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {

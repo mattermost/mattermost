@@ -12,7 +12,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
 import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
-import type {TelemetryProps} from 'components/common/hooks/useOpenPricingModal';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -31,7 +30,7 @@ interface TrialBannerProps {
     handleUpgrade: () => Promise<void>;
     upgradeError: string | null;
     restartError: string | null;
-    openTrialForm?: (telemetryProps?: TelemetryProps) => void;
+    openTrialForm?: () => void;
 
     handleRestart: () => Promise<void>;
 
@@ -47,7 +46,7 @@ export const EmbargoedEntityTrialError = () => {
             id='admin.license.trial-request.embargoed'
             defaultMessage='We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.'
             values={{
-                link: (text: string) => (
+                link: (text) => (
                     <ExternalLink
                         location='trial_banner'
                         href={LicenseLinks.EMBARGOED_COUNTRIES}
@@ -115,7 +114,7 @@ const TrialBanner = ({
                     defaultMessage: 'We were unable to process the request due to limitations for embargoed countries. <link>Learn more in our documentation</link>, or reach out to legal@mattermost.com for questions around export limitations.',
                 },
                 {
-                    link: (text: string) => (
+                    link: (text) => (
                         <ExternalLink
                             location='trial_banner'
                             href={LicenseLinks.EMBARGOED_COUNTRIES}
@@ -132,7 +131,7 @@ const TrialBanner = ({
 
     const handleRequestLicense = () => {
         if (openTrialForm) {
-            openTrialForm({trackingLocation: 'license_settings.trial_banner'});
+            openTrialForm();
         }
     };
 
