@@ -1,0 +1,32 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Spinner component styles
+.Spinner {
+    display: inline-block;
+    border-radius: 50%;
+    animation: spin 750ms linear infinite;
+    background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
+    
+    // Dynamic mask based on stroke width (set via CSS custom property)
+    mask-image: radial-gradient(
+        farthest-side,
+        transparent calc(100% - var(--spinner-stroke-width, 2px)),
+        #fff calc(100% - var(--spinner-stroke-width, 2px))
+    );
+
+    // Inverted spinner color override (for dark backgrounds)
+    &--inverted {
+        background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
+    }
+}
+
+// Spinner animation (global)
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
