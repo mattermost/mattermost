@@ -21,7 +21,6 @@ import {
     PreferenceTypes,
     AppsTypes,
     CloudTypes,
-    HostedCustomerTypes,
     ChannelBookmarkTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
@@ -624,9 +623,6 @@ export function handleEvent(msg) {
         break;
     case WebSocketEvents.PersistentNotificationTriggered:
         dispatch(handlePersistentNotification(msg));
-        break;
-    case WebSocketEvents.HostedCustomerSignupProgressUpdated:
-        dispatch(handleHostedCustomerSignupProgressUpdated(msg));
         break;
     case WebSocketEvents.CPAValuesUpdated:
         dispatch(handleCustomAttributeValuesUpdated(msg));

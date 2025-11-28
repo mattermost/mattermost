@@ -32,7 +32,7 @@ import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
 import {closeRightHandSide, closeMenu as closeRhsMenu, updateRhsState} from 'actions/views/rhs';
-import * as WebsocketActions from 'actions/websocket_actions.jsx';
+import * as WebsocketActions from 'actions/websocket_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsRhsOpen, getPreviousRhsState, getRhsState} from 'selectors/rhs';
 import BrowserStore from 'stores/browser_store';

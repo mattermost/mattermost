@@ -24,7 +24,7 @@ import {
     unregisterPluginWebSocketEvent,
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
-} from 'actions/websocket_actions.jsx';
+} from 'actions/websocket_actions';
 import store from 'stores/redux_store';
 
 import {ActionTypes} from 'utils/constants';
