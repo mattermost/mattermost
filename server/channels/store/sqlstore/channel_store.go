@@ -51,6 +51,11 @@ type channelMember struct {
 }
 
 func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
+	var sourceID sql.NullString
+	if cm.SourceID != "" {
+		sourceID = sql.NullString{Valid: true, String: cm.SourceID}
+	}
+
 	return map[string]any{
 		"ChannelId":          cm.ChannelId,
 		"UserId":             cm.UserId,
@@ -66,6 +71,7 @@ func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
 		"SchemeGuest":        sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
 		"SchemeUser":         sql.NullBool{Valid: true, Bool: cm.SchemeUser},
 		"SchemeAdmin":        sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
+		"SourceID":           sourceID,
 	}
 }
 
@@ -83,6 +89,7 @@ type channelMemberWithSchemeRoles struct {
 	SchemeGuest                   sql.NullBool
 	SchemeUser                    sql.NullBool
 	SchemeAdmin                   sql.NullBool
+	SourceID                      sql.NullString
 	TeamSchemeDefaultGuestRole    sql.NullString
 	TeamSchemeDefaultUserRole     sql.NullString
 	TeamSchemeDefaultAdminRole    sql.NullString
@@ -303,12 +310,18 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		defaultChannelAdminRole = db.ChannelSchemeDefaultAdminRole.String
 	}
 
+	sourceID := ""
+	if db.SourceID.Valid {
+		sourceID = db.SourceID.String
+	}
+
 	rolesResult := getChannelRoles(
 		schemeGuest, schemeUser, schemeAdmin,
 		defaultTeamGuestRole, defaultTeamUserRole, defaultTeamAdminRole,
 		defaultChannelGuestRole, defaultChannelUserRole, defaultChannelAdminRole,
 		strings.Fields(db.Roles),
 	)
+
 	return &model.ChannelMember{
 		ChannelId:          db.ChannelId,
 		UserId:             db.UserId,
@@ -325,6 +338,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		SchemeUser:         rolesResult.schemeUser,
 		SchemeGuest:        rolesResult.schemeGuest,
 		ExplicitRoles:      strings.Join(rolesResult.explicitRoles, " "),
+		SourceID:           sourceID,
 	}
 }
 
@@ -524,6 +538,7 @@ func (s *SqlChannelStore) initializeQueries() {
 			"ChannelMembers.SchemeUser",
 			"ChannelMembers.SchemeAdmin",
 			"ChannelMembers.SchemeGuest",
+			"ChannelMembers.SourceID",
 			"TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole",
 			"TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole",
 			"TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole",

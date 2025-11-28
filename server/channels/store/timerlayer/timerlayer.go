@@ -1234,6 +1234,22 @@ func (s *TimerLayerChannelStore) CountUrgentPostsAfter(channelID string, timesta
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) CreateChannelLink(rctx request.CTX, link *model.ChannelLink) (*model.ChannelLink, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.CreateChannelLink(rctx, link)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.CreateChannelLink", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) CreateDirectChannel(rctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	start := time.Now()
 
@@ -1310,6 +1326,22 @@ func (s *TimerLayerChannelStore) DeleteAllSidebarChannelForChannel(channelID str
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteAllSidebarChannelForChannel", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelStore) DeleteChannelLink(rctx request.CTX, sourceID string, destinationID string) error {
+	start := time.Now()
+
+	err := s.ChannelStore.DeleteChannelLink(rctx, sourceID, destinationID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.DeleteChannelLink", success, elapsed)
 	}
 	return err
 }
@@ -1822,6 +1854,38 @@ func (s *TimerLayerChannelStore) GetGuestCount(channelID string, allowFromCache 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetGuestCount", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetLinksForDestination(rctx request.CTX, destinationID string, sourceType string) ([]*model.ChannelLink, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetLinksForDestination(rctx, destinationID, sourceType)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetLinksForDestination", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetLinksForSource(rctx request.CTX, sourceID string, sourceType string) ([]*model.ChannelLink, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetLinksForSource(rctx, sourceID, sourceType)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetLinksForSource", success, elapsed)
 	}
 	return result, err
 }
@@ -6786,6 +6850,22 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsCreatedAt", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsForReporting", success, elapsed)
 	}
 	return result, err
 }
