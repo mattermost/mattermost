@@ -11,6 +11,7 @@ import {DropOverlayIdCenterChannel} from 'components/file_upload_overlay/file_up
 import PostView from 'components/post_view';
 
 import WebSocketClient from 'client/web_websocket_client';
+import {getActiveTabFromRoute} from 'utils/channel_utils';
 
 import InputLoading from './input_loading';
 
@@ -54,21 +55,13 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         let updatedState = {};
         const focusedPostId = props.match.params.postid;
 
-        // Detect wiki route and set active tab
-        const wikiMatch = props.match.path.match(/\/wiki\/:channelId\(.*?\)\/:wikiId\(/);
-        const wikiId = wikiMatch ? (props.match.params as any).wikiId : null;
-        const activeTab = wikiId ? `wiki-${wikiId}` : 'messages';
-
         if (props.match.url !== state.url || props.channelId !== state.channelId) {
+            const activeTab = getActiveTabFromRoute(props.match);
             updatedState = {deferredPostView: ChannelView.createDeferredPostView(), url: props.match.url, channelId: props.channelId, focusedPostId, activeTab};
         }
 
         if (focusedPostId && focusedPostId !== state.focusedPostId) {
             updatedState = {...updatedState, focusedPostId};
-        }
-
-        if (activeTab !== state.activeTab) {
-            updatedState = {...updatedState, activeTab};
         }
 
         if (Object.keys(updatedState).length) {

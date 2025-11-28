@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Editor} from '@tiptap/react';
 import {act} from '@testing-library/react';
+import type {Editor} from '@tiptap/react';
 import React from 'react';
 
 import type {Agent} from '@mattermost/types/agents';

@@ -15,12 +15,12 @@ import WikiRHS from './wiki_rhs';
 
 jest.mock('./wiki_thread_viewer_container', () => ({
     __esModule: true,
-    default: () => <div data-testid='wiki-thread-viewer'>Thread Viewer</div>,
+    default: () => <div data-testid='wiki-thread-viewer'>{'Thread Viewer'}</div>,
 }));
 
 jest.mock('./all_wiki_threads', () => ({
     __esModule: true,
-    default: () => <div data-testid='all-wiki-threads'>All Wiki Threads</div>,
+    default: () => <div data-testid='all-wiki-threads'>{'All Wiki Threads'}</div>,
 }));
 
 describe('components/wiki_rhs/WikiRHS', () => {

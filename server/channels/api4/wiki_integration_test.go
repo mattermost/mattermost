@@ -526,7 +526,7 @@ func TestPublishPageDraft_WrongBaseUpdateAtReturns409(t *testing.T) {
 	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, newDraftId, newContent, "Updated Title", createdPage.Id, nil)
 	require.Nil(t, appErr)
 
-	_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, newDraftId, "", "Updated Title", "", newContent, "", 0, false)
+	_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, wiki.Id, newDraftId, "", "Updated Title", "", newContent, "", 1, false)
 
 	require.NotNil(t, appErr)
 	require.Equal(t, "app.page.update.conflict.app_error", appErr.Id)
