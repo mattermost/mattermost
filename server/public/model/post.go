@@ -101,7 +101,7 @@ const (
 	PostPriorityUrgent = "urgent"
 
 	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
-	DefaultReadDurationSeconds = 15               // 15 seconds
+	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
 )
 
 type Post struct {
@@ -179,7 +179,7 @@ type PostEphemeral struct {
 }
 
 type PostPatch struct {
-	IsPinned     *bool            `json:"is_pinned"`
+	IsPinned     *bool            `json:"-"`
 	Message      *string          `json:"message"`
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`

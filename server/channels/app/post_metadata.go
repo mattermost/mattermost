@@ -145,6 +145,14 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 		post.Metadata.Files = fileInfos
 	}
 
+	if post.Type == model.PostTypeBurnOnRead {
+		// if metadata expire is not set, it means the post is not revealed yet
+		// so we need to reset the metadata. Or, if the user is the author, we don't reset the metadata.
+		if post.Metadata.ExpireAt == 0 && post.UserId != rctx.Session().UserId {
+			post.Metadata = &model.PostMetadata{}
+		}
+	}
+
 	if opts.IncludePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
 		// Post's Priority if any
 		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
@@ -677,6 +685,10 @@ func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (
 	// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	if referencedPost.Type == model.PostTypeBurnOnRead {
+		return nil, model.NewAppError("getLinkMetadataForPermalink", "api.post.get_link_metadata_for_permalink.burn_on_read.app_error", nil, "", http.StatusForbidden)
 	}
 
 	referencedChannel, appErr := a.GetChannel(rctx, referencedPost.ChannelId)
