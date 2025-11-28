@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
-import React from 'react';
 import type {ComponentProps} from 'react';
+import React from 'react';
 import {describe, test, expect, vi} from 'vitest';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
+
+import {render, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import InfoToast from './info_toast';
 

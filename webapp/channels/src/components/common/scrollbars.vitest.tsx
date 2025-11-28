@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
 import {describe, test, expect, vi} from 'vitest';
+
+import {fireEvent, render} from 'tests/vitest_react_testing_utils';
 
 import Scrollbars from './scrollbars';
 
@@ -17,7 +18,6 @@ describe('Scrollbars', () => {
             </Scrollbars>,
         );
 
-        // Ideally, we'd actually scroll the content of the element, but jsdom doesn't implement scroll events
         fireEvent.scroll(document.querySelector('.simplebar-content-wrapper')!);
 
         expect(onScroll).toHaveBeenCalled();

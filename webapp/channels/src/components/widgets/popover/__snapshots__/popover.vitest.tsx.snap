@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/widgets/popover > plain 1`] = `
+<div
+  class="popover popover-sm popover-info right"
+  id="test"
+  role="tooltip"
+  style="display: block;"
+>
+  <div
+    class="arrow"
+  />
+  <div
+    class="popover-content"
+  >
+    Some text
+  </div>
+</div>
+`;

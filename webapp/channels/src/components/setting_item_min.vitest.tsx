@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import {fireEvent} from '@testing-library/react';
 import React from 'react';
 import {describe, test, expect, vi} from 'vitest';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 
 import SettingItemMin from './setting_item_min';
 
@@ -49,37 +48,37 @@ describe('components/SettingItemMin', () => {
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
-    test('should call updateSection when edit button is clicked', async () => {
+    test('should call updateSection when edit button is clicked', () => {
         const updateSection = vi.fn();
         const props = {...baseProps, updateSection};
         renderWithContext(<SettingItemMin {...props}/>);
 
         const editButton = screen.getByRole('button', {name: 'Test Title Edit'});
-        await userEvent.click(editButton);
+        fireEvent.click(editButton);
 
         expect(updateSection).toHaveBeenCalledTimes(1);
         expect(updateSection).toHaveBeenCalledWith('test-section');
     });
 
-    test('should call updateSection when container div is clicked', async () => {
+    test('should call updateSection when container div is clicked', () => {
         const updateSection = vi.fn();
         const props = {...baseProps, updateSection};
         renderWithContext(<SettingItemMin {...props}/>);
 
         const container = screen.getByText('Test Title').closest('.section-min');
-        await userEvent.click(container!);
+        fireEvent.click(container!);
 
         expect(updateSection).toHaveBeenCalledTimes(1);
         expect(updateSection).toHaveBeenCalledWith('test-section');
     });
 
-    test('should not call updateSection when disabled and edit button area is clicked', async () => {
+    test('should not call updateSection when disabled and edit button area is clicked', () => {
         const updateSection = vi.fn();
         const props = {...baseProps, updateSection, isDisabled: true};
         renderWithContext(<SettingItemMin {...props}/>);
 
         const container = screen.getByText('Test Title').closest('.section-min');
-        await userEvent.click(container!);
+        fireEvent.click(container!);
 
         expect(updateSection).not.toHaveBeenCalled();
     });

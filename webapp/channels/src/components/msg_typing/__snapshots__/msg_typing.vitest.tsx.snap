@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/MsgTyping > should match snapshot, on multiple users typing 1`] = `
+<div>
+  <span
+    class="msg-typing"
+  >
+    test.user, other.test.user and another.user are typing...
+  </span>
+</div>
+`;
+
+exports[`components/MsgTyping > should match snapshot, on nobody typing 1`] = `
+<div>
+  <span
+    class="msg-typing"
+  />
+</div>
+`;
+
+exports[`components/MsgTyping > should match snapshot, on one user typing 1`] = `
+<div>
+  <span
+    class="msg-typing"
+  >
+    test.user is typing...
+  </span>
+</div>
+`;

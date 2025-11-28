@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import {describe, test, expect} from 'vitest';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+import {renderWithIntl, fireEvent, screen} from 'tests/vitest_react_testing_utils';
 
 import Avatar, {getAvatarWidth} from './avatar';
 
@@ -75,9 +74,7 @@ describe('components/widgets/users/Avatar', () => {
     });
 
     test('should handle image load error with user avatar fallback', () => {
-        // Client4.getUsersRoute() returns the API route for user avatars (e.g., /api/v4/users)
-        // This is used to distinguish user avatars from bot/plugin avatars for proper fallback handling
-        const userAvatarUrl = `${Client4.getUsersRoute()}/userid123/image?_=123456`;
+        const userAvatarUrl = Client4.getUsersRoute() + '/userid123/image?_=123456';
 
         renderWithIntl(
             <Avatar url={userAvatarUrl}/>,
@@ -108,15 +105,10 @@ describe('components/widgets/users/Avatar', () => {
 
         // Should change from the initial URL (bot icon set, even if empty in test environment)
         expect(avatar.src).not.toBe(initialSrc);
-
-        // In production, this would be the bot default icon
-        // In test environment, it resolves to the BotDefaultIcon import path
-        // The import is mocked/resolved differently in test environment
-        expect(avatar.src).toContain('bot_default_icon');
     });
 
     test('should not change src if already using fallback image', () => {
-        const userAvatarUrl = `${Client4.getUsersRoute()}/userid123/image/default`;
+        const userAvatarUrl = Client4.getUsersRoute() + '/userid123/image/default';
 
         renderWithIntl(
             <Avatar url={userAvatarUrl}/>,

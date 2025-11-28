@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/common/SiteNameAndDescription > should match snapshot, default 1`] = `
+<div>
+  <h1
+    id="site_name"
+  >
+    Mattermost
+  </h1>
+  <h3
+    class="color--light"
+    id="site_description"
+  >
+    All team communication in one place, searchable and accessible anywhere
+  </h3>
+</div>
+`;
+
+exports[`/components/common/SiteNameAndDescription > should match snapshot, with custom site name and description 1`] = `
+<div>
+  <h1
+    id="site_name"
+  >
+    other_site
+  </h1>
+  <h3
+    class="color--light"
+    id="site_description"
+  >
+    custom_description_text
+  </h3>
+</div>
+`;

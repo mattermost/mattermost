@@ -3,11 +3,28 @@
 
 import {act} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect} from 'vitest';
+import {describe, test, expect, vi} from 'vitest';
 
 import LatexInline from 'components/latex_inline/latex_inline';
 
 import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+
+vi.mock('katex', () => ({
+    default: {
+        renderToString: (content: string, options: {throwOnError: boolean}) => {
+            // Simulate KaTeX behavior - throw error for malformed LaTeX when braces are unbalanced
+            if (content.includes('{') && !content.includes('}')) {
+                if (options.throwOnError) {
+                    throw new Error('KaTeX parse error');
+                }
+
+                // When throwOnError is false, KaTeX returns error HTML
+                return `<span class="katex-error" style="color:#cc0000" title="ParseError: KaTeX parse error: Expected '}', got 'EOF' at end of input: ${content}">${content}</span>`;
+            }
+            return `<span class="katex"><span class="katex-html">${content}</span></span>`;
+        },
+    },
+}));
 
 describe('components/LatexInline', () => {
     const defaultProps = {
