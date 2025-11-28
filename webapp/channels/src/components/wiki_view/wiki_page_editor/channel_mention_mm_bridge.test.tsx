@@ -23,15 +23,12 @@ describe('createChannelMentionSuggestion', () => {
         header: '',
         purpose: '',
         last_post_at: 0,
-        total_msg_count: 0,
-        extra_update_at: 0,
-        creator_id: 'user-1',
-        scheme_id: null,
-        group_constrained: null,
-        shared: null,
-        total_msg_count_root: 0,
-        policy_id: null,
         last_root_post_at: 0,
+        creator_id: 'user-1',
+        scheme_id: '',
+        group_constrained: false,
+        shared: undefined,
+        policy_id: null,
     };
 
     const mockChannel2: Channel = {
@@ -46,21 +43,18 @@ describe('createChannelMentionSuggestion', () => {
         header: '',
         purpose: '',
         last_post_at: 0,
-        total_msg_count: 0,
-        extra_update_at: 0,
-        creator_id: 'user-1',
-        scheme_id: null,
-        group_constrained: null,
-        shared: null,
-        total_msg_count_root: 0,
-        policy_id: null,
         last_root_post_at: 0,
+        creator_id: 'user-1',
+        scheme_id: '',
+        group_constrained: false,
+        shared: undefined,
+        policy_id: null,
     };
 
     const mockChannels = [mockChannel1, mockChannel2];
 
     const createMockAutocompleteChannels = (channels: Channel[]) => {
-        return (term: string, success: (channels: Channel[]) => void, _error: () => void) => {
+        return (term: string, success: (channels: Channel[]) => void) => {
             const filtered = channels.filter((ch) =>
                 ch.name.includes(term.toLowerCase()) ||
                 ch.display_name.toLowerCase().includes(term.toLowerCase()),
