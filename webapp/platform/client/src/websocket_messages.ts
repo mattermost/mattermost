@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChannelBookmarkWithFileInfo} from '@mattermost/types/channel_bookmarks';
+import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import type {Limits, Subscription} from '@mattermost/types/cloud';
@@ -18,7 +18,7 @@ import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
-import type {ThreadResponse} from '@mattermost/types/threads';
+import type {UserThread} from '@mattermost/types/threads';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 export const enum WebSocketEvents {
@@ -224,15 +224,15 @@ export type PostedMessage = BaseWebSocketMessage<WebSocketEvents.Posted, {
     post: JsonEncodedValue<Post>;
 
     /**
-         * If the current user is mentioned by this post, this field will contain the ID of that user. Otherwise,
-         * it will be empty.
-         */
-    mentioned?: JsonEncodedValue<string[]>;
+     * If the current user is mentioned by this post, this field will contain the ID of that user. Otherwise,
+     * it will be empty.
+     */
+    mentions?: JsonEncodedValue<string[]>;
 
     /**
-         * If the current user is following this post, this field will contain the ID of that user. Otherwise,
-         * it will be empty.
-         */
+     * If the current user is following this post, this field will contain the ID of that user. Otherwise,
+     * it will be empty.
+     */
     followers?: JsonEncodedValue<string[]>;
 
     should_ack?: boolean;
@@ -299,7 +299,7 @@ export type ScheduledPostMessage =
 // Thread messages
 
 export type ThreadUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.ThreadUpdated, {
-    thread: JsonEncodedValue<ThreadResponse>;
+    thread: JsonEncodedValue<UserThread>;
 
     previous_unread_mentions?: number;
     previous_unread_replies?: number;
@@ -392,9 +392,7 @@ export type ChannelBookmarkCreatedMessage = BaseWebSocketMessage<WebSocketEvents
 }>;
 
 export type ChannelBookmarkUpdatedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkUpdated, {
-
-    // This field is misnamed, but it matches the name used by the server.
-    bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo>;
+    bookmarks: JsonEncodedValue<UpdateChannelBookmarkResponse>;
 }>;
 
 export type ChannelBookmarkDeletedMessage = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkDeleted, {
@@ -470,14 +468,14 @@ export type GroupAssociatedToTeamMessage =
         group_id: string;
     }>;
 
-export type GroupAssociatedToChannelMesasge =
+export type GroupAssociatedToChannelMessage =
     BaseWebSocketMessage<WebSocketEvents.ReceivedGroupAssociatedToChannel | WebSocketEvents.ReceivedGroupNotAssociatedToChannel, {
         group_id: string;
     }>;
 
 export type GroupMemberMessage =
     BaseWebSocketMessage<WebSocketEvents.GroupMemberAdded | WebSocketEvents.GroupMemberDeleted, {
-        groupMember: JsonEncodedValue<GroupMember>;
+        group_member: JsonEncodedValue<GroupMember>;
     }>;
 
 // Preference messages
@@ -540,7 +538,7 @@ export type CloudSubscriptionChangedMessage = BaseWebSocketMessage<WebSocketEven
 
 export type FirstAdminVisitMarketplaceStatusReceivedMessage =
     BaseWebSocketMessage<WebSocketEvents.FirstAdminVisitMarketplaceStatusReceived, {
-        firstAdminVisitMarketplaceStatus: string;
+        firstAdminVisitMarketplaceStatus: JsonEncodedValue<boolean>;
     }>;
 
 export type HostedCustomerSignupProgressUpdatedMessage =
@@ -606,3 +604,9 @@ export type WebSocketBroadcast = {
     channel_id: string;
     team_id: string;
 }
+
+/**
+ * UnknownWebSocketMessage is used for WebSocket messages which don't come from Mattermost itself. It's primarily
+ * intended for use by plugins.
+ */
+export type UnknownWebSocketMessage = BaseWebSocketMessage<string, unknown>;

@@ -48,6 +48,11 @@ export type ChannelBookmarkPatch = {
     emoji?: string;
 }
 
+export type UpdateChannelBookmarkResponse = {
+    updated: ChannelBookmark;
+    deleted: ChannelBookmark;
+};
+
 export type ChannelBookmarkWithFileInfo = ChannelBookmark & {
     file: FileInfo;
 }

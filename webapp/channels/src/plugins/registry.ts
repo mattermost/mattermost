@@ -5,6 +5,8 @@ import React from 'react';
 import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
 
+import type {UnknownWebSocketMessage} from '@mattermost/client';
+
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
 import {
@@ -816,7 +818,16 @@ export default class PluginRegistry {
      * - handler - a function to handle the event, receives the event message as an argument
      * Returns undefined.
      */
-    registerWebSocketEventHandler = reArg(['event', 'handler'], ({event, handler}) => {
+    registerWebSocketEventHandler = reArg([
+        'event',
+        'handler',
+    ], ({
+        event,
+        handler,
+    }: {
+        event: string;
+        handler: (msg: UnknownWebSocketMessage) => void;
+    }) => {
         registerPluginWebSocketEvent(this.id, event, handler);
     });
 
@@ -825,7 +836,7 @@ export default class PluginRegistry {
      * Accepts a string event type.
      * Returns undefined.
      */
-    unregisterWebSocketEventHandler = reArg(['event'], ({event}) => {
+    unregisterWebSocketEventHandler = reArg(['event'], ({event}: { event: string }) => {
         unregisterPluginWebSocketEvent(this.id, event);
     });
 
@@ -834,7 +845,7 @@ export default class PluginRegistry {
      * internet after previously disconnecting.
      * Accepts a function to handle the event. Returns undefined.
      */
-    registerReconnectHandler = reArg(['handler'], ({handler}) => {
+    registerReconnectHandler = reArg(['handler'], ({handler}: {handler: () => void}) => {
         registerPluginReconnectHandler(this.id, handler);
     });
 

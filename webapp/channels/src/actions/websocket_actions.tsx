@@ -5,8 +5,23 @@
 
 import {batchActions} from 'redux-batched-actions';
 
+import type {ChannelBookmarkCreatedMessage, ChannelBookmarkDeletedMessage, ChannelBookmarkSortedMessage, ChannelBookmarkUpdatedMessage, ChannelConvertedMessage, ChannelCreatedMessage, ChannelDeletedMessage, ChannelMemberUpdatedMessage, ChannelRestoredMessage, ChannelSchemeUpdatedMessage, ChannelUpdatedMessage, CloudSubscriptionChangedMessage, ConfigChangedMessage, ContentFlaggingReportValueUpdatedMessage, CPAFieldCreatedMessage, CPAFieldDeletedMessage, CPAFieldUpdatedMessage, CPAValuesUpdatedMessage, DirectChannelCreatedMessage, EmojiAddedMessage, EphemeralPostMessage, FirstAdminVisitMarketplaceStatusReceivedMessage, GroupAssociatedToChannelMessage, GroupAssociatedToTeamMessage, GroupChannelCreatedMessage, GroupMemberMessage, HelloMessage, LicenseChangedMessage, MultipleChannelsViewedMessage, OpenDialogMessage, PersistentNotificationTriggeredMessage, PluginMessage, PluginStatusesChangedMessage, PostAcknowledgementMessage, PostDeletedMessage, PostDraftMessage, PostEditedMessage, PostedMessage, PostReactionMessage, PostUnreadMessage, PreferenceChangedMessage, PreferencesChangedMessage, ReceivedGroupMessage, RoleUpdatedMessage, ScheduledPostMessage, SidebarCategoryCreatedMessage, SidebarCategoryDeletedMessage, SidebarCategoryOrderUpdatedMessage, SidebarCategoryUpdatedMessage, StatusChangedMessage, TeamMemberRoleUpdatedMessage, TeamMessage, ThreadFollowedChangedMessage, ThreadReadChangedMessage, ThreadUpdatedMessage, UnknownWebSocketMessage, UserAddedToChannelMessage, UserAddedToTeamMessage, UserRemovedFromChannelMessage, UserRemovedFromTeamMessage, UserRoleUpdatedMessage, UserUpdatedMessage, WebSocketMessage} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
+import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Draft} from '@mattermost/types/drafts';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {Group, GroupMember} from '@mattermost/types/groups';
+import type {OpenDialogRequest} from '@mattermost/types/integrations';
+import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {Role} from '@mattermost/types/roles';
+import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserThread} from '@mattermost/types/threads';
 
+import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {
     ChannelTypes,
     EmojiTypes,
@@ -115,7 +130,7 @@ import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
-import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
+import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
@@ -130,6 +145,8 @@ import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
+import type {ActionFunc, ThunkActionFunc} from 'types/store';
+
 import {temporarilySetPageLoadContext} from './telemetry_actions';
 
 const dispatch = store.dispatch;
@@ -137,7 +154,7 @@ const getState = store.getState;
 
 const MAX_WEBSOCKET_FAILS = 7;
 
-const pluginEventHandlers = {};
+const pluginEventHandlers: Record<string, Record<string, (msg: UnknownWebSocketMessage) => void>> = {};
 
 export function initialize() {
     if (!window.WebSocket) {
@@ -154,25 +171,25 @@ export function initialize() {
     if (config.WebsocketURL) {
         connUrl = config.WebsocketURL;
     } else {
-        connUrl = new URL(getSiteURL());
+        const url = new URL(getSiteURL());
 
         // replace the protocol with a websocket one
-        if (connUrl.protocol === 'https:') {
-            connUrl.protocol = 'wss:';
+        if (url.protocol === 'https:') {
+            url.protocol = 'wss:';
         } else {
-            connUrl.protocol = 'ws:';
+            url.protocol = 'ws:';
         }
 
         // append a port number if one isn't already specified
-        if (!(/:\d+$/).test(connUrl.host)) {
-            if (connUrl.protocol === 'wss:') {
-                connUrl.host += ':' + config.WebsocketSecurePort;
+        if (!(/:\d+$/).test(url.host)) {
+            if (url.protocol === 'wss:') {
+                url.host += ':' + config.WebsocketSecurePort;
             } else {
-                connUrl.host += ':' + config.WebsocketPort;
+                url.host += ':' + config.WebsocketPort;
             }
         }
 
-        connUrl = connUrl.toString();
+        connUrl = url.toString();
     }
 
     // Strip any trailing slash before appending the pathname below.
@@ -201,13 +218,13 @@ export function close() {
     WebSocketClient.removeCloseListener(handleClose);
 }
 
-const pluginReconnectHandlers = {};
+const pluginReconnectHandlers: Record<string, () => void> = {};
 
-export function registerPluginReconnectHandler(pluginId, handler) {
+export function registerPluginReconnectHandler(pluginId: string, handler: () => void) {
     pluginReconnectHandlers[pluginId] = handler;
 }
 
-export function unregisterPluginReconnectHandler(pluginId) {
+export function unregisterPluginReconnectHandler(pluginId: string) {
     Reflect.deleteProperty(pluginReconnectHandlers, pluginId);
 }
 
@@ -235,7 +252,7 @@ export function reconnect() {
         const currentUserId = getCurrentUserId(state);
         const currentChannelId = getCurrentChannelId(state);
         const mostRecentId = getMostRecentPostIdInChannel(state, currentChannelId);
-        const mostRecentPost = getPost(state, mostRecentId);
+        const mostRecentPost = mostRecentId && getPost(state, mostRecentId);
 
         if (appsEnabled(state)) {
             dispatch(handleRefreshAppsBindings());
@@ -298,7 +315,7 @@ export function reconnect() {
     dispatch(clearErrors());
 }
 
-function syncThreads(teamId, userId) {
+function syncThreads(teamId: string, userId: string) {
     const state = getState();
     const newestThread = getNewestThreadInTeam(state, teamId);
 
@@ -309,14 +326,14 @@ function syncThreads(teamId, userId) {
     dispatch(getCountsAndThreadsSince(userId, teamId, newestThread.last_reply_at));
 }
 
-export function registerPluginWebSocketEvent(pluginId, event, action) {
+export function registerPluginWebSocketEvent(pluginId: string, event: string, action: (msg: UnknownWebSocketMessage) => void) {
     if (!pluginEventHandlers[pluginId]) {
         pluginEventHandlers[pluginId] = {};
     }
     pluginEventHandlers[pluginId][event] = action;
 }
 
-export function unregisterPluginWebSocketEvent(pluginId, event) {
+export function unregisterPluginWebSocketEvent(pluginId: string, event: string) {
     const events = pluginEventHandlers[pluginId];
     if (!events) {
         return;
@@ -325,7 +342,7 @@ export function unregisterPluginWebSocketEvent(pluginId, event) {
     Reflect.deleteProperty(events, event);
 }
 
-export function unregisterAllPluginWebSocketEvents(pluginId) {
+export function unregisterAllPluginWebSocketEvents(pluginId: string) {
     Reflect.deleteProperty(pluginEventHandlers, pluginId);
 }
 
@@ -339,23 +356,25 @@ function handleFirstConnect() {
     ]));
 }
 
-function handleClose(failCount) {
+function handleClose(failCount: number) {
     if (failCount > MAX_WEBSOCKET_FAILS) {
-        dispatch(logError({type: 'critical', message: AnnouncementBarMessages.WEBSOCKET_PORT_ERROR}, true));
+        dispatch(logError({type: 'critical', message: AnnouncementBarMessages.WEBSOCKET_PORT_ERROR}));
     }
     dispatch(batchActions([
         {
             type: GeneralTypes.WEBSOCKET_FAILURE,
             timestamp: Date.now(),
         },
-        incrementWsErrorCount(),
+
+        // TODO The accompanying logic causes the post textbox to turn yellow when there are WebSocket issues,
+        // and it's been broken since https://github.com/mattermost/mattermost-webapp/pull/2981. Either this and the
+        // batchActions should be removed, or we should fix this by changing incrementWsErrorCount to be a non-thunk
+        // action.
+        // incrementWsErrorCount(),
     ]));
 }
 
-/**
- * @param {import('@mattermost/client').WebSocketMessage} msg
- */
-export function handleEvent(msg) {
+export function handleEvent(msg: WebSocketMessage) {
     switch (msg.event) {
     case WebSocketEvents.Posted:
     case WebSocketEvents.EphemeralMessage:
@@ -383,7 +402,7 @@ export function handleEvent(msg) {
         break;
 
     case WebSocketEvents.UpdateTeamScheme:
-        handleUpdateTeamSchemeEvent(msg);
+        handleUpdateTeamSchemeEvent();
         break;
 
     case WebSocketEvents.DeleteTeam:
@@ -654,7 +673,7 @@ export function handleEvent(msg) {
 }
 
 // handleChannelConvertedEvent handles updating of channel which is converted from public to private
-function handleChannelConvertedEvent(msg) {
+function handleChannelConvertedEvent(msg: ChannelConvertedMessage) {
     const channelId = msg.data.channel_id;
     if (channelId) {
         const channel = getChannel(getState(), channelId);
@@ -667,11 +686,15 @@ function handleChannelConvertedEvent(msg) {
     }
 }
 
-export function handleChannelUpdatedEvent(msg) {
+export function handleChannelUpdatedEvent(msg: ChannelUpdatedMessage): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        const channel = JSON.parse(msg.data.channel);
+        if (!msg.data.channel) {
+            return;
+        }
 
-        const actions = [{type: ChannelTypes.RECEIVED_CHANNEL, data: channel}];
+        const channel = JSON.parse(msg.data.channel) as Channel;
+
+        const actions: MMReduxAction[] = [{type: ChannelTypes.RECEIVED_CHANNEL, data: channel}];
 
         // handling the case of GM converted to private channel.
         const state = doGetState();
@@ -695,21 +718,21 @@ export function handleChannelUpdatedEvent(msg) {
     };
 }
 
-function handleChannelMemberUpdatedEvent(msg) {
-    const channelMember = JSON.parse(msg.data.channelMember);
+function handleChannelMemberUpdatedEvent(msg: ChannelMemberUpdatedMessage) {
+    const channelMember = JSON.parse(msg.data.channelMember) as ChannelMembership;
     const roles = channelMember.roles.split(' ');
     dispatch(loadRolesIfNeeded(roles));
     dispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
 }
 
-function debouncePostEvent(wait) {
-    let timeout;
-    let queue = [];
+function debouncePostEvent(wait: number) {
+    let timeout: number | undefined;
+    let queue: Array<PostedMessage | EphemeralPostMessage> = [];
     let count = 0;
 
     // Called when timeout triggered
     const triggered = () => {
-        timeout = null;
+        timeout = undefined;
 
         if (queue.length > 0) {
             dispatch(handleNewPostEvents(queue));
@@ -719,7 +742,7 @@ function debouncePostEvent(wait) {
         count = 0;
     };
 
-    return function fx(msg) {
+    return function fx(msg: PostedMessage | EphemeralPostMessage) {
         if (timeout && count > 4) {
             // If the timeout is going this is the second or further event so queue them up.
             if (queue.push(msg) > 200) {
@@ -728,27 +751,24 @@ function debouncePostEvent(wait) {
                 console.log('channel broken because of too many incoming messages'); //eslint-disable-line no-console
             }
             clearTimeout(timeout);
-            timeout = setTimeout(triggered, wait);
+            timeout = window.setTimeout(triggered, wait);
         } else {
             // Apply immediately for events up until count reaches limit
             count += 1;
             dispatch(handleNewPostEvent(msg));
             clearTimeout(timeout);
-            timeout = setTimeout(triggered, wait);
+            timeout = window.setTimeout(triggered, wait);
         }
     };
 }
 
 const handleNewPostEventDebounced = debouncePostEvent(100);
 
-/**
- * @param {import('@mattermost/client').PostedMessage | import('@mattermost/client').EphemeralPostMessage} msg
- */
-export function handleNewPostEvent(msg) {
+export function handleNewPostEvent(msg: PostedMessage | EphemeralPostMessage): ThunkActionFunc<void> {
     return (myDispatch, myGetState) => {
-        const post = JSON.parse(msg.data.post);
+        const post = JSON.parse(msg.data.post) as Post;
 
-        if (window.logPostEvents) {
+        if ((window as any).logPostEvents) {
             // eslint-disable-next-line no-console
             console.log('handleNewPostEvent - new post received', post);
         }
@@ -764,7 +784,7 @@ export function handleNewPostEvent(msg) {
         if (
             post.user_id !== getCurrentUserId(myGetState()) &&
             !getIsManualStatusForUserId(myGetState(), post.user_id) &&
-            msg.data.set_online
+            'set_online' in msg.data && msg.data.set_online
         ) {
             myDispatch({
                 type: UserTypes.RECEIVED_STATUSES,
@@ -774,18 +794,19 @@ export function handleNewPostEvent(msg) {
     };
 }
 
-export function handleNewPostEvents(queue) {
+export function handleNewPostEvents(queue: Array<PostedMessage | EphemeralPostMessage>): ThunkActionFunc<void> {
     return (myDispatch, myGetState) => {
         // Note that this method doesn't properly update the sidebar state for these posts
-        const posts = queue.map((msg) => JSON.parse(msg.data.post));
+        const posts = queue.map((msg) => JSON.parse(msg.data.post) as Post);
 
-        if (window.logPostEvents) {
+        if ((window as any).logPostEvents) {
             // eslint-disable-next-line no-console
             console.log('handleNewPostEvents - new posts received', posts);
         }
 
         posts.forEach((post, index) => {
-            if (queue[index].data.should_ack) {
+            const msg = queue[index];
+            if ('should_ack' in msg.data && msg.data.should_ack) {
                 WebSocketClient.acknowledgePostedNotification(post.id, 'not_sent', 'too_many_posts');
             }
         });
@@ -801,14 +822,11 @@ export function handleNewPostEvents(queue) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').PostEditedMessage} msg
- */
-export function handlePostEditEvent(msg) {
+export function handlePostEditEvent(msg: PostEditedMessage) {
     // Store post
-    const post = JSON.parse(msg.data.post);
+    const post = JSON.parse(msg.data.post) as Post;
 
-    if (window.logPostEvents) {
+    if ((window as any).logPostEvents) {
         // eslint-disable-next-line no-console
         console.log('handlePostEditEvent - post edit received', post);
     }
@@ -819,13 +837,10 @@ export function handlePostEditEvent(msg) {
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 }
 
-/**
- * @param {import('@mattermost/client').PostDeletedMessage} msg
- */
-async function handlePostDeleteEvent(msg) {
-    const post = JSON.parse(msg.data.post);
+async function handlePostDeleteEvent(msg: PostDeletedMessage) {
+    const post = JSON.parse(msg.data.post) as Post;
 
-    if (window.logPostEvents) {
+    if ((window as any).logPostEvents) {
         // eslint-disable-next-line no-console
         console.log('handlePostDeleteEvent - post delete received', post);
     }
@@ -863,10 +878,7 @@ async function handlePostDeleteEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').PostUnreadMessage} msg
- */
-export function handlePostUnreadEvent(msg) {
+export function handlePostUnreadEvent(msg: PostUnreadMessage) {
     dispatch(
         {
             type: ActionTypes.POST_UNREAD_SUCCESS,
@@ -883,10 +895,7 @@ export function handlePostUnreadEvent(msg) {
     );
 }
 
-/**
- * @param {import('@mattermost/client').UserAddedToTeamMessage} msg
- */
-async function handleTeamAddedEvent(msg) {
+async function handleTeamAddedEvent(msg: UserAddedToTeamMessage) {
     await dispatch(TeamActions.getTeam(msg.data.team_id));
     await dispatch(TeamActions.getMyTeamMembers());
     const state = getState();
@@ -898,13 +907,10 @@ async function handleTeamAddedEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').UserRemovedFromTeamMessage} msg
- */
-export function handleLeaveTeamEvent(msg) {
+export function handleLeaveTeamEvent(msg: UserRemovedFromTeamMessage) {
     const state = getState();
 
-    const actions = [
+    const actions: MMReduxAction[] = [
         {
             type: UserTypes.RECEIVED_PROFILE_NOT_IN_TEAM,
             data: {id: msg.data.team_id, user_id: msg.data.user_id},
@@ -964,30 +970,21 @@ export function handleLeaveTeamEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').TeamMessage} msg
- */
-function handleUpdateTeamEvent(msg) {
+function handleUpdateTeamEvent(msg: TeamMessage) {
     const state = store.getState();
     const license = getLicense(state);
-    dispatch({type: TeamTypes.UPDATED_TEAM, data: JSON.parse(msg.data.team)});
+    dispatch({type: TeamTypes.UPDATED_TEAM, data: JSON.parse(msg.data.team) as Team});
     if (license.Cloud === 'true') {
         dispatch(getTeamsUsage());
     }
 }
 
-/**
- * @param {import('@mattermost/client').UpdateTeamSchemeMessage} msg
- */
 function handleUpdateTeamSchemeEvent() {
     dispatch(TeamActions.getMyTeamMembers());
 }
 
-/**
- * @param {import('@mattermost/client').TeamMessage} msg
- */
-function handleDeleteTeamEvent(msg) {
-    const deletedTeam = JSON.parse(msg.data.team);
+function handleDeleteTeamEvent(msg: TeamMessage) {
+    const deletedTeam = JSON.parse(msg.data.team) as Team;
     const state = store.getState();
     const {teams} = state.entities.teams;
     const license = getLicense(state);
@@ -1011,7 +1008,7 @@ function handleDeleteTeamEvent(msg) {
             teamMember &&
             deletedTeam.id === teamMember.team_id
         ) {
-            const myTeams = {};
+            const myTeams: Record<string, Team> = {};
             getMyTeams(state).forEach((t) => {
                 myTeams[t.id] = t;
             });
@@ -1048,11 +1045,8 @@ function handleDeleteTeamEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').TeamMemberRoleUpdatedMessage} msg
- */
-function handleUpdateMemberRoleEvent(msg) {
-    const memberData = JSON.parse(msg.data.member);
+function handleUpdateMemberRoleEvent(msg: TeamMemberRoleUpdatedMessage) {
+    const memberData = JSON.parse(msg.data.member) as TeamMembership;
     const newRoles = memberData.roles.split(' ');
 
     dispatch(loadRolesIfNeeded(newRoles));
@@ -1063,24 +1057,15 @@ function handleUpdateMemberRoleEvent(msg) {
     });
 }
 
-/**
- * @param {import('@mattermost/client').DirectChannelCreatedMessage} msg
- */
-function handleDirectAddedEvent(msg) {
+function handleDirectAddedEvent(msg: DirectChannelCreatedMessage) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-/**
- * @param {import('@mattermost/client').GroupChannelCreatedMessage} msg
- */
-function handleGroupAddedEvent(msg) {
+function handleGroupAddedEvent(msg: GroupChannelCreatedMessage) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-/**
- * @param {import('@mattermost/client').UserAddedToChannelMessage} msg
- */
-function handleUserAddedEvent(msg) {
+function handleUserAddedEvent(msg: UserAddedToChannelMessage): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1114,22 +1099,19 @@ function handleUserAddedEvent(msg) {
     };
 }
 
-function fetchChannelAndAddToSidebar(channelId) {
+function fetchChannelAndAddToSidebar(channelId: string): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const {data, error} = await doDispatch(getChannelAndMyMember(channelId));
 
-        if (!error) {
+        if (data && !error) {
             doDispatch(addChannelToInitialCategory(data.channel));
         }
     };
 }
 
-/**
- * @param {import('@mattermost/client').UserRemovedFromChannelMessage} msg
- */
-export function handleUserRemovedEvent(msg) {
+export function handleUserRemovedEvent(msg: UserRemovedFromChannelMessage) {
     const state = getState();
-    const currentChannel = getCurrentChannel(state) || {};
+    const currentChannel = getCurrentChannel(state);
     const currentUser = getCurrentUser(state);
     const config = getConfig(state);
     const license = getLicense(state);
@@ -1142,7 +1124,7 @@ export function handleUserRemovedEvent(msg) {
             dispatch(closeRightHandSide());
         }
 
-        if (msg.data.channel_id === currentChannel.id) {
+        if (currentChannel && msg.data.channel_id === currentChannel.id) {
             if (msg.data.remover_id !== msg.broadcast.user_id) {
                 const user = getUser(state, msg.data.remover_id);
                 if (!user) {
@@ -1160,7 +1142,7 @@ export function handleUserRemovedEvent(msg) {
             }
         }
 
-        const channel = getChannel(state, msg.data.channel_id);
+        const channel = getChannel(state, msg.data.channel_id ?? '');
 
         dispatch({
             type: ChannelTypes.LEAVE_CHANNEL,
@@ -1171,14 +1153,14 @@ export function handleUserRemovedEvent(msg) {
             },
         });
 
-        if (msg.data.channel_id === currentChannel.id) {
+        if (currentChannel && msg.data.channel_id === currentChannel.id) {
             redirectUserToDefaultTeam();
         }
 
         if (isGuest(currentUser.roles)) {
             dispatch(removeNotVisibleUsers());
         }
-    } else if (msg.broadcast.channel_id === currentChannel.id) {
+    } else if (currentChannel && msg.broadcast.channel_id === currentChannel.id) {
         dispatch(getChannelStats(currentChannel.id));
         dispatch({
             type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
@@ -1192,7 +1174,7 @@ export function handleUserRemovedEvent(msg) {
     if (msg.broadcast.user_id !== currentUser.id) {
         const channel = getChannel(state, msg.broadcast.channel_id);
         const members = getChannelMembersInChannels(state);
-        const isMember = Object.values(members).some((member) => member[msg.data.user_id]);
+        const isMember = Object.values(members).some((member) => msg.data.user_id && member[msg.data.user_id]);
         if (channel && isGuest(currentUser.roles) && !isMember) {
             const actions = [
                 {
@@ -1208,7 +1190,7 @@ export function handleUserRemovedEvent(msg) {
         }
     }
 
-    const channelId = msg.broadcast.channel_id || msg.data.channel_id;
+    const channelId = msg.broadcast.channel_id || msg.data.channel_id || '';
     const userId = msg.broadcast.user_id || msg.data.user_id;
     const channel = getChannel(state, channelId);
     if (channel && !haveISystemPermission(state, {permission: Permissions.VIEW_MEMBERS}) && !haveITeamPermission(state, channel.team_id, Permissions.VIEW_MEMBERS)) {
@@ -1225,10 +1207,7 @@ export function handleUserRemovedEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').UserUpdatedMessage} msg
- */
-export async function handleUserUpdatedEvent(msg) {
+export async function handleUserUpdatedEvent(msg: UserUpdatedMessage) {
     // This websocket event is sent to all non-guest users on the server, so be careful requesting data from the server
     // in response to it. That can overwhelm the server if every connected user makes such a request at the same time.
     // See https://mattermost.atlassian.net/browse/MM-40050 for more information.
@@ -1258,18 +1237,12 @@ export async function handleUserUpdatedEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').ChannelSchemeUpdatedMessage} msg
- */
-function handleChannelSchemeUpdatedEvent(msg) {
+function handleChannelSchemeUpdatedEvent(msg: ChannelSchemeUpdatedMessage) {
     dispatch(getMyChannelMember(msg.broadcast.channel_id));
 }
 
-/**
- * @param {import('@mattermost/client').RoleUpdatedMessage} msg
- */
-function handleRoleUpdatedEvent(msg) {
-    const role = JSON.parse(msg.data.role);
+function handleRoleUpdatedEvent(msg: RoleUpdatedMessage) {
+    const role = JSON.parse(msg.data.role) as Role;
 
     dispatch({
         type: RoleTypes.RECEIVED_ROLE,
@@ -1277,10 +1250,7 @@ function handleRoleUpdatedEvent(msg) {
     });
 }
 
-/**
- * @param {import('@mattermost/client').ChannelCreatedMessage} msg
- */
-function handleChannelCreatedEvent(msg) {
+function handleChannelCreatedEvent(msg: ChannelCreatedMessage): ThunkActionFunc<void> {
     return async (myDispatch, myGetState) => {
         const channelId = msg.data.channel_id;
         const teamId = msg.data.team_id;
@@ -1295,30 +1265,25 @@ function handleChannelCreatedEvent(msg) {
                 channel = getChannel(myGetState(), channelId);
             }
 
+            if (!channel) {
+                return;
+            }
+
             myDispatch(addChannelToInitialCategory(channel, false));
         }
     };
 }
 
-/**
- * @param {import('@mattermost/client').ChannelDeletedMessage} msg
- */
-function handleChannelDeletedEvent(msg) {
+function handleChannelDeletedEvent(msg: ChannelDeletedMessage) {
     dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
-/**
- * @param {import('@mattermost/client').ChannelRestoredMessage} msg
- */
-function handleChannelUnarchivedEvent(msg) {
+function handleChannelUnarchivedEvent(msg: ChannelRestoredMessage) {
     dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
-/**
- * @param {import('@mattermost/client').PreferenceChangedMessage} msg
- */
-function handlePreferenceChangedEvent(msg) {
-    const preference = JSON.parse(msg.data.preference);
+function handlePreferenceChangedEvent(msg: PreferenceChangedMessage) {
+    const preference = JSON.parse(msg.data.preference) as PreferenceType;
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
     if (addedNewDmUser(preference)) {
@@ -1330,11 +1295,8 @@ function handlePreferenceChangedEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').PreferencesChangedMessage} msg
- */
-function handlePreferencesChangedEvent(msg) {
-    const preferences = JSON.parse(msg.data.preferences);
+function handlePreferencesChangedEvent(msg: PreferencesChangedMessage) {
+    const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
 
     if (preferences.findIndex(addedNewDmUser) !== -1) {
@@ -1346,46 +1308,34 @@ function handlePreferencesChangedEvent(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').PreferencesChangedMessage} msg
- */
-function handlePreferencesDeletedEvent(msg) {
-    const preferences = JSON.parse(msg.data.preferences);
+function handlePreferencesDeletedEvent(msg: PreferencesChangedMessage) {
+    const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.DELETED_PREFERENCES, data: preferences});
 }
 
-function addedNewDmUser(preference) {
+function addedNewDmUser(preference: PreferenceType) {
     return preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW && preference.value === 'true';
 }
 
-function addedNewGmUser(preference) {
+function addedNewGmUser(preference: PreferenceType) {
     return preference.category === Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW && preference.value === 'true';
 }
 
-/**
- * @param {import('@mattermost/client').StatusChangedMessage} msg
- */
-export function handleStatusChangedEvent(msg) {
+export function handleStatusChangedEvent(msg: StatusChangedMessage) {
     return {
         type: UserTypes.RECEIVED_STATUSES,
         data: {[msg.data.user_id]: msg.data.status},
     };
 }
 
-/**
- * @param {import('@mattermost/client').HelloMessage} msg
- */
-function handleHelloEvent(msg) {
+function handleHelloEvent(msg: HelloMessage) {
     dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
     dispatch(setServerHostname(msg.data.server_hostname));
 }
 
-/**
- * @param {import('@mattermost/client').PostReactionMessage} msg
- */
-function handleReactionAddedEvent(msg) {
-    const reaction = JSON.parse(msg.data.reaction);
+function handleReactionAddedEvent(msg: PostReactionMessage) {
+    const reaction = JSON.parse(msg.data.reaction) as Reaction;
 
     dispatch(getCustomEmojiForReaction(reaction.emoji_name));
 
@@ -1395,25 +1345,22 @@ function handleReactionAddedEvent(msg) {
     });
 }
 
-function setConnectionId(connectionId) {
+function setConnectionId(connectionId: string) {
     return {
         type: GeneralTypes.SET_CONNECTION_ID,
         payload: {connectionId},
     };
 }
 
-function setServerHostname(serverHostname) {
+function setServerHostname(serverHostname: string | undefined) {
     return {
         type: GeneralTypes.SET_SERVER_HOSTNAME,
         payload: {serverHostname},
     };
 }
 
-/**
- * @param {import('@mattermost/client').EmojiAddedMessage} msg
- */
-function handleAddEmoji(msg) {
-    const data = JSON.parse(msg.data.emoji);
+function handleAddEmoji(msg: EmojiAddedMessage) {
+    const data = JSON.parse(msg.data.emoji) as Emoji;
 
     dispatch({
         type: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
@@ -1421,11 +1368,8 @@ function handleAddEmoji(msg) {
     });
 }
 
-/**
- * @param {import('@mattermost/client').PostReactionMessage} msg
- */
-function handleReactionRemovedEvent(msg) {
-    const reaction = JSON.parse(msg.data.reaction);
+function handleReactionRemovedEvent(msg: PostReactionMessage) {
+    const reaction = JSON.parse(msg.data.reaction) as Reaction;
 
     dispatch({
         type: PostTypes.REACTION_DELETED,
@@ -1433,19 +1377,13 @@ function handleReactionRemovedEvent(msg) {
     });
 }
 
-/**
- * @param {import('@mattermost/client').MultipleChannelsViewedMessage} msg
- */
-function handleMultipleChannelsViewedEvent(msg) {
+function handleMultipleChannelsViewedEvent(msg: MultipleChannelsViewedMessage) {
     if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
         dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
 }
 
-/**
- * @param {import('@mattermost/client').PluginMessage} msg
- */
-export function handlePluginEnabled(msg) {
+export function handlePluginEnabled(msg: PluginMessage) {
     const manifest = msg.data.manifest;
     dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGIN, data: manifest});
 
@@ -1454,18 +1392,12 @@ export function handlePluginEnabled(msg) {
     });
 }
 
-/**
- * @param {import('@mattermost/client').PluginMessage} msg
- */
-export function handlePluginDisabled(msg) {
+export function handlePluginDisabled(msg: PluginMessage) {
     const manifest = msg.data.manifest;
     removePlugin(manifest);
 }
 
-/**
- * @param {import('@mattermost/client').UserRoleUpdatedMessage} msg
- */
-function handleUserRoleUpdated(msg) {
+function handleUserRoleUpdated(msg: UserRoleUpdatedMessage) {
     const user = store.getState().entities.users.profiles[msg.data.user_id];
 
     if (user) {
@@ -1482,36 +1414,24 @@ function handleUserRoleUpdated(msg) {
     }
 }
 
-/**
- * @param {import('@mattermost/client').ConfigChangedMessage} msg
- */
-function handleConfigChanged(msg) {
+function handleConfigChanged(msg: ConfigChangedMessage) {
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: msg.data.config});
 }
 
-/**
- * @param {import('@mattermost/client').LicenseChangedMessage} msg
- */
-function handleLicenseChanged(msg) {
+function handleLicenseChanged(msg: LicenseChangedMessage) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
 }
 
-/**
- * @param {import('@mattermost/client').PluginStatusesChangedMessage} msg
- */
-function handlePluginStatusesChangedEvent(msg) {
+function handlePluginStatusesChangedEvent(msg: PluginStatusesChangedMessage) {
     store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
-/**
- * @param {import('@mattermost/client').OpenDialogMessage} msg
- */
-function handleOpenDialogEvent(msg) {
-    const data = (msg.data && msg.data.dialog) || {};
-    const dialog = JSON.parse(data);
+function handleOpenDialogEvent(msg: OpenDialogMessage) {
+    const data = (msg.data && msg.data.dialog);
+    const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
@@ -1524,11 +1444,8 @@ function handleOpenDialogEvent(msg) {
     store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
-/**
- * @param {import('@mattermost/client').ReceivedGroupMessage} msg
- */
-function handleGroupUpdatedEvent(msg) {
-    const data = JSON.parse(msg.data.group);
+function handleGroupUpdatedEvent(msg: ReceivedGroupMessage) {
+    const data = JSON.parse(msg.data.group) as Group;
     dispatch(
         {
             type: GroupTypes.PATCHED_GROUP,
@@ -1537,7 +1454,7 @@ function handleGroupUpdatedEvent(msg) {
     );
 }
 
-function handleMyGroupUpdate(groupMember) {
+function handleMyGroupUpdate(groupMember: GroupMember) {
     dispatch(batchActions([
         {
             type: GroupTypes.ADD_MY_GROUP,
@@ -1556,14 +1473,11 @@ function handleMyGroupUpdate(groupMember) {
     ]));
 }
 
-/**
- * @param {import('@mattermost/client').GroupMemberMessage} msg
- */
-export function handleGroupAddedMemberEvent(msg) {
+export function handleGroupAddedMemberEvent(msg: GroupMemberMessage): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const groupMember = JSON.parse(msg.data.group_member);
+        const groupMember = JSON.parse(msg.data.group_member) as GroupMember;
 
         if (currentUserId === groupMember.user_id) {
             const group = getGroup(state, groupMember.group_id);
@@ -1579,14 +1493,11 @@ export function handleGroupAddedMemberEvent(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').GroupMemberMessage} msg
- */
-function handleGroupDeletedMemberEvent(msg) {
+function handleGroupDeletedMemberEvent(msg: GroupMemberMessage): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
-        const data = JSON.parse(msg.data.group_member);
+        const data = JSON.parse(msg.data.group_member) as GroupMember;
 
         if (currentUserId === data.user_id) {
             dispatch(batchActions([
@@ -1610,50 +1521,35 @@ function handleGroupDeletedMemberEvent(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').GroupAssociatedToTeamMessage} msg
- */
-function handleGroupAssociatedToTeamEvent(msg) {
+function handleGroupAssociatedToTeamEvent(msg: GroupAssociatedToTeamMessage) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_TEAM,
         data: {teamID: msg.broadcast.team_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-/**
- * @param {import('@mattermost/client').GroupAssociatedToTeamMessage} msg
- */
-function handleGroupNotAssociatedToTeamEvent(msg) {
+function handleGroupNotAssociatedToTeamEvent(msg: GroupAssociatedToTeamMessage) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM,
         data: {teamID: msg.broadcast.team_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-/**
- * @param {import('@mattermost/client').GroupAssociatedToChannelMessage} msg
- */
-function handleGroupAssociatedToChannelEvent(msg) {
+function handleGroupAssociatedToChannelEvent(msg: GroupAssociatedToChannelMessage) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL,
         data: {channelID: msg.broadcast.channel_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-/**
- * @param {import('@mattermost/client').GroupAssociatedToChannelMessage} msg
- */
-function handleGroupNotAssociatedToChannelEvent(msg) {
+function handleGroupNotAssociatedToChannelEvent(msg: GroupAssociatedToChannelMessage) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL,
         data: {channelID: msg.broadcast.channel_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-/**
- * @param {import('@mattermost/client').SidebarCategoryCreatedMessage} msg
- */
-function handleSidebarCategoryCreated(msg) {
+function handleSidebarCategoryCreated(msg: SidebarCategoryCreatedMessage): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -1672,10 +1568,7 @@ function handleSidebarCategoryCreated(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').SidebarCategoryUpdatedMessage} msg
- */
-function handleSidebarCategoryUpdated(msg) {
+function handleSidebarCategoryUpdated(msg: SidebarCategoryUpdatedMessage): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -1694,10 +1587,7 @@ function handleSidebarCategoryUpdated(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').SidebarCategoryDeletedMessage} msg
- */
-function handleSidebarCategoryDeleted(msg) {
+function handleSidebarCategoryDeleted(msg: SidebarCategoryDeletedMessage): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -1715,17 +1605,11 @@ function handleSidebarCategoryDeleted(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').SidebarCategoryOrderUpdatedMessage} msg
- */
-function handleSidebarCategoryOrderUpdated(msg) {
+function handleSidebarCategoryOrderUpdated(msg: SidebarCategoryOrderUpdatedMessage) {
     return receivedCategoryOrder(msg.broadcast.team_id, msg.data.order);
 }
 
-/**
- * @param {import('@mattermost/client').UserActivationStatusChangedMessage} msg
- */
-export function handleUserActivationStatusChange() {
+export function handleUserActivationStatusChange(): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
         const license = getLicense(state);
@@ -1739,10 +1623,7 @@ export function handleUserActivationStatusChange() {
     };
 }
 
-/**
- * @param {import('@mattermost/client').CloudSubscriptionChangedMessage} msg
- */
-export function handleCloudSubscriptionChanged(msg) {
+export function handleCloudSubscriptionChanged(msg: CloudSubscriptionChangedMessage): ActionFunc<boolean> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
         const license = getLicense(state);
@@ -1766,7 +1647,7 @@ export function handleCloudSubscriptionChanged(msg) {
     };
 }
 
-function handleRefreshAppsBindings() {
+function handleRefreshAppsBindings(): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -1775,7 +1656,7 @@ function handleRefreshAppsBindings() {
         const siteURL = state.entities.general.config.SiteURL;
         const currentURL = window.location.href;
         let threadIdentifier;
-        if (currentURL.startsWith(siteURL)) {
+        if (siteURL && currentURL.startsWith(siteURL)) {
             const parts = currentURL.substr(siteURL.length + (siteURL.endsWith('/') ? 0 : 1)).split('/');
             if (parts.length === 3 && parts[1] === 'threads') {
                 threadIdentifier = parts[2];
@@ -1811,20 +1692,14 @@ export function handleAppsPluginDisabled() {
     };
 }
 
-/**
- * @param {import('@mattermost/client').FirstAdminVisitMarketplaceStatusReceivedMessage} msg
- */
-function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg) {
-    const receivedData = JSON.parse(msg.data.firstAdminVisitMarketplaceStatus);
+function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: FirstAdminVisitMarketplaceStatusReceivedMessage) {
+    const receivedData = JSON.parse(msg.data.firstAdminVisitMarketplaceStatus) as boolean;
     store.dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data: receivedData});
 }
 
-/**
- * @param {import('@mattermost/client').ThreadReadChangedMessage} msg
- */
-function handleThreadReadChanged(msg) {
+function handleThreadReadChanged(msg: ThreadReadChangedMessage): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        if (msg.data.thread_id) {
+        if (msg.data.thread_id && msg.data.channel_id && msg.data.unread_mentions && msg.data.unread_replies) {
             const state = doGetState();
             const thread = getThreads(state)?.[msg.data.thread_id];
 
@@ -1855,14 +1730,11 @@ function handleThreadReadChanged(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ThreadUpdatedMessage} msg
- */
-function handleThreadUpdated(msg) {
+function handleThreadUpdated(msg: ThreadUpdatedMessage): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         let threadData;
         try {
-            threadData = JSON.parse(msg.data.thread);
+            threadData = JSON.parse(msg.data.thread) as UserThread;
         } catch {
             // invalid JSON
             return;
@@ -1906,10 +1778,7 @@ function handleThreadUpdated(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ThreadFollowedChangedMessage} msg
- */
-function handleThreadFollowChanged(msg) {
+function handleThreadFollowChanged(msg: ThreadFollowedChangedMessage): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const thread = getThread(state, msg.data.thread_id);
@@ -1920,11 +1789,8 @@ function handleThreadFollowChanged(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').PostAcknowledgementMessage} msg
- */
-function handlePostAcknowledgementAdded(msg) {
-    const data = JSON.parse(msg.data.acknowledgement);
+function handlePostAcknowledgementAdded(msg: PostAcknowledgementMessage) {
+    const data = JSON.parse(msg.data.acknowledgement) as PostAcknowledgement;
 
     return {
         type: PostTypes.CREATE_ACK_POST_SUCCESS,
@@ -1932,11 +1798,8 @@ function handlePostAcknowledgementAdded(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').PostAcknowledgementMessage} msg
- */
-function handlePostAcknowledgementRemoved(msg) {
-    const data = JSON.parse(msg.data.acknowledgement);
+function handlePostAcknowledgementRemoved(msg: PostAcknowledgementMessage) {
+    const data = JSON.parse(msg.data.acknowledgement) as PostAcknowledgement;
 
     return {
         type: PostTypes.DELETE_ACK_POST_SUCCESS,
@@ -1944,12 +1807,9 @@ function handlePostAcknowledgementRemoved(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').PostDraftMessage} msg
- */
-function handleUpsertDraftEvent(msg) {
+function handleUpsertDraftEvent(msg: PostDraftMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const draft = JSON.parse(msg.data.draft);
+        const draft = JSON.parse(msg.data.draft) as Draft;
         const {key, value} = transformServerDraft(draft);
         value.show = true;
 
@@ -1957,12 +1817,9 @@ function handleUpsertDraftEvent(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ScheduledPostMessage} msg
- */
-function handleCreateScheduledPostEvent(msg) {
+function handleCreateScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+        const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
         const state = getState();
         const teamId = getTeamIdByChannelId(state, scheduledPost.channel_id);
 
@@ -1976,12 +1833,9 @@ function handleCreateScheduledPostEvent(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ScheduledPostMessage} msg
- */
-function handleUpdateScheduledPostEvent(msg) {
+function handleUpdateScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+        const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
@@ -1992,12 +1846,9 @@ function handleUpdateScheduledPostEvent(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ScheduledPostMessage} msg
- */
-function handleDeleteScheduledPostEvent(msg) {
+function handleDeleteScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const scheduledPost = JSON.parse(msg.data.scheduledPost);
+        const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_DELETED,
@@ -2008,12 +1859,9 @@ function handleDeleteScheduledPostEvent(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').PostDraftMessage} msg
- */
-function handleDeleteDraftEvent(msg) {
+function handleDeleteDraftEvent(msg: PostDraftMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const draft = JSON.parse(msg.data.draft);
+        const draft = JSON.parse(msg.data.draft) as Draft;
         const {key} = transformServerDraft(draft);
 
         doDispatch(setGlobalItem(key, {
@@ -2024,32 +1872,16 @@ function handleDeleteDraftEvent(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').PersistentNotificationTriggeredMessage} msg
- */
-function handlePersistentNotification(msg) {
+function handlePersistentNotification(msg: PersistentNotificationTriggeredMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const post = JSON.parse(msg.data.post);
+        const post = JSON.parse(msg.data.post) as Post;
 
         doDispatch(sendDesktopNotification(post, msg.data));
     };
 }
 
-/**
- * @param {import('@mattermost/client').HostedCustomerSignupProgressUpdatedMessage} msg
- */
-function handleHostedCustomerSignupProgressUpdated(msg) {
-    return {
-        type: HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS,
-        data: msg.data.progress,
-    };
-}
-
-/**
- * @param {import('@mattermost/client').ChannelBookmarkCreatedMessage} msg
- */
-function handleChannelBookmarkCreated(msg) {
-    const bookmark = JSON.parse(msg.data.bookmark);
+function handleChannelBookmarkCreated(msg: ChannelBookmarkCreatedMessage) {
+    const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
 
     return {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
@@ -2057,12 +1889,9 @@ function handleChannelBookmarkCreated(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ChannelBookmarkUpdatedMessage} msg
- */
-function handleChannelBookmarkUpdated(msg) {
+function handleChannelBookmarkUpdated(msg: ChannelBookmarkUpdatedMessage): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const {updated, deleted} = JSON.parse(msg.data.bookmarks);
+        const {updated, deleted} = JSON.parse(msg.data.bookmarks) as UpdateChannelBookmarkResponse;
 
         if (updated) {
             doDispatch({
@@ -2080,11 +1909,8 @@ function handleChannelBookmarkUpdated(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ChannelBookmarkDeletedMessage} msg
- */
-function handleChannelBookmarkDeleted(msg) {
-    const bookmark = JSON.parse(msg.data.bookmark);
+function handleChannelBookmarkDeleted(msg: ChannelBookmarkDeletedMessage) {
+    const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
 
     return {
         type: ChannelBookmarkTypes.BOOKMARK_DELETED,
@@ -2092,11 +1918,8 @@ function handleChannelBookmarkDeleted(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').ChannelBookmarkSortedMessage} msg
- */
-function handleChannelBookmarkSorted(msg) {
-    const bookmarks = JSON.parse(msg.data.bookmarks);
+function handleChannelBookmarkSorted(msg: ChannelBookmarkSortedMessage) {
+    const bookmarks = JSON.parse(msg.data.bookmarks) as ChannelBookmarkWithFileInfo[];
 
     return {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
@@ -2104,30 +1927,21 @@ function handleChannelBookmarkSorted(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').CPAValuesUpdatedMessage} msg
- */
-export function handleCustomAttributeValuesUpdated(msg) {
+export function handleCustomAttributeValuesUpdated(msg: CPAValuesUpdatedMessage) {
     return {
         type: UserTypes.RECEIVED_CPA_VALUES,
         data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
     };
 }
 
-/**
- * @param {import('@mattermost/client').CPAFieldCreatedMessage} msg
- */
-export function handleCustomAttributesCreated(msg) {
+export function handleCustomAttributesCreated(msg: CPAFieldCreatedMessage) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
         data: msg.data.field,
     };
 }
 
-/**
- * @param {import('@mattermost/client').CPAFieldUpdatedMessage} msg
- */
-export function handleCustomAttributesUpdated(msg) {
+export function handleCustomAttributesUpdated(msg: CPAFieldUpdatedMessage): ThunkActionFunc<void> {
     return (dispatch) => {
         const {field, delete_values: deleteValues} = msg.data;
 
@@ -2148,20 +1962,14 @@ export function handleCustomAttributesUpdated(msg) {
     };
 }
 
-/**
- * @param {import('@mattermost/client').CPAFieldDeletedMessage} msg
- */
-export function handleCustomAttributesDeleted(msg) {
+export function handleCustomAttributesDeleted(msg: CPAFieldDeletedMessage) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
         data: msg.data.field_id,
     };
 }
 
-/**
- * @param {import('@mattermost/client').ContentFlaggingReportValueUpdatedMessage} msg
- */
-export function handleContentFlaggingReportValueChanged(msg) {
+export function handleContentFlaggingReportValueChanged(msg: ContentFlaggingReportValueUpdatedMessage) {
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
         data: msg.data,
