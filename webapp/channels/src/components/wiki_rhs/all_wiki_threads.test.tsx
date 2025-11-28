@@ -6,7 +6,6 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
@@ -14,40 +13,32 @@ import type {GlobalState} from 'types/store';
 import AllWikiThreads from './all_wiki_threads';
 
 describe('components/wiki_rhs/AllWikiThreads', () => {
-    let testContext: WikiTestContext;
-    let pageId1: string;
-    let pageId2: string;
-
-    beforeAll(async () => {
-        testContext = await setupWikiTestContext();
-        pageId1 = await createTestPage(testContext.wikiId, 'Page One');
-        pageId2 = await createTestPage(testContext.wikiId, 'Page Two');
-        testContext.pageIds.push(pageId1, pageId2);
-    }, 30000);
-
-    afterAll(async () => {
-        await testContext.cleanup();
-    }, 30000);
+    const mockWikiId = 'wiki-id-1';
+    const mockUserId = 'user-id-1';
+    const mockTeamId = 'team-id-1';
+    const mockChannelId = 'channel-id-1';
+    const pageId1 = 'page-id-1';
+    const pageId2 = 'page-id-2';
 
     const getInitialState = (): DeepPartial<GlobalState> => ({
         entities: {
             users: {
-                currentUserId: testContext.user.id,
+                currentUserId: mockUserId,
             },
             teams: {
-                currentTeamId: testContext.team.id,
+                currentTeamId: mockTeamId,
             },
             posts: {
                 posts: {
                     [pageId1]: {
                         id: pageId1,
-                        channel_id: testContext.channel.id,
+                        channel_id: mockChannelId,
                         type: 'custom_page',
                         props: {title: 'Page One'},
                     } as any,
                     [pageId2]: {
                         id: pageId2,
-                        channel_id: testContext.channel.id,
+                        channel_id: mockChannelId,
                         type: 'custom_page',
                         props: {title: 'Page Two'},
                     } as any,
@@ -55,7 +46,7 @@ describe('components/wiki_rhs/AllWikiThreads', () => {
             },
             wikiPages: {
                 byWiki: {
-                    [testContext.wikiId]: [pageId1, pageId2],
+                    [mockWikiId]: [pageId1, pageId2],
                 },
             },
         },
@@ -71,7 +62,7 @@ describe('components/wiki_rhs/AllWikiThreads', () => {
 
             renderWithContext(
                 <AllWikiThreads
-                    wikiId={testContext.wikiId}
+                    wikiId={mockWikiId}
                     onThreadClick={onThreadClick}
                 />,
                 getInitialState(),

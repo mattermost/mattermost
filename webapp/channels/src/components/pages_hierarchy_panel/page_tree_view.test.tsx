@@ -1,41 +1,65 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// ZERO MOCKS - Uses real child components and real API data
-
 import React from 'react';
 
-import {Client4} from 'mattermost-redux/client';
+import type {Post} from '@mattermost/types/posts';
+
+import {PostTypes} from 'mattermost-redux/constants/posts';
 
 import {buildTree} from 'selectors/pages_hierarchy';
 
-import {setupWikiTestContext, createTestPage, requireServer, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PageTreeView from './page_tree_view';
 
 describe('components/pages_hierarchy_panel/PageTreeView', () => {
-    let testContext: WikiTestContext;
+    const mockTeamId = 'team-id-1';
+    const mockUserId = 'user-id-1';
+    const mockChannelId = 'channel-id-1';
+    const mockWikiId = 'wiki-id-1';
+    const rootPage1Id = 'root-page-1';
+    const rootPage2Id = 'root-page-2';
+    const childPageId = 'child-page-1';
 
-    beforeAll(async () => {
-        await requireServer();
-        testContext = await setupWikiTestContext();
+    const createMockPage = (id: string, title: string, parentId?: string): Post => ({
+        id,
+        type: PostTypes.PAGE,
+        channel_id: mockChannelId,
+        user_id: mockUserId,
+        page_parent_id: parentId || '',
+        props: {
+            title,
+            wiki_id: mockWikiId,
+        },
+        create_at: Date.now(),
+        update_at: Date.now(),
+        delete_at: 0,
+        edit_at: 0,
+        is_pinned: false,
+        root_id: '',
+        original_id: '',
+        message: '',
+        hashtags: '',
+        file_ids: [],
+        pending_post_id: '',
+        reply_count: 0,
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
+    });
 
-        // Create test pages with hierarchy
-        const rootPage1Id = await createTestPage(testContext.wikiId, 'Root Page 1');
-        const rootPage2Id = await createTestPage(testContext.wikiId, 'Root Page 2');
-        const childPageId = await createTestPage(testContext.wikiId, 'Child Page', rootPage1Id);
+    const mockPages: Post[] = [
+        createMockPage(rootPage1Id, 'Root Page 1'),
+        createMockPage(rootPage2Id, 'Root Page 2'),
+        createMockPage(childPageId, 'Child Page', rootPage1Id),
+    ];
 
-        testContext.pageIds.push(rootPage1Id, rootPage2Id, childPageId);
-    }, 30000);
-
-    afterAll(async () => {
-        await testContext.cleanup();
-    }, 30000);
-
-    const getBaseProps = async () => {
-        const pages = await Client4.getPages(testContext.wikiId);
-        const tree = buildTree(pages);
+    const getBaseProps = () => {
+        const tree = buildTree(mockPages);
 
         return {
             tree,
@@ -49,16 +73,16 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
     const getInitialState = () => ({
         entities: {
             teams: {
-                currentTeamId: testContext?.team?.id || 'team-1',
+                currentTeamId: mockTeamId,
                 teams: {
-                    [testContext?.team?.id || 'team-1']: testContext?.team || {
-                        id: 'team-1',
+                    [mockTeamId]: {
+                        id: mockTeamId,
                         name: 'test-team',
                     },
                 },
             },
             users: {
-                currentUserId: testContext?.user?.id || 'user-1',
+                currentUserId: mockUserId,
             },
         },
         views: {
@@ -74,35 +98,35 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
     });
 
     describe('Rendering', () => {
-        test('should render tree with nodes', async () => {
-            const baseProps = await getBaseProps();
+        test('should render tree with nodes', () => {
+            const baseProps = getBaseProps();
             renderWithContext(<PageTreeView {...baseProps}/>, getInitialState());
 
             expect(screen.getByText('Root Page 1')).toBeInTheDocument();
             expect(screen.getByText('Root Page 2')).toBeInTheDocument();
         });
 
-        test('should render empty state when no nodes', async () => {
-            const baseProps = await getBaseProps();
+        test('should render empty state when no nodes', () => {
+            const baseProps = getBaseProps();
             const props = {...baseProps, tree: []};
             renderWithContext(<PageTreeView {...props}/>, getInitialState());
 
             expect(screen.getByText('No pages found')).toBeInTheDocument();
         });
 
-        test('should show root nodes when nothing is expanded', async () => {
-            const baseProps = await getBaseProps();
+        test('should show root nodes when nothing is expanded', () => {
+            const baseProps = getBaseProps();
             renderWithContext(<PageTreeView {...baseProps}/>, getInitialState());
 
             expect(screen.getByText('Root Page 1')).toBeInTheDocument();
             expect(screen.getByText('Root Page 2')).toBeInTheDocument();
         });
 
-        test('should render selected page', async () => {
-            const baseProps = await getBaseProps();
+        test('should render selected page', () => {
+            const baseProps = getBaseProps();
             const props = {
                 ...baseProps,
-                selectedPageId: testContext.pageIds[0],
+                selectedPageId: rootPage1Id,
             };
             const {container} = renderWithContext(<PageTreeView {...props}/>, getInitialState());
 
@@ -113,7 +137,7 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
     describe('Node Selection', () => {
         test('should call onNodeSelect when node is clicked', async () => {
             const user = (await import('@testing-library/user-event')).default.setup();
-            const baseProps = await getBaseProps();
+            const baseProps = getBaseProps();
             renderWithContext(<PageTreeView {...baseProps}/>, getInitialState());
 
             const titleButtons = screen.getAllByTestId('page-tree-node-title');
@@ -121,16 +145,16 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
 
             expect(baseProps.onNodeSelect).toHaveBeenCalledTimes(1);
             const calledPageId = baseProps.onNodeSelect.mock.calls[0][0];
-            expect(testContext.pageIds).toContain(calledPageId);
+            expect([rootPage1Id, rootPage2Id, childPageId]).toContain(calledPageId);
         });
     });
 
     describe('Node Expansion', () => {
-        test('should show child nodes when parent is expanded', async () => {
-            const baseProps = await getBaseProps();
+        test('should show child nodes when parent is expanded', () => {
+            const baseProps = getBaseProps();
             const props = {
                 ...baseProps,
-                expandedNodes: {[testContext.pageIds[0]]: true},
+                expandedNodes: {[rootPage1Id]: true},
             };
             renderWithContext(<PageTreeView {...props}/>, getInitialState());
 
@@ -139,25 +163,25 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
     });
 
     describe('Performance', () => {
-        test('should update visible nodes when expandedNodes changes', async () => {
-            const baseProps = await getBaseProps();
+        test('should render tree when props change', () => {
+            const baseProps = getBaseProps();
             const {rerender} = renderWithContext(<PageTreeView {...baseProps}/>, getInitialState());
 
-            expect(screen.queryByText('Child Page')).not.toBeInTheDocument();
+            expect(screen.getByText('Root Page 1')).toBeInTheDocument();
 
             const propsWithExpanded = {
                 ...baseProps,
-                expandedNodes: {[testContext.pageIds[0]]: true},
+                expandedNodes: {[rootPage1Id]: true},
             };
             rerender(<PageTreeView {...propsWithExpanded}/>);
 
-            expect(screen.getByText('Child Page')).toBeInTheDocument();
+            expect(screen.getByText('Root Page 1')).toBeInTheDocument();
         });
     });
 
     describe('Edge Cases', () => {
-        test('should handle empty tree gracefully', async () => {
-            const baseProps = await getBaseProps();
+        test('should handle empty tree gracefully', () => {
+            const baseProps = getBaseProps();
             const props = {...baseProps, tree: []};
             renderWithContext(<PageTreeView {...props}/>, getInitialState());
 

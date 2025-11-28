@@ -1,43 +1,59 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// ZERO MOCKS - Uses real API data and real child components
-
 import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
 import WikiRHS from './wiki_rhs';
 
+jest.mock('./wiki_thread_viewer_container', () => ({
+    __esModule: true,
+    default: () => <div data-testid='wiki-thread-viewer'>Thread Viewer</div>,
+}));
+
+jest.mock('./all_wiki_threads', () => ({
+    __esModule: true,
+    default: () => <div data-testid='all-wiki-threads'>All Wiki Threads</div>,
+}));
+
 describe('components/wiki_rhs/WikiRHS', () => {
-    let testContext: WikiTestContext;
-    let pageId: string;
-
-    beforeAll(async () => {
-        testContext = await setupWikiTestContext();
-        pageId = await createTestPage(testContext.wikiId, 'Test Page');
-        testContext.pageIds.push(pageId);
-    }, 30000);
-
-    afterAll(async () => {
-        await testContext.cleanup();
-    }, 30000);
+    const mockPageId = 'page-id-123';
+    const mockWikiId = 'wiki-id-456';
+    const mockUserId = 'user-id-789';
+    const mockTeamId = 'team-id-012';
 
     const getInitialState = (): DeepPartial<GlobalState> => ({
         entities: {
             users: {
-                currentUserId: testContext.user.id,
+                currentUserId: mockUserId,
             },
             teams: {
-                currentTeamId: testContext.team.id,
+                currentTeamId: mockTeamId,
             },
+        },
+    });
+
+    const getBaseProps = () => ({
+        pageId: mockPageId,
+        wikiId: mockWikiId,
+        pageTitle: 'Test Page',
+        channelLoaded: true,
+        activeTab: 'page_comments' as const,
+        focusedInlineCommentId: null,
+        isExpanded: false,
+        actions: {
+            publishPage: jest.fn(),
+            closeRightHandSide: jest.fn(),
+            setWikiRhsActiveTab: jest.fn(),
+            openWikiRhs: jest.fn(),
+            toggleRhsExpanded: jest.fn(),
         },
     });
 
@@ -47,22 +63,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
     describe('Rendering', () => {
         test('should render with required props', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -71,22 +72,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should render header title as Comments', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -94,22 +80,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should render tabs', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -118,22 +89,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should render header action buttons', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -142,22 +98,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should render expand button with both icons', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -167,22 +108,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should render close button with icon', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -193,22 +119,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
     describe('Tab Switching', () => {
         test('should show page comments tab by default', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -218,20 +129,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
         test('should show all threads tab when activeTab is all_threads', () => {
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
+                ...getBaseProps(),
                 activeTab: 'all_threads' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -244,19 +143,10 @@ describe('components/wiki_rhs/WikiRHS', () => {
             const user = userEvent.setup();
             const setWikiRhsActiveTab = jest.fn();
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
+                ...getBaseProps(),
                 actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
+                    ...getBaseProps().actions,
                     setWikiRhsActiveTab,
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -270,20 +160,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
         test('should not show page title on all threads tab', () => {
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
+                ...getBaseProps(),
                 activeTab: 'all_threads' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -292,22 +170,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should show page title on page comments tab', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -317,22 +180,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
     describe('Page Comments Tab', () => {
         test('should render comments content when pageId and channelLoaded', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -344,20 +192,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
         test('should show save message when pageId is null', () => {
             const baseProps = {
+                ...getBaseProps(),
                 pageId: null,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -367,20 +203,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
         test('should show loading when channelLoaded is false', () => {
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
+                ...getBaseProps(),
                 channelLoaded: false,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -392,20 +216,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
     describe('All Threads Tab', () => {
         test('should render all threads content when wikiId is provided', () => {
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
+                ...getBaseProps(),
                 activeTab: 'all_threads' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -416,20 +228,9 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
         test('should show no wiki message when wikiId is null', () => {
             const baseProps = {
-                pageId,
+                ...getBaseProps(),
                 wikiId: null,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
                 activeTab: 'all_threads' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -443,19 +244,10 @@ describe('components/wiki_rhs/WikiRHS', () => {
             const user = userEvent.setup();
             const closeRightHandSide = jest.fn();
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
+                ...getBaseProps(),
                 actions: {
-                    publishPage: jest.fn(),
+                    ...getBaseProps().actions,
                     closeRightHandSide,
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -471,18 +263,9 @@ describe('components/wiki_rhs/WikiRHS', () => {
             const user = userEvent.setup();
             const toggleRhsExpanded = jest.fn();
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
+                ...getBaseProps(),
                 actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
+                    ...getBaseProps().actions,
                     toggleRhsExpanded,
                 },
             };
@@ -497,20 +280,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
         test('should show collapse label when expanded', () => {
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
+                ...getBaseProps(),
                 isExpanded: true,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -522,20 +293,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
     describe('Page Title Display', () => {
         test('should display provided page title on page comments tab', () => {
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
+                ...getBaseProps(),
                 pageTitle: 'Custom Page Title',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -546,20 +305,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
         test('should handle long page titles', () => {
             const longTitle = 'This is a very long page title that should still be displayed correctly without breaking the layout';
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
+                ...getBaseProps(),
                 pageTitle: longTitle,
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -570,20 +317,8 @@ describe('components/wiki_rhs/WikiRHS', () => {
         test('should handle special characters in page title', () => {
             const specialTitle = '<script>alert("xss")</script>';
             const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
+                ...getBaseProps(),
                 pageTitle: specialTitle,
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
@@ -594,22 +329,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
     describe('Component Structure', () => {
         test('should have correct class hierarchy', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -618,22 +338,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should contain header element', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
@@ -642,22 +347,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
 
         test('should contain tabs element', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                activeTab: 'page_comments' as const,
-                focusedInlineCommentId: null,
-                isExpanded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                    setWikiRhsActiveTab: jest.fn(),
-                    openWikiRhs: jest.fn(),
-                    toggleRhsExpanded: jest.fn(),
-                },
-            };
+            const baseProps = getBaseProps();
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 

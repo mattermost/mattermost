@@ -1,19 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// ZERO MOCKS - Uses real child components and real API data
-
 import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {Client4} from 'mattermost-redux/client';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 
-import {transformPageServerDraft} from 'actions/page_drafts';
-
-import {setupWikiTestContext, createTestPage, requireServer, type WikiTestContext} from 'tests/api_test_helpers';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
@@ -22,56 +18,75 @@ import type {PostDraft} from 'types/store/draft';
 import PagesHierarchyPanel from './pages_hierarchy_panel';
 
 describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
-    let testContext: WikiTestContext;
+    const mockUserId = 'user-id-1';
+    const mockTeamId = 'team-id-1';
+    const mockChannelId = 'channel-id-1';
+    const mockWikiId = 'wiki-id-1';
+    const rootPage1Id = 'root-page-1';
+    const childPageId = 'child-page-1';
 
-    beforeAll(async () => {
-        await requireServer();
-        testContext = await setupWikiTestContext();
+    const createMockPage = (id: string, title: string, parentId?: string): Post => ({
+        id,
+        type: PostTypes.PAGE,
+        channel_id: mockChannelId,
+        user_id: mockUserId,
+        page_parent_id: parentId || '',
+        props: {
+            title,
+            wiki_id: mockWikiId,
+        },
+        create_at: Date.now(),
+        update_at: Date.now(),
+        delete_at: 0,
+        edit_at: 0,
+        is_pinned: false,
+        root_id: '',
+        original_id: '',
+        message: '',
+        hashtags: '',
+        file_ids: [],
+        pending_post_id: '',
+        reply_count: 0,
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
+    });
 
-        // Create test pages with hierarchy
-        const rootPage1Id = await createTestPage(testContext.wikiId, 'Root Page');
-        const childPageId = await createTestPage(testContext.wikiId, 'Child Page', rootPage1Id);
+    const mockPages: Post[] = [
+        createMockPage(rootPage1Id, 'Root Page'),
+        createMockPage(childPageId, 'Child Page', rootPage1Id),
+    ];
 
-        testContext.pageIds.push(rootPage1Id, childPageId);
-    }, 30000);
+    const mockDrafts: PostDraft[] = [];
 
-    afterAll(async () => {
-        await testContext.cleanup();
-    }, 30000);
-
-    const getBaseProps = async () => {
-        const pages = await Client4.getPages(testContext.wikiId);
-        const serverDrafts = await Client4.getPageDraftsForWiki(testContext.wikiId);
-
-        // Transform server drafts to PostDraft format (matching what the component expects)
-        const drafts: PostDraft[] = serverDrafts.map((draft) =>
-            transformPageServerDraft(draft, testContext.wikiId, draft.draft_id).value,
-        );
-
+    const getBaseProps = () => {
         return {
-            wikiId: testContext.wikiId,
-            channelId: testContext.channel.id,
+            wikiId: mockWikiId,
+            channelId: mockChannelId,
             onPageSelect: jest.fn(),
-            pages,
-            drafts,
+            pages: mockPages,
+            drafts: mockDrafts,
             loading: false,
             expandedNodes: {},
             selectedPageId: null,
             isPanelCollapsed: false,
             lastInvalidated: Date.now(),
             actions: {
-                loadPages: jest.fn().mockResolvedValue({data: pages}),
-                loadPageDraftsForWiki: jest.fn().mockResolvedValue({data: drafts}),
+                loadPages: jest.fn().mockResolvedValue({data: mockPages}),
+                loadPageDraftsForWiki: jest.fn().mockResolvedValue({data: mockDrafts}),
                 removePageDraft: jest.fn().mockResolvedValue({data: true}),
                 toggleNodeExpanded: jest.fn(),
                 setSelectedPage: jest.fn(),
                 expandAncestors: jest.fn(),
                 createPage: jest.fn().mockResolvedValue({data: 'draft-new'}),
-                updatePage: jest.fn().mockResolvedValue({data: pages[0]}),
+                updatePage: jest.fn().mockResolvedValue({data: mockPages[0]}),
                 deletePage: jest.fn().mockResolvedValue({data: true}),
-                movePage: jest.fn().mockResolvedValue({data: pages[0]}),
+                movePage: jest.fn().mockResolvedValue({data: mockPages[0]}),
                 movePageToWiki: jest.fn().mockResolvedValue({data: true}),
-                duplicatePage: jest.fn().mockResolvedValue({data: pages[0]}),
+                duplicatePage: jest.fn().mockResolvedValue({data: mockPages[0]}),
                 closePagesPanel: jest.fn(),
             },
         };
@@ -80,10 +95,10 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     const getInitialState = (): DeepPartial<GlobalState> => ({
         entities: {
             users: {
-                currentUserId: testContext.user.id,
+                currentUserId: mockUserId,
             },
             teams: {
-                currentTeamId: testContext.team.id,
+                currentTeamId: mockTeamId,
             },
         },
     });
@@ -93,8 +108,8 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     });
 
     describe('Rendering', () => {
-        test('should render with required props', async () => {
-            const baseProps = await getBaseProps();
+        test('should render with required props', () => {
+            const baseProps = getBaseProps();
             const {container} = renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
             expect(container.querySelector('.PagesHierarchyPanel')).toBeInTheDocument();
@@ -102,16 +117,16 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             expect(screen.getByText('Root Page')).toBeInTheDocument();
         });
 
-        test('should render loading state when loading and no pages', async () => {
-            const baseProps = await getBaseProps();
+        test('should render loading state when loading and no pages', () => {
+            const baseProps = getBaseProps();
             const props = {...baseProps, loading: true, pages: []};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
             expect(screen.getByText('Loading pages...')).toBeInTheDocument();
         });
 
-        test('should not show loading state when loading but pages exist', async () => {
-            const baseProps = await getBaseProps();
+        test('should not show loading state when loading but pages exist', () => {
+            const baseProps = getBaseProps();
             const props = {...baseProps, loading: true};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
@@ -119,8 +134,8 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             expect(screen.getByText('Root Page')).toBeInTheDocument();
         });
 
-        test('should render empty state when no pages', async () => {
-            const baseProps = await getBaseProps();
+        test('should render empty state when no pages', () => {
+            const baseProps = getBaseProps();
             const props = {...baseProps, pages: [], drafts: []};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
@@ -129,7 +144,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
 
         test('should render empty state with search message when searching', async () => {
             const user = userEvent.setup();
-            const baseProps = await getBaseProps();
+            const baseProps = getBaseProps();
             const props = {...baseProps, pages: []};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
@@ -139,23 +154,23 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             expect(screen.getByText('No pages found')).toBeInTheDocument();
         });
 
-        test('should apply collapsed class when isPanelCollapsed is true', async () => {
-            const baseProps = await getBaseProps();
+        test('should apply collapsed class when isPanelCollapsed is true', () => {
+            const baseProps = getBaseProps();
             const props = {...baseProps, isPanelCollapsed: true};
             const {container} = renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
             expect(container.querySelector('.PagesHierarchyPanel--collapsed')).toBeInTheDocument();
         });
 
-        test('should render header with title', async () => {
-            const baseProps = await getBaseProps();
+        test('should render header with title', () => {
+            const baseProps = getBaseProps();
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
             expect(screen.getByText('Pages')).toBeInTheDocument();
         });
 
-        test('should render page tree with root page', async () => {
-            const baseProps = await getBaseProps();
+        test('should render page tree with root page', () => {
+            const baseProps = getBaseProps();
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
             expect(screen.getByText('Root Page')).toBeInTheDocument();
@@ -163,22 +178,22 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     });
 
     describe('Lifecycle - Data Loading', () => {
-        test('should set selected page when currentPageId changes', async () => {
-            const baseProps = await getBaseProps();
+        test('should set selected page when currentPageId changes', () => {
+            const baseProps = getBaseProps();
             const {rerender} = renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
             rerender(<PagesHierarchyPanel
                 {...baseProps}
-                currentPageId={testContext.pageIds[1]}
+                currentPageId={childPageId}
             />, /* eslint-disable-line react/jsx-closing-bracket-location */
             );
 
-            expect(baseProps.actions.setSelectedPage).toHaveBeenCalledWith(testContext.pageIds[1]);
+            expect(baseProps.actions.setSelectedPage).toHaveBeenCalledWith(childPageId);
         });
 
-        test('should not set selected page if currentPageId equals selectedPageId', async () => {
-            const baseProps = await getBaseProps();
-            const props = {...baseProps, currentPageId: testContext.pageIds[0], selectedPageId: testContext.pageIds[0]};
+        test('should not set selected page if currentPageId equals selectedPageId', () => {
+            const baseProps = getBaseProps();
+            const props = {...baseProps, currentPageId: rootPage1Id, selectedPageId: rootPage1Id};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
             expect(baseProps.actions.setSelectedPage).not.toHaveBeenCalled();
@@ -186,31 +201,34 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     });
 
     describe('Draft Integration', () => {
-        test('should display real drafts in tree', async () => {
-            const baseProps = await getBaseProps();
+        test('should display published pages', () => {
+            const baseProps = getBaseProps();
+            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
-            // Create a draft
-            const draftId = `draft-${Date.now()}`;
-            await Client4.savePageDraft(testContext.wikiId, draftId, '{"type":"doc","content":[]}', 'Draft Title', undefined, {});
+            expect(screen.getByText('Root Page')).toBeInTheDocument();
+        });
 
-            const serverDrafts = await Client4.getPageDraftsForWiki(testContext.wikiId);
-            const drafts: PostDraft[] = serverDrafts.map((draft) =>
-                transformPageServerDraft(draft, testContext.wikiId, draft.draft_id).value,
-            );
+        test('should handle drafts for new pages', () => {
+            const draftId = 'draft-123';
+            const drafts: PostDraft[] = [{
+                message: '{"type":"doc","content":[]}',
+                fileInfos: [],
+                uploadsInProgress: [],
+                channelId: mockChannelId,
+                rootId: draftId,
+                createAt: Date.now(),
+                updateAt: Date.now(),
+                props: {
+                    title: 'Draft Title',
+                    wiki_id: mockWikiId,
+                },
+            }];
+
+            const baseProps = getBaseProps();
             const props = {...baseProps, drafts};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
 
             expect(screen.getByText('Draft Title')).toBeInTheDocument();
-
-            // Cleanup
-            await Client4.deletePageDraft(testContext.wikiId, draftId);
-        });
-
-        test('should display published pages', async () => {
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Root Page')).toBeInTheDocument();
         });
     });
 });

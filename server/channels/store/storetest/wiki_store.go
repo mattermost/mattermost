@@ -6,6 +6,7 @@ package storetest
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -264,6 +265,10 @@ func testUpdateWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Run("update wiki successfully", func(t *testing.T) {
+		originalUpdateAt := wiki.UpdateAt
+
+		time.Sleep(2 * time.Millisecond)
+
 		wiki.Title = "Updated Title"
 		wiki.Description = "Updated description"
 
@@ -272,7 +277,7 @@ func testUpdateWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, wiki.Id, updated.Id)
 		assert.Equal(t, "Updated Title", updated.Title)
 		assert.Equal(t, "Updated description", updated.Description)
-		assert.Greater(t, updated.UpdateAt, wiki.CreateAt)
+		assert.Greater(t, updated.UpdateAt, originalUpdateAt)
 	})
 
 	t.Run("update non-existent wiki", func(t *testing.T) {

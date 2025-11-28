@@ -75,7 +75,7 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 	draft := &model.Draft{
 		UserId:    userId,
 		WikiId:    wikiId,
-		ChannelId: channel.Id,
+		ChannelId: wikiId,
 		RootId:    draftId,
 		Message:   "",
 		FileIds:   []string{},
@@ -146,8 +146,8 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, draftId string) (*m
 		mlog.String("wiki_id", wikiId),
 		mlog.String("draft_id", draftId))
 
-	// Fetch wiki to get channelId
-	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	// Validate wiki exists
+	_, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
 		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page_draft.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
 	}
@@ -164,8 +164,8 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, draftId string) (*m
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Fetch metadata from Drafts table using channelId
-	draft, draftErr := a.Srv().Store().Draft().Get(userId, wiki.ChannelId, draftId, false)
+	// Fetch metadata from Drafts table using wikiId (page drafts store WikiId in ChannelId field)
+	draft, draftErr := a.Srv().Store().Draft().Get(userId, wikiId, draftId, false)
 	if draftErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(draftErr, &nfErr) {
@@ -220,7 +220,8 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) 
 	}
 
 	// Delete from both PageDraftContents and Drafts tables in a single transaction (DraftStore owns both tables - MM pattern)
-	if err := a.Srv().Store().Draft().DeletePageDraftWithTransaction(userId, wikiId, wiki.ChannelId, draftId); err != nil {
+	// Page drafts store WikiId in ChannelId field, so pass wikiId for both parameters
+	if err := a.Srv().Store().Draft().DeletePageDraftWithTransaction(userId, wikiId, wikiId, draftId); err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
 			return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
@@ -281,8 +282,8 @@ func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*
 		draftIds[i] = content.DraftId
 	}
 
-	// Batch fetch all draft metadata in one query
-	drafts, draftErr := a.Srv().Store().Draft().GetManyByRootIds(userId, channel.Id, draftIds, false)
+	// Batch fetch all draft metadata in one query (page drafts store WikiId in ChannelId field)
+	drafts, draftErr := a.Srv().Store().Draft().GetManyByRootIds(userId, wikiId, draftIds, false)
 	if draftErr != nil {
 		rctx.Logger().Error("Failed to get draft metadata",
 			mlog.String("user_id", userId),

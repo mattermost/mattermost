@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Editor} from '@tiptap/react';
+import {act} from '@testing-library/react';
 import React from 'react';
 
 import type {Agent} from '@mattermost/types/agents';
@@ -169,7 +170,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler();
+
+            act(() => {
+                actionHandler();
+            });
 
             await waitFor(() => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
@@ -193,7 +197,10 @@ describe('usePageRewrite', () => {
 
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
-            props.setPrompt('Custom prompt');
+
+            act(() => {
+                props.setPrompt('Custom prompt');
+            });
 
             rerender();
 
@@ -204,7 +211,9 @@ describe('usePageRewrite', () => {
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
-            props.onCustomPromptKeyDown(mockEvent);
+            act(() => {
+                props.onCustomPromptKeyDown(mockEvent);
+            });
 
             await waitFor(() => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
@@ -224,7 +233,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler1 = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler1();
+
+            act(() => {
+                actionHandler1();
+            });
 
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(true);
@@ -234,7 +246,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler2 = props.onMenuAction(RewriteAction.ELABORATE);
-            actionHandler2();
+
+            act(() => {
+                actionHandler2();
+            });
 
             expect(rewritePromise).toHaveBeenCalledTimes(1);
         });
@@ -244,7 +259,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler();
+
+            act(() => {
+                actionHandler();
+            });
 
             await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -258,7 +276,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler();
+
+            act(() => {
+                actionHandler();
+            });
 
             await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -275,7 +296,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler();
+
+            act(() => {
+                actionHandler();
+            });
 
             await waitFor(() => {
                 expect(mockSetServerError).toHaveBeenCalledWith(error);
@@ -312,7 +336,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler1 = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler1();
+
+            act(() => {
+                actionHandler1();
+            });
 
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(true);
@@ -321,7 +348,10 @@ describe('usePageRewrite', () => {
             rerender();
             render(result.current.additionalControl);
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
-            props.onCancelProcessing();
+
+            act(() => {
+                props.onCancelProcessing();
+            });
 
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(false);
@@ -331,7 +361,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler2 = props.onMenuAction(RewriteAction.ELABORATE);
-            actionHandler2();
+
+            act(() => {
+                actionHandler2();
+            });
 
             await waitFor(() => {
                 expect(mockClient).toHaveBeenCalledTimes(2);
@@ -371,7 +404,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler();
+
+            act(() => {
+                actionHandler();
+            });
 
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(false);
@@ -381,7 +417,10 @@ describe('usePageRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockClient = Client4.getAIRewrittenMessage as jest.Mock;
             mockClient.mockResolvedValueOnce('Regenerated message');
-            props.onRegenerateMessage();
+
+            act(() => {
+                props.onRegenerateMessage();
+            });
 
             await waitFor(() => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
@@ -397,7 +436,10 @@ describe('usePageRewrite', () => {
             const {result, rerender} = renderHookWithProps();
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
-            props.setPrompt('Custom prompt');
+
+            act(() => {
+                props.setPrompt('Custom prompt');
+            });
 
             rerender();
             render(result.current.additionalControl);
@@ -407,7 +449,9 @@ describe('usePageRewrite', () => {
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
-            props.onCustomPromptKeyDown(mockEvent);
+            act(() => {
+                props.onCustomPromptKeyDown(mockEvent);
+            });
 
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(false);
@@ -418,7 +462,10 @@ describe('usePageRewrite', () => {
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const mockClient = Client4.getAIRewrittenMessage as jest.Mock;
             mockClient.mockResolvedValueOnce('Regenerated custom message');
-            props.onRegenerateMessage();
+
+            act(() => {
+                props.onRegenerateMessage();
+            });
 
             await waitFor(() => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
@@ -442,7 +489,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
             const actionHandler = props.onMenuAction(RewriteAction.SHORTEN);
-            actionHandler();
+
+            act(() => {
+                actionHandler();
+            });
 
             await waitFor(() => {
                 expect(result.current.isProcessing).toBe(true);
@@ -451,7 +501,10 @@ describe('usePageRewrite', () => {
             rerender();
             render(result.current.additionalControl);
             props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
-            props.onCancelProcessing();
+
+            act(() => {
+                props.onCancelProcessing();
+            });
 
             rerender();
 
@@ -481,7 +534,10 @@ describe('usePageRewrite', () => {
             const {result, rerender} = renderHookWithProps();
             render(result.current.additionalControl);
             let props = MockedRewriteMenu.mock.calls[MockedRewriteMenu.mock.calls.length - 1][0];
-            props.setPrompt('Custom prompt');
+
+            act(() => {
+                props.setPrompt('Custom prompt');
+            });
 
             rerender();
             render(result.current.additionalControl);
@@ -491,7 +547,9 @@ describe('usePageRewrite', () => {
                 stopPropagation: jest.fn(),
             } as unknown as React.KeyboardEvent<HTMLInputElement>;
 
-            props.onCustomPromptKeyDown(mockEvent);
+            act(() => {
+                props.onCustomPromptKeyDown(mockEvent);
+            });
 
             await waitFor(() => {
                 expect(mockEvent.stopPropagation).toHaveBeenCalled();
@@ -511,7 +569,10 @@ describe('usePageRewrite', () => {
             render(result.current.additionalControl);
             const props = MockedRewriteMenu.mock.calls[0][0];
             const actionHandler = props.onMenuAction(RewriteAction.IMPROVE_WRITING);
-            actionHandler();
+
+            act(() => {
+                actionHandler();
+            });
 
             await waitFor(() => {
                 expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(
@@ -540,7 +601,10 @@ describe('usePageRewrite', () => {
                 render(result.current.additionalControl);
                 const props = MockedRewriteMenu.mock.calls[0][0];
                 const actionHandler = props.onMenuAction(action);
-                actionHandler();
+
+                act(() => {
+                    actionHandler();
+                });
 
                 await waitFor(() => {
                     expect(Client4.getAIRewrittenMessage).toHaveBeenCalledWith(

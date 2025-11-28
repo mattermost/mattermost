@@ -116,11 +116,11 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 		return nil, errors.Wrap(err, "create_default_draft_content")
 	}
 
-	// Insert into Drafts table (metadata)
+	// Insert into Drafts table (metadata) - page drafts store WikiId in ChannelId field
 	draftBuilder := s.getQueryBuilder().
 		Insert("Drafts").
 		Columns("CreateAt", "UpdateAt", "DeleteAt", "UserId", "ChannelId", "RootId", "WikiId", "Message", "Props", "FileIds").
-		Values(now, now, 0, userId, savedWiki.ChannelId, draftId, savedWiki.Id, "", "{}", "[]")
+		Values(now, now, 0, userId, savedWiki.Id, draftId, savedWiki.Id, "", "{}", "[]")
 
 	if _, err = transaction.ExecBuilder(draftBuilder); err != nil {
 		return nil, errors.Wrap(err, "create_default_draft_metadata")

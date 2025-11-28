@@ -1240,7 +1240,6 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 	userId := model.NewId()
 	wikiId := model.NewId()
 	draftId := model.NewId()
-	channelId := model.NewId()
 
 	t.Run("successfully updates props with correct version", func(t *testing.T) {
 		initialProps := map[string]any{
@@ -1251,7 +1250,7 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		draft := &model.Draft{
 			UserId:    userId,
 			WikiId:    wikiId,
-			ChannelId: channelId,
+			ChannelId: wikiId,
 			RootId:    draftId,
 			Message:   "",
 		}
@@ -1269,7 +1268,7 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		err = ss.Draft().UpdatePropsOnly(userId, wikiId, draftId, updatedProps, savedDraft.UpdateAt)
 		require.NoError(t, err)
 
-		retrievedDraft, err := ss.Draft().Get(userId, channelId, draftId, false)
+		retrievedDraft, err := ss.Draft().Get(userId, wikiId, draftId, false)
 		require.NoError(t, err)
 
 		retrievedProps := retrievedDraft.GetProps()
@@ -1283,7 +1282,6 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		userId2 := model.NewId()
 		wikiId2 := model.NewId()
 		draftId2 := model.NewId()
-		channelId2 := model.NewId()
 
 		initialProps := map[string]any{
 			"page_parent_id": "old-parent-id",
@@ -1293,7 +1291,7 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		draft := &model.Draft{
 			UserId:    userId2,
 			WikiId:    wikiId2,
-			ChannelId: channelId2,
+			ChannelId: wikiId2,
 			RootId:    draftId2,
 			Message:   "",
 		}
@@ -1324,7 +1322,7 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "draft was modified by another process")
 
-		retrievedDraft, err := ss.Draft().Get(userId2, channelId2, draftId2, false)
+		retrievedDraft, err := ss.Draft().Get(userId2, wikiId2, draftId2, false)
 		require.NoError(t, err)
 
 		retrievedProps := retrievedDraft.GetProps()
