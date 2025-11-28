@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 import {describe, test, expect} from 'vitest';
 
@@ -82,13 +82,14 @@ describe('components/view_image/ImagePreview', () => {
             },
         };
 
-        const {container} = render(
+        render(
             <ImagePreview {...props}/>,
         );
 
-        const link = container.querySelector('a');
-        const img = container.querySelector('img');
-        expect(link?.getAttribute('href')).toBe('#');
-        expect(img?.getAttribute('src')).toBe(props.fileInfo.link);
+        const link = screen.getByRole('link');
+        expect(link).toHaveAttribute('href', '#');
+
+        const img = screen.getByTestId('imagePreview');
+        expect(img).toHaveAttribute('src', props.fileInfo.link);
     });
 });

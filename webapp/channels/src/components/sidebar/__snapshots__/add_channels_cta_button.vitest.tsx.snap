@@ -1,0 +1,47 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/new_channel_modal > should match snapshot 1`] = `
+<div>
+  <div
+    class="MenuWrapper AddChannelsCtaDropdown"
+  >
+    <button
+      aria-label="Add Channel Dropdown"
+      class="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
+      id="addChannelsCta"
+    >
+      <div
+        aria-label="Add channels"
+      >
+        <i
+          class="icon-plus-box"
+        />
+        <span>
+          Add channels
+        </span>
+      </div>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/new_channel_modal > should match snapshot when user has only join channel permissions 1`] = `
+<div>
+  <button
+    aria-label="Add Channel Dropdown"
+    class="SidebarChannelNavigator__addChannelsCtaLhsButton SidebarChannelNavigator__addChannelsCtaLhsButton--untouched"
+    id="addChannelsCta"
+  >
+    <div
+      aria-label="Add channels"
+    >
+      <i
+        class="icon-plus-box"
+      />
+      <span>
+        Add channels
+      </span>
+    </div>
+  </button>
+</div>
+`;

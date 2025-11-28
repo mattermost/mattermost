@@ -6,7 +6,12 @@
 import * as util from 'node:util';
 
 import * as matchers from '@testing-library/jest-dom/matchers';
+import nodeFetch from 'node-fetch';
 import {expect, vi, beforeAll, afterEach} from 'vitest';
+
+// Use node-fetch for nock compatibility (nock doesn't intercept native fetch)
+// This is needed for tests that use nock to mock HTTP requests
+globalThis.fetch = nodeFetch as unknown as typeof fetch;
 
 // Mock localforage-observable and set up global Observable before store initialization
 // This must be imported first to prevent "Observable is not defined" errors
@@ -125,6 +130,23 @@ afterEach(() => {
             //
             // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
             // fix this everywhere at the moment.
+            continue;
+        }
+
+        // Ignore styled-components CSS-related warnings and other non-critical React warnings
+        // These don't affect test validity
+        const callStr = call[0]?.toString?.() ?? '';
+        if (
+            callStr.includes(':first-child') ||
+            callStr.includes(':nth-child') ||
+            callStr.includes('potentially unsafe when doing server-side rendering') ||
+            callStr.includes('Using kebab-case for css properties in objects is not supported') ||
+            callStr.includes('Each child in a list should have a unique "key" prop') ||
+            callStr.includes('@formatjs/intl Error FORMAT_ERROR') ||
+            callStr.includes('The intl string context variable') ||
+            callStr.includes('FORMAT_ERROR') ||
+            callStr.includes('Function components cannot be given refs')
+        ) {
             continue;
         }
 

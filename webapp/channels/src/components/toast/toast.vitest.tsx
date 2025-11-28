@@ -24,19 +24,30 @@ describe('components/Toast', () => {
         width: 1000,
     };
 
-    test('should render toast when show is true', () => {
-        renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
+    test('should match snapshot for showing toast', () => {
+        const {container} = renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('dismissToast')).toBeInTheDocument();
     });
 
-    test('should render dismiss button', () => {
-        renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
-        const dismissButton = screen.getByTestId('dismissToast');
-        expect(dismissButton).toBeInTheDocument();
+    test('should match snapshot for hiding toast', () => {
+        const {container} = renderWithContext(<Toast {...{...defaultProps, show: false}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call onDismiss when dismiss is clicked', () => {
+    test('should match snapshot for toast width less than 780px', () => {
+        const {container} = renderWithContext(<Toast {...{...defaultProps, width: 779}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot to not have actions', () => {
+        const {container} = renderWithContext(<Toast {...{...defaultProps, showActions: false}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should dismiss', () => {
         const onDismiss = vi.fn();
+
         renderWithContext(
             <Toast
                 {...defaultProps}
@@ -47,15 +58,12 @@ describe('components/Toast', () => {
         );
 
         screen.getByTestId('dismissToast').click();
+
         expect(onDismiss).toHaveBeenCalledTimes(1);
     });
 
-    test('should render children content', () => {
-        renderWithContext(
-            <Toast {...defaultProps}>
-                <span>{'test child content'}</span>
-            </Toast>,
-        );
-        expect(screen.getByText('test child content')).toBeInTheDocument();
+    test('should match snapshot to have extraClasses', () => {
+        const {container} = renderWithContext(<Toast {...{...defaultProps, extraClasses: 'extraClasses'}}><span>{'child'}</span></Toast>);
+        expect(container).toMatchSnapshot();
     });
 });

@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/AddGroupsToTeamModal > should match snapshot 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/AddGroupsToTeamModal > should match when renderOption is called 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

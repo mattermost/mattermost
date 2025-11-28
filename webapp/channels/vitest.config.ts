@@ -72,6 +72,9 @@ export default defineConfig({
 
             // MUI styled engine swap (use styled-components instead of emotion)
             '@mui/styled-engine': path.resolve(__dirname, '../node_modules/@mui/styled-engine-sc'),
+
+            // Mock monaco-editor for tests (it has issues with jsdom)
+            'monaco-editor': path.resolve(__dirname, 'src/tests/__mocks__/monaco-editor.ts'),
         },
     },
     assetsInclude: ['**/*.svg', '**/*.png', '**/*.jpg', '**/*.gif'],

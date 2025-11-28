@@ -1,0 +1,1017 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/access_control/policy_details/PolicyDetails > should match snapshot with existing policy 1`] = `
+<div>
+  <div
+    class="wrapper--fixed AccessControlPolicySettings"
+  >
+    <div
+      class="admin-console__header with-back"
+    >
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/system_attributes/attribute_based_access_control"
+        />
+        Edit Access Control Policy
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="admin-console__setting-group"
+        >
+          <div
+            class="form-group"
+            data-testid="admin.access_control.policy.edit_policy.policyName"
+          >
+            <label
+              class="control-label col-sm-4 vertically-centered-label"
+              data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
+              for="admin.access_control.policy.edit_policy.policyName"
+            >
+              Access control policy name:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="admin.access_control.policy.edit_policy.policyNameinput"
+                id="admin.access_control.policy.edit_policy.policyName"
+                maxlength="-1"
+                placeholder="Add a unique policy name"
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="admin.access_control.policy.edit_policy.policyNamehelp-text"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="admin-console__warning-notice"
+        >
+          <div
+            class="sectionNoticeContainer warning"
+          >
+            <div
+              class="sectionNoticeContent"
+            >
+              <i
+                class="icon sectionNoticeIcon icon-alert-outline warning"
+              />
+              <div
+                class="sectionNoticeBody"
+              >
+                <h4
+                  class="sectionNoticeTitle"
+                >
+                  Please add user attributes and values to use Attribute-Based Access Control
+                </h4>
+                <p>
+                  You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.
+                </p>
+                <div
+                  class="sectionNoticeActions"
+                >
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-primary"
+                  >
+                    Configure user attributes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Attribute-based access rules
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Select user attributes and values as rules to restrict channel membership.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              disabled=""
+            >
+              Switch to Advanced Mode
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="table-editor"
+            >
+              <table
+                class="table-editor__table"
+              >
+                <thead>
+                  <tr
+                    class="table-editor__header-row"
+                  >
+                    <th
+                      class="table-editor__column-header"
+                    >
+                      Attribute
+                    </th>
+                    <th
+                      class="table-editor__column-header"
+                    >
+                      Operator
+                    </th>
+                    <th
+                      class="table-editor__column-header"
+                    >
+                      <span
+                        class="table-editor__column-header-value"
+                      >
+                        Values
+                      </span>
+                    </th>
+                    <th
+                      class="table-editor__column-header-actions"
+                    />
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      class="table-editor__blank-state"
+                      colspan="4"
+                    >
+                      <span>
+                        Select a user attribute and values to create a rule
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td
+                      class="table-editor__add-button-container"
+                      colspan="4"
+                    >
+                      <button
+                        class="btn btn-sm btn-tertiary"
+                        disabled=""
+                      >
+                        <i
+                          class="icon icon-plus"
+                        />
+                        Add attribute
+                      </button>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+              <div
+                class="table-editor__actions-row"
+              >
+                <div
+                  class="editor__help-text"
+                >
+                  <p>
+                    Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (
+                    <span
+                      class="codespan__pre-wrap"
+                    >
+                      <code>
+                        &&
+                      </code>
+                    </span>
+                    ).
+                  </p>
+                </div>
+                <button
+                  class="btn btn-sm btn-tertiary"
+                  disabled=""
+                >
+                  <i
+                    class="icon icon-lock-outline"
+                  />
+                  Test access rule
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console add-channels expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Assigned channels
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Add channels that this attribute-based access policy will apply to.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add channels
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="AccessControlPolicyChannelsList"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_search"
+                >
+                  <div
+                    class="DataGrid_searchBar"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="DataGrid_searchIcon"
+                    >
+                      <i
+                        class="fa fa-search"
+                        title="Search Icon"
+                      />
+                    </span>
+                    <input
+                      data-testid="searchInput"
+                      placeholder="Search"
+                      type="text"
+                      value=""
+                    />
+                    <i
+                      class="DataGrid_clearButton fa fa-times-circle hidden"
+                      data-testid="clear-search"
+                    />
+                  </div>
+                  <div
+                    class="Filter"
+                  >
+                    <button
+                      class="Filter_button"
+                      type="button"
+                    >
+                      <i
+                        class="Icon icon-filter-variant"
+                      />
+                      Filters
+                    </button>
+                    <div
+                      class="Filter_content"
+                    >
+                      <div
+                        class="Filter_header"
+                      >
+                        <div
+                          class="Filter_title"
+                        >
+                          Filter by
+                        </div>
+                        <a
+                          class="Filter_reset"
+                        >
+                          Reset filters
+                        </a>
+                      </div>
+                      <hr />
+                      <div
+                        class="Filter_lists"
+                      >
+                        <div
+                          class="FilterList FilterList__full"
+                        >
+                          <div
+                            class="FilterList_name"
+                          >
+                            Teams
+                          </div>
+                          <div
+                            class="css-b62m3t-container"
+                          >
+                            <span
+                              class="css-1f43avz-a11yText-A11yText"
+                              id="react-select-3-live-region"
+                            />
+                            <span
+                              aria-atomic="false"
+                              aria-live="polite"
+                              aria-relevant="additions text"
+                              class="css-1f43avz-a11yText-A11yText"
+                              role="log"
+                            />
+                            <div
+                              class="filterListSelect__control css-13cymwt-control"
+                            >
+                              <div
+                                class="filterListSelect__value-container filterListSelect__value-container--is-multi css-hlgwow"
+                              >
+                                <div
+                                  class="filterListSelect__placeholder css-1jqq78o-placeholder"
+                                  id="react-select-3-placeholder"
+                                >
+                                  Search and select teams
+                                </div>
+                                <div
+                                  class="filterListSelect__input-container css-19bb58m"
+                                  data-value=""
+                                >
+                                  <input
+                                    aria-activedescendant=""
+                                    aria-autocomplete="list"
+                                    aria-describedby="react-select-3-placeholder"
+                                    aria-expanded="false"
+                                    aria-haspopup="true"
+                                    autocapitalize="none"
+                                    autocomplete="off"
+                                    autocorrect="off"
+                                    class="filterListSelect__input"
+                                    id="adminConsoleTeamFilterDropdown"
+                                    role="combobox"
+                                    spellcheck="false"
+                                    style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                                    tabindex="0"
+                                    type="text"
+                                    value=""
+                                  />
+                                </div>
+                              </div>
+                              <div
+                                class="filterListSelect__indicators css-1wy0on6"
+                              >
+                                <span
+                                  class="filterListSelect__indicator-separator css-1u9des2-indicatorSeparator"
+                                />
+                                <div
+                                  aria-hidden="true"
+                                  class="filterListSelect__indicator filterListSelect__dropdown-indicator css-1xc3v61-indicatorContainer"
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    class="css-tj5bde-Svg"
+                                    focusable="false"
+                                    height="20"
+                                    viewBox="0 0 20 20"
+                                    width="20"
+                                  >
+                                    <path
+                                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        class="btn btn-primary btn-sm Filter_apply"
+                        disabled=""
+                        type="button"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_header"
+                >
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 7;"
+                  >
+                    Name
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 7;"
+                  >
+                    Team
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 8;"
+                  >
+                    <div
+                      class="ChannelList__autoAddHeader"
+                    >
+                      <input
+                        aria-label="Auto-add members"
+                        class="header-checkbox"
+                        id="auto-add-header-checkbox"
+                        type="checkbox"
+                      />
+                      <span
+                        class="header-text"
+                      >
+                        Auto-add members
+                      </span>
+                      <i
+                        class="icon icon-information-outline ChannelList__autoAddInfoIcon"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 3;"
+                  />
+                </div>
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_empty"
+                  >
+                    No items found
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console delete-policy expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Delete policy
+              </div>
+              <div
+                class="text-bottom"
+              >
+                This policy will be deleted and cannot be recovered.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Delete
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/system_attributes/attribute_based_access_control"
+      >
+        Cancel
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/access_control/policy_details/PolicyDetails > should match snapshot with new policy 1`] = `
+<div>
+  <div
+    class="wrapper--fixed AccessControlPolicySettings"
+  >
+    <div
+      class="admin-console__header with-back"
+    >
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/system_attributes/attribute_based_access_control"
+        />
+        Edit Access Control Policy
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="admin-console__setting-group"
+        >
+          <div
+            class="form-group"
+            data-testid="admin.access_control.policy.edit_policy.policyName"
+          >
+            <label
+              class="control-label col-sm-4 vertically-centered-label"
+              data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
+              for="admin.access_control.policy.edit_policy.policyName"
+            >
+              Access control policy name:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="admin.access_control.policy.edit_policy.policyNameinput"
+                id="admin.access_control.policy.edit_policy.policyName"
+                maxlength="-1"
+                placeholder="Add a unique policy name"
+                type="text"
+                value=""
+              />
+              <div
+                class="help-text"
+                data-testid="admin.access_control.policy.edit_policy.policyNamehelp-text"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="admin-console__warning-notice"
+        >
+          <div
+            class="sectionNoticeContainer warning"
+          >
+            <div
+              class="sectionNoticeContent"
+            >
+              <i
+                class="icon sectionNoticeIcon icon-alert-outline warning"
+              />
+              <div
+                class="sectionNoticeBody"
+              >
+                <h4
+                  class="sectionNoticeTitle"
+                >
+                  Please add user attributes and values to use Attribute-Based Access Control
+                </h4>
+                <p>
+                  You havent configured any user attributes yet. Attribute-Based Access Control requires user attributes that are either synced from an external system (like LDAP or SAML) or manually configured and enabled on this server. To start using attribute based access, please configure user attributes in System Attributes.
+                </p>
+                <div
+                  class="sectionNoticeActions"
+                >
+                  <button
+                    class="btn btn-sm sectionNoticeButton btn-primary"
+                  >
+                    Configure user attributes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Attribute-based access rules
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Select user attributes and values as rules to restrict channel membership.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+              disabled=""
+            >
+              Switch to Advanced Mode
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="table-editor"
+            >
+              <table
+                class="table-editor__table"
+              >
+                <thead>
+                  <tr
+                    class="table-editor__header-row"
+                  >
+                    <th
+                      class="table-editor__column-header"
+                    >
+                      Attribute
+                    </th>
+                    <th
+                      class="table-editor__column-header"
+                    >
+                      Operator
+                    </th>
+                    <th
+                      class="table-editor__column-header"
+                    >
+                      <span
+                        class="table-editor__column-header-value"
+                      >
+                        Values
+                      </span>
+                    </th>
+                    <th
+                      class="table-editor__column-header-actions"
+                    />
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      class="table-editor__blank-state"
+                      colspan="4"
+                    >
+                      <span>
+                        Select a user attribute and values to create a rule
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td
+                      class="table-editor__add-button-container"
+                      colspan="4"
+                    >
+                      <button
+                        class="btn btn-sm btn-tertiary"
+                        disabled=""
+                      >
+                        <i
+                          class="icon icon-plus"
+                        />
+                        Add attribute
+                      </button>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+              <div
+                class="table-editor__actions-row"
+              >
+                <div
+                  class="editor__help-text"
+                >
+                  <p>
+                    Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (
+                    <span
+                      class="codespan__pre-wrap"
+                    >
+                      <code>
+                        &&
+                      </code>
+                    </span>
+                    ).
+                  </p>
+                </div>
+                <button
+                  class="btn btn-sm btn-tertiary"
+                  disabled=""
+                >
+                  <i
+                    class="icon icon-lock-outline"
+                  />
+                  Test access rule
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console add-channels expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Assigned channels
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Add channels that this attribute-based access policy will apply to.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add channels
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="AccessControlPolicyChannelsList"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_search"
+                >
+                  <div
+                    class="DataGrid_searchBar"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="DataGrid_searchIcon"
+                    >
+                      <i
+                        class="fa fa-search"
+                        title="Search Icon"
+                      />
+                    </span>
+                    <input
+                      data-testid="searchInput"
+                      placeholder="Search"
+                      type="text"
+                      value=""
+                    />
+                    <i
+                      class="DataGrid_clearButton fa fa-times-circle hidden"
+                      data-testid="clear-search"
+                    />
+                  </div>
+                  <div
+                    class="Filter"
+                  >
+                    <button
+                      class="Filter_button"
+                      type="button"
+                    >
+                      <i
+                        class="Icon icon-filter-variant"
+                      />
+                      Filters
+                    </button>
+                    <div
+                      class="Filter_content"
+                    >
+                      <div
+                        class="Filter_header"
+                      >
+                        <div
+                          class="Filter_title"
+                        >
+                          Filter by
+                        </div>
+                        <a
+                          class="Filter_reset"
+                        >
+                          Reset filters
+                        </a>
+                      </div>
+                      <hr />
+                      <div
+                        class="Filter_lists"
+                      >
+                        <div
+                          class="FilterList FilterList__full"
+                        >
+                          <div
+                            class="FilterList_name"
+                          >
+                            Teams
+                          </div>
+                          <div
+                            class="css-b62m3t-container"
+                          >
+                            <span
+                              class="css-1f43avz-a11yText-A11yText"
+                              id="react-select-2-live-region"
+                            />
+                            <span
+                              aria-atomic="false"
+                              aria-live="polite"
+                              aria-relevant="additions text"
+                              class="css-1f43avz-a11yText-A11yText"
+                              role="log"
+                            />
+                            <div
+                              class="filterListSelect__control css-13cymwt-control"
+                            >
+                              <div
+                                class="filterListSelect__value-container filterListSelect__value-container--is-multi css-hlgwow"
+                              >
+                                <div
+                                  class="filterListSelect__placeholder css-1jqq78o-placeholder"
+                                  id="react-select-2-placeholder"
+                                >
+                                  Search and select teams
+                                </div>
+                                <div
+                                  class="filterListSelect__input-container css-19bb58m"
+                                  data-value=""
+                                >
+                                  <input
+                                    aria-activedescendant=""
+                                    aria-autocomplete="list"
+                                    aria-describedby="react-select-2-placeholder"
+                                    aria-expanded="false"
+                                    aria-haspopup="true"
+                                    autocapitalize="none"
+                                    autocomplete="off"
+                                    autocorrect="off"
+                                    class="filterListSelect__input"
+                                    id="adminConsoleTeamFilterDropdown"
+                                    role="combobox"
+                                    spellcheck="false"
+                                    style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                                    tabindex="0"
+                                    type="text"
+                                    value=""
+                                  />
+                                </div>
+                              </div>
+                              <div
+                                class="filterListSelect__indicators css-1wy0on6"
+                              >
+                                <span
+                                  class="filterListSelect__indicator-separator css-1u9des2-indicatorSeparator"
+                                />
+                                <div
+                                  aria-hidden="true"
+                                  class="filterListSelect__indicator filterListSelect__dropdown-indicator css-1xc3v61-indicatorContainer"
+                                >
+                                  <svg
+                                    aria-hidden="true"
+                                    class="css-tj5bde-Svg"
+                                    focusable="false"
+                                    height="20"
+                                    viewBox="0 0 20 20"
+                                    width="20"
+                                  >
+                                    <path
+                                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        class="btn btn-primary btn-sm Filter_apply"
+                        disabled=""
+                        type="button"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_header"
+                >
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 7;"
+                  >
+                    Name
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 7;"
+                  >
+                    Team
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 8;"
+                  >
+                    <div
+                      class="ChannelList__autoAddHeader"
+                    >
+                      <input
+                        aria-label="Auto-add members"
+                        class="header-checkbox"
+                        id="auto-add-header-checkbox"
+                        type="checkbox"
+                      />
+                      <span
+                        class="header-text"
+                      >
+                        Auto-add members
+                      </span>
+                      <i
+                        class="icon icon-information-outline ChannelList__autoAddInfoIcon"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 3;"
+                  />
+                </div>
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_empty"
+                  >
+                    No items found
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/system_attributes/attribute_based_access_control"
+      >
+        Cancel
+      </a>
+    </div>
+  </div>
+</div>
+`;

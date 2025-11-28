@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/billing_subscription/CloudTrialBanner > should match snapshot when is cloud and is free trial (the trial end is passed) 1`] = `
+<div>
+  <div
+    class="AlertBanner info AlertBanner--sys"
+  >
+    <div
+      class="AlertBanner__body"
+    >
+      <div
+        class="AlertBanner__title"
+      >
+        Upgrade to one of our paid plans to keep your workspace 
+      </div>
+      <div
+        class="AlertBanner__message"
+      >
+        Your trial ends on Jan 1, 1970  11:59 pm UTC. Upgrade to one of our paid plans with no limits.
+      </div>
+      <div
+        class="AlertBanner__actionButtons"
+      >
+        <button
+          class="upgradeLink style-button"
+        >
+          Upgrade
+        </button>
+      </div>
+    </div>
+    <button
+      aria-label="Close"
+      class="AlertBanner__closeButton"
+    >
+      <svg
+        fill="currentColor"
+        height="18"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="18"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/billing_subscription/CloudTrialBanner > should match snapshot when no trial end date is passed 1`] = `<div />`;
+
+exports[`components/admin_console/billing_subscription/CloudTrialBanner > should match snapshot when there is an stored preference value 1`] = `<div />`;

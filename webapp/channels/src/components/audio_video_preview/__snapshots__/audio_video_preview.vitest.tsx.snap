@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AudioVideoPreview > should match snapshot without children 1`] = `
+<div>
+  <video
+    controls=""
+    data-setup="{}"
+    height="480"
+    width="640"
+  >
+    <source
+      src="/api/v4/files/file_id"
+    />
+  </video>
+</div>
+`;

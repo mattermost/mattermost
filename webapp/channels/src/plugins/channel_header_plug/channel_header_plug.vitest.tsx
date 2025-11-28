@@ -2,14 +2,26 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
+import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, cleanup, act} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelHeaderPlug, {maxComponentsBeforeDropdown} from './channel_header_plug';
 
 describe('plugins/ChannelHeaderPlug', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(async () => {
+        await act(async () => {
+            vi.runAllTimers();
+        });
+        vi.useRealTimers();
+        cleanup();
+    });
+
     const baseProps = {
         components: [],
         channel: TestHelper.getChannelMock({id: 'channel1'}),
@@ -36,57 +48,71 @@ describe('plugins/ChannelHeaderPlug', () => {
         };
     }
 
-    test('should not render anything with no extended component', () => {
-        const {container} = renderWithContext(
-            <ChannelHeaderPlug
-                {...baseProps}
-            />,
-        );
+    test('should not render anything with no extended component', async () => {
+        let container: HTMLElement;
+        await act(async () => {
+            const result = renderWithContext(
+                <ChannelHeaderPlug
+                    {...baseProps}
+                />,
+            );
+            container = result.container;
+            vi.runAllTimers();
+        });
 
-        expect(container).toBeEmptyDOMElement();
+        expect(container!).toBeEmptyDOMElement();
     });
 
-    test('should render a single plug', () => {
-        renderWithContext(
-            <ChannelHeaderPlug
-                {...baseProps}
-                components={[makeTestPlug()]}
-            />,
-        );
+    test('should render a single plug', async () => {
+        await act(async () => {
+            renderWithContext(
+                <ChannelHeaderPlug
+                    {...baseProps}
+                    components={[makeTestPlug()]}
+                />,
+            );
+            vi.runAllTimers();
+        });
 
         expect(screen.getByLabelText('some tooltip text 1')).toBeInTheDocument();
     });
 
-    test(`should render ${maxComponentsBeforeDropdown} plugs in the header`, () => {
+    test(`should render ${maxComponentsBeforeDropdown} plugs in the header`, async () => {
         const components = [];
         for (let i = 0; i < maxComponentsBeforeDropdown; i++) {
             components.push(makeTestPlug(i));
         }
 
-        renderWithContext(
-            <ChannelHeaderPlug
-                {...baseProps}
-                components={components}
-            />,
-        );
+        await act(async () => {
+            renderWithContext(
+                <ChannelHeaderPlug
+                    {...baseProps}
+                    components={components}
+                />,
+            );
+            vi.runAllTimers();
+        });
 
         for (let i = 0; i < components.length; i++) {
             expect(screen.getByLabelText('some tooltip text ' + i)).toBeInTheDocument();
         }
     });
 
-    test(`should render more than ${maxComponentsBeforeDropdown} plugs in a dropdown`, () => {
+    test(`should render more than ${maxComponentsBeforeDropdown} plugs in a dropdown`, async () => {
         const components = [];
         for (let i = 0; i < maxComponentsBeforeDropdown + 1; i++) {
             components.push(makeTestPlug(i));
         }
 
-        renderWithContext(
-            <ChannelHeaderPlug
-                {...baseProps}
-                components={components}
-            />,
-        );
+        await act(async () => {
+            renderWithContext(
+                <ChannelHeaderPlug
+                    {...baseProps}
+                    components={components}
+                />,
+            );
+            vi.runAllTimers();
+        });
 
         for (let i = 0; i < components.length; i++) {
             expect(screen.queryByLabelText('some tooltip text ' + i)).not.toBeInTheDocument();
@@ -97,20 +123,25 @@ describe('plugins/ChannelHeaderPlug', () => {
         expect(screen.getByRole('button', {name: components.length.toString()})).toBeVisible();
     });
 
-    test('should not render anything when the App Bar is visible', () => {
-        const {container} = renderWithContext(
-            <ChannelHeaderPlug
-                {...baseProps}
-                components={[
-                    makeTestPlug(1),
-                    makeTestPlug(2),
-                    makeTestPlug(3),
-                    makeTestPlug(4),
-                ]}
-                shouldShowAppBar={true}
-            />,
-        );
+    test('should not render anything when the App Bar is visible', async () => {
+        let container: HTMLElement;
+        await act(async () => {
+            const result = renderWithContext(
+                <ChannelHeaderPlug
+                    {...baseProps}
+                    components={[
+                        makeTestPlug(1),
+                        makeTestPlug(2),
+                        makeTestPlug(3),
+                        makeTestPlug(4),
+                    ]}
+                    shouldShowAppBar={true}
+                />,
+            );
+            container = result.container;
+            vi.runAllTimers();
+        });
 
-        expect(container).toBeEmptyDOMElement();
+        expect(container!).toBeEmptyDOMElement();
     });
 });

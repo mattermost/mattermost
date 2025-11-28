@@ -1,0 +1,331 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/sidebar/sidebar_channel > should match snapshot 1`] = `
+<div>
+  <li
+    class="SidebarChannel expanded"
+    role="listitem"
+  >
+    <a
+      aria-label="channel_display_name public channel"
+      class="SidebarLink"
+      href="/team_name/channels/"
+      id="sidebarItem_"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-globe"
+      />
+      <div
+        class="SidebarChannelLinkLabel_wrapper"
+      >
+        <span
+          class="SidebarChannelLinkLabel"
+        >
+          channel_display_name
+        </span>
+      </div>
+      <div
+        class="SidebarMenu MenuWrapper"
+      >
+        <button
+          aria-controls="SidebarChannelMenu-MenuList-channel_id"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="Channel options for "
+          class="SidebarMenu_menuButton"
+          id="SidebarChannelMenu-Button-channel_id"
+        >
+          <svg
+            fill="currentColor"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="tour-tip__pulsating-dot-ctr"
+        data-pulsating-dot-placement="right"
+        id="tipButton"
+        style="transform: translate(undefinedpx, undefinedpx);"
+      >
+        <span
+          class="pulsating_dot"
+          data-testid="pulsating_dot"
+        />
+      </div>
+    </a>
+  </li>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel > should match snapshot when DM channel 1`] = `
+<div>
+  <li
+    class="SidebarChannel expanded"
+    role="listitem"
+  />
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel > should match snapshot when GM channel 1`] = `
+<div>
+  <li
+    class="SidebarChannel expanded"
+    role="listitem"
+  >
+    <a
+      aria-label="name"
+      class="SidebarLink"
+      href="/team_name/messages/DN"
+      id="sidebarItem_DN"
+      tabindex="0"
+    >
+      <div
+        class="status status--group"
+      >
+        0
+      </div>
+      <div
+        class="SidebarChannelLinkLabel_wrapper"
+      >
+        <span
+          class="SidebarChannelLinkLabel"
+        >
+          name
+        </span>
+      </div>
+      <div
+        class="SidebarMenu MenuWrapper"
+      >
+        <button
+          aria-controls="SidebarChannelMenu-MenuList-gm_channel_id"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="Channel options for DN"
+          class="SidebarMenu_menuButton"
+          id="SidebarChannelMenu-Button-gm_channel_id"
+        >
+          <svg
+            fill="currentColor"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </a>
+  </li>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel > should match snapshot when active 1`] = `
+<div>
+  <li
+    class="SidebarChannel expanded active"
+    role="listitem"
+  >
+    <a
+      aria-label="channel_display_name public channel"
+      class="SidebarLink"
+      href="/team_name/channels/"
+      id="sidebarItem_"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-globe"
+      />
+      <div
+        class="SidebarChannelLinkLabel_wrapper"
+      >
+        <span
+          class="SidebarChannelLinkLabel"
+        >
+          channel_display_name
+        </span>
+      </div>
+      <div
+        class="SidebarMenu MenuWrapper"
+      >
+        <button
+          aria-controls="SidebarChannelMenu-MenuList-channel_id"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="Channel options for "
+          class="SidebarMenu_menuButton"
+          id="SidebarChannelMenu-Button-channel_id"
+        >
+          <svg
+            fill="currentColor"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="tour-tip__pulsating-dot-ctr"
+        data-pulsating-dot-placement="right"
+        id="tipButton"
+        style="transform: translate(undefinedpx, undefinedpx);"
+      >
+        <span
+          class="pulsating_dot"
+          data-testid="pulsating_dot"
+        />
+      </div>
+    </a>
+  </li>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel > should match snapshot when collapsed 1`] = `
+<div>
+  <li
+    class="SidebarChannel collapsed"
+    role="listitem"
+  >
+    <a
+      aria-label="channel_display_name public channel"
+      class="SidebarLink"
+      href="/team_name/channels/"
+      id="sidebarItem_"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-globe"
+      />
+      <div
+        class="SidebarChannelLinkLabel_wrapper"
+      >
+        <span
+          class="SidebarChannelLinkLabel"
+        >
+          channel_display_name
+        </span>
+      </div>
+      <div
+        class="SidebarMenu MenuWrapper"
+      >
+        <button
+          aria-controls="SidebarChannelMenu-MenuList-channel_id"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="Channel options for "
+          class="SidebarMenu_menuButton"
+          id="SidebarChannelMenu-Button-channel_id"
+        >
+          <svg
+            fill="currentColor"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="tour-tip__pulsating-dot-ctr"
+        data-pulsating-dot-placement="right"
+        id="tipButton"
+        style="transform: translate(undefinedpx, undefinedpx);"
+      >
+        <span
+          class="pulsating_dot"
+          data-testid="pulsating_dot"
+        />
+      </div>
+    </a>
+  </li>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel > should match snapshot when unread 1`] = `
+<div>
+  <li
+    class="SidebarChannel expanded unread"
+    role="listitem"
+  >
+    <a
+      aria-label="channel_display_name public channel"
+      class="SidebarLink"
+      href="/team_name/channels/"
+      id="sidebarItem_"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-globe"
+      />
+      <div
+        class="SidebarChannelLinkLabel_wrapper"
+      >
+        <span
+          class="SidebarChannelLinkLabel"
+        >
+          channel_display_name
+        </span>
+      </div>
+      <div
+        class="SidebarMenu MenuWrapper"
+      >
+        <button
+          aria-controls="SidebarChannelMenu-MenuList-channel_id"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="Channel options for "
+          class="SidebarMenu_menuButton"
+          id="SidebarChannelMenu-Button-channel_id"
+        >
+          <svg
+            fill="currentColor"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div
+        class="tour-tip__pulsating-dot-ctr"
+        data-pulsating-dot-placement="right"
+        id="tipButton"
+        style="transform: translate(undefinedpx, undefinedpx);"
+      >
+        <span
+          class="pulsating_dot"
+          data-testid="pulsating_dot"
+        />
+      </div>
+    </a>
+  </li>
+</div>
+`;

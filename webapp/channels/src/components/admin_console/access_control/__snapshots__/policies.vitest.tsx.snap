@@ -1,0 +1,407 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/access_control/PolicyList > should match snapshot with no policies 1`] = `
+<div>
+  <div
+    class="PolicyTable"
+  >
+    <div
+      class="policy-header"
+    >
+      <div
+        class="policy-header-text"
+      >
+        <h1>
+          Access Control Policies
+        </h1>
+        <p>
+          Create policies containing attribute based access rules and the resources they apply to.
+        </p>
+      </div>
+      <button
+        class="btn btn-primary"
+      >
+        <i
+          class="icon icon-plus"
+        />
+        <span>
+          Add policy
+        </span>
+      </button>
+    </div>
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 5;"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 4;"
+        >
+          Applies to
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 1;"
+        >
+          <span />
+        </div>
+      </div>
+      <div
+        class="DataGrid_rows"
+        style="min-height: 0px;"
+      >
+        <div
+          class="DataGrid_empty"
+        >
+          No policies found
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/access_control/PolicyList > should match snapshot with policies 1`] = `
+<div>
+  <div
+    class="PolicyTable"
+  >
+    <div
+      class="policy-header"
+    >
+      <div
+        class="policy-header-text"
+      >
+        <h1>
+          Access Control Policies
+        </h1>
+        <p>
+          Create policies containing attribute based access rules and the resources they apply to.
+        </p>
+      </div>
+      <button
+        class="btn btn-primary"
+      >
+        <i
+          class="icon icon-plus"
+        />
+        <span>
+          Add policy
+        </span>
+      </button>
+    </div>
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 5;"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 4;"
+        >
+          Applies to
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 1;"
+        >
+          <span />
+        </div>
+      </div>
+      <div
+        class="DataGrid_rows"
+        style="min-height: 80px;"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 5;"
+          >
+            <div
+              class="policy-name"
+              id="customDescription-policy1"
+            >
+              Policy 1
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 4; text-align: center;"
+          >
+            <div
+              class="policy-resources"
+              id="customAppliedTo-policy1"
+            >
+              None
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell actions-column"
+            style="flex-grow: 1;"
+          >
+            <div
+              class="policy-actions"
+            >
+              <button
+                aria-controls="policy-menu-dropdown-policy1"
+                aria-expanded="false"
+                aria-haspopup="true"
+                class="policy-menu-button"
+                id="policy-menu-policy1"
+              >
+                <i
+                  class="icon icon-dots-vertical"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 5;"
+          >
+            <div
+              class="policy-name"
+              id="customDescription-policy2"
+            >
+              Policy 2
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 4; text-align: center;"
+          >
+            <div
+              class="policy-resources"
+              id="customAppliedTo-policy2"
+            >
+              None
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell actions-column"
+            style="flex-grow: 1;"
+          >
+            <div
+              class="policy-actions"
+            >
+              <button
+                aria-controls="policy-menu-dropdown-policy2"
+                aria-expanded="false"
+                aria-haspopup="true"
+                class="policy-menu-button"
+                id="policy-menu-policy2"
+              >
+                <i
+                  class="icon icon-dots-vertical"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 2 of 2
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/access_control/PolicyList > should match snapshot with search error 1`] = `
+<div>
+  <div
+    class="PolicyTable"
+  >
+    <div
+      class="policy-header"
+    >
+      <div
+        class="policy-header-text"
+      >
+        <h1>
+          Access Control Policies
+        </h1>
+        <p>
+          Create policies containing attribute based access rules and the resources they apply to.
+        </p>
+      </div>
+      <button
+        class="btn btn-primary"
+      >
+        <i
+          class="icon icon-plus"
+        />
+        <span>
+          Add policy
+        </span>
+      </button>
+    </div>
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value=""
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle hidden"
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 5;"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 4;"
+        >
+          Applies to
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 1;"
+        >
+          <span />
+        </div>
+      </div>
+      <div
+        class="DataGrid_rows"
+        style="min-height: 0px;"
+      >
+        <div
+          class="DataGrid_empty"
+        >
+          Something went wrong. Try again
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

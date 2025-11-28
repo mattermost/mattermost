@@ -1,0 +1,4189 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/AdminSidebar > Plugins > should match snapshot 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot with license with enterprise SKU 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="billing"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Billing & Account
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="system_attributes"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M4,3h16c1.105,0,2,0.848,2,1.895v14.211C22,20.152,21.105,21,20,21H4c-1.105,0-2-0.848-2-1.895V4.895C2,3.848,2.895,3,4,3 M4,6v3h4V6H4 M10,6v3h10V6H10 M4,11v3h4v-3H4 M4,19h4v-3H4V19 M10,11v3h10v-3H10 M10,19h10v-3H10V19"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            System Attributes
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot with license with enterprise advanced SKU 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="billing"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,8H4V6H20M20,18H4V12H20M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Billing & Account
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="system_attributes"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M4,3h16c1.105,0,2,0.848,2,1.895v14.211C22,20.152,21.105,21,20,21H4c-1.105,0-2-0.848-2-1.895V4.895C2,3.848,2.895,3,4,3 M4,6v3h4V6H4 M10,6v3h10V6H10 M4,11v3h4v-3H4 M4,19h4v-3H4V19 M10,11v3h10v-3H10 M10,19h10v-3H10V19"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            System Attributes
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot with license with professional SKU 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot with workspace optimization dashboard enabled 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot, no access 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot, not prevent the console from loading when empty settings_schema provided 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot, render plugins without any settings as well 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot, with license (with all feature) 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AdminSidebar > should match snapshot, with license (without any explicit feature) 1`] = `
+<div>
+  <div
+    class="admin-sidebar"
+  >
+    <div
+      class="filter-container"
+    >
+      <span
+        aria-hidden="true"
+        class="search__icon"
+      >
+        <svg
+          aria-label="Search Icon"
+          height="16px"
+          role="img"
+          viewBox="0 0 17 17"
+          width="16px"
+        >
+          <path
+            d="M16.398 15.138L13.014 11.754C13.458 11.178 13.8 10.548 14.04 9.86399C14.28 9.14399 14.4 8.40599 14.4 7.64999C14.4 6.42599 14.094 5.29199 13.482 4.24799C12.882 3.22799 12.072 2.41799 11.052 1.81799C10.008 1.20599 8.874 0.899988 7.65 0.899988C6.426 0.899988 5.292 1.20599 4.248 1.81799C3.228 2.41799 2.418 3.22799 1.818 4.24799C1.206 5.29199 0.9 6.42599 0.9 7.64999C0.9 8.87399 1.206 10.008 1.818 11.052C2.418 12.072 3.228 12.882 4.248 13.482C5.292 14.094 6.426 14.4 7.65 14.4C8.406 14.4 9.138 14.274 9.846 14.022C10.53 13.794 11.16 13.458 11.736 13.014L15.138 16.398C15.306 16.566 15.516 16.65 15.768 16.65C16.02 16.65 16.23 16.56 16.398 16.38C16.566 16.212 16.65 16.008 16.65 15.768C16.65 15.528 16.566 15.318 16.398 15.138ZM2.7 7.64999C2.7 6.74999 2.922 5.92199 3.366 5.16599C3.81 4.40999 4.41 3.80999 5.166 3.36599C5.922 2.92199 6.75 2.69999 7.65 2.69999C8.55 2.69999 9.378 2.92199 10.134 3.36599C10.89 3.80999 11.49 4.40999 11.934 5.16599C12.378 5.92199 12.6 6.74999 12.6 7.64999C12.6 8.54999 12.378 9.37799 11.934 10.134C11.49 10.89 10.89 11.49 10.134 11.934C9.378 12.378 8.55 12.6 7.65 12.6C6.75 12.6 5.922 12.378 5.166 11.934C4.41 11.49 3.81 10.89 3.366 10.134C2.922 9.37799 2.7 8.54999 2.7 7.64999Z"
+          />
+        </svg>
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="filter "
+          id="adminSidebarFilter"
+          placeholder="Find settings"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      data-simplebar="init"
+      style="--scrollbar-color: var(undefined);"
+    >
+      <div
+        class="simplebar-wrapper"
+      >
+        <div
+          class="simplebar-height-auto-observer-wrapper"
+        >
+          <div
+            class="simplebar-height-auto-observer"
+          />
+        </div>
+        <div
+          class="simplebar-mask"
+        >
+          <div
+            class="simplebar-offset"
+            style="right: 0px; bottom: 0px;"
+          >
+            <div
+              aria-label="scrollable content"
+              class="simplebar-content-wrapper"
+              role="region"
+              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+              tabindex="-1"
+            >
+              <div
+                class="simplebar-content"
+              >
+                <div
+                  class="nav-pills__container"
+                >
+                  <div>
+                    <ul
+                      class="nav nav-pills nav-stacked"
+                    >
+                      <li
+                        class="sidebar-category"
+                        data-testid="about"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            About
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="reporting"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Reporting
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="user_management"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            User Management
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="environment"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M8,7V6H6v1H8z M8,17H6v1h2V17z M15,6v1h-5V6H15z M15,17h-5v1h5V17z M22,4c0-1.1-0.9-2-2-2H4C2.9,2,2,2.9,2,4v5
+c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H4c-1.1,0-2-0.9-2-2v-5c0-1.1,0.9-2,2-2h16
+	C21.1,13,22,13.9,22,15z M20,15H4v5h16V15z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Environment
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="site"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Site Configuration
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="authentication"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Authentication
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="plugins"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M18.203,12.161l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828l-3.536-3.536l2.828-2.828c0.391-0.391,0.391-1.024,0-1.414c-0.391-0.391-1.024-0.391-1.414,0l-2.828,2.828L9.01,2.969
+	c-0.391-0.391-1.024-0.391-1.414,0L7.59,2.975c-0.39,0.39-0.39,1.023,0,1.414l0.707,0.707L5.121,8.272
+	c-2.692,2.692-2.903,6.918-0.646,9.859c-0.019,0.016-0.043,0.023-0.061,0.041l-2.121,2.121c-0.391,0.391-0.391,1.024,0,1.414
+	s1.024,0.391,1.414,0l2.121-2.121c0.018-0.018,0.024-0.042,0.041-0.061c2.941,2.257,7.167,2.046,9.859-0.646l3.176-3.176
+	l0.707,0.707c0.391,0.391,1.024,0.391,1.414,0l0.006-0.006c0.391-0.391,0.391-1.024,0-1.414L18.203,12.161z M14.314,17.464
+	c-2.144,2.144-5.634,2.144-7.778,0s-2.144-5.634,0-7.778L9.712,6.51l7.778,7.778L14.314,17.464z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Plugins
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="integrations"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M20,16.2V13c0-1.1-0.9-2-2-2h-5V7.8c1.2-0.4,2-1.5,2-2.8c0-1.7-1.3-3-3-3S9,3.3,9,5c0,1.3,0.8,2.4,2,2.8V11H6c-1.1,0-2,0.9-2,2v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8
+	c0,1.7,1.3,3,3,3s3-1.3,3-3c0-1.3-0.8-2.4-2-2.8V13h5v3.2c-1.2,0.4-2,1.5-2,2.8c0,1.7,1.3,3,3,3s3-1.3,3-3
+	C22,17.7,21.2,16.6,20,16.2z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Integrations
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="compliance"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M7,5H21V7H7V5M7,13V11H21V13H7M4,4.5A1.5,1.5 0 0,1 5.5,6A1.5,1.5 0 0,1 4,7.5A1.5,1.5 0 0,1 2.5,6A1.5,1.5 0 0,1 4,4.5M4,10.5A1.5,1.5 0 0,1 5.5,12A1.5,1.5 0 0,1 4,13.5A1.5,1.5 0 0,1 2.5,12A1.5,1.5 0 0,1 4,10.5M7,19V17H21V19H7M4,16.5A1.5,1.5 0 0,1 5.5,18A1.5,1.5 0 0,1 4,19.5A1.5,1.5 0 0,1 2.5,18A1.5,1.5 0 0,1 4,16.5Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Compliance
+                          </span>
+                        </div>
+                      </li>
+                      <li
+                        class="sidebar-category"
+                        data-testid="experimental"
+                      >
+                        <div
+                          class="category-title category-title--active"
+                        >
+                          <span
+                            class="category-icon"
+                          >
+                            <svg
+                              fill="currentColor"
+                              height="16"
+                              version="1.1"
+                              viewBox="0 0 24 24"
+                              width="16"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M5,19A1,1 0 0,0 6,20H18A1,1 0 0,0 19,19C19,18.79 18.93,18.59 18.82,18.43L13,8.35V4H11V8.35L5.18,18.43C5.07,18.59 5,18.79 5,19M6,22A3,3 0 0,1 3,19C3,18.4 3.18,17.84 3.5,17.37L9,7.81V6A1,1 0 0,1 8,5V4A2,2 0 0,1 10,2H14A2,2 0 0,1 16,4V5A1,1 0 0,1 15,6V7.81L20.5,17.37C20.82,17.84 21,18.4 21,19A3,3 0 0,1 18,22H6M13,16L14.34,14.66L16.27,18H7.73L10.39,13.39L13,16M12.5,12A0.5,0.5 0 0,1 13,12.5A0.5,0.5 0 0,1 12.5,13A0.5,0.5 0 0,1 12,12.5A0.5,0.5 0 0,1 12.5,12Z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="category-title__text"
+                          >
+                            Experimental
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="simplebar-placeholder"
+          style="width: 0px; height: 0px;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-horizontal"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="width: 0px; display: none;"
+        />
+      </div>
+      <div
+        class="simplebar-track simplebar-vertical"
+        style="visibility: hidden;"
+      >
+        <div
+          class="simplebar-scrollbar"
+          style="height: 0px; display: none;"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

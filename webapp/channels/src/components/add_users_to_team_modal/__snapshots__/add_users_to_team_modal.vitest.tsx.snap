@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > should match snapshot with 2 users 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > should match snapshot with 2 users, 1 included and 1 removed 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

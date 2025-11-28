@@ -4,7 +4,7 @@
 import React from 'react';
 import {describe, test, expect, vi} from 'vitest';
 
-import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+import {renderWithContext} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelInfoButton from './channel_info_button';
@@ -20,7 +20,7 @@ describe('components/ChannelHeaderMobile/ChannelInfoButton', () => {
     };
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <ChannelInfoButton {...baseProps}/>,
         );
 

@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
+import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import {describe, test, expect, vi} from 'vitest';
-
-import {renderWithIntl} from 'tests/vitest_react_testing_utils';
 
 import UnreadChannelIndicator from './unread_channel_indicator';
 
@@ -21,7 +19,7 @@ describe('UnreadChannelIndicator', () => {
             show: false,
         };
 
-        const {container} = renderWithIntl(
+        const {container} = render(
             <UnreadChannelIndicator {...props}/>,
         );
 
@@ -29,7 +27,7 @@ describe('UnreadChannelIndicator', () => {
     });
 
     test('should match snapshot when show is set', () => {
-        const {container} = renderWithIntl(
+        const {container} = render(
             <UnreadChannelIndicator {...baseProps}/>,
         );
 
@@ -42,7 +40,7 @@ describe('UnreadChannelIndicator', () => {
             content: 'foo',
         };
 
-        const {container} = renderWithIntl(
+        const {container} = render(
             <UnreadChannelIndicator {...props}/>,
         );
 
@@ -55,7 +53,7 @@ describe('UnreadChannelIndicator', () => {
             content: <div>{'foo'}</div>,
         };
 
-        const {container} = renderWithIntl(
+        const {container} = render(
             <UnreadChannelIndicator {...props}/>,
         );
 
@@ -71,14 +69,12 @@ describe('UnreadChannelIndicator', () => {
             name: 'name',
         };
 
-        const {container} = renderWithIntl(
+        render(
             <UnreadChannelIndicator {...props}/>,
         );
 
-        const indicator = container.firstChild as HTMLElement;
-        if (indicator) {
-            fireEvent.click(indicator);
-        }
+        const indicator = screen.getByText('foo').closest('.nav-pills__unread-indicator');
+        fireEvent.click(indicator!);
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 });

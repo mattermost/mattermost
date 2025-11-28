@@ -6,7 +6,7 @@ import {describe, test, expect} from 'vitest';
 
 import SiteNameAndDescription from 'components/common/site_name_and_description';
 
-import {renderWithIntl, screen} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 
 describe('/components/common/SiteNameAndDescription', () => {
     const baseProps = {
@@ -15,14 +15,14 @@ describe('/components/common/SiteNameAndDescription', () => {
     };
 
     test('should match snapshot, default', () => {
-        const {container} = renderWithIntl(<SiteNameAndDescription {...baseProps}/>);
+        const {container} = renderWithContext(<SiteNameAndDescription {...baseProps}/>);
         expect(container).toMatchSnapshot();
         expect(screen.getByRole('heading', {level: 1})).toHaveTextContent(baseProps.siteName);
     });
 
     test('should match snapshot, with custom site name and description', () => {
         const props = {...baseProps, customDescriptionText: 'custom_description_text', siteName: 'other_site'};
-        const {container} = renderWithIntl(<SiteNameAndDescription {...props}/>);
+        const {container} = renderWithContext(<SiteNameAndDescription {...props}/>);
 
         expect(container).toMatchSnapshot();
         expect(screen.getByRole('heading', {level: 1})).toHaveTextContent(props.siteName);
