@@ -3,7 +3,6 @@
 
 import React from 'react';
 import * as redux from 'react-redux';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {Subscription, Product} from '@mattermost/types/cloud';
 import type {GlobalState} from '@mattermost/types/store';

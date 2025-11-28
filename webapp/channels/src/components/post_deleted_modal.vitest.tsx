@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import PostDeletedModal from 'components/post_deleted_modal';
 

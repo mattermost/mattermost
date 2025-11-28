@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
-import {describe, test, expect, vi} from 'vitest';
 
 import TrialBenefitsModalStepMore from 'components/trial_benefits_modal/trial_benefits_modal_step_more';
+
+import {render, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 const mockHistoryPush = vi.fn();
 

@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {SchemaMigration} from '@mattermost/types/admin';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {act, renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
 
 import MigrationsTable from './migrations_table';
 
@@ -34,11 +32,17 @@ describe('components/MigrationsTable', () => {
         },
     };
 
-    test('should match snapshot when there are no migrations', () => {
+    test('should match snapshot when there are no migrations', async () => {
         const {container} = renderWithContext(
             <MigrationsTable
                 {...baseProps}
-            />);
+            />,
+        );
+
+        // Wait for async state update from getAppliedSchemaMigrations
+        await waitFor(() => {
+            expect(baseProps.actions.getAppliedSchemaMigrations).toHaveBeenCalled();
+        });
 
         expect(container).toMatchSnapshot();
     });

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
-import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 
 import {Permissions} from 'mattermost-redux/constants';
 

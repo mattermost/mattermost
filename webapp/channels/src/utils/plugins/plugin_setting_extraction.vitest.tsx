@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, beforeEach, afterEach, vi} from 'vitest';
 
 import type {PluginConfiguration, PluginConfigurationRadioSetting, PluginConfigurationSection} from 'types/plugins/user_settings';
 

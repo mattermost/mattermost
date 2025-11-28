@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/// <reference types="vitest/globals" />
+
 /* eslint-disable no-console */
 
 import * as util from 'node:util';
 
 import * as matchers from '@testing-library/jest-dom/matchers';
 import nodeFetch from 'node-fetch';
-import {expect, vi, beforeAll, afterEach} from 'vitest';
 
 // Use node-fetch for nock compatibility (nock doesn't intercept native fetch)
 // This is needed for tests that use nock to mock HTTP requests

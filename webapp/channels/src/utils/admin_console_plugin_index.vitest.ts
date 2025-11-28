@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {IntlShape, MessageDescriptor} from 'react-intl';
-import {describe, it, expect} from 'vitest';
 
 import {samplePlugin1, samplePlugin2, samplePlugin3, samplePlugin4} from 'tests/helpers/admin_console_plugin_index_sample_pluings';
 

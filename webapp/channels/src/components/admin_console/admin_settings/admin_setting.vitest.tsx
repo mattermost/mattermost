@@ -3,7 +3,6 @@
 
 import type {ComponentProps} from 'react';
 import React from 'react';
-import {describe, it, expect, vi} from 'vitest';
 
 import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 

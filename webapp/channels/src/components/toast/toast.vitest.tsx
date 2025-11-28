@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {describe, test, expect, vi} from 'vitest';
 
 import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 

@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {screen, renderWithContext} from 'tests/vitest_react_testing_utils';
 
 vi.mock('actions/admin_actions.jsx', () => {
     return {

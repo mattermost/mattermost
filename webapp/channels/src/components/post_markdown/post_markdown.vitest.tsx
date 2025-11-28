@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
 import type {ComponentProps} from 'react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {Post, PostType} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 import {Posts} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, act} from 'tests/vitest_react_testing_utils';
 import {PostTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 

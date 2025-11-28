@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
-import {describe, test, expect, vi} from 'vitest';
 
 import TrialBenefitsModalStep from 'components/trial_benefits_modal/trial_benefits_modal_step';
+
+import {render} from 'tests/vitest_react_testing_utils';
 
 describe('components/trial_benefits_modal/trial_benefits_modal_step', () => {
     const props = {

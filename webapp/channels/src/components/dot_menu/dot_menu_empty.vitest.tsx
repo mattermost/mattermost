@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import DotMenu from 'components/dot_menu/dot_menu';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';

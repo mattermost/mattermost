@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect} from 'vitest';
-
 describe('Vitest Setup Verification', () => {
     it('should run a basic test', () => {
         expect(1 + 1).toBe(2);

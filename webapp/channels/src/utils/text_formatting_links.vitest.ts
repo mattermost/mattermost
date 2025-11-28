@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect, test, vi} from 'vitest';
-
 import store from 'stores/redux_store';
 
 import {makeInitialState} from 'packages/mattermost-redux/test/test_store';

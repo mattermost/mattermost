@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import TableChart from 'components/analytics/table_chart';
 import type {TableItem} from 'components/analytics/table_chart';

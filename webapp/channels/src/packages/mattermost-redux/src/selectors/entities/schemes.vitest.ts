@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
-
 import type {Channel} from '@mattermost/types/channels';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';

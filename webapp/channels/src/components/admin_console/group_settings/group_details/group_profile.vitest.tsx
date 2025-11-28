@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import GroupProfile from 'components/admin_console/group_settings/group_details/group_profile';
 
@@ -17,6 +16,7 @@ describe('components/admin_console/group_settings/group_details/GroupProfile', (
                 name='Test'
                 showAtMention={true}
                 title={{id: 'admin.group_settings.group_details.group_profile.name', defaultMessage: 'Name:'}}
+                onChange={vi.fn()}
             />,
         );
         expect(container).toMatchSnapshot();

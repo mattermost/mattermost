@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
-import {describe, test, expect, vi, beforeEach} from 'vitest';
 
 import {renderWithContext, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 

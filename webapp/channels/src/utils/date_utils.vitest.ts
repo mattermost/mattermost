@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment-timezone';
-import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 
 import {
     DateReference,

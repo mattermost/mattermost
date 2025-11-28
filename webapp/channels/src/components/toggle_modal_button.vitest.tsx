@@ -4,7 +4,6 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-import {describe, test, expect, vi} from 'vitest';
 
 import {renderWithContext} from 'tests/vitest_react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';

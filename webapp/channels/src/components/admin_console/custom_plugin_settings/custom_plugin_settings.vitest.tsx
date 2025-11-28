@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {PluginSettings} from '@mattermost/types/config';

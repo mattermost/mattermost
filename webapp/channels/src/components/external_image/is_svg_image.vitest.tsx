@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect} from 'vitest';
-
 import {isSVGImage} from './is_svg_image';
 
 describe('ExternalIImage isSVGImage', () => {

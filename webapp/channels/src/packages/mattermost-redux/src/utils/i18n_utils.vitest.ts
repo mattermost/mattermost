@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect, afterEach} from 'vitest';
-
 import {setLocalizeFunction, localizeMessage} from 'mattermost-redux/utils/i18n_utils';
 
 describe('i18n utils', () => {

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, it, expect, vi, beforeEach} from 'vitest';
 
 import {renderWithIntl, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 

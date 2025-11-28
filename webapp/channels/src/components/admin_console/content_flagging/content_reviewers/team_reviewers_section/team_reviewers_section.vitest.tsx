@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, beforeEach, vi} from 'vitest';
 
 import type {TeamReviewerSetting} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 
 import {searchTeams} from 'mattermost-redux/actions/teams';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, waitFor, fireEvent} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamReviewersSection from './team_reviewers_section';

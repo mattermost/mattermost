@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';
 
-import {renderWithContext, userEvent, cleanup} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, userEvent, cleanup, screen, waitFor} from 'tests/vitest_react_testing_utils';
 
 describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     beforeEach(() => {

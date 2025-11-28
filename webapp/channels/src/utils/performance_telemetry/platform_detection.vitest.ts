@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, afterEach} from 'vitest';
-
 import {reset as resetNavigator, setPlatform, set as setUserAgent} from 'tests/helpers/user_agent_mocks';
 
 import {getPlatformLabel, getUserAgentLabel} from './platform_detection';

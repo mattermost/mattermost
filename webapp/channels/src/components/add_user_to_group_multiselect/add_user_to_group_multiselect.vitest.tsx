@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';

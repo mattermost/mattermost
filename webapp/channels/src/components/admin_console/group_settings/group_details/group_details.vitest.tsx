@@ -1,16 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitFor} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {Group, GroupChannel, GroupTeam} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import GroupDetails from 'components/admin_console/group_settings/group_details/group_details';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {waitFor, renderWithContext} from 'tests/vitest_react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupDetails', () => {
     const defaultProps = {

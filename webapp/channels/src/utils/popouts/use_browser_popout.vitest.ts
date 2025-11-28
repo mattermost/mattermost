@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
-
 import {sendToParent, onMessageFromParent} from './use_browser_popout';
 
 describe('use_browser_popout', () => {

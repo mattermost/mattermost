@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, vi} from 'vitest';
-
-// Mock the admin definition to avoid monaco issues
 vi.mock('./admin_definition', () => ({
     default: {
         site: {

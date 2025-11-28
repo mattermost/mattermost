@@ -1,0 +1,60 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import ChipsList from 'components/admin_console/workspace-optimization/chips_list';
+import type {ChipsInfoType} from 'components/admin_console/workspace-optimization/chips_list';
+
+import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+
+import {ItemStatus} from './dashboard.type';
+
+describe('components/admin_console/workspace-optimization/chips_list', () => {
+    const overallScoreChips: ChipsInfoType = {
+        [ItemStatus.INFO]: 3,
+        [ItemStatus.WARNING]: 2,
+        [ItemStatus.ERROR]: 1,
+    };
+
+    const baseProps = {
+        chipsData: overallScoreChips,
+        hideCountZeroChips: false,
+    };
+
+    test('should match snapshot', () => {
+        const {container} = renderWithContext(<ChipsList {...baseProps}/>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('test chips list lenght is 3 as defined in baseProps', () => {
+        renderWithContext(<ChipsList {...baseProps}/>);
+
+        // Chips are rendered as buttons with their status class name
+        const chips = screen.getAllByRole('button');
+
+        expect(chips.length).toBe(3);
+    });
+
+    test('test chips list lenght is 2 if one of the properties count is 0 and the hide zero count value is TRUE', () => {
+        const zeroErrorProps = {
+            chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
+            hideCountZeroChips: true,
+        };
+        renderWithContext(<ChipsList {...zeroErrorProps}/>);
+        const chips = screen.getAllByRole('button');
+
+        expect(chips.length).toBe(2);
+    });
+
+    test('test chips list lenght is 3 even if one of the properties count is 0 BUT the hide zero count value is FALSE', () => {
+        const zeroErrorProps = {
+            chipsData: {...overallScoreChips, [ItemStatus.ERROR]: 0},
+            hideCountZeroChips: false,
+        };
+        renderWithContext(<ChipsList {...zeroErrorProps}/>);
+        const chips = screen.getAllByRole('button');
+
+        expect(chips.length).toBe(3);
+    });
+});

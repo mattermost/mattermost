@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, vi, afterEach, beforeEach} from 'vitest';
 import {onCLS, onFCP, onINP, onLCP} from 'web-vitals/attribution';
 
 import {Client4} from '@mattermost/client';

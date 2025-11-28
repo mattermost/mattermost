@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import LatexBlock from 'components/latex_block/latex_block';
 
-import {act, renderWithContext} from 'tests/vitest_react_testing_utils';
+import {act, renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 
 const actImmediate = () =>
     act(

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, render} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
+
+import {screen, render} from 'tests/vitest_react_testing_utils';
 
 import AlertTag from './alert_tag';
 

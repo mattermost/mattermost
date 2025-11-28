@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, vi} from 'vitest';
-
 import {waitFor} from 'tests/vitest_react_testing_utils';
 
 describe('PerformanceObserver', () => {

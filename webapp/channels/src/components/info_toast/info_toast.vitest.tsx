@@ -3,7 +3,6 @@
 
 import type {ComponentProps} from 'react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
 

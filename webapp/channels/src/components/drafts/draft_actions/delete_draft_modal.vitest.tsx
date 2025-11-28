@@ -1,11 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
-import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+import {renderWithIntl, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import DeleteDraftModal from './delete_draft_modal';
 

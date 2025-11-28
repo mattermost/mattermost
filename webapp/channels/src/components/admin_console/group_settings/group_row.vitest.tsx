@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, fireEvent, waitFor} from 'tests/vitest_react_testing_utils';
 
 describe('components/admin_console/group_settings/GroupRow', () => {
     test('should match snapshot, on linked and configured row', () => {

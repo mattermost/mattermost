@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, beforeEach, vi} from 'vitest';
 
 import type {ContentFlaggingNotificationSettings} from '@mattermost/types/config';
 
-import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+import {renderWithIntl, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import ContentFlaggingNotificationSettingsSection from './notification_settings';
 

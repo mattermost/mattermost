@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect, vi, beforeEach, type Mock} from 'vitest';
+import type {Mock} from 'vitest';
 
 import {PostTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';

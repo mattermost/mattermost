@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import emojiRegex from 'emoji-regex';
-import {describe, it, expect} from 'vitest';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 

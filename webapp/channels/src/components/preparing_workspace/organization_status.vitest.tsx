@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import {renderWithIntl} from 'tests/vitest_react_testing_utils';
 import {BadUrlReasons} from 'utils/url';

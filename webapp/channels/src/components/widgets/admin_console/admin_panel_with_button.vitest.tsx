@@ -3,7 +3,6 @@
 
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 

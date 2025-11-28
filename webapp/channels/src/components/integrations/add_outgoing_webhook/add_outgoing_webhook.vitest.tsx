@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import AddOutgoingWebhook from 'components/integrations/add_outgoing_webhook/add_outgoing_webhook';
 

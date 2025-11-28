@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 
@@ -10,7 +9,7 @@ import ColorSetting from './color_setting';
 
 describe('components/ColorSetting', () => {
     test('should match snapshot, all', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        const emptyFunction = vi.fn();
 
         const {container} = renderWithContext(
             <ColorSetting
@@ -29,7 +28,7 @@ describe('components/ColorSetting', () => {
     });
 
     test('should match snapshot, no help text', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        const emptyFunction = vi.fn();
 
         const {container} = renderWithContext(
             <ColorSetting
@@ -46,7 +45,7 @@ describe('components/ColorSetting', () => {
     });
 
     test('should match snapshot, disabled', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        const emptyFunction = vi.fn();
 
         const {container} = renderWithContext(
             <ColorSetting
@@ -64,7 +63,7 @@ describe('components/ColorSetting', () => {
     });
 
     test('should match snapshot, clicked on color setting', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+        const emptyFunction = vi.fn();
 
         const {container} = renderWithContext(
             <ColorSetting

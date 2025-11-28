@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import GroupsList from 'components/admin_console/group_settings/groups_list/groups_list';
 

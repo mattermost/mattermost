@@ -4,7 +4,6 @@
 import type {ComponentProps} from 'react';
 import React from 'react';
 import {Provider} from 'react-redux';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 

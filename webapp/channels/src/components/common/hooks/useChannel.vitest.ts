@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import * as ReactRedux from 'react-redux';
-import {describe, test, expect, vi, beforeAll, afterAll, beforeEach} from 'vitest';
 
 import {Client4} from 'mattermost-redux/client';
 

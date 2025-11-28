@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect} from 'vitest';
-
 import LocalStorageStore, {getPenultimateChannelNameKey} from 'stores/local_storage_store';
 
 describe('stores/LocalStorageStore', () => {

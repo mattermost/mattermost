@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {MockStoreEnhanced} from 'redux-mock-store';
-import {describe, it, test, expect, beforeEach} from 'vitest';
 
 import {close, open, toggle} from 'actions/views/lhs';
 import configureStore from 'store';

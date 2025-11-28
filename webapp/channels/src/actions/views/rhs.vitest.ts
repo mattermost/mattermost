@@ -6,7 +6,6 @@ import set from 'lodash/set';
 import type {Dispatch} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 import type {MockStoreEnhanced} from 'redux-mock-store';
-import {describe, test, expect, vi, beforeEach, it} from 'vitest';
 
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';

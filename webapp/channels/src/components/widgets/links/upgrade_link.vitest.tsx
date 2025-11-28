@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
-import {describe, test, expect, vi} from 'vitest';
 
 import testConfigureStore from 'tests/test_store';
+import {render, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import UpgradeLink from './upgrade_link';
 

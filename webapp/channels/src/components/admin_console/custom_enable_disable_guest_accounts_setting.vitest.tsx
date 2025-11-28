@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {describe, test, expect, vi} from 'vitest';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 

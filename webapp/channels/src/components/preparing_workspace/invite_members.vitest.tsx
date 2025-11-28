@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {describe, test, expect, vi, beforeEach} from 'vitest';
 
-import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+import {renderWithIntl, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import InviteMembers from './invite_members';
 import {Animations} from './steps';

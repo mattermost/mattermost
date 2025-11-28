@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import FeatureDiscovery from 'components/admin_console/feature_discovery/feature_discovery';
 

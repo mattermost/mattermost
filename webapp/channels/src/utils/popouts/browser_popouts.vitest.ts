@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect, vi, beforeEach, afterEach, type Mock} from 'vitest';
+import type {Mock} from 'vitest';
 
 import {getHistory} from 'utils/browser_history';
 

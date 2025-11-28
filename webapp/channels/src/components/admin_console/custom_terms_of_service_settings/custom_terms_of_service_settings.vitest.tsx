@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
 import CustomTermsOfServiceSettings from 'components/admin_console/custom_terms_of_service_settings/custom_terms_of_service_settings';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {screen, waitFor, renderWithContext} from 'tests/vitest_react_testing_utils';
 
 describe('components/admin_console/CustomTermsOfServiceSettings', () => {
     const baseProps = {

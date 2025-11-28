@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {match} from 'react-router-dom';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {PluginSettings} from '@mattermost/types/config';

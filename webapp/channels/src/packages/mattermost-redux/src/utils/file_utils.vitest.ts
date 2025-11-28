@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect, beforeEach, afterEach} from 'vitest';
-
 import {Client4} from 'mattermost-redux/client';
 import * as FileUtils from 'mattermost-redux/utils/file_utils';
 

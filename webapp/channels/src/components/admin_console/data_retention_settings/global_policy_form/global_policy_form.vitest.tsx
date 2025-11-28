@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import GlobalPolicyForm from 'components/admin_console/data_retention_settings/global_policy_form/global_policy_form';
 

@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {IntlShape} from 'react-intl';
-import {describe, test, expect, vi, afterEach, beforeEach} from 'vitest';
 
 import type {Group} from '@mattermost/types/groups';
 

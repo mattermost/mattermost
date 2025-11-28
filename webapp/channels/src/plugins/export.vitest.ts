@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, vi, beforeEach} from 'vitest';
-
 import messageHtmlToComponent from 'utils/message_html_to_component';
 
 import './export';

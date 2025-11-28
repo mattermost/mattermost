@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import LoadingImagePreview from 'components/loading_image_preview';
+
+import {render, screen} from 'tests/vitest_react_testing_utils';
 
 describe('components/LoadingImagePreview', () => {
     test('should match snapshot', () => {

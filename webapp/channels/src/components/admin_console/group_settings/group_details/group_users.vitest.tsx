@@ -3,7 +3,6 @@
 
 import range from 'lodash/range';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';

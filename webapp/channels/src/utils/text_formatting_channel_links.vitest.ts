@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, afterEach} from 'vitest';
-
 import EmojiMap from 'utils/emoji_map';
 import {TestHelper as TH} from 'utils/test_helper';
 import * as TextFormatting from 'utils/text_formatting';

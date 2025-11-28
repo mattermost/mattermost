@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import ReplyIcon from 'components/widgets/icons/reply_icon';
+
+import {render, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import Button from './button';
 

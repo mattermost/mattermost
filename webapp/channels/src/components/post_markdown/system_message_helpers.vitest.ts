@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect} from 'vitest';
-
 import type {AddMemberProps} from './system_message_helpers';
 import {isAddMemberProps} from './system_message_helpers';
 

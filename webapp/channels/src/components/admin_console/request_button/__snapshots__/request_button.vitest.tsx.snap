@@ -1,0 +1,242 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/request_button/request_button.jsx > should match snapshot 1`] = `
+<body>
+  <div>
+    <div
+      class="form-group"
+    >
+      <div
+        class="col-sm-offset-4 col-sm-8"
+      >
+        <div>
+          <button
+            class="btn btn-tertiary"
+            type="button"
+          >
+            Button Text
+          </button>
+        </div>
+        <div
+          class="help-text"
+        >
+          Help Text
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx > should match snapshot with request error 1`] = `
+<body>
+  <div>
+    <div
+      class="form-group"
+    >
+      <div
+        class="col-sm-offset-4 col-sm-8"
+      >
+        <div>
+          <button
+            class="btn btn-tertiary"
+            type="button"
+          >
+            Button Text
+          </button>
+          <div>
+            <div
+              class="alert alert-warning"
+            >
+              <i
+                class="fa fa-warning"
+                title="Warning Icon"
+              />
+              Error Message: __message__ - __detailed_error__
+            </div>
+          </div>
+        </div>
+        <div
+          class="help-text"
+        >
+          Help Text
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx > should match snapshot with request error 2`] = `
+<body>
+  <div>
+    <div
+      class="form-group"
+    >
+      <div
+        class="col-sm-offset-4 col-sm-8"
+      >
+        <div>
+          <button
+            class="btn btn-tertiary"
+            type="button"
+          >
+            Button Text
+          </button>
+          <div>
+            <div
+              class="alert alert-warning"
+            >
+              <i
+                class="fa fa-warning"
+                title="Warning Icon"
+              />
+              Error Message: __message__ - __detailed_error__
+            </div>
+          </div>
+        </div>
+        <div
+          class="help-text"
+        >
+          Help Text
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div
+      class="form-group"
+    >
+      <div
+        class="col-sm-offset-4 col-sm-8"
+      >
+        <div>
+          <button
+            class="btn btn-tertiary"
+            type="button"
+          >
+            Button Text
+          </button>
+          <div>
+            <div
+              class="alert alert-warning"
+            >
+              <i
+                class="fa fa-warning"
+                title="Warning Icon"
+              />
+              Error Message: __message__
+            </div>
+          </div>
+        </div>
+        <div
+          class="help-text"
+        >
+          Help Text
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx > should match snapshot with successMessage 1`] = `
+<body>
+  <div>
+    <div
+      class="form-group"
+    >
+      <div
+        class="col-sm-offset-4 col-sm-8"
+      >
+        <div>
+          <button
+            class="btn btn-tertiary"
+            type="button"
+          >
+            Button Text
+          </button>
+          <div>
+            <div
+              class="alert alert-success"
+            >
+              <i
+                class="fa fa-check"
+                title="Success Icon"
+              />
+              Success Message
+            </div>
+          </div>
+        </div>
+        <div
+          class="help-text"
+        >
+          Help Text
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx > should match snapshot with successMessage 2`] = `
+<body>
+  <div>
+    <div
+      class="form-group"
+    >
+      <div
+        class="col-sm-offset-4 col-sm-8"
+      >
+        <div>
+          <button
+            class="btn btn-tertiary"
+            type="button"
+          >
+            Button Text
+          </button>
+          <div>
+            <div
+              class="alert alert-success"
+            >
+              <i
+                class="fa fa-check"
+                title="Success Icon"
+              />
+              Success Message
+            </div>
+          </div>
+        </div>
+        <div
+          class="help-text"
+        >
+          Help Text
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div
+      class="form-group"
+    >
+      <div
+        class="col-sm-offset-4 col-sm-8"
+      >
+        <div>
+          <button
+            class="btn btn-tertiary"
+            type="button"
+          >
+            Button Text
+          </button>
+        </div>
+        <div
+          class="help-text"
+        >
+          Help Text
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

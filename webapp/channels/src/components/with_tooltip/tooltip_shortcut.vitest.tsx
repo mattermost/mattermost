@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {defineMessage} from 'react-intl';
-import {describe, test, expect, vi, afterEach} from 'vitest';
 
 import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 import * as userAgentUtils from 'utils/user_agent';

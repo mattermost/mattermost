@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect} from 'vitest';
+
+import {fireEvent, render, screen} from 'tests/vitest_react_testing_utils';
 
 import MenuGroup from './menu_group';
 

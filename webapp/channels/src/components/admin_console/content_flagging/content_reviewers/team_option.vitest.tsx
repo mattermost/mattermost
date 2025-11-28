@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {OptionProps} from 'react-select';
-import {describe, it, expect, beforeEach, vi} from 'vitest';
 
 import type {Team} from '@mattermost/types/teams';
 

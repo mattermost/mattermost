@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import FailedPostOptions from 'components/post_view/failed_post_options/failed_post_options';
 

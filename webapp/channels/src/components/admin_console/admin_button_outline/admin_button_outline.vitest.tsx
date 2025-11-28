@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
+
+import {renderWithContext, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import AdminButtonOutline from './admin_button_outline';
 
 describe('components/admin_console/admin_button_outline/AdminButtonOutline', () => {
     test('should match snapshot with prop disable false', () => {
         const onClick = vi.fn();
-        const {container} = render(
+        const {container} = renderWithContext(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
@@ -22,7 +22,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
 
     test('should match snapshot with prop disable true', () => {
         const onClick = vi.fn();
-        const {container} = render(
+        const {container} = renderWithContext(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
@@ -34,7 +34,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
 
     test('should match snapshot with children', () => {
         const onClick = vi.fn();
-        const {container} = render(
+        const {container} = renderWithContext(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
@@ -48,7 +48,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
 
     test('should match snapshot with className is not provided in scss file', () => {
         const onClick = vi.fn();
-        const {container} = render(
+        const {container} = renderWithContext(
             <AdminButtonOutline
                 onClick={onClick}
                 className='btn-default'
@@ -62,7 +62,7 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
 
     test('should handle onClick', () => {
         const onClick = vi.fn();
-        render(
+        renderWithContext(
             <AdminButtonOutline
                 onClick={onClick}
                 className='admin-btn-default'
@@ -72,7 +72,25 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
             </AdminButtonOutline>,
         );
 
-        fireEvent.click(screen.getByRole('button'));
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
         expect(onClick).toHaveBeenCalledTimes(1);
+    });
+
+    test('should not handle onClick when disabled', () => {
+        const onClick = vi.fn();
+        renderWithContext(
+            <AdminButtonOutline
+                onClick={onClick}
+                className='admin-btn-default'
+                disabled={true}
+            >
+                {'Test children'}
+            </AdminButtonOutline>,
+        );
+
+        const button = screen.getByRole('button');
+        fireEvent.click(button);
+        expect(onClick).not.toHaveBeenCalled();
     });
 });

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi, afterEach} from 'vitest';
 
 import type {ChannelType} from '@mattermost/types/channels';
 

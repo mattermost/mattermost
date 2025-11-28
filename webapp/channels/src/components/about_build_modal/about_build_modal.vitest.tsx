@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi, afterEach, beforeEach} from 'vitest';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 

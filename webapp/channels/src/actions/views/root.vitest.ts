@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, vi, beforeAll, afterAll} from 'vitest';
-
 import * as Actions from 'actions/views/root';
 import * as i18nSelectors from 'selectors/i18n';
 

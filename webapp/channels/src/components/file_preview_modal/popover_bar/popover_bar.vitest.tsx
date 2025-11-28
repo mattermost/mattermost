@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import PopoverBar from 'components/file_preview_modal/popover_bar/popover_bar';
 

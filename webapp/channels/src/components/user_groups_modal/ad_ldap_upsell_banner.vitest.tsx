@@ -3,7 +3,6 @@
 
 import React from 'react';
 import * as reactRedux from 'react-redux';
-import {describe, test, expect, vi, beforeEach} from 'vitest';
 
 import mockStore from 'tests/test_store';
 import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';

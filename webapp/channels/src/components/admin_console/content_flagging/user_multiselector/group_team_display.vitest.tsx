@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, it, expect} from 'vitest';
 
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';

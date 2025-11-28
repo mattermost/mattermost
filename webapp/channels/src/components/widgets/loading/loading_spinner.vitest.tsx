@@ -3,7 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {describe, test, expect, vi} from 'vitest';
 
 // Unmock react-intl so we can use our custom IntlProvider with test messages
 vi.unmock('react-intl');

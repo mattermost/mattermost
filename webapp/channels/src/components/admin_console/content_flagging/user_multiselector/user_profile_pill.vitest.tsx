@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
-import {describe, test, expect, beforeEach, vi} from 'vitest';
 
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';

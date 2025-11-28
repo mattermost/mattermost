@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import RemovedFromChannelModal from 'components/removed_from_channel_modal/removed_from_channel_modal';
 

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect} from 'vitest';
-
 import type {SelectOption} from 'components/widgets/modals/components/react_select_item';
 
 import {

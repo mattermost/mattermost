@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import type {ExperimentalSettings, PluginSettings, SSOSettings, Office365Settings} from '@mattermost/types/config';
 

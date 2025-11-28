@@ -3,7 +3,6 @@
 
 import React from 'react';
 import type {MouseEvent} from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import {General} from 'mattermost-redux/constants';
 

@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
 
 import LatexInline from 'components/latex_inline/latex_inline';
 
-import {renderWithIntl} from 'tests/vitest_react_testing_utils';
+import {renderWithIntl, act} from 'tests/vitest_react_testing_utils';
 
 vi.mock('katex', () => ({
     default: {

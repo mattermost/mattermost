@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, waitFor, act, cleanup} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, cleanup, waitFor, act, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import BrandImageSetting from './brand_image_setting';
 

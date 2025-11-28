@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Dispatch, AnyAction} from 'redux';
-import {describe, test, expect, vi, beforeEach} from 'vitest';
 
 import type {Channel, ChannelMembership, ChannelMessageCount} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';

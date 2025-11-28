@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import {describe, test, expect, vi, beforeEach} from 'vitest';
 
 import type {UserProfile} from '@mattermost/types/users';
 

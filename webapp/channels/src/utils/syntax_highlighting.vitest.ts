@@ -5,7 +5,6 @@ import hlJS from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import plaintext from 'highlight.js/lib/languages/plaintext';
 import swift from 'highlight.js/lib/languages/swift';
-import {describe, it, expect, vi} from 'vitest';
 
 import {highlight} from './syntax_highlighting';
 

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi, beforeEach, afterEach} from 'vitest';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
 

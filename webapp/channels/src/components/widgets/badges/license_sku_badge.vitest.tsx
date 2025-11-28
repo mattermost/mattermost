@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect} from 'vitest';
 
 import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 import {LicenseSkus} from 'utils/constants';

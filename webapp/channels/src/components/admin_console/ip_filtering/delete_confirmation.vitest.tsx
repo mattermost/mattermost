@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi} from 'vitest';
+
+import {render, fireEvent, waitFor} from 'tests/vitest_react_testing_utils';
 
 import DeleteConfirmationModal from './delete_confirmation';
 

@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, fireEvent, waitFor, screen, act} from '@testing-library/react';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
-import {describe, test, expect, vi, beforeEach} from 'vitest';
 
 import type {Installation} from '@mattermost/types/cloud';
 import type {AllowedIPRange, FetchIPResponse} from '@mattermost/types/config';
@@ -16,6 +14,8 @@ import {Client4} from 'mattermost-redux/client';
 import configureStore from 'store';
 
 import ModalController from 'components/modal_controller';
+
+import {render, fireEvent, waitFor, screen, act} from 'tests/vitest_react_testing_utils';
 
 import IPFiltering from './index';
 

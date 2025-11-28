@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {IntlShape} from 'react-intl';
-import {describe, it, expect, vi, beforeEach, type Mock} from 'vitest';
+import type {Mock} from 'vitest';
 
 import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';

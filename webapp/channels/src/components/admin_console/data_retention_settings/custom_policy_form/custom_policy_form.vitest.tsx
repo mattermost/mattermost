@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, test, expect, vi, afterEach} from 'vitest';
 
 import CustomPolicyForm from 'components/admin_console/data_retention_settings/custom_policy_form/custom_policy_form';
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
-import {describe, test, expect, vi} from 'vitest';
+
+import {fireEvent, render, screen} from 'tests/vitest_react_testing_utils';
 
 import BlockableLink from './blockable_link';
 

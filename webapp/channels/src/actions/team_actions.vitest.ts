@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, vi, beforeEach} from 'vitest';
-
 import * as channelActions from 'mattermost-redux/actions/channels';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import * as userActions from 'mattermost-redux/actions/users';

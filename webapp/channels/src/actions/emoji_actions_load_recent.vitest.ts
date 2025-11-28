@@ -3,7 +3,6 @@
 
 import nock from 'nock';
 import {BATCH} from 'redux-batched-actions';
-import {describe, test, expect} from 'vitest';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 

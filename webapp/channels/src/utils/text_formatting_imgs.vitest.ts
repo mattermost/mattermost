@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, it, expect} from 'vitest';
-
 import EmojiMap from 'utils/emoji_map';
 import * as Markdown from 'utils/markdown';
 import {formatText} from 'utils/text_formatting';

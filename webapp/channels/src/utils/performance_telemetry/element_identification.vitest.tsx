@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {describe, test, expect, afterEach} from 'vitest';
-
 import {identifyElementRegion} from './element_identification';
 
 describe('identifyElementRegion', () => {

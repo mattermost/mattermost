@@ -1,0 +1,289 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import moment from 'moment-timezone';
+import React from 'react';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {General} from 'mattermost-redux/constants';
+
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {LicenseSkus, SelfHostedProducts} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+
+import EnterpriseEditionLeftPanel from './enterprise_edition_left_panel';
+import type {EnterpriseEditionProps} from './enterprise_edition_left_panel';
+
+vi.mock('react-router-dom', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('react-router-dom')>();
+    return {
+        ...actual,
+        useLocation: () => {
+            return {
+                pathname: '',
+            };
+        },
+    };
+});
+
+describe('components/admin_console/license_settings/enterprise_edition/enterprise_edition_left_panel', () => {
+    const license = {
+        IsLicensed: 'true',
+        IssuedAt: '1517714643650',
+        StartsAt: '1517714643650',
+        ExpiresAt: '1620335443650',
+        SkuShortName: 'Enterprise',
+        Name: 'LicenseName',
+        Company: 'Mattermost Inc.',
+        Users: '1000',
+    };
+
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            users: {
+                currentUserId: 'current_user',
+                profiles: {
+                    current_user: {
+                        roles: General.SYSTEM_ADMIN_ROLE,
+                        id: 'currentUser',
+                    },
+                },
+                filteredStats: {
+                    total_users_count: 0,
+                },
+            },
+            general: {
+                license,
+                config: {
+                    BuildEnterpriseReady: 'true',
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            cloud: {
+                subscription: undefined,
+            },
+            hostedCustomer: {
+                products: {
+                    products: {
+                        prod_professional: TestHelper.getProductMock({
+                            id: 'prod_professional',
+                            name: 'Professional',
+                            sku: SelfHostedProducts.PROFESSIONAL,
+                            price_per_seat: 7.5,
+                        }),
+                    },
+                    productsLoaded: true,
+                },
+            },
+        },
+    };
+
+    const baseProps: EnterpriseEditionProps = {
+        license,
+        openEELicenseModal: vi.fn(),
+        upgradedFromTE: false,
+        isTrialLicense: false,
+        handleRemove: vi.fn(),
+        isDisabled: false,
+        removing: false,
+        handleChange: vi.fn(),
+        fileInputRef: React.createRef(),
+        statsActiveUsers: 1,
+        isLicenseSetByEnvVar: false,
+    };
+
+    test('should format the Users field', () => {
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            initialState,
+        );
+
+        // Check that 1,000 is displayed (formatted Users field)
+        expect(screen.getByText('1,000')).toBeInTheDocument();
+    });
+
+    test('should not add any class if active users is lower than the minimal', () => {
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...baseProps}
+            />,
+            initialState,
+        );
+
+        const formatter = new Intl.NumberFormat('en');
+        expect(screen.getByText(formatter.format(baseProps.statsActiveUsers))).toHaveClass('value');
+        expect(screen.getByText(formatter.format(baseProps.statsActiveUsers))).not.toHaveClass('value--warning-over-seats-purchased');
+        expect(screen.getByText(formatter.format(baseProps.statsActiveUsers))).not.toHaveClass('value--over-seats-purchased');
+        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend');
+        expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--warning-over-seats-purchased');
+        expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
+    });
+
+    test('should add over-seats-purchased class to active users', () => {
+        // Changed to not use the constant OverActiveUserLimits.MAX given that we are currently set to 0. So the active users will be 0
+        const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * 0.2) + parseInt(license.Users, 10);
+        const props = {
+            ...baseProps,
+            statsActiveUsers: exceedHighLimitExtraUsersError,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            initialState,
+        );
+
+        const formatter = new Intl.NumberFormat('en');
+        expect(screen.getByText(formatter.format(exceedHighLimitExtraUsersError))).toHaveClass('value');
+        expect(screen.getByText(formatter.format(exceedHighLimitExtraUsersError))).toHaveClass('value--over-seats-purchased');
+        expect(screen.getByText(formatter.format(exceedHighLimitExtraUsersError))).not.toHaveClass('value--warning-over-seats-purchased');
+        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend');
+        expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--warning-over-seats-purchased');
+        expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend--over-seats-purchased');
+    });
+
+    test('should add warning class to days expired indicator when there are more than 5 days until expiry', () => {
+        const testLicense = {
+            ...license,
+            ExpiresAt: moment().add(6, 'days').valueOf().toString(),
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+        const props = {
+            ...baseProps,
+            license: testLicense,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('Expires in 6 days')).toHaveClass('expiration-days-warning');
+    });
+
+    test('should add danger class to days expired indicator when there are at least 5 days until expiry', () => {
+        const testLicense = {
+            ...license,
+            ExpiresAt: moment().add(5, 'days').valueOf().toString(),
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+        const props = {
+            ...baseProps,
+            license: testLicense,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        expect(screen.getByText('Expires in 5 days')).toHaveClass('expiration-days-danger');
+    });
+
+    test('should render simplified panel for Entry license', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        // Check for the title section - should only show the plan name, not "Enterprise Edition"
+        expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
+
+        // Verify that "Enterprise Edition" pre-title is no longer displayed
+        expect(screen.queryByText('Enterprise Edition')).not.toBeInTheDocument();
+
+        // Check for the subtitle with limits link
+        expect(screen.getByText(/Entry offers Enterprise Advanced capabilities/)).toBeInTheDocument();
+        expect(screen.getByText('with limits')).toBeInTheDocument();
+
+        // Check for the "Have a license?" section
+        expect(screen.getByText('Have a license?')).toBeInTheDocument();
+        expect(screen.getByText('Upload your license here to unlock licensed features')).toBeInTheDocument();
+
+        // Check for the upload license button
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeInTheDocument();
+
+        // Verify that the license details section is NOT rendered for Entry SKU
+        expect(screen.queryByText('License details')).not.toBeInTheDocument();
+        expect(screen.queryByText('LICENSED SEATS:')).not.toBeInTheDocument();
+        expect(screen.queryByText('ACTIVE USERS:')).not.toBeInTheDocument();
+    });
+
+    test('should disable upload button for Entry license when license is set by env var', () => {
+        const testLicense = {
+            ...license,
+            SkuShortName: LicenseSkus.Entry,
+        };
+
+        const testState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    license: testLicense,
+                },
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            license: testLicense,
+            isLicenseSetByEnvVar: true,
+        };
+
+        renderWithContext(
+            <EnterpriseEditionLeftPanel
+                {...props}
+            />,
+            testState,
+        );
+
+        const uploadButton = screen.getByRole('button', {name: /Upload license/i});
+        expect(uploadButton).toBeDisabled();
+    });
+});

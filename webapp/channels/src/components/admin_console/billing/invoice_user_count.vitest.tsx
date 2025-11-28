@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {describe, it, expect} from 'vitest';
 
 import {InvoiceLineItemType} from '@mattermost/types/cloud';
 import type {Invoice} from '@mattermost/types/cloud';

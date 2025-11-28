@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import {describe, test, expect, vi, beforeEach} from 'vitest';
 
 import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act, renderWithContext} from 'tests/vitest_react_testing_utils';
+import {act, renderWithContext, screen, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import CustomProfileAttributes from './custom_profile_attributes';
 
