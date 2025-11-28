@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import type {ConnectedComponent} from 'react-redux';
 import {Link} from 'react-router-dom';
 
+import {BotTag, Tag} from '@mattermost/design-system';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
@@ -14,8 +15,6 @@ import {Client4} from 'mattermost-redux/client';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
-import BotTag from 'components/widgets/tag/bot_tag';
-import Tag from 'components/widgets/tag/tag';
 
 import * as Utils from 'utils/utils';
 

@@ -9,6 +9,7 @@ import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage, defineMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Tag, TagGroup, BotTag} from '@mattermost/design-system';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group, GroupSearchParams} from '@mattermost/types/groups';
 import type {TeamMembership} from '@mattermost/types/teams';
@@ -22,15 +23,13 @@ import {displayUsername, filterProfilesStartingWithTerm, isGuest} from 'mattermo
 
 import AlertBanner from 'components/alert_banner';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
+import GuestTag from 'components/guest_tag';
 import InvitationModal from 'components/invitation_modal';
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
-import AlertTag from 'components/widgets/tag/alert_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
-import TagGroup from 'components/widgets/tag/tag_group';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {sortUsersAndGroups} from 'utils/utils';
@@ -670,11 +669,15 @@ const ChannelInviteModalComponent = (props: Props) => {
                                 <TagGroup>
                                     {structuredAttributes.flatMap((attribute) =>
                                         attribute.values.map((value) => (
-                                            <AlertTag
+                                            <WithTooltip
                                                 key={`${attribute.name}-${value}`}
-                                                tooltipTitle={formatAttributeName(attribute.name)}
-                                                text={value}
-                                            />
+                                                title={formatAttributeName(attribute.name)}
+                                            >
+                                                <Tag
+                                                    text={value}
+                                                    size='sm'
+                                                />
+                                            </WithTooltip>
                                         )),
                                     )}
                                 </TagGroup>

@@ -15,7 +15,16 @@ jest.mock('mattermost-redux/selectors/entities/timezone');
 jest.mock('selectors/views/custom_status');
 
 describe('components/custom_status/custom_status_emoji', () => {
-    const store = mockStore({});
+    const store = mockStore({
+        entities: {
+            general: {
+                config: {},
+            },
+            emojis: {
+                customEmoji: {},
+            },
+        },
+    });
 
     const getCustomStatus = () => {
         return null;

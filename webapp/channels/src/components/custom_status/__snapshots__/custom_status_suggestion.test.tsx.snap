@@ -12,6 +12,7 @@ exports[`components/custom_status/custom_status_emoji should match snapshot 1`] 
     className="statusSuggestion__icon"
   >
     <Memo(RenderEmoji)
+      emojiImageUrl="mocked-emoji-url"
       emojiName=""
       size={20}
     />
@@ -35,6 +36,7 @@ exports[`components/custom_status/custom_status_emoji should match snapshot with
     className="statusSuggestion__icon"
   >
     <Memo(RenderEmoji)
+      emojiImageUrl="mocked-emoji-url"
       emojiName=""
       size={20}
     />

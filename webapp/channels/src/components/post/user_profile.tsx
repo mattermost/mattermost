@@ -5,6 +5,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {BotTag, Tag} from '@mattermost/design-system';
 import type {Post} from '@mattermost/types/posts';
 
 import {ensureString} from 'mattermost-redux/utils/post_utils';
@@ -12,8 +13,6 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import PostHeaderCustomStatus from 'components/post_view/post_header_custom_status/post_header_custom_status';
 import UserProfile from 'components/user_profile';
-import BotTag from 'components/widgets/tag/bot_tag';
-import Tag from 'components/widgets/tag/tag';
 
 import {fromAutoResponder, hasAiGeneratedMetadata, isFromWebhook} from 'utils/post_utils';
 

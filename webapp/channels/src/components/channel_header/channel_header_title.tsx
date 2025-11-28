@@ -5,6 +5,7 @@ import type {ReactNode} from 'react';
 import React, {memo} from 'react';
 import {useSelector} from 'react-redux';
 
+import {BotTag} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -13,7 +14,6 @@ import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import BotTag from 'components/widgets/tag/bot_tag';
 
 import {Constants} from 'utils/constants';
 

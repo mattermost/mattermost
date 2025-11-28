@@ -6,6 +6,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor, WrappedComponentProps} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {BetaTag} from '@mattermost/design-system';
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
@@ -34,7 +35,6 @@ import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';

@@ -517,12 +517,12 @@ describe('components/channel_invite_modal', () => {
 
         // Check that the attribute tags are shown
         const tagGroup = wrapper.find('TagGroup');
-        const alertTags = tagGroup.find('AlertTag');
-        expect(alertTags).toHaveLength(2);
+        const tags = tagGroup.find('Tag');
+        expect(tags).toHaveLength(2);
 
         // Verify the tag text
-        expect(alertTags.at(0).prop('text')).toBe('tag1');
-        expect(alertTags.at(1).prop('text')).toBe('tag2');
+        expect(tags.at(0).prop('text')).toBe('tag1');
+        expect(tags.at(1).prop('text')).toBe('tag2');
     });
 
     test('should not show AlertBanner when policy_enforced is false', () => {
@@ -573,7 +573,7 @@ describe('components/channel_invite_modal', () => {
         expect(wrapper.find('AlertBanner').exists()).toBe(true);
 
         // Check that no tags are shown
-        expect(wrapper.find('AlertTag').exists()).toBe(false);
+        expect(wrapper.find('Tag').exists()).toBe(false);
     });
 
     test('should handle error state for access attributes', () => {
@@ -605,7 +605,7 @@ describe('components/channel_invite_modal', () => {
         expect(wrapper.find('AlertBanner').exists()).toBe(true);
 
         // Check that no tags are shown
-        expect(wrapper.find('AlertTag').exists()).toBe(false);
+        expect(wrapper.find('Tag').exists()).toBe(false);
     });
 
     // the multiselect returns several elements with the same text, usiing a custom function to get the correct one specifing the tagName

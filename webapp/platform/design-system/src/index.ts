@@ -6,6 +6,8 @@ export {default as CheckInput} from './components/primitives/check';
 export {default as Input} from './components/primitives/input/input';
 export {default as PasswordInput} from './components/primitives/password_input/password_input';
 export {default as RadioInput} from './components/primitives/radio_setting';
+export {Tag, TagGroup, BetaTag, BotTag, GuestTag, SkuTag, LicenseSkus} from './components/primitives/tag';
+export type {TagProps, TagSize, TagVariant, TagGroupProps} from './components/primitives/tag';
 
 export * from './components/primitives/button';
 export * from './components/primitives/icon_button';
