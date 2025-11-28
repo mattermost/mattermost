@@ -139,4 +139,12 @@ type MetricsInterface interface {
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
 	IncrementAccessControlCacheInvalidation()
+
+	ObserveWikiPageOperation(operation string, elapsed float64)
+	ObserveWikiHierarchyLoad(elapsed float64)
+	IncrementWikiDraftSave(result string)
+	IncrementWikiEditConflict()
+	ObserveWikiHierarchyDepth(depth float64)
+	ObserveWikiPagesPerChannel(count float64)
+	ObserveWikiSearchDuration(elapsed float64)
 }

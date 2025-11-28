@@ -20,6 +20,13 @@ import (
 // - Metadata (FileIds, Props) stored in Drafts table with WikiId
 // - Content (Title, TipTap JSON) stored in PageDraftContents table
 func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftId, contentJSON, title, pageId string, props map[string]any) (*model.PageDraft, *model.AppError) {
+	result := "failure"
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().IncrementWikiDraftSave(result)
+		}
+	}()
+
 	rctx.Logger().Trace("Saving page draft with metadata",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
@@ -136,6 +143,7 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 			mlog.Int("timestamp", int(savedDraft.UpdateAt)))
 	}
 
+	result = "success"
 	return combinedDraft, nil
 }
 

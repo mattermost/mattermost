@@ -48,6 +48,8 @@ const (
 	MigrationKeyAddIPFilteringPermissions              = "add_ip_filtering_permissions"
 	MigrationKeyAddOutgoingOAuthConnectionsPermissions = "add_outgoing_oauth_connections_permissions"
 	MigrationKeyAddChannelBookmarksPermissions         = "add_channel_bookmarks_permissions"
+	MigrationKeyAddChannelWikisPermissions             = "add_channel_wikis_permissions"
+	MigrationKeyAddChannelPagesPermissions             = "add_channel_pages_permissions"
 	MigrationKeyDeleteDmsPreferences                   = "delete_dms_preferences_migration"
 	MigrationKeyAddManageJobAncillaryPermissions       = "add_manage_jobs_ancillary_permissions"
 	MigrationKeyAddUploadFilePermission                = "add_upload_file_permission"

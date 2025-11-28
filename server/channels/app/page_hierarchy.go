@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -93,6 +94,13 @@ func (a *App) GetPageDescendants(rctx request.CTX, postID string) (*model.PostLi
 
 // GetChannelPages fetches all pages in a channel
 func (a *App) GetChannelPages(rctx request.CTX, channelID string) (*model.PostList, *model.AppError) {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiHierarchyLoad(time.Since(start).Seconds())
+		}
+	}()
+
 	if !a.HasPermissionToChannel(rctx, rctx.Session().UserId, channelID, model.PermissionReadChannel) {
 		return nil, model.MakePermissionError(rctx.Session(), []*model.Permission{model.PermissionReadChannel})
 	}
@@ -108,7 +116,47 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string) (*model.PostLi
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
+	if a.Metrics() != nil {
+		maxDepth := a.calculateMaxDepthFromPostList(postList)
+		a.Metrics().ObserveWikiHierarchyDepth(float64(maxDepth))
+		a.Metrics().ObserveWikiPagesPerChannel(float64(len(postList.Posts)))
+	}
+
 	return postList, nil
+}
+
+// calculateMaxDepthFromPostList calculates the maximum depth in a page hierarchy
+func (a *App) calculateMaxDepthFromPostList(postList *model.PostList) int {
+	if postList == nil || len(postList.Posts) == 0 {
+		return 0
+	}
+
+	parentMap := make(map[string]string)
+	for _, post := range postList.Posts {
+		if post.PageParentId != "" {
+			parentMap[post.Id] = post.PageParentId
+		}
+	}
+
+	maxDepth := 0
+	for postID := range postList.Posts {
+		depth := 1
+		currentID := postID
+		visited := make(map[string]bool)
+		for parentMap[currentID] != "" {
+			if visited[currentID] {
+				break
+			}
+			visited[currentID] = true
+			currentID = parentMap[currentID]
+			depth++
+		}
+		if depth > maxDepth {
+			maxDepth = depth
+		}
+	}
+
+	return maxDepth
 }
 
 // ChangePageParent updates the parent of a page

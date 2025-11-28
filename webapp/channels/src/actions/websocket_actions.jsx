@@ -302,14 +302,16 @@ export function reconnect() {
 
     // Trigger pages reload for current wiki after reconnect
     // This acts as a safety net for any events missed during disconnect
-    const currentPath = window.location.pathname;
-    const wikiMatch = currentPath.match(/\/wikis\/([^/]+)/);
+    if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+        const currentPath = window.location.pathname;
+        const wikiMatch = currentPath.match(/\/wikis\/([^/]+)/);
 
-    if (wikiMatch && wikiMatch[1]) {
-        const wikiId = wikiMatch[1];
+        if (wikiMatch && wikiMatch[1]) {
+            const wikiId = wikiMatch[1];
 
-        // Force reload to ensure we have latest data after reconnect
-        dispatch(reloadWikiBundle(wikiId));
+            // Force reload to ensure we have latest data after reconnect
+            dispatch(reloadWikiBundle(wikiId));
+        }
     }
 
     dispatch(resetWsErrorCount());

@@ -76,13 +76,15 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
+        const activeTab = getActiveTabFromRoute(props.match);
+
         this.state = {
             url: props.match.url,
             channelId: props.channelId,
             focusedPostId: props.match.params.postid,
             deferredPostView: ChannelView.createDeferredPostView(),
             waitForLoader: false,
-            activeTab: 'messages',
+            activeTab,
         };
 
         this.channelViewRef = React.createRef();

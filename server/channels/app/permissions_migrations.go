@@ -1117,6 +1117,62 @@ func (a *App) getAddChannelBookmarksPermissionsMigration() (permissionsMap, erro
 	}, nil
 }
 
+func (a *App) getAddChannelWikisPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelUserRoleId),
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionCreateWikiPublicChannel.Id,
+				model.PermissionEditWikiPublicChannel.Id,
+				model.PermissionDeleteWikiPublicChannel.Id,
+				model.PermissionCreateWikiPrivateChannel.Id,
+				model.PermissionEditWikiPrivateChannel.Id,
+				model.PermissionDeleteWikiPrivateChannel.Id,
+			},
+		},
+	}, nil
+}
+
+func (a *App) getAddChannelPagesPermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelUserRoleId),
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+				isRole(model.SystemAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionCreatePagePublicChannel.Id,
+				model.PermissionReadPagePublicChannel.Id,
+				model.PermissionEditPagePublicChannel.Id,
+				model.PermissionEditOthersPagePublicChannel.Id,
+				model.PermissionDeletePagePublicChannel.Id,
+				model.PermissionCreatePagePrivateChannel.Id,
+				model.PermissionReadPagePrivateChannel.Id,
+				model.PermissionEditPagePrivateChannel.Id,
+				model.PermissionEditOthersPagePrivateChannel.Id,
+				model.PermissionDeletePagePrivateChannel.Id,
+			},
+		},
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelGuestRoleId),
+				isRole(model.TeamGuestRoleId),
+			),
+			Add: []string{
+				model.PermissionReadPagePublicChannel.Id,
+				model.PermissionReadPagePrivateChannel.Id,
+			},
+		},
+	}, nil
+}
+
 func (a *App) getAddManageJobAncillaryPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -1296,6 +1352,8 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddIPFilteringPermissions, Migration: a.getAddIPFilterPermissionsMigration},
 		{Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
 		{Key: model.MigrationKeyAddChannelBookmarksPermissions, Migration: a.getAddChannelBookmarksPermissionsMigration},
+		{Key: model.MigrationKeyAddChannelWikisPermissions, Migration: a.getAddChannelWikisPermissionsMigration},
+		{Key: model.MigrationKeyAddChannelPagesPermissions, Migration: a.getAddChannelPagesPermissionsMigration},
 		{Key: model.MigrationKeyAddManageJobAncillaryPermissions, Migration: a.getAddManageJobAncillaryPermissionsMigration},
 		{Key: model.MigrationKeyAddUploadFilePermission, Migration: a.getAddUploadFilePermissionMigration},
 		{Key: model.RestrictAccessToChannelConversionToPublic, Migration: a.getRestrictAcessToChannelConversionToPublic},

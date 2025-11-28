@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -194,6 +195,13 @@ func (a *App) HasPermissionToModifyPage(
 
 // CreatePage creates a new page with title and content
 func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, content, userID, searchText string) (*model.Post, *model.AppError) {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiPageOperation("create", time.Since(start).Seconds())
+		}
+	}()
+
 	rctx.Logger().Debug("Creating page",
 		mlog.String("channel_id", channelID),
 		mlog.String("title", title),
@@ -326,6 +334,13 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 
 // GetPage fetches a page with permission check
 func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiPageOperation("view", time.Since(start).Seconds())
+		}
+	}()
+
 	rctx.Logger().Debug("GetPage called", mlog.String("page_id", pageID))
 
 	post, err := a.GetSinglePost(rctx, pageID, false)
@@ -506,6 +521,13 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 // Returns 409 Conflict if the page was modified by someone else
 // Returns 404 Not Found if the page was deleted
 func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, content, searchText string, baseUpdateAt int64, force bool) (*model.Post, *model.AppError) {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiPageOperation("update", time.Since(start).Seconds())
+		}
+	}()
+
 	post, err := a.GetSinglePost(rctx, pageID, false)
 	if err != nil {
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
@@ -537,6 +559,10 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 			mlog.String("modified_by", modifiedBy),
 			mlog.Int("modified_at", modifiedAt),
 			mlog.Int("base_update_at", baseUpdateAt))
+
+		if a.Metrics() != nil {
+			a.Metrics().IncrementWikiEditConflict()
+		}
 
 		appErr := model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
 			nil, "page was modified by another user", http.StatusConflict)
@@ -587,6 +613,13 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 
 // DeletePage deletes a page. If wikiId is provided, it will be included in the broadcast event.
 func (a *App) DeletePage(rctx request.CTX, pageID string, wikiId ...string) *model.AppError {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiPageOperation("delete", time.Since(start).Seconds())
+		}
+	}()
+
 	post, err := a.GetSinglePost(rctx, pageID, false)
 	if err != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
