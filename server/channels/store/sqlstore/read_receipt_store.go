@@ -63,6 +63,20 @@ func (s *SqlReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt)
 	return receipt, nil
 }
 
+func (s *SqlReadReceiptStore) Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
+	query := s.getQueryBuilder().
+		Update("ReadReceipts").
+		Set("ExpireAt", receipt.ExpireAt).
+		Where(sq.Eq{"PostId": receipt.PostID, "UserId": receipt.UserID})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return receipt, nil
+}
+
 func (s *SqlReadReceiptStore) Delete(rctx request.CTX, postID, userID string) error {
 	query := s.getQueryBuilder().
 		Delete("ReadReceipts").

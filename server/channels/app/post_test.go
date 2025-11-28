@@ -4468,6 +4468,13 @@ func TestRevealPost(t *testing.T) {
 		return createdPost
 	}
 
+	enableFeature := func() {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.BurnOnRead = true
+		})
+	}
+
 	// Create a second user for testing
 	user2 := th.CreateUser(t)
 	th.LinkUserToTeam(t, user2, th.BasicTeam)
@@ -4476,7 +4483,7 @@ func TestRevealPost(t *testing.T) {
 	t.Run("post type non burn on read", func(t *testing.T) {
 		regularPost := createRegularPost()
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, regularPost, user2.Id)
+		revealedPost, appErr := th.App.RevealPost(th.Context, regularPost, user2.Id, "")
 		require.NotNil(t, appErr)
 		require.Nil(t, revealedPost)
 		require.Equal(t, "app.reveal_post.not_burn_on_read.app_error", appErr.Id)
@@ -4484,6 +4491,8 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("post doesn't have required prop", func(t *testing.T) {
+		enableFeature()
+
 		// Create a burn-on-read post without expire_at prop
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -4499,7 +4508,7 @@ func TestRevealPost(t *testing.T) {
 		// Now manually remove the expire_at prop to test missing prop scenario
 		createdPost.SetProps(make(model.StringInterface))
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id)
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
 		require.NotNil(t, appErr)
 		require.Nil(t, revealedPost)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
@@ -4507,35 +4516,41 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("post with invalid expire_at prop type", func(t *testing.T) {
+		enableFeature()
+
 		post := createBurnOnReadPost()
 
 		// Manually set invalid expire_at type
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, "invalid_string")
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
 		require.NotNil(t, appErr)
 		require.Nil(t, revealedPost)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 	})
 
 	t.Run("post with zero expire_at", func(t *testing.T) {
+		enableFeature()
+
 		post := createBurnOnReadPost()
 
 		// Manually set zero expire_at
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, float64(0))
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
 		require.NotNil(t, appErr)
 		require.Nil(t, revealedPost)
 		require.Equal(t, "app.reveal_post.missing_expire_at.app_error", appErr.Id)
 	})
 
 	t.Run("read receipt does not exist", func(t *testing.T) {
+		enableFeature()
+
 		post := createBurnOnReadPost()
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, revealedPost)
 		require.Equal(t, "burn on read message", revealedPost.Message)
@@ -4552,16 +4567,18 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("read receipt exists and not expired", func(t *testing.T) {
+		enableFeature()
+
 		post := createBurnOnReadPost()
 
 		// First reveal to create receipt
-		revealedPost1, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		revealedPost1, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, revealedPost1)
 		require.NotZero(t, revealedPost1.Metadata.ExpireAt)
 
 		// Reveal again - should succeed and return the same post
-		revealedPost2, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		revealedPost2, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, revealedPost2)
 		require.Equal(t, "burn on read message", revealedPost2.Message)
@@ -4570,6 +4587,8 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("read receipt exists but expired", func(t *testing.T) {
+		enableFeature()
+
 		post := createBurnOnReadPost()
 
 		// Create an expired read receipt
@@ -4581,7 +4600,7 @@ func TestRevealPost(t *testing.T) {
 		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, expiredReceipt)
 		require.NoError(t, err)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
 		require.NotNil(t, appErr)
 		require.Nil(t, revealedPost)
 		require.Equal(t, "app.reveal_post.read_receipt_expired.error", appErr.Id)
@@ -4595,7 +4614,7 @@ func TestRevealPost(t *testing.T) {
 		post.SetProps(make(model.StringInterface))
 		post.AddProp(model.PostPropsExpireAt, model.GetMillis()-1000)
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id, "")
 		require.NotNil(t, appErr)
 		require.Nil(t, revealedPost)
 		require.Equal(t, "app.reveal_post.post_expired.app_error", appErr.Id)
@@ -4603,17 +4622,147 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("revealed post preserves existing metadata", func(t *testing.T) {
-		post := createBurnOnReadPost()
-		post.Metadata = &model.PostMetadata{
-			Files: []*model.FileInfo{{Id: "file1"}},
-		}
+		enableFeature()
 
-		revealedPost, appErr := th.App.RevealPost(th.Context, post, user2.Id)
+		fileBytes := []byte("test")
+		fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
+		require.Nil(t, err)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+			FileIds:   model.StringArray{fileInfo.Id},
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+
+		revealedPost, appErr := th.App.RevealPost(th.Context, createdPost, user2.Id, "")
 		require.Nil(t, appErr)
 		require.NotNil(t, revealedPost)
 		require.NotNil(t, revealedPost.Metadata)
 		require.NotZero(t, revealedPost.Metadata.ExpireAt)
 		require.Len(t, revealedPost.Metadata.Files, 1)
 		require.Equal(t, "file1", revealedPost.Metadata.Files[0].Id)
+	})
+}
+
+func TestBurnPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// feature flag, configuration and license is not checked for this feature
+	// so we set these to enable the feature to create a burn on read post
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.BurnOnRead = true
+	})
+
+	th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)  // author of the post
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel) // recipient of the post
+
+	// Helper to create a burn-on-read post
+	createBurnOnReadPost := func() *model.Post {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		return createdPost
+	}
+
+	// Helper to create a regular post
+	createRegularPost := func() *model.Post {
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "regular message",
+		}
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.NotNil(t, createdPost)
+		return createdPost
+	}
+
+	t.Run("burn on read post", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		// Verify post is deleted
+		post, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+		require.Error(t, err)
+		require.Nil(t, post)
+		require.True(t, store.IsErrNotFound(err))
+	})
+
+	t.Run("regular post", func(t *testing.T) {
+		post := createRegularPost()
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser.Id, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.burn_post.not_burn_on_read.app_error", appErr.Id)
+	})
+
+	t.Run("read receipt does not exist", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser2.Id, "")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.burn_post.not_revealed.app_error", appErr.Id)
+	})
+
+	t.Run("read receipt exists but expired", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		// Create an expired read receipt
+		expiredTime := model.GetMillis() - 1000 // Expired 1 second ago
+		expiredReceipt := &model.ReadReceipt{
+			UserID:   th.BasicUser2.Id,
+			PostID:   post.Id,
+			ExpireAt: expiredTime,
+		}
+		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, expiredReceipt)
+		require.NoError(t, err)
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser2.Id, "")
+		require.Nil(t, appErr) // this is a no-op
+
+		// Verify receipt ExpireAt is unchanged (no-op)
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		require.Equal(t, expiredTime, receipt.ExpireAt)
+	})
+
+	t.Run("read receipt exists and not expired", func(t *testing.T) {
+		post := createBurnOnReadPost()
+
+		// Create a read receipt that is not expired
+		notExpiredReceipt := &model.ReadReceipt{
+			UserID:   th.BasicUser2.Id,
+			PostID:   post.Id,
+			ExpireAt: model.GetMillis() + 10000, // Not expired 10 seconds from now
+		}
+		_, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, notExpiredReceipt)
+		require.NoError(t, err)
+
+		appErr := th.App.BurnPost(th.Context, post, th.BasicUser2.Id, "")
+		require.Nil(t, appErr)
+
+		// Verify receipt ExpireAt is updated to current time
+		receipt, err := th.App.Srv().Store().ReadReceipt().Get(th.Context, post.Id, th.BasicUser2.Id)
+		require.NoError(t, err)
+		require.LessOrEqual(t, receipt.ExpireAt, model.GetMillis())
 	})
 }
