@@ -56,10 +56,10 @@ describe('components/user_settings/notifications/ManageAutoResponder', () => {
         expect(wrapper.find('textarea#autoResponderMessageInput').exists()).toBe(true);
 
         wrapper.find('textarea#autoResponderMessageInput').simulate('change');
-        expect(setParentState).toBeCalled();
-        expect(setParentState).toBeCalledWith('autoResponderMessage', 'Hello World!');
+        expect(setParentState).toHaveBeenCalled();
+        expect(setParentState).toHaveBeenCalledWith('autoResponderMessage', 'Hello World!');
 
         wrapper.find('#autoResponderActive').simulate('change');
-        expect(setParentState).toBeCalled();
+        expect(setParentState).toHaveBeenCalled();
     });
 });
