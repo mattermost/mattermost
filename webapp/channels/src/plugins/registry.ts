@@ -5,7 +5,7 @@ import React from 'react';
 import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
 
-import type {UnknownWebSocketMessage} from '@mattermost/client';
+import type {WebSocketMessages} from '@mattermost/client';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
@@ -826,7 +826,7 @@ export default class PluginRegistry {
         handler,
     }: {
         event: string;
-        handler: (msg: UnknownWebSocketMessage) => void;
+        handler: (msg: WebSocketMessages.Unknown) => void;
     }) => {
         registerPluginWebSocketEvent(this.id, event, handler);
     });

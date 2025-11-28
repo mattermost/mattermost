@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import type {PostedMessage} from '@mattermost/client';
+import type {WebSocketMessages} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 
 import {
@@ -33,7 +33,7 @@ import {ActionTypes} from 'utils/constants';
 
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
 
-export type NewPostMessageProps = Partial<PostedMessage['data']>;
+export type NewPostMessageProps = Partial<WebSocketMessages.Posted['data']>;
 
 export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {

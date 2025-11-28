@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import type {EphemeralPostMessage, PostedMessage} from '@mattermost/client';
+import type {WebSocketMessages} from '@mattermost/client';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
@@ -66,7 +66,7 @@ export type CreatePostOptions = {
     ignorePostError?: boolean;
 }
 
-export function handleNewPost(post: Post, msg?: PostedMessage | EphemeralPostMessage): ActionFuncAsync<boolean> {
+export function handleNewPost(post: Post, msg?: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         let websocketMessageProps = {};
         const state = getState();

@@ -5,7 +5,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {ChannelBookmarkCreatedMessage, ChannelBookmarkDeletedMessage, ChannelBookmarkSortedMessage, ChannelBookmarkUpdatedMessage, ChannelConvertedMessage, ChannelCreatedMessage, ChannelDeletedMessage, ChannelMemberUpdatedMessage, ChannelRestoredMessage, ChannelSchemeUpdatedMessage, ChannelUpdatedMessage, CloudSubscriptionChangedMessage, ConfigChangedMessage, ContentFlaggingReportValueUpdatedMessage, CPAFieldCreatedMessage, CPAFieldDeletedMessage, CPAFieldUpdatedMessage, CPAValuesUpdatedMessage, DirectChannelCreatedMessage, EmojiAddedMessage, EphemeralPostMessage, FirstAdminVisitMarketplaceStatusReceivedMessage, GroupAssociatedToChannelMessage, GroupAssociatedToTeamMessage, GroupChannelCreatedMessage, GroupMemberMessage, HelloMessage, LicenseChangedMessage, MultipleChannelsViewedMessage, OpenDialogMessage, PersistentNotificationTriggeredMessage, PluginMessage, PluginStatusesChangedMessage, PostAcknowledgementMessage, PostDeletedMessage, PostDraftMessage, PostEditedMessage, PostedMessage, PostReactionMessage, PostUnreadMessage, PreferenceChangedMessage, PreferencesChangedMessage, ReceivedGroupMessage, RoleUpdatedMessage, ScheduledPostMessage, SidebarCategoryCreatedMessage, SidebarCategoryDeletedMessage, SidebarCategoryOrderUpdatedMessage, SidebarCategoryUpdatedMessage, StatusChangedMessage, TeamMemberRoleUpdatedMessage, TeamMessage, ThreadFollowedChangedMessage, ThreadReadChangedMessage, ThreadUpdatedMessage, UnknownWebSocketMessage, UserAddedToChannelMessage, UserAddedToTeamMessage, UserRemovedFromChannelMessage, UserRemovedFromTeamMessage, UserRoleUpdatedMessage, UserUpdatedMessage, WebSocketMessage} from '@mattermost/client';
+import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -154,7 +154,7 @@ const getState = store.getState;
 
 const MAX_WEBSOCKET_FAILS = 7;
 
-const pluginEventHandlers: Record<string, Record<string, (msg: UnknownWebSocketMessage) => void>> = {};
+const pluginEventHandlers: Record<string, Record<string, (msg: WebSocketMessages.Unknown) => void>> = {};
 
 export function initialize() {
     if (!window.WebSocket) {
@@ -326,7 +326,7 @@ function syncThreads(teamId: string, userId: string) {
     dispatch(getCountsAndThreadsSince(userId, teamId, newestThread.last_reply_at));
 }
 
-export function registerPluginWebSocketEvent(pluginId: string, event: string, action: (msg: UnknownWebSocketMessage) => void) {
+export function registerPluginWebSocketEvent(pluginId: string, event: string, action: (msg: WebSocketMessages.Unknown) => void) {
     if (!pluginEventHandlers[pluginId]) {
         pluginEventHandlers[pluginId] = {};
     }
@@ -673,7 +673,7 @@ export function handleEvent(msg: WebSocketMessage) {
 }
 
 // handleChannelConvertedEvent handles updating of channel which is converted from public to private
-function handleChannelConvertedEvent(msg: ChannelConvertedMessage) {
+function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     const channelId = msg.data.channel_id;
     if (channelId) {
         const channel = getChannel(getState(), channelId);
@@ -686,7 +686,7 @@ function handleChannelConvertedEvent(msg: ChannelConvertedMessage) {
     }
 }
 
-export function handleChannelUpdatedEvent(msg: ChannelUpdatedMessage): ThunkActionFunc<void> {
+export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if (!msg.data.channel) {
             return;
@@ -718,7 +718,7 @@ export function handleChannelUpdatedEvent(msg: ChannelUpdatedMessage): ThunkActi
     };
 }
 
-function handleChannelMemberUpdatedEvent(msg: ChannelMemberUpdatedMessage) {
+function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated) {
     const channelMember = JSON.parse(msg.data.channelMember) as ChannelMembership;
     const roles = channelMember.roles.split(' ');
     dispatch(loadRolesIfNeeded(roles));
@@ -727,7 +727,7 @@ function handleChannelMemberUpdatedEvent(msg: ChannelMemberUpdatedMessage) {
 
 function debouncePostEvent(wait: number) {
     let timeout: number | undefined;
-    let queue: Array<PostedMessage | EphemeralPostMessage> = [];
+    let queue: Array<WebSocketMessages.Posted | WebSocketMessages.EphemeralPost> = [];
     let count = 0;
 
     // Called when timeout triggered
@@ -742,7 +742,7 @@ function debouncePostEvent(wait: number) {
         count = 0;
     };
 
-    return function fx(msg: PostedMessage | EphemeralPostMessage) {
+    return function fx(msg: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost) {
         if (timeout && count > 4) {
             // If the timeout is going this is the second or further event so queue them up.
             if (queue.push(msg) > 200) {
@@ -764,7 +764,7 @@ function debouncePostEvent(wait: number) {
 
 const handleNewPostEventDebounced = debouncePostEvent(100);
 
-export function handleNewPostEvent(msg: PostedMessage | EphemeralPostMessage): ThunkActionFunc<void> {
+export function handleNewPostEvent(msg: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost): ThunkActionFunc<void> {
     return (myDispatch, myGetState) => {
         const post = JSON.parse(msg.data.post) as Post;
 
@@ -794,7 +794,7 @@ export function handleNewPostEvent(msg: PostedMessage | EphemeralPostMessage): T
     };
 }
 
-export function handleNewPostEvents(queue: Array<PostedMessage | EphemeralPostMessage>): ThunkActionFunc<void> {
+export function handleNewPostEvents(queue: Array<WebSocketMessages.Posted | WebSocketMessages.EphemeralPost>): ThunkActionFunc<void> {
     return (myDispatch, myGetState) => {
         // Note that this method doesn't properly update the sidebar state for these posts
         const posts = queue.map((msg) => JSON.parse(msg.data.post) as Post);
@@ -822,7 +822,7 @@ export function handleNewPostEvents(queue: Array<PostedMessage | EphemeralPostMe
     };
 }
 
-export function handlePostEditEvent(msg: PostEditedMessage) {
+export function handlePostEditEvent(msg: WebSocketMessages.PostEdited) {
     // Store post
     const post = JSON.parse(msg.data.post) as Post;
 
@@ -837,7 +837,7 @@ export function handlePostEditEvent(msg: PostEditedMessage) {
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 }
 
-async function handlePostDeleteEvent(msg: PostDeletedMessage) {
+async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {
     const post = JSON.parse(msg.data.post) as Post;
 
     if ((window as any).logPostEvents) {
@@ -878,7 +878,7 @@ async function handlePostDeleteEvent(msg: PostDeletedMessage) {
     }
 }
 
-export function handlePostUnreadEvent(msg: PostUnreadMessage) {
+export function handlePostUnreadEvent(msg: WebSocketMessages.PostUnread) {
     dispatch(
         {
             type: ActionTypes.POST_UNREAD_SUCCESS,
@@ -895,7 +895,7 @@ export function handlePostUnreadEvent(msg: PostUnreadMessage) {
     );
 }
 
-async function handleTeamAddedEvent(msg: UserAddedToTeamMessage) {
+async function handleTeamAddedEvent(msg: WebSocketMessages.UserAddedToTeam) {
     await dispatch(TeamActions.getTeam(msg.data.team_id));
     await dispatch(TeamActions.getMyTeamMembers());
     const state = getState();
@@ -907,7 +907,7 @@ async function handleTeamAddedEvent(msg: UserAddedToTeamMessage) {
     }
 }
 
-export function handleLeaveTeamEvent(msg: UserRemovedFromTeamMessage) {
+export function handleLeaveTeamEvent(msg: WebSocketMessages.UserRemovedFromTeam) {
     const state = getState();
 
     const actions: MMReduxAction[] = [
@@ -970,7 +970,7 @@ export function handleLeaveTeamEvent(msg: UserRemovedFromTeamMessage) {
     }
 }
 
-function handleUpdateTeamEvent(msg: TeamMessage) {
+function handleUpdateTeamEvent(msg: WebSocketMessages.Team) {
     const state = store.getState();
     const license = getLicense(state);
     dispatch({type: TeamTypes.UPDATED_TEAM, data: JSON.parse(msg.data.team) as Team});
@@ -983,7 +983,7 @@ function handleUpdateTeamSchemeEvent() {
     dispatch(TeamActions.getMyTeamMembers());
 }
 
-function handleDeleteTeamEvent(msg: TeamMessage) {
+function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
     const deletedTeam = JSON.parse(msg.data.team) as Team;
     const state = store.getState();
     const {teams} = state.entities.teams;
@@ -1045,7 +1045,7 @@ function handleDeleteTeamEvent(msg: TeamMessage) {
     }
 }
 
-function handleUpdateMemberRoleEvent(msg: TeamMemberRoleUpdatedMessage) {
+function handleUpdateMemberRoleEvent(msg: WebSocketMessages.TeamMemberRoleUpdated) {
     const memberData = JSON.parse(msg.data.member) as TeamMembership;
     const newRoles = memberData.roles.split(' ');
 
@@ -1057,15 +1057,15 @@ function handleUpdateMemberRoleEvent(msg: TeamMemberRoleUpdatedMessage) {
     });
 }
 
-function handleDirectAddedEvent(msg: DirectChannelCreatedMessage) {
+function handleDirectAddedEvent(msg: WebSocketMessages.DirectChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleGroupAddedEvent(msg: GroupChannelCreatedMessage) {
+function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleUserAddedEvent(msg: UserAddedToChannelMessage): ThunkActionFunc<void> {
+function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1109,7 +1109,7 @@ function fetchChannelAndAddToSidebar(channelId: string): ThunkActionFunc<void> {
     };
 }
 
-export function handleUserRemovedEvent(msg: UserRemovedFromChannelMessage) {
+export function handleUserRemovedEvent(msg: WebSocketMessages.UserRemovedFromChannel) {
     const state = getState();
     const currentChannel = getCurrentChannel(state);
     const currentUser = getCurrentUser(state);
@@ -1207,7 +1207,7 @@ export function handleUserRemovedEvent(msg: UserRemovedFromChannelMessage) {
     }
 }
 
-export async function handleUserUpdatedEvent(msg: UserUpdatedMessage) {
+export async function handleUserUpdatedEvent(msg: WebSocketMessages.UserUpdated) {
     // This websocket event is sent to all non-guest users on the server, so be careful requesting data from the server
     // in response to it. That can overwhelm the server if every connected user makes such a request at the same time.
     // See https://mattermost.atlassian.net/browse/MM-40050 for more information.
@@ -1237,11 +1237,11 @@ export async function handleUserUpdatedEvent(msg: UserUpdatedMessage) {
     }
 }
 
-function handleChannelSchemeUpdatedEvent(msg: ChannelSchemeUpdatedMessage) {
+function handleChannelSchemeUpdatedEvent(msg: WebSocketMessages.ChannelSchemeUpdated) {
     dispatch(getMyChannelMember(msg.broadcast.channel_id));
 }
 
-function handleRoleUpdatedEvent(msg: RoleUpdatedMessage) {
+function handleRoleUpdatedEvent(msg: WebSocketMessages.RoleUpdated) {
     const role = JSON.parse(msg.data.role) as Role;
 
     dispatch({
@@ -1250,7 +1250,7 @@ function handleRoleUpdatedEvent(msg: RoleUpdatedMessage) {
     });
 }
 
-function handleChannelCreatedEvent(msg: ChannelCreatedMessage): ThunkActionFunc<void> {
+function handleChannelCreatedEvent(msg: WebSocketMessages.ChannelCreated): ThunkActionFunc<void> {
     return async (myDispatch, myGetState) => {
         const channelId = msg.data.channel_id;
         const teamId = msg.data.team_id;
@@ -1274,15 +1274,15 @@ function handleChannelCreatedEvent(msg: ChannelCreatedMessage): ThunkActionFunc<
     };
 }
 
-function handleChannelDeletedEvent(msg: ChannelDeletedMessage) {
+function handleChannelDeletedEvent(msg: WebSocketMessages.ChannelDeleted) {
     dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
-function handleChannelUnarchivedEvent(msg: ChannelRestoredMessage) {
+function handleChannelUnarchivedEvent(msg: WebSocketMessages.ChannelRestored) {
     dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
-function handlePreferenceChangedEvent(msg: PreferenceChangedMessage) {
+function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) {
     const preference = JSON.parse(msg.data.preference) as PreferenceType;
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
@@ -1295,7 +1295,7 @@ function handlePreferenceChangedEvent(msg: PreferenceChangedMessage) {
     }
 }
 
-function handlePreferencesChangedEvent(msg: PreferencesChangedMessage) {
+function handlePreferencesChangedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
 
@@ -1308,7 +1308,7 @@ function handlePreferencesChangedEvent(msg: PreferencesChangedMessage) {
     }
 }
 
-function handlePreferencesDeletedEvent(msg: PreferencesChangedMessage) {
+function handlePreferencesDeletedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.DELETED_PREFERENCES, data: preferences});
 }
@@ -1321,20 +1321,20 @@ function addedNewGmUser(preference: PreferenceType) {
     return preference.category === Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW && preference.value === 'true';
 }
 
-export function handleStatusChangedEvent(msg: StatusChangedMessage) {
+export function handleStatusChangedEvent(msg: WebSocketMessages.StatusChanged) {
     return {
         type: UserTypes.RECEIVED_STATUSES,
         data: {[msg.data.user_id]: msg.data.status},
     };
 }
 
-function handleHelloEvent(msg: HelloMessage) {
+function handleHelloEvent(msg: WebSocketMessages.Hello) {
     dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
     dispatch(setServerHostname(msg.data.server_hostname));
 }
 
-function handleReactionAddedEvent(msg: PostReactionMessage) {
+function handleReactionAddedEvent(msg: WebSocketMessages.PostReaction) {
     const reaction = JSON.parse(msg.data.reaction) as Reaction;
 
     dispatch(getCustomEmojiForReaction(reaction.emoji_name));
@@ -1359,7 +1359,7 @@ function setServerHostname(serverHostname: string | undefined) {
     };
 }
 
-function handleAddEmoji(msg: EmojiAddedMessage) {
+function handleAddEmoji(msg: WebSocketMessages.EmojiAdded) {
     const data = JSON.parse(msg.data.emoji) as Emoji;
 
     dispatch({
@@ -1368,7 +1368,7 @@ function handleAddEmoji(msg: EmojiAddedMessage) {
     });
 }
 
-function handleReactionRemovedEvent(msg: PostReactionMessage) {
+function handleReactionRemovedEvent(msg: WebSocketMessages.PostReaction) {
     const reaction = JSON.parse(msg.data.reaction) as Reaction;
 
     dispatch({
@@ -1377,13 +1377,13 @@ function handleReactionRemovedEvent(msg: PostReactionMessage) {
     });
 }
 
-function handleMultipleChannelsViewedEvent(msg: MultipleChannelsViewedMessage) {
+function handleMultipleChannelsViewedEvent(msg: WebSocketMessages.MultipleChannelsViewed) {
     if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
         dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
 }
 
-export function handlePluginEnabled(msg: PluginMessage) {
+export function handlePluginEnabled(msg: WebSocketMessages.Plugin) {
     const manifest = msg.data.manifest;
     dispatch({type: ActionTypes.RECEIVED_WEBAPP_PLUGIN, data: manifest});
 
@@ -1392,12 +1392,12 @@ export function handlePluginEnabled(msg: PluginMessage) {
     });
 }
 
-export function handlePluginDisabled(msg: PluginMessage) {
+export function handlePluginDisabled(msg: WebSocketMessages.Plugin) {
     const manifest = msg.data.manifest;
     removePlugin(manifest);
 }
 
-function handleUserRoleUpdated(msg: UserRoleUpdatedMessage) {
+function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
     const user = store.getState().entities.users.profiles[msg.data.user_id];
 
     if (user) {
@@ -1414,22 +1414,22 @@ function handleUserRoleUpdated(msg: UserRoleUpdatedMessage) {
     }
 }
 
-function handleConfigChanged(msg: ConfigChangedMessage) {
+function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: msg.data.config});
 }
 
-function handleLicenseChanged(msg: LicenseChangedMessage) {
+function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
 }
 
-function handlePluginStatusesChangedEvent(msg: PluginStatusesChangedMessage) {
+function handlePluginStatusesChangedEvent(msg: WebSocketMessages.PluginStatusesChanged) {
     store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
-function handleOpenDialogEvent(msg: OpenDialogMessage) {
+function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
     const data = (msg.data && msg.data.dialog);
     const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
@@ -1444,7 +1444,7 @@ function handleOpenDialogEvent(msg: OpenDialogMessage) {
     store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
-function handleGroupUpdatedEvent(msg: ReceivedGroupMessage) {
+function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {
     const data = JSON.parse(msg.data.group) as Group;
     dispatch(
         {
@@ -1473,7 +1473,7 @@ function handleMyGroupUpdate(groupMember: GroupMember) {
     ]));
 }
 
-export function handleGroupAddedMemberEvent(msg: GroupMemberMessage): ThunkActionFunc<void> {
+export function handleGroupAddedMemberEvent(msg: WebSocketMessages.GroupMember): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
@@ -1493,7 +1493,7 @@ export function handleGroupAddedMemberEvent(msg: GroupMemberMessage): ThunkActio
     };
 }
 
-function handleGroupDeletedMemberEvent(msg: GroupMemberMessage): ThunkActionFunc<void> {
+function handleGroupDeletedMemberEvent(msg: WebSocketMessages.GroupMember): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
@@ -1521,35 +1521,35 @@ function handleGroupDeletedMemberEvent(msg: GroupMemberMessage): ThunkActionFunc
     };
 }
 
-function handleGroupAssociatedToTeamEvent(msg: GroupAssociatedToTeamMessage) {
+function handleGroupAssociatedToTeamEvent(msg: WebSocketMessages.GroupAssociatedToTeam) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_TEAM,
         data: {teamID: msg.broadcast.team_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleGroupNotAssociatedToTeamEvent(msg: GroupAssociatedToTeamMessage) {
+function handleGroupNotAssociatedToTeamEvent(msg: WebSocketMessages.GroupAssociatedToTeam) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM,
         data: {teamID: msg.broadcast.team_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleGroupAssociatedToChannelEvent(msg: GroupAssociatedToChannelMessage) {
+function handleGroupAssociatedToChannelEvent(msg: WebSocketMessages.GroupAssociatedToChannel) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL,
         data: {channelID: msg.broadcast.channel_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleGroupNotAssociatedToChannelEvent(msg: GroupAssociatedToChannelMessage) {
+function handleGroupNotAssociatedToChannelEvent(msg: WebSocketMessages.GroupAssociatedToChannel) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL,
         data: {channelID: msg.broadcast.channel_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleSidebarCategoryCreated(msg: SidebarCategoryCreatedMessage): ThunkActionFunc<void> {
+function handleSidebarCategoryCreated(msg: WebSocketMessages.SidebarCategoryCreated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -1568,7 +1568,7 @@ function handleSidebarCategoryCreated(msg: SidebarCategoryCreatedMessage): Thunk
     };
 }
 
-function handleSidebarCategoryUpdated(msg: SidebarCategoryUpdatedMessage): ThunkActionFunc<void> {
+function handleSidebarCategoryUpdated(msg: WebSocketMessages.SidebarCategoryUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -1587,7 +1587,7 @@ function handleSidebarCategoryUpdated(msg: SidebarCategoryUpdatedMessage): Thunk
     };
 }
 
-function handleSidebarCategoryDeleted(msg: SidebarCategoryDeletedMessage): ThunkActionFunc<void> {
+function handleSidebarCategoryDeleted(msg: WebSocketMessages.SidebarCategoryDeleted): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -1605,7 +1605,7 @@ function handleSidebarCategoryDeleted(msg: SidebarCategoryDeletedMessage): Thunk
     };
 }
 
-function handleSidebarCategoryOrderUpdated(msg: SidebarCategoryOrderUpdatedMessage) {
+function handleSidebarCategoryOrderUpdated(msg: WebSocketMessages.SidebarCategoryOrderUpdated) {
     return receivedCategoryOrder(msg.broadcast.team_id, msg.data.order);
 }
 
@@ -1623,7 +1623,7 @@ export function handleUserActivationStatusChange(): ThunkActionFunc<void> {
     };
 }
 
-export function handleCloudSubscriptionChanged(msg: CloudSubscriptionChangedMessage): ActionFunc<boolean> {
+export function handleCloudSubscriptionChanged(msg: WebSocketMessages.CloudSubscriptionChanged): ActionFunc<boolean> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
         const license = getLicense(state);
@@ -1692,12 +1692,12 @@ export function handleAppsPluginDisabled() {
     };
 }
 
-function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: FirstAdminVisitMarketplaceStatusReceivedMessage) {
+function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: WebSocketMessages.FirstAdminVisitMarketplaceStatusReceived) {
     const receivedData = JSON.parse(msg.data.firstAdminVisitMarketplaceStatus) as boolean;
     store.dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data: receivedData});
 }
 
-function handleThreadReadChanged(msg: ThreadReadChangedMessage): ThunkActionFunc<void> {
+function handleThreadReadChanged(msg: WebSocketMessages.ThreadReadChanged): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if (msg.data.thread_id && msg.data.channel_id && msg.data.unread_mentions && msg.data.unread_replies) {
             const state = doGetState();
@@ -1730,7 +1730,7 @@ function handleThreadReadChanged(msg: ThreadReadChangedMessage): ThunkActionFunc
     };
 }
 
-function handleThreadUpdated(msg: ThreadUpdatedMessage): ThunkActionFunc<void> {
+function handleThreadUpdated(msg: WebSocketMessages.ThreadUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         let threadData;
         try {
@@ -1778,7 +1778,7 @@ function handleThreadUpdated(msg: ThreadUpdatedMessage): ThunkActionFunc<void> {
     };
 }
 
-function handleThreadFollowChanged(msg: ThreadFollowedChangedMessage): ThunkActionFunc<void> {
+function handleThreadFollowChanged(msg: WebSocketMessages.ThreadFollowedChanged): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const thread = getThread(state, msg.data.thread_id);
@@ -1789,7 +1789,7 @@ function handleThreadFollowChanged(msg: ThreadFollowedChangedMessage): ThunkActi
     };
 }
 
-function handlePostAcknowledgementAdded(msg: PostAcknowledgementMessage) {
+function handlePostAcknowledgementAdded(msg: WebSocketMessages.PostAcknowledgement) {
     const data = JSON.parse(msg.data.acknowledgement) as PostAcknowledgement;
 
     return {
@@ -1798,7 +1798,7 @@ function handlePostAcknowledgementAdded(msg: PostAcknowledgementMessage) {
     };
 }
 
-function handlePostAcknowledgementRemoved(msg: PostAcknowledgementMessage) {
+function handlePostAcknowledgementRemoved(msg: WebSocketMessages.PostAcknowledgement) {
     const data = JSON.parse(msg.data.acknowledgement) as PostAcknowledgement;
 
     return {
@@ -1807,7 +1807,7 @@ function handlePostAcknowledgementRemoved(msg: PostAcknowledgementMessage) {
     };
 }
 
-function handleUpsertDraftEvent(msg: PostDraftMessage): ThunkActionFunc<void> {
+function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft) as Draft;
         const {key, value} = transformServerDraft(draft);
@@ -1817,7 +1817,7 @@ function handleUpsertDraftEvent(msg: PostDraftMessage): ThunkActionFunc<void> {
     };
 }
 
-function handleCreateScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionFunc<void> {
+function handleCreateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
         const state = getState();
@@ -1833,7 +1833,7 @@ function handleCreateScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionF
     };
 }
 
-function handleUpdateScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionFunc<void> {
+function handleUpdateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
 
@@ -1846,7 +1846,7 @@ function handleUpdateScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionF
     };
 }
 
-function handleDeleteScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionFunc<void> {
+function handleDeleteScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
 
@@ -1859,7 +1859,7 @@ function handleDeleteScheduledPostEvent(msg: ScheduledPostMessage): ThunkActionF
     };
 }
 
-function handleDeleteDraftEvent(msg: PostDraftMessage): ThunkActionFunc<void> {
+function handleDeleteDraftEvent(msg: WebSocketMessages.PostDraft): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft) as Draft;
         const {key} = transformServerDraft(draft);
@@ -1872,7 +1872,7 @@ function handleDeleteDraftEvent(msg: PostDraftMessage): ThunkActionFunc<void> {
     };
 }
 
-function handlePersistentNotification(msg: PersistentNotificationTriggeredMessage): ThunkActionFunc<void> {
+function handlePersistentNotification(msg: WebSocketMessages.PersistentNotificationTriggered): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const post = JSON.parse(msg.data.post) as Post;
 
@@ -1880,7 +1880,7 @@ function handlePersistentNotification(msg: PersistentNotificationTriggeredMessag
     };
 }
 
-function handleChannelBookmarkCreated(msg: ChannelBookmarkCreatedMessage) {
+function handleChannelBookmarkCreated(msg: WebSocketMessages.ChannelBookmarkCreated) {
     const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
 
     return {
@@ -1889,7 +1889,7 @@ function handleChannelBookmarkCreated(msg: ChannelBookmarkCreatedMessage) {
     };
 }
 
-function handleChannelBookmarkUpdated(msg: ChannelBookmarkUpdatedMessage): ThunkActionFunc<void> {
+function handleChannelBookmarkUpdated(msg: WebSocketMessages.ChannelBookmarkUpdated): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const {updated, deleted} = JSON.parse(msg.data.bookmarks) as UpdateChannelBookmarkResponse;
 
@@ -1909,7 +1909,7 @@ function handleChannelBookmarkUpdated(msg: ChannelBookmarkUpdatedMessage): Thunk
     };
 }
 
-function handleChannelBookmarkDeleted(msg: ChannelBookmarkDeletedMessage) {
+function handleChannelBookmarkDeleted(msg: WebSocketMessages.ChannelBookmarkDeleted) {
     const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
 
     return {
@@ -1918,7 +1918,7 @@ function handleChannelBookmarkDeleted(msg: ChannelBookmarkDeletedMessage) {
     };
 }
 
-function handleChannelBookmarkSorted(msg: ChannelBookmarkSortedMessage) {
+function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorted) {
     const bookmarks = JSON.parse(msg.data.bookmarks) as ChannelBookmarkWithFileInfo[];
 
     return {
@@ -1927,21 +1927,21 @@ function handleChannelBookmarkSorted(msg: ChannelBookmarkSortedMessage) {
     };
 }
 
-export function handleCustomAttributeValuesUpdated(msg: CPAValuesUpdatedMessage) {
+export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated) {
     return {
         type: UserTypes.RECEIVED_CPA_VALUES,
         data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
     };
 }
 
-export function handleCustomAttributesCreated(msg: CPAFieldCreatedMessage) {
+export function handleCustomAttributesCreated(msg: WebSocketMessages.CPAFieldCreated) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
         data: msg.data.field,
     };
 }
 
-export function handleCustomAttributesUpdated(msg: CPAFieldUpdatedMessage): ThunkActionFunc<void> {
+export function handleCustomAttributesUpdated(msg: WebSocketMessages.CPAFieldUpdated): ThunkActionFunc<void> {
     return (dispatch) => {
         const {field, delete_values: deleteValues} = msg.data;
 
@@ -1962,14 +1962,14 @@ export function handleCustomAttributesUpdated(msg: CPAFieldUpdatedMessage): Thun
     };
 }
 
-export function handleCustomAttributesDeleted(msg: CPAFieldDeletedMessage) {
+export function handleCustomAttributesDeleted(msg: WebSocketMessages.CPAFieldDeleted) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
         data: msg.data.field_id,
     };
 }
 
-export function handleContentFlaggingReportValueChanged(msg: ContentFlaggingReportValueUpdatedMessage) {
+export function handleContentFlaggingReportValueChanged(msg: WebSocketMessages.ContentFlaggingReportValueUpdated) {
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
         data: msg.data,
