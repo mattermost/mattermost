@@ -692,13 +692,14 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 }
 
 func Etag(parts ...any) string {
-	etag := CurrentVersion
+	var etag strings.Builder
+	etag.WriteString(CurrentVersion)
 
 	for _, part := range parts {
-		etag += fmt.Sprintf(".%v", part)
+		etag.WriteString(fmt.Sprintf(".%v", part))
 	}
 
-	return etag
+	return etag.String()
 }
 
 var (
@@ -711,8 +712,8 @@ var (
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
 
-	hashtagString := ""
-	plainString := ""
+	var hashtagStringSb strings.Builder
+	var plainString strings.Builder
 	for _, word := range words {
 		// trim off surrounding punctuation
 		word = puncStart.ReplaceAllString(word, "")
@@ -722,11 +723,12 @@ func ParseHashtags(text string) (string, string) {
 		word = hashtagStart.ReplaceAllString(word, "#")
 
 		if validHashtag.MatchString(word) {
-			hashtagString += " " + word
+			hashtagStringSb.WriteString(" " + word)
 		} else {
-			plainString += " " + word
+			plainString.WriteString(" " + word)
 		}
 	}
+	hashtagString := hashtagStringSb.String()
 
 	if len(hashtagString) > 1000 {
 		hashtagString = hashtagString[:999]
@@ -738,7 +740,7 @@ func ParseHashtags(text string) (string, string) {
 		}
 	}
 
-	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString)
+	return strings.TrimSpace(hashtagString), strings.TrimSpace(plainString.String())
 }
 
 func ClearMentionTags(post string) string {
@@ -875,4 +877,24 @@ func SliceToMapKey(s ...string) map[string]any {
 	}
 
 	return m
+}
+
+// LimitRunes limits the number of runes in a string to the given maximum.
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitRunes(s string, maxRunes int) (string, bool) {
+	runes := []rune(s)
+	if len(runes) > maxRunes {
+		return string(runes[:maxRunes]), true
+	}
+
+	return s, false
+}
+
+// LimitBytes limits the number of bytes in a string to the given maximum.
+// It returns the potentially truncated string and a boolean indicating whether truncation occurred.
+func LimitBytes(s string, maxBytes int) (string, bool) {
+	if len(s) > maxBytes {
+		return s[:maxBytes], true
+	}
+	return s, false
 }

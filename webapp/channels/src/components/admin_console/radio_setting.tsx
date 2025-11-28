@@ -7,6 +7,8 @@ import {RadioInput} from '@mattermost/design-system';
 
 import Setting from './setting';
 
+import './radio_setting.scss';
+
 interface Props {
     id: string;
     label: React.ReactNode;
@@ -17,6 +19,7 @@ interface Props {
     helpText?: React.ReactNode;
     onChange(id: string, value: any): void;
 }
+
 const RadioSetting = ({
     id,
     label,
@@ -35,6 +38,7 @@ const RadioSetting = ({
         <RadioInput
             key={optionValue}
             id={optionValue}
+            className='RadioSetting'
             dataTestId={optionValue}
             title={text}
             name={id}

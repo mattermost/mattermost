@@ -48,6 +48,7 @@ import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
+import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 
 const components = {
     GlobalHeader,
@@ -63,6 +64,7 @@ const components = {
     ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
+    FlagPostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
@@ -114,6 +116,7 @@ export {
     ChannelSettingsModal,
     DraftPost,
     FindChannelsModal,
+    FlagPostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
