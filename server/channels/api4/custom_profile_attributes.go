@@ -234,13 +234,7 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Check if any of the fields being updated are admin-managed
 		for _, field := range fields {
 			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
-				// Convert to CPAField to check if managed
-				cpaField, fErr := model.NewCPAFieldFromPropertyField(field)
-				if fErr != nil {
-					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
-					return
-				}
-				if cpaField.IsAdminManaged() {
+				if field.IsAdminManaged() {
 					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
 					return
 				}
@@ -342,13 +336,7 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		// Check if any of the fields being updated are admin-managed
 		for _, field := range fields {
 			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
-				// Convert to CPAField to check if managed
-				cpaField, fErr := model.NewCPAFieldFromPropertyField(field)
-				if fErr != nil {
-					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
-					return
-				}
-				if cpaField.IsAdminManaged() {
+				if field.IsAdminManaged() {
 					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
 					return
 				}

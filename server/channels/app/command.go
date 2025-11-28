@@ -128,6 +128,10 @@ func (a *App) ListAutocompleteCommands(teamID string, T i18n.TranslateFunc) ([]*
 }
 
 func (a *App) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError) {
+	return a.ListTeamCommandsByUser(teamID, "")
+}
+
+func (a *App) ListTeamCommandsByUser(teamID string, userID string) ([]*model.Command, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("ListTeamCommands", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -137,10 +141,25 @@ func (a *App) ListTeamCommands(teamID string) ([]*model.Command, *model.AppError
 		return nil, model.NewAppError("ListTeamCommands", "app.command.listteamcommands.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Filter by user if userID is specified
+	if userID != "" {
+		filteredCmds := make([]*model.Command, 0)
+		for _, cmd := range teamCmds {
+			if cmd.CreatorId == userID {
+				filteredCmds = append(filteredCmds, cmd)
+			}
+		}
+		return filteredCmds, nil
+	}
+
 	return teamCmds, nil
 }
 
 func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
+	return a.ListAllCommandsByUser(teamID, "", T)
+}
+
+func (a *App) ListAllCommandsByUser(teamID string, userID string, T i18n.TranslateFunc) ([]*model.Command, *model.AppError) {
 	commands := make([]*model.Command, 0, 32)
 	seen := make(map[string]bool)
 	for _, value := range commandProviders {
@@ -168,6 +187,10 @@ func (a *App) ListAllCommands(teamID string, T i18n.TranslateFunc) ([]*model.Com
 		}
 		for _, cmd := range teamCmds {
 			if !seen[cmd.Trigger] {
+				// Filter by user if userID is specified (before sanitizing)
+				if userID != "" && cmd.CreatorId != userID {
+					continue
+				}
 				cmd.Sanitize()
 				seen[cmd.Trigger] = true
 				commands = append(commands, cmd)
