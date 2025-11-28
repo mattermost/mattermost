@@ -45,7 +45,6 @@ func getPagePermission(channelType model.ChannelType, operation PageOperation) *
 	return getEntityPermissionByChannelType(channelType, operation, permMap)
 }
 
-
 // HasPermissionToModifyPage checks if a user can perform an action on a page.
 // For Create/Read/Edit: Checks if user has the channel-level page permission.
 // For Delete: Checks permission AND requires user to be page author OR channel admin.
