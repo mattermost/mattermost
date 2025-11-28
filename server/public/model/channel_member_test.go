@@ -129,3 +129,23 @@ func TestChannelMemberSanitizeForCurrentUser(t *testing.T) {
 		assert.Equal(t, originalSchemeAdmin, member.SchemeAdmin, "SchemeAdmin should be preserved")
 	})
 }
+
+func TestChannelMemberIsSynthetic(t *testing.T) {
+	t.Run("should return false for direct membership (empty SourceID)", func(t *testing.T) {
+		member := &ChannelMember{
+			ChannelId: NewId(),
+			UserId:    NewId(),
+			SourceID:  "",
+		}
+		require.False(t, member.IsSynthetic())
+	})
+
+	t.Run("should return true for synthetic membership (non-empty SourceID)", func(t *testing.T) {
+		member := &ChannelMember{
+			ChannelId: NewId(),
+			UserId:    NewId(),
+			SourceID:  NewId(),
+		}
+		require.True(t, member.IsSynthetic())
+	})
+}
