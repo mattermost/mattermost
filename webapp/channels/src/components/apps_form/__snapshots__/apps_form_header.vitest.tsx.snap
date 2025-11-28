@@ -1,0 +1,39 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/apps_form/AppsFormHeader > should not fail on empty value 1`] = `
+<div>
+  <span />
+</div>
+`;
+
+exports[`components/apps_form/AppsFormHeader > should render message with supported values 1`] = `
+<div>
+  <p>
+    <strong>
+      bold
+    </strong>
+     
+    <em>
+      italic
+    </em>
+     
+    <a
+      class="theme markdown__link"
+      href="https://mattermost.com/"
+      rel="noreferrer"
+      target="_blank"
+    >
+      link
+    </a>
+     &lt;br/&gt; 
+    <a
+      class="theme markdown__link"
+      href="!https://mattermost.com/"
+      rel="noreferrer"
+      target="_blank"
+    >
+      link target blank
+    </a>
+  </p>
+</div>
+`;

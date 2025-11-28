@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`plugins/Pluggable > should match snapshot with extended component 1`] = `
+<div>
+  <span
+    data-testid="pluginId"
+  >
+    ProfilePopoverPlugin
+  </span>
+</div>
+`;
+
+exports[`plugins/Pluggable > should match snapshot with non-null pluggableId 1`] = `<div />`;
+
+exports[`plugins/Pluggable > should match snapshot with valid pluggableId 1`] = `
+<div>
+  <span
+    data-testid="pluginId"
+  >
+    ProfilePopoverPlugin
+  </span>
+</div>
+`;

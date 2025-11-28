@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ToggleModalButton > component should match snapshot 1`] = `
+<div>
+  <button
+    aria-label="Delete Channel"
+    class="style--none "
+    id="channelDelete"
+    role="menuitem"
+  >
+    Delete Channel
+  </button>
+</div>
+`;

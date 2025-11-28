@@ -1,0 +1,329 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {act} from '@testing-library/react';
+import type {ComponentProps} from 'react';
+import React from 'react';
+import {describe, test, expect, vi} from 'vitest';
+
+import type {Post, PostType} from '@mattermost/types/posts';
+
+import {Client4} from 'mattermost-redux/client';
+import {Posts} from 'mattermost-redux/constants';
+
+import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {PostTypes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+
+import PostMarkdown from './post_markdown';
+
+vi.mock('components/properties_card_view/propertyValueRenderer/post_preview_property_renderer/post_preview_property_renderer', () => {
+    return {default: vi.fn(() => <div data-testid='post-preview-property-renderer-mock'>{'PostPreviewPropertyRenderer Mock'}</div>)};
+});
+vi.mock('mattermost-redux/client');
+
+vi.mock('components/remove_flagged_message_confirmation_modal/remove_flagged_message_confirmation_modal', () => {
+    return {default: vi.fn(() => <div data-testid='keep-remove-flagged-message-confirmation-modal'>{'KeepRemoveFlaggedMessageConfirmationModal Mock'}</div>)};
+});
+
+const mockedClient4 = vi.mocked(Client4);
+
+describe('components/PostMarkdown', () => {
+    const baseProps: ComponentProps<typeof PostMarkdown> = {
+        imageProps: {} as Record<string, unknown>,
+        pluginHooks: [],
+        message: 'message',
+        post: TestHelper.getPostMock(),
+        mentionKeys: [{key: 'a'}, {key: 'b'}, {key: 'c'}],
+        channelId: 'channel-id',
+        channel: TestHelper.getChannelMock(),
+        currentTeam: TestHelper.getTeamMock(),
+        hideGuestTags: false,
+        isMilitaryTime: false,
+        timezone: '',
+        highlightKeys: [],
+        hasPluginTooltips: false,
+        isUserCanManageMembers: false,
+        isEnterpriseOrCloudOrSKUStarterFree: true,
+        isEnterpriseReady: false,
+        dispatch: vi.fn(),
+        renderEmoticonsAsEmoji: true,
+    };
+
+    const state = {entities: {
+        posts: {
+            posts: {},
+            postsInThread: {},
+        },
+        channels: {},
+        teams: {
+            teams: {
+                currentTeamId: {},
+            },
+        },
+        preferences: {
+            myPreferences: {
+            },
+        },
+        groups: {
+            groups: {},
+            myGroups: [],
+        },
+        users: {
+            currentUserId: '',
+            profiles: {},
+        },
+        emojis: {customEmoji: {}},
+        general: {config: {}, license: {}},
+    },
+    };
+
+    test('should not error when rendering without a post', () => {
+        const props = {...baseProps};
+
+        Reflect.deleteProperty(props, 'post');
+        renderWithContext(<PostMarkdown {...props}/>, state);
+
+        expect(screen.getByText('message')).toBeInTheDocument();
+    });
+
+    test('should render properly with an empty post', () => {
+        renderWithContext(
+            <PostMarkdown
+                {...baseProps}
+                post={{} as any}
+            />, state);
+
+        expect(screen.getByText('message')).toBeInTheDocument();
+    });
+
+    test('should render properly with a post', () => {
+        const props = {
+            ...baseProps,
+            message: 'See ~test',
+            post: TestHelper.getPostMock({
+                props: {
+                    channel_mentions: {
+                        test: {
+                            display_name: 'Test',
+                            team_name: 'test',
+                        },
+                    },
+                },
+            }),
+        };
+        renderWithContext(<PostMarkdown {...props}/>, state);
+
+        const link = screen.getByRole('link');
+
+        expect(screen.getByText('See')).toBeInTheDocument();
+        expect(link).toHaveAttribute('data-channel-mention', 'test');
+        expect(link).toHaveAttribute('data-channel-mention-team', 'test');
+        expect(link).toHaveAttribute('href', '/test/channels/test');
+        expect(link).toHaveClass('mention-link');
+    });
+
+    test('should render properly without highlight a post', () => {
+        const props = {
+            ...baseProps,
+            message: 'No highlight',
+            options: {
+                mentionHighlight: false,
+            },
+            post: TestHelper.getPostMock({
+                props: {
+                    channel_mentions: {
+                        test: {
+                            display_name: 'Test',
+                            team_name: 'test',
+                        },
+                    },
+                },
+            }),
+        };
+        renderWithContext(<PostMarkdown {...props}/>, state);
+        expect(screen.getByText('No highlight')).toBeInTheDocument();
+
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
+
+    test('should render properly without group highlight on a post', () => {
+        const props = {
+            ...baseProps,
+            message: 'No @group highlight',
+            options: {},
+            post: TestHelper.getPostMock({
+                props: {
+                    disable_group_highlight: true,
+                },
+            }),
+        };
+        renderWithContext(<PostMarkdown {...props}/>, state);
+
+        const groupMention = screen.getByText('@group');
+
+        expect(screen.getByText('No', {exact: false})).toBeInTheDocument();
+        expect(groupMention).toBeInTheDocument();
+        expect(groupMention).toHaveAttribute('data-mention', 'group');
+
+        expect(groupMention).not.toHaveClass('mention-link');
+
+        expect(screen.getByText('highlight', {exact: false})).toBeInTheDocument();
+    });
+
+    test('should correctly pass postId down', () => {
+        const props = {
+            ...baseProps,
+            post: TestHelper.getPostMock({
+                id: 'post_id',
+            }),
+        };
+        renderWithContext(<PostMarkdown {...props}/>, state);
+        expect(screen.getByText('message')).toBeInTheDocument();
+    });
+
+    test('should render header change properly', () => {
+        const props = {
+            ...baseProps,
+            post: TestHelper.getPostMock({
+                id: 'post_id',
+                type: Posts.POST_TYPES.HEADER_CHANGE as PostType,
+                props: {
+                    username: 'user',
+                    old_header: 'see ~test',
+                    new_header: 'now ~test',
+                    channel_mentions: {
+                        test: {
+                            display_name: 'Test',
+                            team_name: 'test',
+                        },
+                    },
+                },
+            }),
+        };
+
+        renderWithContext(<PostMarkdown {...props}/>, state);
+        expect(screen.getByText('@user')).toBeInTheDocument();
+        expect(screen.getByText('updated the channel header')).toBeInTheDocument();
+        expect(screen.getByText('From:')).toBeInTheDocument();
+        expect(screen.getByText('see')).toBeInTheDocument();
+
+        expect(screen.getByText('To:')).toBeInTheDocument();
+        expect(screen.getByText('now')).toBeInTheDocument();
+
+        const testLink = screen.getAllByRole('link', {name: '~Test'});
+        expect(testLink).toHaveLength(2);
+
+        expect(testLink[0]).toHaveAttribute('data-channel-mention', 'test');
+        expect(testLink[0]).toHaveAttribute('data-channel-mention-team', 'test');
+        expect(testLink[0]).toHaveAttribute('href', '/test/channels/test');
+        expect(screen.getAllByRole('link')[0]).toHaveClass('mention-link');
+
+        expect(testLink[1]).toHaveAttribute('data-channel-mention', 'test');
+        expect(testLink[1]).toHaveAttribute('data-channel-mention-team', 'test');
+        expect(testLink[1]).toHaveAttribute('href', '/test/channels/test');
+        expect(screen.getAllByRole('link')[1]).toHaveClass('mention-link');
+    });
+
+    test('plugin hooks can build upon other hook message updates', () => {
+        const props: ComponentProps<typeof PostMarkdown> = {
+            ...baseProps,
+            message: 'world',
+            post: TestHelper.getPostMock({
+                message: 'world',
+                props: {
+                    channel_mentions: {
+                        test: {
+                            display_name: 'Test',
+                        },
+                    },
+                },
+            }),
+            pluginHooks: [
+                {
+                    id: 'some id',
+                    pluginId: 'some plugin',
+                    hook: (post: Post, updatedMessage: string) => {
+                        return 'hello ' + updatedMessage;
+                    },
+                },
+                {
+                    id: 'different id',
+                    pluginId: 'different plugin',
+                    hook: (post: Post, updatedMessage: string) => {
+                        return updatedMessage + '!';
+                    },
+                },
+            ],
+        };
+        renderWithContext(<PostMarkdown {...props}/>, state);
+        expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
+
+        // hook message
+        expect(screen.getByText('hello world!')).toBeInTheDocument();
+    });
+
+    test('plugin hooks can overwrite other hooks messages', () => {
+        const props: ComponentProps<typeof PostMarkdown> = {
+            ...baseProps,
+            message: 'world',
+            post: TestHelper.getPostMock({
+                message: 'world',
+                props: {
+                    channel_mentions: {
+                        test: {
+                            display_name: 'Test',
+                        },
+                    },
+                },
+            }),
+            pluginHooks: [
+                {
+                    id: 'some id',
+                    pluginId: 'some plugin',
+                    hook: (post: Post) => {
+                        return 'hello ' + post.message;
+                    },
+                },
+                {
+                    id: 'different id',
+                    pluginId: 'different plugin',
+                    hook: (post: Post) => {
+                        return post.message + '!';
+                    },
+                },
+            ],
+        };
+        renderWithContext(<PostMarkdown {...props}/>, state);
+        expect(screen.queryByText('world', {exact: true})).not.toBeInTheDocument();
+        expect(screen.queryByText('world!', {exact: true})).toBeInTheDocument();
+    });
+
+    test('should render data spillage card', async () => {
+        const reportedPost = TestHelper.getPostMock({
+            id: 'reported_post_id',
+            message: 'This is the reported post',
+            user_id: 'user_id_1',
+            channel_id: 'channel_id_1',
+        });
+
+        const dataSpillageReportPost = TestHelper.getPostMock({
+            type: PostTypes.CUSTOM_DATA_SPILLAGE_REPORT as PostType,
+            props: {
+                reported_post_id: reportedPost.id,
+            },
+        });
+
+        const props = {
+            ...baseProps,
+            message: 'See ~test',
+            post: dataSpillageReportPost,
+        };
+
+        mockedClient4.getFlaggedPost = vi.fn().mockResolvedValue(reportedPost);
+        renderWithContext(<PostMarkdown {...props}/>, state);
+        await act(async () => {});
+
+        expect(screen.queryByTestId('data-spillage-report')).toBeInTheDocument();
+    });
+});
