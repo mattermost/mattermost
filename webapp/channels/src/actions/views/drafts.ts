@@ -9,6 +9,7 @@ import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -129,7 +130,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
         props: draft.props,
         file_ids: fileIds,
         priority: draft.metadata?.priority as PostPriorityMetadata,
-        burn_on_read: draft.metadata?.burn_on_read,
+        burn_on_read: draft.type === PostTypes.BURN_ON_READ ? {enabled: true} : undefined,
     };
 
     return Client4.upsertDraft(newDraft, connectionId);
@@ -169,9 +170,6 @@ export function transformServerDraft(draft: ServerDraft): Draft {
     if (draft.priority) {
         metadata.priority = draft.priority;
     }
-    if (draft.burn_on_read) {
-        metadata.burn_on_read = draft.burn_on_read;
-    }
 
     return {
         key,
@@ -185,6 +183,7 @@ export function transformServerDraft(draft: ServerDraft): Draft {
             rootId: draft.root_id,
             createAt: draft.create_at,
             updateAt: draft.update_at,
+            type: draft.burn_on_read?.enabled ? PostTypes.BURN_ON_READ : undefined,
             metadata,
             show: true,
         },

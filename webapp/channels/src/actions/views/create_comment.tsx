@@ -9,6 +9,7 @@ import {scheduledPostFromPost} from '@mattermost/types/schedule_post';
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -51,6 +52,9 @@ export function submitPost(
 
         const time = Utils.getTimestamp();
 
+        const isBorEnabled = isBurnOnReadEnabled(state);
+        const postType = (isBorEnabled && draft.type === PostTypes.BURN_ON_READ) ? PostTypes.BURN_ON_READ : undefined;
+
         let post = {
             file_ids: [],
             message: draft.message,
@@ -59,17 +63,12 @@ export function submitPost(
             pending_post_id: `${userId}:${time}`,
             user_id: userId,
             create_at: time,
-            metadata: {...draft.metadata},
+            type: postType,
+            metadata: {
+                ...(draft.metadata?.priority && {priority: draft.metadata.priority}),
+            },
             props: {...draft.props},
         } as unknown as Post;
-
-        // Strip burn-on-read metadata if feature is disabled
-        const isBorEnabled = isBurnOnReadEnabled(state);
-        if (!isBorEnabled && post.metadata?.burn_on_read) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
-            const {burn_on_read, ...restMetadata} = post.metadata;
-            post.metadata = restMetadata as PostMetadata;
-        }
 
         const channel = getChannel(state, channelId);
         if (!channel) {

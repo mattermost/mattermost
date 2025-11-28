@@ -15,6 +15,7 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isDeactivatedDirectChannel, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -347,6 +348,9 @@ function DraftRow({
         actions = draftActions;
     }
 
+    // Burn-on-read is only shown for channel drafts (not thread replies or scheduled posts)
+    const draftBurnOnReadMetadata = !isScheduledPost && !rootId && (item as PostDraft).type === PostTypes.BURN_ON_READ ? {enabled: true} : undefined;
+
     let title: React.ReactNode;
     if (channel) {
         title = (
@@ -411,7 +415,7 @@ function DraftRow({
                     message={item.message}
                     status={status}
                     priority={rootId ? undefined : item.metadata?.priority}
-                    burnOnRead={rootId ? undefined : item.metadata?.burn_on_read}
+                    burnOnRead={draftBurnOnReadMetadata}
                     burnOnReadDurationMinutes={burnOnReadDurationMinutes}
                     uploadsInProgress={uploadsInProgress}
                     userId={user.id}

@@ -659,7 +659,8 @@ function PostComponent(props: Props) {
     // Note: Timer should display regardless of feature flag being enabled/disabled
     // The feature flag only controls creation of NEW BoR messages, not display of existing ones
     let burnOnReadTimerChip;
-    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.metadata?.expire_at) {
+    const isBoRSender = post.user_id === props.currentUserId;
+    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.metadata?.expire_at && !isBoRSender) {
         // Parse expire_at from metadata - it can be either number or string from API
         const expireAt = typeof post.metadata.expire_at === 'number' ? post.metadata.expire_at : parseInt(String(post.metadata.expire_at), 10);
 
