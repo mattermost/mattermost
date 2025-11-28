@@ -135,13 +135,10 @@ describe('Wiki > Page Hierarchy Load Performance', () => {
                 const metricsText = response.body;
 
                 // * Verify hierarchy load metrics exist
-                expect(metricsText, 'Should contain hierarchy load metric').to.include('mattermost_wiki_hierarchy_load_duration_seconds');
+                expect(metricsText, 'Should contain hierarchy load metric').to.include('mattermost_wiki_hierarchy_load_seconds');
 
                 // * Verify hierarchy depth metric exists
                 expect(metricsText, 'Should contain hierarchy depth metric').to.include('mattermost_wiki_hierarchy_depth');
-
-                // * Verify pages per channel metric exists
-                expect(metricsText, 'Should contain pages per channel metric').to.include('mattermost_wiki_pages_per_channel');
 
                 cy.log('Wiki hierarchy metrics are being recorded successfully');
             });

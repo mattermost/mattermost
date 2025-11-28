@@ -31,12 +31,10 @@ func setupPagePermissions(th *TestHelper) {
 		model.PermissionCreatePagePublicChannel.Id,
 		model.PermissionReadPagePublicChannel.Id,
 		model.PermissionEditPagePublicChannel.Id,
-		model.PermissionEditOthersPagePublicChannel.Id,
 		model.PermissionDeletePagePublicChannel.Id,
 		model.PermissionCreatePagePrivateChannel.Id,
 		model.PermissionReadPagePrivateChannel.Id,
 		model.PermissionEditPagePrivateChannel.Id,
-		model.PermissionEditOthersPagePrivateChannel.Id,
 		model.PermissionDeletePagePrivateChannel.Id,
 	)
 
@@ -837,10 +835,22 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 			require.Nil(t, err)
 		})
 
-		t.Run("non-author with edit_page_public_channel but without edit_others_page permission fails", func(t *testing.T) {
-			// Ensure channel_user role doesn't have edit_others_page permission
-			th.RemovePermissionFromRole(t, model.PermissionEditOthersPagePublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionEditOthersPagePublicChannel.Id, model.ChannelUserRoleId)
+		t.Run("non-author with edit_page_public_channel permission can edit", func(t *testing.T) {
+			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
+			require.Nil(t, err)
+
+			otherUser := th.CreateUser(t)
+			th.LinkUserToTeam(t, otherUser, th.BasicTeam)
+			th.AddUserToChannel(t, otherUser, th.BasicChannel)
+
+			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
+			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationEdit, "test")
+			require.Nil(t, err)
+		})
+
+		t.Run("user without edit_page_public_channel permission fails", func(t *testing.T) {
+			th.RemovePermissionFromRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
 
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)
@@ -855,23 +865,7 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 			require.Equal(t, "api.context.permissions.app_error", err.Id)
 		})
 
-		t.Run("non-author with edit_others_page permission can edit", func(t *testing.T) {
-			th.AddPermissionToRole(t, model.PermissionEditOthersPagePublicChannel.Id, model.ChannelUserRoleId)
-			defer th.RemovePermissionFromRole(t, model.PermissionEditOthersPagePublicChannel.Id, model.ChannelUserRoleId)
-
-			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
-			require.Nil(t, err)
-
-			otherUser := th.CreateUser(t)
-			th.LinkUserToTeam(t, otherUser, th.BasicTeam)
-			th.AddUserToChannel(t, otherUser, th.BasicChannel)
-
-			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
-			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationEdit, "test")
-			require.Nil(t, err)
-		})
-
-		t.Run("channel admin can edit others pages", func(t *testing.T) {
+		t.Run("any channel member can edit others' pages", func(t *testing.T) {
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)
 
@@ -898,8 +892,7 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 		})
 
 		t.Run("non-author with delete_page_public_channel but without channel admin fails", func(t *testing.T) {
-			// Note: Delete still requires channel admin, unlike edit which uses edit_others_page permission
-			// This test verifies delete remains owner-only or admin-only
+			// Delete requires user to be page author OR channel admin (unlike edit, which allows any channel member)
 
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)

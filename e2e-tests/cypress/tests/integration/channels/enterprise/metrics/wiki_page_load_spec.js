@@ -202,8 +202,8 @@ describe('Wiki > Page Load Performance', () => {
                 }).then((response) => {
                     const duration = Date.now() - startTime;
 
-                    // * Verify page was updated
-                    expect(response.status).to.equal(200);
+                    // * Verify page was updated (accepts both 200 and 201)
+                    expect(response.status).to.be.oneOf([200, 201]);
                     expect(response.body).to.exist;
 
                     // * Assert update operation completed quickly

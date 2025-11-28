@@ -396,12 +396,9 @@ test('applies first-write-wins when saving concurrent edits from multiple tabs',
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # Grant page and wiki edit permissions to channel_user role AFTER user is created
-    // Note: edit_others_page permissions are needed for User 2 to edit User 1's page
     const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
         'edit_page_public_channel',
         'edit_page_private_channel',
-        'edit_others_page_public_channel',
-        'edit_others_page_private_channel',
         'edit_wiki_public_channel',
         'edit_wiki_private_channel',
     ]);
@@ -536,8 +533,6 @@ test('allows explicit overwrite after confirmation when user overrides first-wri
     const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
         'edit_page_public_channel',
         'edit_page_private_channel',
-        'edit_others_page_public_channel',
-        'edit_others_page_private_channel',
         'edit_wiki_public_channel',
         'edit_wiki_private_channel',
     ]);

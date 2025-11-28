@@ -210,7 +210,7 @@ describe('Wiki > Page Draft Autosave Performance', () => {
                 const metricsText = response.body;
 
                 // * Verify draft save metrics exist
-                expect(metricsText, 'Should contain draft save total metric').to.include('mattermost_wiki_draft_save_total');
+                expect(metricsText, 'Should contain draft save total metric').to.include('mattermost_wiki_draft_saves_total');
                 expect(metricsText, 'Should track success results').to.include('result="success"');
 
                 cy.log('Wiki draft save metrics are being recorded successfully');

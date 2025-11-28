@@ -2287,8 +2287,16 @@ export async function deletePageViaActionsMenu(page: Page, option?: 'cascade' | 
  * @param clearExisting - Whether to clear existing content first (default: false)
  */
 export async function editPageThroughUI(page: Page, newContent: string, clearExisting: boolean = false) {
-    // Click edit button
+    // Wait for edit button to be visible and enabled (not disabled)
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+    // Wait for button to be enabled (page data must be loaded)
+    await page.waitForFunction(() => {
+        const button = document.querySelector('[data-testid="wiki-page-edit-button"]') as HTMLButtonElement;
+        return button && !button.disabled;
+    }, {timeout: ELEMENT_TIMEOUT});
+
     await editButton.click();
 
     // Wait for editor to appear

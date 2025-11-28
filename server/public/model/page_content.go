@@ -151,14 +151,23 @@ func extractTextFromNode(node map[string]any) string {
 	}
 
 	if contentVal, ok := node["content"]; ok {
-		if contentArray, ok := contentVal.([]any); ok {
-			for _, child := range contentArray {
+		var childNodes []map[string]any
+
+		switch v := contentVal.(type) {
+		case []any:
+			for _, child := range v {
 				if childNode, ok := child.(map[string]any); ok {
-					childText := extractTextFromNode(childNode)
-					if childText != "" {
-						parts = append(parts, childText)
-					}
+					childNodes = append(childNodes, childNode)
 				}
+			}
+		case []map[string]any:
+			childNodes = v
+		}
+
+		for _, childNode := range childNodes {
+			childText := extractTextFromNode(childNode)
+			if childText != "" {
+				parts = append(parts, childText)
 			}
 		}
 	}

@@ -45,23 +45,10 @@ func getPagePermission(channelType model.ChannelType, operation PageOperation) *
 	return getEntityPermissionByChannelType(channelType, operation, permMap)
 }
 
-func getPagePermissionForEditOthers(channelType model.ChannelType, operation PageOperation) *model.Permission {
-	permMap := map[model.ChannelType]map[PageOperation]*model.Permission{
-		model.ChannelTypeOpen: {
-			PageOperationEdit:   model.PermissionEditOthersPagePublicChannel,
-			PageOperationDelete: model.PermissionDeletePagePublicChannel,
-		},
-		model.ChannelTypePrivate: {
-			PageOperationEdit:   model.PermissionEditOthersPagePrivateChannel,
-			PageOperationDelete: model.PermissionDeletePagePrivateChannel,
-		},
-	}
-	return getEntityPermissionByChannelType(channelType, operation, permMap)
-}
 
 // HasPermissionToModifyPage checks if a user can perform an action on a page.
-// It verifies channel membership, channel-level page permission, and ownership.
-// This implements the additive permission model: channel permission + ownership check.
+// For Create/Read/Edit: Checks if user has the channel-level page permission.
+// For Delete: Checks permission AND requires user to be page author OR channel admin.
 func (a *App) HasPermissionToModifyPage(
 	rctx request.CTX,
 	session *model.Session,
@@ -112,7 +99,7 @@ func (a *App) HasPermissionToModifyPage(
 			return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 		}
 
-		if operation == PageOperationEdit || operation == PageOperationDelete {
+		if operation == PageOperationDelete {
 			if page.UserId != session.UserId {
 				member, err := a.GetChannelMember(rctx, channel.Id, session.UserId)
 				if err != nil {
@@ -124,33 +111,7 @@ func (a *App) HasPermissionToModifyPage(
 					return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(err)
 				}
 
-				if member.SchemeAdmin {
-					rctx.Logger().Debug("User is channel admin, allowing edit/delete of others' pages",
-						mlog.String("user_id", session.UserId),
-						mlog.String("channel_id", channel.Id),
-					)
-				} else if operation == PageOperationEdit {
-					othersPermission := getPagePermissionForEditOthers(channel.Type, operation)
-					if othersPermission == nil {
-						rctx.Logger().Error("No edit-others permission defined for this operation")
-						return model.NewAppError(operationName, "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
-					}
-
-					hasOthersPermission := a.SessionHasPermissionToChannel(rctx, *session, channel.Id, othersPermission)
-					rctx.Logger().Debug("Checking edit-others permission",
-						mlog.Bool("has_others_permission", hasOthersPermission),
-						mlog.String("permission", othersPermission.Id),
-					)
-
-					if !hasOthersPermission {
-						rctx.Logger().Warn("User lacks permission to edit others' pages",
-							mlog.String("user_id", session.UserId),
-							mlog.String("page_owner", page.UserId),
-							mlog.String("permission", othersPermission.Id),
-						)
-						return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-					}
-				} else {
+				if !member.SchemeAdmin {
 					rctx.Logger().Warn("User cannot delete others' pages without being channel admin",
 						mlog.String("user_id", session.UserId),
 						mlog.String("page_owner", page.UserId),
@@ -158,6 +119,11 @@ func (a *App) HasPermissionToModifyPage(
 					)
 					return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 				}
+
+				rctx.Logger().Debug("User is channel admin, allowing delete of others' pages",
+					mlog.String("user_id", session.UserId),
+					mlog.String("channel_id", channel.Id),
+				)
 			}
 		}
 

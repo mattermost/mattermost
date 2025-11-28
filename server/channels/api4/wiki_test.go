@@ -1113,7 +1113,11 @@ func TestPagePermissionMatrix(t *testing.T) {
 			th.RemovePermissionFromRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
 			defer th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
 
-			resp, err = th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
+			client2 := th.CreateClient()
+			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+			require.NoError(t, lErr)
+
+			resp, err = client2.DeletePage(context.Background(), wiki.Id, page.Id)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
 		})

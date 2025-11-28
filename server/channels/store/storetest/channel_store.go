@@ -7948,6 +7948,8 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 }
 
 func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	s.GetMaster().Exec("TRUNCATE Channels")
+
 	teamID := model.NewId()
 
 	o1 := model.Channel{}
@@ -8005,6 +8007,8 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss 
 }
 
 func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	s.GetMaster().Exec("TRUNCATE Channels")
+
 	teamID := model.NewId()
 
 	o1 := model.Channel{}
@@ -8067,6 +8071,8 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 }
 
 func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	s.GetMaster().Exec("TRUNCATE Channels")
+
 	teamID := model.NewId()
 
 	o1 := model.Channel{}

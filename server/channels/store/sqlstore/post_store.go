@@ -28,6 +28,13 @@ import (
 var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
 var wildCardRegex = regexp.MustCompile(`\*($| )`)
 
+const (
+	// regularPostsFilter excludes pages and page comments from post queries.
+	// Pages have separate lifecycle management and should not be included in
+	// regular post operations like retention policies, exports, or cleanup.
+	regularPostsFilter = "(Type NOT IN ('page', 'page_comment') OR Type IS NULL)"
+)
+
 type SqlPostStore struct {
 	*SqlStore
 	metrics           einterfaces.MetricsInterface
@@ -43,6 +50,19 @@ type postWithExtra struct {
 }
 
 func (s *SqlPostStore) ClearCaches() {
+}
+
+// addRegularPostsFilter adds the page exclusion filter to a query builder.
+// Use this for any query that should operate only on messages, not pages.
+// tableAlias should be the alias used for the Posts table in the query (e.g., "p" or "Posts").
+func (s *SqlPostStore) addRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuilder {
+	if tableAlias == "" {
+		tableAlias = "Posts"
+	}
+	return qb.Where(sq.Or{
+		sq.NotEq{tableAlias + ".Type": []string{"page", "page_comment"}},
+		sq.Eq{tableAlias + ".Type": nil},
+	})
 }
 
 func postSliceColumnsWithTypes() []struct {
@@ -2254,6 +2274,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		pageSearchSubquery := s.getSubQueryBuilder().
 			Select("PageId").
 			From("PageContents").
+			Where("DeleteAt = 0").
 			Where(fmt.Sprintf("to_tsvector('%s', SearchText) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg), tsQueryClause)
 
 		var pageSearchClause string
@@ -2675,6 +2696,8 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyB
 		Select("Posts.Id").
 		From("Posts")
 
+	builder = s.addRegularPostsFilter(builder, "Posts")
+
 	if retentionPolicyBatchConfigs.PreservePinnedPosts {
 		builder = builder.Where(sq.Or{
 			sq.Eq{"Posts.IsPinned": false},
@@ -2701,9 +2724,9 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyB
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? LIMIT ?))"
+		query = fmt.Sprintf("DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? AND %s LIMIT ?))", regularPostsFilter)
 	} else {
-		query = "DELETE from Posts WHERE CreateAt < ? LIMIT ?"
+		query = fmt.Sprintf("DELETE from Posts WHERE CreateAt < ? AND %s LIMIT ?", regularPostsFilter)
 	}
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
@@ -2883,6 +2906,8 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		GroupBy("p.Id, u2.Username").
 		OrderBy("p.Id").
 		Limit(uint64(limit))
+
+	query = s.addRegularPostsFilter(query, "p")
 
 	if !includeArchivedChannels {
 		query = query.Where(
