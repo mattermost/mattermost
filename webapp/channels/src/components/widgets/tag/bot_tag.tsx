@@ -5,8 +5,8 @@ import classNames from 'classnames';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import Tag from './tag';
-import type {TagSize} from './tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
+import type {TagSize} from '@mattermost/design-system/src/components/primitives/tag';
 
 type Props = {
     className?: string;

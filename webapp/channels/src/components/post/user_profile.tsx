@@ -13,7 +13,7 @@ import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai
 import PostHeaderCustomStatus from 'components/post_view/post_header_custom_status/post_header_custom_status';
 import UserProfile from 'components/user_profile';
 import BotTag from 'components/widgets/tag/bot_tag';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import {fromAutoResponder, hasAiGeneratedMetadata, isFromWebhook} from 'utils/post_utils';
 

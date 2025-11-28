@@ -112,3 +112,4 @@ describe('components/widgets/tag/Tag', () => {
         expect(click).toHaveBeenCalledTimes(1);
     });
 });
+

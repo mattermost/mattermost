@@ -9,7 +9,7 @@ import {SyncIcon} from '@mattermost/compass-icons/components';
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import './panel_header.scss';
 import {isToday} from 'utils/datetime';
