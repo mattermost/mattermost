@@ -19,17 +19,17 @@ const config = {
         doNotFake: ['performance'],
     },
     moduleNameMapper: {
+        '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+            '<rootDir>/src/tests/image_url_mock.json',
+        '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
         '^@mattermost/(components)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(design-system)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(types)/(.*)$': '<rootDir>/../platform/$1/src/$2',
-        '^@mattermost/(design-system)$': '<rootDir>/../platform/$1/src',
+        '^@mattermost/(design-system)/src/(.*)$': '<rootDir>/../platform/$1/src/$2',
         '^mattermost-redux/test/(.*)$':
             '<rootDir>/src/packages/mattermost-redux/test/$1',
         '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',
-        '^.+\\.(jpg|jpeg|png|apng|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
-            '<rootDir>/src/tests/image_url_mock.json',
-        '^.+\\.(css|less|scss)$': 'identity-obj-proxy',
         '^.*i18n.*\\.(json)$': '<rootDir>/src/tests/i18n_mock.json',
     },
     moduleDirectories: ['src', 'node_modules'],
