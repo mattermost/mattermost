@@ -7,6 +7,10 @@ import (
 	"maps"
 )
 
+type BurnOnReadMetadata struct {
+	Enabled bool `json:"enabled"`
+}
+
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -35,6 +39,8 @@ type PostMetadata struct {
 
 	ExpireAt   int64    `json:"expire_at,omitempty"`
 	Recipients []string `json:"recipients,omitempty"`
+	// BurnOnRead holds burn-on-read settings for the post/draft
+	BurnOnRead *BurnOnReadMetadata `json:"burn_on_read,omitempty"`
 }
 
 func (p *PostMetadata) Auditable() map[string]any {
@@ -54,6 +60,7 @@ func (p *PostMetadata) Auditable() map[string]any {
 		"reactions":        p.Reactions,
 		"priority":         p.Priority,
 		"acknowledgements": p.Acknowledgements,
+		"burn_on_read":     p.BurnOnRead,
 	}
 }
 
@@ -99,6 +106,13 @@ func (p *PostMetadata) Copy() *PostMetadata {
 		}
 	}
 
+	var burnOnReadCopy *BurnOnReadMetadata
+	if p.BurnOnRead != nil {
+		burnOnReadCopy = &BurnOnReadMetadata{
+			Enabled: p.BurnOnRead.Enabled,
+		}
+	}
+
 	return &PostMetadata{
 		Embeds:           embedsCopy,
 		Emojis:           emojisCopy,
@@ -107,5 +121,6 @@ func (p *PostMetadata) Copy() *PostMetadata {
 		Reactions:        reactionsCopy,
 		Priority:         postPriorityCopy,
 		Acknowledgements: acknowledgementsCopy,
+		BurnOnRead:       burnOnReadCopy,
 	}
 }

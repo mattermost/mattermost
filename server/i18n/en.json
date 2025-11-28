@@ -10265,6 +10265,10 @@
     "translation": "Unsupported token_endpoint_auth_method supplied."
   },
   {
+    "id": "model.draft.is_valid.burn_on_read.app_error",
+    "translation": "Invalid burn on read metadata."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },

@@ -16,6 +16,7 @@ import {
     isMeMessage as checkIsMeMessage,
     isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
+import BurnOnReadConfirmationModal from 'components/burn_on_read_confirmation_modal';
 import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -26,6 +27,7 @@ import PostAcknowledgements from 'components/post_view/acknowledgements';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import BurnOnReadBadge from 'components/post_view/burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from 'components/post_view/burn_on_read_concealed_placeholder';
+import BurnOnReadTimerChip from 'components/post_view/burn_on_read_timer_chip';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
@@ -40,13 +42,15 @@ import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
+import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
-import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes} from 'utils/constants';
+import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
+import type {ModalData} from 'types/actions';
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
 import {withPostErrorBoundary} from './post_error_boundary';
@@ -99,7 +103,11 @@ export type Props = {
         closeRightHandSide: () => void;
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
-        revealBurnOnReadPost: (postId: string) => void;
+        revealBurnOnReadPost: (postId: string) => Promise<{data?: any; error?: any}>;
+        burnPostNow?: (postId: string) => Promise<any>;
+        savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
+        closeModal: (modalId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -121,7 +129,8 @@ export type Props = {
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
     shouldDisplayBurnOnReadConcealed?: boolean;
-    isBurnOnReadEnabled?: boolean;
+    burnOnReadDurationMinutes: number;
+    burnOnReadSkipConfirmation?: boolean;
 };
 
 function PostComponent(props: Props) {
@@ -350,6 +359,11 @@ function PostComponent(props: Props) {
             return;
         }
 
+        // Prevent BoR messages from opening reply
+        if (post.type === PostTypes.BURN_ON_READ) {
+            return;
+        }
+
         if (
             !e.altKey &&
             props.clickToReply &&
@@ -409,32 +423,85 @@ function PostComponent(props: Props) {
         setBurnOnReadRevealing(true);
         setBurnOnReadRevealError(null);
 
-        const result = await props.actions.revealBurnOnReadPost(postId) as any;
+        try {
+            const result = await props.actions.revealBurnOnReadPost(postId);
 
-        setBurnOnReadRevealing(false);
-
-        if (result?.error) {
-            // Handle different error types with i18n
-            let errorMessage = formatMessage({
-                id: 'post.burn_on_read.reveal_error.generic',
-                defaultMessage: 'Failed to reveal message. Please try again.',
-            });
-
-            if (result.error.status_code === 404) {
-                errorMessage = formatMessage({
-                    id: 'post.burn_on_read.reveal_error.not_found',
-                    defaultMessage: 'This message is no longer available.',
+            if (result && typeof result === 'object' && 'error' in result) {
+                // Handle different error types with i18n
+                let errorMessage = formatMessage({
+                    id: 'post.burn_on_read.reveal_error.generic',
+                    defaultMessage: 'Failed to reveal message. Please try again.',
                 });
-            } else if (result.error.status_code === 403) {
-                errorMessage = formatMessage({
-                    id: 'post.burn_on_read.reveal_error.forbidden',
-                    defaultMessage: "You don't have permission to view this message.",
-                });
+
+                if (result.error.status_code === 404) {
+                    errorMessage = formatMessage({
+                        id: 'post.burn_on_read.reveal_error.not_found',
+                        defaultMessage: 'This message is no longer available.',
+                    });
+                } else if (result.error.status_code === 403) {
+                    errorMessage = formatMessage({
+                        id: 'post.burn_on_read.reveal_error.forbidden',
+                        defaultMessage: "You don't have permission to view this message.",
+                    });
+                }
+
+                setBurnOnReadRevealError(errorMessage);
             }
-
-            setBurnOnReadRevealError(errorMessage);
+        } finally {
+            setBurnOnReadRevealing(false);
         }
     }, [props.actions, formatMessage]);
+
+    const handleTimerChipClick = useCallback(() => {
+        // Timer chip is only shown to receivers, so this is always a receiver delete (for themselves only)
+        // Skip modal if preference is set
+        if (props.burnOnReadSkipConfirmation) {
+            props.actions.burnPostNow?.(post.id);
+            return;
+        }
+
+        // Open modal via Redux (zero overhead for non-BoR posts!)
+        const isSender = post.user_id === props.currentUserId;
+        const handlers = createBurnOnReadDeleteModalHandlers(
+            props.actions,
+            {
+                postId: post.id,
+                userId: props.currentUserId,
+                isSender,
+            },
+        );
+
+        props.actions.openModal({
+            modalId: ModalIdentifiers.BURN_ON_READ_CONFIRMATION,
+            dialogType: BurnOnReadConfirmationModal,
+            dialogProps: {
+                show: true,
+                ...handlers,
+            },
+        });
+    }, [props.burnOnReadSkipConfirmation, props.actions, post.id, post.user_id, props.currentUserId]);
+
+    const handleBadgeClick = useCallback(() => {
+        // Flame icon is only shown to sender, so this is always a sender delete (for everyone)
+        const isSender = post.user_id === props.currentUserId;
+        const handlers = createBurnOnReadDeleteModalHandlers(
+            props.actions,
+            {
+                postId: post.id,
+                userId: props.currentUserId,
+                isSender,
+            },
+        );
+
+        props.actions.openModal({
+            modalId: ModalIdentifiers.BURN_ON_READ_CONFIRMATION,
+            dialogType: BurnOnReadConfirmationModal,
+            dialogProps: {
+                show: true,
+                ...handlers,
+            },
+        });
+    }, [props.actions, post.id, post.user_id, props.currentUserId]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -494,6 +561,7 @@ function PostComponent(props: Props) {
                 onReveal={handleRevealBurnOnRead}
                 loading={burnOnReadRevealing}
                 error={burnOnReadRevealError}
+                maxExpireAt={typeof post.props?.max_expire_at === 'number' ? post.props.max_expire_at : undefined}
             />
         );
     } else if (isSearchResultItem) {
@@ -536,7 +604,10 @@ function PostComponent(props: Props) {
         />
     ) : null;
     const channelDisplayName = getChannelName();
-    const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
+
+    // Don't show reactions for unrevealed BoR posts - users can't react to concealed content
+    const showReactions = (props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts) &&
+        !props.shouldDisplayBurnOnReadConcealed;
 
     const getTestId = () => {
         let idPrefix: string;
@@ -566,10 +637,12 @@ function PostComponent(props: Props) {
 
     // Burn-on-Read badge logic
     // Only show badge on first post in a series (not on consecutive posts)
+    // Note: Badge should display regardless of feature flag being enabled/disabled
+    // The feature flag only controls creation of NEW BoR messages, not display of existing ones
     let burnOnReadBadge;
-    if (props.isBurnOnReadEnabled && post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost) {
+    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost) {
         const isSender = post.user_id === props.currentUserId;
-        const revealed = post.props?.revealed === true;
+        const revealed = typeof post.metadata?.expire_at === 'number';
 
         burnOnReadBadge = (
             <BurnOnReadBadge
@@ -577,6 +650,33 @@ function PostComponent(props: Props) {
                 isSender={isSender}
                 revealed={revealed}
                 onReveal={handleRevealBurnOnRead}
+                onSenderDelete={handleBadgeClick}
+            />
+        );
+    }
+
+    // Burn-on-Read countdown timer chip
+    // Note: Timer should display regardless of feature flag being enabled/disabled
+    // The feature flag only controls creation of NEW BoR messages, not display of existing ones
+    let burnOnReadTimerChip;
+    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.metadata?.expire_at) {
+        // Parse expire_at from metadata - it can be either number or string from API
+        const expireAt = typeof post.metadata.expire_at === 'number' ? post.metadata.expire_at : parseInt(String(post.metadata.expire_at), 10);
+
+        let maxExpireAt: number | undefined;
+        if (typeof post.props?.max_expire_at === 'number') {
+            maxExpireAt = post.props.max_expire_at;
+        } else if (post.props?.max_expire_at) {
+            maxExpireAt = parseInt(String(post.props.max_expire_at), 10);
+        }
+
+        burnOnReadTimerChip = (
+            <BurnOnReadTimerChip
+                postId={post.id}
+                expireAt={isNaN(expireAt) ? undefined : expireAt}
+                maxExpireAt={maxExpireAt && isNaN(maxExpireAt) ? undefined : maxExpireAt}
+                durationMinutes={props.burnOnReadDurationMinutes}
+                onClick={handleTimerChipClick}
             />
         );
     }
@@ -665,6 +765,7 @@ function PostComponent(props: Props) {
                                 }
                                 {priority}
                                 {burnOnReadBadge}
+                                {burnOnReadTimerChip}
                                 {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&
                                     PostUtils.hasAiGeneratedMetadata(post) && (
                                     <AiGeneratedIndicator
