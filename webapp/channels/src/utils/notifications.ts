@@ -4,6 +4,7 @@
 import icon50 from 'images/icon50x50.png';
 import iconWS from 'images/icon_WS.png';
 import * as UserAgent from 'utils/user_agent';
+import Constants from 'utils/constants';
 
 import type {ThunkActionFunc} from 'types/store';
 
@@ -19,7 +20,8 @@ let requestedNotificationPermission = Boolean('Notification' in window && Notifi
 //
 // If successful in showing a notification, it resolves with a callback to manually close the
 // notification. If no error occurred but the user did not grant permission to show notifications, it
-// resolves with a no-op callback. Not all platforms support all features, and may
+// resolves with a no-op callback. Notifications that do not require interaction will be closed automatically after
+// the Constants.DEFAULT_NOTIFICATION_DURATION. Not all platforms support all features, and may
 // choose different semantics for the notifications.
 
 export interface ShowNotificationParams {
@@ -91,6 +93,15 @@ export function showNotification(
         notification.onerror = () => {
             throw new Error('Notification failed to show.');
         };
+
+        // Mac desktop app notification dismissal is handled by the OS
+        // Notifications are currently not dismissed automatically on Windows nor Ubuntu
+        // TODO: Keep track of active notifications and dismiss them when the channel/thread is viewed, see https://mattermost.atlassian.net/browse/MM-59405
+        if (!requireInteraction && !UserAgent.isMacApp()) {
+            setTimeout(() => {
+                notification.close();
+            }, Constants.DEFAULT_NOTIFICATION_DURATION);
+        }
 
         return {
             status: 'success',
