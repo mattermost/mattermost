@@ -349,11 +349,24 @@ export default class SuggestionBox extends React.PureComponent {
             return;
         }
 
-        // The caret appears before the CJK character currently being composed, so re-add it to the pretext
+        // For languages with combining diacritical marks (e.g., Vietnamese), we should not
+        // update suggestions during composition as it causes text to jump around.
+        // Only update for CJK languages where the caret appears before the character being composed.
         const textbox = this.getTextbox();
-        const pretext = textbox.value.substring(0, textbox.selectionStart) + e.data;
 
-        this.handlePretextChanged(pretext);
+        // Check if this is likely a combining diacritical mark (Vietnamese, etc.)
+        // Vietnamese uses combining marks (U+0300-U+036F) and also has precomposed characters
+        // that normalize with combining marks (NFD normalization will separate them)
+        const normalized = e.data.normalize('NFD');
+        const hasCombiningMarks = (/[\u0300-\u036F]/).test(normalized);
+
+        // For Vietnamese and similar languages, skip pretext update during composition
+        if (!hasCombiningMarks) {
+            // The caret appears before the CJK character currently being composed, so re-add it to the pretext
+            const pretext = textbox.value.substring(0, textbox.selectionStart) + e.data;
+            this.handlePretextChanged(pretext);
+        }
+
         if (this.props.onComposition) {
             this.props.onComposition();
         }
@@ -361,6 +374,16 @@ export default class SuggestionBox extends React.PureComponent {
 
     handleCompositionEnd = () => {
         this.composing = false;
+
+        // Update pretext after composition ends to ensure suggestions are current
+        const textbox = this.getTextbox();
+        if (textbox) {
+            const pretext = this.props.shouldSearchCompleteText ? textbox.value.trim() : textbox.value.substring(0, textbox.selectionEnd);
+            if (this.pretext !== pretext) {
+                this.handlePretextChanged(pretext);
+            }
+        }
+
         if (this.props.onComposition) {
             this.props.onComposition();
         }
