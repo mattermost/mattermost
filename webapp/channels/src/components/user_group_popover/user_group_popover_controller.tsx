@@ -5,6 +5,7 @@ import {
     useFloating,
     autoUpdate,
     autoPlacement,
+    shift,
     useTransitionStyles,
     useClick,
     useDismiss,
@@ -45,7 +46,7 @@ export function UserGroupPopoverController(props: Props) {
         open: isOpen,
         onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
-        middleware: [autoPlacement()],
+        middleware: [autoPlacement(), shift()],
     });
 
     const {isMounted, styles: transitionStyles} = useTransitionStyles(floatingContext, {
