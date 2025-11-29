@@ -19,6 +19,16 @@ export default class MobileSecurity {
     readonly enableSecureFilePreviewToggleFalse: Locator;
     readonly allowPdfLinkNavigationToggleTrue: Locator;
     readonly allowPdfLinkNavigationToggleFalse: Locator;
+    readonly enableIntuneMAMToggleTrue: Locator;
+    readonly enableIntuneMAMToggleFalse: Locator;
+
+    // New IntuneSettings fields
+    readonly enableIntuneToggleTrue: Locator;
+    readonly enableIntuneToggleFalse: Locator;
+    readonly intuneAuthServiceDropdown: Locator;
+    readonly intuneTenantIdInput: Locator;
+    readonly intuneClientIdInput: Locator;
+    readonly intuneClientSecretInput: Locator;
 
     readonly saveButton: Locator;
 
@@ -67,6 +77,18 @@ export default class MobileSecurity {
             'NativeAppSettings.MobileAllowPdfLinkNavigationfalse',
         );
 
+        // Legacy Intune toggle (will be removed in Phase 6)
+        this.enableIntuneMAMToggleTrue = this.container.getByTestId('NativeAppSettings.EnableIntuneMAMtrue');
+        this.enableIntuneMAMToggleFalse = this.container.getByTestId('NativeAppSettings.EnableIntuneMAMfalse');
+
+        // New IntuneSettings fields
+        this.enableIntuneToggleTrue = this.container.getByTestId('IntuneSettings.Enabletrue');
+        this.enableIntuneToggleFalse = this.container.getByTestId('IntuneSettings.Enablefalse');
+        this.intuneAuthServiceDropdown = this.container.getByTestId('IntuneSettings.AuthServicedropdown');
+        this.intuneTenantIdInput = this.container.getByTestId('IntuneSettings.TenantIdinput');
+        this.intuneClientIdInput = this.container.getByTestId('IntuneSettings.ClientIdinput');
+        this.intuneClientSecretInput = this.container.getByTestId('IntuneSettings.ClientSecretinput');
+
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
     }
 
@@ -112,6 +134,39 @@ export default class MobileSecurity {
 
     async clickAllowPdfLinkNavigationToggleFalse() {
         await this.allowPdfLinkNavigationToggleFalse.click();
+    }
+
+    async clickEnableIntuneMAMToggleTrue() {
+        await this.enableIntuneMAMToggleTrue.click();
+    }
+
+    async clickEnableIntuneMAMToggleFalse() {
+        await this.enableIntuneMAMToggleFalse.click();
+    }
+
+    // New IntuneSettings methods
+    async clickEnableIntuneToggleTrue() {
+        await this.enableIntuneToggleTrue.click();
+    }
+
+    async clickEnableIntuneToggleFalse() {
+        await this.enableIntuneToggleFalse.click();
+    }
+
+    async selectIntuneAuthService(value: 'office365' | 'saml') {
+        await this.intuneAuthServiceDropdown.selectOption(value);
+    }
+
+    async fillIntuneTenantId(value: string) {
+        await this.intuneTenantIdInput.fill(value);
+    }
+
+    async fillIntuneClientId(value: string) {
+        await this.intuneClientIdInput.fill(value);
+    }
+
+    async fillIntuneClientSecret(value: string) {
+        await this.intuneClientSecretInput.fill(value);
     }
 
     async clickSaveButton() {
