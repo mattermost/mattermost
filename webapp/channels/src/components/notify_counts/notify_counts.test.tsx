@@ -1,42 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 
 import * as ChannelSelectors from 'mattermost-redux/selectors/entities/channels';
 
-import {mockStore} from 'tests/test_store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import NotifyCounts from './';
 
 describe('components/notify_counts', () => {
     const getUnreadStatusInCurrentTeam = jest.spyOn(ChannelSelectors, 'getUnreadStatusInCurrentTeam');
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     test('should show unread mention count', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(22);
 
-        const {mountOptions} = mockStore();
-        const wrapper = mount(<NotifyCounts/>, mountOptions);
+        renderWithContext(<NotifyCounts/>);
 
-        expect(wrapper.find('.badge-notify').text()).toBe('22');
+        // Verify the unread count is visible to users
+        expect(screen.getByText('22')).toBeInTheDocument();
     });
 
-    test('should show unread messages', () => {
+    test('should show unread messages indicator', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(true);
 
-        const {mountOptions} = mockStore();
-        const wrapper = mount(<NotifyCounts/>, mountOptions);
+        renderWithContext(<NotifyCounts/>);
 
-        expect(wrapper.find('.badge-notify').text()).toBe('•');
+        // Verify the unread indicator is visible to users
+        expect(screen.getByText('•')).toBeInTheDocument();
     });
 
-    test('should show not show unread indicator', () => {
+    test('should not show unread indicator when no unreads', () => {
         getUnreadStatusInCurrentTeam.mockReturnValue(false);
 
-        const {mountOptions} = mockStore();
-        const wrapper = mount(<NotifyCounts/>, mountOptions);
+        const {container} = renderWithContext(<NotifyCounts/>);
 
-        expect(wrapper.html()).toBe('');
+        expect(container).toBeEmptyDOMElement();
     });
 });
