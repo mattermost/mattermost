@@ -26,6 +26,7 @@ import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
+import defaultMessages from 'i18n/en.json';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';
@@ -55,7 +56,7 @@ export function renderWithIntl(
     ui: React.ReactElement,
     options: IntlWrapperOptions & Omit<RenderOptions, 'wrapper'> = {},
 ): RenderResult {
-    const {locale = 'en', messages, ...renderOptions} = options;
+    const {locale = 'en', messages = defaultMessages, ...renderOptions} = options;
 
     const Wrapper = ({children}: {children: React.ReactNode}) => (
         <IntlProvider
@@ -96,7 +97,7 @@ export function renderWithIntlAndRouter(
     ui: React.ReactElement,
     options: WrapperOptions = {},
 ): RenderResult {
-    const {locale = 'en', messages, initialEntries = ['/'], ...renderOptions} = options;
+    const {locale = 'en', messages = defaultMessages, initialEntries = ['/'], ...renderOptions} = options;
 
     const Wrapper = ({children}: {children: React.ReactNode}) => (
         <IntlProvider
@@ -131,7 +132,7 @@ export const renderWithContext = (
     partialOptions?: FullContextOptions,
 ) => {
     const options = {
-        intlMessages: partialOptions?.intlMessages,
+        intlMessages: partialOptions?.intlMessages ?? defaultMessages,
         locale: partialOptions?.locale ?? 'en',
         useMockedStore: partialOptions?.useMockedStore ?? false,
     };
@@ -191,7 +192,7 @@ export const renderHookWithContext = <TProps, TResult>(
     partialOptions?: FullContextOptions,
 ) => {
     const options = {
-        intlMessages: partialOptions?.intlMessages,
+        intlMessages: partialOptions?.intlMessages ?? defaultMessages,
         locale: partialOptions?.locale ?? 'en',
         useMockedStore: partialOptions?.useMockedStore ?? false,
     };

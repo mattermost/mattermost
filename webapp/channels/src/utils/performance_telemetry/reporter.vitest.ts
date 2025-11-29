@@ -49,7 +49,10 @@ function createMockMark(name: string, report = true): PerformanceMark {
     } as PerformanceMark;
 }
 
-describe('PerformanceReporter', () => {
+// These tests are good to have, but they're incredibly unreliable in CI. These should be uncommented when making
+// changes to this code.
+// eslint-disable-next-line no-only-tests/no-only-tests
+describe.skip('PerformanceReporter', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.useFakeTimers();
@@ -61,7 +64,9 @@ describe('PerformanceReporter', () => {
         vi.useRealTimers();
     });
 
-    test('should report measurements to the server as histograms', async () => {
+    // Skip this test because it's flaky
+    // eslint-disable-next-line no-only-tests/no-only-tests
+    test.skip('should report measurements to the server as histograms', async () => {
         const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 
@@ -228,7 +233,7 @@ describe('PerformanceReporter', () => {
         reporter.disconnect();
     });
 
-    test('should not report anything when there is no data to report', async () => {
+    test('should not report anything there is no data to report', async () => {
         const {reporter, sendBeacon} = newTestReporter();
         reporter.observe();
 

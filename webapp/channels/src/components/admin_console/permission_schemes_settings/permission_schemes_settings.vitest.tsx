@@ -6,7 +6,7 @@ import type {ComponentProps} from 'react';
 
 import type {Scheme} from '@mattermost/types/schemes';
 
-import {renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 import PermissionSchemesSettings from './permission_schemes_settings';
 
@@ -45,47 +45,70 @@ describe('components/admin_console/permission_schemes_settings/permission_scheme
         vi.clearAllMocks();
     });
 
-    it('renders permission schemes settings', async () => {
-        renderWithContext(
+    test('should match snapshot loading', async () => {
+        const {container} = renderWithContext(
             <PermissionSchemesSettings {...defaultProps}/>,
         );
-
         await waitFor(() => {
             expect(defaultProps.actions.loadSchemes).toHaveBeenCalled();
         });
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders without schemes', async () => {
-        renderWithContext(
+    test('should match snapshot without schemes', async () => {
+        const {container} = renderWithContext(
             <PermissionSchemesSettings
                 {...defaultProps}
                 schemes={{}}
             />,
         );
-
         await waitFor(() => {
             expect(defaultProps.actions.loadSchemes).toHaveBeenCalled();
         });
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with schemes', async () => {
-        renderWithContext(
+    test('should match snapshot with schemes', async () => {
+        const {container} = renderWithContext(
             <PermissionSchemesSettings {...defaultProps}/>,
         );
-
         await waitFor(() => {
             expect(defaultProps.actions.loadSchemes).toHaveBeenCalled();
         });
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with jobs disabled', async () => {
-        const testProps = {...defaultProps, jobsAreEnabled: false};
-        renderWithContext(
+    test('should show migration in-progress view', async () => {
+        const {container} = renderWithContext(
+            <PermissionSchemesSettings {...defaultProps}/>,
+        );
+        await waitFor(() => {
+            expect(defaultProps.actions.loadSchemes).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should show migration on hold view', async () => {
+        const testProps = {...defaultProps};
+        testProps.jobsAreEnabled = false;
+        const {container} = renderWithContext(
             <PermissionSchemesSettings {...testProps}/>,
         );
-
         await waitFor(() => {
             expect(testProps.actions.loadSchemes).toHaveBeenCalled();
         });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should show normal view (jobs disabled after migration)', async () => {
+        const testProps = {...defaultProps};
+        testProps.jobsAreEnabled = false;
+        const {container} = renderWithContext(
+            <PermissionSchemesSettings {...testProps}/>,
+        );
+        await waitFor(() => {
+            expect(testProps.actions.loadSchemes).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
     });
 });

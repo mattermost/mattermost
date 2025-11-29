@@ -630,26 +630,27 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form > s
                 class="Input_container"
               >
                 <div
-                  class="Input_fieldset"
+                  class="Input_fieldset Input_fieldset___legend"
                   data-testid="input-wrapper"
                 >
                   <label
-                    class="Input_legend"
+                    class="Input_legend Input_legend___focus"
                     for="input_policyName"
                   >
                                             
+                    Policy name
                   </label>
                   <div
                     class="Input_wrapper"
                   >
                     <input
                       aria-label="Policy name"
-                      class="Input form-control medium"
+                      class="Input form-control medium Input__focus"
                       id="input_policyName"
                       name="policyName"
                       placeholder="Policy name"
                       type="text"
-                      value=""
+                      value="Test Policy"
                     />
                   </div>
                 </div>
@@ -830,19 +831,9 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form > s
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_empty"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                    No items found
                   </div>
                 </div>
               </div>
@@ -1119,19 +1110,9 @@ exports[`components/admin_console/data_retention_settings/custom_policy_form > s
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_empty"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                    No items found
                   </div>
                 </div>
               </div>

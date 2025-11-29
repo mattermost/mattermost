@@ -10,7 +10,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import ResetPasswordModal from './reset_password_modal';
 
-describe('components/admin_console/reset_password_modal/reset_password_modal', () => {
+describe('components/admin_console/reset_password_modal/reset_password_modal.tsx', () => {
     const notifyProps: UserNotifyProps = {
         channel: 'true',
         comments: 'never',
@@ -25,9 +25,7 @@ describe('components/admin_console/reset_password_modal/reset_password_modal', (
         push: 'default',
         push_status: 'ooo',
     };
-
     const user = TestHelper.getUserMock({
-        id: 'user_id',
         auth_service: 'test',
         notify_props: notifyProps,
     });
@@ -51,85 +49,35 @@ describe('components/admin_console/reset_password_modal/reset_password_modal', (
         vi.clearAllMocks();
     });
 
-    it('renders the modal', () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
+    test('should match snapshot', () => {
+        const {baseElement} = renderWithContext(
+            <ResetPasswordModal {...baseProps}/>,
+        );
 
-        // Modal renders with password fields
-        expect(screen.getByText('New Password')).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('renders nothing when there is no user', () => {
+    test('should match snapshot when there is no user', () => {
         const props = {...baseProps, user: undefined};
-        const {container} = renderWithContext(<ResetPasswordModal {...props}/>);
+        const {baseElement} = renderWithContext(
+            <ResetPasswordModal {...props}/>,
+        );
 
-        expect(container.querySelector('[data-testid="resetPasswordModal"]')).not.toBeInTheDocument();
+        // No modal rendered when no user
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('renders current password field when current user', () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
-
-        expect(screen.getByText('Current Password')).toBeInTheDocument();
-        expect(document.querySelectorAll('input[type="password"]')).toHaveLength(2);
-    });
-
-    it('does not render current password field for other users', () => {
-        const props = {...baseProps, currentUserId: 'other_user_id'};
-        renderWithContext(<ResetPasswordModal {...props}/>);
-
-        expect(screen.queryByText('Current Password')).not.toBeInTheDocument();
-        expect(document.querySelectorAll('input[type="password"]')).toHaveLength(1);
-    });
-
-    it('renders new password field', () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
-
-        expect(screen.getByText('New Password')).toBeInTheDocument();
-    });
-
-    it('shows error when current password is not provided for current user', async () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
-
-        const newPasswordInput = document.querySelectorAll('input[type="password"]')[1] as HTMLInputElement;
-        fireEvent.change(newPasswordInput, {target: {value: 'NewPassword123!'}});
-
-        const submitButton = screen.getByRole('button', {name: /reset/i});
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-            expect(screen.getByText('Please enter your current password.')).toBeInTheDocument();
-        });
-
-        expect(baseProps.actions.updateUserPassword).not.toHaveBeenCalled();
-    });
-
-    it('calls updateUserPassword with valid passwords for current user', async () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
-
-        const currentPasswordInput = document.querySelectorAll('input[type="password"]')[0] as HTMLInputElement;
-        const newPasswordInput = document.querySelectorAll('input[type="password"]')[1] as HTMLInputElement;
-
-        fireEvent.change(currentPasswordInput, {target: {value: 'OldPassword123!'}});
-        fireEvent.change(newPasswordInput, {target: {value: 'NewPassword123!'}});
-
-        const submitButton = screen.getByRole('button', {name: /reset/i});
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-            expect(baseProps.actions.updateUserPassword).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    it('calls updateUserPassword for other users without current password', async () => {
+    test('should call updateUserPassword', async () => {
         const updateUserPassword = vi.fn(() => Promise.resolve({data: ''}));
-        const props = {
-            ...baseProps,
-            currentUserId: 'other_user_id',
-            actions: {updateUserPassword},
-        };
+        const props = {...baseProps, actions: {updateUserPassword}};
         renderWithContext(<ResetPasswordModal {...props}/>);
 
-        const newPasswordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
-        fireEvent.change(newPasswordInput, {target: {value: 'NewPassword123!'}});
+        const currentPasswordInput = document.querySelectorAll('input[type=\'password\']')[0] as HTMLInputElement;
+        const newPasswordInput = document.querySelectorAll('input[type=\'password\']')[1] as HTMLInputElement;
+
+        fireEvent.change(currentPasswordInput, {target: {value: 'oldPassword123!'}});
+        fireEvent.change(newPasswordInput, {target: {value: 'newPassword123!'}});
 
         const submitButton = screen.getByRole('button', {name: /reset/i});
         fireEvent.click(submitButton);
@@ -139,19 +87,37 @@ describe('components/admin_console/reset_password_modal/reset_password_modal', (
         });
     });
 
-    it('renders cancel button', () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
+    test('should not call updateUserPassword when the old password is not provided', async () => {
+        const updateUserPassword = vi.fn(() => Promise.resolve({data: ''}));
+        const props = {...baseProps, actions: {updateUserPassword}};
+        renderWithContext(<ResetPasswordModal {...props}/>);
 
-        expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
+        const newPasswordInput = document.querySelectorAll('input[type=\'password\']')[1] as HTMLInputElement;
+        fireEvent.change(newPasswordInput, {target: {value: 'newPassword123!'}});
+
+        const submitButton = screen.getByRole('button', {name: /reset/i});
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(screen.getByText('Please enter your current password.')).toBeInTheDocument();
+        });
+
+        expect(updateUserPassword).not.toHaveBeenCalled();
     });
 
-    it('closes modal on cancel click', () => {
-        renderWithContext(<ResetPasswordModal {...baseProps}/>);
+    test('should call updateUserPassword', async () => {
+        const updateUserPassword = vi.fn(() => Promise.resolve({data: ''}));
+        const props = {...baseProps, currentUserId: '2', actions: {updateUserPassword}};
+        renderWithContext(<ResetPasswordModal {...props}/>);
 
-        const cancelButton = screen.getByRole('button', {name: /cancel/i});
-        fireEvent.click(cancelButton);
+        const passwordInput = document.querySelector('input[type=\'password\']') as HTMLInputElement;
+        fireEvent.change(passwordInput, {target: {value: 'Password123!'}});
 
-        // Modal should start closing
-        expect(baseProps.onExited).not.toHaveBeenCalled(); // onExited is called after animation
+        const submitButton = screen.getByRole('button', {name: /reset/i});
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(updateUserPassword).toHaveBeenCalledTimes(1);
+        });
     });
 });

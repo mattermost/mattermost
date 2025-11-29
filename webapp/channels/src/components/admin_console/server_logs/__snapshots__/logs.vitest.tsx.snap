@@ -40,7 +40,7 @@ exports[`components/admin_console/server_logs/Logs > should display the logs cor
               <span
                 id="admin.logs.LogFormat.legend"
               >
-                Log Format:
+                Log display format:
               </span>
               <label>
                 <input
@@ -345,7 +345,7 @@ exports[`components/admin_console/server_logs/Logs > should display the logs cor
                     class="btn btn-secondary btn-sm"
                     type="submit"
                   >
-                    Full Log event
+                    Full log event
                   </button>
                 </div>
               </div>
@@ -406,7 +406,7 @@ exports[`components/admin_console/server_logs/Logs > should display the logs cor
                     class="btn btn-secondary btn-sm"
                     type="submit"
                   >
-                    Full Log event
+                    Full log event
                   </button>
                 </div>
               </div>
@@ -467,7 +467,7 @@ exports[`components/admin_console/server_logs/Logs > should display the logs cor
                     class="btn btn-secondary btn-sm"
                     type="submit"
                   >
-                    Full Log event
+                    Full log event
                   </button>
                 </div>
               </div>

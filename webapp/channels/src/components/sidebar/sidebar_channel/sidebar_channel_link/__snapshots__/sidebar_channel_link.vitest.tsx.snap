@@ -1,5 +1,52 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link > should enable tooltip when needed 1`] = `
+<div>
+  <a
+    aria-label="a_very_long_channel_name_that_would_require_a_tooltip"
+    class="SidebarLink"
+    href="http://a.fake.link"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        a_very_long_channel_name_that_would_require_a_tooltip
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <button
+        aria-controls="SidebarChannelMenu-MenuList-channel_id"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Channel options for "
+        class="SidebarMenu_menuButton"
+        id="SidebarChannelMenu-Button-channel_id"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </a>
+</div>
+`;
+
 exports[`components/sidebar/sidebar_channel/sidebar_channel_link > should fetch shared channels data when channel is shared 1`] = `
 <div>
   <a
@@ -67,6 +114,100 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_link > should match 
         class="SidebarChannelLinkLabel"
       >
         channel_label
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <button
+        aria-controls="SidebarChannelMenu-MenuList-channel_id"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Channel options for "
+        class="SidebarMenu_menuButton"
+        id="SidebarChannelMenu-Button-channel_id"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </a>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link > should match snapshot for desktop 1`] = `
+<div>
+  <a
+    aria-label="channel_label"
+    class="SidebarLink"
+    href="http://a.fake.link"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        channel_label
+      </span>
+    </div>
+    <div
+      class="SidebarMenu MenuWrapper"
+    >
+      <button
+        aria-controls="SidebarChannelMenu-MenuList-channel_id"
+        aria-expanded="false"
+        aria-haspopup="true"
+        aria-label="Channel options for "
+        class="SidebarMenu_menuButton"
+        id="SidebarChannelMenu-Button-channel_id"
+      >
+        <svg
+          fill="currentColor"
+          height="16"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="16"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+          />
+        </svg>
+      </button>
+    </div>
+  </a>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_channel/sidebar_channel_link > should match snapshot when tooltip is enabled 1`] = `
+<div>
+  <a
+    aria-label="a_very_long_channel_name_that_would_require_a_tooltip_to_display_properly"
+    class="SidebarLink"
+    href="http://a.fake.link"
+    id="sidebarItem_"
+    tabindex="0"
+  >
+    <div
+      class="SidebarChannelLinkLabel_wrapper"
+    >
+      <span
+        class="SidebarChannelLinkLabel"
+      >
+        a_very_long_channel_name_that_would_require_a_tooltip_to_display_properly
       </span>
     </div>
     <div

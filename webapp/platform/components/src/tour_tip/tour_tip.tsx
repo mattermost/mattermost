@@ -111,10 +111,12 @@ export const TourTip = ({
                 circularRing += ' tour-tip__dot-ring-active';
             }
             dots.push(
-                <div className={circularRing}>
+                <div
+                    key={'dotactive' + dot}
+                    className={circularRing}
+                >
                     <a
                         href='#'
-                        key={'dotactive' + dot}
                         className={className}
                         data-screen={dot}
                         onClick={(e) => onJump(e, dot)}

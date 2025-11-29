@@ -42,6 +42,7 @@ describe('components/no_results_indicator', () => {
                 <NoResultsIndicator
                     iconGraphic={<div>{'Test'}</div>}
                     variant={NoResultsVariant.ChannelSearch}
+                    titleValues={{channelName: 'test-channel'}}
                 />,
             );
             container = result.container;
@@ -74,6 +75,7 @@ describe('components/no_results_indicator', () => {
                 <NoResultsIndicator
                     iconGraphic={<div>{'Test'}</div>}
                     variant={NoResultsVariant.FlaggedPosts}
+                    subtitleValues={{buttonText: <strong>{'Save'}</strong>}}
                 />,
             );
             container = result.container;
@@ -90,6 +92,7 @@ describe('components/no_results_indicator', () => {
                 <NoResultsIndicator
                     iconGraphic={<div>{'Test'}</div>}
                     variant={NoResultsVariant.PinnedPosts}
+                    subtitleValues={{text: <strong>{'Pin'}</strong>}}
                 />,
             );
             container = result.container;
@@ -138,6 +141,7 @@ describe('components/no_results_indicator', () => {
                 <NoResultsIndicator
                     variant={NoResultsVariant.Search}
                     expanded={true}
+                    titleValues={{channelName: 'test-channel'}}
                 />,
             );
             container = result.container;

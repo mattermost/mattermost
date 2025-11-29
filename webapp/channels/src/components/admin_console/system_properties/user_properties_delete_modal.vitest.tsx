@@ -13,7 +13,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import RemoveUserPropertyFieldModal, {useUserPropertyFieldDelete} from './user_properties_delete_modal';
 
 vi.mock('actions/views/modals', () => ({
-    openModal: vi.fn(() => ({type: 'MOCK_OPEN_MODAL'})),
+    openModal: vi.fn(() => ({type: 'MODAL_OPEN', modalId: '', dialogProps: undefined, dialogType: undefined})),
 }));
 
 describe('RemoveUserPropertyFieldModal', () => {
@@ -104,9 +104,9 @@ describe('useUserPropertyFieldDelete', () => {
         const {result} = renderHookWithContext(() => useUserPropertyFieldDelete());
 
         // Create a mock implementation that immediately calls the onConfirm callback
-        vi.mocked(openModal).mockImplementationOnce(({dialogProps}: any) => {
+        (openModal as ReturnType<typeof vi.fn>).mockImplementationOnce(({dialogProps}: {dialogProps: {onConfirm: () => void}}) => {
             dialogProps.onConfirm();
-            return {type: 'MOCK_OPEN_MODAL'};
+            return {type: 'MODAL_OPEN', modalId: '', dialogProps: undefined, dialogType: undefined};
         });
 
         const promise = result.current.promptDelete(baseField);

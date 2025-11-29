@@ -8,7 +8,7 @@ exports[`components/MigrationsTable > should match snapshot when there are no mi
     <div
       class="help-text"
     >
-      All applied migrations.
+      The list of schema migrations applied to your data store.
     </div>
     <div
       class="migrations-table__table"

@@ -7,16 +7,17 @@ import PostDeletedModal from 'components/post_deleted_modal';
 
 import {renderWithIntl} from 'tests/vitest_react_testing_utils';
 
-describe('components/PostDeletedModal', () => {
+describe('components/ChannelInfoModal', () => {
     const baseProps = {
         onExited: vi.fn(),
     };
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(
+        const {baseElement} = renderWithIntl(
             <PostDeletedModal {...baseProps}/>,
         );
 
-        expect(container).toMatchSnapshot();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 });

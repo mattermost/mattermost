@@ -95,4 +95,28 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
 
         expect(container).toMatchSnapshot();
     });
+
+    test('should handle delete policy', async () => {
+        const deletePolicy = vi.fn().mockResolvedValue({data: {}});
+        const props = {
+            ...defaultProps,
+            policyId: 'policy1',
+            actions: {
+                ...defaultProps.actions,
+                deletePolicy,
+            },
+        };
+
+        const {container} = renderWithContext(<PolicyDetails {...props}/>);
+
+        // Wait for async effects to complete
+        await act(async () => {
+            vi.advanceTimersByTime(100);
+            await Promise.resolve();
+        });
+
+        // The delete policy card should be rendered for existing policies
+        const deleteCard = container.querySelector('.delete-policy');
+        expect(deleteCard).toBeInTheDocument();
+    });
 });

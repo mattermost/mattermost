@@ -3,11 +3,20 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, cleanup} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, cleanup, waitFor} from 'tests/vitest_react_testing_utils';
 import {CloudLinks, HostedCustomerLinks} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import BillingHistory, {NoBillingHistorySection} from './billing_history';
+
+// Mock cloud actions to prevent API calls
+vi.mock('mattermost-redux/actions/cloud', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('mattermost-redux/actions/cloud')>();
+    return {
+        ...actual,
+        getInvoices: vi.fn(() => () => Promise.resolve({data: []})),
+    };
+});
 
 const NO_INVOICES_LEGEND = 'All of your invoices will be shown here';
 
@@ -98,13 +107,17 @@ describe('components/admin_console/billing/billing_history', () => {
         views: {},
     };
 
-    test('should match the default state of the component with given props', () => {
+    test('should match the default state of the component with given props', async () => {
         renderWithContext(
             <BillingHistory/>,
             state,
         );
 
-        expect(screen.queryByText('Billing History')).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.queryByText('Billing History')).toBeInTheDocument();
+        });
+
         expect(screen.queryByText('Transactions')).toBeInTheDocument();
         expect(screen.queryByText('All of your invoices will be shown here')).toBeInTheDocument();
         expect(screen.getByTestId(invoiceA.number)).toHaveTextContent((invoiceA.total / 100.0).toString());
@@ -114,7 +127,7 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.getByTestId(invoiceB.id)).toHaveTextContent('Paid');
     });
 
-    test('Billing history section shows template when no invoices have been emitted yet', () => {
+    test('Billing history section shows template when no invoices have been emitted yet', async () => {
         const noBillingHistoryState = {
             ...state,
             entities: {...state.entities, cloud: {invoices: {}, errors: {}}},
@@ -123,6 +136,11 @@ describe('components/admin_console/billing/billing_history', () => {
             <BillingHistory/>,
             noBillingHistoryState,
         );
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByTestId('no-invoices')).toBeInTheDocument();
+        });
 
         expect(screen.queryByText('Date')).not.toBeInTheDocument();
         expect(screen.queryByText('Description')).not.toBeInTheDocument();
@@ -140,13 +158,17 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.getByTestId('no-invoices')).toHaveTextContent(NO_INVOICES_LEGEND);
     });
 
-    test('Billing history section shows two invoices to download', () => {
+    test('Billing history section shows two invoices to download', async () => {
         renderWithContext(
             <BillingHistory/>,
             state,
         );
 
-        expect(screen.queryByText('Date')).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.queryByText('Date')).toBeInTheDocument();
+        });
+
         expect(screen.queryByText('Description')).toBeInTheDocument();
         expect(screen.queryByText('Total')).toBeInTheDocument();
         expect(screen.queryByText('Status')).toBeInTheDocument();
@@ -154,11 +176,16 @@ describe('components/admin_console/billing/billing_history', () => {
         expect(screen.getAllByTestId('billingHistoryTableRow')).toHaveLength(2);
     });
 
-    test('Billing history section download button has the target property set as _self so it works well in desktop app', () => {
+    test('Billing history section download button has the target property set as _self so it works well in desktop app', async () => {
         renderWithContext(
             <BillingHistory/>,
             state,
         );
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByTestId(`billingHistoryLink-${invoiceA.id}`)).toBeInTheDocument();
+        });
 
         expect(screen.getByTestId(`billingHistoryLink-${invoiceA.id}`)).toHaveAttribute('target', '_self');
         expect(screen.getByTestId(`billingHistoryLink-${invoiceB.id}`)).toHaveAttribute('target', '_self');

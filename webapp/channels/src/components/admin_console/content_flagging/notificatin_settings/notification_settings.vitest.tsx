@@ -37,10 +37,10 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should render all notification setting sections', () => {
         renderWithIntl(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        expect(screen.getByText('Notify when content is flagged')).toBeInTheDocument();
-        expect(screen.getByText('Notify when a reviewer is assigned')).toBeInTheDocument();
-        expect(screen.getByText('Notify when content is removed')).toBeInTheDocument();
-        expect(screen.getByText('Notify when flag is dismissed')).toBeInTheDocument();
+        expect(screen.getByText('Notify when content is flagged:')).toBeInTheDocument();
+        expect(screen.getByText('Notify when a reviewer is assigned:')).toBeInTheDocument();
+        expect(screen.getByText('Notify when content is removed:')).toBeInTheDocument();
+        expect(screen.getByText('Notify on dismissal:')).toBeInTheDocument();
     });
 
     test('should render all checkbox labels', () => {

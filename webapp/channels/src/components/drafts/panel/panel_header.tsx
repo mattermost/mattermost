@@ -66,7 +66,9 @@ function PanelHeader({
                                     />
                                 }
                             >
-                                <SyncIcon size={18}/>
+                                <span>
+                                    <SyncIcon size={18}/>
+                                </span>
                             </WithTooltip>
                         </div>
                     )}

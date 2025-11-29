@@ -1,0 +1,58 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/system_role_permission > should match snapshot 1`] = `
+<div>
+  <div
+    class="PermissionRow"
+  >
+    <div
+      class="PermissionSection"
+      data-testid="permission_section_environment"
+    >
+      <div
+        class="PermissionSectionText"
+      >
+        <div
+          class="PermissionSectionText_title"
+        >
+          Environment
+        </div>
+        <div
+          class="PermissionSection_description"
+        >
+          Review server environment configuration such as URLs, database and performance.
+        </div>
+      </div>
+      <div
+        class="PermissionSectionDropdown"
+      >
+        <div
+          class="MenuWrapper "
+          disabled=""
+        >
+          <button
+            aria-expanded="true"
+            class="PermissionSectionDropdownButton dropdown-toggle theme"
+            id="systemRolePermissionDropdownenvironment"
+            type="button"
+          >
+            <div
+              class="PermissionSectionDropdownButton_text"
+            >
+              Read only
+            </div>
+            <div
+              class="PermissionSectionDropdownButton_icon"
+            >
+              <i
+                class="fa fa-angle-down"
+                title="Dropdown Icon"
+              />
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

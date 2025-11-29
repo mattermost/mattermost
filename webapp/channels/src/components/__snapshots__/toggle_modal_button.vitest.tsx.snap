@@ -8,7 +8,7 @@ exports[`components/ToggleModalButton > component should match snapshot 1`] = `
     id="channelDelete"
     role="menuitem"
   >
-    Delete Channel
+    Archive Channel
   </button>
 </div>
 `;

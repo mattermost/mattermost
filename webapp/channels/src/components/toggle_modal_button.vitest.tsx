@@ -47,6 +47,6 @@ describe('components/ToggleModalButton', () => {
 
         expect(container).toMatchSnapshot();
         const button = container.querySelector('button');
-        expect(button?.textContent).toBe('Delete Channel');
+        expect(button?.textContent).toBe('Archive Channel');
     });
 });

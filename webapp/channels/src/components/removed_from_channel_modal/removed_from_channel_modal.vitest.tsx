@@ -16,14 +16,15 @@ describe('components/RemoveFromChannelModal', () => {
     };
 
     test('should match snapshot', () => {
-        const {container} = renderWithContext(
+        const {baseElement} = renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );
 
-        expect(container).toMatchSnapshot();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should display modal when show is true', () => {
+    test('should have state ', () => {
         renderWithContext(
             <RemovedFromChannelModal {...baseProps}/>,
         );

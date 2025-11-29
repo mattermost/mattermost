@@ -32,9 +32,12 @@ describe('ManageTeamsModal', () => {
         },
     });
 
-    test('should match snapshot init', () => {
+    test('should match snapshot init', async () => {
         const props = createBaseProps();
         const {baseElement} = renderWithContext(<ManageTeamsModal {...props}/>);
+        await waitFor(() => {
+            expect(props.actions.getTeamMembersForUser).toHaveBeenCalled();
+        });
         expect(baseElement).toMatchSnapshot();
     });
 

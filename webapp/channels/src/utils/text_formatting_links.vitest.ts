@@ -129,6 +129,64 @@ describe('Markdown.Links', () => {
         );
     });
 
+    it('Links with parameters', () => {
+        expect(Markdown.format('www.example.com/index?params=1').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://www.example.com/index?params=1" rel="noreferrer" target="_blank">www.example.com/index?params=1</a></p>',
+        );
+
+        expect(Markdown.format('www.example.com/index?params=1&other=2').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://www.example.com/index?params=1&amp;other=2" rel="noreferrer" target="_blank">www.example.com/index?params=1&amp;other=2</a></p>',
+        );
+
+        expect(Markdown.format('www.example.com/index?params=1;other=2').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://www.example.com/index?params=1;other=2" rel="noreferrer" target="_blank">www.example.com/index?params=1;other=2</a></p>',
+        );
+
+        expect(Markdown.format('http://example.com:8065').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com:8065" rel="noreferrer" target="_blank">http://example.com:8065</a></p>',
+        );
+
+        expect(Markdown.format('http://username:password@example.com').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://username:password@example.com" rel="noreferrer" target="_blank">http://username:password@example.com</a></p>',
+        );
+    });
+
+    it('Special characters', () => {
+        expect(Markdown.format('http://www.example.com/_/page').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://www.example.com/_/page" rel="noreferrer" target="_blank">http://www.example.com/_/page</a></p>',
+        );
+
+        expect(Markdown.format('www.example.com/_/page').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://www.example.com/_/page" rel="noreferrer" target="_blank">www.example.com/_/page</a></p>',
+        );
+
+        expect(Markdown.format('https://en.wikipedia.org/wiki/🐬').trim()).toBe(
+            '<p><a class="theme markdown__link" href="https://en.wikipedia.org/wiki/🐬" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/🐬</a></p>',
+        );
+
+        expect(Markdown.format('http://✪df.ws/1234').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://✪df.ws/1234" rel="noreferrer" target="_blank">http://✪df.ws/1234</a></p>',
+        );
+    });
+
+    it('Brackets', () => {
+        expect(Markdown.format('https://en.wikipedia.org/wiki/Rendering_(computer_graphics)').trim()).toBe(
+            '<p><a class="theme markdown__link" href="https://en.wikipedia.org/wiki/Rendering_(computer_graphics)" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/Rendering_(computer_graphics)</a></p>',
+        );
+
+        expect(Markdown.format('http://example.com/more_(than)_one_(parens)').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com/more_(than)_one_(parens)" rel="noreferrer" target="_blank">http://example.com/more_(than)_one_(parens)</a></p>',
+        );
+
+        expect(Markdown.format('http://example.com/(something)?after=parens').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com/(something)?after=parens" rel="noreferrer" target="_blank">http://example.com/(something)?after=parens</a></p>',
+        );
+
+        expect(Markdown.format('http://foo.com/unicode_(✪)_in_parens').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://foo.com/unicode_(✪)_in_parens" rel="noreferrer" target="_blank">http://foo.com/unicode_(✪)_in_parens</a></p>',
+        );
+    });
+
     it('Email addresses', () => {
         expect(Markdown.format('test@example.com').trim()).toBe(
             '<p><a class="theme" href="mailto:test@example.com" rel="noreferrer" target="_blank">test@example.com</a></p>',
@@ -185,8 +243,134 @@ describe('Markdown.Links', () => {
             '<p><a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">example.com</a></p>',
         );
 
+        expect(Markdown.format('[example.com/other](example.com)').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">example.com/other</a></p>',
+        );
+
+        expect(Markdown.format('[example.com/other_link](example.com/example)').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com/example" rel="noreferrer" target="_blank">example.com/other_link</a></p>',
+        );
+
+        expect(Markdown.format('[link with spaces](example.com/ spaces in the url)').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com/ spaces in the url" rel="noreferrer" target="_blank">link with spaces</a></p>',
+        );
+
         expect(Markdown.format('[This whole #sentence should be a link](https://example.com)').trim()).toBe(
             '<p><a class="theme markdown__link" href="https://example.com" rel="noreferrer" target="_blank">This whole #sentence should be a link</a></p>',
+        );
+
+        expect(Markdown.format('[email link](mailto:test@example.com)').trim()).toBe(
+            '<p><a class="theme markdown__link" href="mailto:test@example.com" rel="noreferrer" target="_blank">email link</a></p>',
+        );
+
+        expect(Markdown.format('[other link](ts3server://example.com)').trim()).toBe(
+            '<p><a class="theme markdown__link" href="ts3server://example.com" rel="noreferrer" target="_blank">other link</a></p>',
+        );
+    });
+
+    it('Links with tooltips', () => {
+        expect(Markdown.format('[link](example.com "catch phrase!")').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank" title="catch phrase!">link</a></p>',
+        );
+
+        expect(Markdown.format('[link](example.com "title with "quotes"")').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank" title="title with &quot;quotes&quot;">link</a></p>',
+        );
+        expect(Markdown.format('[link with spaces](example.com/ spaces in the url "and a title")').trim()).toBe(
+            '<p><a class="theme markdown__link" href="http://example.com/ spaces in the url" rel="noreferrer" target="_blank" title="and a title">link with spaces</a></p>',
+        );
+    });
+
+    it('Links with surrounding text', () => {
+        expect(Markdown.format('This is a sentence with a http://example.com in it.').trim()).toBe(
+            '<p>This is a sentence with a <a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">http://example.com</a> in it.</p>',
+        );
+
+        expect(Markdown.format('This is a sentence with a http://example.com/_/underscore in it.').trim()).toBe(
+            '<p>This is a sentence with a <a class="theme markdown__link" href="http://example.com/_/underscore" rel="noreferrer" target="_blank">http://example.com/_/underscore</a> in it.</p>',
+        );
+
+        expect(Markdown.format('This is a sentence with a http://192.168.1.1:4040 in it.').trim()).toBe(
+            '<p>This is a sentence with a <a class="theme markdown__link" href="http://192.168.1.1:4040" rel="noreferrer" target="_blank">http://192.168.1.1:4040</a> in it.</p>',
+        );
+
+        expect(Markdown.format('This is a sentence with a https://[::1]:80 in it.').trim()).toBe(
+            '<p>This is a sentence with a <a class="theme markdown__link" href="https://[::1]:80" rel="noreferrer" target="_blank">https://[::1]:80</a> in it.</p>',
+        );
+    });
+
+    it('Links with trailing punctuation', () => {
+        expect(Markdown.format('This is a link to http://example.com.').trim()).toBe(
+            '<p>This is a link to <a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">http://example.com</a>.</p>',
+        );
+
+        expect(Markdown.format('This is a link containing http://example.com/something?with,commas,in,url, but not at the end').trim()).toBe(
+            '<p>This is a link containing <a class="theme markdown__link" href="http://example.com/something?with,commas,in,url" rel="noreferrer" target="_blank">http://example.com/something?with,commas,in,url</a>, but not at the end</p>',
+        );
+
+        expect(Markdown.format('This is a question about a link http://example.com?').trim()).toBe(
+            '<p>This is a question about a link <a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">http://example.com</a>?</p>',
+        );
+    });
+
+    it('Links with surrounding brackets', () => {
+        expect(Markdown.format('(http://example.com)').trim()).toBe(
+            '<p>(<a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">http://example.com</a>)</p>',
+        );
+
+        expect(Markdown.format('(see http://example.com)').trim()).toBe(
+            '<p>(see <a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">http://example.com</a>)</p>',
+        );
+
+        expect(Markdown.format('(http://example.com watch this)').trim()).toBe(
+            '<p>(<a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">http://example.com</a> watch this)</p>',
+        );
+
+        expect(Markdown.format('(www.example.com)').trim()).toBe(
+            '<p>(<a class="theme markdown__link" href="http://www.example.com" rel="noreferrer" target="_blank">www.example.com</a>)</p>',
+        );
+
+        expect(Markdown.format('(see www.example.com)').trim()).toBe(
+            '<p>(see <a class="theme markdown__link" href="http://www.example.com" rel="noreferrer" target="_blank">www.example.com</a>)</p>',
+        );
+
+        expect(Markdown.format('(www.example.com watch this)').trim()).toBe(
+            '<p>(<a class="theme markdown__link" href="http://www.example.com" rel="noreferrer" target="_blank">www.example.com</a> watch this)</p>',
+        );
+        expect(Markdown.format('([link](http://example.com))').trim()).toBe(
+            '<p>(<a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">link</a>)</p>',
+        );
+
+        expect(Markdown.format('(see [link](http://example.com))').trim()).toBe(
+            '<p>(see <a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">link</a>)</p>',
+        );
+
+        expect(Markdown.format('([link](http://example.com) watch this)').trim()).toBe(
+            '<p>(<a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">link</a> watch this)</p>',
+        );
+
+        expect(Markdown.format('(test@example.com)').trim()).toBe(
+            '<p>(<a class="theme" href="mailto:test@example.com" rel="noreferrer" target="_blank">test@example.com</a>)</p>',
+        );
+
+        expect(Markdown.format('(email test@example.com)').trim()).toBe(
+            '<p>(email <a class="theme" href="mailto:test@example.com" rel="noreferrer" target="_blank">test@example.com</a>)</p>',
+        );
+
+        expect(Markdown.format('(test@example.com email)').trim()).toBe(
+            '<p>(<a class="theme" href="mailto:test@example.com" rel="noreferrer" target="_blank">test@example.com</a> email)</p>',
+        );
+
+        expect(Markdown.format('This is a sentence with a [link](http://example.com) in it.').trim()).toBe(
+            '<p>This is a sentence with a <a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">link</a> in it.</p>',
+        );
+
+        expect(Markdown.format('This is a sentence with a link (http://example.com) in it.').trim()).toBe(
+            '<p>This is a sentence with a link (<a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">http://example.com</a>) in it.</p>',
+        );
+
+        expect(Markdown.format('This is a sentence with a (https://en.wikipedia.org/wiki/Rendering_(computer_graphics)) in it.').trim()).toBe(
+            '<p>This is a sentence with a (<a class="theme markdown__link" href="https://en.wikipedia.org/wiki/Rendering_(computer_graphics)" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/Rendering_(computer_graphics)</a>) in it.</p>',
         );
     });
 
@@ -197,6 +381,16 @@ describe('Markdown.Links', () => {
 
         expect(TextFormatting.formatText('[Link](https://en.wikipedia.org/wiki/Unix)', {searchTerm: 'unix'}, emojiMap).trim()).toBe(
             '<p><a class="theme markdown__link search-highlight" href="https://en.wikipedia.org/wiki/Unix" rel="noreferrer" target="_blank">Link</a></p>',
+        );
+    });
+
+    it('Links containing %', () => {
+        expect(Markdown.format('https://en.wikipedia.org/wiki/%C3%89').trim()).toBe(
+            '<p><a class="theme markdown__link" href="https://en.wikipedia.org/wiki/%C3%89" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/%C3%89</a></p>',
+        );
+
+        expect(Markdown.format('https://en.wikipedia.org/wiki/%E9').trim()).toBe(
+            '<p><a class="theme markdown__link" href="https://en.wikipedia.org/wiki/%E9" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/%E9</a></p>',
         );
     });
 

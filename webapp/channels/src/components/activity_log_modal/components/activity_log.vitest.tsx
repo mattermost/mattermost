@@ -73,273 +73,326 @@ describe('components/activity_log_modal/ActivityLog', () => {
         expect(screen.getByText('OS:', {exact: false})).toBeInTheDocument();
     });
 
-    test('should handle Windows platform', () => {
-        const windowsSession = TestHelper.getSessionMock({
-            props: {platform: 'Windows'},
-            device_id: '',
-            id: 'windowsSessionId',
-            last_activity_at: 1534917643890,
+    describe('sessionInfo', () => {
+        test('should handle Windows platform', () => {
+            const windowsSession = TestHelper.getSessionMock({
+                props: {platform: 'Windows'},
+                device_id: '',
+                id: 'windowsSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={windowsSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Windows Icon')).toBeInTheDocument();
+            expect(screen.getByText('Windows')).toBeInTheDocument();
         });
 
-        renderWithContext(
+        test('should handle Macintosh platform', () => {
+            const macSession = TestHelper.getSessionMock({
+                props: {platform: 'Macintosh'},
+                device_id: '',
+                id: 'macSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={macSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
+            expect(screen.getByText('Macintosh')).toBeInTheDocument();
+        });
+
+        test('should handle iPhone platform', () => {
+            const iphoneSession = TestHelper.getSessionMock({
+                props: {platform: 'iPhone'},
+                device_id: '',
+                id: 'iphoneSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={iphoneSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
+            expect(screen.getByText('iPhone')).toBeInTheDocument();
+        });
+
+        test('should handle Linux platform', () => {
+            const linuxSession = TestHelper.getSessionMock({
+                props: {platform: 'Linux'},
+                device_id: '',
+                id: 'linuxSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={linuxSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Linux Icon')).toBeInTheDocument();
+            expect(screen.getByText('Linux')).toBeInTheDocument();
+        });
+
+        test('should handle Linux from os field', () => {
+            const linuxOsSession = TestHelper.getSessionMock({
+                props: {os: 'Linux x86_64', platform: 'Other'},
+                device_id: '',
+                id: 'linuxOsSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={linuxOsSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Linux Icon')).toBeInTheDocument();
+        });
+
+        test('should handle Android from os field', () => {
+            const androidSession = TestHelper.getSessionMock({
+                props: {os: 'Android 12'},
+                device_id: '',
+                id: 'androidSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={androidSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Android Icon')).toBeInTheDocument();
+            expect(screen.getByText('Android')).toBeInTheDocument();
+        });
+
+        test('should handle iPhone Native App', () => {
+            const iphoneNativeSession = TestHelper.getSessionMock({
+                props: {},
+                device_id: General.PUSH_NOTIFY_APPLE_REACT_NATIVE,
+                id: 'iphoneNativeSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={iphoneNativeSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
+            expect(screen.getByText('iPhone Native App')).toBeInTheDocument();
+        });
+
+        test('should handle iPhone Native Classic App', () => {
+            const iphoneClassicSession = TestHelper.getSessionMock({
+                props: {},
+                device_id: 'apple',
+                id: 'iphoneClassicSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={iphoneClassicSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
+            expect(screen.getByText('iPhone Native Classic App')).toBeInTheDocument();
+        });
+
+        test('should handle Android Native App', () => {
+            const androidNativeSession = TestHelper.getSessionMock({
+                props: {},
+                device_id: General.PUSH_NOTIFY_ANDROID_REACT_NATIVE,
+                id: 'androidNativeSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={androidNativeSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Android Icon')).toBeInTheDocument();
+            expect(screen.getByText('Android Native App')).toBeInTheDocument();
+        });
+
+        test('should handle Android Native Classic App', () => {
+            const androidClassicSession = TestHelper.getSessionMock({
+                props: {},
+                device_id: 'android',
+                id: 'androidClassicSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={androidClassicSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Android Icon')).toBeInTheDocument();
+            expect(screen.getByText('Android Native Classic App')).toBeInTheDocument();
+        });
+
+        test('should handle Desktop App', () => {
+            const desktopSession = TestHelper.getSessionMock({
+                props: {
+                    platform: 'Windows',
+                    browser: 'Desktop App',
+                },
+                device_id: '',
+                id: 'desktopSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={desktopSession}
+                />,
+            );
+
+            expect(screen.getByTitle('Windows Icon')).toBeInTheDocument();
+            expect(screen.getByText('Native Desktop App')).toBeInTheDocument();
+        });
+
+        test('should handle unknown platform', () => {
+            const unknownSession = TestHelper.getSessionMock({
+                props: {},
+                device_id: '',
+                id: 'unknownSessionId',
+                last_activity_at: 1534917643890,
+            });
+
+            const {container} = renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={unknownSession}
+                />,
+            );
+
+            // Unknown platform should not have a device icon with a specific title
+            expect(container.querySelector('.fa-windows')).not.toBeInTheDocument();
+            expect(container.querySelector('.fa-apple')).not.toBeInTheDocument();
+            expect(container.querySelector('.fa-android')).not.toBeInTheDocument();
+            expect(container.querySelector('.fa-linux')).not.toBeInTheDocument();
+        });
+
+        test('should handle session without props', () => {
+            const sessionWithoutProps = TestHelper.getSessionMock({
+                device_id: '',
+                id: 'noPropsSessionId',
+                last_activity_at: 1534917643890,
+            });
+            delete (sessionWithoutProps as any).props;
+
+            const {container} = renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={sessionWithoutProps}
+                />,
+            );
+
+            // Should render without crashing
+            expect(container.querySelector('.activity-log__table')).toBeInTheDocument();
+        });
+
+        test('should handle session without device_id', () => {
+            const sessionWithoutDeviceId = TestHelper.getSessionMock({
+                props: {platform: 'Windows'},
+                id: 'noDeviceIdSessionId',
+                last_activity_at: 1534917643890,
+            });
+            delete (sessionWithoutDeviceId as any).device_id;
+
+            renderWithContext(
+                <ActivityLog
+                    {...baseProps}
+                    currentSession={sessionWithoutDeviceId}
+                />,
+            );
+
+            expect(screen.getByTitle('Windows Icon')).toBeInTheDocument();
+        });
+    });
+
+    test('should match when isMobileSession is called', () => {
+        // Test with apple device_id - should be detected as mobile
+        const appleSession = TestHelper.getSessionMock({
+            props: {},
+            device_id: 'apple',
+            id: 'appleSessionId',
+            last_activity_at: 1534917643890,
+        });
+        const {rerender} = renderWithContext(
             <ActivityLog
                 {...baseProps}
-                currentSession={windowsSession}
+                currentSession={appleSession}
             />,
         );
 
-        expect(screen.getByTitle('Windows Icon')).toBeInTheDocument();
-        expect(screen.getByText('Windows')).toBeInTheDocument();
-    });
+        // Mobile sessions show different text like "iPhone Native Classic App"
+        expect(screen.getByText('iPhone Native Classic App')).toBeInTheDocument();
 
-    test('should handle Macintosh platform', () => {
-        const macSession = TestHelper.getSessionMock({
-            props: {platform: 'Macintosh'},
-            device_id: '',
-            id: 'macSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={macSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
-        expect(screen.getByText('Macintosh')).toBeInTheDocument();
-    });
-
-    test('should handle iPhone platform', () => {
-        const iphoneSession = TestHelper.getSessionMock({
-            props: {platform: 'iPhone'},
-            device_id: '',
-            id: 'iphoneSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={iphoneSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
-        expect(screen.getByText('iPhone')).toBeInTheDocument();
-    });
-
-    test('should handle Linux platform', () => {
-        const linuxSession = TestHelper.getSessionMock({
-            props: {platform: 'Linux'},
-            device_id: '',
-            id: 'linuxSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={linuxSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Linux Icon')).toBeInTheDocument();
-        expect(screen.getByText('Linux')).toBeInTheDocument();
-    });
-
-    test('should handle Linux from os field', () => {
-        const linuxOsSession = TestHelper.getSessionMock({
-            props: {os: 'Linux x86_64', platform: 'Other'},
-            device_id: '',
-            id: 'linuxOsSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={linuxOsSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Linux Icon')).toBeInTheDocument();
-    });
-
-    test('should handle Android from os field', () => {
+        // Test with android device_id - should be detected as mobile
         const androidSession = TestHelper.getSessionMock({
-            props: {os: 'Android 12'},
-            device_id: '',
+            props: {},
+            device_id: 'android',
             id: 'androidSessionId',
             last_activity_at: 1534917643890,
         });
-
-        renderWithContext(
+        rerender(
             <ActivityLog
                 {...baseProps}
                 currentSession={androidSession}
             />,
         );
-
-        expect(screen.getByTitle('Android Icon')).toBeInTheDocument();
-        expect(screen.getByText('Android')).toBeInTheDocument();
-    });
-
-    test('should handle iPhone Native App', () => {
-        const iphoneNativeSession = TestHelper.getSessionMock({
-            props: {},
-            device_id: General.PUSH_NOTIFY_APPLE_REACT_NATIVE,
-            id: 'iphoneNativeSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={iphoneNativeSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
-        expect(screen.getByText('iPhone Native App')).toBeInTheDocument();
-    });
-
-    test('should handle iPhone Native Classic App', () => {
-        const iphoneClassicSession = TestHelper.getSessionMock({
-            props: {},
-            device_id: 'apple',
-            id: 'iphoneClassicSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={iphoneClassicSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Apple Icon')).toBeInTheDocument();
-        expect(screen.getByText('iPhone Native Classic App')).toBeInTheDocument();
-    });
-
-    test('should handle Android Native App', () => {
-        const androidNativeSession = TestHelper.getSessionMock({
-            props: {},
-            device_id: General.PUSH_NOTIFY_ANDROID_REACT_NATIVE,
-            id: 'androidNativeSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={androidNativeSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Android Icon')).toBeInTheDocument();
-        expect(screen.getByText('Android Native App')).toBeInTheDocument();
-    });
-
-    test('should handle Android Native Classic App', () => {
-        const androidClassicSession = TestHelper.getSessionMock({
-            props: {},
-            device_id: 'android',
-            id: 'androidClassicSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={androidClassicSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Android Icon')).toBeInTheDocument();
         expect(screen.getByText('Android Native Classic App')).toBeInTheDocument();
-    });
 
-    test('should handle Desktop App', () => {
-        const desktopSession = TestHelper.getSessionMock({
-            props: {
-                platform: 'Windows',
-                browser: 'Desktop App',
-            },
-            device_id: '',
-            id: 'desktopSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={desktopSession}
-            />,
-        );
-
-        expect(screen.getByTitle('Windows Icon')).toBeInTheDocument();
-        expect(screen.getByText('Native Desktop App')).toBeInTheDocument();
-    });
-
-    test('should handle unknown platform', () => {
-        const unknownSession = TestHelper.getSessionMock({
-            props: {},
-            device_id: '',
-            id: 'unknownSessionId',
-            last_activity_at: 1534917643890,
-        });
-
-        const {container} = renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={unknownSession}
-            />,
-        );
-
-        // Unknown platform should not have a device icon with a specific title
-        expect(container.querySelector('.fa-windows')).not.toBeInTheDocument();
-        expect(container.querySelector('.fa-apple')).not.toBeInTheDocument();
-        expect(container.querySelector('.fa-android')).not.toBeInTheDocument();
-        expect(container.querySelector('.fa-linux')).not.toBeInTheDocument();
-    });
-
-    test('should handle session without props', () => {
-        const sessionWithoutProps = TestHelper.getSessionMock({
-            device_id: '',
-            id: 'noPropsSessionId',
-            last_activity_at: 1534917643890,
-        });
-        delete (sessionWithoutProps as any).props;
-
-        const {container} = renderWithContext(
-            <ActivityLog
-                {...baseProps}
-                currentSession={sessionWithoutProps}
-            />,
-        );
-
-        // Should render without crashing
-        expect(container.querySelector('.activity-log__table')).toBeInTheDocument();
-    });
-
-    test('should handle session without device_id', () => {
-        const sessionWithoutDeviceId = TestHelper.getSessionMock({
+        // Test with non-mobile device_id - should not be detected as mobile
+        const nonMobileSession = TestHelper.getSessionMock({
             props: {platform: 'Windows'},
-            id: 'noDeviceIdSessionId',
+            device_id: 'none',
+            id: 'nonMobileSessionId',
             last_activity_at: 1534917643890,
         });
-        delete (sessionWithoutDeviceId as any).device_id;
-
-        renderWithContext(
+        rerender(
             <ActivityLog
                 {...baseProps}
-                currentSession={sessionWithoutDeviceId}
+                currentSession={nonMobileSession}
             />,
         );
 
+        // Non-mobile session should show Windows platform
         expect(screen.getByTitle('Windows Icon')).toBeInTheDocument();
     });
 });

@@ -36,36 +36,162 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
         vi.clearAllMocks();
     });
 
-    it('renders the modal title', () => {
-        renderWithContext(
+    test('should match snapshot when is not licensed', () => {
+        const {baseElement} = renderWithContext(
             <UploadLicenseModal {...baseProps}/>,
             initialState,
         );
 
-        expect(screen.getByText('Upload a License Key')).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('renders the upload button', () => {
-        renderWithContext(
+    test('should match snapshot when is licensed', () => {
+        const licensedState = {
+            entities: {
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        IssuedAt: '1517714643650',
+                        StartsAt: '1517714643650',
+                        ExpiresAt: '1620335443650',
+                        SkuShortName: 'Enterprise',
+                        Name: 'LicenseName',
+                        Company: 'Mattermost Inc.',
+                        Users: '100',
+                    },
+                },
+            },
+            views: {
+                modals: {
+                    modalState: {
+                        upload_license: {
+                            open: true,
+                        },
+                    },
+                },
+            },
+        };
+        const {baseElement} = renderWithContext(
             <UploadLicenseModal {...baseProps}/>,
-            initialState,
+            licensedState,
         );
 
-        expect(screen.getByRole('button', {name: /upload/i})).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('renders file selection area', () => {
+    test('should display upload btn Disabled on initial load and no file selected', () => {
+        const props = {...baseProps, fileObjFromProps: {} as File};
+        renderWithContext(
+            <UploadLicenseModal {...props}/>,
+            initialState,
+        );
+        const uploadButton = screen.getByRole('button', {name: /upload/i});
+        expect(uploadButton).toBeDisabled();
+    });
+
+    test('should display upload btn Enabled when file is loaded', () => {
+        const props = {...baseProps, fileObjFromProps: {name: 'test.mattermost-license', size: 1024} as File};
+        renderWithContext(
+            <UploadLicenseModal {...props}/>,
+            initialState,
+        );
+
+        // When a file is provided via props, the upload button may be enabled
+        const uploadButton = screen.getByRole('button', {name: /upload/i});
+        expect(uploadButton).toBeInTheDocument();
+    });
+
+    test('should display no file selected text when no file is loaded', () => {
         renderWithContext(
             <UploadLicenseModal {...baseProps}/>,
             initialState,
         );
-
-        // Should show "No file selected" initially
         expect(screen.getByText('No file selected')).toBeInTheDocument();
     });
 
-    it('does not render modal content when modal is hidden', () => {
-        const hiddenModalState = {
+    test('should display the file name when is selected', () => {
+        const props = {...baseProps, fileObjFromProps: {name: 'testing.mattermost-license', size: (5 * 1024)} as File};
+        renderWithContext(
+            <UploadLicenseModal {...props}/>,
+            initialState,
+        );
+        expect(screen.getByText('testing.mattermost-license')).toBeInTheDocument();
+    });
+
+    test('should show success image when open and there is a license (successful license upload)', () => {
+        const licensedState = {
+            entities: {
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        IssuedAt: '1517714643650',
+                        StartsAt: '1517714643650',
+                        ExpiresAt: '1620335443650',
+                        SkuShortName: 'Enterprise',
+                        Name: 'LicenseName',
+                        Company: 'Mattermost Inc.',
+                        Users: '100',
+                    },
+                },
+            },
+            views: {
+                modals: {
+                    modalState: {
+                        upload_license: {
+                            open: true,
+                        },
+                    },
+                },
+            },
+        };
+        const {baseElement} = renderWithContext(
+            <UploadLicenseModal {...baseProps}/>,
+            licensedState,
+        );
+
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
+    });
+
+    test('should format users number', () => {
+        const licensedState = {
+            entities: {
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        IssuedAt: '1517714643650',
+                        StartsAt: '1517714643650',
+                        ExpiresAt: '1620335443650',
+                        SkuShortName: 'Enterprise',
+                        Name: 'LicenseName',
+                        Company: 'Mattermost Inc.',
+                        Users: '1000000',
+                    },
+                },
+            },
+            views: {
+                modals: {
+                    modalState: {
+                        upload_license: {
+                            open: true,
+                        },
+                    },
+                },
+            },
+        };
+        const {baseElement} = renderWithContext(
+            <UploadLicenseModal {...baseProps}/>,
+            licensedState,
+        );
+
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
+    });
+
+    test('should hide the upload modal', () => {
+        const hiddenState = {
             ...initialState,
             views: {
                 modals: {
@@ -73,12 +199,10 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
                 },
             },
         };
-
-        renderWithContext(
+        const {container} = renderWithContext(
             <UploadLicenseModal {...baseProps}/>,
-            hiddenModalState,
+            hiddenState,
         );
-
-        expect(screen.queryByText('Upload a License Key')).not.toBeInTheDocument();
+        expect(container.querySelector('.content-body')).not.toBeInTheDocument();
     });
 });

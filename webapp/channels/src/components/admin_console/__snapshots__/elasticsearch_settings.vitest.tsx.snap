@@ -521,6 +521,7 @@ exports[`components/ElasticSearchSettings > should match snapshot, disabled 1`] 
               >
                 This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
 
+
                 <b>
                   Note- Please ensure no other indexing job is in progress in the table above.
                 </b>
@@ -545,7 +546,7 @@ exports[`components/ElasticSearchSettings > should match snapshot, disabled 1`] 
                   disabled=""
                   type="button"
                 >
-                  Purge Index
+                  Purge Indexes
                 </button>
               </div>
               <div
@@ -1215,6 +1216,7 @@ exports[`components/ElasticSearchSettings > should match snapshot, enabled 1`] =
               >
                 This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
 
+
                 <b>
                   Note- Please ensure no other indexing job is in progress in the table above.
                 </b>
@@ -1238,7 +1240,7 @@ exports[`components/ElasticSearchSettings > should match snapshot, enabled 1`] =
                   class="btn btn-tertiary"
                   type="button"
                 >
-                  Purge Index
+                  Purge Indexes
                 </button>
               </div>
               <div

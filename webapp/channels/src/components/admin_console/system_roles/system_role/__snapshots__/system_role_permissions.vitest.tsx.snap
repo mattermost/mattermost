@@ -1,0 +1,1183 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/system_role_permissions > should match snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="SystemRolePermissions"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Privileges
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Level of access to the system console.
+        </div>
+      </div>
+    </div>
+    <div
+      class="SystemRolePermissions"
+    >
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_about"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              About
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              The ability to install or upgrade your servers enterprise licensing.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 1 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownabout"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_reporting"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Reporting
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site statistics, team statistics and server logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 3 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownreporting"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_user_management"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              User Management
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review users, groups, teams, channels, permissions and system roles.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 6 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownuser_management"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_environment"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Environment
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review server environment configuration such as URLs, database and performance.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 14 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownenvironment"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_site"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Site Configuration
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site specific configurations such as site name, notification defaults and file sharing.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 10 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownsite"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_authentication"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Authentication
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the configuration around how users can signup and access Mattermost.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 8 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownauthentication"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_plugins"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Plugins
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review installed plugins and their configuration.
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownplugins"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  Can edit
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_integrations"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Integrations
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review integration configurations such as webhooks, bots and cross-origin requests.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownintegrations"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_compliance"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Compliance
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review compliance settings such as retention, exports and activity logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdowncompliance"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_experimental"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Experimental
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the settings of experimental features
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 2 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownexperimental"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_role_permissions > should match snapshot with isLicensedForCloud = true 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="SystemRolePermissions"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Privileges
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Level of access to the system console.
+        </div>
+      </div>
+    </div>
+    <div
+      class="SystemRolePermissions"
+    >
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_reporting"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Reporting
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site statistics, team statistics and server logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 3 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownreporting"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_user_management"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              User Management
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review users, groups, teams, channels, permissions and system roles.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 6 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownuser_management"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_site"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Site Configuration
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site specific configurations such as site name, notification defaults and file sharing.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 10 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownsite"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_authentication"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Authentication
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the configuration around how users can signup and access Mattermost.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 8 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownauthentication"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_plugins"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Plugins
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review installed plugins and their configuration.
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownplugins"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  Can edit
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_integrations"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Integrations
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review integration configurations such as webhooks, bots and cross-origin requests.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownintegrations"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_compliance"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Compliance
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review compliance settings such as retention, exports and activity logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdowncompliance"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_experimental"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Experimental
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the settings of experimental features
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 2 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownexperimental"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+    </div>
+  </div>
+</div>
+`;

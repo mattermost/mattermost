@@ -7,7 +7,7 @@ import type {AdminConfig} from '@mattermost/types/config';
 
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
 
-import {screen, renderWithContext} from 'tests/vitest_react_testing_utils';
+import {screen, renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 vi.mock('actions/admin_actions.jsx', () => {
     return {
@@ -18,7 +18,7 @@ vi.mock('actions/admin_actions.jsx', () => {
 });
 
 describe('components/ElasticSearchSettings', () => {
-    test('should match snapshot, disabled', () => {
+    test('should match snapshot, disabled', async () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
@@ -39,10 +39,16 @@ describe('components/ElasticSearchSettings', () => {
                 config={config as AdminConfig}
             />,
         );
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('Save')).toBeInTheDocument();
+        });
+
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, enabled', () => {
+    test('should match snapshot, enabled', async () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
@@ -63,10 +69,16 @@ describe('components/ElasticSearchSettings', () => {
                 config={config as AdminConfig}
             />,
         );
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('Save')).toBeInTheDocument();
+        });
+
         expect(container).toMatchSnapshot();
     });
 
-    test('should have save button disabled initially', () => {
+    test('should maintain save disable until is tested', async () => {
         const config = {
             ElasticsearchSettings: {
                 ConnectionURL: 'test',
@@ -85,6 +97,11 @@ describe('components/ElasticSearchSettings', () => {
                 config={config as AdminConfig}
             />,
         );
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('Save')).toBeInTheDocument();
+        });
 
         // Initially save button should be disabled
         const saveButton = screen.getByText('Save');

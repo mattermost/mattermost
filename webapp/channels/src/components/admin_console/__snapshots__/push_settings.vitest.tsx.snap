@@ -1,0 +1,418 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/PushSettings > should match snapshot, licensed 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        Push Notification Server
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <div
+            class="form-group"
+            data-testid="pushNotificationServerType"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="pushNotificationServerType"
+            >
+              Enable Push Notifications: 
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <select
+                class="form-control"
+                data-testid="pushNotificationServerTypedropdown"
+                id="pushNotificationServerType"
+              >
+                <option
+                  value="off"
+                >
+                  Do not send push notifications
+                </option>
+                <option
+                  value="mhpns"
+                >
+                  Use HPNS connection with uptime SLA to send notifications to iOS and Android apps
+                </option>
+                <option
+                  value="mtpns"
+                >
+                  Use TPNS connection to send notifications to iOS and Android apps
+                </option>
+                <option
+                  value="custom"
+                >
+                  Manually enter Push Notification Service location
+                </option>
+              </select>
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerTypehelp-text"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="pushNotificationServerLocation"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="pushNotificationServerLocation"
+            >
+              Push Notification Server location:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <select
+                class="form-control"
+                data-testid="pushNotificationServerLocationdropdown"
+                id="pushNotificationServerLocation"
+              >
+                <option
+                  value="global"
+                >
+                  Global
+                </option>
+                <option
+                  value="us"
+                >
+                  US
+                </option>
+                <option
+                  value="de"
+                >
+                  Germany
+                </option>
+                <option
+                  value="jp"
+                >
+                  Japan
+                </option>
+              </select>
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerLocationhelp-text"
+              >
+                Location of the push notification server. Global uses geobalancing to route requests to the nearest server for optimal performance.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <div
+              class="col-sm-4"
+            />
+            <div
+              class="col-sm-8"
+            >
+              <input
+                checked=""
+                type="checkbox"
+              />
+               I understand and accept the Mattermost Hosted Push Notification Service 
+              <a
+                href="https://mattermost.com/hpns-terms/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                location="push_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Terms of Service
+              </a>
+               and 
+              <a
+                href="https://mattermost.com/data-processing-addendum/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                location="push_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Privacy Policy
+              </a>
+              .
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="pushNotificationServer"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="pushNotificationServerlabel"
+              for="pushNotificationServer"
+            >
+              Push Notification Server:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="pushNotificationServerinput"
+                disabled=""
+                id="pushNotificationServer"
+                maxlength="-1"
+                placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+                type="text"
+                value="https://global.push.mattermost.com"
+              />
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerhelp-text"
+              >
+                Download 
+                <a
+                  href="https://mattermost.com/pl/ios-app/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Mattermost iOS app
+                </a>
+                 from iTunes. Download 
+                <a
+                  href="https://mattermost.com/pl/android-app/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Mattermost Android app
+                </a>
+                 from Google Play. Learn more about 
+                <a
+                  href="https://mattermost.com/pl/setup-push-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  HPNS
+                </a>
+                .
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="maxNotificationsPerChannel"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxNotificationsPerChannellabel"
+              for="maxNotificationsPerChannel"
+            >
+              Large Channel Notification Threshold:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="maxNotificationsPerChannelnumber"
+                id="maxNotificationsPerChannel"
+                maxlength="-1"
+                placeholder="E.g.: \\"1000\\""
+                type="number"
+                value="1000"
+              />
+              <div
+                class="help-text"
+                data-testid="maxNotificationsPerChannelhelp-text"
+              >
+                The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;
+
+exports[`components/PushSettings > should match snapshot, unlicensed 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        Push Notification Server
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <div
+            class="form-group"
+            data-testid="pushNotificationServerType"
+          >
+            <label
+              class="control-label col-sm-4"
+              for="pushNotificationServerType"
+            >
+              Enable Push Notifications: 
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <select
+                class="form-control"
+                data-testid="pushNotificationServerTypedropdown"
+                id="pushNotificationServerType"
+              >
+                <option
+                  value="off"
+                >
+                  Do not send push notifications
+                </option>
+                <option
+                  value="mtpns"
+                >
+                  Use TPNS connection to send notifications to iOS and Android apps
+                </option>
+                <option
+                  value="custom"
+                >
+                  Manually enter Push Notification Service location
+                </option>
+              </select>
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerTypehelp-text"
+              />
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="pushNotificationServer"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="pushNotificationServerlabel"
+              for="pushNotificationServer"
+            >
+              Push Notification Server:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="pushNotificationServerinput"
+                id="pushNotificationServer"
+                maxlength="-1"
+                placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+                type="text"
+                value="https://global.push.mattermost.com"
+              />
+              <div
+                class="help-text"
+                data-testid="pushNotificationServerhelp-text"
+              >
+                Learn more about compiling and deploying your own mobile apps from an 
+                <a
+                  href="https://docs.mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=push_settings&uid=&sid=&edition=team&server_version="
+                  location="push_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Enterprise App Store
+                </a>
+                .
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="maxNotificationsPerChannel"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="maxNotificationsPerChannellabel"
+              for="maxNotificationsPerChannel"
+            >
+              Large Channel Notification Threshold:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="maxNotificationsPerChannelnumber"
+                id="maxNotificationsPerChannel"
+                maxlength="-1"
+                placeholder="E.g.: \\"1000\\""
+                type="number"
+                value="1000"
+              />
+              <div
+                class="help-text"
+                data-testid="maxNotificationsPerChannelhelp-text"
+              >
+                The maximum number of users that can be mentioned using @here, @all, or @channel. Above this limit, mentions and typing indicators are disabled, and users will see a system message if they try to use them.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;

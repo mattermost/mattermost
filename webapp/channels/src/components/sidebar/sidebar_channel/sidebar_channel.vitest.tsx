@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannel from 'components/sidebar/sidebar_channel/sidebar_channel';
 
-import {renderWithContext, cleanup} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, cleanup, waitFor} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/sidebar/sidebar_channel', () => {
@@ -50,15 +50,18 @@ describe('components/sidebar/sidebar_channel', () => {
         isChannelSelected: false,
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const {container} = renderWithContext(
             <SidebarChannel {...baseProps}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when collapsed', () => {
+    test('should match snapshot when collapsed', async () => {
         const props = {
             ...baseProps,
             isCategoryCollapsed: true,
@@ -68,10 +71,13 @@ describe('components/sidebar/sidebar_channel', () => {
             <SidebarChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.firstChild).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when unread', () => {
+    test('should match snapshot when unread', async () => {
         const props = {
             ...baseProps,
             isUnread: true,
@@ -82,10 +88,13 @@ describe('components/sidebar/sidebar_channel', () => {
             <SidebarChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when active', () => {
+    test('should match snapshot when active', async () => {
         const props = {
             ...baseProps,
             isCurrentChannel: true,
@@ -95,10 +104,13 @@ describe('components/sidebar/sidebar_channel', () => {
             <SidebarChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when DM channel', () => {
+    test('should match snapshot when DM channel', async () => {
         const currentUser = TestHelper.getUserMock({id: 'current_user_id'});
         const teammate = TestHelper.getUserMock({id: 'teammate_id'});
         const dmChannel = TestHelper.getChannelMock({
@@ -136,10 +148,13 @@ describe('components/sidebar/sidebar_channel', () => {
             state,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarChannel')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when GM channel', () => {
+    test('should match snapshot when GM channel', async () => {
         const currentUser = TestHelper.getUserMock({id: 'current_user_id'});
         const gmChannel = TestHelper.getChannelMock({
             id: 'gm_channel_id',
@@ -174,10 +189,13 @@ describe('components/sidebar/sidebar_channel', () => {
             state,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarChannel')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should not be collapsed when there are unread messages', () => {
+    test('should not be collapsed when there are unread messages', async () => {
         const props = {
             ...baseProps,
             isCategoryCollapsed: true,
@@ -188,10 +206,12 @@ describe('components/sidebar/sidebar_channel', () => {
             <SidebarChannel {...props}/>,
         );
 
-        expect(container.querySelector('.expanded')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(container.querySelector('.expanded')).toBeInTheDocument();
+        });
     });
 
-    test('should not be collapsed if channel is current channel', () => {
+    test('should not be collapsed if channel is current channel', async () => {
         const props = {
             ...baseProps,
             isCategoryCollapsed: true,
@@ -202,6 +222,8 @@ describe('components/sidebar/sidebar_channel', () => {
             <SidebarChannel {...props}/>,
         );
 
-        expect(container.querySelector('.expanded')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(container.querySelector('.expanded')).toBeInTheDocument();
+        });
     });
 });

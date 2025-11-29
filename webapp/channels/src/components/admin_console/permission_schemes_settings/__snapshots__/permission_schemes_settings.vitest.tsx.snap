@@ -1,0 +1,1311 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/permission_schemes_settings/permission_schemes_settings > should match snapshot loading 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Permission Schemes
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="banner info"
+        >
+          <div
+            class="banner__content"
+          >
+            <span>
+              Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our 
+              <a
+                href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                location="permission_scheme_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                documentation
+              </a>
+              .
+            </span>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink "
+          id="systemScheme"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                System Scheme
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Set the default permissions inherited by all teams unless a 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Team Override Scheme
+                </a>
+                 is applied.
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="systemScheme-link"
+                href="/admin_console/user_management/permissions/system_scheme"
+              >
+                Edit Scheme
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          id="team-override-schemes"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Override Schemes
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Use when specific teams need permission exceptions to the 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  System Scheme
+                </a>
+                .
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="team-override-schemes-link"
+                href="/admin_console/user_management/permissions/team_override_scheme"
+              >
+                New Team Override Scheme
+              </a>
+            </div>
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 1
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 2
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 3
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_schemes_settings > should match snapshot with schemes 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Permission Schemes
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="banner info"
+        >
+          <div
+            class="banner__content"
+          >
+            <span>
+              Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our 
+              <a
+                href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                location="permission_scheme_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                documentation
+              </a>
+              .
+            </span>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink "
+          id="systemScheme"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                System Scheme
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Set the default permissions inherited by all teams unless a 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Team Override Scheme
+                </a>
+                 is applied.
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="systemScheme-link"
+                href="/admin_console/user_management/permissions/system_scheme"
+              >
+                Edit Scheme
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          id="team-override-schemes"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Override Schemes
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Use when specific teams need permission exceptions to the 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  System Scheme
+                </a>
+                .
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="team-override-schemes-link"
+                href="/admin_console/user_management/permissions/team_override_scheme"
+              >
+                New Team Override Scheme
+              </a>
+            </div>
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 1
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 2
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 3
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_schemes_settings > should match snapshot without schemes 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Permission Schemes
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="banner info"
+        >
+          <div
+            class="banner__content"
+          >
+            <span>
+              Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our 
+              <a
+                href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                location="permission_scheme_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                documentation
+              </a>
+              .
+            </span>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink "
+          id="systemScheme"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                System Scheme
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Set the default permissions inherited by all teams unless a 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Team Override Scheme
+                </a>
+                 is applied.
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="systemScheme-link"
+                href="/admin_console/user_management/permissions/system_scheme"
+              >
+                Edit Scheme
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          id="team-override-schemes"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Override Schemes
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Use when specific teams need permission exceptions to the 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  System Scheme
+                </a>
+                .
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="team-override-schemes-link"
+                href="/admin_console/user_management/permissions/team_override_scheme"
+              >
+                New Team Override Scheme
+              </a>
+            </div>
+          </div>
+          <div
+            class="no-team-schemes"
+          >
+            No team override schemes created.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_schemes_settings > should show migration in-progress view 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Permission Schemes
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="banner info"
+        >
+          <div
+            class="banner__content"
+          >
+            <span>
+              Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our 
+              <a
+                href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                location="permission_scheme_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                documentation
+              </a>
+              .
+            </span>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink "
+          id="systemScheme"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                System Scheme
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Set the default permissions inherited by all teams unless a 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Team Override Scheme
+                </a>
+                 is applied.
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="systemScheme-link"
+                href="/admin_console/user_management/permissions/system_scheme"
+              >
+                Edit Scheme
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          id="team-override-schemes"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Override Schemes
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Use when specific teams need permission exceptions to the 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  System Scheme
+                </a>
+                .
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="team-override-schemes-link"
+                href="/admin_console/user_management/permissions/team_override_scheme"
+              >
+                New Team Override Scheme
+              </a>
+            </div>
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 1
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 2
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 3
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_schemes_settings > should show migration on hold view 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Permission Schemes
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="banner info"
+        >
+          <div
+            class="banner__content"
+          >
+            <span>
+              Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our 
+              <a
+                href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                location="permission_scheme_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                documentation
+              </a>
+              .
+            </span>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink "
+          id="systemScheme"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                System Scheme
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Set the default permissions inherited by all teams unless a 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Team Override Scheme
+                </a>
+                 is applied.
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="systemScheme-link"
+                href="/admin_console/user_management/permissions/system_scheme"
+              >
+                Edit Scheme
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          id="team-override-schemes"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Override Schemes
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Use when specific teams need permission exceptions to the 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  System Scheme
+                </a>
+                .
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="team-override-schemes-link"
+                href="/admin_console/user_management/permissions/team_override_scheme"
+              >
+                New Team Override Scheme
+              </a>
+            </div>
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 1
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 2
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 3
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_schemes_settings > should show normal view (jobs disabled after migration) 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Permission Schemes
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="banner info"
+        >
+          <div
+            class="banner__content"
+          >
+            <span>
+              Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our 
+              <a
+                href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                location="permission_scheme_settings"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                documentation
+              </a>
+              .
+            </span>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink "
+          id="systemScheme"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                System Scheme
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Set the default permissions inherited by all teams unless a 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Team Override Scheme
+                </a>
+                 is applied.
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="systemScheme-link"
+                href="/admin_console/user_management/permissions/system_scheme"
+              >
+                Edit Scheme
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix AdminPanelWithLink permissions-block"
+          id="team-override-schemes"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Override Schemes
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Use when specific teams need permission exceptions to the 
+                <a
+                  href="https://mattermost.com/pl/advanced-permissions?utm_source=mattermost&utm_medium=in-product&utm_content=permission_scheme_settings&uid=&sid=&edition=team&server_version="
+                  location="permission_scheme_settings"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  System Scheme
+                </a>
+                .
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <a
+                class="btn btn-primary"
+                data-testid="team-override-schemes-link"
+                href="/admin_console/user_management/permissions/team_override_scheme"
+              >
+                New Team Override Scheme
+              </a>
+            </div>
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-1"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 1
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-2"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 2
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+          <div
+            class="permissions-scheme-summary"
+            data-testid="permissions-scheme-summary"
+          >
+            <div />
+            <div
+              class="permissions-scheme-summary--header"
+            >
+              <div
+                class="title"
+              />
+              <div
+                class="actions"
+              >
+                <a
+                  class="edit-button"
+                  data-testid="undefined-edit"
+                  href="/admin_console/user_management/permissions/team_override_scheme/id-3"
+                >
+                  Edit
+                </a>
+                -
+                <a
+                  class="delete-button"
+                  data-testid="undefined-delete"
+                >
+                  Delete
+                </a>
+              </div>
+            </div>
+            <div
+              class="permissions-scheme-summary--description"
+            >
+              Test description 3
+            </div>
+            <div
+              class="permissions-scheme-summary--teams"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

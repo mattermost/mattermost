@@ -58,11 +58,9 @@ exports[`components/admin_console/group_settings/GroupsList.tsx > should match s
       id="groups-list--body"
     >
       <div
-        class="groups-list-loading"
+        class="groups-list-empty"
       >
-        <i
-          class="fa fa-spinner fa-pulse fa-2x"
-        />
+        No groups found
       </div>
     </div>
   </div>
@@ -148,11 +146,89 @@ exports[`components/admin_console/group_settings/GroupsList.tsx > should match s
       id="groups-list--body"
     >
       <div
-        class="groups-list-loading"
+        class="group "
+        id="test1_group"
       >
-        <i
-          class="fa fa-spinner fa-pulse fa-2x"
-        />
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test1
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test2_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test2
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-link"
+                />
+                Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            >
+              <a
+                href="/admin_console/user_management/groups/group-id-1"
+                id="test2_configure"
+              >
+                Configure
+              </a>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
     <div
@@ -267,11 +343,408 @@ exports[`components/admin_console/group_settings/GroupsList.tsx > should match s
       id="groups-list--body"
     >
       <div
-        class="groups-list-loading"
+        class="group "
+        id="test1_group"
       >
-        <i
-          class="fa fa-spinner fa-pulse fa-2x"
-        />
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test1
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test2_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test2
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-link"
+                />
+                Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            >
+              <a
+                href="/admin_console/user_management/groups/group-id-1"
+                id="test2_configure"
+              >
+                Configure
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test3_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test3
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-link"
+                />
+                Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            >
+              <a
+                href="/admin_console/user_management/groups/group-id-2"
+                id="test3_edit"
+              >
+                Edit
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test4_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test4
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test5_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test5
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test6_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test6
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test7_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test7
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test8_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test8
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test9_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test9
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test10_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test10
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
       </div>
     </div>
     <div
@@ -386,11 +859,135 @@ exports[`components/admin_console/group_settings/GroupsList.tsx > should match s
       id="groups-list--body"
     >
       <div
-        class="groups-list-loading"
+        class="group "
+        id="test1_group"
       >
-        <i
-          class="fa fa-spinner fa-pulse fa-2x"
-        />
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test1
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-unlink"
+                />
+                Not Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test2_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test2
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-link"
+                />
+                Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            >
+              <a
+                href="/admin_console/user_management/groups/group-id-1"
+                id="test2_configure"
+              >
+                Configure
+              </a>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="group "
+        id="test3_group"
+      >
+        <div
+          class="group-row"
+        >
+          <div
+            class="group-name"
+          >
+            <div
+              class="group-check "
+            />
+            <span>
+              test3
+            </span>
+          </div>
+          <div
+            class="group-content"
+          >
+            <span
+              class="group-description"
+            >
+              <a
+                class=""
+                href="#"
+              >
+                <i
+                  class="icon fa fa-link"
+                />
+                Linked
+              </a>
+            </span>
+            <span
+              class="group-actions"
+            >
+              <a
+                href="/admin_console/user_management/groups/group-id-2"
+                id="test3_edit"
+              >
+                Edit
+              </a>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
     <div

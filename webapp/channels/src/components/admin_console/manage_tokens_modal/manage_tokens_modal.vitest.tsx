@@ -3,12 +3,12 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ManageTokensModal from './manage_tokens_modal';
 
-describe('components/admin_console/manage_tokens_modal/manage_tokens_modal', () => {
+describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx', () => {
     const baseProps = {
         actions: {
             getUserAccessTokensForUser: vi.fn().mockResolvedValue({data: []}),
@@ -24,56 +24,70 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal', () 
         vi.clearAllMocks();
     });
 
-    it('renders the modal', () => {
-        renderWithContext(<ManageTokensModal {...baseProps}/>);
-
-        // Modal title contains user info
-        expect(screen.getByText(/Access Tokens/)).toBeInTheDocument();
-    });
-
-    it('calls getUserAccessTokensForUser on mount', async () => {
-        renderWithContext(<ManageTokensModal {...baseProps}/>);
+    test('initial call should match snapshot', async () => {
+        const {baseElement} = renderWithContext(
+            <ManageTokensModal {...baseProps}/>,
+        );
 
         await waitFor(() => {
             expect(baseProps.actions.getUserAccessTokensForUser).toHaveBeenCalledTimes(1);
         });
-    });
 
-    it('shows loading state initially', () => {
-        renderWithContext(<ManageTokensModal {...baseProps}/>);
-
-        // Should show loading spinner
+        expect(document.querySelector('.manage-teams__teams')).toBeInTheDocument();
         expect(document.querySelector('.loading-screen')).toBeInTheDocument();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('shows empty state when no tokens', async () => {
-        const getUserAccessTokensForUser = vi.fn().mockResolvedValue({data: []});
+    test('should replace loading screen on update', async () => {
         const props = {
             ...baseProps,
             userAccessTokens: {},
-            actions: {getUserAccessTokensForUser},
         };
 
-        renderWithContext(<ManageTokensModal {...props}/>);
+        const {baseElement} = renderWithContext(
+            <ManageTokensModal {...props}/>,
+        );
 
         await waitFor(() => {
-            expect(getUserAccessTokensForUser).toHaveBeenCalled();
+            expect(baseProps.actions.getUserAccessTokensForUser).toHaveBeenCalled();
         });
+
+        expect(document.querySelector('.manage-teams__teams')).toBeInTheDocument();
+        expect(document.querySelector('.manage-row__empty')).toBeInTheDocument();
+        expect(baseElement).toMatchSnapshot();
     });
 
-    // Note: The original test verified that the component throws when no user is provided.
-    // This test is skipped in vitest because it creates noisy stderr output from jsdom.
-    // The behavior is still validated: ManageTokensModal requires a user prop and will
-    // throw TypeError if user is undefined (accessing user.first_name in getFullName()).
-    it.skip('throws when there is no user', () => {
-        // Skipped to avoid jsdom stderr noise. Component correctly throws when user is undefined.
-        const props = {...baseProps, user: undefined as any};
-        expect(() => renderWithContext(<ManageTokensModal {...props}/>)).toThrow();
-    });
+    test('should display list of tokens', async () => {
+        const props = {
+            ...baseProps,
+            userAccessTokens: {
+                id1: {
+                    id: 'id1',
+                    description: 'description',
+                    user_id: 'defaultuser',
+                    token: '',
+                    is_active: true,
+                },
+                id2: {
+                    id: 'id2',
+                    description: 'description',
+                    user_id: 'defaultuser',
+                    token: '',
+                    is_active: true,
+                },
+            },
+        };
 
-    it('renders cancel button', () => {
-        renderWithContext(<ManageTokensModal {...baseProps}/>);
+        const {baseElement} = renderWithContext(
+            <ManageTokensModal {...props}/>,
+        );
 
-        expect(screen.getByRole('button', {name: /close/i})).toBeInTheDocument();
+        await waitFor(() => {
+            expect(baseProps.actions.getUserAccessTokensForUser).toHaveBeenCalled();
+        });
+
+        expect(document.querySelector('.manage-teams__teams')).toBeInTheDocument();
+        expect(document.querySelectorAll('.manage-teams__team')).toHaveLength(2);
+        expect(baseElement).toMatchSnapshot();
     });
 });

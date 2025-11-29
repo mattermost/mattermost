@@ -1,0 +1,159 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/CustomTermsOfServiceSettings > should match snapshot 1`] = `
+<div>
+  <form
+    class="form-horizontal"
+    role="form"
+  >
+    <div
+      class="wrapper--fixed"
+    >
+      <div
+        class="admin-console__header"
+      >
+        Custom Terms of Service
+      </div>
+      <div
+        class="admin-console__wrapper"
+      >
+        <div
+          class="admin-console__content"
+        >
+          <fieldset
+            class="form-group"
+            data-testid="SupportSettings.CustomTermsOfServiceEnabled"
+            id="SupportSettings.CustomTermsOfServiceEnabled"
+          >
+            <legend
+              class="control-label form-legend col-sm-4"
+            >
+              Enable Custom Terms of Service:
+            </legend>
+            <div
+              class="col-sm-8"
+            >
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  checked=""
+                  data-testid="SupportSettings.CustomTermsOfServiceEnabledtrue"
+                  id="SupportSettings.CustomTermsOfServiceEnabledtrue"
+                  name="SupportSettings.CustomTermsOfServiceEnabled"
+                  type="radio"
+                  value="true"
+                />
+                True
+              </label>
+              <label
+                class="sc-bcPLoT eTrMuN"
+              >
+                <input
+                  data-testid="SupportSettings.CustomTermsOfServiceEnabledfalse"
+                  id="SupportSettings.CustomTermsOfServiceEnabledfalse"
+                  name="SupportSettings.CustomTermsOfServiceEnabled"
+                  type="radio"
+                  value="false"
+                />
+                False
+              </label>
+              <div
+                class="help-text"
+                data-testid="SupportSettings.CustomTermsOfServiceEnabledhelp-text"
+              >
+                When true, new users must accept the terms of service before accessing any Mattermost teams on desktop, web or mobile. Existing users must accept them after login or a page refresh. To update terms of service link displayed in account creation and login pages, go to 
+                <a
+                  href="/admin_console/site_config/customization"
+                >
+                  Site Configuration &gt; Customization
+                </a>
+              </div>
+            </div>
+          </fieldset>
+          <div
+            class="form-group"
+            data-testid="SupportSettings.CustomTermsOfServiceText"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="SupportSettings.CustomTermsOfServiceTextlabel"
+              for="SupportSettings.CustomTermsOfServiceText"
+            >
+              Custom Terms of Service Text:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <textarea
+                class="form-control"
+                data-testid="SupportSettings.CustomTermsOfServiceTextinput"
+                dir="auto"
+                id="SupportSettings.CustomTermsOfServiceText"
+                maxlength="16383"
+                rows="5"
+              >
+                tos_text
+              </textarea>
+              <div
+                class="help-text"
+                data-testid="SupportSettings.CustomTermsOfServiceTexthelp-text"
+              >
+                Text that will appear in your custom Terms of Service. Supports Markdown-formatted text.
+              </div>
+            </div>
+          </div>
+          <div
+            class="form-group"
+            data-testid="SupportSettings.CustomTermsOfServiceReAcceptancePeriod"
+          >
+            <label
+              class="control-label col-sm-4"
+              data-testid="SupportSettings.CustomTermsOfServiceReAcceptancePeriodlabel"
+              for="SupportSettings.CustomTermsOfServiceReAcceptancePeriod"
+            >
+              Re-Acceptance Period:
+            </label>
+            <div
+              class="col-sm-8"
+            >
+              <input
+                class="form-control"
+                data-testid="SupportSettings.CustomTermsOfServiceReAcceptancePeriodnumber"
+                id="SupportSettings.CustomTermsOfServiceReAcceptancePeriod"
+                maxlength="-1"
+                type="number"
+                value="365"
+              />
+              <div
+                class="help-text"
+                data-testid="SupportSettings.CustomTermsOfServiceReAcceptancePeriodhelp-text"
+              >
+                The number of days before Terms of Service acceptance expires, and the terms must be re-accepted.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="admin-console-save"
+      >
+        <button
+          class="btn btn-primary"
+          data-testid="saveSetting"
+          disabled=""
+          id="saveSetting"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+        <div
+          class="error-message"
+        />
+      </div>
+    </div>
+  </form>
+</div>
+`;

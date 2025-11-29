@@ -19,7 +19,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers > shou
       class="group-users--body"
     >
       <div
-        class="group-users-loading active"
+        class="group-users-loading "
       >
         <i
           class="fa fa-spinner fa-pulse fa-2x"
@@ -898,7 +898,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers > shou
       class="group-users--body"
     >
       <div
-        class="group-users-loading active"
+        class="group-users-loading "
       >
         <i
           class="fa fa-spinner fa-pulse fa-2x"
@@ -931,7 +931,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers > shou
       class="group-users--body"
     >
       <div
-        class="group-users-loading active"
+        class="group-users-loading "
       >
         <i
           class="fa fa-spinner fa-pulse fa-2x"
@@ -1810,7 +1810,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers > shou
       class="group-users--body"
     >
       <div
-        class="group-users-loading active"
+        class="group-users-loading "
       >
         <i
           class="fa fa-spinner fa-pulse fa-2x"

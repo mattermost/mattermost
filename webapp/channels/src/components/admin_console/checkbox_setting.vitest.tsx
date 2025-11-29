@@ -8,7 +8,7 @@ import {renderWithContext, screen, fireEvent} from 'tests/vitest_react_testing_u
 import CheckboxSetting from './checkbox_setting';
 
 describe('components/admin_console/CheckboxSetting', () => {
-    test('should render checkbox with correct properties', () => {
+    test('should match snapshot', () => {
         const onChange = vi.fn();
         renderWithContext(
             <CheckboxSetting

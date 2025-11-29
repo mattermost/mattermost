@@ -70,7 +70,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             initialState,
         );
 
-        expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Upgrade to Enterprise');
+        expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Upgrade to the Enterprise plan');
 
         const subtitleItems = container.querySelectorAll('.upgrade-subtitle .item');
         expect(subtitleItems[0]?.textContent).toEqual('AD/LDAP Group sync');
@@ -111,7 +111,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         expect(container.querySelector('.upgrade-title')?.textContent).toEqual('Need to increase your headcount?');
-        expect(container.querySelector('.upgrade-subtitle')?.textContent).toEqual("We're here to work with you and your needs. Contact us today to get more seats on your plan.");
+        expect(container.querySelector('.upgrade-subtitle')?.textContent).toEqual('We’re here to work with you and your needs. Contact us today to get more seats on your plan.');
     });
 
     test('should render for Entry license', () => {

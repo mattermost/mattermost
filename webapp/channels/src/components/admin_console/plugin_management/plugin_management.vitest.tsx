@@ -5,14 +5,15 @@ import React from 'react';
 
 import PluginState from 'mattermost-redux/constants/plugins';
 
-import {renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 import PluginManagement from './plugin_management';
 
 // Mock console.error to suppress intl missing message warnings in tests
+/* eslint-disable no-console */
 const originalConsoleError = console.error;
 beforeAll(() => {
-    console.error = (...args: any[]) => {
+    console.error = (...args: unknown[]) => {
         const message = args[0]?.toString() || '';
         if (message.includes('MISSING_TRANSLATION') || message.includes('Missing message:')) {
             return;
@@ -24,6 +25,7 @@ beforeAll(() => {
 afterAll(() => {
     console.error = originalConsoleError;
 });
+/* eslint-enable no-console */
 
 describe('components/admin_console/plugin_management', () => {
     const defaultProps = {

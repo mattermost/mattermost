@@ -25,12 +25,10 @@ describe('AudioVideoPreview', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('should render video element', () => {
+    test('should match snapshot, cannot play', () => {
         const {container} = renderWithContext(
             <AudioVideoPreview {...baseProps}/>,
         );
-        const video = container.querySelector('video');
-        expect(video).toBeInTheDocument();
-        expect(video).toHaveAttribute('controls');
+        expect(container).toMatchSnapshot();
     });
 });

@@ -7,13 +7,13 @@ import type {Channel} from '@mattermost/types/channels';
 
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list/channel_list';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/admin_console/data_retention_settings/channel_list', () => {
     const channel: Channel = Object.assign(TestHelper.getChannelMock({id: 'channel-1'}));
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const testChannels = [{
             ...channel,
             id: '123',
@@ -40,10 +40,13 @@ describe('components/admin_console/data_retention_settings/channel_list', () => 
                 totalCount={testChannels.length}
                 actions={actions}
             />);
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with paging', () => {
+    test('should match snapshot with paging', async () => {
         const testChannels = [];
         for (let i = 0; i < 30; i++) {
             testChannels.push({
@@ -74,6 +77,9 @@ describe('components/admin_console/data_retention_settings/channel_list', () => 
                 totalCount={30}
                 actions={actions}
             />);
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 });

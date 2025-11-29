@@ -37,16 +37,17 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         vi.clearAllMocks();
     });
 
-    it('renders the modal title', () => {
-        renderWithContext(
+    test('should match snapshot', () => {
+        const {baseElement} = renderWithContext(
             <ConfirmLicenseRemovalModal {...baseProps}/>,
             initialState,
         );
 
-        expect(screen.getByText('Are you sure?')).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('calls handleRemove when confirm button is clicked', () => {
+    test('should call the removal method when confirm button is clicked', () => {
         renderWithContext(
             <ConfirmLicenseRemovalModal {...baseProps}/>,
             initialState,
@@ -58,7 +59,7 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         expect(baseProps.handleRemove).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onExited when cancel button is clicked', () => {
+    test('should close the modal when cancel button is clicked', () => {
         renderWithContext(
             <ConfirmLicenseRemovalModal {...baseProps}/>,
             initialState,
@@ -70,17 +71,7 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         expect(baseProps.onExited).toHaveBeenCalledTimes(1);
     });
 
-    it('shows the current SKU in the message', () => {
-        renderWithContext(
-            <ConfirmLicenseRemovalModal {...baseProps}/>,
-            initialState,
-        );
-
-        expect(screen.getByText(/Professional/)).toBeInTheDocument();
-        expect(screen.getByText(/Free/)).toBeInTheDocument();
-    });
-
-    it('does not render modal content when modal is hidden', () => {
+    test('should hide the confirm modal', () => {
         const hiddenModalState = {
             ...initialState,
             views: {
@@ -96,5 +87,15 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
         );
 
         expect(screen.queryByText('Are you sure?')).not.toBeInTheDocument();
+    });
+
+    test('should show which SKU is currently being removed in confirmation message', () => {
+        renderWithContext(
+            <ConfirmLicenseRemovalModal {...baseProps}/>,
+            initialState,
+        );
+
+        expect(screen.getByText(/Professional/)).toBeInTheDocument();
+        expect(screen.getByText(/Free/)).toBeInTheDocument();
     });
 });

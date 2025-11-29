@@ -84,29 +84,7 @@ exports[`ManageTeamsModal > should match snapshot init 1`] = `
               </div>
               <div
                 class="manage-teams__teams"
-              >
-                <div
-                  class="loading-screen"
-                  style="position: relative;"
-                >
-                  <div
-                    class="loading__content"
-                  >
-                    <p>
-                      Loading
-                    </p>
-                    <div
-                      class="round round-1"
-                    />
-                    <div
-                      class="round round-2"
-                    />
-                    <div
-                      class="round round-3"
-                    />
-                  </div>
-                </div>
-              </div>
+              />
             </div>
           </div>
         </div>

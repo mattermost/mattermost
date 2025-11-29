@@ -225,7 +225,7 @@ exports[`components/integrations/AddCommand > should match snapshot 1`] = `
             <div
               class="form__help"
             >
-              (Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\"-\\", \\"_\\", and \\".\\". If left blank, your Mattermost username is used.
+              (Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols "-", "_", and ".". If left blank, your Mattermost username is used.
             </div>
           </div>
         </div>
@@ -275,7 +275,7 @@ exports[`components/integrations/AddCommand > should match snapshot 1`] = `
             <div
               class="form__help"
             >
-              (Optional) Show your slash command on the autocomplete list when someone types "/" in the input box.
+              (Optional) Show your slash command on the autocomplete list when someone types / in the input box.
             </div>
           </div>
         </div>

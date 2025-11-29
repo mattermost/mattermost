@@ -43,15 +43,18 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const {container} = renderWithContext(
             <SidebarBaseChannel {...baseProps}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when shared channel', () => {
+    test('should match snapshot when shared channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -64,10 +67,13 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             <SidebarBaseChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when private channel', () => {
+    test('should match snapshot when private channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -80,10 +86,13 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             <SidebarBaseChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when shared private channel', () => {
+    test('should match snapshot when shared private channel', async () => {
         const props = {
             ...baseProps,
             channel: {
@@ -97,6 +106,9 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             <SidebarBaseChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 

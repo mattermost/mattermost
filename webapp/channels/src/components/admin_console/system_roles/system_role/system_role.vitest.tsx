@@ -3,89 +3,101 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {renderWithContext, act} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import SystemRole from './system_role';
 
 describe('admin_console/system_role', () => {
-    const role = TestHelper.getRoleMock({
-        id: 'role_id',
-        name: 'system_manager',
-        display_name: 'System Manager',
-        permissions: [
-            'sysconsole_read_environment',
-            'sysconsole_write_plugins',
-        ],
+    beforeEach(() => {
+        vi.useFakeTimers();
     });
 
-    const baseProps = {
+    afterEach(() => {
+        // Run all pending timers and animation frames before cleanup
+        act(() => {
+            vi.runAllTimers();
+        });
+        vi.useRealTimers();
+    });
+
+    const role = TestHelper.getRoleMock({
+        id: 'role_id',
+        name: 'test_role',
+        display_name: 'Test Role',
+        permissions: ['sysconsole_read_environment'],
+    });
+
+    const props = {
         role,
         isDisabled: false,
         isLicensedForCloud: false,
         actions: {
-            editRole: vi.fn().mockResolvedValue({data: true}),
-            updateUserRoles: vi.fn().mockResolvedValue({data: true}),
+            editRole: vi.fn(),
+            updateUserRoles: vi.fn(),
             setNavigationBlocked: vi.fn(),
         },
     };
 
-    const initialState = {
+    const initialState: DeepPartial<GlobalState> = {
         entities: {
             roles: {
                 roles: {
-                    system_manager: role,
+                    [role.name]: role,
                 },
             },
             users: {
                 profiles: {},
-                filteredStats: {
-                    total_users_count: 0,
-                },
+                statuses: {},
+            },
+            general: {
+                config: {},
             },
         },
         views: {
             search: {
                 userGridSearch: {
                     term: '',
+                    filters: {roles: []},
                 },
             },
         },
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
+    test('should match snapshot', async () => {
+        let container: HTMLElement;
+        await act(async () => {
+            const result = renderWithContext(
+                <SystemRole
+                    {...props}
+                />,
+                initialState,
+            );
+            container = result.container;
+            vi.runAllTimers();
+        });
+
+        expect(container!).toMatchSnapshot();
     });
 
-    it('renders system role page', () => {
-        renderWithContext(
-            <SystemRole {...baseProps}/>,
-            initialState,
-        );
+    test('should match snapshot with isLicensedForCloud = true', async () => {
+        let container: HTMLElement;
+        await act(async () => {
+            const result = renderWithContext(
+                <SystemRole
+                    {...props}
+                    isLicensedForCloud={true}
+                />,
+                initialState,
+            );
+            container = result.container;
+            vi.runAllTimers();
+        });
 
-        // Should render the back link
-        expect(document.querySelector('.fa-angle-left')).toBeInTheDocument();
-    });
-
-    it('renders with isLicensedForCloud true', () => {
-        renderWithContext(
-            <SystemRole
-                {...baseProps}
-                isLicensedForCloud={true}
-            />,
-            initialState,
-        );
-
-        expect(document.querySelector('.fa-angle-left')).toBeInTheDocument();
-    });
-
-    it('renders save changes panel', () => {
-        renderWithContext(
-            <SystemRole {...baseProps}/>,
-            initialState,
-        );
-
-        // SaveChangesPanel renders a cancel link
-        expect(screen.getByRole('link', {name: /cancel/i})).toBeInTheDocument();
+        expect(container!).toMatchSnapshot();
     });
 });

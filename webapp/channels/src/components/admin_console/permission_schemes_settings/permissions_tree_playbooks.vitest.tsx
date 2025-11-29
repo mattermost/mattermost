@@ -2,94 +2,60 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
+
+import PermissionsTreePlaybooks from 'components/admin_console/permission_schemes_settings/permissions_tree_playbooks';
 
 import {renderWithContext} from 'tests/vitest_react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
-
-import PermissionsTreePlaybooks from './permissions_tree_playbooks';
-
-// Mock console.error to suppress intl missing message warnings in tests
-const originalConsoleError = console.error;
-beforeAll(() => {
-    console.error = (...args: any[]) => {
-        const message = args[0]?.toString() || '';
-        if (message.includes('MISSING_TRANSLATION') || message.includes('Missing message:')) {
-            return;
-        }
-        originalConsoleError.apply(console, args);
-    };
-});
-
-afterAll(() => {
-    console.error = originalConsoleError;
-});
+import {LicenseSkus} from 'utils/constants';
 
 describe('components/admin_console/permission_schemes_settings/permissions_tree_playbooks', () => {
-    const defaultProps = {
-        role: TestHelper.getRoleMock({
-            name: 'playbook_admin',
-            permissions: [],
-        }),
-        scope: 'playbook_scope',
-        onToggle: vi.fn(),
-        parentRole: undefined,
+    const defaultProps: ComponentProps<typeof PermissionsTreePlaybooks> = {
+        role: {name: 'role'},
+        parentRole: {},
+        scope: 'scope',
+        selectRow: () => null,
         readOnly: false,
-        selectRow: vi.fn(),
+        onToggle: () => null,
         license: {
-            IsLicensed: 'true',
         },
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
+    describe('should show playbook permissions', () => {
+        describe('for non-enterprise license', () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: licenseSku === '' ? 'false' : 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
 
-    it('renders the playbooks permissions tree', () => {
-        renderWithContext(<PermissionsTreePlaybooks {...defaultProps}/>);
+                const {container} = renderWithContext(
+                    <PermissionsTreePlaybooks {...props}/>,
+                );
 
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
-    });
-
-    it('renders in read only mode', () => {
-        renderWithContext(
-            <PermissionsTreePlaybooks
-                {...defaultProps}
-                readOnly={true}
-            />,
-        );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
-    });
-
-    it('renders with role permissions', () => {
-        const role = TestHelper.getRoleMock({
-            name: 'playbook_admin',
-            permissions: ['playbook_public_create', 'playbook_private_create'],
+                expect(container).toMatchSnapshot();
+            }));
         });
 
-        renderWithContext(
-            <PermissionsTreePlaybooks
-                {...defaultProps}
-                role={role}
-            />,
-        );
+        describe('for enterprise license', () => {
+            [LicenseSkus.E20, LicenseSkus.Enterprise].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
 
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
-    });
+                const {container} = renderWithContext(
+                    <PermissionsTreePlaybooks {...props}/>,
+                );
 
-    it('renders with parent role', () => {
-        const parentRole = TestHelper.getRoleMock({
-            name: 'system_admin',
-            permissions: ['playbook_public_create'],
+                expect(container).toMatchSnapshot();
+            }));
         });
-
-        renderWithContext(
-            <PermissionsTreePlaybooks
-                {...defaultProps}
-                parentRole={parentRole}
-            />,
-        );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
     });
 });

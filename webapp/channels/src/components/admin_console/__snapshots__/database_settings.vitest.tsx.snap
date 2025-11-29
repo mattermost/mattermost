@@ -12,7 +12,7 @@ exports[`components/DatabaseSettings > should match snapshot 1`] = `
       <div
         class="admin-console__header"
       >
-        Database Settings
+        Database
       </div>
       <div
         class="admin-console__wrapper"
@@ -195,7 +195,7 @@ exports[`components/DatabaseSettings > should match snapshot 1`] = `
                 class="help-text"
                 data-testid="connMaxLifetimeMillisecondshelp-text"
               >
-                Maximum lifetime for a connection to the database in milliseconds.
+                Maximum lifetime (in milliseconds) for a connection to the database.
               </div>
             </div>
           </div>
@@ -226,7 +226,7 @@ exports[`components/DatabaseSettings > should match snapshot 1`] = `
                 class="help-text"
                 data-testid="connMaxIdleTimeMillisecondshelp-text"
               >
-                Maximum idle time for a connection to the database in milliseconds.
+                Maximum idle time (in milliseconds) for a connection to the database.
               </div>
             </div>
           </div>
@@ -410,7 +410,7 @@ exports[`components/DatabaseSettings > should match snapshot 1`] = `
             <legend
               class="control-label form-legend col-sm-4"
             >
-              Schema Migrations:
+              Applied Schema Migrations
             </legend>
             <div
               class="col-sm-8"
@@ -424,7 +424,7 @@ exports[`components/DatabaseSettings > should match snapshot 1`] = `
                   <div
                     class="help-text"
                   >
-                    All applied migrations.
+                    The list of schema migrations applied to your data store.
                   </div>
                   <div
                     class="migrations-table__table"
@@ -457,7 +457,7 @@ exports[`components/DatabaseSettings > should match snapshot 1`] = `
               class="control-label col-sm-4"
               for="activeSearchBackend"
             >
-              Active Search Backend:
+              Active Search Backend
             </label>
             <div
               class="col-sm-8"
@@ -467,12 +467,12 @@ exports[`components/DatabaseSettings > should match snapshot 1`] = `
                 disabled=""
                 id="activeSearchBackend"
                 type="text"
-                value=""
+                value="none"
               />
               <div
                 class="help-text"
               >
-                Shows the currently active backend used for search. Values can be none, database, elasticsearch.
+                Shows the currently active backend used for search. Values can be none, database, elasticsearch, bleve etc.
               </div>
             </div>
           </div>

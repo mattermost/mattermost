@@ -3,8 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
-
+import {renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 import LicenseSettings from './license_settings';
@@ -60,26 +59,34 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         vi.clearAllMocks();
     });
 
-    it('renders the page title', () => {
+    it('renders the page title', async () => {
         renderWithContext(
             <LicenseSettings {...defaultProps}/>,
             initialState,
         );
+
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
 
         expect(screen.getByText('Edition and License')).toBeInTheDocument();
     });
 
-    it('renders enterprise edition with license', () => {
+    it('renders enterprise edition with license', async () => {
         renderWithContext(
             <LicenseSettings {...defaultProps}/>,
             initialState,
         );
+
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
 
         // Should display license info
         expect(screen.getByText('Mattermost Inc.')).toBeInTheDocument();
     });
 
-    it('renders with isDisabled set to true', () => {
+    it('renders with isDisabled set to true', async () => {
         renderWithContext(
             <LicenseSettings
                 {...defaultProps}
@@ -88,64 +95,84 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             initialState,
         );
 
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+
         expect(screen.getByText('Edition and License')).toBeInTheDocument();
     });
 
-    it('renders enterprise build without license', () => {
+    it('renders enterprise build without license', async () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}};
         renderWithContext(
             <LicenseSettings {...props}/>,
             initialState,
         );
 
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+
         // Should show starter edition panel when no license
         expect(screen.getByText('Edition and License')).toBeInTheDocument();
     });
 
-    it('renders team edition build without license', () => {
+    it('renders team edition build without license', async () => {
         const props = {...defaultProps, enterpriseReady: false, license: {IsLicensed: 'false'}};
         renderWithContext(
             <LicenseSettings {...props}/>,
             initialState,
         );
 
+        await waitFor(() => {
+            expect(defaultProps.actions.isAllowedToUpgradeToEnterprise).toHaveBeenCalled();
+        });
+
         expect(screen.getByText('Edition and License')).toBeInTheDocument();
     });
 
-    it('calls getLicenseConfig on mount', () => {
+    it('calls getLicenseConfig on mount', async () => {
         renderWithContext(
             <LicenseSettings {...defaultProps}/>,
             initialState,
         );
 
-        expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalledTimes(1);
+        });
     });
 
-    it('calls getFilteredUsersStats on mount', () => {
+    it('calls getFilteredUsersStats on mount', async () => {
         renderWithContext(
             <LicenseSettings {...defaultProps}/>,
             initialState,
         );
 
-        expect(defaultProps.actions.getFilteredUsersStats).toHaveBeenCalledWith({include_bots: false, include_deleted: false});
+        await waitFor(() => {
+            expect(defaultProps.actions.getFilteredUsersStats).toHaveBeenCalledWith({include_bots: false, include_deleted: false});
+        });
     });
 
-    it('calls getPrevTrialLicense on mount for enterprise ready', () => {
+    it('calls getPrevTrialLicense on mount for enterprise ready', async () => {
         renderWithContext(
             <LicenseSettings {...defaultProps}/>,
             initialState,
         );
 
-        expect(defaultProps.actions.getPrevTrialLicense).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(defaultProps.actions.getPrevTrialLicense).toHaveBeenCalledTimes(1);
+        });
     });
 
-    it('calls isAllowedToUpgradeToEnterprise on mount for non-enterprise ready', () => {
+    it('calls isAllowedToUpgradeToEnterprise on mount for non-enterprise ready', async () => {
         const props = {...defaultProps, enterpriseReady: false};
         renderWithContext(
             <LicenseSettings {...props}/>,
             initialState,
         );
 
-        expect(defaultProps.actions.isAllowedToUpgradeToEnterprise).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(defaultProps.actions.isAllowedToUpgradeToEnterprise).toHaveBeenCalledTimes(1);
+        });
     });
 });

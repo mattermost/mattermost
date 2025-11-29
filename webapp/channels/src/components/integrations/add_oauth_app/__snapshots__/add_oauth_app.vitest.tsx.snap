@@ -12,7 +12,7 @@ exports[`components/integrations/AddOAuthApp > should match snapshot 1`] = `
         <a
           href="/test/integrations/oauth2-apps"
         >
-          Installed OAuth2 Apps
+          OAuth 2.0 Applications
         </a>
         <span
           class="backstage-header__divider"
@@ -93,7 +93,7 @@ exports[`components/integrations/AddOAuthApp > should match snapshot 1`] = `
             <div
               class="form__help"
             >
-              Specify the display name, of up to 64 characters, for your OAuth 2.0 application.
+              Specify the display name of your OAuth 2.0 application. You can use up to 64 characters.
             </div>
           </div>
         </div>
@@ -145,7 +145,7 @@ exports[`components/integrations/AddOAuthApp > should match snapshot 1`] = `
             <div
               class="form__help"
             >
-              This is the URL for the homepage of the OAuth 2.0 application. Depending on your server configuration, use HTTP or HTTPS in the URL.
+              This is the URL for the homepage of the OAuth 2.0 application. Depending on your server configuration, use HTTP or HTTPS in your URL.
             </div>
           </div>
         </div>
@@ -171,7 +171,7 @@ exports[`components/integrations/AddOAuthApp > should match snapshot 1`] = `
             <div
               class="form__help"
             >
-              (Optional) The URL of the image used for your OAuth 2.0 application. Make sure you use HTTP or HTTPS in your URL.
+              (Optional) Specify the URL of the image for your OAuth 2.0 application. Use either HTTP or HTTPS in the URL.
             </div>
           </div>
         </div>
@@ -196,7 +196,7 @@ exports[`components/integrations/AddOAuthApp > should match snapshot 1`] = `
             <div
               class="form__help"
             >
-              The redirect URIs to which the service will redirect users after accepting or denying authorization of your application, and which will handle authorization codes or access tokens. Must be a valid URL and start with http:// or https://.
+              Specify the URIs to which the service redirects users after accepting or denying them authorization to your application, and handles authorization codes or access tokens. It must start with http:// or https://.
             </div>
           </div>
         </div>

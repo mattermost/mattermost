@@ -111,7 +111,7 @@ describe('components/AddUserToChannelModal', () => {
     });
 
     describe('didSelectChannel', () => {
-        test("should fetch the selected user's membership for the selected channel", () => {
+        it('should fetch the selected user\'s membership for the selected channel', () => {
             // This tests channel selection triggers membership check
             renderWithContext(
                 <AddUserToChannelModal {...baseProps}/>,

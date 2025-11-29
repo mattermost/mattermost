@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 import AddUsersToGroupModal from './add_users_to_group_modal';
 
@@ -33,12 +33,15 @@ describe('component/add_users_to_group_modal', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const {baseElement} = renderWithContext(
             <AddUsersToGroupModal
                 {...baseProps}
             />,
         );
+        await waitFor(() => {
+            expect(baseElement.querySelector('.modal-content')).toBeInTheDocument();
+        });
         expect(baseElement).toMatchSnapshot();
     });
 });

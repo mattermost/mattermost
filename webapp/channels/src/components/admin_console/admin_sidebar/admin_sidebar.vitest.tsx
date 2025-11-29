@@ -593,15 +593,10 @@ describe('components/AdminSidebar', () => {
             showTaskList: false,
         };
 
-        test('should render with plugins prop', () => {
-            const {container} = renderWithContext(<AdminSidebar {...props}/>);
-            expect(container).toBeInTheDocument();
-        });
-
-        test('should render with different plugins', () => {
+        test('should refresh the index in case idx is already present and there is a change in plugins or adminDefinition prop', () => {
             const {rerender} = renderWithContext(<AdminSidebar {...props}/>);
 
-            // Rerender with empty plugins
+            // Rerender with different plugins
             rerender(
                 <AdminSidebar
                     {...props}
@@ -613,7 +608,12 @@ describe('components/AdminSidebar', () => {
             expect(document.querySelector('.admin-sidebar')).toBeInTheDocument();
         });
 
-        test('should render with same plugins prop without regenerating index', () => {
+        test('should not call the generate index in case of idx is not already present', () => {
+            const {container} = renderWithContext(<AdminSidebar {...props}/>);
+            expect(container).toBeInTheDocument();
+        });
+
+        test('should not generate index in case of same props', () => {
             const {rerender} = renderWithContext(<AdminSidebar {...props}/>);
 
             // Rerender with same plugins
@@ -670,7 +670,7 @@ describe('components/AdminSidebar', () => {
             expect(container).toMatchSnapshot();
         });
 
-        test('should render search input', () => {
+        test('should filter plugins', () => {
             renderWithContext(<AdminSidebar {...props}/>);
 
             const searchInput = document.getElementById('adminSidebarFilter');

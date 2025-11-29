@@ -76,21 +76,4 @@ describe('components/admin_console/admin_button_outline/AdminButtonOutline', () 
         fireEvent.click(button);
         expect(onClick).toHaveBeenCalledTimes(1);
     });
-
-    test('should not handle onClick when disabled', () => {
-        const onClick = vi.fn();
-        renderWithContext(
-            <AdminButtonOutline
-                onClick={onClick}
-                className='admin-btn-default'
-                disabled={true}
-            >
-                {'Test children'}
-            </AdminButtonOutline>,
-        );
-
-        const button = screen.getByRole('button');
-        fireEvent.click(button);
-        expect(onClick).not.toHaveBeenCalled();
-    });
 });

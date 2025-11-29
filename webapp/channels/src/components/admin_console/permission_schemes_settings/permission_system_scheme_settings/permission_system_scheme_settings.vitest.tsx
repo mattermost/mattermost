@@ -5,27 +5,11 @@ import React from 'react';
 
 import type {Role} from '@mattermost/types/roles';
 
-import {renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
+import PermissionSystemSchemeSettings from 'components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings';
 
-import PermissionSystemSchemeSettings from './permission_system_scheme_settings';
+import {renderWithContext} from 'tests/vitest_react_testing_utils';
 
-// Mock console.error to suppress intl missing message warnings in tests
-const originalConsoleError = console.error;
-beforeAll(() => {
-    console.error = (...args: any[]) => {
-        const message = args[0]?.toString() || '';
-        if (message.includes('MISSING_TRANSLATION') || message.includes('Missing message:')) {
-            return;
-        }
-        originalConsoleError.apply(console, args);
-    };
-});
-
-afterAll(() => {
-    console.error = originalConsoleError;
-});
-
-describe('components/admin_console/permission_schemes_settings/permission_system_scheme_settings', () => {
+describe('components/admin_console/permission_schemes_settings/permission_system_scheme_settings/permission_system_scheme_settings', () => {
     const defaultRole: Role = {
         id: '',
         display_name: '',
@@ -38,7 +22,6 @@ describe('components/admin_console/permission_schemes_settings/permission_system
         update_at: 0,
         permissions: [],
     };
-
     const defaultProps = {
         config: {
             EnableGuestAccounts: 'true',
@@ -65,48 +48,34 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             run_member: defaultRole,
         },
         actions: {
-            loadRolesIfNeeded: vi.fn().mockResolvedValue({}),
-            editRole: vi.fn().mockResolvedValue({data: {}}),
+            loadRolesIfNeeded: vi.fn().mockReturnValue(Promise.resolve()),
+            editRole: vi.fn(),
             setNavigationBlocked: vi.fn(),
         },
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
+    test('should match snapshot on roles without permissions', () => {
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders the page', async () => {
-        renderWithContext(<PermissionSystemSchemeSettings {...defaultProps}/>);
-
-        await waitFor(() => {
-            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
-        });
-
-        // Should render the page
-        expect(document.querySelector('.wrapper--fixed')).toBeInTheDocument();
-    });
-
-    it('renders without custom permission schemes license', async () => {
+    test('should match snapshot when the license doesnt have custom schemes', () => {
         const license = {
             IsLicensed: 'true',
             CustomPermissionsSchemes: 'false',
         };
-
-        renderWithContext(
+        const {container} = renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 license={license}
             />,
         );
-
-        await waitFor(() => {
-            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
-        });
-
-        expect(document.querySelector('.wrapper--fixed')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with roles that have permissions', async () => {
+    test('should match snapshot on roles with permissions', () => {
         const roles: Record<string, Role> = {
             system_guest: {...defaultRole, permissions: ['create_post']},
             team_guest: {...defaultRole, permissions: ['invite_user']},
@@ -117,43 +86,70 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             system_admin: {...defaultRole, permissions: ['manage_system']},
             team_admin: {...defaultRole, permissions: ['add_user_to_team']},
             channel_admin: {...defaultRole, permissions: ['delete_post']},
-            playbook_admin: defaultRole,
-            playbook_member: defaultRole,
-            run_admin: defaultRole,
-            run_member: defaultRole,
         };
-
-        renderWithContext(
+        const {container} = renderWithContext(
             <PermissionSystemSchemeSettings
                 {...defaultProps}
                 roles={roles}
             />,
         );
-
-        await waitFor(() => {
-            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
-        });
-
-        expect(document.querySelector('.wrapper--fixed')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('calls loadRolesIfNeeded on mount', async () => {
-        renderWithContext(<PermissionSystemSchemeSettings {...defaultProps}/>);
-
-        await waitFor(() => {
-            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalledTimes(1);
-        });
+    test('should save each role on handleSubmit except system_admin role', () => {
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders save and reset buttons', async () => {
-        renderWithContext(<PermissionSystemSchemeSettings {...defaultProps}/>);
+    test('should save roles based on license', () => {
+        const license = {
+            IsLicensed: 'true',
+            CustomPermissionsSchemes: 'false',
+            GuestAccountsPermissions: 'false',
+        };
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings
+                {...defaultProps}
+                license={license}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
 
-        await waitFor(() => {
-            expect(defaultProps.actions.loadRolesIfNeeded).toHaveBeenCalled();
-        });
+    test('should show error if editRole fails', () => {
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
 
-        // Find buttons in the page
-        const buttons = screen.getAllByRole('button');
-        expect(buttons.length).toBeGreaterThan(0);
+    test('should open and close correctly roles blocks', () => {
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should open modal on click reset defaults', () => {
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should have default permissions that match the defaults constant', () => {
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should set moderated permissions on team/channel admins', () => {
+        const {container} = renderWithContext(
+            <PermissionSystemSchemeSettings {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 });

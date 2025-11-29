@@ -5,7 +5,7 @@ import React from 'react';
 
 import GroupsList from 'components/admin_console/group_settings/groups_list/groups_list';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 describe('components/admin_console/group_settings/GroupsList.tsx', () => {
     const defaultProps = {
@@ -18,14 +18,17 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
         },
     };
 
-    test('should match snapshot, with empty groups', () => {
+    test('should match snapshot, with empty groups', async () => {
         const {container} = renderWithContext(
             <GroupsList {...defaultProps}/>,
         );
+        await waitFor(() => {
+            expect(defaultProps.actions.getLdapGroups).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with groups', () => {
+    test('should match snapshot, with groups', async () => {
         const {container} = renderWithContext(
             <GroupsList
                 {...defaultProps}
@@ -36,10 +39,13 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
                 total={2}
             />,
         );
+        await waitFor(() => {
+            expect(defaultProps.actions.getLdapGroups).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with results including configured', () => {
+    test('should match snapshot, with results including configured', async () => {
         const {container} = renderWithContext(
             <GroupsList
                 {...defaultProps}
@@ -51,10 +57,13 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
                 total={3}
             />,
         );
+        await waitFor(() => {
+            expect(defaultProps.actions.getLdapGroups).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with many results', () => {
+    test('should match snapshot, with many results', async () => {
         const {container} = renderWithContext(
             <GroupsList
                 {...defaultProps}
@@ -73,10 +82,13 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
                 total={33}
             />,
         );
+        await waitFor(() => {
+            expect(defaultProps.actions.getLdapGroups).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should call getLdapGroups on mount', () => {
+    test('should call getLdapGroups on mount', async () => {
         const getLdapGroups = vi.fn().mockReturnValue(Promise.resolve());
         renderWithContext(
             <GroupsList
@@ -87,6 +99,8 @@ describe('components/admin_console/group_settings/GroupsList.tsx', () => {
                 }}
             />,
         );
-        expect(getLdapGroups).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(getLdapGroups).toHaveBeenCalled();
+        });
     });
 });

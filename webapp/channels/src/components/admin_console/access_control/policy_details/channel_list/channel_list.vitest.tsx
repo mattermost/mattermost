@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 import ChannelList from './channel_list';
 
@@ -41,7 +41,7 @@ describe('components/admin_console/access_control/channel_list', () => {
         },
     };
 
-    test('should match snapshot with no channels', () => {
+    test('should match snapshot with no channels', async () => {
         const props = {
             ...defaultProps,
             channels: [],
@@ -49,10 +49,13 @@ describe('components/admin_console/access_control/channel_list', () => {
             policyId: '',
         };
         const {container} = renderWithContext(<ChannelList {...props}/>);
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with channels', () => {
+    test('should match snapshot with channels', async () => {
         const props = {
             ...defaultProps,
             totalCount: 2,
@@ -62,10 +65,13 @@ describe('components/admin_console/access_control/channel_list', () => {
             },
         };
         const {container} = renderWithContext(<ChannelList {...props}/>);
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with channels to remove', () => {
+    test('should match snapshot with channels to remove', async () => {
         const props = {
             ...defaultProps,
             totalCount: 2,
@@ -75,10 +81,13 @@ describe('components/admin_console/access_control/channel_list', () => {
             },
         };
         const {container} = renderWithContext(<ChannelList {...props}/>);
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with channels to add', () => {
+    test('should match snapshot with channels to add', async () => {
         const props = {
             ...defaultProps,
             channelsToAdd: {
@@ -86,6 +95,9 @@ describe('components/admin_console/access_control/channel_list', () => {
             },
         };
         const {container} = renderWithContext(<ChannelList {...props}/>);
+        await waitFor(() => {
+            expect(container.querySelector('.DataGrid')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 });

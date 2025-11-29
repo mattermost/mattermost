@@ -8,14 +8,13 @@ import {TestHelper} from 'utils/test_helper';
 
 import ResetEmailModal from './reset_email_modal';
 
-describe('components/admin_console/reset_email_modal/reset_email_modal', () => {
+describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () => {
     const user = TestHelper.getUserMock({
-        id: 'user_id',
         email: 'arvin.darmawan@gmail.com',
     });
 
     const baseProps = {
-        actions: {patchUser: vi.fn().mockResolvedValue({})},
+        actions: {patchUser: vi.fn(() => Promise.resolve({}))},
         user,
         currentUserId: 'random_user_id',
         onHide: vi.fn(),
@@ -27,75 +26,63 @@ describe('components/admin_console/reset_email_modal/reset_email_modal', () => {
         vi.clearAllMocks();
     });
 
-    it('renders the modal title', () => {
-        renderWithContext(<ResetEmailModal {...baseProps}/>);
+    test('should match snapshot when not the current user', () => {
+        const {baseElement} = renderWithContext(<ResetEmailModal {...baseProps}/>);
 
-        expect(screen.getByText('Update Email')).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('renders nothing when there is no user', () => {
+    test('should match snapshot when there is no user', () => {
         const props = {...baseProps, user: undefined};
-        const {container} = renderWithContext(<ResetEmailModal {...props}/>);
+        const {baseElement} = renderWithContext(<ResetEmailModal {...props}/>);
 
-        expect(container.querySelector('[data-testid="resetEmailModal"]')).not.toBeInTheDocument();
+        // No modal rendered when no user
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('renders email input field', () => {
-        renderWithContext(<ResetEmailModal {...baseProps}/>);
-
-        expect(screen.getByText('New Email')).toBeInTheDocument();
-        expect(document.querySelector('input[type="email"]')).toBeInTheDocument();
-    });
-
-    it('shows password field when current user', () => {
+    test('should match snapshot when the current user', () => {
         const props = {...baseProps, currentUserId: user.id};
-        renderWithContext(<ResetEmailModal {...props}/>);
+        const {baseElement} = renderWithContext(<ResetEmailModal {...props}/>);
 
-        expect(screen.getByText('Current Password')).toBeInTheDocument();
-        expect(document.querySelector('input[type="password"]')).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('does not show password field for other users', () => {
-        renderWithContext(<ResetEmailModal {...baseProps}/>);
-
-        expect(screen.queryByText('Current Password')).not.toBeInTheDocument();
-        expect(document.querySelector('input[type="password"]')).not.toBeInTheDocument();
-    });
-
-    it('shows error for empty email', async () => {
+    test('should not update email since the email is empty', async () => {
         renderWithContext(<ResetEmailModal {...baseProps}/>);
 
         const submitButton = screen.getByRole('button', {name: 'Reset'});
         fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+            expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
         });
 
         expect(baseProps.actions.patchUser).not.toHaveBeenCalled();
     });
 
-    it('shows error for invalid email', async () => {
+    test('should not update email since the email is invalid', async () => {
         renderWithContext(<ResetEmailModal {...baseProps}/>);
 
-        const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+        const emailInput = document.querySelector('input[type=\'email\']') as HTMLInputElement;
         fireEvent.change(emailInput, {target: {value: 'invalid-email'}});
 
         const submitButton = screen.getByRole('button', {name: 'Reset'});
         fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText('Please enter a valid email address.')).toBeInTheDocument();
+            expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
         });
 
         expect(baseProps.actions.patchUser).not.toHaveBeenCalled();
     });
 
-    it('requires password when updating current user email', async () => {
+    test('should require password when updating email of the current user', async () => {
         const props = {...baseProps, currentUserId: user.id};
         renderWithContext(<ResetEmailModal {...props}/>);
 
-        const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+        const emailInput = document.querySelector('input[type=\'email\']') as HTMLInputElement;
         fireEvent.change(emailInput, {target: {value: 'currentUser@test.com'}});
 
         const submitButton = screen.getByRole('button', {name: 'Reset'});
@@ -108,10 +95,10 @@ describe('components/admin_console/reset_email_modal/reset_email_modal', () => {
         expect(baseProps.actions.patchUser).not.toHaveBeenCalled();
     });
 
-    it('calls patchUser with valid email for another user', async () => {
+    test('should update email since the email is valid of the another user', async () => {
         renderWithContext(<ResetEmailModal {...baseProps}/>);
 
-        const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+        const emailInput = document.querySelector('input[type=\'email\']') as HTMLInputElement;
         fireEvent.change(emailInput, {target: {value: 'user@test.com'}});
 
         const submitButton = screen.getByRole('button', {name: 'Reset'});
@@ -122,14 +109,14 @@ describe('components/admin_console/reset_email_modal/reset_email_modal', () => {
         });
     });
 
-    it('calls patchUser with valid email and password for current user', async () => {
+    test('should update email since the email is valid of the current user', async () => {
         const props = {...baseProps, currentUserId: user.id};
         renderWithContext(<ResetEmailModal {...props}/>);
 
-        const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
+        const emailInput = document.querySelector('input[type=\'email\']') as HTMLInputElement;
         fireEvent.change(emailInput, {target: {value: 'currentUser@test.com'}});
 
-        const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
+        const passwordInput = document.querySelector('input[type=\'password\']') as HTMLInputElement;
         fireEvent.change(passwordInput, {target: {value: 'password'}});
 
         const submitButton = screen.getByRole('button', {name: 'Reset'});
@@ -138,15 +125,5 @@ describe('components/admin_console/reset_email_modal/reset_email_modal', () => {
         await waitFor(() => {
             expect(baseProps.actions.patchUser).toHaveBeenCalledTimes(1);
         });
-    });
-
-    it('closes modal on cancel', () => {
-        renderWithContext(<ResetEmailModal {...baseProps}/>);
-
-        const cancelButton = screen.getByRole('button', {name: 'Cancel'});
-        fireEvent.click(cancelButton);
-
-        // Modal should start closing (show state set to false)
-        expect(baseProps.onExited).not.toHaveBeenCalled(); // onExited is called after animation
     });
 });

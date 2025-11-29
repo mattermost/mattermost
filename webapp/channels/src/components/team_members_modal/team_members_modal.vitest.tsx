@@ -34,21 +34,22 @@ describe('components/TeamMembersModal', () => {
     };
 
     test('should match snapshot', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <TeamMembersModal
                     {...baseProps}
                 />,
             );
-            container = result.container;
+            baseElement = result.baseElement;
             vi.runAllTimers();
         });
 
-        expect(container!).toMatchSnapshot();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement!).toMatchSnapshot();
     });
 
-    test('should call onHide on Modal close', async () => {
+    test('should call onHide on Modal\'s onExited', async () => {
         const onExited = vi.fn();
         await act(async () => {
             renderWithContext(
@@ -60,12 +61,13 @@ describe('components/TeamMembersModal', () => {
             vi.runAllTimers();
         });
 
-        // Close the modal by clicking the close button
         const closeButton = screen.getByLabelText('Close');
         fireEvent.click(closeButton);
 
-        // The modal uses onExited callback after animation completes
-        // In tests without animations, we just verify the close button works
-        expect(closeButton).toBeInTheDocument();
+        await act(async () => {
+            vi.runAllTimers();
+        });
+
+        expect(onExited).toHaveBeenCalledTimes(1);
     });
 });

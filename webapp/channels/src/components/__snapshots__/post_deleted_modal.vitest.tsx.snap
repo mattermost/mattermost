@@ -1,7 +1,81 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/PostDeletedModal > should match snapshot 1`] = `
-<div
-  aria-hidden="true"
-/>
+exports[`components/ChannelInfoModal > should match snapshot 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="postDeletedModalLabel"
+      class="fade in modal"
+      data-testid="postDeletedModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="postDeletedModalLabel"
+            >
+              Comment could not be posted
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              Someone deleted the message on which you tried to post a comment.
+            </p>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-primary"
+              data-testid="postDeletedModalOkButton"
+              type="button"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

@@ -1,0 +1,44 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/permission_schemes_settings/permission_team_scheme_settings/team_in_list/team_in_list > should match snapshot with team 1`] = `
+<div>
+  <div
+    class="team"
+  >
+    <div
+      class="team-info-block"
+    >
+      <div
+        class="TeamIcon TeamIcon__sm no-hover"
+      >
+        <div
+          class="TeamIcon__content no-hover"
+        >
+          <div
+            aria-label="testTeam Team Initials"
+            class="TeamIcon__initials TeamIcon__initials__sm"
+            data-testid="teamIconInitial"
+            role="img"
+          >
+            te
+          </div>
+        </div>
+      </div>
+      <div
+        class="team-data"
+      >
+        <div
+          class="title"
+        >
+          testTeam
+        </div>
+      </div>
+    </div>
+    <a
+      class="remove"
+    >
+      Remove
+    </a>
+  </div>
+</div>
+`;

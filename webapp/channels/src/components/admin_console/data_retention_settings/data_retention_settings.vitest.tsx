@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 import DataRetentionSettings from './data_retention_settings';
 
@@ -33,16 +33,19 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         },
     };
 
-    test('should match snapshot with no custom policies', () => {
+    test('should match snapshot with no custom policies', async () => {
         const {container} = renderWithContext(
             <DataRetentionSettings
                 {...baseProps}
             />,
         );
+        await waitFor(() => {
+            expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with custom policy', () => {
+    test('should match snapshot with custom policy', async () => {
         const props = {
             ...baseProps,
             customPolicies: {
@@ -61,10 +64,13 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
                 {...props}
             />,
         );
+        await waitFor(() => {
+            expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with custom policy keep forever', () => {
+    test('should match snapshot with custom policy keep forever', async () => {
         const props = {
             ...baseProps,
             customPolicies: {
@@ -83,10 +89,13 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
                 {...props}
             />,
         );
+        await waitFor(() => {
+            expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with Global Policies disabled', () => {
+    test('should match snapshot with Global Policies disabled', async () => {
         const props = {
             ...baseProps,
             config: {
@@ -103,6 +112,9 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
                 {...props}
             />,
         );
+        await waitFor(() => {
+            expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 });

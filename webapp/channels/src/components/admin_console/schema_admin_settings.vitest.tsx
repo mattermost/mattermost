@@ -246,7 +246,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         } as Partial<EnvironmentConfig>;
     });
 
-    test('should render settings from schema', () => {
+    test('should render settings from schema', async () => {
         renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
@@ -257,8 +257,10 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             />,
         );
 
-        // Verify the form structure is rendered
-        expect(screen.getByRole('form')).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByRole('form')).toBeInTheDocument();
+        });
 
         // Verify key settings from schema are rendered (different types)
         expect(screen.getByText('label-a')).toBeInTheDocument(); // Text input setting
@@ -284,7 +286,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should render header text with markdown links', () => {
+    test('should render header text with markdown links', async () => {
         const headerText = 'This is [a link](!https://example.com) in the header';
         const props = {
             ...DefaultProps,
@@ -299,9 +301,13 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
         const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
 
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByRole('link', {name: 'a link'})).toBeInTheDocument();
+        });
+
         // Verify the markdown link is rendered as an anchor element with the correct text
         const link = screen.getByRole('link', {name: 'a link'});
-        expect(link).toBeInTheDocument();
         expect(link).toHaveAttribute('href', 'https://example.com');
 
         // Verify the surrounding text is present
@@ -309,7 +315,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(container.textContent).toContain('in the header');
     });
 
-    test('should render footer text with markdown links', () => {
+    test('should render footer text with markdown links', async () => {
         const footerText = 'This is [a link](https://example.com) in the footer';
         const props = {
             ...DefaultProps,
@@ -324,9 +330,13 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
         const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
 
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByRole('link', {name: 'a link'})).toBeInTheDocument();
+        });
+
         // Verify the markdown link is rendered as an anchor element with the correct text
         const link = screen.getByRole('link', {name: 'a link'});
-        expect(link).toBeInTheDocument();
         expect(link).toHaveAttribute('href', 'https://example.com');
 
         // Verify the surrounding text is present
@@ -567,7 +577,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         });
     });
 
-    test('should render dropdown setting', () => {
+    test('should render dropdown setting', async () => {
         renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
@@ -578,15 +588,17 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             />,
         );
 
-        // Verify dropdown label is rendered
-        expect(screen.getByText('label-c')).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('label-c')).toBeInTheDocument();
+        });
 
         // Verify dropdown options are available
         const dropdown = screen.getByRole('combobox', {name: /label-c/i});
         expect(dropdown).toBeInTheDocument();
     });
 
-    test('should render radio button setting', () => {
+    test('should render radio button setting', async () => {
         renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
@@ -597,8 +609,10 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             />,
         );
 
-        // Verify radio button label is rendered
-        expect(screen.getByText('label-d')).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('label-d')).toBeInTheDocument();
+        });
 
         // Verify radio buttons are rendered
         const radioButtons = screen.getAllByRole('radio');

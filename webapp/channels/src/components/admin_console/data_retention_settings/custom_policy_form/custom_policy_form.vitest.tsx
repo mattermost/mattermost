@@ -5,7 +5,7 @@ import React from 'react';
 
 import CustomPolicyForm from 'components/admin_console/data_retention_settings/custom_policy_form/custom_policy_form';
 
-import {renderWithContext, cleanup} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, cleanup, waitFor} from 'tests/vitest_react_testing_utils';
 
 // Mock admin actions to prevent Redux dispatches that cause unhandled rejections
 vi.mock('mattermost-redux/actions/admin', async (importOriginal) => {
@@ -36,13 +36,16 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
         },
     };
 
-    test('should match snapshot with creating new policy', () => {
+    test('should match snapshot with creating new policy', async () => {
         const props = {...defaultProps};
         const {container} = renderWithContext(<CustomPolicyForm {...props}/>);
+        await waitFor(() => {
+            expect(container.querySelector('.CustomPolicy__fields')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with editing existing policy', () => {
+    test('should match snapshot with editing existing policy', async () => {
         const props = {...defaultProps};
 
         const {container} = renderWithContext(
@@ -58,6 +61,9 @@ describe('components/admin_console/data_retention_settings/custom_policy_form', 
                 }}
             />,
         );
+        await waitFor(() => {
+            expect(props.actions.fetchPolicy).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 });

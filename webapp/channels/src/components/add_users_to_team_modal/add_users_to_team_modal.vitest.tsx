@@ -141,7 +141,7 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
         });
 
         // Wait for the search input to be available
-        const searchInput = await waitFor(() => screen.getByLabelText('Search and add members'));
+        const searchInput = await waitFor(() => screen.getByLabelText('Search for people'));
 
         // Search with a term - should call searchProfiles
         await act(async () => {

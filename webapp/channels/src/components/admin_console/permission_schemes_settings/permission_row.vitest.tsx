@@ -109,7 +109,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         expect(onChange).toHaveBeenCalledWith('id');
     });
 
-    test("shouldn't call onChange function on click when is read-only", () => {
+    test('shouldn\'t call onChange function on click when is read-only', () => {
         const onChange = vi.fn();
         const {container} = renderWithContext(
             <PermissionRow

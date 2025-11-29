@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupUsers', () => {
     const members = range(0, 55).map((i) => ({
@@ -29,32 +29,41 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         getMembers: vi.fn().mockReturnValue(Promise.resolve()),
     };
 
-    test('should match snapshot, on loading without data', () => {
+    test('should match snapshot, on loading without data', async () => {
         const {container} = renderWithContext(
             <GroupUsers
                 {...defaultProps}
                 members={[]}
             />,
         );
+        await waitFor(() => {
+            expect(defaultProps.getMembers).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, plugin group', () => {
+    test('should match snapshot, plugin group', async () => {
         const {container} = renderWithContext(
             <GroupUsers
                 {...defaultProps}
                 source={PluginGroupSourcePrefix.Plugin + 'keycloak'}
             />,
         );
+        await waitFor(() => {
+            expect(defaultProps.getMembers).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, on loading with data', () => {
+    test('should match snapshot, on loading with data', async () => {
         const {container} = renderWithContext(<GroupUsers {...defaultProps}/>);
+        await waitFor(() => {
+            expect(defaultProps.getMembers).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with multiple pages', () => {
+    test('should match snapshot, with multiple pages', async () => {
         const {container} = renderWithContext(
             <GroupUsers
                 {...defaultProps}
@@ -62,10 +71,13 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
                 total={55}
             />,
         );
+        await waitFor(() => {
+            expect(defaultProps.getMembers).toHaveBeenCalled();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should call getMembers on mount', () => {
+    test('should call getMembers on mount', async () => {
         const getMembers = vi.fn().mockReturnValue(Promise.resolve());
         renderWithContext(
             <GroupUsers
@@ -73,6 +85,8 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
                 getMembers={getMembers}
             />,
         );
-        expect(getMembers).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 0, 20);
+        await waitFor(() => {
+            expect(getMembers).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 0, 20);
+        });
     });
 });

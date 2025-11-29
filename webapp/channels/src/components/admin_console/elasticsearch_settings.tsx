@@ -75,8 +75,8 @@ export const messages = defineMessages({
 });
 
 export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
-    [messages.connectionUrlDescription, {documentationLink: ''}],
-    [messages.enableIndexingDescription, {documentationLink: ''}],
+    messages.connectionUrlDescription,
+    messages.enableIndexingDescription,
     messages.title,
     messages.enableIndexingTitle,
     messages.connectionUrlTitle,

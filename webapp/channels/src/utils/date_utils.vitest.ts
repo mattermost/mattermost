@@ -233,7 +233,7 @@ describe('date_utils', () => {
         });
     });
 
-    describe('momentToString additional tests', () => {
+    describe('momentToString', () => {
         it('should convert moment to date string', () => {
             const momentValue = moment('2025-01-15');
             const result = momentToString(momentValue, false);

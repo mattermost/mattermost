@@ -56,6 +56,11 @@ describe('components/integrations/AddIncomingWebhook', () => {
         actions: {createIncomingHook},
     };
 
+    test('should match snapshot', () => {
+        const {container} = renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
+        expect(container).toMatchSnapshot();
+    });
+
     test('should have called createIncomingHook', async () => {
         const hook = TestHelper.getIncomingWebhookMock({
             channel_id: 'current_channel_id',

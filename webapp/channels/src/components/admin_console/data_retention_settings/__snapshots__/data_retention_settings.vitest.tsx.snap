@@ -50,13 +50,73 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Files
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
                     class="DataGrid_row"
-                  />
+                  >
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      Applies to all teams and channels, but does not apply to custom retention policies.
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        Keep forever
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        Keep forever
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell actionIcon"
+                    >
+                      <div
+                        class="MenuWrapper "
+                      >
+                        <div
+                          class="text-right"
+                        >
+                          <a>
+                            <i
+                              class="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -101,24 +161,33 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Applied to
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_empty"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                    No items found
                   </div>
                 </div>
               </div>
@@ -273,13 +342,73 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Files
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
                     class="DataGrid_row"
-                  />
+                  >
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      Applies to all teams and channels, but does not apply to custom retention policies.
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        100 days
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        100 days
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell actionIcon"
+                    >
+                      <div
+                        class="MenuWrapper "
+                      >
+                        <div
+                          class="text-right"
+                        >
+                          <a>
+                            <i
+                              class="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -324,24 +453,77 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Applied to
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_row"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
+                    <div
+                      class="DataGrid_cell"
                     >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                      <div
+                        id="customDescription-1234567"
+                      >
+                        Custom policy 1
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        id="customDuration-1234567"
+                      >
+                        60 days
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        id="customAppliedTo-1234567"
+                      >
+                        1 team, 2 channels
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell actionIcon"
+                    >
+                      <div
+                        class="MenuWrapper "
+                        id="customWrapper-1234567"
+                      >
+                        <div
+                          class="text-right"
+                        >
+                          <a>
+                            <i
+                              class="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -526,13 +708,73 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Files
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
                     class="DataGrid_row"
-                  />
+                  >
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      Applies to all teams and channels, but does not apply to custom retention policies.
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        100 days
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        100 days
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell actionIcon"
+                    >
+                      <div
+                        class="MenuWrapper "
+                      >
+                        <div
+                          class="text-right"
+                        >
+                          <a>
+                            <i
+                              class="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -577,24 +819,77 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Applied to
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_row"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
+                    <div
+                      class="DataGrid_cell"
                     >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                      <div
+                        id="customDescription-1234567"
+                      >
+                        Custom policy 1
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        id="customDuration-1234567"
+                      >
+                        Keep forever
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        id="customAppliedTo-1234567"
+                      >
+                        1 team, 2 channels
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell actionIcon"
+                    >
+                      <div
+                        class="MenuWrapper "
+                        id="customWrapper-1234567"
+                      >
+                        <div
+                          class="text-right"
+                        >
+                          <a>
+                            <i
+                              class="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -779,13 +1074,73 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Files
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
                     class="DataGrid_row"
-                  />
+                  >
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      Applies to all teams and channels, but does not apply to custom retention policies.
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_message_retention_cell"
+                      >
+                        100 days
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell"
+                    >
+                      <div
+                        data-testid="global_file_retention_cell"
+                      >
+                        100 days
+                      </div>
+                    </div>
+                    <div
+                      class="DataGrid_cell actionIcon"
+                    >
+                      <div
+                        class="MenuWrapper "
+                      >
+                        <div
+                          class="text-right"
+                        >
+                          <a>
+                            <i
+                              class="icon icon-dots-vertical"
+                            />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -830,24 +1185,33 @@ exports[`components/admin_console/data_retention_settings/data_retention_setting
               >
                 <div
                   class="DataGrid_header"
-                />
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Description
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Channel messages
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Applied to
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                  />
+                </div>
                 <div
                   class="DataGrid_rows"
                 >
                   <div
-                    class="DataGrid_loading"
+                    class="DataGrid_empty"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    Loading
+                    No items found
                   </div>
                 </div>
               </div>

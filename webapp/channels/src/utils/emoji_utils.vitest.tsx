@@ -216,6 +216,85 @@ describe('wrapEmojis', () => {
         ]);
     });
 
+    test('should properly handle adjacent emojis', () => {
+        const input = '🌮🎉🇫🇮🍒';
+
+        expect(wrapEmojis(input)).toEqual([
+            <span
+                key='0'
+                className='emoji'
+            >
+                {'🌮'}
+            </span>,
+            <span
+                key='2'
+                className='emoji'
+            >
+                {'🎉'}
+            </span>,
+            <span
+                key='4'
+                className='emoji'
+            >
+                {'🇫🇮'}
+            </span>,
+            <span
+                key='8'
+                className='emoji'
+            >
+                {'🍒'}
+            </span>,
+        ]);
+    });
+
+    test('should properly handle unsupported emojis', () => {
+        const input = 'this is 🤟 a test';
+
+        expect(wrapEmojis(input)).toEqual([
+            'this is ',
+            <span
+                key='8'
+                className='emoji'
+            >
+                {'🤟'}
+            </span>,
+            ' a test',
+        ]);
+    });
+
+    test('should properly handle emojis with variations', () => {
+        const input = 'this is 👍🏿👍🏻 a test ✊🏻✊🏿';
+
+        expect(wrapEmojis(input)).toEqual([
+            'this is ',
+            <span
+                key='8'
+                className='emoji'
+            >
+                {'👍🏿'}
+            </span>,
+            <span
+                key='12'
+                className='emoji'
+            >
+                {'👍🏻'}
+            </span>,
+            ' a test ',
+            <span
+                key='24'
+                className='emoji'
+            >
+                {'✊🏻'}
+            </span>,
+            <span
+                key='27'
+                className='emoji'
+            >
+                {'✊🏿'}
+            </span>,
+        ]);
+    });
+
     test('should return a one character string if it contains no emojis', () => {
         const input = 'a';
 
@@ -260,6 +339,37 @@ describe('convertEmojiSkinTone', () => {
         expect(convertEmojiSkinTone(emoji, '1F3FF')).toBe(getEmoji('ear_dark_skin_tone'));
     });
 
+    test('should convert a gendered emoji', () => {
+        const emoji = getEmoji('male-teacher');
+
+        expect(convertEmojiSkinTone(emoji, 'default')).toBe(getEmoji('male-teacher'));
+        expect(convertEmojiSkinTone(emoji, '1F3FB')).toBe(getEmoji('male-teacher_light_skin_tone'));
+        expect(convertEmojiSkinTone(emoji, '1F3FC')).toBe(getEmoji('male-teacher_medium_light_skin_tone'));
+        expect(convertEmojiSkinTone(emoji, '1F3FD')).toBe(getEmoji('male-teacher_medium_skin_tone'));
+        expect(convertEmojiSkinTone(emoji, '1F3FE')).toBe(getEmoji('male-teacher_medium_dark_skin_tone'));
+        expect(convertEmojiSkinTone(emoji, '1F3FF')).toBe(getEmoji('male-teacher_dark_skin_tone'));
+    });
+
+    test('should convert emojis made up of ZWJ sequences', () => {
+        const astronaut = getEmoji('astronaut');
+
+        expect(convertEmojiSkinTone(astronaut, 'default')).toBe(getEmoji('astronaut'));
+        expect(convertEmojiSkinTone(astronaut, '1F3FB')).toBe(getEmoji('astronaut_light_skin_tone'));
+        expect(convertEmojiSkinTone(astronaut, '1F3FC')).toBe(getEmoji('astronaut_medium_light_skin_tone'));
+        expect(convertEmojiSkinTone(astronaut, '1F3FD')).toBe(getEmoji('astronaut_medium_skin_tone'));
+        expect(convertEmojiSkinTone(astronaut, '1F3FE')).toBe(getEmoji('astronaut_medium_dark_skin_tone'));
+        expect(convertEmojiSkinTone(astronaut, '1F3FF')).toBe(getEmoji('astronaut_dark_skin_tone'));
+
+        const redHairedWoman = getEmoji('red_haired_woman_dark_skin_tone');
+
+        expect(convertEmojiSkinTone(redHairedWoman, 'default')).toBe(getEmoji('red_haired_woman'));
+        expect(convertEmojiSkinTone(redHairedWoman, '1F3FB')).toBe(getEmoji('red_haired_woman_light_skin_tone'));
+        expect(convertEmojiSkinTone(redHairedWoman, '1F3FC')).toBe(getEmoji('red_haired_woman_medium_light_skin_tone'));
+        expect(convertEmojiSkinTone(redHairedWoman, '1F3FD')).toBe(getEmoji('red_haired_woman_medium_skin_tone'));
+        expect(convertEmojiSkinTone(redHairedWoman, '1F3FE')).toBe(getEmoji('red_haired_woman_medium_dark_skin_tone'));
+        expect(convertEmojiSkinTone(redHairedWoman, '1F3FF')).toBe(getEmoji('red_haired_woman_dark_skin_tone'));
+    });
+
     test('should do nothing for emojis without skin tones', () => {
         const strawberry = getEmoji('strawberry');
 
@@ -269,6 +379,17 @@ describe('convertEmojiSkinTone', () => {
         expect(convertEmojiSkinTone(strawberry, '1F3FD')).toBe(strawberry);
         expect(convertEmojiSkinTone(strawberry, '1F3FE')).toBe(strawberry);
         expect(convertEmojiSkinTone(strawberry, '1F3FF')).toBe(strawberry);
+    });
+
+    test('should do nothing for emojis with multiple skin tones', () => {
+        const emoji = getEmoji('man_and_woman_holding_hands_medium_light_skin_tone_medium_dark_skin_tone');
+
+        expect(convertEmojiSkinTone(emoji, 'default')).toBe(emoji);
+        expect(convertEmojiSkinTone(emoji, '1F3FB')).toBe(emoji);
+        expect(convertEmojiSkinTone(emoji, '1F3FC')).toBe(emoji);
+        expect(convertEmojiSkinTone(emoji, '1F3FD')).toBe(emoji);
+        expect(convertEmojiSkinTone(emoji, '1F3FE')).toBe(emoji);
+        expect(convertEmojiSkinTone(emoji, '1F3FF')).toBe(emoji);
     });
 });
 

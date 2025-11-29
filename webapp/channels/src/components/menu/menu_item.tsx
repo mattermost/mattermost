@@ -238,7 +238,7 @@ export const MenuItemStyled = styled(MuiMenuItem, {
 
                 // aria expanded to add the active styling on parent sub menu item
                 '&.Mui-active, &[aria-expanded="true"]': {
-                    'background-color': isRegular ? 'rgba(var(--button-bg-rgb), 0.08)' : 'background-color: rgba(var(--error-text-color-rgb), 0.16)',
+                    backgroundColor: isRegular ? 'rgba(var(--button-bg-rgb), 0.08)' : 'rgba(var(--error-text-color-rgb), 0.16)',
                 },
 
                 '&:hover': {
@@ -255,7 +255,7 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     backgroundColor: isRegular ? 'var(--center-channel-bg)' : 'var(--error-text)',
                     color: isDestructive && 'var(--button-color)',
                 },
-                '&.Mui-focusVisible .label-elements>:last-child, &.Mui-focusVisible .label-elements>:first-child, &.Mui-focusVisible .label-elements>:only-child': {
+                '&.Mui-focusVisible .label-elements>:last-of-type, &.Mui-focusVisible .label-elements>:first-of-type, &.Mui-focusVisible .label-elements>:only-of-type': {
                     color: isDestructive && 'var(--button-color)',
                 },
                 '&.Mui-focusVisible .leading-element, &.Mui-focusVisible .trailing-elements': {
@@ -286,19 +286,19 @@ export const MenuItemStyled = styled(MuiMenuItem, {
                     lineHeight: '16px',
                 },
 
-                '&>.label-elements>:last-child': {
+                '&>.label-elements>:last-of-type': {
                     fontSize: '12px',
                     color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
                 },
-                '&:hover .label-elements>:last-child': {
+                '&:hover .label-elements>:last-of-type': {
                     color: isDestructive && 'var(--button-color)',
                 },
 
-                '&>.label-elements>:first-child, &>.label-elements>:only-child': {
+                '&>.label-elements>:first-of-type, &>.label-elements>:only-of-type': {
                     fontSize: '14px',
                     color: isRegular ? 'var(--center-channel-color)' : 'var(--error-text)',
                 },
-                '&:hover .label-elements>:first-child, &:hover .label-elements>:only-child': {
+                '&:hover .label-elements>:first-of-type, &:hover .label-elements>:only-of-type': {
                     color: isDestructive && 'var(--button-color)',
                 },
 

@@ -107,6 +107,136 @@ describe('components/Menu', () => {
         expect(menu).toHaveAttribute('id', 'custom-menu-list-id');
     });
 
+    test('should hide the correct dividers', () => {
+        const {container} = renderWithIntl(
+            <Menu ariaLabel='test-label'>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-item'>{'Item 1'}</div>
+                <div className='menu-item'>{'Item 2'}</div>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-item'>{'Item 3'}</div>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-item'>{'Item 4'}</div>
+                <div className='menu-item'>{'Item 5'}</div>
+                <div className='menu-item'>{'Item 6'}</div>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+                <div className='menu-divider'/>
+            </Menu>,
+        );
+
+        const dividers = container.querySelectorAll('.menu-divider');
+
+        // First 4 dividers at the beginning should be hidden
+        expect(dividers[0]).toHaveStyle({display: 'none'});
+        expect(dividers[1]).toHaveStyle({display: 'none'});
+        expect(dividers[2]).toHaveStyle({display: 'none'});
+        expect(dividers[3]).toHaveStyle({display: 'none'});
+
+        // Divider between items should be visible
+        expect(dividers[4]).toHaveStyle({display: 'block'});
+
+        // Consecutive divider should be hidden
+        expect(dividers[5]).toHaveStyle({display: 'none'});
+
+        // Divider between items should be visible
+        expect(dividers[6]).toHaveStyle({display: 'block'});
+
+        // Consecutive dividers should be hidden
+        expect(dividers[7]).toHaveStyle({display: 'none'});
+        expect(dividers[8]).toHaveStyle({display: 'none'});
+
+        // Last 4 trailing dividers should be hidden
+        expect(dividers[9]).toHaveStyle({display: 'none'});
+        expect(dividers[10]).toHaveStyle({display: 'none'});
+        expect(dividers[11]).toHaveStyle({display: 'none'});
+        expect(dividers[12]).toHaveStyle({display: 'none'});
+    });
+
+    test('should hide the correct dividers on mobile', () => {
+        const {container} = renderWithIntl(
+            <Menu ariaLabel='test-label'>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='menu-item'>{'Item 1'}</div>
+                <div className='menu-item'>{'Item 2'}</div>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='menu-item'>{'Item 3'}</div>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='menu-item'>{'Item 4'}</div>
+                <div className='menu-item'>{'Item 5'}</div>
+                <div className='menu-item'>{'Item 6'}</div>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+                <div className='mobile-menu-divider'/>
+            </Menu>,
+        );
+
+        const dividers = container.querySelectorAll('.mobile-menu-divider');
+
+        // First 4 dividers at the beginning should be hidden
+        expect(dividers[0]).toHaveStyle({display: 'none'});
+        expect(dividers[1]).toHaveStyle({display: 'none'});
+        expect(dividers[2]).toHaveStyle({display: 'none'});
+        expect(dividers[3]).toHaveStyle({display: 'none'});
+
+        // Divider between items should be visible
+        expect(dividers[4]).toHaveStyle({display: 'block'});
+
+        // Consecutive divider should be hidden
+        expect(dividers[5]).toHaveStyle({display: 'none'});
+
+        // Divider between items should be visible
+        expect(dividers[6]).toHaveStyle({display: 'block'});
+
+        // Consecutive dividers should be hidden
+        expect(dividers[7]).toHaveStyle({display: 'none'});
+        expect(dividers[8]).toHaveStyle({display: 'none'});
+
+        // Last 4 trailing dividers should be hidden
+        expect(dividers[9]).toHaveStyle({display: 'none'});
+        expect(dividers[10]).toHaveStyle({display: 'none'});
+        expect(dividers[11]).toHaveStyle({display: 'none'});
+        expect(dividers[12]).toHaveStyle({display: 'none'});
+    });
+
+    test('should update divider visibility on children change', () => {
+        const {container, rerender} = renderWithIntl(
+            <Menu ariaLabel='test-label'>
+                <div className='menu-divider'/>
+                <div className='menu-item'>{'Item 1'}</div>
+            </Menu>,
+        );
+
+        let dividers = container.querySelectorAll('.menu-divider');
+        expect(dividers[0]).toHaveStyle({display: 'none'});
+
+        // Rerender with divider between items
+        rerender(
+            <Menu ariaLabel='test-label'>
+                <div className='menu-item'>{'Item 1'}</div>
+                <div className='menu-divider'/>
+                <div className='menu-item'>{'Item 2'}</div>
+            </Menu>,
+        );
+
+        dividers = container.querySelectorAll('.menu-divider');
+        expect(dividers[0]).toHaveStyle({display: 'block'});
+    });
+
     test('should keep menu open when clicking empty space but allow closing from menu items', () => {
         const TestComponent = () => {
             const [isMenuOpen, setIsMenuOpen] = React.useState(true);
@@ -151,5 +281,60 @@ describe('components/Menu', () => {
         fireEvent.click(menuItem);
         expect(screen.queryByRole('menu')).not.toBeInTheDocument();
         expect(screen.getByTestId('menu-closed')).toBeInTheDocument();
+    });
+
+    test('should return bounding rectangle from rect() method', () => {
+        const ref = React.createRef<Menu>();
+        renderWithIntl(
+            <Menu
+                ref={ref}
+                ariaLabel='test-label'
+            >
+                {'text'}
+            </Menu>,
+        );
+
+        // Mock getBoundingClientRect
+        const mockRect = {
+            x: 10,
+            y: 20,
+            width: 100,
+            height: 200,
+            top: 20,
+            left: 10,
+            bottom: 220,
+            right: 110,
+            toJSON: () => ({}),
+        };
+
+        if (ref.current?.node.current) {
+            ref.current.node.current.getBoundingClientRect = vi.fn(() => mockRect);
+        }
+
+        const rect = ref.current?.rect();
+        expect(rect).toEqual(mockRect);
+    });
+
+    test('should return null from rect() when node is not available', () => {
+        const ref = React.createRef<Menu>();
+        renderWithIntl(
+            <Menu
+                ref={ref}
+                ariaLabel='test-label'
+            >
+                {'text'}
+            </Menu>,
+        );
+
+        // Override the node ref to be null
+        if (ref.current) {
+            Object.defineProperty(ref.current, 'node', {
+                value: {current: null},
+                writable: true,
+            });
+        }
+
+        const rect = ref.current?.rect();
+        expect(rect).toBeNull();
     });
 });

@@ -21,7 +21,7 @@ describe('/components/common/RadioButtonGroup', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('test radio button group input length is as expected', () => {
+    test('test radio button group input lenght is as expected', () => {
         render(<RadioButtonGroup {...baseProps}/>);
         const buttons = screen.getAllByRole('radio');
 

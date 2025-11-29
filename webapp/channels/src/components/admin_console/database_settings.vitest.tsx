@@ -5,7 +5,7 @@ import React from 'react';
 
 import DatabaseSettings from 'components/admin_console/database_settings';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 
 vi.mock('actions/admin_actions.jsx', () => {
     const pingFn = () => {
@@ -26,7 +26,7 @@ describe('components/DatabaseSettings', () => {
             Cluster: 'true',
         },
     };
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const config = {
             SqlSettings: {
                 MaxIdleConns: 10,
@@ -53,6 +53,12 @@ describe('components/DatabaseSettings', () => {
                 {...props}
             />,
         );
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(container.querySelector('.admin-console__wrapper')).toBeInTheDocument();
+        });
+
         expect(container).toMatchSnapshot();
     });
 });

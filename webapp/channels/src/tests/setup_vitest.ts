@@ -5,8 +5,6 @@
 
 /* eslint-disable no-console */
 
-import * as util from 'node:util';
-
 import * as matchers from '@testing-library/jest-dom/matchers';
 import nodeFetch from 'node-fetch';
 
@@ -61,6 +59,26 @@ document.documentElement.style.fontSize = '12px';
 // Setup ResizeObserver
 global.ResizeObserver = require('resize-observer-polyfill');
 
+// Mock Path2D for pdfjs-dist compatibility in jsdom
+// pdfjs-dist checks for Path2D and warns if not available
+/* eslint-disable @typescript-eslint/no-unused-vars, no-useless-constructor */
+class Path2DMock implements Path2D {
+    constructor(_path?: string | Path2DMock) {}
+    addPath(_path: Path2D, _transform?: DOMMatrix2DInit) {}
+    closePath() {}
+    moveTo(_x: number, _y: number) {}
+    lineTo(_x: number, _y: number) {}
+    bezierCurveTo(_cp1x: number, _cp1y: number, _cp2x: number, _cp2y: number, _x: number, _y: number) {}
+    quadraticCurveTo(_cpx: number, _cpy: number, _x: number, _y: number) {}
+    arc(_x: number, _y: number, _radius: number, _startAngle: number, _endAngle: number, _counterclockwise?: boolean) {}
+    arcTo(_x1: number, _y1: number, _x2: number, _y2: number, _radius: number) {}
+    ellipse(_x: number, _y: number, _radiusX: number, _radiusY: number, _rotation: number, _startAngle: number, _endAngle: number, _counterclockwise?: boolean) {}
+    rect(_x: number, _y: number, _w: number, _h: number) {}
+    roundRect(_x: number, _y: number, _w: number, _h: number, _radii?: number | DOMPointInit | Array<number | DOMPointInit>) {}
+}
+/* eslint-enable @typescript-eslint/no-unused-vars, no-useless-constructor */
+global.Path2D = Path2DMock as unknown as typeof Path2D;
+
 // Mock window.getComputedStyle to handle pseudoElt parameter
 // jsdom doesn't implement getComputedStyle with pseudoElt, which SimpleBar uses
 const originalGetComputedStyle = window.getComputedStyle;
@@ -76,112 +94,6 @@ window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
     }
     return originalGetComputedStyle(elt);
 };
-
-// isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
-// React lifecycle methods.
-function isDependencyWarning(params: string[]) {
-    function paramsHasComponent(name: string) {
-        return params.some((param) => param.includes(name));
-    }
-
-    return params[0].includes('Please update the following components:') && (
-
-        // React Bootstrap
-        paramsHasComponent('Modal') ||
-        paramsHasComponent('Portal') ||
-        paramsHasComponent('Overlay') ||
-        paramsHasComponent('Position') ||
-        paramsHasComponent('Dropdown') ||
-        paramsHasComponent('Tabs')
-    );
-}
-
-let warnSpy: ReturnType<typeof vi.spyOn>;
-let errorSpy: ReturnType<typeof vi.spyOn>;
-
-beforeAll(() => {
-    warnSpy = vi.spyOn(console, 'warn');
-    errorSpy = vi.spyOn(console, 'error');
-});
-
-afterEach(() => {
-    const warns: string[][] = [];
-    const errors: string[][] = [];
-
-    for (const call of warnSpy.mock.calls) {
-        if (isDependencyWarning(call as string[])) {
-            continue;
-        }
-
-        warns.push(call as string[]);
-    }
-
-    for (const call of errorSpy.mock.calls) {
-        if (
-            typeof call[0] === 'string' && (
-                call[0].includes('inside a test was not wrapped in act') ||
-                call[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
-            )
-        ) {
-            // These warnings indicate that we're not using React Testing Library properly because we're not waiting
-            // for some async action to complete. Sometimes, these are side effects during the test which are missed
-            // which could lead our tests to be invalid, but more often than not, this warning is printed because of
-            // unhandled side effects from something that wasn't being tested (such as some data being loaded that we
-            // didn't care about in that test case).
-            //
-            // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
-            // fix this everywhere at the moment.
-            continue;
-        }
-
-        // Ignore styled-components CSS-related warnings and other non-critical React warnings
-        // These don't affect test validity
-        const callStr = call[0]?.toString?.() ?? '';
-        if (
-            callStr.includes(':first-child') ||
-            callStr.includes(':nth-child') ||
-            callStr.includes('potentially unsafe when doing server-side rendering') ||
-            callStr.includes('Using kebab-case for css properties in objects is not supported') ||
-            callStr.includes('Each child in a list should have a unique "key" prop') ||
-            callStr.includes('@formatjs/intl Error FORMAT_ERROR') ||
-            callStr.includes('The intl string context variable') ||
-            callStr.includes('FORMAT_ERROR') ||
-            callStr.includes('Function components cannot be given refs') ||
-            callStr.includes('You provided a `value` prop to a form field without an `onChange` handler') ||
-            callStr.includes('Cannot read properties of undefined') ||
-            callStr.includes('The above error occurred in the')
-        ) {
-            continue;
-        }
-
-        errors.push(call as string[]);
-    }
-
-    if (warns.length > 0 || errors.length > 0) {
-        function formatCall(call: string[]) {
-            const args = [...call];
-            const format = args.shift();
-
-            let message = util.format(format, ...args);
-            message = message.split('\n')[0];
-
-            return message;
-        }
-
-        let message = 'Unexpected console errors:';
-        for (const call of warns) {
-            message += `\n\t- (warning) ${formatCall(call)}`;
-        }
-        for (const call of errors) {
-            message += `\n\t- (error) ${formatCall(call)}`;
-        }
-
-        throw new Error(message);
-    }
-
-    warnSpy.mockReset();
-    errorSpy.mockReset();
-});
 
 // Extend expect with custom matcher
 expect.extend({

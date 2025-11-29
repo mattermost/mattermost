@@ -128,7 +128,7 @@ exports[`components/ClusterSettings > should match snapshot, compression disable
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
               >
-                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+                The cluster to join by name. Only nodes with the same cluster name will join together.  This is to support Blue-Green deployments or staging pointing to the same database.
               </div>
             </div>
           </div>
@@ -159,7 +159,7 @@ exports[`components/ClusterSettings > should match snapshot, compression disable
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>
@@ -297,7 +297,7 @@ exports[`components/ClusterSettings > should match snapshot, compression disable
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
               >
-                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+                When true, all communication through the gossip protocol will be compresssed. It is recommended to keep this flag disabled.
               </div>
             </div>
           </fieldset>
@@ -485,7 +485,7 @@ exports[`components/ClusterSettings > should match snapshot, compression enabled
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
               >
-                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+                The cluster to join by name. Only nodes with the same cluster name will join together.  This is to support Blue-Green deployments or staging pointing to the same database.
               </div>
             </div>
           </div>
@@ -516,7 +516,7 @@ exports[`components/ClusterSettings > should match snapshot, compression enabled
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>
@@ -654,7 +654,7 @@ exports[`components/ClusterSettings > should match snapshot, compression enabled
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
               >
-                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+                When true, all communication through the gossip protocol will be compresssed. It is recommended to keep this flag disabled.
               </div>
             </div>
           </fieldset>
@@ -842,7 +842,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption disabled
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
               >
-                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+                The cluster to join by name. Only nodes with the same cluster name will join together.  This is to support Blue-Green deployments or staging pointing to the same database.
               </div>
             </div>
           </div>
@@ -873,7 +873,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption disabled
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>
@@ -1011,7 +1011,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption disabled
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
               >
-                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+                When true, all communication through the gossip protocol will be compresssed. It is recommended to keep this flag disabled.
               </div>
             </div>
           </fieldset>
@@ -1199,7 +1199,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption enabled 
                 class="help-text"
                 data-testid="ClusterNamehelp-text"
               >
-                The cluster to join by name. Only nodes with the same cluster name will join together. This is to support Blue-Green deployments or staging pointing to the same database.
+                The cluster to join by name. Only nodes with the same cluster name will join together.  This is to support Blue-Green deployments or staging pointing to the same database.
               </div>
             </div>
           </div>
@@ -1230,7 +1230,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption enabled 
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>
@@ -1368,7 +1368,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption enabled 
                 class="help-text"
                 data-testid="EnableGossipCompressionhelp-text"
               >
-                When true, all communication through the gossip protocol will be compressed. It is recommended to keep this flag disabled.
+                When true, all communication through the gossip protocol will be compresssed. It is recommended to keep this flag disabled.
               </div>
             </div>
           </fieldset>

@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {Button} from 'react-bootstrap';
 
-import {renderWithContext, screen, fireEvent} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, fireEvent} from 'tests/vitest_react_testing_utils';
 
 import PermissionGroup from './permission_group';
 
@@ -27,68 +28,131 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         vi.clearAllMocks();
     });
 
-    it('renders the permission group', () => {
-        renderWithContext(<PermissionGroup {...defaultProps}/>);
-
-        expect(document.querySelector('.permission-group')).toBeInTheDocument();
+    test('should match snapshot on editable without permissions', () => {
+        const {container} = renderWithContext(
+            <PermissionGroup {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders in read only mode', () => {
-        renderWithContext(
+    test('should match snapshot on editable without every permission out of the scope', () => {
+        const {container} = renderWithContext(
             <PermissionGroup
                 {...defaultProps}
-                readOnly={true}
+                scope={'system_scope'}
             />,
         );
-
-        expect(document.querySelector('.permission-group')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with some permissions', () => {
-        renderWithContext(
+    test('should match snapshot on editable with some permissions', () => {
+        const {container} = renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user']}}
             />,
         );
-
-        expect(document.querySelector('.permission-group')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with all permissions', () => {
-        renderWithContext(
+    test('should match snapshot on editable with all permissions', () => {
+        const {container} = renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 role={{permissions: ['invite_user', 'add_user_to_team']}}
             />,
         );
-
-        expect(document.querySelector('.permission-group')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with system scope', () => {
-        renderWithContext(
+    test('should match snapshot on editable without permissions and read-only', () => {
+        const {container} = renderWithContext(
             <PermissionGroup
                 {...defaultProps}
-                scope="system_scope"
+                readOnly={true}
             />,
         );
-
-        expect(document.querySelector('.permission-group')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with parent role permissions', () => {
-        renderWithContext(
+    test('should match snapshot on editable with some permissions and read-only', () => {
+        const {container} = renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                role={{permissions: ['invite_user']}}
+                readOnly={true}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot on editable with all permissions and read-only', () => {
+        const {container} = renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                role={{permissions: ['invite_user', 'add_user_to_team']}}
+                readOnly={true}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot on editable with some permissions from parentRole', () => {
+        const {container} = renderWithContext(
             <PermissionGroup
                 {...defaultProps}
                 parentRole={{permissions: ['invite_user']}}
             />,
         );
-
-        expect(document.querySelector('.permission-group')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('calls onChange when group row is clicked', () => {
+    test('should match snapshot on editable with all permissions from parentRole', () => {
+        const {container} = renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                parentRole={{permissions: ['invite_user', 'add_user_to_team']}}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot with additional values', () => {
+        const ADDITIONAL_VALUES = {
+            edit_post: {
+                editTimeLimitButton: (
+                    <Button
+                        onClick={vi.fn()}
+                    />
+                ),
+            },
+        };
+
+        const {container} = renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                additionalValues={ADDITIONAL_VALUES}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should expand and collapse correctly, expanded by default, collapsed and then expanded again', () => {
+        const {container} = renderWithContext(
+            <PermissionGroup {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+
+        const arrow = container.querySelector('.permission-arrow');
+        if (arrow) {
+            fireEvent.click(arrow);
+            expect(container).toMatchSnapshot();
+            fireEvent.click(arrow);
+            expect(container).toMatchSnapshot();
+        }
+    });
+
+    test('should call correctly onChange function on click without permissions', () => {
         const onChange = vi.fn();
         renderWithContext(
             <PermissionGroup
@@ -96,15 +160,46 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
                 onChange={onChange}
             />,
         );
-
         const groupRow = document.querySelector('.permission-group-row');
         if (groupRow) {
             fireEvent.click(groupRow);
-            expect(onChange).toHaveBeenCalled();
+            expect(onChange).toHaveBeenCalledWith(['invite_user', 'add_user_to_team']);
         }
     });
 
-    it('does not call onChange when read only and clicked', () => {
+    test('should call correctly onChange function on click with some permissions', () => {
+        const onChange = vi.fn();
+        renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                role={{permissions: ['invite_user']}}
+                onChange={onChange}
+            />,
+        );
+        const groupRow = document.querySelector('.permission-group-row');
+        if (groupRow) {
+            fireEvent.click(groupRow);
+            expect(onChange).toHaveBeenCalledWith(['add_user_to_team']);
+        }
+    });
+
+    test('should call correctly onChange function on click with all permissions', () => {
+        const onChange = vi.fn();
+        renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                role={{permissions: ['invite_user', 'add_user_to_team']}}
+                onChange={onChange}
+            />,
+        );
+        const groupRow = document.querySelector('.permission-group-row');
+        if (groupRow) {
+            fireEvent.click(groupRow);
+            expect(onChange).toHaveBeenCalledWith(['invite_user', 'add_user_to_team']);
+        }
+    });
+
+    test('shouldn\'t call onChange function on click when is read-only', () => {
         const onChange = vi.fn();
         renderWithContext(
             <PermissionGroup
@@ -113,7 +208,6 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
                 onChange={onChange}
             />,
         );
-
         const groupRow = document.querySelector('.permission-group-row');
         if (groupRow) {
             fireEvent.click(groupRow);
@@ -121,14 +215,60 @@ describe('components/admin_console/permission_schemes_settings/permission_group'
         }
     });
 
-    it('toggles expansion when arrow is clicked', () => {
-        renderWithContext(<PermissionGroup {...defaultProps}/>);
+    test('shouldn\'t call onChange function on click when is read-only', () => {
+        const onChange = vi.fn();
+        renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                readOnly={true}
+                onChange={onChange}
+            />,
+        );
+        const groupRow = document.querySelector('.permission-group-row');
+        if (groupRow) {
+            fireEvent.click(groupRow);
+            expect(onChange).not.toHaveBeenCalled();
+        }
+    });
 
-        const arrow = document.querySelector('.permission-arrow');
-        if (arrow) {
-            fireEvent.click(arrow);
-            // Arrow click should toggle expansion state
-            expect(arrow).toBeInTheDocument();
+    test('should collapse when toggle to all permissions and expand otherwise', () => {
+        // Test toggling behavior - click to collapse when fully selected
+        const onChange = vi.fn();
+        const {rerender, container} = renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                role={{permissions: ['invite_user']}}
+                onChange={onChange}
+            />,
+        );
+
+        // Initially expanded
+        expect(container.querySelector('.permission-group')).toBeInTheDocument();
+
+        // After selecting all, should collapse
+        rerender(
+            <PermissionGroup
+                {...defaultProps}
+                role={{permissions: ['invite_user', 'add_user_to_team']}}
+                onChange={onChange}
+            />,
+        );
+        expect(container.querySelector('.permission-group')).toBeInTheDocument();
+    });
+
+    test('should toggle correctly between states', () => {
+        const onChange = vi.fn();
+        renderWithContext(
+            <PermissionGroup
+                {...defaultProps}
+                role={{permissions: ['invite_user']}}
+                onChange={onChange}
+            />,
+        );
+        const groupRow = document.querySelector('.permission-group-row');
+        if (groupRow) {
+            fireEvent.click(groupRow);
+            expect(onChange).toHaveBeenCalled();
         }
     });
 });

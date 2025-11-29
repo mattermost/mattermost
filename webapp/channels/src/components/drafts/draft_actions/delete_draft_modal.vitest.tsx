@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithIntl, screen, fireEvent} from 'tests/vitest_react_testing_utils';
+import {renderWithIntl, screen, waitFor} from 'tests/vitest_react_testing_utils';
 
 import DeleteDraftModal from './delete_draft_modal';
 
@@ -15,15 +16,17 @@ describe('components/drafts/draft_actions/delete_draft_modal', () => {
     };
 
     test('should match snapshot', () => {
-        const {container} = renderWithIntl(
+        const {baseElement} = renderWithIntl(
             <DeleteDraftModal
                 {...baseProps}
             />,
         );
-        expect(container).toMatchSnapshot();
+
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should have called onConfirm', () => {
+    test('should have called onConfirm', async () => {
         const onConfirm = vi.fn();
         renderWithIntl(
             <DeleteDraftModal
@@ -33,7 +36,24 @@ describe('components/drafts/draft_actions/delete_draft_modal', () => {
         );
 
         const confirmButton = screen.getByRole('button', {name: /yes, delete/i});
-        fireEvent.click(confirmButton);
+        await userEvent.click(confirmButton);
         expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    test('should have called onExited', async () => {
+        const onExited = vi.fn();
+        renderWithIntl(
+            <DeleteDraftModal
+                {...baseProps}
+                onExited={onExited}
+            />,
+        );
+
+        const cancelButton = screen.getByRole('button', {name: /cancel/i});
+        await userEvent.click(cancelButton);
+
+        await waitFor(() => {
+            expect(onExited).toHaveBeenCalledTimes(1);
+        });
     });
 });

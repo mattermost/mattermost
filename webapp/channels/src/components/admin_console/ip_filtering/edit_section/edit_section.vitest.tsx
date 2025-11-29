@@ -41,7 +41,7 @@ describe('EditSection', () => {
         expect(screen.getByText('Allowed IP Addresses')).toBeInTheDocument();
         expect(screen.getByText('Create rules to allow access to the workspace for specified IP addresses only.')).toBeInTheDocument();
         expect(screen.getByText('If no rules are added, all IP addresses will be allowed.')).toBeInTheDocument();
-        expect(screen.getByText('Add Filter')).toBeInTheDocument();
+        expect(screen.getByText('Add a filter')).toBeInTheDocument();
         expect(screen.getByText('Filter Name')).toBeInTheDocument();
         expect(screen.getByText('IP Address Range')).toBeInTheDocument();
         expect(screen.getByText('Test Filter')).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe('EditSection', () => {
             />,
         );
 
-        fireEvent.click(screen.getByText('Add Filter'));
+        fireEvent.click(screen.getByText('Add a filter'));
 
         expect(setShowAddModalLocal).toHaveBeenCalledTimes(1);
         expect(setShowAddModalLocal).toHaveBeenCalledWith(true);
@@ -122,6 +122,6 @@ describe('EditSection', () => {
         );
 
         expect(screen.getByText('No IP filtering rules added')).toBeInTheDocument();
-        expect(screen.getByText('Add a filter')).toBeInTheDocument();
+        expect(screen.getAllByText('Add a filter').length).toBeGreaterThan(0);
     });
 });

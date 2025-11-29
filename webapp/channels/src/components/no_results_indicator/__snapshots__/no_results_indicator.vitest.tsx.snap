@@ -160,7 +160,7 @@ exports[`components/no_results_indicator > should match snapshot when expanded 1
         <h3
           class="no-results__title"
         >
-          No results for “{channelName}”
+          No results for “test-channel”
         </h3>
         <div
           class="no-results__subtitle"
@@ -277,7 +277,7 @@ exports[`components/no_results_indicator > should match snapshot with variant Ch
       <h3
         class="no-results__title"
       >
-        No results for “{channelName}”
+        No results for “test-channel”
       </h3>
       <div
         class="no-results__subtitle"
@@ -308,7 +308,11 @@ exports[`components/no_results_indicator > should match snapshot with variant Fl
       <div
         class="no-results__subtitle"
       >
-        To save something for later, open the context menu on a message and choose {buttonText}. Saved messages are only visible to you
+        To save something for later, open the context menu on a message and choose 
+        <strong>
+          Save
+        </strong>
+        . Saved messages are only visible to you
       </div>
     </div>
   </div>
@@ -360,7 +364,11 @@ exports[`components/no_results_indicator > should match snapshot with variant Pi
       <div
         class="no-results__subtitle"
       >
-        To pin important messages, open the context menu on a message and choose {text}. Pinned messages will be visible to everyone in this channel.
+        To pin important messages, open the context menu on a message and choose 
+        <strong>
+          Pin
+        </strong>
+        . Pinned messages will be visible to everyone in this channel.
       </div>
     </div>
   </div>

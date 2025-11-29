@@ -9,7 +9,7 @@ import {render, screen} from 'tests/vitest_react_testing_utils';
 import AlternateLink from './alternate_link';
 
 describe('components/header_footer_route/content_layouts/alternate_link', () => {
-    test('should return empty when no props', () => {
+    test('should return default', () => {
         const {container} = render(
             <AlternateLink/>,
         );

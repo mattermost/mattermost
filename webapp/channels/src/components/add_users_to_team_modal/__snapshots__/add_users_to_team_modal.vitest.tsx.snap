@@ -91,7 +91,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > 
                       <span
                         id="aria-guidance"
                       >
-                        Search and add members is focused ,type to refine list, press Down to open the menu,  press left to focus selected values
+                        Search for people is focused ,type to refine list, press Down to open the menu,  press left to focus selected values
                       </span>
                     </span>
                     <span
@@ -111,7 +111,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > 
                           class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
                           id="react-select-2-placeholder"
                         >
-                          Search and add members
+                          Search for people
                         </div>
                         <div
                           class="react-select-auto react-select__input-container css-19bb58m"
@@ -124,7 +124,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > 
                             aria-expanded="false"
                             aria-haspopup="true"
                             aria-invalid="false"
-                            aria-label="Search and add members"
+                            aria-label="Search for people"
                             autocapitalize="none"
                             autocomplete="off"
                             autocorrect="off"
@@ -392,7 +392,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > 
                           class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
                           id="react-select-3-placeholder"
                         >
-                          Search and add members
+                          Search for people
                         </div>
                         <div
                           class="react-select-auto react-select__input-container css-19bb58m"
@@ -405,7 +405,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal > 
                             aria-expanded="false"
                             aria-haspopup="true"
                             aria-invalid="false"
-                            aria-label="Search and add members"
+                            aria-label="Search for people"
                             autocapitalize="none"
                             autocomplete="off"
                             autocorrect="off"

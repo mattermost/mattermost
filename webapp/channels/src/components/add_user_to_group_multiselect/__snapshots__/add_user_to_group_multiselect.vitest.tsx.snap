@@ -1,5 +1,99 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`component/add_user_to_group_multiselect > should add users on handleSubmit 1`] = `
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-6-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+            >
+              <div
+                class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                id="react-select-6-placeholder"
+              >
+                Search for people
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-describedby="react-select-6-placeholder"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  aria-label="Search for people"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-6-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      />
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+  </div>
+  <div
+    class="multi-select__footer modal-footer"
+  >
+    <button
+      class="btn btn-primary "
+      data-testid="saveSetting"
+      id="saveItems"
+      type="submit"
+    >
+      <span>
+        Create Group
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
 exports[`component/add_user_to_group_multiselect > should match snapshot with different submit button text 1`] = `
 <div>
   <div
@@ -245,6 +339,101 @@ exports[`component/add_user_to_group_multiselect > should match snapshot without
                   autocorrect="off"
                   class="react-select-auto react-select__input"
                   id="react-select-2-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      />
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+  </div>
+  <div
+    class="multi-select__footer modal-footer"
+  >
+    <button
+      class="btn btn-primary"
+      data-testid="saveSetting"
+      disabled=""
+      id="saveItems"
+      type="submit"
+    >
+      <span>
+        Create Group
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`component/add_user_to_group_multiselect > should trim the search term 1`] = `
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-5-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+            >
+              <div
+                class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                id="react-select-5-placeholder"
+              >
+                Search for people
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-describedby="react-select-5-placeholder"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  aria-label="Search for people"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-5-input"
                   role="combobox"
                   spellcheck="false"
                   style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"

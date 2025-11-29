@@ -53,7 +53,7 @@ exports[`components/integrations/AddOutgoingWebhook > should match snapshot 1`] 
             <div
               class="form__help"
             >
-              Specify a title, of up to 64 characters, for the webhook settings page.
+              Specify a title for the webhook settings page. The title can contain up to 64 characters.
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@ exports[`components/integrations/AddOutgoingWebhook > should match snapshot 1`] 
             <div
               class="form__help"
             >
-              Specify the URL that the messages will be sent to. If the URL is private, add it as a 
+              Specify the URL that messages will be sent to. If the URL is private, add it as a 
               <a
                 href="https://mattermost.com/pl/default-allow-untrusted-internal-connections?utm_source=mattermost&utm_medium=in-product&utm_content=abstract_outgoing_webhook&uid=&sid=&edition=team&server_version="
                 location="abstract_outgoing_webhook"

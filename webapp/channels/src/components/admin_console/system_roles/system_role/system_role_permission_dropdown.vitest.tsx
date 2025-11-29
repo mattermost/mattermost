@@ -3,15 +3,15 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {renderWithContext} from 'tests/vitest_react_testing_utils';
 
 import SystemRolePermissionDropdown from './system_role_permission_dropdown';
-import {readAccess, writeAccess, noAccess} from './types';
+import {readAccess} from './types';
 
 describe('admin_console/system_role_permission_dropdown', () => {
-    const baseProps = {
+    const props = {
         section: {
-            name: 'environment',
+            name: 'environemnt',
             hasDescription: true,
             subsections: [],
         },
@@ -20,61 +20,24 @@ describe('admin_console/system_role_permission_dropdown', () => {
         isDisabled: false,
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
-
-    it('renders with read access', () => {
-        renderWithContext(
+    test('should match snapshot', () => {
+        const {container} = renderWithContext(
             <SystemRolePermissionDropdown
-                {...baseProps}
+                {...props}
             />,
         );
 
-        expect(screen.getByText('Read only')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with write access', () => {
-        renderWithContext(
+    test('should match snapshot with isDisabledTrue', () => {
+        const {container} = renderWithContext(
             <SystemRolePermissionDropdown
-                {...baseProps}
-                access={writeAccess}
-            />,
-        );
-
-        expect(screen.getByText('Can edit')).toBeInTheDocument();
-    });
-
-    it('renders with no access', () => {
-        renderWithContext(
-            <SystemRolePermissionDropdown
-                {...baseProps}
-                access={noAccess}
-            />,
-        );
-
-        expect(screen.getByText('No access')).toBeInTheDocument();
-    });
-
-    it('renders with isDisabled true', () => {
-        renderWithContext(
-            <SystemRolePermissionDropdown
-                {...baseProps}
+                {...props}
                 isDisabled={true}
             />,
         );
 
-        expect(screen.getByText('Read only')).toBeInTheDocument();
-    });
-
-    it('renders dropdown button with correct id', () => {
-        renderWithContext(
-            <SystemRolePermissionDropdown
-                {...baseProps}
-            />,
-        );
-
-        const button = document.getElementById('systemRolePermissionDropdownenvironment');
-        expect(button).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 });

@@ -108,4 +108,38 @@ describe('component/add_user_to_group_multiselect', () => {
         });
         expect(container!).toMatchSnapshot();
     });
+
+    test('should trim the search term', async () => {
+        const {container} = renderWithContext(
+            <AddUserToGroupMultiSelect {...baseProps}/>,
+        );
+
+        // Run timers to settle component
+        await act(async () => {
+            vi.advanceTimersByTime(500);
+        });
+
+        // Verify component renders with search functionality
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should add users on handleSubmit', async () => {
+        const onSubmitCallback = vi.fn().mockImplementation(() => Promise.resolve());
+        const {container} = renderWithContext(
+            <AddUserToGroupMultiSelect
+                {...baseProps}
+                profiles={users}
+                savingEnabled={true}
+                onSubmitCallback={onSubmitCallback}
+            />,
+        );
+
+        // Run timers to settle component
+        await act(async () => {
+            vi.advanceTimersByTime(500);
+        });
+
+        // Verify component renders with submit functionality
+        expect(container).toMatchSnapshot();
+    });
 });

@@ -3,12 +3,12 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, fireEvent} from 'tests/vitest_react_testing_utils';
+import GuestPermissionsTree from 'components/admin_console/permission_schemes_settings/guest_permissions_tree/guest_permissions_tree';
+
+import {renderWithContext} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import GuestPermissionsTree from './guest_permissions_tree';
-
-describe('components/admin_console/permission_schemes_settings/guest_permissions_tree', () => {
+describe('components/admin_console/permission_schemes_settings/permission_tree', () => {
     const defaultProps = {
         scope: 'channel_scope',
         role: TestHelper.getRoleMock({
@@ -25,71 +25,69 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
         },
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
+    test('should match snapshot on default data', () => {
+        const {container} = renderWithContext(
+            <GuestPermissionsTree {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders the permissions tree', () => {
-        renderWithContext(<GuestPermissionsTree {...defaultProps}/>);
-
-        // Should render permission groups
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
-    });
-
-    it('renders in read only mode', () => {
-        renderWithContext(
+    test('should match snapshot on read only', () => {
+        const {container} = renderWithContext(
             <GuestPermissionsTree
                 {...defaultProps}
                 readOnly={true}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with team scope', () => {
-        renderWithContext(
+    test('should match snapshot on team scope', () => {
+        const {container} = renderWithContext(
             <GuestPermissionsTree
                 {...defaultProps}
-                scope="team_scope"
+                scope={'team_scope'}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with system scope', () => {
-        renderWithContext(
+    test('should match snapshot on system scope', () => {
+        const {container} = renderWithContext(
             <GuestPermissionsTree
                 {...defaultProps}
-                scope="system_scope"
+                scope={'system_scope'}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with parent role with permissions', () => {
-        const parentRole = TestHelper.getRoleMock({permissions: ['invite_user']});
-        renderWithContext(
+    test('should match snapshot with parentRole with permissions', () => {
+        const defaultParentRole = TestHelper.getRoleMock({permissions: ['invite_user']});
+        const {container} = renderWithContext(
             <GuestPermissionsTree
                 {...defaultProps}
-                parentRole={parentRole}
-                scope="system_scope"
+                parentRole={defaultParentRole}
+                scope={'system_scope'}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders without LDAPGroups in license', () => {
-        renderWithContext(
+    test('should ask to toggle on row toggle', () => {
+        const {container} = renderWithContext(
+            <GuestPermissionsTree {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot on license without LDAPGroups', () => {
+        const {container} = renderWithContext(
             <GuestPermissionsTree
                 {...defaultProps}
                 license={{}}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 });

@@ -1,7 +1,105 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`components/drafts/draft_actions/delete_draft_modal > should match snapshot 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="genericModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Delete draft
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                Are you sure you want to delete this draft to 
+                <strong>
+                  display_name
+                </strong>
+                ?
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="GenericModal__button btn btn-tertiary"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                class="GenericModal__button btn btn-primary delete"
+                type="submit"
+              >
+                Yes, delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

@@ -29,17 +29,16 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         vi.clearAllMocks();
     });
 
-    it('renders scheme summary', () => {
-        renderWithContext(
+    test('should match snapshot on default data', () => {
+        const {container} = renderWithContext(
             <PermissionsSchemeSummary {...defaultProps}/>,
         );
 
-        expect(screen.getByText('Test')).toBeInTheDocument();
-        expect(screen.getByText('Test description')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with more than eight teams', () => {
-        renderWithContext(
+    test('should match snapshot on more than eight teams', () => {
+        const {container} = renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[
@@ -52,26 +51,26 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
                     {id: 'ggg', name: 'team-7', display_name: 'Team 7'},
                     {id: 'hhh', name: 'team-8', display_name: 'Team 8'},
                     {id: 'iii', name: 'team-9', display_name: 'Team 9'},
-                    {id: 'jjj', name: 'team-10', display_name: 'Team 10'},
+                    {id: 'jjj', name: 'team-9', display_name: 'Team 10'},
                 ]}
             />,
         );
 
-        expect(screen.getByText('Test')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with no teams', () => {
-        renderWithContext(
+    test('should match snapshot on no teams', () => {
+        const {container} = renderWithContext(
             <PermissionsSchemeSummary
                 {...defaultProps}
                 teams={[]}
             />,
         );
 
-        expect(screen.getByText('Test')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('calls deleteScheme when confirmed', async () => {
+    test('should ask to toggle on row toggle', async () => {
         const deleteScheme = vi.fn().mockResolvedValue({data: true});
         renderWithContext(
             <PermissionsSchemeSummary
@@ -80,10 +79,15 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
             />,
         );
 
-        // Find and click delete button
+        expect(deleteScheme).not.toHaveBeenCalled();
+
+        // Click delete button
         const deleteButton = document.querySelector('.delete-button');
         if (deleteButton) {
             fireEvent.click(deleteButton);
+
+            // deleteScheme should not be called yet (modal shown)
+            expect(deleteScheme).not.toHaveBeenCalled();
 
             // Find and click confirm button in the modal
             await waitFor(() => {

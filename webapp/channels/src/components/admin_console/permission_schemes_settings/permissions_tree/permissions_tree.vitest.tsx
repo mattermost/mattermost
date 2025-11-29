@@ -3,132 +3,166 @@
 
 import React from 'react';
 
+import PermissionsTree from 'components/admin_console/permission_schemes_settings/permissions_tree/permissions_tree';
+
 import {renderWithContext} from 'tests/vitest_react_testing_utils';
-import {TestHelper} from 'utils/test_helper';
+import {LicenseSkus} from 'utils/constants';
 
-import PermissionsTree from './permissions_tree';
-
-// Mock console.error to suppress intl missing message warnings in tests
-const originalConsoleError = console.error;
-beforeAll(() => {
-    console.error = (...args: any[]) => {
-        const message = args[0]?.toString() || '';
-        if (message.includes('MISSING_TRANSLATION') || message.includes('Missing message:')) {
-            return;
-        }
-        originalConsoleError.apply(console, args);
-    };
-});
-
-afterAll(() => {
-    console.error = originalConsoleError;
-});
-
-describe('components/admin_console/permission_schemes_settings/permissions_tree', () => {
+describe('components/admin_console/permission_schemes_settings/permission_tree', () => {
     const defaultProps = {
         scope: 'channel_scope',
-        role: TestHelper.getRoleMock({
+        config: {
+            EnableIncomingWebhooks: 'true',
+            EnableOutgoingWebhooks: 'true',
+            EnableOAuthServiceProvider: 'true',
+            EnableCommands: 'true',
+            EnableCustomEmoji: 'true',
+        },
+        role: {
             name: 'test',
             permissions: [],
-        }),
+        },
         onToggle: vi.fn(),
         selectRow: vi.fn(),
         parentRole: undefined,
         readOnly: false,
         license: {
             LDAPGroups: 'true',
-            IsLicensed: 'true',
+            isLicensed: 'true',
+            SkuShortName: LicenseSkus.Enterprise,
         },
-        config: {
-            EnableIncomingWebhooks: 'true',
-            EnableOutgoingWebhooks: 'true',
-            EnableOutgoingOAuthConnections: 'true',
-            EnableOAuthServiceProvider: 'true',
-            EnableCommands: 'true',
-        },
-        customGroupsEnabled: false,
+        customGroupsEnabled: true,
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
+    test('should match snapshot on default data', () => {
+        const {container} = renderWithContext(
+            <PermissionsTree {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders the permissions tree', () => {
-        renderWithContext(<PermissionsTree {...defaultProps}/>);
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
-    });
-
-    it('renders in read only mode', () => {
-        renderWithContext(
+    test('should match snapshot on read only', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 readOnly={true}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with team scope', () => {
-        renderWithContext(
+    test('should match snapshot on team scope', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
-                scope="team_scope"
+                scope={'team_scope'}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with system scope', () => {
-        renderWithContext(
+    test('should match snapshot on system scope', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
-                scope="system_scope"
+                scope={'system_scope'}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with parent role with permissions', () => {
-        const parentRole = TestHelper.getRoleMock({permissions: ['invite_user']});
-        renderWithContext(
-            <PermissionsTree
-                {...defaultProps}
-                parentRole={parentRole}
-                scope="system_scope"
-            />,
-        );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
-    });
-
-    it('renders without LDAPGroups in license', () => {
-        renderWithContext(
+    test('should match snapshot on license without LDAPGroups', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
                 license={{}}
             />,
         );
-
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders with role permissions', () => {
-        const role = TestHelper.getRoleMock({
-            name: 'test',
-            permissions: ['create_post', 'add_reaction'],
-        });
-
-        renderWithContext(
+    test('should match snapshot with parentRole with permissions', () => {
+        const {container} = renderWithContext(
             <PermissionsTree
                 {...defaultProps}
-                role={role}
+                parentRole={{permissions: ['invite_user']}}
+                scope={'system_scope'}
             />,
         );
+        expect(container).toMatchSnapshot();
+    });
 
-        expect(document.querySelector('.permissions-tree')).toBeInTheDocument();
+    test('should ask to toggle on row toggle', () => {
+        const {container} = renderWithContext(
+            <PermissionsTree {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should show convert private channel to public for $roleName: $shouldSeeConvertPrivateToPublic', () => {
+        const {container} = renderWithContext(
+            <PermissionsTree {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should hide disabbled integration options', () => {
+        const {container} = renderWithContext(
+            <PermissionsTree
+                {...defaultProps}
+                config={{
+                    EnableIncomingWebhooks: 'false',
+                    EnableOutgoingWebhooks: 'false',
+                    EnableCommands: 'false',
+                    EnableCustomEmoji: 'false',
+                }}
+            />,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should map groups in the correct order', () => {
+        const {container} = renderWithContext(
+            <PermissionsTree {...defaultProps}/>,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    describe('should show playbook permissions', () => {
+        describe('for non-enterprise license', () => {
+            ['', LicenseSkus.E10, LicenseSkus.Starter, LicenseSkus.Professional].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: licenseSku === '' ? 'false' : 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                const {container} = renderWithContext(
+                    <PermissionsTree {...props}/>,
+                );
+
+                expect(container).toMatchSnapshot();
+            }));
+        });
+
+        describe('for enterprise license', () => {
+            [LicenseSkus.E20, LicenseSkus.Enterprise].forEach((licenseSku) => test(licenseSku, () => {
+                const props = {
+                    ...defaultProps,
+                    license: {
+                        isLicensed: 'true',
+                        SkuShortName: licenseSku,
+                    },
+                };
+
+                const {container} = renderWithContext(
+                    <PermissionsTree {...props}/>,
+                );
+
+                expect(container).toMatchSnapshot();
+            }));
+        });
     });
 });

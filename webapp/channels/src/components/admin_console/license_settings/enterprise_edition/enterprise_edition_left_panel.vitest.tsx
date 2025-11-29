@@ -10,7 +10,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {General} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
 import {LicenseSkus, SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -97,7 +97,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         isLicenseSetByEnvVar: false,
     };
 
-    test('should format the Users field', () => {
+    test('should format the Users field', async () => {
         renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...baseProps}
@@ -105,11 +105,13 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             initialState,
         );
 
-        // Check that 1,000 is displayed (formatted Users field)
-        expect(screen.getByText('1,000')).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('1,000')).toBeInTheDocument();
+        });
     });
 
-    test('should not add any class if active users is lower than the minimal', () => {
+    test('should not add any class if active users is lower than the minimal', async () => {
         renderWithContext(
             <EnterpriseEditionLeftPanel
                 {...baseProps}
@@ -118,6 +120,12 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         const formatter = new Intl.NumberFormat('en');
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText(formatter.format(baseProps.statsActiveUsers))).toBeInTheDocument();
+        });
+
         expect(screen.getByText(formatter.format(baseProps.statsActiveUsers))).toHaveClass('value');
         expect(screen.getByText(formatter.format(baseProps.statsActiveUsers))).not.toHaveClass('value--warning-over-seats-purchased');
         expect(screen.getByText(formatter.format(baseProps.statsActiveUsers))).not.toHaveClass('value--over-seats-purchased');
@@ -126,7 +134,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByText('ACTIVE USERS:')).not.toHaveClass('legend--over-seats-purchased');
     });
 
-    test('should add over-seats-purchased class to active users', () => {
+    test('should add over-seats-purchased class to active users', async () => {
         // Changed to not use the constant OverActiveUserLimits.MAX given that we are currently set to 0. So the active users will be 0
         const exceedHighLimitExtraUsersError = Math.ceil(parseInt(license.Users, 10) * 0.2) + parseInt(license.Users, 10);
         const props = {
@@ -142,6 +150,12 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         );
 
         const formatter = new Intl.NumberFormat('en');
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText(formatter.format(exceedHighLimitExtraUsersError))).toBeInTheDocument();
+        });
+
         expect(screen.getByText(formatter.format(exceedHighLimitExtraUsersError))).toHaveClass('value');
         expect(screen.getByText(formatter.format(exceedHighLimitExtraUsersError))).toHaveClass('value--over-seats-purchased');
         expect(screen.getByText(formatter.format(exceedHighLimitExtraUsersError))).not.toHaveClass('value--warning-over-seats-purchased');
@@ -150,7 +164,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByText('ACTIVE USERS:')).toHaveClass('legend--over-seats-purchased');
     });
 
-    test('should add warning class to days expired indicator when there are more than 5 days until expiry', () => {
+    test('should add warning class to days expired indicator when there are more than 5 days until expiry', async () => {
         const testLicense = {
             ...license,
             ExpiresAt: moment().add(6, 'days').valueOf().toString(),
@@ -175,10 +189,15 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             testState,
         );
 
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('Expires in 6 days')).toBeInTheDocument();
+        });
+
         expect(screen.getByText('Expires in 6 days')).toHaveClass('expiration-days-warning');
     });
 
-    test('should add danger class to days expired indicator when there are at least 5 days until expiry', () => {
+    test('should add danger class to days expired indicator when there are at least 5 days until expiry', async () => {
         const testLicense = {
             ...license,
             ExpiresAt: moment().add(5, 'days').valueOf().toString(),
@@ -203,10 +222,15 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             testState,
         );
 
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('Expires in 5 days')).toBeInTheDocument();
+        });
+
         expect(screen.getByText('Expires in 5 days')).toHaveClass('expiration-days-danger');
     });
 
-    test('should render simplified panel for Entry license', () => {
+    test('should render simplified panel for Entry license', async () => {
         const testLicense = {
             ...license,
             SkuShortName: LicenseSkus.Entry,
@@ -232,8 +256,10 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             testState,
         );
 
-        // Check for the title section - should only show the plan name, not "Enterprise Edition"
-        expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
+        });
 
         // Verify that "Enterprise Edition" pre-title is no longer displayed
         expect(screen.queryByText('Enterprise Edition')).not.toBeInTheDocument();
@@ -256,7 +282,7 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.queryByText('ACTIVE USERS:')).not.toBeInTheDocument();
     });
 
-    test('should disable upload button for Entry license when license is set by env var', () => {
+    test('should disable upload button for Entry license when license is set by env var', async () => {
         const testLicense = {
             ...license,
             SkuShortName: LicenseSkus.Entry,
@@ -282,6 +308,11 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             />,
             testState,
         );
+
+        // Wait for async state updates
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: /Upload license/i})).toBeInTheDocument();
+        });
 
         const uploadButton = screen.getByRole('button', {name: /Upload license/i});
         expect(uploadButton).toBeDisabled();

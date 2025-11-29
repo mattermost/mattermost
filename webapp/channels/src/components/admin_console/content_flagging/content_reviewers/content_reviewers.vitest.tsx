@@ -76,7 +76,7 @@ describe('ContentFlaggingContentReviewers', () => {
     it('shows common reviewers section when CommonReviewers is true', () => {
         renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
-        expect(screen.getByText('Reviewers:')).toBeInTheDocument();
+        expect(screen.getByText('Reviewers')).toBeInTheDocument();
         expect(screen.getByTestId('user-multi-selector-content_reviewers_common_reviewers')).toBeInTheDocument();
         expect(screen.queryByTestId('team-reviewers')).not.toBeInTheDocument();
     });

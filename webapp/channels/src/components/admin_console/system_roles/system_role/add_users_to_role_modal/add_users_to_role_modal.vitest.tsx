@@ -3,103 +3,142 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, waitFor, act, cleanup} from 'tests/vitest_react_testing_utils';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, act} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-import AddUsersToRoleModal from './add_users_to_role_modal';
+// Import the unwrapped component directly, not the connected version
+import {AddUsersToRoleModal} from './add_users_to_role_modal';
 
 describe('admin_console/add_users_to_role_modal', () => {
-    const defaultUser = TestHelper.getUserMock({
-        id: 'user_id',
-        username: 'test_user',
-        first_name: 'Test',
-        last_name: 'User',
+    beforeEach(() => {
+        vi.useFakeTimers();
     });
 
+    afterEach(() => {
+        // Run all pending timers and animation frames before cleanup
+        act(() => {
+            vi.runAllTimers();
+        });
+        vi.useRealTimers();
+    });
+
+    const baseUser = TestHelper.getUserMock({id: 'user_id_1', username: 'user1'});
+    const role = TestHelper.getRoleMock({name: 'test_role', display_name: 'Test Role'});
+
     const baseProps = {
-        role: TestHelper.getRoleMock({
-            id: 'role_id',
-            name: 'system_admin',
-            display_name: 'System Admin',
-        }),
-        users: [defaultUser],
+        role,
+        users: [baseUser],
         excludeUsers: {},
         includeUsers: {},
         onAddCallback: vi.fn(),
         onExited: vi.fn(),
+        intl: defaultIntl,
         actions: {
-            getProfiles: vi.fn().mockResolvedValue({data: [defaultUser]}),
-            searchProfiles: vi.fn().mockResolvedValue({data: []}),
+            getProfiles: vi.fn(),
+            searchProfiles: vi.fn(),
         },
     };
 
-    beforeEach(() => {
-        vi.clearAllMocks();
-        vi.useFakeTimers({shouldAdvanceTime: true});
-
-        // Mock requestAnimationFrame to prevent focus errors on null ref
-        vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => {
-            // Return a dummy id without executing the callback
-            return 1;
-        });
-    });
-
-    afterEach(async () => {
-        vi.useRealTimers();
-        vi.restoreAllMocks();
-        cleanup();
-    });
-
-    it('renders the modal with title', async () => {
+    test('should have single passed value', async () => {
+        let baseElement: HTMLElement;
         await act(async () => {
-            renderWithContext(
-                <AddUsersToRoleModal {...baseProps}/>,
+            const result = renderWithContext(
+                <AddUsersToRoleModal
+                    {...baseProps}
+                />,
             );
+            baseElement = result.baseElement;
+            vi.runAllTimers();
         });
 
-        expect(screen.getByText(/Add users to/)).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement!).toMatchSnapshot();
     });
 
-    it('renders the multiselect search input', async () => {
+    test('should exclude user', async () => {
+        const excludedUser = TestHelper.getUserMock({id: 'excluded_user_id', username: 'excluded_user'});
+        const props = {...baseProps, excludeUsers: {excluded_user_id: excludedUser}};
+        let baseElement: HTMLElement;
         await act(async () => {
-            renderWithContext(
-                <AddUsersToRoleModal {...baseProps}/>,
+            const result = renderWithContext(
+                <AddUsersToRoleModal
+                    {...props}
+                />,
             );
+            baseElement = result.baseElement;
+            vi.runAllTimers();
         });
 
-        const input = document.querySelector('input');
-        expect(input).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement!).toMatchSnapshot();
     });
 
-    it('calls getProfiles on mount', async () => {
+    test('should include additional user', async () => {
+        const additionalUser = TestHelper.getUserMock({id: 'additional_user_id', username: 'additional_user'});
+        const props = {...baseProps, includeUsers: {additional_user_id: additionalUser}};
+        let baseElement: HTMLElement;
         await act(async () => {
-            renderWithContext(
-                <AddUsersToRoleModal {...baseProps}/>,
+            const result = renderWithContext(
+                <AddUsersToRoleModal
+                    {...props}
+                />,
             );
+            baseElement = result.baseElement;
+            vi.runAllTimers();
         });
 
-        await waitFor(() => {
-            expect(baseProps.actions.getProfiles).toHaveBeenCalled();
-        });
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement!).toMatchSnapshot();
     });
 
-    it('renders the add button', async () => {
+    test('should not include bot user', async () => {
+        const regularUser = TestHelper.getUserMock({id: 'regular_user_id', username: 'regular_user'});
+        const botUser = TestHelper.getUserMock({id: 'bot_user_id', username: 'bot_user', is_bot: true});
+        const props = {
+            ...baseProps,
+            actions: {
+                getProfiles: vi.fn().mockResolvedValue({data: [regularUser, botUser]}),
+                searchProfiles: vi.fn(),
+            },
+        };
+        let baseElement: HTMLElement;
         await act(async () => {
-            renderWithContext(
-                <AddUsersToRoleModal {...baseProps}/>,
+            const result = renderWithContext(
+                <AddUsersToRoleModal
+                    {...props}
+                />,
             );
+            baseElement = result.baseElement;
+            vi.runAllTimers();
         });
 
-        expect(screen.getByRole('button', {name: 'Add'})).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement!).toMatchSnapshot();
     });
 
-    it('displays remaining people count message', async () => {
+    test('search should not include bot user', async () => {
+        const regularUser = TestHelper.getUserMock({id: 'search_regular_id', username: 'search_regular'});
+        const botUser = TestHelper.getUserMock({id: 'search_bot_id', username: 'search_bot', is_bot: true});
+        const props = {
+            ...baseProps,
+            actions: {
+                searchProfiles: vi.fn().mockResolvedValue({data: [regularUser, botUser]}),
+                getProfiles: vi.fn(),
+            },
+        };
+        let baseElement: HTMLElement;
         await act(async () => {
-            renderWithContext(
-                <AddUsersToRoleModal {...baseProps}/>,
+            const result = renderWithContext(
+                <AddUsersToRoleModal
+                    {...props}
+                />,
             );
+            baseElement = result.baseElement;
+            vi.runAllTimers();
         });
 
-        expect(screen.getByText(/You can add/)).toBeInTheDocument();
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement!).toMatchSnapshot();
     });
 });

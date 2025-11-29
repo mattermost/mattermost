@@ -1,7 +1,198 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`components/TeamMembersModal > should match snapshot 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="teamMemberModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="teamMembersModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--top a11y__modal GenericModal GenericModal__compassDesign more-modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="teamMemberModalLabel"
+                  >
+                    display name Members
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body"
+              >
+                <div
+                  class="filtered-user-list"
+                >
+                  <div
+                    class="filter-row"
+                  >
+                    <div
+                      class="col-xs-12"
+                    >
+                      <label
+                        class="hidden-label"
+                        for="searchUsersInput"
+                      >
+                        Search users
+                      </label>
+                      <div
+                        class="input-wrapper"
+                      >
+                        <input
+                          aria-label="Search users"
+                          class="form-control filter-textbox"
+                          id="searchUsersInput"
+                          placeholder="Search users"
+                          value=""
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="col-sm-12"
+                    >
+                      <span
+                        aria-live="polite"
+                        class="member-count pull-left"
+                        id="searchableUserListTotal"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="more-modal__list"
+                  >
+                    <div
+                      data-simplebar="init"
+                      style="--scrollbar-color: var(undefined);"
+                    >
+                      <div
+                        class="simplebar-wrapper"
+                      >
+                        <div
+                          class="simplebar-height-auto-observer-wrapper"
+                        >
+                          <div
+                            class="simplebar-height-auto-observer"
+                          />
+                        </div>
+                        <div
+                          class="simplebar-mask"
+                        >
+                          <div
+                            class="simplebar-offset"
+                            style="right: 0px; bottom: 0px;"
+                          >
+                            <div
+                              aria-label="scrollable content"
+                              class="simplebar-content-wrapper"
+                              role="region"
+                              style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                              tabindex="-1"
+                            >
+                              <div
+                                class="simplebar-content"
+                              >
+                                <div>
+                                  <div
+                                    class="more-modal__placeholder-row no-users-found"
+                                    data-testid="noUsersFound"
+                                  >
+                                    <p>
+                                      No users found
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          class="simplebar-placeholder"
+                          style="width: 0px; height: 0px;"
+                        />
+                      </div>
+                      <div
+                        class="simplebar-track simplebar-horizontal"
+                        style="visibility: hidden;"
+                      >
+                        <div
+                          class="simplebar-scrollbar"
+                          style="width: 0px; display: none;"
+                        />
+                      </div>
+                      <div
+                        class="simplebar-track simplebar-vertical"
+                        style="visibility: hidden;"
+                      >
+                        <div
+                          class="simplebar-scrollbar"
+                          style="height: 0px; display: none;"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="filter-controls"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

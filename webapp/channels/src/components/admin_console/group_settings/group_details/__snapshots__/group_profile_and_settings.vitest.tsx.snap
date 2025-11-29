@@ -69,7 +69,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
             <label
               class="line-switch__label"
             >
-              Enable Group Mention
+              Enable Group Mentions
             </label>
             <div
               class="line-switch__toggle"
@@ -178,7 +178,7 @@ exports[`components/admin_console/group_settings/group_details/GroupProfileAndSe
             <label
               class="line-switch__label"
             >
-              Enable Group Mention
+              Enable Group Mentions
             </label>
             <div
               class="line-switch__toggle"

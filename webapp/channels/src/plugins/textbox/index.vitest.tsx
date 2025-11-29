@@ -31,7 +31,7 @@ describe('PluginTextbox', () => {
         useChannelMentions: true,
     };
 
-    test('should render with suggestionListStyle prop', () => {
+    test('should rename suggestionListStyle to suggestionListPosition', () => {
         const props: React.ComponentProps<typeof PluginTextbox> = {
             ...baseProps,
             suggestionListStyle: 'bottom',

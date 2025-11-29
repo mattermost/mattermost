@@ -69,6 +69,47 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should match snapshot for desktop', () => {
+        vi.mock('utils/user_agent', () => ({
+            isDesktopApp: vi.fn(() => false),
+        }));
+
+        const {container} = renderWithContext(
+            <SidebarChannelLink {...baseProps}/>,
+        );
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot when tooltip is enabled', () => {
+        // Set a long label that would trigger tooltip
+        const props = {
+            ...baseProps,
+            label: 'a_very_long_channel_name_that_would_require_a_tooltip_to_display_properly',
+        };
+
+        const {container} = renderWithContext(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should enable tooltip when needed', () => {
+        // Set a long label
+        const props = {
+            ...baseProps,
+            label: 'a_very_long_channel_name_that_would_require_a_tooltip',
+        };
+
+        const {container} = renderWithContext(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        // Component should render with the label
+        expect(container).toMatchSnapshot();
+    });
+
     test('should match snapshot with aria label prefix and unread mentions', () => {
         const props = {
             ...baseProps,
@@ -125,5 +166,39 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should refetch when channel changes', () => {
+        const fetchChannelRemotes = vi.fn();
+        const props = {
+            ...baseProps,
+            isSharedChannel: true,
+            remoteNames: [],
+            actions: {
+                ...baseProps.actions,
+                fetchChannelRemotes,
+            },
+        };
+
+        const {rerender} = renderWithContext(
+            <SidebarChannelLink {...props}/>,
+        );
+
+        fetchChannelRemotes.mockClear();
+
+        // Rerender with a new channel ID
+        const newProps = {
+            ...props,
+            channel: {
+                ...props.channel,
+                id: 'new_channel_id',
+            },
+        };
+
+        rerender(
+            <SidebarChannelLink {...newProps}/>,
+        );
+
+        expect(fetchChannelRemotes).toHaveBeenCalledWith('new_channel_id');
     });
 });

@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarDirectChannel from 'components/sidebar/sidebar_channel/sidebar_direct_channel/sidebar_direct_channel';
 
-import {renderWithContext, cleanup} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, cleanup, waitFor} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
@@ -45,15 +45,18 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const {container} = renderWithContext(
             <SidebarDirectChannel {...baseProps}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if DM is with current user', () => {
+    test('should match snapshot if DM is with current user', async () => {
         const props = {
             ...baseProps,
             currentUserId: baseProps.teammate.id,
@@ -63,10 +66,13 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             <SidebarDirectChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if DM is with deleted user', () => {
+    test('should match snapshot if DM is with deleted user', async () => {
         const props = {
             ...baseProps,
             teammate: {
@@ -79,10 +85,13 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             <SidebarDirectChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot if DM is with bot with custom icon', () => {
+    test('should match snapshot if DM is with bot with custom icon', async () => {
         const props = {
             ...baseProps,
             teammate: {
@@ -95,6 +104,9 @@ describe('components/sidebar/sidebar_channel/sidebar_direct_channel', () => {
             <SidebarDirectChannel {...props}/>,
         );
 
+        await waitFor(() => {
+            expect(container.querySelector('.SidebarLink')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 });

@@ -7,7 +7,7 @@ import GlobalPolicyForm from 'components/admin_console/data_retention_settings/g
 
 import {renderWithContext} from 'tests/vitest_react_testing_utils';
 
-describe('components/GlobalPolicyForm', () => {
+describe('components/PluginManagement', () => {
     const defaultProps = {
         config: {
             DataRetentionSettings: {

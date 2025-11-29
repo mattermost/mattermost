@@ -14,3 +14,18 @@ exports[`AudioVideoPreview > should match snapshot without children 1`] = `
   </video>
 </div>
 `;
+
+exports[`AudioVideoPreview > should match snapshot, cannot play 1`] = `
+<div>
+  <video
+    controls=""
+    data-setup="{}"
+    height="480"
+    width="640"
+  >
+    <source
+      src="/api/v4/files/file_id"
+    />
+  </video>
+</div>
+`;

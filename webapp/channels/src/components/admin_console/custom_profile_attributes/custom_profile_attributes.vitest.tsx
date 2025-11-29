@@ -80,7 +80,9 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             expect(screen.getByDisplayValue('department')).toBeInTheDocument();
             expect(screen.getByDisplayValue('location')).toBeInTheDocument();
 
-            const helpText = screen.getAllByText((content) => content.includes('When set, users cannot edit their'));
+            // The en.json translation for admin.customProfileAttribDesc is the SAML version
+            // Both LDAP and SAML use the same message ID, so the translation is shared
+            const helpText = screen.getAllByText((content) => content.includes('The attribute in the SAML Assertion'));
             expect(helpText).toHaveLength(2);
         });
 

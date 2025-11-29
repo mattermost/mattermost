@@ -11,52 +11,24 @@ describe('components/permissions_gates', () => {
     const CONTENT = 'The content inside the permission gate';
 
     describe('Gate', () => {
-        test('hasPermission=true; invert=false; should show content', () => {
-            render(
-                <Gate
-                    hasPermission={true}
-                    invert={false}
-                >
-                    <p>{CONTENT}</p>
-                </Gate>,
-            );
-            expect(screen.queryByText(CONTENT)).toBeInTheDocument();
-        });
-
-        test('hasPermission=true; invert=true; should not show content', () => {
-            render(
-                <Gate
-                    hasPermission={true}
-                    invert={true}
-                >
-                    <p>{CONTENT}</p>
-                </Gate>,
-            );
-            expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
-        });
-
-        test('hasPermission=false; invert=false; should not show content', () => {
-            render(
-                <Gate
-                    hasPermission={false}
-                    invert={false}
-                >
-                    <p>{CONTENT}</p>
-                </Gate>,
-            );
-            expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
-        });
-
-        test('hasPermission=false; invert=true; should show content', () => {
-            render(
-                <Gate
-                    hasPermission={false}
-                    invert={true}
-                >
-                    <p>{CONTENT}</p>
-                </Gate>,
-            );
-            expect(screen.queryByText(CONTENT)).toBeInTheDocument();
-        });
+        for (const hasPermission of [true, false]) {
+            for (const invert of [true, false]) {
+                test(`hasPermission=${hasPermission}; invert=${invert}; expected=${invert !== hasPermission}`, () => {
+                    render(
+                        <Gate
+                            hasPermission={hasPermission}
+                            invert={invert}
+                        >
+                            <p>{CONTENT}</p>
+                        </Gate>,
+                    );
+                    if (invert === hasPermission) {
+                        expect(screen.queryByText(CONTENT)).not.toBeInTheDocument();
+                    } else {
+                        expect(screen.queryByText(CONTENT)).toBeInTheDocument();
+                    }
+                });
+            }
+        }
     });
 });
