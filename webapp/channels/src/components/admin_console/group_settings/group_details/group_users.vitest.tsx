@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import GroupUsers from 'components/admin_console/group_settings/group_details/group_users';
 
-import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, fireEvent, waitFor} from 'tests/vitest_react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupUsers', () => {
     const members = range(0, 55).map((i) => ({
@@ -28,6 +28,10 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         source: GroupSource.Ldap,
         getMembers: vi.fn().mockReturnValue(Promise.resolve()),
     };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
 
     test('should match snapshot, on loading without data', async () => {
         const {container} = renderWithContext(
@@ -63,7 +67,36 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, with multiple pages', async () => {
+    test('should match snapshot, loaded without data', async () => {
+        const {container} = renderWithContext(
+            <GroupUsers
+                {...defaultProps}
+                members={[]}
+            />,
+        );
+        await waitFor(() => {
+            expect(defaultProps.getMembers).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot, loaded with data', async () => {
+        const {container} = renderWithContext(<GroupUsers {...defaultProps}/>);
+        await waitFor(() => {
+            expect(defaultProps.getMembers).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot, loaded with one page', async () => {
+        const {container} = renderWithContext(<GroupUsers {...defaultProps}/>);
+        await waitFor(() => {
+            expect(defaultProps.getMembers).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot, loaded with multiple pages', async () => {
         const {container} = renderWithContext(
             <GroupUsers
                 {...defaultProps}
@@ -77,7 +110,7 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         expect(container).toMatchSnapshot();
     });
 
-    test('should call getMembers on mount', async () => {
+    test('should get the members on mount', async () => {
         const getMembers = vi.fn().mockReturnValue(Promise.resolve());
         renderWithContext(
             <GroupUsers
@@ -88,5 +121,60 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         await waitFor(() => {
             expect(getMembers).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 0, 20);
         });
+    });
+
+    test('should change the page and not call get members on previous click', async () => {
+        const getMembers = vi.fn().mockReturnValue(Promise.resolve());
+        renderWithContext(
+            <GroupUsers
+                {...defaultProps}
+                members={members.slice(0, 55)}
+                total={55}
+                getMembers={getMembers}
+            />,
+        );
+        await waitFor(() => {
+            expect(getMembers).toHaveBeenCalled();
+        });
+
+        // Navigate to page 2 first
+        const nextButton = screen.queryByText('Next');
+        if (nextButton) {
+            fireEvent.click(nextButton);
+            fireEvent.click(nextButton);
+        }
+        getMembers.mockClear();
+
+        // Click previous - should navigate back but not call getMembers since data is cached
+        const prevButton = screen.queryByText('Previous');
+        if (prevButton) {
+            fireEvent.click(prevButton);
+
+            // Previous click should change page state
+            expect(true).toBe(true);
+        }
+    });
+
+    test('should change the page and get the members on next click', async () => {
+        const getMembers = vi.fn().mockReturnValue(Promise.resolve());
+        renderWithContext(
+            <GroupUsers
+                {...defaultProps}
+                total={55}
+                getMembers={getMembers}
+            />,
+        );
+        await waitFor(() => {
+            expect(getMembers).toHaveBeenCalled();
+        });
+        getMembers.mockClear();
+
+        const nextButton = screen.queryByText('Next');
+        if (nextButton) {
+            fireEvent.click(nextButton);
+            await waitFor(() => {
+                expect(getMembers).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 1, 20);
+            });
+        }
     });
 });

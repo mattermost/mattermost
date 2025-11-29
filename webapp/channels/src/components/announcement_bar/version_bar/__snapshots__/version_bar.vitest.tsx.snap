@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/VersionBar > should match snapshot - bar rendered after build hash change 1`] = `<div />`;
+
+exports[`components/VersionBar > should match snapshot - bar rendered after build hash change 2`] = `
+<div>
+  <div
+    class="announcement-bar"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        A new version of Mattermost is available.
+        <a
+          style="margin-left: .5rem;"
+        >
+          Refresh the app now
+        </a>
+        .
+      </span>
+    </div>
+  </div>
+</div>
+`;

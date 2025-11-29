@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroups > should match snapshot with 0 groups 1`] = `
+<div>
+  <div
+    class="UsersToRemoveGroups"
+  >
+    0 Groups
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroups > should match snapshot with 1 group 1`] = `
+<div>
+  <div
+    class="UsersToRemoveGroups"
+  >
+    group1
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroups > should match snapshot with 3 groups 1`] = `
+<div>
+  <div
+    class="UsersToRemoveGroups"
+  >
+    <a
+      href="#"
+    >
+      3 Groups
+    </a>
+  </div>
+</div>
+`;

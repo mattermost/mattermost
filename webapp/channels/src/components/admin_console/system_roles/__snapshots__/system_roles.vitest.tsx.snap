@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/system_roles > should match snapshot 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      Delegated Granular Administration
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="AdminPanel clearfix "
+          id="SystemRoles"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Admin Roles
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Manage different levels of access to the system console.
+              </div>
+            </div>
+          </div>
+          <div
+            class="SystemRoles"
+          >
+            <div
+              class="DataGrid"
+            >
+              <div
+                class="DataGrid_header"
+              />
+              <div
+                class="DataGrid_rows"
+              >
+                <div
+                  class="DataGrid_row"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -74,7 +74,7 @@ exports[`admin_console/add_users_to_role_modal > search should not include bot u
                   >
                     <span
                       class="css-1f43avz-a11yText-A11yText"
-                      id="react-select-6-live-region"
+                      id="react-select-7-live-region"
                     />
                     <span
                       aria-atomic="false"
@@ -91,7 +91,7 @@ exports[`admin_console/add_users_to_role_modal > search should not include bot u
                       >
                         <div
                           class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
-                          id="react-select-6-placeholder"
+                          id="react-select-7-placeholder"
                         >
                           Search for people
                         </div>
@@ -102,7 +102,7 @@ exports[`admin_console/add_users_to_role_modal > search should not include bot u
                           <input
                             aria-activedescendant=""
                             aria-autocomplete="list"
-                            aria-describedby="react-select-6-placeholder"
+                            aria-describedby="react-select-7-placeholder"
                             aria-expanded="false"
                             aria-haspopup="true"
                             aria-invalid="false"
@@ -111,7 +111,7 @@ exports[`admin_console/add_users_to_role_modal > search should not include bot u
                             autocomplete="off"
                             autocorrect="off"
                             class="react-select-auto react-select__input"
-                            id="react-select-6-input"
+                            id="react-select-7-input"
                             role="combobox"
                             spellcheck="false"
                             style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
@@ -982,7 +982,7 @@ exports[`admin_console/add_users_to_role_modal > should include additional user 
 </body>
 `;
 
-exports[`admin_console/add_users_to_role_modal > should not include bot user 1`] = `
+exports[`admin_console/add_users_to_role_modal > should include additional user 2`] = `
 <body
   class="modal-open"
   style="padding-right: 0px;"
@@ -1094,6 +1094,286 @@ exports[`admin_console/add_users_to_role_modal > should not include bot user 1`]
                             autocorrect="off"
                             class="react-select-auto react-select__input"
                             id="react-select-5-input"
+                            role="combobox"
+                            spellcheck="false"
+                            style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                            tabindex="0"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary "
+                    data-testid="saveSetting"
+                    id="saveItems"
+                    type="submit"
+                  >
+                    <span>
+                      Add
+                    </span>
+                  </button>
+                </div>
+                <div
+                  class="multi-select__help"
+                  id="multiSelectHelpMemberInfo"
+                >
+                  <div
+                    id="numPeopleRemaining"
+                  >
+                    Use ↑↓ to browse, ↵ to select. You can add 20 more people. 
+                  </div>
+                </div>
+              </div>
+              <div
+                aria-live="polite"
+                class="multi-select__wrapper"
+              >
+                <div
+                  class="more-modal__list"
+                >
+                  <div
+                    aria-live="polite"
+                    class="sr-only"
+                    role="status"
+                  >
+                    2 results found for your search.
+                  </div>
+                  <div
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="sr-only"
+                  />
+                  <div
+                    class="more-modal__options"
+                    id="multiSelectList"
+                    role="presentation"
+                  >
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/user_id_1/image"
+                          />
+                        </span>
+                      </span>
+                      <div
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameuser1"
+                          >
+                            @user1
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="more-modal__row clickable "
+                    >
+                      <span
+                        class="status-wrapper style--none"
+                      >
+                        <span
+                          class="profile-icon "
+                        >
+                          <img
+                            alt="user profile image"
+                            class="Avatar Avatar-md"
+                            loading="lazy"
+                            src="/api/v4/users/additional_user_id2/image"
+                          />
+                        </span>
+                      </span>
+                      <div
+                        class="more-modal__details"
+                      >
+                        <div
+                          class="more-modal__name"
+                        >
+                          <span
+                            id="displayedUserNameadditional_user2"
+                          >
+                            @additional_user2
+                            <span
+                              class="light"
+                            />
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        class="more-modal__actions"
+                      >
+                        <button
+                          aria-label="Add users to role"
+                          class="more-modal__actions--round"
+                        >
+                          <i
+                            class="icon icon-plus"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="multi-select__help"
+                id="multiSelectMessageNote"
+              />
+              <div
+                class="filter-controls"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`admin_console/add_users_to_role_modal > should not include bot user 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="dialog"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      class="fade in modal"
+      id="addUsersToRoleModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-direct-channels modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+            >
+              Add users to 
+              <strong>
+                test_role
+              </strong>
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="multi-select__container react-select"
+                >
+                  <div
+                    class="css-1dedlln"
+                    id="selectItems"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-6-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="react-select-auto react-select__control css-13cymwt-control"
+                    >
+                      <div
+                        class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+                      >
+                        <div
+                          class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                          id="react-select-6-placeholder"
+                        >
+                          Search for people
+                        </div>
+                        <div
+                          class="react-select-auto react-select__input-container css-19bb58m"
+                          data-value=""
+                        >
+                          <input
+                            aria-activedescendant=""
+                            aria-autocomplete="list"
+                            aria-describedby="react-select-6-placeholder"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-invalid="false"
+                            aria-label="Search for people"
+                            autocapitalize="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            class="react-select-auto react-select__input"
+                            id="react-select-6-input"
                             role="combobox"
                             spellcheck="false"
                             style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"

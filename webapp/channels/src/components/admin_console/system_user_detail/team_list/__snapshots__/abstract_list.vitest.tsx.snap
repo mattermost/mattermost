@@ -1,0 +1,2087 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/system_user_detail/team_list/AbstractList > should match snapshot if loading 1`] = `
+<div>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        class="AbstractList__empty"
+      >
+        No teams found
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList > should match snapshot no data 1`] = `
+<div>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        class="AbstractList__empty"
+      >
+        No teams found
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList > should match snapshot when on second page of pagination 1`] = `
+<div>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__header"
+    >
+      <div
+        class="AbstractList__header-label"
+        style="flex-grow: 1; min-width: 284px; margin-left: 16px;"
+      >
+        Name
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Type
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Role
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      />
+    </div>
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 1 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 1
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 1 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id1"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 2 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 2
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                The 2 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id2"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 3 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 3
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 3 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id3"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 4 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 4
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 4 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id4"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 5 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 5
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 5 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id5"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 6 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 6
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 6 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id6"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 7 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 7
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 7 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id7"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 8 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 8
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 8 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id8"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 9 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 9
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 9 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id9"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 10 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 10
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 10 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id10"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="AbstractList__footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 10 of 30
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next "
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList > should match snapshot with enough teams data to require paging 1`] = `
+<div>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__header"
+    >
+      <div
+        class="AbstractList__header-label"
+        style="flex-grow: 1; min-width: 284px; margin-left: 16px;"
+      >
+        Name
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Type
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Role
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      />
+    </div>
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 1 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 1
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 1 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id1"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 2 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 2
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                The 2 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id2"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 3 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 3
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 3 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id3"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 4 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 4
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 4 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id4"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 5 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 5
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 5 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id5"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 6 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 6
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 6 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id6"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 7 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 7
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 7 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id7"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 8 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 8
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 8 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id8"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 9 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 9
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 9 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id9"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 10 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 10
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 10 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id10"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="AbstractList__footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 10 of 30
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next "
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_user_detail/team_list/AbstractList > should match snapshot with teams data populated 1`] = `
+<div>
+  <div
+    class="AbstractList"
+  >
+    <div
+      class="AbstractList__header"
+    >
+      <div
+        class="AbstractList__header-label"
+        style="flex-grow: 1; min-width: 284px; margin-left: 16px;"
+      >
+        Name
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Type
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      >
+        Role
+      </div>
+      <div
+        class="AbstractList__header-label"
+        style="width: 150px;"
+      />
+    </div>
+    <div
+      class="AbstractList__body"
+    >
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 1 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 1
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                Team 1 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id1"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+      <div
+        class="TeamRow"
+      >
+        <div
+          class="TeamRow__row"
+        >
+          <div
+            class="TeamRow__team-name"
+          >
+            <div
+              class="col-sm-auto"
+            >
+              <div
+                class="TeamIcon TeamIcon__sm no-hover"
+              >
+                <div
+                  class="TeamIcon__content no-hover"
+                >
+                  <div
+                    aria-label="Team 2 Team Initials"
+                    class="TeamIcon__initials TeamIcon__initials__sm"
+                    data-testid="teamIconInitial"
+                    role="img"
+                  >
+                    Te
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="col-md-auto"
+            >
+              <b>
+                Team 2
+              </b>
+              <div
+                class="overflow--ellipsis text-nowrap TeamRow__team-description"
+              >
+                The 2 description
+              </div>
+            </div>
+          </div>
+          <span
+            class="TeamRow__description"
+          >
+            Invite Only
+          </span>
+          <span
+            class="TeamRow__description"
+          />
+          <span
+            class="TeamRow__actions"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="dropdown-toggle theme color--link style--none"
+                id="teamListDropdown_id2"
+                type="button"
+              >
+                <span
+                  class="SystemUserDetail__actions-menu-icon"
+                >
+                  <span>
+                    <svg
+                      aria-label="Ellipsis Horizontal Icon"
+                      height="24px"
+                      role="img"
+                      viewBox="0 0 24 24"
+                      width="24px"
+                    >
+                      <path
+                        d="M16,12A2,2 0 0,1 18,10A2,2 0 0,1 20,12A2,2 0 0,1 18,14A2,2 0 0,1 16,12M10,12A2,2 0 0,1 12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12M4,12A2,2 0 0,1 6,10A2,2 0 0,1 8,12A2,2 0 0,1 6,14A2,2 0 0,1 4,12Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="AbstractList__footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 2 of 2
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,464 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/system_role_users > should match snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="SystemRoleUsers"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Assigned People
+        </h3>
+        <div
+          class="mt-2"
+        >
+          List of people assigned to this system role.
+        </div>
+      </div>
+      <div
+        class="button"
+      >
+        <button
+          class="style--none btn btn-primary"
+          id="addRoleMembers"
+        >
+          Add People
+        </button>
+      </div>
+    </div>
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value="asdfasdf"
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle "
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 1;"
+        />
+        <div
+          class="DataGrid_cell"
+        />
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  some-user -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 1;"
+          />
+          <div
+            class="DataGrid_cell"
+            style="text-align: right;"
+          >
+            <div
+              class="UserGrid_removeRow"
+            >
+              <a
+                class=""
+                href="#"
+                role="button"
+              >
+                Remove
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  some-user -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 1;"
+          />
+          <div
+            class="DataGrid_cell"
+            style="text-align: right;"
+          >
+            <div
+              class="UserGrid_removeRow"
+            >
+              <a
+                class=""
+                href="#"
+                role="button"
+              >
+                Remove
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 2 of 2
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_role_users > should match snapshot with readOnly true 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="SystemRoleUsers"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Assigned People
+        </h3>
+        <div
+          class="mt-2"
+        >
+          List of people assigned to this system role.
+        </div>
+      </div>
+      <div
+        class="button"
+      >
+        <button
+          class="style--none btn btn-primary"
+          disabled=""
+          id="addRoleMembers"
+        >
+          Add People
+        </button>
+      </div>
+    </div>
+    <div
+      class="DataGrid"
+    >
+      <div
+        class="DataGrid_search"
+      >
+        <div
+          class="DataGrid_searchBar"
+        >
+          <span
+            aria-hidden="true"
+            class="DataGrid_searchIcon"
+          >
+            <i
+              class="fa fa-search"
+              title="Search Icon"
+            />
+          </span>
+          <input
+            data-testid="searchInput"
+            placeholder="Search"
+            type="text"
+            value="asdfasdf"
+          />
+          <i
+            class="DataGrid_clearButton fa fa-times-circle "
+            data-testid="clear-search"
+          />
+        </div>
+      </div>
+      <div
+        class="DataGrid_header"
+      >
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 3;"
+        >
+          Name
+        </div>
+        <div
+          class="DataGrid_cell"
+          style="flex-grow: 1;"
+        />
+        <div
+          class="DataGrid_cell"
+        />
+      </div>
+      <div
+        class="DataGrid_rows"
+      >
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  some-user -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 1;"
+          />
+          <div
+            class="DataGrid_cell"
+            style="text-align: right;"
+          >
+            <div
+              class="UserGrid_removeRow"
+            >
+              <a
+                class="disabled"
+                href="#"
+                role="button"
+              >
+                Remove
+              </a>
+            </div>
+          </div>
+        </div>
+        <div
+          class="DataGrid_row"
+        >
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 3;"
+          >
+            <div
+              class="UserGrid_nameRow"
+            >
+              <span
+                class="status-wrapper style--none"
+              >
+                <span
+                  class="profile-icon "
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-md"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </span>
+              <div
+                class="UserGrid_name"
+              >
+                <span>
+                  some-user -  
+                </span>
+                <span
+                  class="ug-email"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="DataGrid_cell"
+            style="flex-grow: 1;"
+          />
+          <div
+            class="DataGrid_cell"
+            style="text-align: right;"
+          >
+            <div
+              class="UserGrid_removeRow"
+            >
+              <a
+                class="disabled"
+                href="#"
+                role="button"
+              >
+                Remove
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="DataGrid_footer"
+      >
+        <div
+          class="DataGrid_cell"
+        >
+          1 - 2 of 2
+          <button
+            aria-label="Previous page"
+            class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-left"
+              title="Previous Icon"
+            />
+          </button>
+          <button
+            aria-label="Next page"
+            class="btn btn-quaternary btn-icon btn-sm next disabled"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-chevron-right"
+              title="Next Icon"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

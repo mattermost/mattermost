@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {renderWithContext, screen, waitFor} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 
 import LicenseSettings from './license_settings';
 
 describe('components/admin_console/license_settings/LicenseSettings', () => {
-    const defaultProps = {
+    const defaultProps: ComponentProps<typeof LicenseSettings> = {
         isDisabled: false,
         license: {
             IsLicensed: 'true',
@@ -59,120 +60,183 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         vi.clearAllMocks();
     });
 
-    it('renders the page title', async () => {
-        renderWithContext(
-            <LicenseSettings {...defaultProps}/>,
-            initialState,
-        );
-
+    test('should match snapshot enterprise build with license', async () => {
+        const {container} = renderWithContext(<LicenseSettings {...defaultProps}/>, initialState);
         await waitFor(() => {
             expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
         });
-
-        expect(screen.getByText('Edition and License')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders enterprise edition with license', async () => {
-        renderWithContext(
-            <LicenseSettings {...defaultProps}/>,
-            initialState,
-        );
-
-        await waitFor(() => {
-            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
-        });
-
-        // Should display license info
-        expect(screen.getByText('Mattermost Inc.')).toBeInTheDocument();
-    });
-
-    it('renders with isDisabled set to true', async () => {
-        renderWithContext(
+    test('should match snapshot enterprise build with license and isDisabled set to true', async () => {
+        const {container} = renderWithContext(
             <LicenseSettings
                 {...defaultProps}
                 isDisabled={true}
             />,
             initialState,
         );
-
         await waitFor(() => {
             expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
         });
-
-        expect(screen.getByText('Edition and License')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders enterprise build without license', async () => {
+    test('should match snapshot enterprise build with license and upgraded from TE', async () => {
+        const props = {...defaultProps, upgradedFromTE: true};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot enterprise build without license', async () => {
         const props = {...defaultProps, license: {IsLicensed: 'false'}};
-        renderWithContext(
-            <LicenseSettings {...props}/>,
-            initialState,
-        );
-
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
         await waitFor(() => {
             expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
         });
-
-        // Should show starter edition panel when no license
-        expect(screen.getByText('Edition and License')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('renders team edition build without license', async () => {
-        const props = {...defaultProps, enterpriseReady: false, license: {IsLicensed: 'false'}};
-        renderWithContext(
-            <LicenseSettings {...props}/>,
-            initialState,
-        );
+    test('should match snapshot enterprise build without license and upgrade from TE', async () => {
+        const props = {...defaultProps, license: {IsLicensed: 'false'}, upgradedFromTE: true};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
 
+    test('should match snapshot team edition build without license', async () => {
+        const props = {...defaultProps, enterpriseReady: false, license: {IsLicensed: 'false'}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
         await waitFor(() => {
             expect(defaultProps.actions.isAllowedToUpgradeToEnterprise).toHaveBeenCalled();
         });
-
-        expect(screen.getByText('Edition and License')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
-    it('calls getLicenseConfig on mount', async () => {
-        renderWithContext(
-            <LicenseSettings {...defaultProps}/>,
-            initialState,
-        );
-
-        await waitFor(() => {
-            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    it('calls getFilteredUsersStats on mount', async () => {
-        renderWithContext(
-            <LicenseSettings {...defaultProps}/>,
-            initialState,
-        );
-
-        await waitFor(() => {
-            expect(defaultProps.actions.getFilteredUsersStats).toHaveBeenCalledWith({include_bots: false, include_deleted: false});
-        });
-    });
-
-    it('calls getPrevTrialLicense on mount for enterprise ready', async () => {
-        renderWithContext(
-            <LicenseSettings {...defaultProps}/>,
-            initialState,
-        );
-
-        await waitFor(() => {
-            expect(defaultProps.actions.getPrevTrialLicense).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    it('calls isAllowedToUpgradeToEnterprise on mount for non-enterprise ready', async () => {
+    test('should match snapshot team edition build with license', async () => {
         const props = {...defaultProps, enterpriseReady: false};
-        renderWithContext(
-            <LicenseSettings {...props}/>,
-            initialState,
-        );
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.isAllowedToUpgradeToEnterprise).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('upgrade to enterprise click', async () => {
+        const actions = {
+            ...defaultProps.actions,
+            getLicenseConfig: vi.fn(),
+            upgradeToE0: vi.fn(),
+            upgradeToE0Status: vi.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
+            isAllowedToUpgradeToEnterprise: vi.fn().mockImplementation(() => Promise.resolve({})),
+        };
+        const props = {...defaultProps, enterpriseReady: false, actions};
+        renderWithContext(<LicenseSettings {...props}/>, initialState);
 
         await waitFor(() => {
-            expect(defaultProps.actions.isAllowedToUpgradeToEnterprise).toHaveBeenCalledTimes(1);
+            expect(actions.getLicenseConfig).toHaveBeenCalledTimes(1);
         });
+
+        expect(actions.upgradeToE0Status).toHaveBeenCalledTimes(1);
+    });
+
+    test('load screen while upgrading', async () => {
+        const actions = {
+            ...defaultProps.actions,
+            upgradeToE0Status: vi.fn().mockImplementation(() => Promise.resolve({percentage: 42, error: null})),
+        };
+        const props = {...defaultProps, enterpriseReady: false, actions};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(actions.upgradeToE0Status).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('load screen after upgrading', async () => {
+        const actions = {
+            ...defaultProps.actions,
+            upgradeToE0Status: vi.fn().mockImplementation(() => Promise.resolve({percentage: 100, error: null})),
+        };
+        const props = {...defaultProps, enterpriseReady: false, actions};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(actions.upgradeToE0Status).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot enterprise build with trial license', async () => {
+        const props = {...defaultProps, license: {IsLicensed: 'true', StartsAt: '1617714643650', IssuedAt: '1617714643650', ExpiresAt: '1620335443650'}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot team edition with expired trial in the past', async () => {
+        const props = {...defaultProps, license: {IsLicensed: 'false'}, prevTrialLicense: {IsLicensed: 'true'}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot enterprise build with E20 license', async () => {
+        const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.E20}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot enterprise build with E10 license', async () => {
+        const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.E10}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot enterprise build with Enterprise license', async () => {
+        const props = {...defaultProps, license: {...defaultProps.license, SkuShortName: LicenseSkus.Enterprise}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot with expiring license', async () => {
+        // Set expiration date to 30 days from a fixed date for consistent snapshots
+        const expiringDate = Date.now() + (30 * 24 * 60 * 60 * 1000);
+
+        const props = {...defaultProps, license: {...defaultProps.license, ExpiresAt: expiringDate.toString()}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot with cloud expiring license', async () => {
+        // Set expiration date to 30 days from a fixed date for consistent snapshots
+        const expiringDate = Date.now() + (30 * 24 * 60 * 60 * 1000);
+
+        const props = {...defaultProps, license: {...defaultProps.license, ExpiresAt: expiringDate.toString(), Cloud: 'true'}};
+        const {container} = renderWithContext(<LicenseSettings {...props}/>, initialState);
+        await waitFor(() => {
+            expect(defaultProps.actions.getLicenseConfig).toHaveBeenCalled();
+        });
+        expect(container).toMatchSnapshot();
     });
 });

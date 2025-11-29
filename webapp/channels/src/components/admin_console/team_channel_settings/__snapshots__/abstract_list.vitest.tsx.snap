@@ -1,0 +1,146 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/AbstractList > should match snapshot, no headers 1`] = `
+<div>
+  <div
+    class="groups-list groups-list-no-padding"
+  >
+    <div
+      class="groups-list--body"
+      id="groups-list--body"
+    >
+      <div
+        class="groups-list-empty"
+      >
+        test
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/AbstractList > should match snapshot, with data 1`] = `
+<div>
+  <div
+    class="groups-list groups-list-no-padding"
+  >
+    <div
+      class="groups-list--header"
+    >
+      <div
+        class="group-name adjusted"
+      >
+        Name
+      </div>
+      <div
+        class="group-content"
+      >
+        <div
+          class="group-description"
+        >
+          Team
+        </div>
+        <div
+          class="group-description adjusted"
+        >
+          Management
+        </div>
+        <div
+          class="group-actions"
+        />
+      </div>
+    </div>
+    <div
+      class="groups-list--body"
+      id="groups-list--body"
+    >
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DNMembersToggle"
+            >
+              NaN members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="groups-list--footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 1 of 1
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        data-testid="page-link-next"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;

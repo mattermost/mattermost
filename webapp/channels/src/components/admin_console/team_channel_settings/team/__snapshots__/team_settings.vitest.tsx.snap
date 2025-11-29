@@ -1,0 +1,189 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/team/TeamSettings > should match snapshot 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header"
+    >
+      site Teams
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="AdminPanel clearfix "
+          id="teams"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Teams
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Manage team settings.
+              </div>
+            </div>
+          </div>
+          <div
+            class="TeamsList"
+          >
+            <div
+              class="DataGrid"
+            >
+              <div
+                class="DataGrid_search"
+              >
+                <div
+                  class="DataGrid_searchBar"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="DataGrid_searchIcon"
+                  >
+                    <i
+                      class="fa fa-search"
+                      title="Search Icon"
+                    />
+                  </span>
+                  <input
+                    data-testid="searchInput"
+                    placeholder="Search"
+                    type="text"
+                    value=""
+                  />
+                  <i
+                    class="DataGrid_clearButton fa fa-times-circle hidden"
+                    data-testid="clear-search"
+                  />
+                </div>
+                <div
+                  class="Filter"
+                >
+                  <button
+                    class="Filter_button"
+                    type="button"
+                  >
+                    <i
+                      class="Icon icon-filter-variant"
+                    />
+                    Filters
+                  </button>
+                  <div
+                    class="Filter_content"
+                  >
+                    <div
+                      class="Filter_header"
+                    >
+                      <div
+                        class="Filter_title"
+                      >
+                        Filter by
+                      </div>
+                      <a
+                        class="Filter_reset"
+                      >
+                        Reset filters
+                      </a>
+                    </div>
+                    <hr />
+                    <div
+                      class="Filter_lists"
+                    >
+                      <div
+                        class="FilterList"
+                      >
+                        <div
+                          class="FilterList_name"
+                        >
+                          Management
+                        </div>
+                        <div
+                          class="FilterList_item"
+                        >
+                          <div
+                            class="FilterList_checkbox"
+                          >
+                            <label>
+                              <input
+                                id="allow_open_invite"
+                                name="allow_open_invite"
+                                type="checkbox"
+                              />
+                              Anyone Can Join
+                            </label>
+                          </div>
+                        </div>
+                        <div
+                          class="FilterList_item"
+                        >
+                          <div
+                            class="FilterList_checkbox"
+                          >
+                            <label>
+                              <input
+                                id="invite_only"
+                                name="invite_only"
+                                type="checkbox"
+                              />
+                              Invite Only
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      class="btn btn-primary btn-sm Filter_apply"
+                      disabled=""
+                      type="button"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="DataGrid_header"
+              >
+                <div
+                  class="DataGrid_cell"
+                  style="flex-grow: 4;"
+                >
+                  Name
+                </div>
+                <div
+                  class="DataGrid_cell"
+                >
+                  Management
+                </div>
+                <div
+                  class="DataGrid_cell"
+                />
+              </div>
+              <div
+                class="DataGrid_rows"
+                style="min-height: 0px;"
+              >
+                <div
+                  class="DataGrid_empty"
+                >
+                  No teams found
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

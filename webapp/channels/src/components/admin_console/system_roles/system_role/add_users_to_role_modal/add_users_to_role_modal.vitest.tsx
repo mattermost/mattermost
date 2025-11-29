@@ -92,6 +92,24 @@ describe('admin_console/add_users_to_role_modal', () => {
         expect(baseElement!).toMatchSnapshot();
     });
 
+    test('should include additional user', async () => {
+        const additionalUser = TestHelper.getUserMock({id: 'additional_user_id2', username: 'additional_user2'});
+        const props = {...baseProps, includeUsers: {additional_user_id2: additionalUser}};
+        let baseElement: HTMLElement;
+        await act(async () => {
+            const result = renderWithContext(
+                <AddUsersToRoleModal
+                    {...props}
+                />,
+            );
+            baseElement = result.baseElement;
+            vi.runAllTimers();
+        });
+
+        // Modal renders to portal, so use baseElement to capture full DOM
+        expect(baseElement!).toMatchSnapshot();
+    });
+
     test('should not include bot user', async () => {
         const regularUser = TestHelper.getUserMock({id: 'regular_user_id', username: 'regular_user'});
         const botUser = TestHelper.getUserMock({id: 'bot_user_id', username: 'bot_user', is_bot: true});

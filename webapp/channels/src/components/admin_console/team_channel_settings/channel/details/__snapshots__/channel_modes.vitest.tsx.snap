@@ -1,0 +1,235 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/channel/ChannelModes > should match snapshot - not licensed for Group 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_manage"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Channel Management
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Choose between inviting members manually or syncing members automatically from groups.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div>
+          <div
+            class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+          >
+            <label
+              class="line-switch__label"
+            >
+              Public channel or private channel
+            </label>
+            <div
+              class="line-switch__toggle"
+              data-testid="allow-all-toggle"
+            >
+              <button
+                aria-pressed="true"
+                class="btn btn-lg btn-toggle active"
+                data-testid="allow-all-toggle-button"
+                id="allow-all-toggle"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="handle"
+                />
+                <div
+                  class="bg-text on"
+                >
+                  Public
+                </div>
+              </button>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col-sm-10"
+            >
+              <div
+                class="help-text-small help-text-no-padding "
+              >
+                Select Public for a channel any user can find and join. 
+                <br />
+                Select Private to require channel invitations to join. 
+                <br />
+                Use this switch to change this channel from public to private or from private to public.
+              </div>
+            </div>
+          </div>
+          <div
+            class="section-separator"
+          >
+            <hr
+              class="separator__hr"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModes > should match snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_manage"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Channel Management
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Choose between inviting members manually or syncing members automatically from groups.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div>
+          <div
+            class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+          >
+            <label
+              class="line-switch__label"
+            >
+              Sync Group Members
+            </label>
+            <div
+              class="line-switch__toggle"
+              data-testid="syncGroupSwitch"
+            >
+              <button
+                aria-pressed="false"
+                class="btn btn-lg btn-toggle"
+                data-testid="syncGroupSwitch-button"
+                id="syncGroupSwitch"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="handle"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col-sm-10"
+            >
+              <div
+                class="help-text-small help-text-no-padding "
+              >
+                When enabled, adding and removing users from groups will add or remove them from this channel. The only way of inviting members to this channel is by adding the groups they belong to. 
+                <a
+                  href="https://www.mattermost.com/pl/default-ldap-group-constrained-team-channel.html?utm_source=mattermost&utm_medium=in-product&utm_content=channel_modes&uid=&sid=&edition=team&server_version="
+                  location="channel_modes"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  Learn More
+                </a>
+              </div>
+            </div>
+          </div>
+          <div
+            class="section-separator"
+          >
+            <hr
+              class="separator__hr"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+          >
+            <label
+              class="line-switch__label"
+            >
+              Public channel or private channel
+            </label>
+            <div
+              class="line-switch__toggle"
+              data-testid="allow-all-toggle"
+            >
+              <button
+                aria-pressed="true"
+                class="btn btn-lg btn-toggle active"
+                data-testid="allow-all-toggle-button"
+                id="allow-all-toggle"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="handle"
+                />
+                <div
+                  class="bg-text on"
+                >
+                  Public
+                </div>
+              </button>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col-sm-10"
+            >
+              <div
+                class="help-text-small help-text-no-padding "
+              >
+                Select Public for a channel any user can find and join. 
+                <br />
+                Select Private to require channel invitations to join. 
+                <br />
+                Use this switch to change this channel from public to private or from private to public.
+              </div>
+            </div>
+          </div>
+          <div
+            class="section-separator"
+          >
+            <hr
+              class="separator__hr"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

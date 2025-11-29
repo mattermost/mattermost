@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole > should match snapshot guest 1`] = `
+<div>
+  <div
+    class="UsersToRemoveRole"
+  >
+    Guest
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole > should match snapshot scope channel and admin membership 1`] = `
+<div>
+  <div
+    class="UsersToRemoveRole"
+  >
+    Channel Admin
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole > should match snapshot scope channel and admin membership but user is sys admin 1`] = `
+<div>
+  <div
+    class="UsersToRemoveRole"
+  >
+    System Admin
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole > should match snapshot scope channel and regular membership 1`] = `
+<div>
+  <div
+    class="UsersToRemoveRole"
+  >
+    Member
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole > should match snapshot scope team and admin membership 1`] = `
+<div>
+  <div
+    class="UsersToRemoveRole"
+  >
+    Team Admin
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/team_channel_settings/group/UsersToRemoveRole > should match snapshot scope team and regular membership 1`] = `
+<div>
+  <div
+    class="UsersToRemoveRole"
+  >
+    Member
+  </div>
+</div>
+`;

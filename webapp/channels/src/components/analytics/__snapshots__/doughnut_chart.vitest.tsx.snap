@@ -1,12 +1,12 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/analytics/line_chart.tsx > should match snapshot, loaded with data 1`] = `
+exports[`components/analytics/doughnut_chart.tsx > should match snapshot, loaded with data 1`] = `
 <div>
   <div
-    class="col-sm-12"
+    class="col-sm-6"
   >
     <div
-      class="total-count by-day"
+      class="total-count"
     >
       <div
         class="title"
@@ -17,8 +17,6 @@ exports[`components/analytics/line_chart.tsx > should match snapshot, loaded wit
         class="content"
       >
         <canvas
-          data-labels="test1,test2,test3"
-          data-testid="test"
           height="400"
           width="600"
         />
@@ -28,13 +26,13 @@ exports[`components/analytics/line_chart.tsx > should match snapshot, loaded wit
 </div>
 `;
 
-exports[`components/analytics/line_chart.tsx > should match snapshot, loaded without data 1`] = `
+exports[`components/analytics/doughnut_chart.tsx > should match snapshot, loaded without data 1`] = `
 <div>
   <div
-    class="col-sm-12"
+    class="col-sm-6"
   >
     <div
-      class="total-count by-day"
+      class="total-count"
     >
       <div
         class="title"
@@ -44,22 +42,20 @@ exports[`components/analytics/line_chart.tsx > should match snapshot, loaded wit
       <div
         class="content"
       >
-        <h5>
-          Not enough data for a meaningful representation.
-        </h5>
+        Loading...
       </div>
     </div>
   </div>
 </div>
 `;
 
-exports[`components/analytics/line_chart.tsx > should match snapshot, on loading 1`] = `
+exports[`components/analytics/doughnut_chart.tsx > should match snapshot, on loading 1`] = `
 <div>
   <div
-    class="col-sm-12"
+    class="col-sm-6"
   >
     <div
-      class="total-count by-day"
+      class="total-count"
     >
       <div
         class="title"
