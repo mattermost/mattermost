@@ -138,6 +138,26 @@ describe('components/emoji/components/AddEmoji', () => {
         expect(wrapper.state().error).toBeNull();
     });
 
+    test('should disable file input when already saving', () => {
+        const wrapper = shallow<AddEmoji>(
+            <AddEmoji {...baseProps}/>,
+            {context},
+        );
+
+        let fileInput = wrapper.find('#select-emoji');
+        expect(fileInput.prop('disabled')).toBe(false);
+
+        wrapper.setState({saving: true});
+        fileInput = wrapper.find('#select-emoji');
+        expect(fileInput.prop('disabled')).toBe(true);
+
+        wrapper.setState({saving: false});
+        wrapper.update();
+
+        fileInput = wrapper.find('#select-emoji');
+        expect(fileInput.prop('disabled')).toBe(false);
+    });
+
     test('should not submit when already saving', () => {
         const wrapper = shallow<AddEmoji>(
             <AddEmoji {...baseProps}/>,
