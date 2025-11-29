@@ -22,9 +22,11 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
     const handleEnableAllowedDomains = useCallback((enabled: boolean) => {
         setShowAllowedDomains(enabled);
         if (!enabled) {
+            setHasChanges(true);
+            setSaveChangesPanelState('editing');
             setAllowedDomains([]);
         }
-    }, [setAllowedDomains]);
+    }, [setAllowedDomains, setHasChanges, setSaveChangesPanelState]);
 
     const updateAllowedDomains = useCallback((domain: string) => {
         setHasChanges(true);
