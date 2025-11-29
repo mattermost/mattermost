@@ -458,8 +458,9 @@ func testUpdateOldScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store,
 		cleanup := setupScheduledPosts(now, userId, teamId)
 		defer cleanup()
 
-		err := ss.ScheduledPost().UpdateOldScheduledPosts(now + 2.5*86400000) // marking all posts older than 2 days from now
+		rowsAffected, err := ss.ScheduledPost().UpdateOldScheduledPosts(now + 2.5*86400000) // marking all posts older than 2 days from now
 		assert.NoError(t, err)
+		assert.Equal(t, int64(2), rowsAffected) // 2 posts should be marked as unable to send
 
 		scheduledPosts, err := ss.ScheduledPost().GetScheduledPostsForUser(userId, teamId)
 		assert.NoError(t, err)
