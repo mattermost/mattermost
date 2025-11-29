@@ -604,6 +604,19 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(rctx request.CTX, user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	if user.IsBot {
+		a.CountNotificationReason(model.NotificationStatusNotSent, model.NotificationTypePush, model.NotificationReasonRecipientIsBot, model.NotificationNoPlatform)
+		rctx.Logger().LogM(mlog.MlvlNotificationDebug, "Notification not sent - recipient is bot",
+			mlog.String("type", model.NotificationTypePush),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", model.NotificationStatusNotSent),
+			mlog.String("reason", model.NotificationReasonRecipientIsBot),
+			mlog.String("sender_id", post.UserId),
+			mlog.String("receiver_id", user.Id),
+		)
+		return false
+	}
+
 	if prop := post.GetProp(model.PostPropsForceNotification); prop != nil && prop != "" {
 		return true
 	}
