@@ -202,6 +202,36 @@ func (_m *ReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt) (
 	return r0, r1
 }
 
+// Update provides a mock function with given fields: rctx, receipt
+func (_m *ReadReceiptStore) Update(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
+	ret := _m.Called(rctx, receipt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 *model.ReadReceipt
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ReadReceipt) (*model.ReadReceipt, error)); ok {
+		return rf(rctx, receipt)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ReadReceipt) *model.ReadReceipt); ok {
+		r0 = rf(rctx, receipt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ReadReceipt)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.ReadReceipt) error); ok {
+		r1 = rf(rctx, receipt)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewReadReceiptStore creates a new instance of ReadReceiptStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewReadReceiptStore(t interface {

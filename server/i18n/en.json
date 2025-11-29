@@ -2657,6 +2657,14 @@
     "translation": "Unable to verify plugin signature."
   },
   {
+    "id": "api.post.burn_post.disabled.app_error",
+    "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
+  },
+  {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to burn this post. You must be a member of the channel."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
     "translation": "@{{.GroupName}} has no members on this team"
   },
@@ -4869,6 +4877,22 @@
   {
     "id": "app.bot.update.app_error",
     "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be burned."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "This burn-on-read post has not been revealed yet. You must reveal it before burning."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "An error occurred while updating the read receipt."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
