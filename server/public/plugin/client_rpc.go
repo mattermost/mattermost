@@ -668,7 +668,6 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 	} else {
 		r.Body = io.NopCloser(&bytes.Buffer{})
 	}
-	defer r.Body.Close()
 
 	httpReq := r.GetHTTPRequest()
 
@@ -683,6 +682,7 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 
 			// Connect to response body stream and stream the response body
 			go func() {
+				defer r.Body.Close()
 				if response.Body != nil {
 					// Stream the response body through the connection
 					if _, err := io.Copy(responseConnection, response.Body); err != nil {
@@ -692,8 +692,11 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 				}
 				responseConnection.Close()
 			}()
+		} else {
+			r.Body.Close()
 		}
 	} else {
+		r.Body.Close()
 		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))
 	}
 
