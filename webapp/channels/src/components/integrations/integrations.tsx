@@ -120,7 +120,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         description={
                             <FormattedMessage
                                 id='integrations.command.description'
-                                defaultMessage='Slash commands send events to an external integration'
+                                defaultMessage='Slash commands send events to external integrations'
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/commands'}
@@ -147,7 +147,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         description={
                             <FormattedMessage
                                 id='integrations.oauthApps.description'
-                                defaultMessage='Auth 2.0 allows external applications to make authorized requests to the Mattermost API'
+                                defaultMessage='OAuth 2.0 allows external applications to make authorized requests to the Mattermost API'
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/oauth2-apps'}

@@ -108,7 +108,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]
@@ -270,7 +270,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]
@@ -546,7 +546,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]
@@ -708,7 +708,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
               "value": "csv",
             },
             Object {
-              "text": "GlobalRelay EML",
+              "text": "Global Relay EML",
               "value": "globalrelay",
             },
           ]

@@ -11,7 +11,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
   >
     <AdminHeader>
       <MemoizedFormattedMessage
-        defaultMessage="Database Settings"
+        defaultMessage="Database"
         id="admin.database.title"
       />
     </AdminHeader>

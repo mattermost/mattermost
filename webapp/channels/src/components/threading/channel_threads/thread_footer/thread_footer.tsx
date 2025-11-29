@@ -91,7 +91,7 @@ function ThreadFooter({
                     title={
                         <FormattedMessage
                             id='threading.numNewMessages'
-                            defaultMessage='{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}'
+                            defaultMessage='{newReplies, plural, =0 {No unread messages} =1 {One unread message} other {# unread messages}}'
                             values={{newReplies: thread.unread_replies}}
                         />
                     }

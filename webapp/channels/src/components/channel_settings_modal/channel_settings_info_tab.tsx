@@ -394,7 +394,7 @@ function ChannelSettingsInfoTab({
                 onChange={handlePurposeChange}
                 createMessage={formatMessage({
                     id: 'channel_settings_modal.purpose.placeholder',
-                    defaultMessage: 'Enter a purpose for this channel',
+                    defaultMessage: 'Enter a purpose for this channel (optional)',
                 })}
                 maxLength={Constants.MAX_CHANNELPURPOSE_LENGTH}
                 preview={shouldShowPreviewPurpose}
@@ -408,7 +408,7 @@ function ChannelSettingsInfoTab({
                 hasError={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH}
                 errorMessage={channelPurpose.length > Constants.MAX_CHANNELPURPOSE_LENGTH ? formatMessage({
                     id: 'channel_settings.error_purpose_length',
-                    defaultMessage: 'The channel purpose exceeds the maximum character limit of {maxLength} characters.',
+                    defaultMessage: 'The text entered exceeds the character limit. The channel purpose is limited to {maxLength} characters.',
                 }, {
                     maxLength: Constants.MAX_CHANNELPURPOSE_LENGTH,
                 }) : undefined
@@ -426,7 +426,7 @@ function ChannelSettingsInfoTab({
                 onChange={handleHeaderChange}
                 createMessage={formatMessage({
                     id: 'channel_settings_modal.header.placeholder',
-                    defaultMessage: 'Enter a header description or important links',
+                    defaultMessage: 'Enter a header for this channel',
                 })}
                 maxLength={HEADER_MAX_LENGTH}
                 preview={shouldShowPreviewHeader}
@@ -440,7 +440,7 @@ function ChannelSettingsInfoTab({
                 hasError={channelHeader.length > HEADER_MAX_LENGTH}
                 errorMessage={channelHeader.length > HEADER_MAX_LENGTH ? formatMessage({
                     id: 'edit_channel_header_modal.error',
-                    defaultMessage: 'The channel header exceeds the maximum character limit of {maxLength} characters.',
+                    defaultMessage: 'The text entered exceeds the character limit. The channel header is limited to {maxLength} characters.',
                 }, {
                     maxLength: HEADER_MAX_LENGTH,
                 }) : undefined

@@ -136,10 +136,15 @@ function ChannelAccessRulesConfirmModal({
         return null;
     }
 
-    const modalTitle = (
+    const modalTitle = willShowActivityWarning ? (
         <FormattedMessage
-            id={willShowActivityWarning ? 'channel_settings.access_rules.confirm_modal.title_with_warning' : 'channel_settings.access_rules.confirm_modal.title'}
-            defaultMessage={willShowActivityWarning ? 'Review membership impact' : 'Save and apply rules'}
+            id={'channel_settings.access_rules.confirm_modal.title_with_warning'}
+            defaultMessage={'Review membership impact'}
+        />
+    ) : (
+        <FormattedMessage
+            id={'channel_settings.access_rules.confirm_modal.title'}
+            defaultMessage={'Save and apply rules'}
         />
     );
 
@@ -192,10 +197,15 @@ function ChannelAccessRulesConfirmModal({
                             );
                         }
 
-                        return (
+                        return autoSyncEnabled ? (
                             <FormattedMessage
-                                id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
-                                defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
+                                id={'channel_settings.access_rules.confirm_modal.save_and_apply'}
+                                defaultMessage={'Save and apply'}
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id={'channel_settings.access_rules.confirm_modal.save'}
+                                defaultMessage={'Save'}
                             />
                         );
                     })()}

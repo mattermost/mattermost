@@ -71,7 +71,7 @@ const FeatureRestrictedModal = ({
     const [notifyAdminBtnText, notifyAdmin, notifyRequestStatus] = useNotifyAdmin({
         ctaText: formatMessage({
             id: 'feature_restricted_modal.button.notify',
-            defaultMessage: 'Notify Admin',
+            defaultMessage: 'Notify admin',
         }),
     }, {
         required_feature: feature || '',

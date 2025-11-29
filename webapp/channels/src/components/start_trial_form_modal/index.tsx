@@ -65,7 +65,7 @@ defineMessages({
     },
     TWO_THOUSAND_FIVE_HUNDRED_AND_UP: {
         id: 'TWO_THOUSAND_FIVE_HUNDRED_AND_UP',
-        defaultMessage: '2501+',
+        defaultMessage: '2501-5000',
     },
 });
 

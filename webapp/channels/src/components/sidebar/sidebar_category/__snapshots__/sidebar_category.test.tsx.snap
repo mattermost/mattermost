@@ -288,7 +288,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
     <WithTooltip
       title={
         <React.Fragment>
-          Create new direct message
+          Write a direct message
           <Memo(KeyboardShortcutSequence)
             hideDescription={true}
             isInsideTooltip={true}
@@ -309,7 +309,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
       }
     >
       <button
-        aria-label="Create new direct message"
+        aria-label="Write a direct message"
         className="SidebarChannelGroupHeader_addButton"
         id="newDirectMessageButton"
         onClick={[Function]}
@@ -396,7 +396,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
     <WithTooltip
       title={
         <React.Fragment>
-          Create new direct message
+          Write a direct message
           <Memo(KeyboardShortcutSequence)
             hideDescription={true}
             isInsideTooltip={true}
@@ -417,7 +417,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
       }
     >
       <button
-        aria-label="Create new direct message"
+        aria-label="Write a direct message"
         className="SidebarChannelGroupHeader_addButton"
         id="newDirectMessageButton"
         onClick={[Function]}

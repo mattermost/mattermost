@@ -52,7 +52,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
+              defaultMessage="Specify an emoji name that's up to 64 characters. It can contain lowercase letters, numbers, and the symbols '-', '+' and '_'."
               id="add_emoji.name.help"
             />
           </div>
@@ -97,7 +97,7 @@ exports[`components/emoji/components/AddEmoji should match snapshot 1`] = `
               className="form__help"
             >
               <MemoizedFormattedMessage
-                defaultMessage="Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels."
+                defaultMessage="Specify a .gif, .png, or .jpg file for your emoji. The file can be up to 512 KiB. The dimensions are resized automatically to 128 pixels by 128 pixels while maintaining the aspect ratio."
                 id="add_emoji.image.help"
               />
             </div>
@@ -196,7 +196,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
+              defaultMessage="Specify an emoji name that's up to 64 characters. It can contain lowercase letters, numbers, and the symbols '-', '+' and '_'."
               id="add_emoji.name.help"
             />
           </div>
@@ -244,7 +244,7 @@ exports[`components/emoji/components/AddEmoji should select a file and match sna
               className="form__help"
             >
               <MemoizedFormattedMessage
-                defaultMessage="Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels."
+                defaultMessage="Specify a .gif, .png, or .jpg file for your emoji. The file can be up to 512 KiB. The dimensions are resized automatically to 128 pixels by 128 pixels while maintaining the aspect ratio."
                 id="add_emoji.image.help"
               />
             </div>
@@ -376,7 +376,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
             className="form__help"
           >
             <MemoizedFormattedMessage
-              defaultMessage="Name your emoji. The name can be up to 64 characters, and can contain lowercase letters, numbers, and the symbols '-' and '_'."
+              defaultMessage="Specify an emoji name that's up to 64 characters. It can contain lowercase letters, numbers, and the symbols '-', '+' and '_'."
               id="add_emoji.name.help"
             />
           </div>
@@ -421,7 +421,7 @@ exports[`components/emoji/components/AddEmoji should update emoji name and match
               className="form__help"
             >
               <MemoizedFormattedMessage
-                defaultMessage="Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels."
+                defaultMessage="Specify a .gif, .png, or .jpg file for your emoji. The file can be up to 512 KiB. The dimensions are resized automatically to 128 pixels by 128 pixels while maintaining the aspect ratio."
                 id="add_emoji.image.help"
               />
             </div>

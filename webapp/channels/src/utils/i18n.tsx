@@ -9,10 +9,33 @@ import store from 'stores/redux_store';
 
 const cache = createIntlCache();
 
-// getIntl returns an instance of IntlShape for the current locale.
-// Prefer `useIntl` and `FormattedMessage` and only use this selectively when
-// outside of React components.
+// Stores the intl instance from IntlProvider for reuse
+let intlInstance: IntlShape | null = null;
+
+/**
+ * Sets the intl instance from IntlProvider.
+ * This allows getIntl() to return the same instance that React components use.
+ */
+export function setIntl(intl: IntlShape): void {
+    intlInstance = intl;
+}
+
+/**
+ * Returns the IntlShape instance for the current locale.
+ * Prefer `useIntl` and `FormattedMessage` and only use this selectively when
+ * outside of React components.
+ *
+ * This returns the same instance that IntlProvider creates, ensuring consistency
+ * and avoiding duplicate translation loading.
+ */
 export function getIntl(): IntlShape {
+    // Return the IntlProvider's instance if available (normal case)
+    if (intlInstance) {
+        return intlInstance;
+    }
+
+    // Fallback: create an instance if IntlProvider hasn't mounted yet
+    // This can happen during early initialization or in tests
     const state = store.getState();
     const locale = getCurrentLocale(state);
 
@@ -53,13 +76,6 @@ export function getMonthLong(locale: string): 'short' | 'long' {
     }
 
     return 'long';
-}
-
-/**
- * @deprecated Use react-intl methods such as formatMessage, FormattedMessage, defineMessage, defineMessages.
- */
-export function t(v: string): string {
-    return v;
 }
 
 export interface Message {

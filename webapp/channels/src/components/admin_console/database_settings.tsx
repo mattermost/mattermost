@@ -44,7 +44,7 @@ interface State extends BaseState {
 }
 
 const messages = defineMessages({
-    title: {id: 'admin.database.title', defaultMessage: 'Database Settings'},
+    title: {id: 'admin.database.title', defaultMessage: 'Database'},
     recycleDescription: {id: 'admin.recycle.recycleDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'},
     featureName: {id: 'admin.recycle.recycleDescription.featureName', defaultMessage: 'Recycle Database Connections'},
     reloadConfiguration: {id: 'admin.recycle.recycleDescription.reloadConfiguration', defaultMessage: 'Environment > Web Server > Reload Configuration from Disk'},
@@ -187,6 +187,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     showSuccessMessage={false}
                     errorMessage={defineMessage({
                         id: 'admin.recycle.reloadFail',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Recycling unsuccessful: {error}',
                     })}
                     includeDetailedError={true}
