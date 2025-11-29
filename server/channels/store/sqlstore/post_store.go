@@ -32,7 +32,7 @@ const (
 	// regularPostsFilter excludes pages and page comments from post queries.
 	// Pages have separate lifecycle management and should not be included in
 	// regular post operations like retention policies, exports, or cleanup.
-	regularPostsFilter = "(Type NOT IN ('page', 'page_comment') OR Type IS NULL)"
+	regularPostsFilter = "(Type NOT IN ('page', 'page_comment', 'page_mention', 'system_page_added', 'system_page_updated', 'system_wiki_added', 'system_wiki_deleted') OR Type IS NULL)"
 )
 
 type SqlPostStore struct {
@@ -60,7 +60,7 @@ func (s *SqlPostStore) addRegularPostsFilter(qb sq.SelectBuilder, tableAlias str
 		tableAlias = "Posts"
 	}
 	return qb.Where(sq.Or{
-		sq.NotEq{tableAlias + ".Type": []string{"page", "page_comment"}},
+		sq.NotEq{tableAlias + ".Type": []string{"page", "page_comment", "page_mention", "system_page_added", "system_page_updated", "system_wiki_added", "system_wiki_deleted"}},
 		sq.Eq{tableAlias + ".Type": nil},
 	})
 }
@@ -1271,21 +1271,16 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
-	postFetchQuery, args, _ := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
-		Where(sq.Eq{"Posts.RootId": ""}).
-		Where(sq.Or{
-			sq.And{
-				sq.NotEq{"Posts.Type": "page"},
-				sq.NotEq{"Posts.Type": "page_comment"},
-			},
-			sq.Eq{"Posts.Type": nil},
-		}).
+		Where(sq.Eq{"Posts.RootId": ""})
+	query = s.addRegularPostsFilter(query, "Posts")
+	postFetchQuery, args, _ := query.
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()
@@ -1362,21 +1357,16 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 	)
 	var posts []*postWithExtra
 
-	postFetchQuery, args, err := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
-		Where(sq.Eq{"Posts.RootId": ""}).
-		Where(sq.Or{
-			sq.And{
-				sq.NotEq{"Posts.Type": "page"},
-				sq.NotEq{"Posts.Type": "page_comment"},
-			},
-			sq.Eq{"Posts.Type": nil},
-		}).
+		Where(sq.Eq{"Posts.RootId": ""})
+	query = s.addRegularPostsFilter(query, "Posts")
+	postFetchQuery, args, err := query.
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000).
 		ToSql()
@@ -1868,14 +1858,14 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	posts := []*model.Post{}
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND (p.Type NOT IN ('page', 'page_comment') OR p.Type IS NULL) ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = fmt.Sprintf("SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND %s ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		if !includeDeleted {
-			fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 AND (p.Type NOT IN ('page', 'page_comment') OR p.Type IS NULL) ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = fmt.Sprintf("SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 AND %s ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		}
 	} else {
-		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND (Posts.Type NOT IN ('page', 'page_comment') OR Posts.Type IS NULL) ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = fmt.Sprintf("SELECT * FROM Posts WHERE Posts.ChannelId = ? AND %s ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		if !includeDeleted {
-			fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 AND (Posts.Type NOT IN ('page', 'page_comment') OR Posts.Type IS NULL) ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = fmt.Sprintf("SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 AND %s ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		}
 	}
 
@@ -1942,15 +1932,9 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 		Where(sq.And{
 			where,
 			sq.Eq{"p.ChannelId": channelId},
-			sq.Or{
-				sq.And{
-					sq.NotEq{"p.Type": "page"},
-					sq.NotEq{"p.Type": "page_comment"},
-				},
-				sq.Eq{"p.Type": nil},
-			},
 		}).
 		OrderBy("p.CreateAt")
+	query = s.addRegularPostsFilter(query, "p")
 
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"p.DeleteAt": 0})
@@ -2008,7 +1992,7 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
             ON `+onStatement+`
         WHERE
             q2.ChannelId = ? `+deleteAtQueryCondition+`
-            AND (q2.Type NOT IN ('page', 'page_comment') OR q2.Type IS NULL)
+            AND `+regularPostsFilter+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
@@ -2187,9 +2171,9 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		"(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
-		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
-		Where(sq.Or{sq.NotEq{"q2.Type": "page_comment"}, sq.Eq{"q2.Type": nil}}).
-		OrderByClause("q2.CreateAt DESC").
+		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix))
+	baseQuery = s.addRegularPostsFilter(baseQuery, "q2")
+	baseQuery = baseQuery.OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
 	var err error
