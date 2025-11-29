@@ -6107,4 +6107,3 @@ func testRestoreContentFlaggedPost(t *testing.T, rctx request.CTX, ss store.Stor
 		require.Equal(t, int64(1), thread.ReplyCount)
 	})
 }
-
