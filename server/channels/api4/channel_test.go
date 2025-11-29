@@ -5449,9 +5449,9 @@ func TestGetChannelModerations(t *testing.T) {
 	t.Run("Returns default moderations with default roles", func(t *testing.T) {
 		moderations, _, err := th.SystemAdminClient.GetChannelModerations(context.Background(), channel.Id, "")
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 5)
+		require.Equal(t, len(moderations), 7)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_wikis" || moderation.Name == "manage_pages" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, true)

@@ -4968,12 +4968,6 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamID := model.NewId()
 
-	o1 := model.Channel{}
-	o1.TeamId = teamID
-	o1.DisplayName = "Name"
-	o1.Name = model.GetDMNameFromIds(NewTestID(), NewTestID())
-	o1.Type = model.ChannelTypeDirect
-
 	var postIds []string
 	for range 150 {
 		u1 := &model.User{}
@@ -4992,6 +4986,12 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 		require.NoError(t, nErr)
 
+		o1 := model.Channel{}
+		o1.TeamId = teamID
+		o1.DisplayName = "Name"
+		o1.Name = model.GetDMNameFromIds(u1.Id, u2.Id)
+		o1.Type = model.ChannelTypeDirect
+
 		m1 := model.ChannelMember{}
 		m1.ChannelId = o1.Id
 		m1.UserId = u1.Id
@@ -5002,10 +5002,11 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 		m2.UserId = u2.Id
 		m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
+		savedChannel, err := ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
+		require.NoError(t, err)
 
 		p1 := &model.Post{}
-		p1.ChannelId = o1.Id
+		p1.ChannelId = savedChannel.Id
 		p1.UserId = u1.Id
 		p1.Message = NewTestID()
 		p1.CreateAt = 1000

@@ -2003,6 +2003,8 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	manageMembers := model.ChannelModeratedPermissions[2]
 	channelMentions := model.ChannelModeratedPermissions[3]
 	manageBookmarks := model.ChannelModeratedPermissions[4]
+	manageWikis := model.ChannelModeratedPermissions[5]
+	managePages := model.ChannelModeratedPermissions[6]
 
 	nonChannelModeratedPermission := model.PermissionCreateBot.Id
 
@@ -2302,6 +2304,18 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				},
 				{
 					Name: &manageBookmarks,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewPointer(true),
+					},
+				},
+				{
+					Name: &manageWikis,
+					Roles: &model.ChannelModeratedRolesPatch{
+						Members: model.NewPointer(true),
+					},
+				},
+				{
+					Name: &managePages,
 					Roles: &model.ChannelModeratedRolesPatch{
 						Members: model.NewPointer(true),
 					},

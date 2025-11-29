@@ -2933,6 +2933,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		Join("Users u ON ( u.Id = cm.UserId )").
 		Where(sq.Eq{
 			"cm.ChannelId": channelIds,
+			"u.DeleteAt":   0,
 		})
 
 	queryString, args, err = query.ToSql()
