@@ -1,0 +1,87 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/audit_table/audit_row/AuditRow > should match snapshot with desc 1`] = `
+<div>
+  <table>
+    <tbody>
+      <tr>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          <div>
+            <div>
+              Aug 11, 1971
+            </div>
+            <div>
+              05:01 PM
+            </div>
+          </div>
+        </td>
+        <td
+          class="word-break--all"
+        >
+          test@example.com
+        </td>
+        <td
+          class="word-break--all"
+        >
+          Successfully authenticated
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          ::1
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          hb8febm9ytdiz8zqaxj18efqhy
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`components/audit_table/audit_row/AuditRow > should match snapshot with no desc 1`] = `
+<div>
+  <table>
+    <tbody>
+      <tr>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          <div>
+            <div>
+              Aug 11, 1971
+            </div>
+            <div>
+              05:01 PM
+            </div>
+          </div>
+        </td>
+        <td
+          class="word-break--all"
+        >
+          test@example.com
+        </td>
+        <td
+          class="word-break--all"
+        >
+          Url yeye
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          ::1
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          hb8febm9ytdiz8zqaxj18efqhy
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;

@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/BrowseChannels > should match snapshot and state 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

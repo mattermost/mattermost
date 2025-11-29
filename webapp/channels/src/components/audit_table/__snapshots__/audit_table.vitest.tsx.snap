@@ -1,0 +1,130 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/audit_table/AuditTable > should match snapshot with audits 1`] = `
+<div>
+  <table
+    class="table"
+  >
+    <thead>
+      <tr>
+        <th>
+          Timestamp
+        </th>
+        <th>
+          User ID
+        </th>
+        <th>
+          Action
+        </th>
+        <th>
+          IP Address
+        </th>
+        <th>
+          Session ID
+        </th>
+      </tr>
+    </thead>
+    <tbody
+      data-testid="auditTableBody"
+    >
+      <tr>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          <div>
+            <div>
+              Aug 11, 1971
+            </div>
+            <div>
+              05:01 PM
+            </div>
+          </div>
+        </td>
+        <td
+          class="word-break--all"
+        >
+          user_id_1
+        </td>
+        <td
+          class="word-break--all"
+        >
+          Channels yeye
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          ::1
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          hb8febm9ytdiz8zqaxj18efqhy
+        </td>
+      </tr>
+      <tr>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          <div>
+            <div>
+              Aug 14, 1971
+            </div>
+            <div>
+              09:32 PM
+            </div>
+          </div>
+        </td>
+        <td
+          class="word-break--all"
+        >
+          user_id_1
+        </td>
+        <td
+          class="word-break--all"
+        >
+          Successfully logged in
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        >
+          ::1
+        </td>
+        <td
+          class="whitespace--nowrap word-break--all"
+        />
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`components/audit_table/AuditTable > should match snapshot with no audits 1`] = `
+<div>
+  <table
+    class="table"
+  >
+    <thead>
+      <tr>
+        <th>
+          Timestamp
+        </th>
+        <th>
+          User ID
+        </th>
+        <th>
+          Action
+        </th>
+        <th>
+          IP Address
+        </th>
+        <th>
+          Session ID
+        </th>
+      </tr>
+    </thead>
+    <tbody
+      data-testid="auditTableBody"
+    />
+  </table>
+</div>
+`;
