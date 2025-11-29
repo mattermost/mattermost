@@ -270,6 +270,40 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('Load Metric:');
     });
 
+    test('should show FIPS indicator when IsFipsEnabled is true', () => {
+        const fipsConfig = {
+            ...config,
+            IsFipsEnabled: 'true',
+        };
+
+        renderAboutBuildModal({config: fipsConfig});
+
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0 (FIPS)');
+    });
+
+    test('should not show FIPS indicator when IsFipsEnabled is false', () => {
+        const nonFipsConfig = {
+            ...config,
+            IsFipsEnabled: 'false',
+        };
+
+        renderAboutBuildModal({config: nonFipsConfig});
+
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
+    });
+
+    test('should not show FIPS indicator when IsFipsEnabled is not set', () => {
+        const nonFipsConfig = {
+            ...config,
+        };
+
+        renderAboutBuildModal({config: nonFipsConfig});
+
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('(FIPS)');
+    });
+
     function renderAboutBuildModal(props = {}) {
         const onExited = jest.fn();
         const show = true;
