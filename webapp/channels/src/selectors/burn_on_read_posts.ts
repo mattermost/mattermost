@@ -6,8 +6,6 @@ import type {Post} from '@mattermost/types/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
-
 import {PostTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -42,23 +40,21 @@ export function hasUserRevealedBurnOnReadPost(state: GlobalState, postId: string
     }
 
     // Check if recipient has revealed the post
-    return post.props?.revealed === true;
+    // Post is revealed if metadata.expire_at exists
+    return typeof post.metadata?.expire_at === 'number';
 }
 
 /**
  * Returns whether the specified Burn-on-Read post should display concealed placeholder.
  * This is true when:
- * - Feature is enabled
  * - Post is a BoR post
  * - Current user is NOT the sender
  * - Current user has NOT revealed the content yet
+ *
+ * Note: This should work regardless of feature flag being enabled/disabled.
+ * The feature flag only controls creation of NEW BoR messages, not display of existing ones.
  */
 export function shouldDisplayConcealedPlaceholder(state: GlobalState, postId: string): boolean {
-    // Feature flag check first
-    if (!isBurnOnReadEnabled(state)) {
-        return false;
-    }
-
     const post = getPost(state, postId);
     const currentUserId = getCurrentUserId(state);
 
@@ -72,7 +68,8 @@ export function shouldDisplayConcealedPlaceholder(state: GlobalState, postId: st
     }
 
     // Show concealed if not yet revealed
-    return post.props?.revealed !== true;
+    // Post is NOT revealed if metadata.expire_at doesn't exist
+    return typeof post.metadata?.expire_at !== 'number';
 }
 
 /**
@@ -97,7 +94,7 @@ export function getBurnOnReadPostExpiration(state: GlobalState, postId: string):
         return null;
     }
 
-    const expireAt = post.props?.expire_at;
+    const expireAt = post.metadata?.expire_at;
     if (typeof expireAt === 'number') {
         return expireAt;
     }

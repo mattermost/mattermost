@@ -641,12 +641,14 @@ export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): b
     const notFromWebhook = !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook);
     const notSystemMessage = !isSystemMessage(post) && !isSystemMessage(previousPost);
     const sameAiGeneratedStatus = post.props?.ai_generated_by === previousPost.props?.ai_generated_by;
+    const notBoRMessage = post.type !== Constants.PostTypes.BURN_ON_READ && previousPost.type !== Constants.PostTypes.BURN_ON_READ; // And neither is a burn-on-read post
 
     return sameUser &&
         withinTimeWindow &&
         notFromWebhook &&
         notSystemMessage &&
-        sameAiGeneratedStatus;
+        sameAiGeneratedStatus &&
+        notBoRMessage;
 }
 
 // Checks if a post has valid AI-generated metadata

@@ -25,6 +25,7 @@ import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/thre
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPostById} from 'actions/views/rhs';
+import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {getConnectionId} from 'selectors/general';
 import {getChannelURL} from 'selectors/urls';
 
@@ -109,6 +110,7 @@ function DraftRow({
     });
 
     const connectionId = useSelector(getConnectionId);
+    const burnOnReadDurationMinutes = useSelector(getBurnOnReadDurationMinutes);
 
     const isChannelArchived = Boolean(channel?.delete_at);
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, channelId));
@@ -409,6 +411,8 @@ function DraftRow({
                     message={item.message}
                     status={status}
                     priority={rootId ? undefined : item.metadata?.priority}
+                    burnOnRead={rootId ? undefined : item.metadata?.burn_on_read}
+                    burnOnReadDurationMinutes={burnOnReadDurationMinutes}
                     uploadsInProgress={uploadsInProgress}
                     userId={user.id}
                     username={user.username}

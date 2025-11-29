@@ -30,8 +30,18 @@
 }
 
 .BurnOnReadConcealedPlaceholder {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
     cursor: pointer;
+    text-align: left;
     user-select: none;
+
+    &:disabled {
+        cursor: wait;
+        pointer-events: none;
+    }
 
     &__text {
         overflow: hidden;
@@ -43,13 +53,12 @@
         white-space: nowrap;
     }
 
-    &:hover &__text {
+    &:hover:not(:disabled) &__text {
         opacity: 0.95;
     }
 
     &--loading {
         cursor: wait;
-        pointer-events: none;
     }
 
     &__error {

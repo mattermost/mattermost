@@ -129,6 +129,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
         props: draft.props,
         file_ids: fileIds,
         priority: draft.metadata?.priority as PostPriorityMetadata,
+        burn_on_read: draft.metadata?.burn_on_read,
     };
 
     return Client4.upsertDraft(newDraft, connectionId);
@@ -167,6 +168,9 @@ export function transformServerDraft(draft: ServerDraft): Draft {
     const metadata = (draft.metadata || {}) as PostMetadata;
     if (draft.priority) {
         metadata.priority = draft.priority;
+    }
+    if (draft.burn_on_read) {
+        metadata.burn_on_read = draft.burn_on_read;
     }
 
     return {

@@ -27,6 +27,7 @@ import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
+import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
 
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
@@ -61,6 +62,14 @@ export function submitPost(
             metadata: {...draft.metadata},
             props: {...draft.props},
         } as unknown as Post;
+
+        // Strip burn-on-read metadata if feature is disabled
+        const isBorEnabled = isBurnOnReadEnabled(state);
+        if (!isBorEnabled && post.metadata?.burn_on_read) {
+            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+            const {burn_on_read, ...restMetadata} = post.metadata;
+            post.metadata = restMetadata as PostMetadata;
+        }
 
         const channel = getChannel(state, channelId);
         if (!channel) {

@@ -230,7 +230,8 @@ export type ClientConfig = {
 
     // Burn on Read Settings
     EnableBurnOnRead: string;
-    BurnOnReadDurationMinutes: string;
+    BurnOnReadDurationSeconds: string;
+    BurnOnReadMaximumTimeToLiveSeconds: string;
 
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;

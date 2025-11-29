@@ -19,11 +19,12 @@ type Draft struct {
 
 	Message string `json:"message"`
 
-	propsMu  sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Draft.Props.
-	Props    StringInterface `json:"props"` // Deprecated: use GetProps()
-	FileIds  StringArray     `json:"file_ids,omitempty"`
-	Metadata *PostMetadata   `json:"metadata,omitempty"`
-	Priority StringInterface `json:"priority,omitempty"`
+	propsMu    sync.RWMutex    `db:"-"`       // Unexported mutex used to guard Draft.Props.
+	Props      StringInterface `json:"props"` // Deprecated: use GetProps()
+	FileIds    StringArray     `json:"file_ids,omitempty"`
+	Metadata   *PostMetadata   `json:"metadata,omitempty"`
+	Priority   StringInterface `json:"priority,omitempty"`
+	BurnOnRead StringInterface `json:"burn_on_read,omitempty"`
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
@@ -66,6 +67,10 @@ func (o *Draft) BaseIsValid() *AppError {
 
 	if utf8.RuneCountInString(StringInterfaceToJSON(o.Priority)) > PostPropsMaxRunes {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.priority.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(StringInterfaceToJSON(o.BurnOnRead)) > PostPropsMaxRunes {
+		return NewAppError("Drafts.IsValid", "model.draft.is_valid.burn_on_read.app_error", nil, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	return nil
