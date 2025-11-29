@@ -588,7 +588,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 
 	// Send initial read receipt counts for burn-on-read posts
 	if post.Type == model.PostTypeBurnOnRead {
-		if err := a.publishPostRevealedEvent(post, post.UserId); err != nil {
+		if err := a.publishPostRevealedEvent(post, post.UserId, ""); err != nil {
 			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	}

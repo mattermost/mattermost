@@ -1524,4 +1524,5 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }

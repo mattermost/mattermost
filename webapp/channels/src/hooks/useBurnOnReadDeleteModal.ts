@@ -39,7 +39,7 @@ interface PreferenceType {
  * Actions interface for BoR delete modal (matches what's available in dot_menu and post_component)
  */
 interface BurnOnReadDeleteActions {
-    burnPostNow?: (postId: string) => Promise<{data?: boolean; error?: Error}>;
+    burnPostNow?: (postId: string, isSender: boolean) => Promise<{data?: boolean; error?: Error}>;
     closeModal: (modalId: string) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => void;
 }
@@ -58,8 +58,8 @@ export function createBurnOnReadDeleteModalHandlers(
 ): BurnOnReadDeleteModalHandlers {
     return {
         onConfirm: async (skipConfirmation: boolean) => {
-            // Delete the post
-            await actions.burnPostNow?.(postId);
+            // Delete the post (pass isSender to determine which endpoint to use)
+            await actions.burnPostNow?.(postId, isSender);
 
             // Close the modal
             actions.closeModal(ModalIdentifiers.BURN_ON_READ_CONFIRMATION);
@@ -94,8 +94,8 @@ export function useBurnOnReadDeleteModal(
     const {postId, userId, isSender} = params;
 
     const onConfirm = useCallback(async (skipConfirmation: boolean) => {
-        // Delete the post
-        await dispatch(burnPostNow(postId));
+        // Delete the post (pass isSender to determine which endpoint to use)
+        await dispatch(burnPostNow(postId, isSender));
 
         // Close the modal
         dispatch(closeModal(ModalIdentifiers.BURN_ON_READ_CONFIRMATION));
@@ -110,7 +110,7 @@ export function useBurnOnReadDeleteModal(
             };
             dispatch(savePreferences(userId, [pref]));
         }
-    }, [dispatch, postId, userId]);
+    }, [dispatch, postId, userId, isSender]);
 
     const onCancel = useCallback(() => {
         dispatch(closeModal(ModalIdentifiers.BURN_ON_READ_CONFIRMATION));

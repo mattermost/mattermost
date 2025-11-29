@@ -104,7 +104,7 @@ export type Props = {
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
         revealBurnOnReadPost: (postId: string) => Promise<{data?: any; error?: any}>;
-        burnPostNow?: (postId: string) => Promise<any>;
+        burnPostNow?: (postId: string, isSender: boolean) => Promise<any>;
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
@@ -454,14 +454,15 @@ function PostComponent(props: Props) {
 
     const handleTimerChipClick = useCallback(() => {
         // Timer chip is only shown to receivers, so this is always a receiver delete (for themselves only)
+        const isSender = post.user_id === props.currentUserId;
+
         // Skip modal if preference is set
         if (props.burnOnReadSkipConfirmation) {
-            props.actions.burnPostNow?.(post.id);
+            props.actions.burnPostNow?.(post.id, isSender);
             return;
         }
 
         // Open modal via Redux (zero overhead for non-BoR posts!)
-        const isSender = post.user_id === props.currentUserId;
         const handlers = createBurnOnReadDeleteModalHandlers(
             props.actions,
             {
