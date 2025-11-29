@@ -10,7 +10,7 @@ import (
 
 func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost); ok {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(c.AppContext, channelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy

@@ -219,7 +219,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -275,6 +276,13 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_channel_posts")
+		auditRec.AddMeta("channel_id", channelId)
+	}
 }
 
 func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -295,7 +303,8 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		c.Err = err
 		return
 	}
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -346,6 +355,13 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_channel_posts")
+		auditRec.AddMeta("channel_id", channelId)
+	}
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -393,6 +409,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	pl := model.NewPostList()
 	channelReadPermission := make(map[string]bool)
+	isMemberForAllPosts := true
 
 	for _, post := range posts.Posts {
 		allowed, ok := channelReadPermission[post.ChannelId]
@@ -404,8 +421,11 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 			if !ok {
 				continue
 			}
-			if c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+
+			hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+			if hasPermission {
 				allowed = true
+				isMemberForAllPosts = isMemberForAllPosts && isMember
 			}
 
 			channelReadPermission[post.ChannelId] = allowed
@@ -426,6 +446,14 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = err
 		return
 	}
+
+	if !isMemberForAllPosts {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_flagged_posts")
+		auditRec.AddMeta("channel_id", channelId)
+	}
+
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -444,7 +472,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), includeDeleted)
+	post, err, isMember := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), includeDeleted)
 	if err != nil {
 		c.Err = err
 
@@ -470,6 +498,13 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
 	if err := post.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_post")
+		auditRec.AddMeta("post_id", c.Params.PostId)
 	}
 }
 
@@ -510,15 +545,19 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var posts = []*model.Post{}
+	isMemberForAllPosts := true
 	for _, post := range postsList {
 		channel, ok := channelMap[post.ChannelId]
 		if !ok {
 			continue
 		}
 
-		if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		hasPermission, isMemberForCurrentPost := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		if !hasPermission {
 			continue
 		}
+
+		isMemberForAllPosts = isMemberForAllPosts && isMemberForCurrentPost
 
 		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 		post.StripActionIntegrations()
@@ -529,6 +568,13 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(posts); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	if !isMemberForAllPosts {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_posts_by_ids")
+		auditRec.AddMeta("post_ids", postIDs)
 	}
 }
 
@@ -544,7 +590,8 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
+	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
@@ -558,6 +605,13 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_edit_history_for_post")
+		auditRec.AddMeta("post_id", c.Params.PostId)
 	}
 
 	if err := json.NewEncoder(w).Encode(postsList); err != nil {
@@ -599,12 +653,12 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventObjectType("post")
 
 	if c.AppContext.Session().UserId == post.UserId {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
 			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionDeleteOthersPosts)
 			return
 		}
@@ -730,7 +784,8 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err = c.App.GetPostIfAuthorized(c.AppContext, post.Id, c.AppContext.Session(), false); err != nil {
+	var isMember bool
+	if _, err, isMember = c.App.GetPostIfAuthorized(c.AppContext, post.Id, c.AppContext.Session(), false); err != nil {
 		c.Err = err
 		return
 	}
@@ -750,6 +805,13 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_post_thread")
+		auditRec.AddMeta("post_id", c.Params.PostId)
 	}
 }
 
@@ -879,7 +941,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
+	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
+	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
@@ -894,7 +957,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.AppContext.Session().UserId != originalPost.UserId {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts) {
+		// We don't need to check the member here, since we already checked it above
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
 			c.SetPermissionError(model.PermissionEditOthersPosts)
 			return
 		}
@@ -911,6 +975,10 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	auditRec.Success()
@@ -945,7 +1013,7 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	postPatchChecks(c, auditRec, post.Message)
+	isMember := postPatchChecks(c, auditRec, post.Message)
 	if c.Err != nil {
 		return
 	}
@@ -956,6 +1024,10 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedPost)
 
@@ -964,11 +1036,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
+func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) bool {
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
-		return
+		return false
 	}
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
@@ -981,15 +1053,18 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 		permission = model.PermissionEditOthersPosts
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
+	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
+	if !ok {
 		c.SetPermissionError(permission)
-		return
+		return false
 	}
 
 	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {
 		c.Err = model.NewAppError("patchPost", "api.post.update_post.permissions_time_limit.app_error", map[string]any{"timeLimit": *c.App.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
-		return
+		return isMember
 	}
+
+	return isMember
 }
 
 func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1005,7 +1080,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -1030,7 +1105,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -1073,9 +1148,14 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		c.Err = err
 		return
 	}
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	ok, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	patch := &model.PostPatch{}
@@ -1117,7 +1197,7 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -1156,7 +1236,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -1235,7 +1315,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sourcePost, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	sourcePost, err, _ := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
 	if err != nil {
 		c.Err = err
 		if err.Id == "app.post.cloud.get.app_error" {
@@ -1262,7 +1342,8 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId)
+	if !ok {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -1289,6 +1370,13 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedFileInfoWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_file_infos_for_post")
+		auditRec.AddMeta("post_id", c.Params.PostId)
+	}
+
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set(model.HeaderEtagServer, model.GetEtagForFileInfos(infos))
 	if _, err := w.Write(js); err != nil {
@@ -1302,7 +1390,86 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, appErr := c.App.GetPostInfo(c.AppContext, c.Params.PostId)
+	userID := c.AppContext.Session().UserId
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	notFoundError := model.NewAppError("GetPostInfo", "app.post.get.app_error", nil, "", http.StatusNotFound)
+
+	var team *model.Team
+	hasPermissionToAccessTeam := false
+	if channel.TeamId != "" {
+		team, appErr = c.App.GetTeam(channel.TeamId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		var teamMember *model.TeamMember
+		teamMember, appErr = c.App.GetTeamMember(c.AppContext, channel.TeamId, userID)
+		if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+			c.Err = appErr
+			return
+		}
+
+		if appErr == nil {
+			if teamMember.DeleteAt == 0 {
+				hasPermissionToAccessTeam = true
+			}
+		}
+
+		if !hasPermissionToAccessTeam {
+			if team.AllowOpenInvite {
+				hasPermissionToAccessTeam = c.App.HasPermissionToTeam(c.AppContext, userID, team.Id, model.PermissionJoinPublicTeams)
+			} else {
+				hasPermissionToAccessTeam = c.App.HasPermissionToTeam(c.AppContext, userID, team.Id, model.PermissionJoinPrivateTeams)
+			}
+		}
+	} else {
+		// This happens in case of DMs and GMs.
+		hasPermissionToAccessTeam = true
+	}
+
+	if !hasPermissionToAccessTeam {
+		c.Err = notFoundError
+		return
+	}
+
+	hasPermissionToAccessChannel := false
+	hasJoinedChannel := false
+
+	_, channelMemberErr := c.App.GetChannelMember(c.AppContext, channel.Id, userID)
+
+	if channelMemberErr == nil {
+		hasPermissionToAccessChannel = true
+		hasJoinedChannel = true
+	}
+
+	if !hasPermissionToAccessChannel {
+		if channel.Type == model.ChannelTypeOpen {
+			hasPermissionToAccessChannel = true
+		} else if channel.Type == model.ChannelTypePrivate {
+			hasPermissionToAccessChannel, _ = c.App.HasPermissionToChannel(c.AppContext, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
+		} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+			hasPermissionToAccessChannel, _ = c.App.HasPermissionToReadChannel(c.AppContext, userID, channel)
+		}
+	}
+
+	if !hasPermissionToAccessChannel {
+		c.Err = notFoundError
+		return
+	}
+
+	info, appErr := c.App.GetPostInfo(c.AppContext, c.Params.PostId, channel, team, userID, hasJoinedChannel)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1349,7 +1516,7 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postPatchChecks(c, auditRec, &toRestorePost.Message)
+	isMember := postPatchChecks(c, auditRec, &toRestorePost.Message)
 	if c.Err != nil {
 		return
 	}
@@ -1358,6 +1525,10 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	auditRec.Success()
