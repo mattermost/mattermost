@@ -159,6 +159,19 @@ const useKeyHandler = (
         }
 
         if ((Keyboard.isKeyPressed(e, KeyCodes.PAGE_UP) || Keyboard.isKeyPressed(e, KeyCodes.PAGE_DOWN))) {
+            const textbox = textboxRef.current?.getInputBox();
+
+            if (textbox && textbox === document.activeElement) {
+                const hasScrollableContent = textbox.scrollHeight > textbox.clientHeight;
+
+                if (hasScrollableContent) {
+                    return;
+                }
+            }
+            // By default, the page up and down keys will scroll the page (the channel content). 
+            // However, this makes it so that if the text box is focused (if the cursor is in the text box) 
+            // AND if there is a long enough message that scrolling is possible, the page up and down will scroll the message 
+
             // Moving the focus to the post list will cause the post list to scroll as if it already had focus
             // before the key was pressed
             if (location === Locations.CENTER) {
