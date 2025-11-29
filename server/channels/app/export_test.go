@@ -799,7 +799,7 @@ func TestExportPostsWithThread(t *testing.T) {
 		thread := th1.CreatePost(t, th1.BasicChannel)
 		_ = th1.CreatePostReply(t, thread)
 
-		appErr := th1.App.UpdateThreadFollowForUser(th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
+		appErr := th1.App.UpdateThreadFollowForUser(th1.Context, th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
 		require.Nil(t, appErr)
 
 		member1, appErr := th1.App.GetThreadMembershipForUser(th1.BasicUser.Id, thread.Id)
@@ -823,7 +823,7 @@ func TestExportPostsWithThread(t *testing.T) {
 		thread := th1.CreatePost(t, dmc)
 		_ = th1.CreatePostReply(t, thread)
 
-		appErr := th1.App.UpdateThreadFollowForUser(th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
+		appErr := th1.App.UpdateThreadFollowForUser(th1.Context, th1.BasicUser2.Id, th1.BasicTeam.Id, thread.Id, true)
 		require.Nil(t, appErr)
 
 		member1, appErr := th1.App.GetThreadMembershipForUser(th1.BasicUser.Id, thread.Id)
