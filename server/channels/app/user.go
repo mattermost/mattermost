@@ -195,7 +195,6 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 		Email:         email,
 		EmailVerified: true,
 		Username:      username,
-		Password:      model.NewId(), // Random password - user won't use it
 		AuthService:   model.UserAuthServiceMagicLink,
 	}
 
