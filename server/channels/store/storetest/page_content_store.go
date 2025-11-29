@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -26,6 +27,13 @@ func TestPageContentStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 	t.Run("PermanentDeletePageContent", func(t *testing.T) { testPermanentDeletePageContent(t, rctx, ss) })
 	t.Run("PageContentLargeDocument", func(t *testing.T) { testPageContentLargeDocument(t, rctx, ss) })
 	t.Run("PageContentSearchTextExtraction", func(t *testing.T) { testPageContentSearchTextExtraction(t, rctx, ss) })
+
+	t.Cleanup(func() {
+		typesSQL := pagePostTypesSQL()
+		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM PropertyValues WHERE TargetType = 'post' AND TargetID IN (SELECT Id FROM Posts WHERE Type IN (%s))", typesSQL))
+		_, _ = s.GetMaster().Exec("DELETE FROM PageContents")
+		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM Posts WHERE Type IN (%s)", typesSQL))
+	})
 }
 
 func testSavePageContent(t *testing.T, rctx request.CTX, ss store.Store) {

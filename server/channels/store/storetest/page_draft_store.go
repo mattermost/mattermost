@@ -51,6 +51,11 @@ func TestPageDraftContentStore(t *testing.T, rctx request.CTX, ss store.Store, s
 	t.Run("GetForWikiOrdering", func(t *testing.T) { testPageDraftContentGetForWikiOrdering(t, rctx, ss) })
 	t.Run("JSONBSerialization", func(t *testing.T) { testPageDraftContentJSONBSerialization(t, rctx, ss) })
 	t.Run("LargeContent", func(t *testing.T) { testPageDraftContentLargeContent(t, rctx, ss) })
+
+	t.Cleanup(func() {
+		_, _ = s.GetMaster().Exec("DELETE FROM PageDraftContents")
+		_, _ = s.GetMaster().Exec("DELETE FROM Drafts WHERE WikiId != ''")
+	})
 }
 
 func testPageDraftContentUpsertInsert(t *testing.T, rctx request.CTX, ss store.Store) {

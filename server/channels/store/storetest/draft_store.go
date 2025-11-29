@@ -1260,6 +1260,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.NotNil(t, savedDraft)
 
+		time.Sleep(10 * time.Millisecond)
+
 		updatedProps := map[string]any{
 			"page_parent_id": "new-parent-id",
 			"page_id":        "page-123",

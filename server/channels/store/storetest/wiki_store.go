@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -50,6 +51,14 @@ func TestWikiStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("CreateWikiWithDefaultPage", func(t *testing.T) { testCreateWikiWithDefaultPage(t, rctx, ss) })
 	t.Run("DeleteAllPagesForWiki", func(t *testing.T) { testDeleteAllPagesForWiki(t, rctx, ss) })
 	t.Run("GetAbandonedPages", func(t *testing.T) { testGetAbandonedPages(t, rctx, ss) })
+
+	t.Cleanup(func() {
+		typesSQL := pagePostTypesSQL()
+		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM PropertyValues WHERE TargetType = 'post' AND TargetID IN (SELECT Id FROM Posts WHERE Type IN (%s))", typesSQL))
+		_, _ = s.GetMaster().Exec("DELETE FROM PageContents")
+		_, _ = s.GetMaster().Exec("DELETE FROM Wikis")
+		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM Posts WHERE Type IN (%s)", typesSQL))
+	})
 }
 
 func testSaveWiki(t *testing.T, rctx request.CTX, ss store.Store) {

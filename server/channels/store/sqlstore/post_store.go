@@ -52,6 +52,20 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
+// PagePostTypes returns the list of post types related to pages/wiki functionality.
+// Use this for filtering or cleanup queries that need to target page-related posts.
+func PagePostTypes() []string {
+	return []string{
+		model.PostTypePage,
+		model.PostTypePageComment,
+		model.PostTypePageMention,
+		model.PostTypePageAdded,
+		model.PostTypePageUpdated,
+		model.PostTypeWikiAdded,
+		model.PostTypeWikiDeleted,
+	}
+}
+
 // addRegularPostsFilter adds the page exclusion filter to a query builder.
 // Use this for any query that should operate only on messages, not pages.
 // tableAlias should be the alias used for the Posts table in the query (e.g., "p" or "Posts").
@@ -60,7 +74,7 @@ func (s *SqlPostStore) addRegularPostsFilter(qb sq.SelectBuilder, tableAlias str
 		tableAlias = "Posts"
 	}
 	return qb.Where(sq.Or{
-		sq.NotEq{tableAlias + ".Type": []string{"page", "page_comment", "page_mention", "system_page_added", "system_page_updated", "system_wiki_added", "system_wiki_deleted"}},
+		sq.NotEq{tableAlias + ".Type": PagePostTypes()},
 		sq.Eq{tableAlias + ".Type": nil},
 	})
 }

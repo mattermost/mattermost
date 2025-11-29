@@ -4,6 +4,8 @@
 package storetest
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -15,7 +17,31 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store) {
+// pagePostTypes returns the list of post types related to pages/wiki functionality.
+// This mirrors sqlstore.PagePostTypes() but is defined here to avoid circular imports.
+func pagePostTypes() []string {
+	return []string{
+		model.PostTypePage,
+		model.PostTypePageComment,
+		model.PostTypePageMention,
+		model.PostTypePageAdded,
+		model.PostTypePageUpdated,
+		model.PostTypeWikiAdded,
+		model.PostTypeWikiDeleted,
+	}
+}
+
+// pagePostTypesSQL returns a SQL IN clause value for page post types.
+func pagePostTypesSQL() string {
+	types := pagePostTypes()
+	quoted := make([]string, len(types))
+	for i, t := range types {
+		quoted[i] = fmt.Sprintf("'%s'", t)
+	}
+	return strings.Join(quoted, ", ")
+}
+
+func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPageChildren", func(t *testing.T) { testGetPageChildren(t, rctx, ss) })
 	t.Run("GetPageAncestors", func(t *testing.T) { testGetPageAncestors(t, rctx, ss) })
 	t.Run("GetPageDescendants", func(t *testing.T) { testGetPageDescendants(t, rctx, ss) })
@@ -23,6 +49,13 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("ChangePageParent", func(t *testing.T) { testChangePageParent(t, rctx, ss) })
 	t.Run("GetCommentsForPage", func(t *testing.T) { testGetCommentsForPage(t, rctx, ss) })
 	t.Run("UpdatePageWithContent", func(t *testing.T) { testUpdatePageWithContent(t, rctx, ss) })
+
+	t.Cleanup(func() {
+		typesSQL := pagePostTypesSQL()
+		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM PropertyValues WHERE TargetType = 'post' AND TargetID IN (SELECT Id FROM Posts WHERE Type IN (%s))", typesSQL))
+		_, _ = s.GetMaster().Exec("DELETE FROM PageContents")
+		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM Posts WHERE Type IN (%s)", typesSQL))
+	})
 }
 
 func testGetPageChildren(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -598,6 +631,8 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		comment1, err = ss.Post().Save(rctx, comment1)
 		require.NoError(t, err)
+
+		time.Sleep(2 * time.Millisecond)
 
 		comment2 := &model.Post{
 			ChannelId: channel.Id,
@@ -1243,6 +1278,8 @@ func testChangePageParent(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		page, err = ss.Post().Save(rctx, page)
 		require.NoError(t, err)
+
+		time.Sleep(10 * time.Millisecond)
 
 		err = ss.Page().ChangePageParent(page.Id, newParent.Id)
 		require.NoError(t, err)
