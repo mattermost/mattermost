@@ -1193,6 +1193,7 @@ type ExperimentalSettings struct {
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
 	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
+	ExperimentalLastViewSanitize                          *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1242,6 +1243,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ExperimentalChannelCategorySorting == nil {
 		s.ExperimentalChannelCategorySorting = NewPointer(false)
+	}
+
+	if s.ExperimentalLastViewSanitize == nil {
+		s.ExperimentalLastViewSanitize = NewPointer(false)
 	}
 }
 
