@@ -22,6 +22,7 @@ import type {
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
+import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
@@ -184,6 +185,12 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
         if (!state[post.id]) {
             return state;
+        }
+
+        if (state[post.id].type === PostTypeConstants.BURN_ON_READ) {
+            const nextState = {...state};
+            Reflect.deleteProperty(nextState, post.id);
+            return nextState;
         }
 
         // Mark the post as deleted
@@ -778,16 +785,14 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case PostTypes.POST_DELETED: {
         const post = action.data;
 
-        // Deleting a post removes its comments from the order, but does not remove the post itself
-
         const postsForChannel = state[post.channel_id] || [];
         if (postsForChannel.length === 0) {
             return state;
         }
 
         let changed = false;
-
         let nextPostsForChannel = [...postsForChannel];
+
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
 

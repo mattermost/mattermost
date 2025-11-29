@@ -15,12 +15,11 @@
         cursor: default;
     }
 
-    .icon-fire {
+    &__icon {
         color: var(--dnd-indicator, #D24B4E);
-        font-size: 14px;
     }
 
-    &:hover:not(:disabled) .icon-fire {
+    &:hover:not(:disabled) &__icon {
         opacity: 0.8;
     }
 

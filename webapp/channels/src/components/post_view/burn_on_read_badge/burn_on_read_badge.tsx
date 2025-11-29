@@ -5,6 +5,8 @@ import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {FireIcon} from '@mattermost/compass-icons/components';
+
 import {getBurnOnReadReadReceipt} from 'selectors/burn_on_read_read_receipts';
 
 import WithTooltip from 'components/with_tooltip';
@@ -31,17 +33,7 @@ function BurnOnReadBadge({
     const {formatMessage} = useIntl();
 
     // Get read receipt data from Redux store
-    const readReceipt = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
-
-    // TODO: Remove this mock data once backend WebSocket is working
-    const mockReadReceipt = {
-        postId,
-        totalRecipients: 3,
-        revealedCount: 1,
-        lastUpdated: Date.now(),
-    };
-
-    const readReceiptData = isSender && !readReceipt ? mockReadReceipt : readReceipt;
+    const readReceiptData = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Stop propagation to prevent opening RHS or other post click handlers
@@ -157,9 +149,9 @@ function BurnOnReadBadge({
                 onClick={isInteractive ? handleClick : undefined}
                 disabled={!isInteractive}
             >
-                <i
-                    className='icon icon-fire'
-                    aria-hidden='true'
+                <FireIcon
+                    size={14}
+                    className='BurnOnReadBadge__icon'
                 />
             </button>
         </WithTooltip>

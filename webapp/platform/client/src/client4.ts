@@ -2318,7 +2318,7 @@ export default class Client4 {
 
     burnPostNow = (postId: string) => {
         return this.doFetch(
-            `${this.getPostRoute(postId)}/burn`,
+            `${this.getPostRoute(postId)}`,
             {method: 'delete'},
         );
     };

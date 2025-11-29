@@ -4377,15 +4377,21 @@ func TestRevealPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
+	// Set up enterprise advanced license for burn-on-read feature
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
 	// Helper to create a burn-on-read post
 	createBurnOnReadPost := func() *model.Post {
+		// Ensure license is always set when creating BoR posts
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
 			Message:   "burn on read message",
 			Type:      model.PostTypeBurnOnRead,
 		}
-		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+		// expire_at and read_duration are now added automatically by FillInPostProps using config values
 
 		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
@@ -4422,6 +4428,9 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("post doesn't have required prop", func(t *testing.T) {
+		// Ensure license is set for this subtest
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
 		// Create a burn-on-read post without expire_at prop
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,

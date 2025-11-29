@@ -545,9 +545,12 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		if !model.MinimumEnterpriseAdvancedLicense(a.Srv().License()) {
 			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.app_error", nil, "", http.StatusNotImplemented)
 		}
-		// TODO: replace with configuration values
-		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
-		post.AddProp(model.PostPropsReadDurationSeconds, int64(model.DefaultReadDurationSeconds*1000))
+		// Use configured burn-on-read settings (defaults: 7 days max TTL, 10 minutes read duration)
+		maxTTLSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds))
+		readDurationSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadDurationSeconds))
+
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+(maxTTLSeconds*1000))
+		post.AddProp(model.PostPropsReadDurationSeconds, readDurationSeconds*1000)
 	}
 
 	return nil
@@ -581,6 +584,13 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 
 	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
+	}
+
+	// Send initial read receipt counts for burn-on-read posts
+	if post.Type == model.PostTypeBurnOnRead {
+		if err := a.publishPostRevealedEvent(post, post.UserId); err != nil {
+			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
+		}
 	}
 
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
@@ -3139,8 +3149,9 @@ func (a *App) getOrCreateReadReceipt(rctx request.CTX, post *model.Post, userID 
 	}
 
 	// Create new read receipt for first-time reveal
-	// TODO: replace with configuration values
-	readDurationMillis := int64(model.DefaultReadDurationSeconds * 1000)
+	// Use configured burn-on-read duration (defaults to 10 minutes)
+	burnOnReadDurationSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadDurationSeconds))
+	readDurationMillis := burnOnReadDurationSeconds * 1000
 	userExpireAt := min(postExpireAt, currentTime+readDurationMillis)
 
 	receipt = &model.ReadReceipt{
@@ -3209,12 +3220,26 @@ func (a *App) publishPostRevealedEvent(post *model.Post, userID string) *model.A
 		"",
 	)
 
-	postJSON, err := post.ToJSON()
+	// Get read receipt counts for the post
+	revealedCount, err := a.Srv().Store().ReadReceipt().GetReadCountForPost(request.EmptyContext(a.Log()), post.Id)
 	if err != nil {
-		return model.NewAppError("RevealPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("publishPostRevealedEvent", "app.post.get_read_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	event.Add("post", postJSON)
+	unreadCount, err := a.Srv().Store().ReadReceipt().GetUnreadCountForPost(request.EmptyContext(a.Log()), post)
+	if err != nil {
+		return model.NewAppError("publishPostRevealedEvent", "app.post.get_unread_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	totalRecipients := revealedCount + unreadCount
+
+	// Add read receipt data to event
+	event.Add("post_id", post.Id)
+	event.Add("user_id", userID)
+	event.Add("channel_id", post.ChannelId)
+	event.Add("total_recipients", totalRecipients)
+	event.Add("revealed_count", revealedCount)
+
 	a.Publish(event)
 
 	return nil
