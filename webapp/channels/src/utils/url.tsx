@@ -78,6 +78,11 @@ export function getRelativeChannelURL(teamName: string, channelName: string): st
 }
 
 export function isUrlSafe(url: string): boolean {
+    // mattermost:// URLs are safe for internal navigation
+    if (isMattermostAppURL(url)) {
+        return true;
+    }
+
     let unescaped: string;
 
     try {
@@ -241,10 +246,19 @@ export function mightTriggerExternalRequest(url: string, siteURL?: string): bool
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {
+    // mattermost:// URLs are internal
+    if (isMattermostAppURL(url)) {
+        return true;
+    }
     return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
+    // mattermost:// URLs should not open in new tab
+    if (isMattermostAppURL(url)) {
+        return false;
+    }
+    
     if (!isInternalURL(url, siteURL)) {
         return true;
     }
