@@ -19,14 +19,7 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-	if wikiErr != nil {
-		c.Err = wikiErr
-		return
-	}
-
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("getPageComments", "api.wiki.get_comments.invalid_wiki", nil, "", http.StatusBadRequest)
+	if !c.ValidatePageBelongsToWiki() {
 		return
 	}
 
@@ -81,14 +74,7 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-	if wikiErr != nil {
-		c.Err = wikiErr
-		return
-	}
-
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("createPageComment", "api.wiki.create_comment.invalid_wiki", nil, "", http.StatusBadRequest)
+	if !c.ValidatePageBelongsToWiki() {
 		return
 	}
 
@@ -189,14 +175,7 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-	if wikiErr != nil {
-		c.Err = wikiErr
-		return
-	}
-
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("createPageCommentReply", "api.wiki.create_comment_reply.invalid_wiki", nil, "", http.StatusBadRequest)
+	if !c.ValidatePageBelongsToWiki() {
 		return
 	}
 
@@ -237,6 +216,64 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// validateInlinePageComment validates that a comment is an inline page comment for the given page.
+// Returns the comment post if valid, or nil if validation fails (c.Err will be set).
+func validateInlinePageComment(c *Context, commentId, pageId, handlerName string) *model.Post {
+	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return nil
+	}
+
+	if comment.DeleteAt != 0 {
+		c.Err = model.NewAppError(
+			handlerName,
+			"api.wiki.comment.deleted.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return nil
+	}
+
+	if comment.Type != model.PostTypePageComment {
+		c.Err = model.NewAppError(
+			handlerName,
+			"api.wiki.comment.not_comment.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return nil
+	}
+
+	commentPageId, ok := comment.Props["page_id"].(string)
+	if !ok || commentPageId != pageId {
+		c.Err = model.NewAppError(
+			handlerName,
+			"api.wiki.comment.wrong_page.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return nil
+	}
+
+	commentType, _ := comment.Props[model.PostPropsCommentType].(string)
+	if commentType != model.PageCommentTypeInline {
+		c.Err = model.NewAppError(
+			handlerName,
+			"api.wiki.comment.not_inline.app_error",
+			nil,
+			"only inline comments can be resolved/unresolved",
+			http.StatusBadRequest,
+		)
+		return nil
+	}
+
+	return comment
+}
+
 func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequirePageId()
@@ -255,55 +292,8 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("comment_id", commentId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if comment.DeleteAt != 0 {
-		c.Err = model.NewAppError(
-			"resolvePageComment",
-			"api.wiki.resolve_comment.deleted.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	if comment.Type != model.PostTypePageComment {
-		c.Err = model.NewAppError(
-			"resolvePageComment",
-			"api.wiki.resolve_comment.not_comment.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	commentPageId, ok := comment.Props["page_id"].(string)
-	if !ok || commentPageId != c.Params.PageId {
-		c.Err = model.NewAppError(
-			"resolvePageComment",
-			"api.wiki.resolve_comment.wrong_page.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	commentType, _ := comment.Props[model.PostPropsCommentType].(string)
-	if commentType != model.PageCommentTypeInline {
-		c.Err = model.NewAppError(
-			"resolvePageComment",
-			"api.wiki.resolve_comment.not_inline.app_error",
-			nil,
-			"only inline comments can be resolved",
-			http.StatusBadRequest,
-		)
+	comment := validateInlinePageComment(c, commentId, c.Params.PageId, "resolvePageComment")
+	if comment == nil {
 		return
 	}
 
@@ -344,55 +334,8 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("comment_id", commentId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if comment.DeleteAt != 0 {
-		c.Err = model.NewAppError(
-			"unresolvePageComment",
-			"api.wiki.unresolve_comment.deleted.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	if comment.Type != model.PostTypePageComment {
-		c.Err = model.NewAppError(
-			"unresolvePageComment",
-			"api.wiki.unresolve_comment.not_comment.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	commentPageId, ok := comment.Props["page_id"].(string)
-	if !ok || commentPageId != c.Params.PageId {
-		c.Err = model.NewAppError(
-			"unresolvePageComment",
-			"api.wiki.unresolve_comment.wrong_page.app_error",
-			nil,
-			"",
-			http.StatusBadRequest,
-		)
-		return
-	}
-
-	commentType, _ := comment.Props[model.PostPropsCommentType].(string)
-	if commentType != model.PageCommentTypeInline {
-		c.Err = model.NewAppError(
-			"unresolvePageComment",
-			"api.wiki.unresolve_comment.not_inline.app_error",
-			nil,
-			"only inline comments can be unresolved",
-			http.StatusBadRequest,
-		)
+	comment := validateInlinePageComment(c, commentId, c.Params.PageId, "unresolvePageComment")
+	if comment == nil {
 		return
 	}
 

@@ -13,6 +13,3 @@ CREATE TABLE IF NOT EXISTS Wikis (
 CREATE INDEX idx_wikis_channel_id ON Wikis(ChannelId);
 CREATE INDEX idx_wikis_channel_id_delete_at ON Wikis(ChannelId) WHERE DeleteAt = 0;
 CREATE INDEX idx_wikis_props ON Wikis USING GIN (Props);
-
--- Add index for efficient wiki->pages queries
-CREATE INDEX IF NOT EXISTS idx_propertyvalues_fieldid_value ON PropertyValues(FieldID, Value) WHERE DeleteAt = 0;

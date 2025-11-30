@@ -867,3 +867,86 @@ func decodeJSON[T any](tb testing.TB, o any, result *T) *T {
 func (th *TestHelper) Parallel(t *testing.T) {
 	mainHelper.Parallel(t)
 }
+
+// Test page content constants
+const (
+	TestPageContentEmpty  = `{"type":"doc","content":[]}`
+	TestPageContentSimple = `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content"}]}]}`
+	TestPageContentDraft  = `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`
+)
+
+// CreateTestWiki creates a wiki for testing purposes in the basic channel
+func (th *TestHelper) CreateTestWiki(tb testing.TB, title string) *model.Wiki {
+	tb.Helper()
+	wiki := &model.Wiki{
+		ChannelId:   th.BasicChannel.Id,
+		Title:       title,
+		Description: "Test Description",
+	}
+	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(tb, err)
+	require.NotNil(tb, createdWiki)
+	return createdWiki
+}
+
+// CreateTestWikiInChannel creates a wiki in a specific channel
+func (th *TestHelper) CreateTestWikiInChannel(tb testing.TB, channel *model.Channel, title string) *model.Wiki {
+	tb.Helper()
+	wiki := &model.Wiki{
+		ChannelId:   channel.Id,
+		Title:       title,
+		Description: "Test Description",
+	}
+	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(tb, err)
+	require.NotNil(tb, createdWiki)
+	return createdWiki
+}
+
+// CreateTestPage creates a page for testing purposes in the basic channel
+func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Post {
+	tb.Helper()
+	th.SetupPagePermissions()
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", "", th.BasicUser.Id, "")
+	require.Nil(tb, err)
+	require.NotNil(tb, page)
+	return page
+}
+
+// CreateTestPageWithContent creates a page with specific content
+func (th *TestHelper) CreateTestPageWithContent(tb testing.TB, title, content string) *model.Post {
+	tb.Helper()
+	th.SetupPagePermissions()
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", content, th.BasicUser.Id, "")
+	require.Nil(tb, err)
+	require.NotNil(tb, page)
+	return page
+}
+
+// CreateTestWikiPage creates a page in a specific wiki
+func (th *TestHelper) CreateTestWikiPage(tb testing.TB, wikiId, title string) *model.Post {
+	tb.Helper()
+	th.SetupPagePermissions()
+	page, err := th.App.CreateWikiPage(th.Context, wikiId, "", title, "", th.BasicUser.Id, "")
+	require.Nil(tb, err)
+	require.NotNil(tb, page)
+	return page
+}
+
+// CreateSessionContext creates a request context with a session for the basic user
+func (th *TestHelper) CreateSessionContext() request.CTX {
+	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	if err != nil {
+		panic(err)
+	}
+	return th.Context.WithSession(session)
+}
+
+// CreateSessionContextForUser creates a request context with a session for a specific user
+func (th *TestHelper) CreateSessionContextForUser(user *model.User) request.CTX {
+	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: user.Id, Props: model.StringMap{}})
+	if err != nil {
+		panic(err)
+	}
+	return th.Context.WithSession(session)
+}

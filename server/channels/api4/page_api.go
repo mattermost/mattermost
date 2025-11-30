@@ -55,14 +55,7 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-	if wikiErr != nil {
-		c.Err = wikiErr
-		return
-	}
-
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("getWikiPage", "api.wiki.get_page.invalid_wiki", nil, "", http.StatusBadRequest)
+	if !c.ValidatePageBelongsToWiki() {
 		return
 	}
 

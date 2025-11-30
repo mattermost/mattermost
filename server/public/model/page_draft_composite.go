@@ -3,7 +3,10 @@
 
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 // PageDraft is a composite model combining metadata from Drafts table
 // and content from PageDraftContents table. This mirrors the Posts/PageContents pattern.
@@ -69,4 +72,40 @@ func (pd *PageDraft) GetDocumentJSON() (string, error) {
 // IsContentEmpty checks if the draft has no content.
 func (pd *PageDraft) IsContentEmpty() bool {
 	return len(pd.Content.Content) == 0 && len(pd.FileIds) == 0
+}
+
+// IsValid validates the PageDraft composite struct.
+func (pd *PageDraft) IsValid() *AppError {
+	if !IsValidId(pd.UserId) {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(pd.WikiId) {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.wiki_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(pd.ChannelId) {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if pd.DraftId == "" {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.draft_id.app_error", nil, "draft_id cannot be empty", http.StatusBadRequest)
+	}
+
+	if len(pd.Title) > MaxPageTitleLength {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.title_too_long.app_error",
+			map[string]any{"Length": len(pd.Title), "MaxLength": MaxPageTitleLength}, "", http.StatusBadRequest)
+	}
+
+	contentJSON, err := json.Marshal(pd.Content)
+	if err != nil {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.content_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if len(contentJSON) > PageContentMaxSize {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.content_too_large.app_error",
+			map[string]any{"Size": len(contentJSON), "MaxSize": PageContentMaxSize}, "", http.StatusBadRequest)
+	}
+
+	return nil
 }

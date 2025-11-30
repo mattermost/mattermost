@@ -14,9 +14,9 @@ import (
 
 func TestHandlePageCommentThreadCreation(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	rctx := createSessionContext(th)
+	rctx := th.CreateSessionContext()
 
 	t.Run("successfully creates thread entry for inline page comment", func(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
@@ -310,7 +310,7 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 
 func TestCreateThreadEntryForPageComment(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	t.Run("successfully creates thread entry with all required fields", func(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Thread Entry Test", "", "", th.BasicUser.Id, "")

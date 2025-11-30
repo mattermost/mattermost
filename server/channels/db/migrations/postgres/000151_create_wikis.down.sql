@@ -1,4 +1,3 @@
-DROP INDEX IF EXISTS idx_propertyvalues_fieldid_value;
 DELETE FROM PropertyFields WHERE ID='pfwikipagesdefaultfield000';
 DELETE FROM PropertyGroups WHERE ID='pgswikipagesdefaultgroup00';
 

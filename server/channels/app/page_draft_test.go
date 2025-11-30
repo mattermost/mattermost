@@ -13,7 +13,7 @@ import (
 func TestSavePageDraftWithMetadata(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
 		ChannelId: th.BasicChannel.Id,
@@ -125,7 +125,7 @@ func TestSavePageDraftWithMetadata(t *testing.T) {
 func TestGetPageDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
 		ChannelId: th.BasicChannel.Id,
@@ -178,7 +178,7 @@ func TestGetPageDraft(t *testing.T) {
 func TestDeletePageDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
 		ChannelId: th.BasicChannel.Id,
@@ -228,7 +228,7 @@ func TestDeletePageDraft(t *testing.T) {
 func TestGetPageDraftsForWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	t.Run("successfully retrieves all drafts for wiki", func(t *testing.T) {
 		wiki1 := &model.Wiki{

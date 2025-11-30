@@ -8,43 +8,13 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
 
-func createSessionContext(th *TestHelper) request.CTX {
-	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	if err != nil {
-		panic(err)
-	}
-	return th.Context.WithSession(session)
-}
-
-func setupPagePermissions(th *TestHelper) {
-	role, err := th.App.GetRoleByName(th.Context, model.ChannelUserRoleId)
-	if err != nil {
-		panic(err)
-	}
-
-	// channel_user gets delete_own_page (can delete their own pages)
-	// channel_admin gets delete_page (can delete anyone's pages) - handled separately
-	permissions := append(role.Permissions,
-		model.PermissionCreatePage.Id,
-		model.PermissionReadPage.Id,
-		model.PermissionEditPage.Id,
-		model.PermissionDeleteOwnPage.Id,
-	)
-
-	_, err = th.App.PatchRole(role, &model.RolePatch{Permissions: &permissions})
-	if err != nil {
-		panic(err)
-	}
-}
-
 func TestCreatePageWithContent(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	t.Run("creates page with empty content", func(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
@@ -132,9 +102,9 @@ func TestCreatePageWithContent(t *testing.T) {
 
 func TestGetPage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("successfully retrieves page with content", func(t *testing.T) {
 		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content"}]}]}`
@@ -171,9 +141,9 @@ func TestGetPage(t *testing.T) {
 
 func TestUpdatePage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("successfully updates page title and content", func(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", "", th.BasicUser.Id, "")
@@ -212,9 +182,9 @@ func TestUpdatePage(t *testing.T) {
 
 func TestDeletePage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("successfully deletes page and its content", func(t *testing.T) {
 		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", `{"type":"doc","content":[{"type":"paragraph"}]}`, th.BasicUser.Id, "")
@@ -315,9 +285,9 @@ func TestDeletePage(t *testing.T) {
 
 func TestRestorePage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("successfully restores deleted page with content", func(t *testing.T) {
 		pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content that should be preserved"}]}]}`
@@ -378,9 +348,9 @@ func TestRestorePage(t *testing.T) {
 
 func TestPermanentDeletePage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("permanently deletes page and content", func(t *testing.T) {
 		pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Content to be permanently deleted"}]}]}`
@@ -412,9 +382,9 @@ func TestPermanentDeletePage(t *testing.T) {
 
 func TestGetPageChildren(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all child pages", func(t *testing.T) {
 		parentPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Parent Page", "", "", th.BasicUser.Id, "")
@@ -447,9 +417,9 @@ func TestGetPageChildren(t *testing.T) {
 
 func TestGetPageAncestors(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all ancestors in order", func(t *testing.T) {
 		grandparent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Grandparent", "", "", th.BasicUser.Id, "")
@@ -482,9 +452,9 @@ func TestGetPageAncestors(t *testing.T) {
 
 func TestGetPageDescendants(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all descendants recursively", func(t *testing.T) {
 		root, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Root", "", "", th.BasicUser.Id, "")
@@ -511,9 +481,9 @@ func TestGetPageDescendants(t *testing.T) {
 
 func TestGetChannelPages(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("retrieves all pages in channel", func(t *testing.T) {
 		page1, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page 1", "", "", th.BasicUser.Id, "")
@@ -551,9 +521,9 @@ func TestGetChannelPages(t *testing.T) {
 
 func TestChangePageParent(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("successfully changes page parent", func(t *testing.T) {
 		newParent, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "New Parent", "", "", th.BasicUser.Id, "")
@@ -663,9 +633,9 @@ func TestChangePageParent(t *testing.T) {
 
 func TestPageDepthLimit(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("allows creating pages up to max depth", func(t *testing.T) {
 		var parentID string
@@ -1290,9 +1260,9 @@ func TestExtractMentionsFromTipTapContent(t *testing.T) {
 
 func TestCreatePageComment(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	rctx := createSessionContext(th)
+	rctx := th.CreateSessionContext()
 
 	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 	require.Nil(t, err)
@@ -1352,9 +1322,9 @@ func TestCreatePageComment(t *testing.T) {
 
 func TestCreatePageCommentReply(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	rctx := createSessionContext(th)
+	rctx := th.CreateSessionContext()
 
 	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 	require.Nil(t, err)
@@ -1433,9 +1403,9 @@ func TestCreatePageCommentReply(t *testing.T) {
 
 func TestGetPageStatus(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	rctx := createSessionContext(th)
+	rctx := th.CreateSessionContext()
 
 	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 	require.Nil(t, err)
@@ -1480,9 +1450,9 @@ func TestGetPageStatus(t *testing.T) {
 
 func TestSetPageStatus(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	rctx := createSessionContext(th)
+	rctx := th.CreateSessionContext()
 
 	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 	require.Nil(t, err)
@@ -1546,7 +1516,7 @@ func TestSetPageStatus(t *testing.T) {
 
 func TestGetPageStatusField(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	t.Run("successfully retrieves page status field definition", func(t *testing.T) {
 		field, appErr := th.App.GetPageStatusField()
@@ -1592,9 +1562,9 @@ func TestGetPageStatusField(t *testing.T) {
 
 func TestPageMentionSystemMessages(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	rctx := createSessionContext(th)
+	rctx := th.CreateSessionContext()
 
 	user2 := th.CreateUser(t)
 	th.LinkUserToTeam(t, user2, th.BasicTeam)
@@ -1744,9 +1714,9 @@ func TestPageMentionSystemMessages(t *testing.T) {
 
 func TestPageVersionHistory(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("PageContents versioned on edit", func(t *testing.T) {
 		// Create page
@@ -1839,9 +1809,9 @@ func TestPageVersionHistory(t *testing.T) {
 
 func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
 	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "")
@@ -1868,9 +1838,9 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 
 func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
 	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "")
@@ -1897,9 +1867,9 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 
 func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
 	createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", validContent, th.BasicUser.Id, "")
@@ -1921,9 +1891,9 @@ func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 
 func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
-	user1Session := createSessionContext(th)
+	user1Session := th.CreateSessionContext()
 
 	user2 := th.CreateUser(t)
 	th.LinkUserToTeam(t, user2, th.BasicTeam)
@@ -2037,7 +2007,7 @@ func TestIsValidTipTapJSON(t *testing.T) {
 
 func TestCreatePageContentValidation(t *testing.T) {
 	th := Setup(t).InitBasic(t)
-	setupPagePermissions(th)
+	th.SetupPagePermissions()
 
 	t.Run("accepts valid TipTap JSON", func(t *testing.T) {
 		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Valid content"}]}]}`

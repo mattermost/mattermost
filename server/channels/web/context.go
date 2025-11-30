@@ -826,6 +826,26 @@ func (c *Context) RequireWikiModifyPermission(op app.WikiOperation, callerContex
 	return wiki, channel, true
 }
 
+func (c *Context) ValidatePageBelongsToWiki() bool {
+	if c.Err != nil {
+		return false
+	}
+
+	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+	if wikiErr != nil {
+		c.Err = wikiErr
+		return false
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_mismatch",
+			nil, "", http.StatusBadRequest)
+		return false
+	}
+
+	return true
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }

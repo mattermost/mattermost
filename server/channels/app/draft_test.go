@@ -651,7 +651,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, user.Id)
 	require.Nil(t, appErr)
 
-	sessionCtx := createSessionContext(th)
+	sessionCtx := th.CreateSessionContext()
 
 	t.Run("unpublished draft retained when page deleted by another user", func(t *testing.T) {
 		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete", "", user.Id, "")

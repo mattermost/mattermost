@@ -19,14 +19,7 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-	if wikiErr != nil {
-		c.Err = wikiErr
-		return
-	}
-
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.invalid_wiki", nil, "", http.StatusBadRequest)
+	if !c.ValidatePageBelongsToWiki() {
 		return
 	}
 
@@ -160,14 +153,7 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-	if wikiErr != nil {
-		c.Err = wikiErr
-		return
-	}
-
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("movePageToWiki", "api.wiki.move_page.invalid_wiki", nil, "", http.StatusBadRequest)
+	if !c.ValidatePageBelongsToWiki() {
 		return
 	}
 
@@ -332,14 +318,7 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
-	if wikiErr != nil {
-		c.Err = wikiErr
-		return
-	}
-
-	if pageWikiId != c.Params.WikiId {
-		c.Err = model.NewAppError("getPageBreadcrumb", "api.wiki.breadcrumb.invalid_wiki", nil, "", http.StatusBadRequest)
+	if !c.ValidatePageBelongsToWiki() {
 		return
 	}
 
