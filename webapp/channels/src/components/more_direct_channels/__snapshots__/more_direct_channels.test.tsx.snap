@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/MoreDirectChannels should exclude deleted users if there is not direct channel between users 1`] = `
 <GenericModal
