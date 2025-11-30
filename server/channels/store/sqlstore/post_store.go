@@ -54,11 +54,11 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
-// PagePostTypes returns the list of post types related to pages/wiki functionality.
-// Use this for filtering or cleanup queries that need to target page-related posts.
-func PagePostTypes() []string {
+// PageSystemPostTypes returns the list of system notification post types for pages/wiki.
+// This excludes PostTypePage itself, which represents the actual page content.
+// Use this for search queries that should include pages but exclude page system notifications.
+func PageSystemPostTypes() []string {
 	return []string{
-		model.PostTypePage,
 		model.PostTypePageComment,
 		model.PostTypePageMention,
 		model.PostTypePageAdded,
@@ -66,6 +66,12 @@ func PagePostTypes() []string {
 		model.PostTypeWikiAdded,
 		model.PostTypeWikiDeleted,
 	}
+}
+
+// PagePostTypes returns the list of post types related to pages/wiki functionality.
+// Use this for filtering or cleanup queries that need to target page-related posts.
+func PagePostTypes() []string {
+	return append([]string{model.PostTypePage}, PageSystemPostTypes()...)
 }
 
 // addRegularPostsFilter adds the page exclusion filter to a query builder.
@@ -2187,8 +2193,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		"(SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN q2.RootId = '' THEN q2.Id ELSE q2.RootId END) AND Posts.DeleteAt = 0) as ReplyCount",
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
-		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix))
-	baseQuery = s.addRegularPostsFilter(baseQuery, "q2")
+		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
+		Where(sq.NotEq{"q2.Type": PageSystemPostTypes()})
 	baseQuery = baseQuery.OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
