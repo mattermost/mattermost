@@ -1,0 +1,151 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/vitest_react_testing_utils';
+import Constants from 'utils/constants';
+
+import TeamUrl from './team_url';
+
+vi.mock('images/logo.png', () => ({default: 'logo.png'}));
+
+describe('/components/create_team/components/display_name', () => {
+    const defaultProps = {
+        updateParent: vi.fn(),
+        state: {
+            team: {name: 'test-team', display_name: 'test-team'},
+            wizard: 'display_name',
+        },
+        actions: {
+            checkIfTeamExists: vi.fn().mockResolvedValue({data: true}),
+            createTeam: vi.fn().mockResolvedValue({data: {name: 'test-team'}}),
+        },
+        history: {push: vi.fn()},
+    };
+
+    test('should match snapshot', () => {
+        const {container} = renderWithContext(<TeamUrl {...defaultProps}/>);
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should return to display_name.jsx page', async () => {
+        renderWithContext(<TeamUrl {...defaultProps}/>);
+
+        await userEvent.click(screen.getByText('Back to previous step'));
+
+        expect(defaultProps.updateParent).toHaveBeenCalledWith({
+            ...defaultProps.state,
+            wizard: 'display_name',
+        });
+    });
+
+    test('should successfully submit', async () => {
+        const checkIfTeamExists = vi.fn().
+            mockResolvedValueOnce({data: true}).
+            mockResolvedValue({data: false});
+
+        const actions = {...defaultProps.actions, checkIfTeamExists};
+        const props = {...defaultProps, actions};
+
+        renderWithContext(
+            <TeamUrl {...props}/>,
+        );
+
+        await userEvent.click(screen.getByText('Finish'));
+
+        await waitFor(() => {
+            expect(screen.getByText('This URL is taken or unavailable. Please try another.')).toBeInTheDocument();
+        });
+
+        expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(1);
+        expect(actions.createTeam).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByText('Finish'));
+
+        await waitFor(() => {
+            expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
+            expect(actions.createTeam).toHaveBeenCalledTimes(1);
+            expect(actions.createTeam).toHaveBeenCalledWith({display_name: 'test-team', name: 'test-team', type: 'O'});
+            expect(props.history.push).toHaveBeenCalledTimes(1);
+            expect(props.history.push).toHaveBeenCalledWith('/test-team/channels/town-square');
+        });
+    });
+
+    test('should display isRequired error', async () => {
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
+        );
+
+        await userEvent.clear(screen.getByRole('textbox'));
+        await userEvent.click(screen.getByText('Finish'));
+
+        expect(screen.getByText('This field is required')).toBeInTheDocument();
+    });
+
+    test('should display charLength error', async () => {
+        const checkIfTeamExists = vi.fn().
+            mockResolvedValue({data: false});
+
+        const actions = {...defaultProps.actions, checkIfTeamExists};
+        const props = {...defaultProps, actions};
+
+        const lengthError = `Name must be ${Constants.MIN_TEAMNAME_LENGTH} or more characters up to a maximum of ${Constants.MAX_TEAMNAME_LENGTH}`;
+
+        renderWithContext(
+            <TeamUrl {...props}/>,
+        );
+
+        await userEvent.clear(screen.getByRole('textbox'));
+
+        expect(screen.queryByText(lengthError)).not.toBeInTheDocument();
+
+        await userEvent.type(screen.getByRole('textbox'), 'a');
+        await userEvent.click(screen.getByText('Finish'));
+
+        expect(screen.getByText(lengthError)).toBeInTheDocument();
+
+        await userEvent.clear(screen.getByRole('textbox'));
+        await userEvent.type(screen.getByRole('textbox'), 'a'.repeat(Constants.MAX_TEAMNAME_LENGTH + 1));
+        await userEvent.click(screen.getByText('Finish'));
+
+        expect(screen.getByText(lengthError)).toBeInTheDocument();
+    });
+
+    test('should display teamUrl regex error', async () => {
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
+        );
+
+        await userEvent.type(screen.getByRole('textbox'), '!!wrongName1');
+        await userEvent.click(screen.getByText('Finish'));
+
+        expect(screen.getByText("Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")).toBeInTheDocument();
+    });
+
+    test('should display teamUrl taken error', async () => {
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
+        );
+
+        await userEvent.type(screen.getByRole('textbox'), 'channel');
+        await userEvent.click(screen.getByText('Finish'));
+
+        expect(screen.getByText('Please try another.', {exact: false})).toBeInTheDocument();
+    });
+
+    test('should focus input when validation error occurs', async () => {
+        renderWithContext(
+            <TeamUrl {...defaultProps}/>,
+        );
+
+        const input = screen.getByRole('textbox');
+        await userEvent.clear(input);
+        const focusSpy = vi.spyOn(input, 'focus');
+
+        // Trigger validation error by submitting empty input
+        await userEvent.click(screen.getByText('Finish'));
+
+        expect(focusSpy).toHaveBeenCalled();
+    });
+});

@@ -1,0 +1,103 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/common/Accordion > should match snapshot 1`] = `
+<div>
+  <ul
+    class="Accordion"
+  >
+    <li
+      class="accordion-card"
+    >
+      <div
+        class="accordion-card-header"
+        role="button"
+      >
+        <div
+          class="accordion-card-header__body"
+        >
+          <div
+            class="accordion-card-header__body__title"
+          >
+            First Accordion Item
+          </div>
+          <div
+            class="accordion-card-header__body__description"
+          >
+            First accordion Item Description
+          </div>
+        </div>
+        <div
+          class="accordion-card-header__chevron"
+        >
+          <i
+            class="icon-chevron-down"
+          />
+        </div>
+      </div>
+      <div
+        class="accordion-card-container"
+        style="height: 0px;"
+      >
+        <div
+          class="accordion-card-container__content"
+        >
+          <p
+            class="accordion-item-content-el"
+          >
+            First List Item
+          </p>
+          <p
+            class="accordion-item-content-el"
+          >
+            Second List Item
+          </p>
+        </div>
+      </div>
+    </li>
+    <li
+      class="accordion-card"
+    >
+      <div
+        class="accordion-card-header"
+        role="button"
+      >
+        <div
+          class="accordion-card-header__body"
+        >
+          <div
+            class="accordion-card-header__body__title"
+          >
+            Second Accordion Item
+          </div>
+          <div
+            class="accordion-card-header__body__description"
+          >
+            Second accordion Item Description
+          </div>
+        </div>
+        <div
+          class="accordion-card-header__chevron"
+        >
+          <i
+            class="icon-chevron-down"
+          />
+        </div>
+      </div>
+      <div
+        class="accordion-card-container"
+        style="height: 0px;"
+      >
+        <div
+          class="accordion-card-container__content"
+        >
+          <p
+            class="accordion-item-content-el"
+          >
+            Third List Item
+          </p>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+`;

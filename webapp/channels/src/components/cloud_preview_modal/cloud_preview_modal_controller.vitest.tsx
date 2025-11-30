@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
 import type {Subscription, PreviewModalContentData} from '@mattermost/types/cloud';
 import type {TeamType} from '@mattermost/types/teams';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor, fireEvent, screen} from 'tests/vitest_react_testing_utils';
 
 import CloudPreviewModal from './cloud_preview_modal_controller';
 import {modalContent} from './preview_modal_content_data';

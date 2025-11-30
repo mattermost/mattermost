@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 
-import {act, renderWithContext, userEvent} from 'tests/vitest_react_testing_utils';
+import {act, renderWithContext, userEvent, waitFor, screen} from 'tests/vitest_react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelMembersModal from './channel_members_modal';
@@ -40,15 +39,15 @@ describe('components/ChannelMembersModal', () => {
     };
 
     test('should match snapshot', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <ChannelMembersModal {...baseProps}/>,
             );
-            container = result.container;
+            baseElement = result.baseElement;
         });
 
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should match state when onHide is called', async () => {
@@ -119,15 +118,15 @@ describe('components/ChannelMembersModal', () => {
     test('should match snapshot with archived channel', async () => {
         const props = {...baseProps, channel: {...baseProps.channel, delete_at: 1234}};
 
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <ChannelMembersModal {...props}/>,
             );
-            container = result.container;
+            baseElement = result.baseElement;
         });
 
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('renders the channel display name', async () => {

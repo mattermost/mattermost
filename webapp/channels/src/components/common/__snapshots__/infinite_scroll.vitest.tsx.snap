@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/common/InfiniteScroll > should match snapshot 1`] = `
+<div>
+  <div
+    class="infinite-scroll signup-team-all"
+  >
+    <div />
+    No more items to fetch
+  </div>
+</div>
+`;

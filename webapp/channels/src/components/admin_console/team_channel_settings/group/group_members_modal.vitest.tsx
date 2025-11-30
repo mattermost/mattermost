@@ -12,7 +12,7 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
     test('should match snapshot while visible', async () => {
         const group = TestHelper.getGroupMock({});
 
-        const {container} = renderWithContext(
+        const {baseElement} = renderWithContext(
             <GroupMembersModal
                 group={group}
                 onExited={vi.fn()}
@@ -23,6 +23,6 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 });

@@ -1,0 +1,338 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`component/create_user_groups_modal > should match snapshot with back button 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="createUserGroupsModalLabel"
+      class="fade in modal"
+      id="createUserGroupsModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal user-groups-modal-create modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            aria-live="polite"
+            class="sr-only"
+            role="alert"
+          />
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <div
+              class="d-flex align-items-center"
+            >
+              <button
+                aria-label="Back"
+                class="modal-header-back-button btn btn-icon"
+                type="button"
+              >
+                <i
+                  class="icon icon-arrow-left"
+                />
+              </button>
+              <h1
+                class="modal-title"
+                id="createGroupsModalTitleWithBack"
+              >
+                Create Group
+              </h1>
+            </div>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="user-groups-modal__content"
+            >
+              <div
+                class="group-name-input-wrapper"
+              >
+                <div
+                  class="Input_container"
+                >
+                  <div
+                    class="Input_fieldset Input_fieldset___legend"
+                    data-testid="input-wrapper"
+                  >
+                    <label
+                      class="Input_legend Input_legend___focus"
+                      for="input_"
+                    >
+                                              
+                      Name
+                    </label>
+                    <div
+                      class="Input_wrapper"
+                    >
+                      <input
+                        aria-label="Name"
+                        class="Input form-control medium Input__focus"
+                        data-testid="nameInput"
+                        id="input_"
+                        maxlength="64"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="group-mention-input-wrapper"
+              >
+                <div
+                  class="Input_container"
+                >
+                  <div
+                    class="Input_fieldset"
+                    data-testid="input-wrapper"
+                  >
+                    <label
+                      class="Input_legend"
+                      for="input_"
+                    >
+                                              
+                    </label>
+                    <div
+                      class="Input_wrapper"
+                    >
+                      <input
+                        aria-label="Mention"
+                        class="Input form-control medium"
+                        data-testid="mentionInput"
+                        id="input_"
+                        maxlength="64"
+                        placeholder="Mention"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <fieldset
+                class="group-add-people-fieldset"
+              >
+                <legend>
+                  Add people
+                </legend>
+                <div
+                  class="group-add-user"
+                >
+                  <div
+                    data-testid="mock-multiselect"
+                  >
+                    <button
+                      data-testid="mock-submit"
+                      type="button"
+                    >
+                      Create Group
+                    </button>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`component/create_user_groups_modal > should match snapshot without back button 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="createUserGroupsModalLabel"
+      class="fade in modal"
+      id="createUserGroupsModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal user-groups-modal-create modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            aria-live="polite"
+            class="sr-only"
+            role="alert"
+          />
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="createGroupsModalTitle"
+            >
+              Create Group
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="user-groups-modal__content"
+            >
+              <div
+                class="group-name-input-wrapper"
+              >
+                <div
+                  class="Input_container"
+                >
+                  <div
+                    class="Input_fieldset Input_fieldset___legend"
+                    data-testid="input-wrapper"
+                  >
+                    <label
+                      class="Input_legend Input_legend___focus"
+                      for="input_"
+                    >
+                                              
+                      Name
+                    </label>
+                    <div
+                      class="Input_wrapper"
+                    >
+                      <input
+                        aria-label="Name"
+                        class="Input form-control medium Input__focus"
+                        data-testid="nameInput"
+                        id="input_"
+                        maxlength="64"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="group-mention-input-wrapper"
+              >
+                <div
+                  class="Input_container"
+                >
+                  <div
+                    class="Input_fieldset"
+                    data-testid="input-wrapper"
+                  >
+                    <label
+                      class="Input_legend"
+                      for="input_"
+                    >
+                                              
+                    </label>
+                    <div
+                      class="Input_wrapper"
+                    >
+                      <input
+                        aria-label="Mention"
+                        class="Input form-control medium"
+                        data-testid="mentionInput"
+                        id="input_"
+                        maxlength="64"
+                        placeholder="Mention"
+                        type="text"
+                        value=""
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <fieldset
+                class="group-add-people-fieldset"
+              >
+                <legend>
+                  Add people
+                </legend>
+                <div
+                  class="group-add-user"
+                >
+                  <div
+                    data-testid="mock-multiselect"
+                  >
+                    <button
+                      data-testid="mock-submit"
+                      type="button"
+                    >
+                      Create Group
+                    </button>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

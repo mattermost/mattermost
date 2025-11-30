@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -11,7 +10,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ChannelMembersDropdown from 'components/channel_members_dropdown/channel_members_dropdown';
 
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, fireEvent, waitFor} from 'tests/vitest_react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 // Mock the animation to bypass CSS transition delays

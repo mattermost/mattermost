@@ -1,17 +1,382 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`components/ChannelMembersModal > should match snapshot 1`] = `
-<div
-  aria-hidden="true"
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <div />
-</div>
+  <div
+    aria-hidden="true"
+  >
+    <div />
+  </div>
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="channelMembersModalLabel"
+      class="fade in modal"
+      id="channelMembersModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-modal--action modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="channelMembersModalLabel"
+            >
+              <span
+                class="name"
+              >
+                channel_display_name
+              </span>
+               Members
+            </h1>
+            <a
+              class="btn btn-md btn-primary"
+              href="#"
+              id="showInviteModal"
+            >
+               Add Members
+            </a>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="col-xs-12"
+                >
+                  <label
+                    class="hidden-label"
+                    for="searchUsersInput"
+                  >
+                    Search users
+                  </label>
+                  <div
+                    class="input-wrapper"
+                  >
+                    <input
+                      aria-label="Search users"
+                      class="form-control filter-textbox"
+                      id="searchUsersInput"
+                      placeholder="Search users"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="col-sm-12"
+                >
+                  <span
+                    aria-live="polite"
+                    class="member-count pull-left"
+                    id="searchableUserListTotal"
+                  />
+                </div>
+              </div>
+              <div
+                class="more-modal__list"
+              >
+                <div
+                  data-simplebar="init"
+                  style="--scrollbar-color: var(undefined);"
+                >
+                  <div
+                    class="simplebar-wrapper"
+                  >
+                    <div
+                      class="simplebar-height-auto-observer-wrapper"
+                    >
+                      <div
+                        class="simplebar-height-auto-observer"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-mask"
+                    >
+                      <div
+                        class="simplebar-offset"
+                        style="right: 0px; bottom: 0px;"
+                      >
+                        <div
+                          aria-label="scrollable content"
+                          class="simplebar-content-wrapper"
+                          role="region"
+                          style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="simplebar-content"
+                          >
+                            <div>
+                              <div
+                                class="more-modal__placeholder-row no-users-found"
+                                data-testid="noUsersFound"
+                              >
+                                <p>
+                                  No users found
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="simplebar-placeholder"
+                      style="width: 0px; height: 0px;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-horizontal"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="width: 0px; display: none;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-vertical"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="height: 0px; display: none;"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="filter-controls"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/ChannelMembersModal > should match snapshot with archived channel 1`] = `
-<div
-  aria-hidden="true"
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <div />
-</div>
+  <div
+    aria-hidden="true"
+  >
+    <div />
+  </div>
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="channelMembersModalLabel"
+      class="fade in modal"
+      id="channelMembersModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-modal--action modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="channelMembersModalLabel"
+            >
+              <span
+                class="name"
+              >
+                channel_display_name
+              </span>
+               Members
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="col-xs-12"
+                >
+                  <label
+                    class="hidden-label"
+                    for="searchUsersInput"
+                  >
+                    Search users
+                  </label>
+                  <div
+                    class="input-wrapper"
+                  >
+                    <input
+                      aria-label="Search users"
+                      class="form-control filter-textbox"
+                      id="searchUsersInput"
+                      placeholder="Search users"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="col-sm-12"
+                >
+                  <span
+                    aria-live="polite"
+                    class="member-count pull-left"
+                    id="searchableUserListTotal"
+                  />
+                </div>
+              </div>
+              <div
+                class="more-modal__list"
+              >
+                <div
+                  data-simplebar="init"
+                  style="--scrollbar-color: var(undefined);"
+                >
+                  <div
+                    class="simplebar-wrapper"
+                  >
+                    <div
+                      class="simplebar-height-auto-observer-wrapper"
+                    >
+                      <div
+                        class="simplebar-height-auto-observer"
+                      />
+                    </div>
+                    <div
+                      class="simplebar-mask"
+                    >
+                      <div
+                        class="simplebar-offset"
+                        style="right: 0px; bottom: 0px;"
+                      >
+                        <div
+                          aria-label="scrollable content"
+                          class="simplebar-content-wrapper"
+                          role="region"
+                          style="height: auto; overflow-x: hidden; overflow-y: hidden;"
+                          tabindex="-1"
+                        >
+                          <div
+                            class="simplebar-content"
+                          >
+                            <div>
+                              <div
+                                class="more-modal__placeholder-row no-users-found"
+                                data-testid="noUsersFound"
+                              >
+                                <p>
+                                  No users found
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="simplebar-placeholder"
+                      style="width: 0px; height: 0px;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-horizontal"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="width: 0px; display: none;"
+                    />
+                  </div>
+                  <div
+                    class="simplebar-track simplebar-vertical"
+                    style="visibility: hidden;"
+                  >
+                    <div
+                      class="simplebar-scrollbar"
+                      style="height: 0px; display: none;"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="filter-controls"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

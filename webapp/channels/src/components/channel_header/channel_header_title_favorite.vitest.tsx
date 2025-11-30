@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, act, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -9,7 +8,7 @@ import type {Channel} from '@mattermost/types/channels';
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import * as channelsSelectors from 'mattermost-redux/selectors/entities/channels';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, fireEvent, act, waitFor, screen} from 'tests/vitest_react_testing_utils';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {A11yCustomEventTypes} from 'utils/constants';
 

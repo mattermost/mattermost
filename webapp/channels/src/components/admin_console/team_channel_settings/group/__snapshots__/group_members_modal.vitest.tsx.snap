@@ -1,7 +1,131 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`admin_console/team_channel_settings/group/GroupList > should match snapshot while visible 1`] = `
-<div
-  aria-hidden="true"
-/>
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="groupMemberModalLabel"
+      class="fade in modal"
+      id="groupMembersModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal settings-modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="groupMemberModalLabel"
+            >
+              group_display_name
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="MemberListGroup"
+            >
+              <div
+                class="DataGrid"
+              >
+                <div
+                  class="DataGrid_search"
+                >
+                  <div
+                    class="DataGrid_searchBar"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="DataGrid_searchIcon"
+                    >
+                      <i
+                        class="fa fa-search"
+                        title="Search Icon"
+                      />
+                    </span>
+                    <input
+                      data-testid="searchInput"
+                      placeholder="Search"
+                      type="text"
+                      value=""
+                    />
+                    <i
+                      class="DataGrid_clearButton fa fa-times-circle hidden"
+                      data-testid="clear-search"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_header"
+                >
+                  <div
+                    class="DataGrid_cell"
+                  >
+                    Name
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_empty"
+                  >
+                    No users found
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-primary"
+              id="closeModalButton"
+              type="button"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

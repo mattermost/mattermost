@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 import {LicenseSkus, Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 

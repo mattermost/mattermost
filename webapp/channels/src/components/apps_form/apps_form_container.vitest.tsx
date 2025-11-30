@@ -3,12 +3,11 @@
 
 /* eslint-disable no-underscore-dangle */
 
-import {act} from '@testing-library/react';
 import React from 'react';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, act} from 'tests/vitest_react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 
 import {RawAppsFormContainer} from './apps_form_container';

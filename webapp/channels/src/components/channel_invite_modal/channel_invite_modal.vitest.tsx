@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -14,7 +13,7 @@ import {General} from 'mattermost-redux/constants';
 import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_modal';
 import type {Value} from 'components/multiselect/multiselect';
 
-import {act, renderWithContext, userEvent} from 'tests/vitest_react_testing_utils';
+import {act, renderWithContext, userEvent, waitFor, fireEvent, screen} from 'tests/vitest_react_testing_utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -195,7 +194,7 @@ describe('components/channel_invite_modal', () => {
     });
 
     test('should match snapshot for channel_invite_modal with profiles', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <ChannelInviteModal
@@ -206,13 +205,13 @@ describe('components/channel_invite_modal', () => {
                     profilesFromRecentDMs={[]}
                 />,
             );
-            container = result.container;
+            baseElement = result.baseElement;
         });
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should match snapshot for channel_invite_modal with profiles from DMs', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <ChannelInviteModal
@@ -223,13 +222,13 @@ describe('components/channel_invite_modal', () => {
                     profilesFromRecentDMs={users}
                 />,
             );
-            container = result.container;
+            baseElement = result.baseElement;
         });
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should match snapshot with exclude and include users', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <ChannelInviteModal
@@ -260,13 +259,13 @@ describe('components/channel_invite_modal', () => {
                     }
                 />,
             );
-            container = result.container;
+            baseElement = result.baseElement;
         });
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should match snapshot for channel_invite_modal with userStatuses', async () => {
-        let container: HTMLElement;
+        let baseElement: HTMLElement;
         await act(async () => {
             const result = renderWithContext(
                 <ChannelInviteModal
@@ -277,12 +276,12 @@ describe('components/channel_invite_modal', () => {
                     profilesFromRecentDMs={[]}
                 />,
             );
-            container = result.container;
+            baseElement = result.baseElement;
         });
 
         // Since renderOption is now an internal function in the component,
         // we can't test it directly. Instead, we'll test the rendered component.
-        expect(container!).toMatchSnapshot();
+        expect(baseElement!).toMatchSnapshot();
     });
 
     test('should hide modal when onHide is called', async () => {

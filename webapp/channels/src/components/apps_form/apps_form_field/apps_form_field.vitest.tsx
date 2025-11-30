@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
 import React from 'react';
 
 import type {AppField} from '@mattermost/types/apps';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, act} from 'tests/vitest_react_testing_utils';
 
 import AppsFormField from './apps_form_field';
 import type {Props} from './apps_form_field';

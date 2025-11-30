@@ -1,0 +1,69 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/custom_status/expiry_menu > should match snapshot 1`] = `
+<div>
+  <div
+    class="statusExpiry"
+  >
+    <div
+      class="statusExpiry__content"
+    >
+      <div
+        class="MenuWrapper statusExpiry__menu"
+      >
+        <button
+          class="style--none expiry-wrapper expiry-selector"
+        >
+          Clear after
+          : 
+          <span
+            class="expiry-value"
+          >
+            Don't clear
+          </span>
+          <span>
+            <i
+              aria-hidden="true"
+              class="fa fa-angle-down"
+            />
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/custom_status/expiry_menu > should match snapshot with different props 1`] = `
+<div>
+  <div
+    class="statusExpiry"
+  >
+    <div
+      class="statusExpiry__content"
+    >
+      <div
+        class="MenuWrapper statusExpiry__menu"
+      >
+        <button
+          class="style--none expiry-wrapper expiry-selector"
+        >
+          Clear after
+          : 
+          <span
+            class="expiry-value"
+          >
+            Custom Date and Time
+          </span>
+          <span>
+            <i
+              aria-hidden="true"
+              class="fa fa-angle-down"
+            />
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cleanup} from '@testing-library/react';
 import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import ChannelSelectorModal from 'components/channel_selector_modal/channel_selector_modal';
 
-import {act, renderWithContext} from 'tests/vitest_react_testing_utils';
+import {act, renderWithContext, cleanup} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 // Use fake timers to control requestAnimationFrame and prevent focus errors after unmount
@@ -48,18 +47,18 @@ describe('components/ChannelSelectorModal', () => {
     };
 
     test('should match snapshot', async () => {
-        const {container} = renderWithContext(<ChannelSelectorModal {...defaultProps}/>);
+        const {baseElement} = renderWithContext(<ChannelSelectorModal {...defaultProps}/>);
 
         // Flush pending state updates from async operations
         await act(async () => {
             await vi.runAllTimersAsync();
         });
 
-        expect(container).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('exclude already selected', async () => {
-        const {container} = renderWithContext(
+        const {baseElement} = renderWithContext(
             <ChannelSelectorModal
                 {...defaultProps}
                 excludeTeamIds={['teamid2']}
@@ -71,6 +70,6 @@ describe('components/ChannelSelectorModal', () => {
             await vi.runAllTimersAsync();
         });
 
-        expect(container).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 });

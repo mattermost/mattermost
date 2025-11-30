@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor, act} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -11,7 +10,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import type {Props} from 'components/browse_channels/browse_channels';
 import BrowseChannels from 'components/browse_channels/browse_channels';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, waitFor, act, screen} from 'tests/vitest_react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 vi.mock('utils/browser_history', () => ({
@@ -151,11 +150,11 @@ describe('components/BrowseChannels', () => {
     });
 
     test('should match snapshot and state', () => {
-        const {container} = renderWithContext(
+        const {baseElement} = renderWithContext(
             <BrowseChannels {...baseProps}/>,
         );
 
-        expect(container).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
 
         // on componentDidMount
         expect(baseProps.actions.getChannels).toHaveBeenCalledTimes(1);

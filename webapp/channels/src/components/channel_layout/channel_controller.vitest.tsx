@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
 import React from 'react';
 import {Provider} from 'react-redux';
 
 import * as actions from 'actions/status_actions';
 
 import mockStore from 'tests/test_store';
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, act} from 'tests/vitest_react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 

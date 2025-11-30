@@ -1,0 +1,33 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/common/CircularChart > should match snapshot 1`] = `
+<div>
+  <div
+    class="CircularChart"
+  >
+    <svg
+      class="circular-chart success"
+      height="100"
+      viewBox="0 0 36 36"
+      width="100"
+    >
+      <path
+        class="circle-bg"
+        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+      />
+      <path
+        class="circle"
+        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+        stroke-dasharray="75, 100"
+      />
+      <text
+        class="percentageOrNumber"
+        x="18"
+        y="20.70"
+      >
+        75
+      </text>
+    </svg>
+  </div>
+</div>
+`;

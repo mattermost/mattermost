@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/custom_status/custom_status_text > should match snapshot 1`] = `
+<div>
+  <span
+    class="overflow--ellipsis text-nowrap "
+  />
+</div>
+`;
+
+exports[`components/custom_status/custom_status_text > should match snapshot with props 1`] = `
+<div>
+  <span
+    class="overflow--ellipsis text-nowrap "
+  >
+    In a meeting
+  </span>
+</div>
+`;

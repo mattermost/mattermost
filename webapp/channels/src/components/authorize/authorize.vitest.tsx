@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor, act} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, act, waitFor, screen} from 'tests/vitest_react_testing_utils';
 
 import Authorize from './authorize';
 
