@@ -278,6 +278,12 @@ const values = {
     EDIT_BOOKMARK_PRIVATE_CHANNEL: 'edit_bookmark_private_channel',
     DELETE_BOOKMARK_PRIVATE_CHANNEL: 'delete_bookmark_private_channel',
     ORDER_BOOKMARK_PRIVATE_CHANNEL: 'order_bookmark_private_channel',
+
+    CREATE_PAGE: 'create_page',
+    READ_PAGE: 'read_page',
+    EDIT_PAGE: 'edit_page',
+    DELETE_OWN_PAGE: 'delete_own_page',
+    DELETE_PAGE: 'delete_page',
 };
 
 values.SYSCONSOLE_READ_PERMISSIONS = [

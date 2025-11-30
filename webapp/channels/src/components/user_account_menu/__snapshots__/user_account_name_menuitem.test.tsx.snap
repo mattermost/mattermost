@@ -4,7 +4,7 @@ exports[`UserAccountNameMenuItem should not break if no props are passed 1`] = `
 <div>
   <li
     aria-haspopup="true"
-    class="MuiButtonBase-root-JvZdr dKFJFs MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXqYNm kIRdVO MuiMenuItem-root MuiMenuItem-gutters sc-gswNZR koIPww userAccountMenu_nameMenuItem"
+    class="MuiButtonBase-root-JDVeC cxEgXn MuiButtonBase-root MuiMenuItem-root MuiMenuItem-gutters MuiMenuItem-root-dXjcMb iLWjgG MuiMenuItem-root MuiMenuItem-gutters sc-grYavY jmUrfe userAccountMenu_nameMenuItem"
     role="menuitem"
     tabindex="-1"
   >

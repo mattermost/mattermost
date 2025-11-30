@@ -1,0 +1,89 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.channel-tab {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0 4px 0;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin: 0 1px;
+    background: none;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        .channel-tab__content {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.88);
+        }
+    }
+
+    &--active {
+        border-bottom: 2px solid var(--button-bg);
+
+        .channel-tab__content {
+            color: var(--link-color);
+        }
+
+        &:hover {
+            background: none;
+
+            .channel-tab__content {
+                background: none;
+                color: var(--link-color);
+            }
+
+            + .wiki-tab__menu-button {
+                background-color: var(--center-channel-bg);
+            }
+        }
+    }
+
+    &__content {
+        display: flex;
+        overflow: hidden;
+        min-width: 0;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: var(--radius-s);
+        gap: 2px;
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        margin-left: -4px;
+        font-size: 14px;
+        line-height: 1;
+
+        .icon {
+            font-size: 16px;
+        }
+    }
+
+    &__text {
+        overflow: hidden;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__dropdown-icon {
+        margin-right: -4px;
+        margin-left: -4px;
+        font-size: 14px;
+        opacity: 0.56;
+        transition: opacity 0.15s ease;
+
+        .channel-tab:hover & {
+            opacity: 0.72;
+        }
+    }
+}

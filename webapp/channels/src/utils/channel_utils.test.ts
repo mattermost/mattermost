@@ -53,4 +53,42 @@ describe('Channel Utils', () => {
             expect(Utils.findNextUnreadChannelId(curChannelId, allChannelIds, unreadChannelIds, -1)).toEqual(4);
         });
     });
+
+    describe('getActiveTabFromRoute', () => {
+        test('returns "messages" for regular channel route', () => {
+            const match = {
+                path: '/team/channel/:channelId',
+                params: {},
+            };
+
+            expect(Utils.getActiveTabFromRoute(match)).toBe('messages');
+        });
+
+        test('returns "messages" for route without wiki pattern', () => {
+            const match = {
+                path: '/team/channel/:channelId/files',
+                params: {},
+            };
+
+            expect(Utils.getActiveTabFromRoute(match)).toBe('messages');
+        });
+
+        test('returns wiki tab id for wiki route with wikiId', () => {
+            const match = {
+                path: '/wiki/:channelId([a-z0-9]{26})/:wikiId([a-z0-9]{26})',
+                params: {wikiId: 'abc123def456ghi789jkl012'},
+            };
+
+            expect(Utils.getActiveTabFromRoute(match)).toBe('wiki-abc123def456ghi789jkl012');
+        });
+
+        test('returns "messages" for wiki route without wikiId param', () => {
+            const match = {
+                path: '/wiki/:channelId([a-z0-9]{26})/:wikiId([a-z0-9]{26})',
+                params: {},
+            };
+
+            expect(Utils.getActiveTabFromRoute(match)).toBe('messages');
+        });
+    });
 });

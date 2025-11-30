@@ -93,6 +93,25 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
+        wikiPages: {
+            byWiki: Record<string, string[]>;
+            loading: Record<string, boolean>;
+            error: Record<string, string | null>;
+            pendingPublishes: Record<string, boolean>;
+            lastInvalidated: Record<string, number>;
+            lastPagesInvalidated: Record<string, number>;
+            lastDraftsInvalidated: Record<string, number>;
+        };
+        wikis: {
+            byChannel: Record<string, string[]>;
+            byId: Record<string, any>;
+        };
+        activeEditors: {
+            byPageId: Record<string, Record<string, {
+                userId: string;
+                lastActivity: number;
+            }>>;
+        };
     };
     errors: any[];
     requests: {

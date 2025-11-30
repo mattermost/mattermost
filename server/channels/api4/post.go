@@ -51,6 +51,10 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
+
+	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(updatePageStatus)).Methods(http.MethodPut)
+	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(getPageStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.Posts.Handle("/status/field", api.APISessionRequired(getPageStatusField)).Methods(http.MethodGet)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -544,14 +548,27 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
-	}
+	// Different permission model for pages vs regular posts
+	if originalPost.Type == model.PostTypePage {
+		// Wiki pages: Anyone with READ permission can view history
+		// This aligns with industry standard (Confluence, SharePoint, GitHub Wiki)
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionReadChannel) {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+		// Skip author check for pages - any channel member can view history
+	} else {
+		// Regular posts: Keep existing restrictive model
+		// Only post author can view edit history (privacy for chat messages)
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 
-	if c.AppContext.Session().UserId != originalPost.UserId {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+		if c.AppContext.Session().UserId != originalPost.UserId {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	postsList, err := c.App.GetEditHistoryForPost(c.Params.PostId)
@@ -879,9 +896,17 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
-		c.SetPermissionError(model.PermissionEditPost)
-		return
+	// For pages, use page-specific permissions instead of generic post edit permission
+	if originalPost.Type == model.PostTypePage {
+		if permErr := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "updatePost"); permErr != nil {
+			c.Err = permErr
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
+			c.SetPermissionError(model.PermissionEditPost)
+			return
+		}
 	}
 
 	auditRec.AddEventPriorState(originalPost)
@@ -933,6 +958,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.Logger.Debug("[patchPost] Received PostPatch",
+		mlog.Any("page_parent_id", post.PageParentId),
+		mlog.Any("message", post.Message),
+		mlog.Any("props", post.Props))
+
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPost, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
@@ -973,17 +1003,25 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	var permission *model.Permission
-
-	if c.AppContext.Session().UserId == originalPost.UserId {
-		permission = model.PermissionEditPost
+	// For pages, use page-specific permissions instead of generic post edit permission
+	if originalPost.Type == model.PostTypePage {
+		if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "patchPost"); err != nil {
+			c.Err = err
+			return
+		}
 	} else {
-		permission = model.PermissionEditOthersPosts
-	}
+		var permission *model.Permission
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
-		c.SetPermissionError(permission)
-		return
+		if c.AppContext.Session().UserId == originalPost.UserId {
+			permission = model.PermissionEditPost
+		} else {
+			permission = model.PermissionEditOthersPosts
+		}
+
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission) {
+			c.SetPermissionError(permission)
+			return
+		}
 	}
 
 	if *c.App.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > originalPost.CreateAt+int64(*c.App.Config().ServiceSettings.PostEditTimeLimit*1000) && message != nil {
@@ -1382,6 +1420,58 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
+}
+
+// updatePageStatus updates the status attribute for a page (thin wrapper around App.SetPageStatus)
+func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Status == "" {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	if err := c.App.SetPageStatus(c.AppContext, c.Params.PostId, req.Status); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+// getPageStatus retrieves the status attribute for a page (thin wrapper around App.GetPageStatus)
+func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	status, err := c.App.GetPageStatus(c.AppContext, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	fmt.Fprintf(w, `{"status":"%s"}`, status)
+}
+
+// getPageStatusField retrieves the status field definition (thin wrapper around App.GetPageStatusField)
+func getPageStatusField(c *Context, w http.ResponseWriter, r *http.Request) {
+	field, err := c.App.GetPageStatusField()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(field); err != nil {
+		c.Logger.Warn("Error encoding response", mlog.Err(err))
+	}
 }
 
 // rewriteMessage handles AI-powered message rewriting requests

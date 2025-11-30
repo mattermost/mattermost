@@ -870,3 +870,11 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
         priority?.persistent_notifications
     );
 }
+
+export function canEditPage(state: GlobalState, page: Post, channel: Channel): boolean {
+    if (!page || !channel) {
+        return false;
+    }
+
+    return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_PAGE);
+}

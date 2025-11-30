@@ -40,6 +40,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "PlaybookRolesCreationMigrationComplete").Return(&model.System{Name: "PlaybookRolesCreationMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
+	systemStore.On("GetByName", "page_properties_setup_done").Return(&model.System{Name: "page_properties_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyIntegrationsOwnPermissions).Return(&model.System{Name: model.MigrationKeyIntegrationsOwnPermissions, Value: "true"}, nil)
@@ -78,6 +79,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAddIPFilteringPermissions).Return(&model.System{Name: model.MigrationKeyAddIPFilteringPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddOutgoingOAuthConnectionsPermissions).Return(&model.System{Name: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddChannelBookmarksPermissions).Return(&model.System{Name: model.MigrationKeyAddChannelBookmarksPermissions, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddChannelWikisPermissions).Return(&model.System{Name: model.MigrationKeyAddChannelWikisPermissions, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddChannelPagesPermissions).Return(&model.System{Name: model.MigrationKeyAddChannelPagesPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyDeleteDmsPreferences).Return(&model.System{Name: model.MigrationKeyDeleteDmsPreferences, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddManageJobAncillaryPermissions).Return(&model.System{Name: model.MigrationKeyAddManageJobAncillaryPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddUploadFilePermission).Return(&model.System{Name: model.MigrationKeyAddUploadFilePermission, Value: "true"}, nil)
@@ -130,10 +133,12 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyValueStore := mocks.PropertyValueStore{}
 
 	propertyGroupStore.On("Register", model.ContentFlaggingGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName}, nil)
+	propertyGroupStore.On("Register", "pages").Return(&model.PropertyGroup{ID: model.NewId(), Name: "pages"}, nil)
 
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
+	propertyFieldStore.On("UpdatePropertyFields", mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
 
 	mockStore.On("System").Return(&systemStore)
 	mockStore.On("User").Return(&userStore)

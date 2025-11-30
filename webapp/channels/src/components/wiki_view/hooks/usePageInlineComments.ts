@@ -1,0 +1,240 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {useState, useEffect, useCallback, useRef} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {Post} from '@mattermost/types/posts';
+
+import {getPageComments} from 'actions/pages';
+import {openWikiRhs, closeRightHandSide} from 'actions/views/rhs';
+import {getRhsState} from 'selectors/rhs';
+
+import WebSocketClient from 'client/web_websocket_client';
+import {SocketEvents} from 'utils/constants';
+import {isDraftPageId, pageInlineCommentHasAnchor} from 'utils/page_utils';
+
+import type {GlobalState} from 'types/store';
+
+import {useInlineComments} from './useInlineComments';
+
+/**
+ * Shared hook for managing inline comments in both PageViewer and WikiPageEditor.
+ * Handles fetching comments, clicking on highlights, creating new comments, and RHS management.
+ */
+export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
+    const dispatch = useDispatch();
+    const rhsState = useSelector((state: GlobalState) => getRhsState(state));
+    const [inlineComments, setInlineComments] = useState<Post[]>([]);
+    const [lastClickedCommentId, setLastClickedCommentId] = useState<string | null>(null);
+
+    const isWikiRhsOpen = rhsState === 'wiki';
+
+    // Store fetch logic in a ref to avoid recreating callbacks
+    const fetchInlineCommentsRef = useRef<() => Promise<void>>();
+    fetchInlineCommentsRef.current = async () => {
+        if (!pageId || isDraftPageId(pageId) || !wikiId) {
+            return;
+        }
+
+        try {
+            const result = await dispatch(getPageComments(wikiId, pageId));
+
+            if (result.error || !result.data) {
+                setInlineComments([]);
+                return;
+            }
+
+            const comments = result.data;
+
+            // Filter to only inline comments that are NOT resolved
+            // Confluence behavior: resolved comments have their highlights removed
+            const inline = comments.filter((post: Post) => {
+                if (!pageInlineCommentHasAnchor(post)) {
+                    return false;
+                }
+
+                // Exclude resolved comments from highlights
+                return !post.props?.comment_resolved;
+            });
+
+            setInlineComments(inline);
+        } catch (error) {
+            setInlineComments([]);
+        }
+    };
+
+    // Stable wrapper that calls the latest version from ref
+    const fetchInlineComments = useCallback(async () => {
+        await fetchInlineCommentsRef.current?.();
+    }, []);
+
+    // Callback when a new inline comment is created
+    const handleInlineCommentCreated = useCallback((commentId: string) => {
+        // Refresh comments to show the new highlight
+        fetchInlineComments();
+
+        // Open RHS focused on the new comment
+        if (pageId && wikiId) {
+            dispatch(openWikiRhs(pageId, wikiId, commentId));
+            setLastClickedCommentId(commentId);
+        }
+    }, [pageId, wikiId, dispatch, fetchInlineComments]);
+
+    // Use the inline comment modal hook
+    const {
+        showCommentModal,
+        commentAnchor,
+        handleCreateInlineComment,
+        handleSubmitComment,
+        handleCloseModal,
+    } = useInlineComments(pageId, wikiId, handleInlineCommentCreated);
+
+    // Fetch comments when pageId changes (only re-run when pageId actually changes, not when fetchInlineComments reference changes)
+    useEffect(() => {
+        fetchInlineComments();
+    }, [pageId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Listen for WebSocket events for new comments
+    useEffect(() => {
+        if (!pageId || isDraftPageId(pageId)) {
+            return undefined;
+        }
+
+        const handleNewPost = (msg: any) => {
+            // Only handle POSTED events
+            if (msg.event !== SocketEvents.POSTED) {
+                return;
+            }
+
+            const post = JSON.parse(msg.data.post);
+
+            // Check if it's an inline comment for this page
+            // Only add if not resolved (Confluence behavior: no highlight for resolved comments)
+            if (pageInlineCommentHasAnchor(post) && post.props?.page_id === pageId && !post.props?.comment_resolved) {
+                // Add to inline comments list to show the new highlight
+                setInlineComments((prev) => [...prev, post]);
+            }
+        };
+
+        WebSocketClient.addMessageListener(handleNewPost);
+
+        return () => {
+            WebSocketClient.removeMessageListener(handleNewPost);
+        };
+    }, [pageId]);
+
+    // Listen for WebSocket events that should remove inline comment highlights
+    // This handles: resolution, unresolve, and deletion
+    useEffect(() => {
+        if (!pageId || isDraftPageId(pageId)) {
+            return undefined;
+        }
+
+        const handleCommentUpdate = (msg: any) => {
+            // Handle comment resolution - removes highlight
+            if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
+                const commentId = msg.data?.comment_id;
+                const eventPageId = msg.data?.page_id;
+
+                if (commentId && eventPageId === pageId) {
+                    setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
+                }
+                return;
+            }
+
+            // Handle comment unresolve - adds highlight back
+            if (msg.event === SocketEvents.PAGE_COMMENT_UNRESOLVED) {
+                const eventPageId = msg.data?.page_id;
+
+                if (eventPageId === pageId) {
+                    fetchInlineComments();
+                }
+                return;
+            }
+
+            // Handle comment deletion - removes highlight
+            if (msg.event === SocketEvents.PAGE_COMMENT_DELETED) {
+                const commentId = msg.data?.comment_id;
+                const eventPageId = msg.data?.page_id;
+
+                if (commentId && eventPageId === pageId) {
+                    setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
+                }
+            }
+        };
+
+        WebSocketClient.addMessageListener(handleCommentUpdate);
+
+        return () => {
+            WebSocketClient.removeMessageListener(handleCommentUpdate);
+        };
+    }, [pageId, fetchInlineComments]);
+
+    // Store the latest callback logic in a ref to avoid closure issues with TipTap
+    const handleCommentClickRef = useRef((commentId: string) => {
+        if (isWikiRhsOpen && lastClickedCommentId === commentId) {
+            dispatch(closeRightHandSide());
+            setLastClickedCommentId(null);
+            return;
+        }
+
+        if (pageId && wikiId) {
+            dispatch(openWikiRhs(pageId, wikiId, commentId));
+            setLastClickedCommentId(commentId);
+        }
+
+        setTimeout(() => {
+            const commentElement = document.getElementById(`post_${commentId}`);
+            if (commentElement) {
+                commentElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+                commentElement.classList.add('highlight-animation');
+                setTimeout(() => {
+                    commentElement.classList.remove('highlight-animation');
+                }, 2000);
+            }
+        }, 300);
+    });
+
+    // Update the ref on every render with the latest values
+    useEffect(() => {
+        handleCommentClickRef.current = (commentId: string) => {
+            if (isWikiRhsOpen && lastClickedCommentId === commentId) {
+                dispatch(closeRightHandSide());
+                setLastClickedCommentId(null);
+                return;
+            }
+
+            if (pageId && wikiId) {
+                dispatch(openWikiRhs(pageId, wikiId, commentId));
+                setLastClickedCommentId(commentId);
+            }
+
+            setTimeout(() => {
+                const commentElement = document.getElementById(`post_${commentId}`);
+                if (commentElement) {
+                    commentElement.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    commentElement.classList.add('highlight-animation');
+                    setTimeout(() => {
+                        commentElement.classList.remove('highlight-animation');
+                    }, 2000);
+                }
+            }, 300);
+        };
+    }, [isWikiRhsOpen, lastClickedCommentId, pageId, wikiId, dispatch]);
+
+    // Stable callback that always calls the latest version from the ref
+    const handleCommentClick = useCallback((commentId: string) => {
+        handleCommentClickRef.current(commentId);
+    }, []);
+
+    return {
+        inlineComments,
+        handleCommentClick,
+        handleCreateInlineComment,
+        showCommentModal,
+        commentAnchor,
+        handleSubmitComment,
+        handleCloseModal,
+    };
+};

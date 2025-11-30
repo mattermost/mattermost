@@ -287,8 +287,7 @@ export async function updateCustomProfileAttributeVisibility(
         // Update the fieldsMap with the updated field
         fieldsMap[updatedField.id] = updatedField;
     } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
+        // Failed to update visibility
     }
 }
 
@@ -347,8 +346,6 @@ export async function setupCustomProfileAttributeFields(
         }
     } catch (error) {
         // If request fails, continue to create new fields
-        // eslint-disable-next-line no-console
-        console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
     // Create fields sequentially
@@ -357,8 +354,7 @@ export async function setupCustomProfileAttributeFields(
             const createdField = await adminClient.createCustomProfileAttributeField(field);
             fieldsMap[createdField.id] = createdField;
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to create field ${field.name}:`, error);
+            // Failed to create field
         }
     }
 
@@ -401,8 +397,7 @@ export async function setupCustomProfileAttributeValues(
         try {
             await userClient.updateCustomProfileAttributeValues(valuesByFieldId);
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Failed to set attribute values:', error);
+            // Failed to set attribute values
         }
     }
 }
@@ -446,8 +441,7 @@ export async function setupCustomProfileAttributeValuesForUser(
             // Use the admin client method for updating other user's values
             await adminClient.updateUserCustomProfileAttributesValues(targetUserId, valuesByFieldId);
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Failed to set attribute values for user:', error);
+            // Failed to set attribute values for user
         }
     }
 }
@@ -466,8 +460,7 @@ export async function deleteCustomProfileAttributes(
         try {
             await adminClient.deleteCustomProfileAttributeField(id);
         } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to delete field ${id}:`, error);
+            // Failed to delete field
         }
     }
 
@@ -475,11 +468,9 @@ export async function deleteCustomProfileAttributes(
     try {
         const response = await adminClient.getCustomProfileAttributeFields();
         if (response && response.length > 0) {
-            // eslint-disable-next-line no-console
-            console.log('Warning: Not all custom profile attributes were deleted');
+            // Not all custom profile attributes were deleted
         }
     } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log('Error checking if all fields were deleted:', error);
+        // Error checking if all fields were deleted
     }
 }

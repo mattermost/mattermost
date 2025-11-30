@@ -28,6 +28,7 @@ import BurnOnReadBadge from 'components/post_view/burn_on_read_badge';
 import BurnOnReadConcealedPlaceholder from 'components/post_view/burn_on_read_concealed_placeholder';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
+import PageCommentedOn from 'components/post_view/page_commented_on';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -44,6 +45,8 @@ import {getHistory} from 'utils/browser_history';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {navigateToPageFromPost} from 'utils/page_navigation';
+import {isPageInlineComment} from 'utils/page_utils';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -388,14 +391,20 @@ function PostComponent(props: Props) {
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 
-    const handleCommentClick = useCallback((e: React.MouseEvent) => {
+    const handleCommentClick = useCallback((e: React.MouseEvent, pagePost?: Post | null) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
+
+        if (pagePost && pagePost.props?.wiki_id && props.teamName) {
+            navigateToPageFromPost(pagePost, props.teamName);
+            return;
+        }
+
         selectPostFromRightHandSideSearch(post);
-    }, [post, selectPostFromRightHandSideSearch]);
+    }, [post, selectPostFromRightHandSideSearch, props.teamName]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
         if (props.currentTeam?.id === teamId) {
@@ -449,6 +458,17 @@ function PostComponent(props: Props) {
         );
     }
 
+    let pageCommentContext;
+    if (isPageInlineComment(post) && props.location === Locations.RHS_ROOT) {
+        pageCommentContext = (
+            <PageCommentedOn
+                rootId={post.id}
+                onCommentClick={handleCommentClick}
+                showUserHeader={false}
+            />
+        );
+    }
+
     let visibleMessage = null;
     if (post.type === Constants.PostTypes.EPHEMERAL && !props.compactDisplay && post.state !== Posts.POST_DELETED) {
         visibleMessage = (
@@ -485,47 +505,52 @@ function PostComponent(props: Props) {
     // Determine if we should show concealed placeholder for burn-on-read posts
     const showConcealedPlaceholder = props.shouldDisplayBurnOnReadConcealed && post.type === PostTypes.BURN_ON_READ;
 
-    let message;
-    if (showConcealedPlaceholder) {
-        message = (
-            <BurnOnReadConcealedPlaceholder
-                postId={post.id}
-                authorName={props.displayName || post.user_id}
-                onReveal={handleRevealBurnOnRead}
-                loading={burnOnReadRevealing}
-                error={burnOnReadRevealError}
-            />
-        );
-    } else if (isSearchResultItem) {
-        message = (
-            <PostBodyAdditionalContent
-                post={post}
-                options={{
-                    searchTerm: props.term,
-                    searchMatches: props.matches,
-                }}
-            >
-                <PostMessageContainer
+    // Hide message when PageCommentedOn is shown (it renders the message itself)
+    const hideMessageForPageComment = isPageInlineComment(post) && props.location === Locations.RHS_ROOT;
+
+    let message = null;
+    if (!hideMessageForPageComment) {
+        if (showConcealedPlaceholder) {
+            message = (
+                <BurnOnReadConcealedPlaceholder
+                    postId={post.id}
+                    authorName={props.displayName || post.user_id}
+                    onReveal={handleRevealBurnOnRead}
+                    loading={burnOnReadRevealing}
+                    error={burnOnReadRevealError}
+                />
+            );
+        } else if (isSearchResultItem) {
+            message = (
+                <PostBodyAdditionalContent
                     post={post}
                     options={{
                         searchTerm: props.term,
                         searchMatches: props.matches,
-                        mentionHighlight: props.isMentionSearch,
                     }}
+                >
+                    <PostMessageContainer
+                        post={post}
+                        options={{
+                            searchTerm: props.term,
+                            searchMatches: props.matches,
+                            mentionHighlight: props.isMentionSearch,
+                        }}
+                        isRHS={isRHS}
+                    />
+                </PostBodyAdditionalContent>
+            );
+        } else {
+            message = (
+                <MessageWithAdditionalContent
+                    post={post}
+                    isEmbedVisible={props.isEmbedVisible}
+                    pluginPostTypes={props.pluginPostTypes}
                     isRHS={isRHS}
+                    compactDisplay={props.compactDisplay}
                 />
-            </PostBodyAdditionalContent>
-        );
-    } else {
-        message = (
-            <MessageWithAdditionalContent
-                post={post}
-                isEmbedVisible={props.isEmbedVisible}
-                pluginPostTypes={props.pluginPostTypes}
-                isRHS={isRHS}
-                compactDisplay={props.compactDisplay}
-            />
-        );
+            );
+        }
     }
 
     const slotBasedOnEditOrMessageView = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
@@ -712,6 +737,7 @@ function PostComponent(props: Props) {
                             }
                         </div>
                         {comment}
+                        {pageCommentContext}
                         <div
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}

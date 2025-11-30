@@ -98,6 +98,8 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	Wiki() WikiStore
+	Page() PageStore
 }
 
 type RetentionPolicyStore interface {
@@ -364,6 +366,7 @@ type ThreadStore interface {
 	SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	UpdateTeamIdForChannelThreads(channelId, teamId string) error
+	CreateThreadForPageComment(thread *model.Thread) error
 }
 
 type PostStore interface {
@@ -1051,8 +1054,11 @@ type PostPriorityStore interface {
 }
 
 type DraftStore interface {
+	// Draft metadata methods (Drafts table)
 	Upsert(d *model.Draft) (*model.Draft, error)
+	UpsertPageDraft(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
+	GetManyByRootIds(userID, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	DeleteDraftsAssociatedWithPost(channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
@@ -1060,6 +1066,18 @@ type DraftStore interface {
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
+	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
+
+	// Page draft content methods (PageDraftContents table) - DraftStore owns both tables (MM pattern)
+	UpsertPageDraftContent(content *model.PageDraftContent) (*model.PageDraftContent, error)
+	GetPageDraftContent(userId, wikiId, draftId string) (*model.PageDraftContent, error)
+	DeletePageDraftContent(userId, wikiId, draftId string) error
+	GetPageDraftContentsForWiki(userId, wikiId string) ([]*model.PageDraftContent, error)
+	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error)
+
+	// Transactional methods - manage both Drafts and PageDraftContents atomically
+	UpsertPageDraftWithTransaction(content *model.PageDraftContent, draft *model.Draft) (*model.PageDraftContent, *model.Draft, error)
+	DeletePageDraftWithTransaction(userId, wikiId, channelId, draftId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1178,6 +1196,21 @@ type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
 	ClearCaches()
+}
+
+type WikiStore interface {
+	Save(wiki *model.Wiki) (*model.Wiki, error)
+	CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error)
+	Get(id string) (*model.Wiki, error)
+	GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error)
+	Update(wiki *model.Wiki) (*model.Wiki, error)
+	Delete(id string, hard bool) error
+	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
+	GetPageByTitleInWiki(wikiId, title string) (*model.Post, error)
+	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
+	DeleteAllPagesForWiki(wikiId string) error
+	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
+	MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

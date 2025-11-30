@@ -54,6 +54,13 @@ const (
 	PostTypeGMConvertedToChannel = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels  = "add_bot_teams_channels"
 	PostTypeMe                   = "me"
+	PostTypePage                 = "page"
+	PostTypePageComment          = "page_comment"
+	PostTypePageMention          = "page_mention"
+	PostTypeWikiAdded            = "system_wiki_added"
+	PostTypeWikiDeleted          = "system_wiki_deleted"
+	PostTypePageAdded            = "system_page_added"
+	PostTypePageUpdated          = "system_page_updated"
 	PostCustomTypePrefix         = "custom_"
 	PostTypeReminder             = "reminder"
 
@@ -63,6 +70,12 @@ const (
 	PostMessageMaxRunesV1 = 4000
 	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
+	PostPropsMaxRunes     = 800000
+	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
+
+	PostPageMaxDepth     = 10  // Maximum depth for page hierarchies
+	MaxPageTitleLength   = 255 // Maximum length for page titles
+	PostEditHistoryLimit = 10  // Maximum number of edit history versions to store
 
 	// Reporting API constants
 	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
@@ -70,8 +83,6 @@ const (
 	ReportingTimeFieldUpdateAt = "update_at"
 	ReportingSortDirectionAsc  = "asc"
 	ReportingSortDirectionDesc = "desc"
-	PostPropsMaxRunes          = 800000
-	PostPropsMaxUserRunes      = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
 	PropsAddChannelMember = "add_channel_member"
 
@@ -94,21 +105,25 @@ const (
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
+	PostPropsCommentType              = "comment_type"
+
+	PageCommentTypeInline = "inline"
 
 	PostPriorityUrgent = "urgent"
 )
 
 type Post struct {
-	Id         string `json:"id"`
-	CreateAt   int64  `json:"create_at"`
-	UpdateAt   int64  `json:"update_at"`
-	EditAt     int64  `json:"edit_at"`
-	DeleteAt   int64  `json:"delete_at"`
-	IsPinned   bool   `json:"is_pinned"`
-	UserId     string `json:"user_id"`
-	ChannelId  string `json:"channel_id"`
-	RootId     string `json:"root_id"`
-	OriginalId string `json:"original_id"`
+	Id           string `json:"id"`
+	CreateAt     int64  `json:"create_at"`
+	UpdateAt     int64  `json:"update_at"`
+	EditAt       int64  `json:"edit_at"`
+	DeleteAt     int64  `json:"delete_at"`
+	IsPinned     bool   `json:"is_pinned"`
+	UserId       string `json:"user_id"`
+	ChannelId    string `json:"channel_id"`
+	RootId       string `json:"root_id"`
+	OriginalId   string `json:"original_id"`
+	PageParentId string `json:"page_parent_id"`
 
 	Message string `json:"message"`
 	// MessageSource will contain the message as submitted by the user if Message has been modified
@@ -151,6 +166,7 @@ func (o *Post) Auditable() map[string]any {
 		"channel_id":      o.ChannelId,
 		"root_id":         o.RootId,
 		"original_id":     o.OriginalId,
+		"page_parent_id":  o.PageParentId,
 		"type":            o.Type,
 		"props":           o.GetProps(),
 		"file_ids":        o.FileIds,
@@ -178,6 +194,7 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+	PageParentId *string          `json:"page_parent_id"`
 }
 
 type PostReminder struct {
@@ -331,6 +348,7 @@ func (o *Post) ShallowCopy(dst *Post) error {
 	dst.ChannelId = o.ChannelId
 	dst.RootId = o.RootId
 	dst.OriginalId = o.OriginalId
+	dst.PageParentId = o.PageParentId
 	dst.Message = o.Message
 	dst.MessageSource = o.MessageSource
 	dst.Type = o.Type
@@ -473,6 +491,15 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if o.Type == PostTypePage {
+		if !(IsValidId(o.PageParentId) || o.PageParentId == "") {
+			return NewAppError("Post.IsValid", "model.post.is_valid.page_parent_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+		if o.PageParentId == o.Id {
+			return NewAppError("Post.IsValid", "model.post.is_valid.page_parent_id_self.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+		}
+	}
+
 	if utf8.RuneCountInString(o.Message) > maxPostSize {
 		return NewAppError("Post.IsValid", "model.post.is_valid.message_length.app_error",
 			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxPostSize}, "id="+o.Id, http.StatusBadRequest)
@@ -511,6 +538,13 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeReminder,
 		PostTypeMe,
+		PostTypePage,
+		PostTypePageComment,
+		PostTypePageMention,
+		PostTypeWikiAdded,
+		PostTypeWikiDeleted,
+		PostTypePageAdded,
+		PostTypePageUpdated,
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel:
 	default:
@@ -868,6 +902,10 @@ func (o *Post) Patch(patch *PostPatch) {
 	if patch.HasReactions != nil {
 		o.HasReactions = *patch.HasReactions
 	}
+
+	if patch.PageParentId != nil {
+		o.PageParentId = *patch.PageParentId
+	}
 }
 
 func (o *Post) ChannelMentions() []string {
@@ -1083,6 +1121,16 @@ func (o *Post) GetPreviewedPostProp() string {
 		return val
 	}
 	return ""
+}
+
+func (o *Post) GetPageTitle() string {
+	if o.Type != PostTypePage {
+		return ""
+	}
+	if title, ok := o.GetProp("title").(string); ok && title != "" {
+		return title
+	}
+	return "Untitled page"
 }
 
 func (o *Post) GetPriority() *PostPriority {

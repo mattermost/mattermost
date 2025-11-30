@@ -72,6 +72,7 @@ type TimerLayer struct {
 	UserAccessTokenStore            store.UserAccessTokenStore
 	UserTermsOfServiceStore         store.UserTermsOfServiceStore
 	WebhookStore                    store.WebhookStore
+	WikiStore                       store.WikiStore
 }
 
 func (s *TimerLayer) AccessControlPolicy() store.AccessControlPolicyStore {
@@ -284,6 +285,10 @@ func (s *TimerLayer) UserTermsOfService() store.UserTermsOfServiceStore {
 
 func (s *TimerLayer) Webhook() store.WebhookStore {
 	return s.WebhookStore
+}
+
+func (s *TimerLayer) Wiki() store.WikiStore {
+	return s.WikiStore
 }
 
 type TimerLayerAccessControlPolicyStore struct {
@@ -548,6 +553,11 @@ type TimerLayerUserTermsOfServiceStore struct {
 
 type TimerLayerWebhookStore struct {
 	store.WebhookStore
+	Root *TimerLayer
+}
+
+type TimerLayerWikiStore struct {
+	store.WikiStore
 	Root *TimerLayer
 }
 
@@ -3801,6 +3811,38 @@ func (s *TimerLayerDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt in
 	return err
 }
 
+func (s *TimerLayerDraftStore) DeletePageDraftContent(userId string, wikiId string, draftId string) error {
+	start := time.Now()
+
+	err := s.DraftStore.DeletePageDraftContent(userId, wikiId, draftId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeletePageDraftContent", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDraftStore) DeletePageDraftWithTransaction(userId string, wikiId string, channelId string, draftId string) error {
+	start := time.Now()
+
+	err := s.DraftStore.DeletePageDraftWithTransaction(userId, wikiId, channelId, draftId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeletePageDraftWithTransaction", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
 	start := time.Now()
 
@@ -3813,6 +3855,22 @@ func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID strin
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.GetActiveEditorsForPage(pageId, minUpdateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.GetActiveEditorsForPage", success, elapsed)
 	}
 	return result, err
 }
@@ -3849,6 +3907,54 @@ func (s *TimerLayerDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigra
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerDraftStore) GetManyByRootIds(userID string, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.GetManyByRootIds(userID, channelID, rootIDs, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.GetManyByRootIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) GetPageDraftContent(userId string, wikiId string, draftId string) (*model.PageDraftContent, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.GetPageDraftContent(userId, wikiId, draftId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.GetPageDraftContent", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) GetPageDraftContentsForWiki(userId string, wikiId string) ([]*model.PageDraftContent, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.GetPageDraftContentsForWiki(userId, wikiId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.GetPageDraftContentsForWiki", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerDraftStore) PermanentDeleteByUser(userId string) error {
 	start := time.Now()
 
@@ -3861,6 +3967,22 @@ func (s *TimerLayerDraftStore) PermanentDeleteByUser(userId string) error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.PermanentDeleteByUser", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDraftStore) UpdatePropsOnly(userId string, wikiId string, draftId string, props map[string]any, expectedUpdateAt int64) error {
+	start := time.Now()
+
+	err := s.DraftStore.UpdatePropsOnly(userId, wikiId, draftId, props, expectedUpdateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpdatePropsOnly", success, elapsed)
 	}
 	return err
 }
@@ -3879,6 +4001,54 @@ func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Upsert", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerDraftStore) UpsertPageDraft(d *model.Draft) (*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.UpsertPageDraft(d)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraft", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) UpsertPageDraftContent(content *model.PageDraftContent) (*model.PageDraftContent, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.UpsertPageDraftContent(content)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraftContent", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) UpsertPageDraftWithTransaction(content *model.PageDraftContent, draft *model.Draft) (*model.PageDraftContent, *model.Draft, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.DraftStore.UpsertPageDraftWithTransaction(content, draft)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraftWithTransaction", success, elapsed)
+	}
+	return result, resultVar1, err
 }
 
 func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
@@ -6786,6 +6956,22 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsCreatedAt", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsForReporting", success, elapsed)
 	}
 	return result, err
 }
@@ -11011,6 +11197,22 @@ func (s *TimerLayerTermsOfServiceStore) Save(termsOfService *model.TermsOfServic
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) CreateThreadForPageComment(thread *model.Thread) error {
+	start := time.Now()
+
+	err := s.ThreadStore.CreateThreadForPageComment(thread)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.CreateThreadForPageComment", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerThreadStore) DeleteMembershipForUser(userID string, postID string) error {
 	start := time.Now()
 
@@ -13660,6 +13862,198 @@ func (s *TimerLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*m
 	return result, err
 }
 
+func (s *TimerLayerWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.CreateWikiWithDefaultPage(wiki, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.CreateWikiWithDefaultPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) Delete(id string, hard bool) error {
+	start := time.Now()
+
+	err := s.WikiStore.Delete(id, hard)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerWikiStore) DeleteAllPagesForWiki(wikiId string) error {
+	start := time.Now()
+
+	err := s.WikiStore.DeleteAllPagesForWiki(wikiId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.DeleteAllPagesForWiki", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerWikiStore) Get(id string) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.Get(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetAbandonedPages(cutoffTime)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetAbandonedPages", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetForChannel(channelId, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetPageByTitleInWiki(wikiId string, title string) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetPageByTitleInWiki(wikiId, title)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetPageByTitleInWiki", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetPages(wikiId, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetPages", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) MovePageToWiki(pageId string, targetWikiId string, parentPageId *string) error {
+	start := time.Now()
+
+	err := s.WikiStore.MovePageToWiki(pageId, targetWikiId, parentPageId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.MovePageToWiki", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.MoveWikiToChannel(wikiId, targetChannelId, timestamp)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.MoveWikiToChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.Save(wiki)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.Update(wiki)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayer) Close() {
 	s.Store.Close()
 }
@@ -13751,5 +14145,6 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.UserAccessTokenStore = &TimerLayerUserAccessTokenStore{UserAccessTokenStore: childStore.UserAccessToken(), Root: &newStore}
 	newStore.UserTermsOfServiceStore = &TimerLayerUserTermsOfServiceStore{UserTermsOfServiceStore: childStore.UserTermsOfService(), Root: &newStore}
 	newStore.WebhookStore = &TimerLayerWebhookStore{WebhookStore: childStore.Webhook(), Root: &newStore}
+	newStore.WikiStore = &TimerLayerWikiStore{WikiStore: childStore.Wiki(), Root: &newStore}
 	return &newStore
 }

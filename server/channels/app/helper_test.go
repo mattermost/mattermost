@@ -750,6 +750,53 @@ func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, role
 	require.Nil(tb, err2)
 }
 
+func (th *TestHelper) AddPermissionsToRole(permissions []string, roleName string) {
+	role, err := th.App.GetRoleByName(th.Context, roleName)
+	if err != nil {
+		panic(err)
+	}
+
+	modified := false
+	for _, permission := range permissions {
+		if !slices.Contains(role.Permissions, permission) {
+			role.Permissions = append(role.Permissions, permission)
+			modified = true
+		}
+	}
+
+	if modified {
+		_, err := th.App.UpdateRole(role)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func (th *TestHelper) SetupPagePermissions() {
+	// channel_user gets basic page permissions including delete_own_page
+	channelUserPermissions := []string{
+		model.PermissionCreatePage.Id,
+		model.PermissionReadPage.Id,
+		model.PermissionEditPage.Id,
+		model.PermissionDeleteOwnPage.Id,
+	}
+
+	// channel_admin gets all page permissions including delete_page (can delete anyone's pages)
+	channelAdminPermissions := []string{
+		model.PermissionCreatePage.Id,
+		model.PermissionReadPage.Id,
+		model.PermissionEditPage.Id,
+		model.PermissionDeleteOwnPage.Id,
+		model.PermissionDeletePage.Id,
+	}
+
+	th.AddPermissionsToRole(channelUserPermissions, model.ChannelUserRoleId)
+	th.AddPermissionsToRole(channelAdminPermissions, model.ChannelAdminRoleId)
+	th.AddPermissionsToRole([]string{
+		model.PermissionReadPage.Id,
+	}, model.ChannelGuestRoleId)
+}
+
 func (th *TestHelper) CreateFileInfo(tb testing.TB, userId, postId, channelId string) *model.FileInfo {
 	fileInfo := &model.FileInfo{
 		Id:        model.NewId(),

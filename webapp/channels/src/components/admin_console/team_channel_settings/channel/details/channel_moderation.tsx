@@ -480,9 +480,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                 id='channel_moderation'
                 title={channelModerationHeaderMessages.titleMessage}
                 subtitle={
-                    guestAccountsEnabled ?
-                        channelModerationHeaderMessages.subtitleMessageForMembersAndGuests :
-                        channelModerationHeaderMessages.subtitleMessageForMembers
+                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests : channelModerationHeaderMessages.subtitleMessageForMembers
                 }
             >
                 <div className='channel-moderation'>

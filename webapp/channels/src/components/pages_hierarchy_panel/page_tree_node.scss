@@ -1,0 +1,153 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Import design tokens
+$node-height: 32px;
+$node-hover-bg: rgba(var(--center-channel-text-rgb), 0.08);
+$node-selected-bg: rgba(var(--button-bg-rgb), 0.12);
+$node-text: var(--center-channel-text);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.75);
+$radius-sm: 4px;
+
+.PageTreeNode {
+    position: relative;
+    display: flex;
+    height: $node-height; // Figma exact
+    flex-direction: row;
+    align-items: center;
+    padding: 0 4px;
+    border-radius: $radius-sm;
+    pointer-events: auto; // Re-enable pointer events for children
+    transition: background-color 150ms ease;
+
+    // Hover state - from Figma
+    &:hover {
+        background: $node-hover-bg;
+
+        .PageTreeNode__menuButton {
+            opacity: 1; // Show menu on hover
+        }
+    }
+
+    // Selected state - from Matt's design (blue highlight)
+    &--selected {
+        background: $node-selected-bg;
+
+        .PageTreeNode__title {
+            color: var(--link-color);
+            font-weight: 600;
+        }
+
+        .PageTreeNode__icon {
+            color: var(--link-color);
+        }
+    }
+}
+
+.PageTreeNode__iconButton {
+    display: flex;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    cursor: pointer;
+    pointer-events: auto;
+
+    &:hover {
+        background: rgba(var(--center-channel-text-rgb), 0.08);
+    }
+}
+
+.PageTreeNode__icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: $node-text-muted;
+}
+
+.PageTreeNode__title {
+    overflow: hidden;
+    flex: 1;
+    color: $node-text;
+    font-size: 14px;
+
+    &-button {
+        overflow: hidden;
+        flex-grow: 1;
+        border: unset;
+        background: unset;
+        color: $node-text;
+        cursor: pointer;
+        pointer-events: auto;
+        text-align: left;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.PageTreeNode__draftBadge {
+    flex-shrink: 0;
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: rgba(var(--center-channel-text-rgb), 0.08);
+    color: $node-text-muted;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 12px;
+    text-transform: uppercase;
+}
+
+.PageTreeNode__dragHandle {
+    display: flex;
+    width: 12px;
+    height: 28px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: $node-text-muted;
+    cursor: grab;
+    opacity: 0 !important; // Hidden by default
+    pointer-events: auto;
+    transition: opacity 150ms ease;
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    i {
+        font-size: 16px;
+    }
+}
+
+// Show drag handle on hover
+.PageTreeNode:hover .PageTreeNode__dragHandle {
+    opacity: 1 !important;
+}
+
+.PageTreeNode__menuButton {
+    display: flex;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: $radius-sm;
+    margin-left: auto;
+    background: transparent;
+    color: $node-text-muted;
+    cursor: pointer;
+    opacity: 0; // Hidden by default, shown on hover
+    transition: opacity 150ms ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-text-rgb), 0.08);
+        color: $node-text;
+    }
+}
