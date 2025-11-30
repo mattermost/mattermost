@@ -1,0 +1,45 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/DialogIntroductionText > should not fail on empty value 1`] = `
+<div>
+  <span
+    id="testblankvalue"
+  />
+</div>
+`;
+
+exports[`components/DialogIntroductionText > should render message with supported values 1`] = `
+<div>
+  <span
+    id="testsupported"
+  >
+    <p>
+      <strong>
+        bold
+      </strong>
+       
+      <em>
+        italic
+      </em>
+       
+      <a
+        class="theme markdown__link"
+        href="https://mattermost.com/"
+        rel="noreferrer"
+        target="_blank"
+      >
+        link
+      </a>
+       &lt;br/&gt; 
+      <a
+        class="theme markdown__link"
+        href="!https://mattermost.com/"
+        rel="noreferrer"
+        target="_blank"
+      >
+        link target blank
+      </a>
+    </p>
+  </span>
+</div>
+`;

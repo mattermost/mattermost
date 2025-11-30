@@ -1,0 +1,122 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/shortcuts/KeyboardShortcutsSequence > should match snapshot when used for modal with description 1`] = `
+<div>
+  <div
+    class="shortcut-line"
+  >
+    <span>
+      Keyboard shortcuts
+    </span>
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      /
+    </mark>
+  </div>
+</div>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence > should match snapshot with alternative shortcut 1`] = `
+<div>
+  <div
+    class="shortcut-line"
+  >
+    <span>
+      Keyboard shortcuts
+    </span>
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    />
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      P
+    </mark>
+    <span>
+      	|	
+    </span>
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      Ctrl
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      P
+    </mark>
+  </div>
+</div>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence > should render sequence hoisting description 1`] = `
+<div>
+  Keyboard shortcuts
+  <div
+    class="shortcut-line"
+  >
+    <mark
+      class="shortcut-key shortcut-key--tooltip"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--tooltip"
+    >
+      /
+    </mark>
+  </div>
+</div>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence > should render sequence without description 1`] = `
+<div>
+  <div
+    class="shortcut-line"
+  >
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--shortcut-modal"
+    >
+      /
+    </mark>
+  </div>
+</div>
+`;
+
+exports[`components/shortcuts/KeyboardShortcutsSequence > should render sequence without description 2`] = `
+<div>
+  <div
+    class="shortcut-line"
+  >
+    <span>
+      Keyboard shortcuts
+    </span>
+    <mark
+      class="shortcut-key shortcut-key--tooltip"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--tooltip"
+    >
+      /
+    </mark>
+  </div>
+</div>
+`;

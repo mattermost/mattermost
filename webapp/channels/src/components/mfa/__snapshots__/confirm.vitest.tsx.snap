@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/mfa/components/Confirm > should match snapshot 1`] = `
+<div>
+  <div>
+    <form
+      class="form-group"
+    >
+      <strong>
+        Set up complete!
+      </strong>
+      <p>
+        Your account is now secure. Next time you sign in, you will be asked to enter a code from your authenticator app on your phone.
+      </p>
+      <button
+        class="btn btn-primary"
+        type="submit"
+      >
+        Okay
+      </button>
+    </form>
+  </div>
+</div>
+`;

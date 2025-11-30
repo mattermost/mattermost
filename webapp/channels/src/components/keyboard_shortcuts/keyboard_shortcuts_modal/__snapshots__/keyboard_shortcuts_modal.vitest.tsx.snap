@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/KeyboardShortcutsModal > should match snapshot modal 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/KeyboardShortcutsModal > should match snapshot modal with Calls enabled 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

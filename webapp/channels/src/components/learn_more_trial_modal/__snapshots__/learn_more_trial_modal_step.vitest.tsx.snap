@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/learn_more_trial_modal/learn_more_trial_modal_step > should match snapshot 1`] = `
+<div>
+  <div
+    class="LearnMoreTrialModalStep slide-container"
+    id="learnMoreTrialModalStep-stepId"
+  >
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/learn_more_trial_modal/learn_more_trial_modal_step > should match snapshot when loaded in cloud workspace 1`] = `
+<div>
+  <div
+    class="LearnMoreTrialModalStep slide-container"
+    id="learnMoreTrialModalStep-stepId"
+  >
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+    <div
+      class="bottom-text-left-message"
+    >
+      Step bottom message
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/learn_more_trial_modal/learn_more_trial_modal_step > should match snapshot with optional params 1`] = `
+<div>
+  <div
+    class="LearnMoreTrialModalStep slide-container"
+    id="learnMoreTrialModalStep-stepId"
+  >
+    <div
+      class="stepClassname svg-wrapper"
+    >
+      <svg />
+    </div>
+    <div
+      class="title"
+    >
+      Step title
+    </div>
+    <div
+      class="description"
+    >
+      Step description
+    </div>
+    <div
+      class="bottom-text-left-message"
+    >
+      Step bottom message
+    </div>
+  </div>
+</div>
+`;

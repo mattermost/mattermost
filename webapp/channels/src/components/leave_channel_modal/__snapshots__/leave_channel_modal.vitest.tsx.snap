@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/LeaveChannelModal > should match snapshot, init 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

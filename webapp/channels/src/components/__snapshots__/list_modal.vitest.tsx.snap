@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ListModal > should match snapshot 1`] = `
+<div
+  aria-hidden="true"
+>
+  <div />
+</div>
+`;
+
+exports[`components/ListModal > should match snapshot with title bar button 1`] = `
+<div
+  aria-hidden="true"
+>
+  <div />
+</div>
+`;

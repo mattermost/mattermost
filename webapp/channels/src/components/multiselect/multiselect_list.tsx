@@ -142,7 +142,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
 
         return (
             <div
-                ref={isSelected ? this.selectedItemRef : option.value}
+                ref={isSelected ? this.selectedItemRef : undefined}
                 className={rowSelected}
                 key={'multiselectoption' + option.value}
                 onClick={() => add(option)}

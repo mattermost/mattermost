@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/learn_more_trial_modal/learn_more_trial_modal > should match snapshot 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

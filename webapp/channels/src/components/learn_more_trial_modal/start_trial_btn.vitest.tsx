@@ -1,0 +1,116 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
+
+import {renderWithContext, screen, fireEvent, act} from 'tests/vitest_react_testing_utils';
+
+vi.mock('mattermost-redux/actions/general', async () => {
+    const actual = await vi.importActual('mattermost-redux/actions/general');
+    return {
+        ...actual,
+        getLicenseConfig: () => ({type: 'adsf'}),
+    };
+});
+
+vi.mock('actions/admin_actions', async () => {
+    const actual = await vi.importActual('actions/admin_actions');
+    return {
+        ...actual,
+        requestTrialLicense: (requestedUsers: number) => {
+            if (requestedUsers === 9001) {
+                return {type: 'asdf', data: null, error: {status: 400, message: 'some error'}};
+            } else if (requestedUsers === 451) {
+                return {type: 'asdf', data: {status: 451}, error: {message: 'some error'}};
+            }
+            return {type: 'asdf', data: 'ok'};
+        },
+    };
+});
+
+describe('components/learn_more_trial_modal/start_trial_btn', () => {
+    const state = {
+        entities: {
+            users: {
+                currentUserId: 'current_user_id',
+            },
+            admin: {
+                analytics: {
+                    TOTAL_USERS: 9,
+                },
+                prevTrialLicense: {
+                    IsLicensed: 'false',
+                },
+            },
+            general: {
+                license: {
+                    IsLicensed: 'false',
+                },
+                config: {
+                    TelemetryId: 'test_telemetry_id',
+                },
+            },
+        },
+        views: {
+            modals: {
+                modalState: {
+                    learn_more_trial_modal: {
+                        open: true,
+                    },
+                },
+            },
+        },
+    };
+
+    const props = {
+        onClick: vi.fn(),
+        message: 'Start trial',
+    };
+
+    test('should match snapshot', () => {
+        const {container} = renderWithContext(
+            <StartTrialBtn {...props}/>,
+            state,
+        );
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should handle on click', async () => {
+        const mockOnClick = vi.fn();
+
+        renderWithContext(
+            <StartTrialBtn
+                {...props}
+                onClick={mockOnClick}
+            />,
+            state,
+        );
+
+        await act(async () => {
+            fireEvent.click(screen.getByText('Start trial'));
+        });
+
+        expect(mockOnClick).toHaveBeenCalled();
+    });
+
+    test('should handle on click when rendered as button', async () => {
+        const mockOnClick = vi.fn();
+
+        renderWithContext(
+            <StartTrialBtn
+                {...props}
+                renderAsButton={true}
+                onClick={mockOnClick}
+            />,
+            state,
+        );
+
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button'));
+        });
+
+        expect(mockOnClick).toHaveBeenCalled();
+    });
+});

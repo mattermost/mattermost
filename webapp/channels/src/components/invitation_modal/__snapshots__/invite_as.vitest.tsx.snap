@@ -1,0 +1,63 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/cloud_start_trial_btn/cloud_start_trial_btn > should match snapshot 1`] = `
+<div>
+  <div
+    class="InviteAs"
+  >
+    <div
+      class="title"
+    >
+      Invite as
+    </div>
+    <div>
+      <div
+        class="radio-list"
+        data-testid=""
+      >
+        <div
+          class="radio"
+        >
+          <label
+            class="selected"
+          >
+            <input
+              checked=""
+              data-testid="inviteMembersLink"
+              name="invite-as"
+              type="radio"
+              value="MEMBER"
+            />
+            Member
+          </label>
+        </div>
+        <div
+          class="radio"
+        >
+          <label
+            class=""
+          >
+            <input
+              data-testid="inviteGuestLink"
+              name="invite-as"
+              type="radio"
+              value="GUEST"
+            />
+            <span
+              class="InviteAs__label "
+            >
+              Guest
+              <span
+                class="InviteAs__label--parenthetical"
+              >
+                 - 
+                limited to select channels and teams
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
