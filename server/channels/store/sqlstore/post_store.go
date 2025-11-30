@@ -29,10 +29,12 @@ var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
 var wildCardRegex = regexp.MustCompile(`\*($| )`)
 
 const (
-	// regularPostsFilter excludes pages and page comments from post queries.
-	// Pages have separate lifecycle management and should not be included in
-	// regular post operations like retention policies, exports, or cleanup.
-	regularPostsFilter = "(Type NOT IN ('page', 'page_comment', 'page_mention', 'system_page_added', 'system_page_updated', 'system_wiki_added', 'system_wiki_deleted') OR Type IS NULL)"
+	// regularPostsFilter excludes page content posts from regular channel feeds.
+	// Page content posts (page, page_comment, page_mention) are stored as Posts but
+	// displayed in the wiki UI, not the channel feed.
+	// System notification posts (system_wiki_added, system_page_added, etc.) ARE
+	// displayed in the channel feed to notify users about wiki/page activity.
+	regularPostsFilter = "(Type NOT IN ('page', 'page_comment', 'page_mention') OR Type IS NULL)"
 )
 
 type SqlPostStore struct {
@@ -2931,7 +2933,6 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		Join("Users u ON ( u.Id = cm.UserId )").
 		Where(sq.Eq{
 			"cm.ChannelId": channelIds,
-			"u.DeleteAt":   0,
 		})
 
 	queryString, args, err = query.ToSql()

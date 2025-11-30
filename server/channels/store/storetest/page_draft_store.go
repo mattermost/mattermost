@@ -55,6 +55,9 @@ func TestPageDraftContentStore(t *testing.T, rctx request.CTX, ss store.Store, s
 	t.Cleanup(func() {
 		_, _ = s.GetMaster().Exec("DELETE FROM PageDraftContents")
 		_, _ = s.GetMaster().Exec("DELETE FROM Drafts WHERE WikiId != ''")
+		// Clean up wikis and channels created by page draft tests
+		_, _ = s.GetMaster().Exec("TRUNCATE Wikis CASCADE")
+		_, _ = s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 	})
 }
 

@@ -55,6 +55,9 @@ func TestPageStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM PropertyValues WHERE TargetType = 'post' AND TargetID IN (SELECT Id FROM Posts WHERE Type IN (%s))", typesSQL))
 		_, _ = s.GetMaster().Exec("DELETE FROM PageContents")
 		_, _ = s.GetMaster().Exec(fmt.Sprintf("DELETE FROM Posts WHERE Type IN (%s)", typesSQL))
+		// Clean up wikis and channels created by page tests
+		_, _ = s.GetMaster().Exec("TRUNCATE Wikis CASCADE")
+		_, _ = s.GetMaster().Exec("TRUNCATE Channels CASCADE")
 	})
 }
 
