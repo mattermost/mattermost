@@ -25,7 +25,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 		nonExistentTeamName := "existingName"
 		cmd := &cobra.Command{}
 		args := []string{nonExistentTeamName}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 		cmd.Flags().String("name", "newName", "Team Name")
 
 		err := renameTeamCmdF(c, cmd, args)
@@ -55,7 +55,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(c, cmd, args)
 		s.Require().Nil(err)
@@ -73,7 +73,7 @@ func (s *MmctlE2ETestSuite) TestRenameTeamCmdF() {
 
 		cmd := &cobra.Command{}
 		args := []string{s.th.BasicTeam.Name}
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 
 		err := renameTeamCmdF(s.th.Client, cmd, args)
 		s.Require().Error(err)
