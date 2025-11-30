@@ -42,28 +42,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           placeholder="Add a unique policy name"
           value=""
         />
-        <Memo(BooleanSetting)
-          helpText={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync."
-              id="admin.access_control.policy.edit_policy.autoSyncMembership.description"
-            />
-          }
-          id="admin.access_control.policy.edit_policy.autoSyncMembership"
-          label={
-            <div
-              className="vertically-centered-label"
-            >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Auto-add members based on access rules:"
-                id="admin.access_control.policy.edit_policy.autoSyncMembership"
-              />
-            </div>
-          }
-          onChange={[Function]}
-          setByEnv={false}
-          value={false}
-        />
       </div>
       <Card
         className="console"
@@ -106,7 +84,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "getVisualAST": [MockFunction],
                 "saveChannelPolicy": [MockFunction],
                 "searchUsers": [MockFunction],
-                "updateAccessControlPolicyActive": [MockFunction],
+                "updateAccessControlPoliciesActive": [MockFunction],
                 "validateExpressionAgainstRequester": [MockFunction],
               }
             }
@@ -150,11 +128,14 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         <CardBody
           expanded={true}
         >
-          <Connect(ChannelList)
+          <Connect(injectIntl(ChannelList))
             channelsToAdd={Object {}}
             channelsToRemove={Object {}}
+            onPolicyActiveStatusChange={[Function]}
             onRemoveCallback={[Function]}
+            policyActiveStatusChanges={Array []}
             policyId="policy1"
+            saving={false}
           />
         </CardBody>
       </Card>
@@ -201,6 +182,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       }
       disabled={true}
       onClick={[Function]}
+      saving={false}
     />
     <Connect(Component)
       className="btn btn-quaternary"
@@ -257,28 +239,6 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           placeholder="Add a unique policy name"
           value=""
         />
-        <Memo(BooleanSetting)
-          helpText={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync."
-              id="admin.access_control.policy.edit_policy.autoSyncMembership.description"
-            />
-          }
-          id="admin.access_control.policy.edit_policy.autoSyncMembership"
-          label={
-            <div
-              className="vertically-centered-label"
-            >
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Auto-add members based on access rules:"
-                id="admin.access_control.policy.edit_policy.autoSyncMembership"
-              />
-            </div>
-          }
-          onChange={[Function]}
-          setByEnv={false}
-          value={false}
-        />
       </div>
       <Card
         className="console"
@@ -321,7 +281,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                 "getVisualAST": [MockFunction],
                 "saveChannelPolicy": [MockFunction],
                 "searchUsers": [MockFunction],
-                "updateAccessControlPolicyActive": [MockFunction],
+                "updateAccessControlPoliciesActive": [MockFunction],
                 "validateExpressionAgainstRequester": [MockFunction],
               }
             }
@@ -365,11 +325,14 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
         <CardBody
           expanded={true}
         >
-          <Connect(ChannelList)
+          <Connect(injectIntl(ChannelList))
             channelsToAdd={Object {}}
             channelsToRemove={Object {}}
+            onPolicyActiveStatusChange={[Function]}
             onRemoveCallback={[Function]}
+            policyActiveStatusChanges={Array []}
             policyId=""
+            saving={false}
           />
         </CardBody>
       </Card>
@@ -387,6 +350,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       }
       disabled={true}
       onClick={[Function]}
+      saving={false}
     />
     <Connect(Component)
       className="btn btn-quaternary"
