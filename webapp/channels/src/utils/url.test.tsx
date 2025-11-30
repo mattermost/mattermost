@@ -218,5 +218,52 @@ describe('Utils.URL - In-App Links', () => {
         test('return null for invalid URL', () => {
             expect(parseMattermostLink('invalid')).toBeNull();
         });
+        
+        test('parse global route (admin_console)', () => {
+            const result = parseMattermostLink('mattermost://admin_console/system_analytics');
+            expect(result).toEqual({
+                kind: 'global',
+                path: '/admin_console/system_analytics',
+            });
+        });
+        
+        test('parse generic fallback path', () => {
+            const result = parseMattermostLink('mattermost://myteam/custom/path/here');
+            expect(result).toEqual({
+                kind: 'generic',
+                team: 'myteam',
+                path: '/myteam/custom/path/here',
+            });
+        });
+        
+        test('parse team from query parameter', () => {
+            const result = parseMattermostLink('mattermost://channels/town-square?team=myteam');
+            expect(result).toEqual({
+                kind: 'channel',
+                team: 'myteam',
+                channel: 'town-square',
+                path: '/myteam/channels/town-square',
+            });
+        });
+        
+        test('parse DM without @ (auto-add)', () => {
+            const result = parseMattermostLink('mattermost://myteam/messages/username');
+            expect(result).toEqual({
+                kind: 'dm',
+                team: 'myteam',
+                username: '@username',
+                path: '/myteam/messages/@username',
+            });
+        });
+        
+        test('parse with dm alias', () => {
+            const result = parseMattermostLink('mattermost://myteam/dm/@user');
+            expect(result).toEqual({
+                kind: 'dm',
+                team: 'myteam',
+                username: '@user',
+                path: '/myteam/messages/@user',
+            });
+        });
     });
 });
