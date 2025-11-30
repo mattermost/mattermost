@@ -952,29 +952,18 @@ exports[`components/FilePreviewModal > should match snapshot, loaded with .js fi
                   class="file-preview-modal__content"
                 >
                   <div
-                    class="post-code code-preview"
+                    class="view-image__loading"
                   >
                     <span
-                      class="post-code__language"
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
                     >
-                      test.js - JavaScript
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
                     </span>
-                    <div
-                      class="hljs"
-                    >
-                      <div
-                        class="post-code__line-numbers"
-                      >
-                        1
-                      </div>
-                      <code>
-                        <span
-                          class="hljs-comment"
-                        >
-                          // mock code content
-                        </span>
-                      </code>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1533,23 +1522,18 @@ exports[`components/FilePreviewModal > should match snapshot, loaded with image 
                 <div
                   class="file-preview-modal__content"
                 >
-                  <div
-                    class="view-image__loading"
+                  <a
+                    class="image_preview"
+                    href="#"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    <span
-                      class="loader-percent"
+                    <img
+                      alt="preview url image"
+                      class="image_preview__image"
+                      data-testid="imagePreview"
+                      loading="lazy"
+                      src="/api/v4/files/file_id/preview"
                     />
-                  </div>
+                  </a>
                 </div>
               </div>
             </div>

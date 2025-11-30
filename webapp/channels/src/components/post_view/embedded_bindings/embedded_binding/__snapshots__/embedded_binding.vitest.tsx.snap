@@ -1,0 +1,173 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/embedded_bindings/embedded_binding > should match snapshot 1`] = `
+<div>
+  <div
+    class="attachment"
+  >
+    <div
+      class="attachment__content"
+    >
+      <div
+        class="clearfix attachment__container attachment__container--"
+      >
+        <h1
+          class="attachment__title"
+        >
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          >
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/embedded_bindings/embedded_binding > should match snapshot when the attachment has a link in the title 1`] = `
+<div>
+  <div
+    class="attachment"
+  >
+    <div
+      class="attachment__content"
+    >
+      <div
+        class="clearfix attachment__container attachment__container--"
+      >
+        <h1
+          class="attachment__title"
+        >
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          >
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/embedded_bindings/embedded_binding > should match snapshot when the attachment has an emoji in the title 1`] = `
+<div>
+  <div
+    class="attachment"
+  >
+    <div
+      class="attachment__content"
+    >
+      <div
+        class="clearfix attachment__container attachment__container--"
+      >
+        <h1
+          class="attachment__title"
+        >
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          >
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/embedded_bindings/embedded_binding > should match snapshot when the attachment hasn't any emojis in the title 1`] = `
+<div>
+  <div
+    class="attachment"
+  >
+    <div
+      class="attachment__content"
+    >
+      <div
+        class="clearfix attachment__container attachment__container--"
+      >
+        <h1
+          class="attachment__title"
+        >
+          some text
+        </h1>
+        <div>
+          <div
+            class="attachment__body attachment__body--no_thumb"
+          >
+            <div
+              class="post-message post-message--collapsed"
+            >
+              <div
+                class="post-message__text-container"
+                style="max-height: 200px;"
+              >
+                <p>
+                  some title
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            style="clear: both;"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

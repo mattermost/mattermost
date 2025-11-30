@@ -18,7 +18,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         vi.clearAllMocks();
     });
 
-    test('should render with concealed placeholder text', () => {
+    it('should render with concealed placeholder text', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
@@ -28,7 +28,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(screen.getByRole('button')).toHaveClass('BurnOnReadConcealedPlaceholder');
     });
 
-    test('should call onReveal when clicked', () => {
+    it('should call onReveal when clicked', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
@@ -40,7 +40,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(baseProps.onReveal).toHaveBeenCalledTimes(1);
     });
 
-    test('should call onReveal when Enter key is pressed', () => {
+    it('should call onReveal when Enter key is pressed', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
@@ -51,7 +51,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(baseProps.onReveal).toHaveBeenCalledWith('post123');
     });
 
-    test('should call onReveal when Space key is pressed', () => {
+    it('should call onReveal when Space key is pressed', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
@@ -62,7 +62,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(baseProps.onReveal).toHaveBeenCalledWith('post123');
     });
 
-    test('should not call onReveal when other keys are pressed', () => {
+    it('should not call onReveal when other keys are pressed', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
@@ -73,7 +73,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(baseProps.onReveal).not.toHaveBeenCalled();
     });
 
-    test('should show loading spinner when loading', () => {
+    it('should show loading spinner when loading', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder
                 {...baseProps}
@@ -85,7 +85,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(screen.queryByText('Click to Reveal')).not.toBeInTheDocument();
     });
 
-    test('should not trigger onReveal when loading', () => {
+    it('should not trigger onReveal when loading', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder
                 {...baseProps}
@@ -99,7 +99,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(baseProps.onReveal).not.toHaveBeenCalled();
     });
 
-    test('should display error message when error is present', () => {
+    it('should display error message when error is present', () => {
         const errorMessage = 'Failed to reveal message';
         renderWithContext(
             <BurnOnReadConcealedPlaceholder
@@ -112,7 +112,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(screen.getByRole('alert')).toHaveClass('BurnOnReadConcealedPlaceholder__error');
     });
 
-    test('should have correct aria-label for accessibility', () => {
+    it('should have correct aria-label for accessibility', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
@@ -121,7 +121,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         expect(placeholder).toHaveAttribute('aria-label', 'Burn-on-read message from john.doe. Click to reveal content.');
     });
 
-    test('should be keyboard focusable', () => {
+    it('should be keyboard focusable', () => {
         renderWithContext(
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );

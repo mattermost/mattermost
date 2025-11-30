@@ -1,0 +1,119 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, empty channelType 1`] = `<div />`;
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, empty postId 1`] = `<div />`;
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, more than 3 users 1`] = `
+<div>
+  <p>
+    <span>
+      <span>
+        , 
+      </span>
+      <a
+        class="PostBody_otherUsersLink"
+      >
+        2 others
+      </a>
+       and 
+    </span>
+     
+    did not get notified by this mention because they are not in the channel. Would you like to 
+    <a
+      class="PostBody_addChannelMemberLink"
+    >
+      add them to the channel
+    </a>
+    ? They will have access to all message history.
+  </p>
+</div>
+`;
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, more than 3 users 2`] = `
+<div>
+  <p>
+    <span>
+      <span>
+        , 
+      </span>
+      <span>
+        , 
+      </span>
+       and 
+    </span>
+     
+    did not get notified by this mention because they are not in the channel. Would you like to 
+    <a
+      class="PostBody_addChannelMemberLink"
+    >
+      add them to the channel
+    </a>
+    ? They will have access to all message history.
+  </p>
+</div>
+`;
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, private channel 1`] = `
+<div>
+  <p>
+     
+    did not get notified by this mention because they are not in the channel. Would you like to 
+    <a
+      class="PostBody_addChannelMemberLink"
+    >
+      add them to this private channel
+    </a>
+    ? They will have access to all message history.
+  </p>
+</div>
+`;
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, public channel 1`] = `
+<div>
+  <p>
+     
+    did not get notified by this mention because they are not in the channel. Would you like to 
+    <a
+      class="PostBody_addChannelMemberLink"
+    >
+      add them to the channel
+    </a>
+    ? They will have access to all message history.
+  </p>
+</div>
+`;
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, with ABAC policy enforced 1`] = `
+<div>
+  <p>
+    <span>
+      <span>
+        , 
+      </span>
+       and 
+    </span>
+     
+    did not get notified by this mention because they are not in the channel.
+  </p>
+</div>
+`;
+
+exports[`components/post_view/PostAddChannelMember > should match snapshot, with no-groups usernames 1`] = `
+<div>
+  <p>
+     
+    did not get notified by this mention because they are not in the channel. Would you like to 
+    <a
+      class="PostBody_addChannelMemberLink"
+    >
+      add them to the channel
+    </a>
+    ? They will have access to all message history.
+  </p>
+  <p>
+     
+    did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.
+  </p>
+</div>
+`;

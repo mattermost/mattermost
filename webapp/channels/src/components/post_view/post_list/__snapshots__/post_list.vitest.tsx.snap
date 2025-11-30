@@ -1,0 +1,95 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/post_list > snapshot for loading when there are no posts 1`] = `
+<div>
+  <div
+    class="post-list-holder-by-time"
+  >
+    <div
+      class="post-list__table"
+    >
+      <div
+        class="post-list__content"
+        id="virtualizedPostListContent"
+      >
+        <div
+          aria-label="message list main region"
+          class="a11y__region"
+          data-a11y-focus-child="true"
+          data-a11y-loop-navigation="false"
+          data-a11y-order-reversed="true"
+          data-a11y-sort-order="1"
+        >
+          <div
+            class="post-list-holder-by-time"
+          >
+            <div
+              class="post-list__table"
+            >
+              <div
+                class="post-list__content"
+                id="postListContent"
+              >
+                <span
+                  aria-live="polite"
+                  class="sr-only"
+                />
+                <div
+                  style="overflow: visible; height: 0px; width: 0px;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list > snapshot with couple of posts 1`] = `
+<div>
+  <div
+    class="post-list-holder-by-time"
+  >
+    <div
+      class="post-list__table"
+    >
+      <div
+        class="post-list__content"
+        id="virtualizedPostListContent"
+      >
+        <div
+          aria-label="message list main region"
+          class="a11y__region"
+          data-a11y-focus-child="true"
+          data-a11y-loop-navigation="false"
+          data-a11y-order-reversed="true"
+          data-a11y-sort-order="1"
+        >
+          <div
+            class="post-list-holder-by-time"
+          >
+            <div
+              class="post-list__table"
+            >
+              <div
+                class="post-list__content"
+                id="postListContent"
+              >
+                <span
+                  aria-live="polite"
+                  class="sr-only"
+                />
+                <div
+                  style="overflow: visible; height: 0px; width: 0px;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

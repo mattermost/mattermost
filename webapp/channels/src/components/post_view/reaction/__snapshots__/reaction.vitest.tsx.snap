@@ -1,0 +1,179 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/Reaction > should apply read-only class if user does not have permission to add reaction 1`] = `
+<div>
+  <button
+    aria-label="2 users reacted with :smile:"
+    class="Reaction Reaction--unreacted Reaction--read-only"
+    id="postReaction-post_id-smile"
+  >
+    <span
+      class="d-flex align-items-center"
+    >
+      <img
+        alt=""
+        aria-hidden="true"
+        class="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        class="Reaction__count"
+      >
+        <span
+          class="Reaction__number"
+        >
+          <span
+            class="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            class="Reaction__number--unreacted"
+          >
+            2
+          </span>
+          <span
+            class="Reaction__number--reacted"
+          >
+            3
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/post_view/Reaction > should apply read-only class if user does not have permission to remove reaction 1`] = `
+<div>
+  <button
+    aria-label="2 users reacted with :smile:"
+    class="Reaction Reaction--reacted Reaction--read-only"
+    id="postReaction-post_id-smile"
+  >
+    <span
+      class="d-flex align-items-center"
+    >
+      <img
+        alt=""
+        aria-hidden="true"
+        class="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        class="Reaction__count"
+      >
+        <span
+          class="Reaction__number"
+        >
+          <span
+            class="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            class="Reaction__number--unreacted"
+          >
+            1
+          </span>
+          <span
+            class="Reaction__number--reacted"
+          >
+            2
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/post_view/Reaction > should match snapshot 1`] = `
+<div>
+  <button
+    aria-label="2 users reacted with :smile:. Click to add."
+    class="Reaction Reaction--unreacted "
+    id="postReaction-post_id-smile"
+  >
+    <span
+      class="d-flex align-items-center"
+    >
+      <img
+        alt=""
+        aria-hidden="true"
+        class="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        class="Reaction__count"
+      >
+        <span
+          class="Reaction__number"
+        >
+          <span
+            class="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            class="Reaction__number--unreacted"
+          >
+            2
+          </span>
+          <span
+            class="Reaction__number--reacted"
+          >
+            3
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/post_view/Reaction > should match snapshot when a current user reacted to a post 1`] = `
+<div>
+  <button
+    aria-label="2 users reacted with :smile:. Click to remove."
+    class="Reaction Reaction--reacted "
+    id="postReaction-post_id-smile"
+  >
+    <span
+      class="d-flex align-items-center"
+    >
+      <img
+        alt=""
+        aria-hidden="true"
+        class="Reaction__emoji emoticon"
+        src="emoji_image_url"
+      />
+      <span
+        class="Reaction__count"
+      >
+        <span
+          class="Reaction__number"
+        >
+          <span
+            class="Reaction__number--display"
+          >
+            2
+          </span>
+          <span
+            class="Reaction__number--unreacted"
+          >
+            1
+          </span>
+          <span
+            class="Reaction__number--reacted"
+          >
+            2
+          </span>
+        </span>
+      </span>
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/post_view/Reaction > should return null/empty if no emojiImageUrl 1`] = `<div />`;

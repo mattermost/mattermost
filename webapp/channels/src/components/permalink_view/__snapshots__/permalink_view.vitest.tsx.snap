@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/PermalinkView > should match snapshot 1`] = `<div />`;
+
+exports[`components/PermalinkView > should match snapshot with archived channel 1`] = `
+<body
+  class="app__body"
+>
+  <div />
+</body>
+`;
