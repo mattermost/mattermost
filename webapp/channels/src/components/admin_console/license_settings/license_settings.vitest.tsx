@@ -10,6 +10,17 @@ import {LicenseSkus} from 'utils/constants';
 import LicenseSettings from './license_settings';
 
 describe('components/admin_console/license_settings/LicenseSettings', () => {
+    // Mock Date.now() to ensure consistent date-based calculations in snapshots
+    const MOCK_DATE = new Date('2025-01-15T12:00:00Z').getTime();
+    const originalDateNow = Date.now;
+
+    beforeAll(() => {
+        Date.now = vi.fn(() => MOCK_DATE);
+    });
+
+    afterAll(() => {
+        Date.now = originalDateNow;
+    });
     const defaultProps: ComponentProps<typeof LicenseSettings> = {
         isDisabled: false,
         license: {

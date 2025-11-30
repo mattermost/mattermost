@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 // Unmock react-intl so we can use our custom IntlProvider with test messages
 vi.unmock('react-intl');
 
+import {compileMessages} from 'tests/compiled_messages_vitest';
 import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
 
 import LoadingSpinner from './loading_spinner';
@@ -32,9 +33,9 @@ describe('components/widgets/loadingLoadingSpinner', () => {
             />,
             {},
             {
-                intlMessages: {
+                intlMessages: compileMessages({
                     [messageId]: 'formatted message text',
-                },
+                }),
             },
         );
 
@@ -48,9 +49,9 @@ describe('components/widgets/loadingLoadingSpinner', () => {
             />,
             {},
             {
-                intlMessages: {
+                intlMessages: compileMessages({
                     messageDescriptor: 'message descriptor text',
-                },
+                }),
             },
         );
 

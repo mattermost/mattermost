@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ChannelSelect > should match snapshot 1`] = `
+<div>
+  <select
+    class="form-control"
+    id="channelSelect"
+  >
+    <option
+      value=""
+    >
+      --- Select a channel ---
+    </option>
+  </select>
+</div>
+`;

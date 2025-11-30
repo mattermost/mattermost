@@ -72,7 +72,7 @@ function ChannelSettingsArchiveTab({
                             <p>
                                 <FormattedMessage
                                     id='deleteChannelModal.confirmArchive'
-                                    defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                    defaultMessage='Are you sure you wish to archive the <b>{display_name}</b> channel?'
                                     values={{
                                         display_name: channel.display_name,
                                         strong: (chunks) => <strong>{chunks}</strong>,

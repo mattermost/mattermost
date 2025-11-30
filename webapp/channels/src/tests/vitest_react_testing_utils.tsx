@@ -26,12 +26,24 @@ import configureStore from 'store';
 import globalStore from 'stores/redux_store';
 
 import WebSocketClient from 'client/web_websocket_client';
-import defaultMessages from 'i18n/en.json';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import type {CompiledMessages} from 'tests/compiled_messages_vitest';
+import {compiledDefaultMessages} from 'tests/compiled_messages_vitest';
 import mockStore from 'tests/test_store';
 import {WebSocketContext} from 'utils/use_websocket';
 
 import type {GlobalState} from 'types/store';
+
+// Default rich text element formatters for IntlProvider
+// These allow messages to use tags like <b>, <strong>, <i>, etc.
+const defaultRichTextElements: Record<string, (chunks: React.ReactNode) => React.ReactNode> = {
+    b: (chunks) => <b>{chunks}</b>,
+    strong: (chunks) => <strong>{chunks}</strong>,
+    i: (chunks) => <i>{chunks}</i>,
+    em: (chunks) => <em>{chunks}</em>,
+    br: () => <br/>,
+    code: (chunks) => <code>{chunks}</code>,
+};
 
 // Re-export everything from @testing-library/react for convenience
 export * from '@testing-library/react';
@@ -39,7 +51,7 @@ export {userEvent};
 
 type IntlWrapperOptions = {
     locale?: string;
-    messages?: Record<string, string>;
+    messages?: CompiledMessages; // Must be pre-compiled to avoid @formatjs/intl warnings
 };
 
 type RouterWrapperOptions = {
@@ -56,12 +68,13 @@ export function renderWithIntl(
     ui: React.ReactElement,
     options: IntlWrapperOptions & Omit<RenderOptions, 'wrapper'> = {},
 ): RenderResult {
-    const {locale = 'en', messages = defaultMessages, ...renderOptions} = options;
+    const {locale = 'en', messages = compiledDefaultMessages, ...renderOptions} = options;
 
     const Wrapper = ({children}: {children: React.ReactNode}) => (
         <IntlProvider
             locale={locale}
             messages={messages}
+            defaultRichTextElements={defaultRichTextElements}
         >
             {children}
         </IntlProvider>
@@ -97,12 +110,13 @@ export function renderWithIntlAndRouter(
     ui: React.ReactElement,
     options: WrapperOptions = {},
 ): RenderResult {
-    const {locale = 'en', messages = defaultMessages, initialEntries = ['/'], ...renderOptions} = options;
+    const {locale = 'en', messages = compiledDefaultMessages, initialEntries = ['/'], ...renderOptions} = options;
 
     const Wrapper = ({children}: {children: React.ReactNode}) => (
         <IntlProvider
             locale={locale}
             messages={messages}
+            defaultRichTextElements={defaultRichTextElements}
         >
             <MemoryRouter initialEntries={initialEntries}>
                 {children}
@@ -119,7 +133,7 @@ export function renderWithIntlAndRouter(
 // ============================================================================
 
 export type FullContextOptions = {
-    intlMessages?: Record<string, string>;
+    intlMessages?: CompiledMessages; // Must be pre-compiled to avoid @formatjs/intl warnings
     locale?: string;
     useMockedStore?: boolean;
     pluginReducers?: string[];
@@ -132,7 +146,7 @@ export const renderWithContext = (
     partialOptions?: FullContextOptions,
 ) => {
     const options = {
-        intlMessages: partialOptions?.intlMessages ?? defaultMessages,
+        intlMessages: partialOptions?.intlMessages ?? compiledDefaultMessages,
         locale: partialOptions?.locale ?? 'en',
         useMockedStore: partialOptions?.useMockedStore ?? false,
     };
@@ -192,7 +206,7 @@ export const renderHookWithContext = <TProps, TResult>(
     partialOptions?: FullContextOptions,
 ) => {
     const options = {
-        intlMessages: partialOptions?.intlMessages ?? defaultMessages,
+        intlMessages: partialOptions?.intlMessages ?? compiledDefaultMessages,
         locale: partialOptions?.locale ?? 'en',
         useMockedStore: partialOptions?.useMockedStore ?? false,
     };
@@ -262,7 +276,7 @@ function replaceGlobalStore(getStore: () => any) {
 }
 
 type Opts = {
-    intlMessages: Record<string, string> | undefined;
+    intlMessages: Record<string, string> | CompiledMessages | undefined;
     locale: string;
     useMockedStore: boolean;
 }
@@ -277,6 +291,7 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
                 <IntlProvider
                     locale={options.locale}
                     messages={options.intlMessages}
+                    defaultRichTextElements={defaultRichTextElements}
                 >
                     <WebSocketContext.Provider value={WebSocketClient}>
                         {children}

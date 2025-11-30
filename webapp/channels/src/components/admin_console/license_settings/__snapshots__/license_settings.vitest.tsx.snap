@@ -1165,7 +1165,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1668 day
+                        Expires in -1669 day
                       </span>
                     </div>
                     <div
@@ -1830,7 +1830,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1668 day
+                        Expires in -1669 day
                       </span>
                     </div>
                     <div
@@ -2481,7 +2481,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1668 day
+                        Expires in -1669 day
                       </span>
                     </div>
                     <div
@@ -3148,7 +3148,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1668 day
+                        Expires in -1669 day
                       </span>
                     </div>
                     <div
@@ -3799,7 +3799,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1668 day
+                        Expires in -1669 day
                       </span>
                     </div>
                     <div
@@ -4451,7 +4451,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1668 day
+                        Expires in -1669 day
                       </span>
                     </div>
                     <div
@@ -4986,7 +4986,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                   >
                     Your free trial will expire in 
                     <b>
-                      -1668 days
+                      -1350 days
                     </b>
                     . Contact sales to purchase a license and continue using advanced features.
                   </div>
@@ -5097,7 +5097,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1668 day
+                        Expires in -1669 day
                       </span>
                     </div>
                     <div
@@ -8163,12 +8163,12 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="value"
                       >
-                        12/29/2025
+                        2/14/2025
                       </span>
                       <span
-                        class="expiration-days expiration-days-warning"
+                        class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in 30 days
+                        Expires in -289 day
                       </span>
                     </div>
                     <div
@@ -8684,7 +8684,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
               <div
                 class="AlertBanner__title"
               >
-                License expires in 30 days on December 29, 2025.
+                License expires in -289 days on February 14, 2025.
               </div>
               <div
                 class="AlertBanner__message"
@@ -8811,12 +8811,12 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="value"
                       >
-                        12/29/2025
+                        2/14/2025
                       </span>
                       <span
-                        class="expiration-days expiration-days-warning"
+                        class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in 30 days
+                        Expires in -289 day
                       </span>
                     </div>
                     <div

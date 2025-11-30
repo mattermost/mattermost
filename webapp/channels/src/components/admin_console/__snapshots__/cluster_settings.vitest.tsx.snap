@@ -159,7 +159,7 @@ exports[`components/ClusterSettings > should match snapshot, compression disable
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>
@@ -516,7 +516,7 @@ exports[`components/ClusterSettings > should match snapshot, compression enabled
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>
@@ -873,7 +873,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption disabled
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>
@@ -1230,7 +1230,7 @@ exports[`components/ClusterSettings > should match snapshot, encryption enabled 
                 class="help-text"
                 data-testid="OverrideHostnamehelp-text"
               >
-                The default value of '&lt;blank&gt;' will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
+                The default value of &lt;blank&gt; will attempt to get the Hostname from the OS or use the IP Address. You can override the hostname of this server with this property. It is not recommended to override the Hostname unless needed. This property can also be set to a specific IP Address if needed.
               </div>
             </div>
           </div>

@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/channel_invite_modal > should match snapshot for channel_invite_modal with profiles 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/channel_invite_modal > should match snapshot for channel_invite_modal with profiles from DMs 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/channel_invite_modal > should match snapshot for channel_invite_modal with userStatuses 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/channel_invite_modal > should match snapshot with exclude and include users 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

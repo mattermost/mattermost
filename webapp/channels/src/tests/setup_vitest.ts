@@ -59,6 +59,45 @@ document.documentElement.style.fontSize = '12px';
 // Setup ResizeObserver
 global.ResizeObserver = require('resize-observer-polyfill');
 
+// Mock canvas 2D context for react-color and other components that use canvas
+// This is needed because jsdom doesn't provide a real canvas implementation
+HTMLCanvasElement.prototype.getContext = function(this: HTMLCanvasElement, contextId: string) {
+    if (contextId === '2d') {
+        return {
+            fillRect: () => {},
+            clearRect: () => {},
+            getImageData: () => ({
+                data: new Uint8ClampedArray(0),
+            }),
+            putImageData: () => {},
+            createImageData: () => ({
+                data: new Uint8ClampedArray(0),
+            }),
+            setTransform: () => {},
+            drawImage: () => {},
+            save: () => {},
+            fillText: () => {},
+            restore: () => {},
+            beginPath: () => {},
+            moveTo: () => {},
+            lineTo: () => {},
+            closePath: () => {},
+            stroke: () => {},
+            translate: () => {},
+            scale: () => {},
+            rotate: () => {},
+            arc: () => {},
+            fill: () => {},
+            measureText: () => ({width: 0}),
+            transform: () => {},
+            rect: () => {},
+            clip: () => {},
+            canvas: this,
+        } as unknown as CanvasRenderingContext2D;
+    }
+    return null;
+} as typeof HTMLCanvasElement.prototype.getContext;
+
 // Mock Path2D for pdfjs-dist compatibility in jsdom
 // pdfjs-dist checks for Path2D and warns if not available
 /* eslint-disable @typescript-eslint/no-unused-vars, no-useless-constructor */
@@ -113,3 +152,4 @@ expect.extend({
         };
     },
 });
+

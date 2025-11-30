@@ -6,15 +6,17 @@ import React from 'react';
 // Unmock react-intl so we can use our custom IntlProvider with test messages
 vi.unmock('react-intl');
 
+import {compileMessages} from 'tests/compiled_messages_vitest';
 import {renderWithIntl} from 'tests/vitest_react_testing_utils';
 
 import FormattedMarkdownMessage from './formatted_markdown_message';
 
-const testMessages = {
+// Pre-compile test messages to avoid @formatjs/intl warning about defaultRichTextElements
+const testMessages = compileMessages({
     'test.foo': '**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)',
     'test.bar': '<b>hello</b> <script>var malicious = true;</script> world!',
     'test.vals': '*Hi* {petName}!',
-};
+});
 
 describe('components/FormattedMarkdownMessage', () => {
     test('should render message', () => {

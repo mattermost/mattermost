@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ChannelSelectorModal > exclude already selected 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/ChannelSelectorModal > should match snapshot 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
