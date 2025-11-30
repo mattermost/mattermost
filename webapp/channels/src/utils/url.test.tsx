@@ -136,7 +136,7 @@ describe('Utils.URL', () => {
 });
 
 describe('Utils.URL - In-App Links', () => {
-    const {isMattermostAppURL, isUrlSafe, isInternalURL, shouldOpenInNewTab} = require('utils/url');
+    const {isMattermostAppURL, parseMattermostLink, isUrlSafe, isInternalURL, shouldOpenInNewTab} = require('utils/url');
     
     describe('isMattermostAppURL', () => {
         test.each([
@@ -177,6 +177,46 @@ describe('Utils.URL - In-App Links', () => {
         
         test('external URLs should open in new tab', () => {
             expect(shouldOpenInNewTab('https://external.com')).toBe(true);
+        });
+    });
+    
+    describe('parseMattermostLink', () => {
+        test('parse channel link', () => {
+            const result = parseMattermostLink('mattermost://myteam/channels/mychannel');
+            expect(result).toEqual({
+                kind: 'channel',
+                team: 'myteam',
+                channel: 'mychannel',
+                path: '/myteam/channels/mychannel',
+            });
+        });
+        
+        test('parse permalink', () => {
+            const result = parseMattermostLink('mattermost://myteam/pl/postid123');
+            expect(result).toEqual({
+                kind: 'permalink',
+                team: 'myteam',
+                postId: 'postid123',
+                path: '/myteam/pl/postid123',
+            });
+        });
+        
+        test('parse DM link', () => {
+            const result = parseMattermostLink('mattermost://myteam/messages/@username');
+            expect(result).toEqual({
+                kind: 'dm',
+                team: 'myteam',
+                username: '@username',
+                path: '/myteam/messages/@username',
+            });
+        });
+        
+        test('return null for non-mattermost URL', () => {
+            expect(parseMattermostLink('https://example.com')).toBeNull();
+        });
+        
+        test('return null for invalid URL', () => {
+            expect(parseMattermostLink('invalid')).toBeNull();
         });
     });
 });
