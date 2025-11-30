@@ -79,8 +79,6 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAddIPFilteringPermissions).Return(&model.System{Name: model.MigrationKeyAddIPFilteringPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddOutgoingOAuthConnectionsPermissions).Return(&model.System{Name: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddChannelBookmarksPermissions).Return(&model.System{Name: model.MigrationKeyAddChannelBookmarksPermissions, Value: "true"}, nil)
-	systemStore.On("GetByName", model.MigrationKeyAddChannelWikisPermissions).Return(&model.System{Name: model.MigrationKeyAddChannelWikisPermissions, Value: "true"}, nil)
-	systemStore.On("GetByName", model.MigrationKeyAddChannelPagesPermissions).Return(&model.System{Name: model.MigrationKeyAddChannelPagesPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyDeleteDmsPreferences).Return(&model.System{Name: model.MigrationKeyDeleteDmsPreferences, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddManageJobAncillaryPermissions).Return(&model.System{Name: model.MigrationKeyAddManageJobAncillaryPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddUploadFilePermission).Return(&model.System{Name: model.MigrationKeyAddUploadFilePermission, Value: "true"}, nil)

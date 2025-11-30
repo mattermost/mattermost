@@ -1117,50 +1117,6 @@ func (a *App) getAddChannelBookmarksPermissionsMigration() (permissionsMap, erro
 	}, nil
 }
 
-func (a *App) getAddChannelWikisPermissionsMigration() (permissionsMap, error) {
-	// Wiki permissions have been removed - wikis now use manage_channel_properties permissions
-	return permissionsMap{}, nil
-}
-
-func (a *App) getAddChannelPagesPermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
-		permissionTransformation{
-			On: permissionOr(
-				isRole(model.ChannelUserRoleId),
-				isRole(model.SystemAdminRoleId),
-			),
-			Add: []string{
-				model.PermissionReadPage.Id,
-				model.PermissionCreatePage.Id,
-				model.PermissionEditPage.Id,
-				model.PermissionDeleteOwnPage.Id,
-			},
-		},
-		permissionTransformation{
-			On: permissionOr(
-				isRole(model.ChannelAdminRoleId),
-				isRole(model.TeamAdminRoleId),
-			),
-			Add: []string{
-				model.PermissionReadPage.Id,
-				model.PermissionCreatePage.Id,
-				model.PermissionEditPage.Id,
-				model.PermissionDeleteOwnPage.Id,
-				model.PermissionDeletePage.Id,
-			},
-		},
-		permissionTransformation{
-			On: permissionOr(
-				isRole(model.ChannelGuestRoleId),
-				isRole(model.TeamGuestRoleId),
-			),
-			Add: []string{
-				model.PermissionReadPage.Id,
-			},
-		},
-	}, nil
-}
-
 func (a *App) getAddManageJobAncillaryPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
@@ -1340,8 +1296,6 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddIPFilteringPermissions, Migration: a.getAddIPFilterPermissionsMigration},
 		{Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
 		{Key: model.MigrationKeyAddChannelBookmarksPermissions, Migration: a.getAddChannelBookmarksPermissionsMigration},
-		{Key: model.MigrationKeyAddChannelWikisPermissions, Migration: a.getAddChannelWikisPermissionsMigration},
-		{Key: model.MigrationKeyAddChannelPagesPermissions, Migration: a.getAddChannelPagesPermissionsMigration},
 		{Key: model.MigrationKeyAddManageJobAncillaryPermissions, Migration: a.getAddManageJobAncillaryPermissionsMigration},
 		{Key: model.MigrationKeyAddUploadFilePermission, Migration: a.getAddUploadFilePermissionMigration},
 		{Key: model.RestrictAccessToChannelConversionToPublic, Migration: a.getRestrictAcessToChannelConversionToPublic},
