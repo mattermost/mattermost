@@ -765,21 +765,21 @@ func IsValidHTTPURL(rawURL string) bool {
 func IsValidLinkURL(rawURL string) bool {
 	// Dangerous schemes that should never be allowed
 	dangerousSchemes := []string{"javascript", "data", "file", "vbscript", "about"}
-	
+
 	u, err := url.Parse(rawURL)
 	if err != nil || u.Scheme == "" {
 		return false
 	}
-	
+
 	scheme := strings.ToLower(u.Scheme)
-	
+
 	// Check blacklist
 	for _, dangerous := range dangerousSchemes {
 		if scheme == dangerous {
 			return false
 		}
 	}
-	
+
 	// Whitelist: http, https, mattermost
 	if scheme == "http" || scheme == "https" {
 		// For http(s), require host
@@ -788,11 +788,11 @@ func IsValidLinkURL(rawURL string) bool {
 		}
 		return true
 	}
-	
+
 	if scheme == "mattermost" {
 		return true
 	}
-	
+
 	return false
 }
 
