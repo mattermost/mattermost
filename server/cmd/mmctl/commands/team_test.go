@@ -37,7 +37,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		cmd.Flags().String("name", mockTeamName, "")
 
 		err := createTeamCmdF(s.client, cmd, []string{})
-		s.Require().Equal(err, errors.New("display-name is required"))
+		s.Require().Equal(err, errors.New("display_name is required"))
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
@@ -45,7 +45,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", mockTeamName, "")
-		cmd.Flags().String("display-name", mockTeamDisplayname, "")
+		cmd.Flags().String("display_name", mockTeamDisplayname, "")
 
 		mockTeam := &model.Team{
 			Name:            mockTeamName,
@@ -70,7 +70,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", mockTeamName, "")
-		cmd.Flags().String("display-name", mockTeamDisplayname, "")
+		cmd.Flags().String("display_name", mockTeamDisplayname, "")
 		cmd.Flags().String("email", mockTeamEmail, "")
 		cmd.Flags().Bool("private", true, "")
 
@@ -98,7 +98,7 @@ func (s *MmctlUnitTestSuite) TestCreateTeamCmd() {
 		printer.Clean()
 		cmd := &cobra.Command{}
 		cmd.Flags().String("name", mockTeamName, "")
-		cmd.Flags().String("display-name", mockTeamDisplayname, "")
+		cmd.Flags().String("display_name", mockTeamDisplayname, "")
 
 		mockTeam := &model.Team{
 			Name:            mockTeamName,
@@ -127,7 +127,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		args := []string{""}
 		args[0] = "existingName"
-		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
 
 		// Mocking : GetTeam searches with team id, if team not found proceeds with team name search
 		s.client.
@@ -158,7 +158,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args := []string{""}
 
 		args[0] = existingName
-		cmd.Flags().String("display-name", newDisplayName, "Display Name")
+		cmd.Flags().String("display_name", newDisplayName, "Display Name")
 		cmd.Flags().String("name", newName, "Name")
 
 		// Only reduced model.Team struct for testing per say
@@ -210,7 +210,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args := []string{""}
 
 		args[0] = existingName
-		cmd.Flags().String("display-name", newDisplayName, "Display Name")
+		cmd.Flags().String("display_name", newDisplayName, "Display Name")
 		cmd.Flags().String("name", newName, "Name")
 
 		foundTeam := &model.Team{
