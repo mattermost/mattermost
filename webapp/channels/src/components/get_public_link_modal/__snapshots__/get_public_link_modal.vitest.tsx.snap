@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/GetPublicLinkModal > should call handleToggle on GetLinkModal's onHide 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/GetPublicLinkModal > should match snapshot when link is empty 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/GetPublicLinkModal > should match snapshot when link is not empty 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/GetPublicLinkModal > should not call getFilePublicLink on GetLinkModal's onHide 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

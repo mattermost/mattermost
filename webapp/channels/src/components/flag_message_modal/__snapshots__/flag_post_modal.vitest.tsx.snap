@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/FlagPostModal > should call Client4.flagPost when submit button is clicked with valid form data 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/FlagPostModal > should render modal with reasons and post preview 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

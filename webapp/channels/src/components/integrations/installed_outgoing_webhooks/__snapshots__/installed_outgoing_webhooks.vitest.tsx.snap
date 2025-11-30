@@ -1,0 +1,976 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/InstalledOutgoingWebhooks > should call regenOutgoingHookToken function 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        Outgoing Webhooks
+      </h1>
+      <a
+        class="add-link"
+        href="/test/integrations/outgoing_webhooks/add"
+      >
+        <button
+          class="btn btn-primary"
+          id="addOutgoingWebhook"
+          type="button"
+        >
+          <span>
+            Add Outgoing Webhook
+          </span>
+        </button>
+      </a>
+    </div>
+    <div
+      class="backstage-filters"
+    >
+      <div
+        class="backstage-filter__search"
+      >
+        <i
+          class="fa fa-search"
+          title="Search Icon"
+        />
+        <input
+          class="form-control"
+          id="searchInput"
+          placeholder="Search Outgoing Webhooks"
+          type="search"
+          value=""
+        />
+      </div>
+    </div>
+    <span
+      class="backstage-list__help"
+    >
+      Use outgoing webhooks to connect external tools to Mattermost. 
+      <a
+        href="https://mattermost.com/pl/setup-outgoing-webhooks?utm_source=mattermost&utm_medium=in-product&utm_content=installed_outgoing_webhooks&uid=&sid=&edition=team&server_version="
+        location="installed_outgoing_webhooks"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Build your own
+      </a>
+       or visit the 
+      <a
+        href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=installed_outgoing_webhooks&uid=&sid=&edition=team&server_version="
+        location="installed_outgoing_webhooks"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        App Directory
+      </a>
+       to find self-hosted, third-party apps and integrations.
+    </span>
+    <div
+      class="backstage-list"
+    >
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              town-square
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+              >
+                Regenerate Token
+              </button>
+               - 
+              <a
+                href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkfgr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              build status
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__content_type"
+            >
+              Content-Type: application/x-www-form-urlencoded
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-words"
+            >
+              Trigger Words: build
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-when"
+            >
+              Trigger When: 
+              First word matches a trigger word exactly
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Token: 
+              <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>
+              <button
+                aria-label="Copy Token"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by sudheerdev on Wednesday, October 18, 2017
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: http://adsfdasd.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              town-square
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+              >
+                Regenerate Token
+              </button>
+               - 
+              <a
+                href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              test
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__content_type"
+            >
+              Content-Type: application/x-www-form-urlencoded
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-words"
+            >
+              Trigger Words: test
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-when"
+            >
+              Trigger When: 
+              First word matches a trigger word exactly
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Token: 
+              <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>
+              <button
+                aria-label="Copy Token"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by sudheerdev on Wednesday, October 18, 2017
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: http://adsfdasd.com
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="backstage-footer"
+    >
+      <div
+        class="backstage-footer__cell"
+      >
+        1 - 2 of 2
+        <button
+          aria-label="Previous"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOutgoingWebhooks > should call removeOutgoingHook function 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        Outgoing Webhooks
+      </h1>
+      <a
+        class="add-link"
+        href="/test/integrations/outgoing_webhooks/add"
+      >
+        <button
+          class="btn btn-primary"
+          id="addOutgoingWebhook"
+          type="button"
+        >
+          <span>
+            Add Outgoing Webhook
+          </span>
+        </button>
+      </a>
+    </div>
+    <div
+      class="backstage-filters"
+    >
+      <div
+        class="backstage-filter__search"
+      >
+        <i
+          class="fa fa-search"
+          title="Search Icon"
+        />
+        <input
+          class="form-control"
+          id="searchInput"
+          placeholder="Search Outgoing Webhooks"
+          type="search"
+          value=""
+        />
+      </div>
+    </div>
+    <span
+      class="backstage-list__help"
+    >
+      Use outgoing webhooks to connect external tools to Mattermost. 
+      <a
+        href="https://mattermost.com/pl/setup-outgoing-webhooks?utm_source=mattermost&utm_medium=in-product&utm_content=installed_outgoing_webhooks&uid=&sid=&edition=team&server_version="
+        location="installed_outgoing_webhooks"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Build your own
+      </a>
+       or visit the 
+      <a
+        href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=installed_outgoing_webhooks&uid=&sid=&edition=team&server_version="
+        location="installed_outgoing_webhooks"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        App Directory
+      </a>
+       to find self-hosted, third-party apps and integrations.
+    </span>
+    <div
+      class="backstage-list"
+    >
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              town-square
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+              >
+                Regenerate Token
+              </button>
+               - 
+              <a
+                href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkfgr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              build status
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__content_type"
+            >
+              Content-Type: application/x-www-form-urlencoded
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-words"
+            >
+              Trigger Words: build
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-when"
+            >
+              Trigger When: 
+              First word matches a trigger word exactly
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Token: 
+              <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>
+              <button
+                aria-label="Copy Token"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by sudheerdev on Wednesday, October 18, 2017
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: http://adsfdasd.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              town-square
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+              >
+                Regenerate Token
+              </button>
+               - 
+              <a
+                href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              test
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__content_type"
+            >
+              Content-Type: application/x-www-form-urlencoded
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-words"
+            >
+              Trigger Words: test
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-when"
+            >
+              Trigger When: 
+              First word matches a trigger word exactly
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Token: 
+              <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>
+              <button
+                aria-label="Copy Token"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by sudheerdev on Wednesday, October 18, 2017
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: http://adsfdasd.com
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="backstage-footer"
+    >
+      <div
+        class="backstage-footer__cell"
+      >
+        1 - 2 of 2
+        <button
+          aria-label="Previous"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOutgoingWebhooks > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        Outgoing Webhooks
+      </h1>
+      <a
+        class="add-link"
+        href="/test/integrations/outgoing_webhooks/add"
+      >
+        <button
+          class="btn btn-primary"
+          id="addOutgoingWebhook"
+          type="button"
+        >
+          <span>
+            Add Outgoing Webhook
+          </span>
+        </button>
+      </a>
+    </div>
+    <div
+      class="backstage-filters"
+    >
+      <div
+        class="backstage-filter__search"
+      >
+        <i
+          class="fa fa-search"
+          title="Search Icon"
+        />
+        <input
+          class="form-control"
+          id="searchInput"
+          placeholder="Search Outgoing Webhooks"
+          type="search"
+          value=""
+        />
+      </div>
+    </div>
+    <span
+      class="backstage-list__help"
+    >
+      Use outgoing webhooks to connect external tools to Mattermost. 
+      <a
+        href="https://mattermost.com/pl/setup-outgoing-webhooks?utm_source=mattermost&utm_medium=in-product&utm_content=installed_outgoing_webhooks&uid=&sid=&edition=team&server_version="
+        location="installed_outgoing_webhooks"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Build your own
+      </a>
+       or visit the 
+      <a
+        href="https://mattermost.com/marketplace?utm_source=mattermost&utm_medium=in-product&utm_content=installed_outgoing_webhooks&uid=&sid=&edition=team&server_version="
+        location="installed_outgoing_webhooks"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        App Directory
+      </a>
+       to find self-hosted, third-party apps and integrations.
+    </span>
+    <div
+      class="backstage-list"
+    >
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              town-square
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+              >
+                Regenerate Token
+              </button>
+               - 
+              <a
+                href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkfgr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              build status
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__content_type"
+            >
+              Content-Type: application/x-www-form-urlencoded
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-words"
+            >
+              Trigger Words: build
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-when"
+            >
+              Trigger When: 
+              First word matches a trigger word exactly
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Token: 
+              <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>
+              <button
+                aria-label="Copy Token"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by sudheerdev on Wednesday, October 18, 2017
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: http://adsfdasd.com
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              town-square
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+              >
+                Regenerate Token
+              </button>
+               - 
+              <a
+                href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              test
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__content_type"
+            >
+              Content-Type: application/x-www-form-urlencoded
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-words"
+            >
+              Trigger Words: test
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__trigger-when"
+            >
+              Trigger When: 
+              First word matches a trigger word exactly
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Token: 
+              <code>
+                xoxz1z7c3tgi9xhrfudn638q9r
+              </code>
+              <button
+                aria-label="Copy Token"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by sudheerdev on Wednesday, October 18, 2017
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: http://adsfdasd.com
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="backstage-footer"
+    >
+      <div
+        class="backstage-footer__cell"
+      >
+        1 - 2 of 2
+        <button
+          aria-label="Previous"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

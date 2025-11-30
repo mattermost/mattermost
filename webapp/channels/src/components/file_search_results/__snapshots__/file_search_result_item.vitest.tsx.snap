@@ -1,0 +1,228 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/file_search_result/FileSearchResultItem > should match snapshot 1`] = `
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
+  >
+    <button
+      class="FileSearchResultItem"
+    >
+      <div
+        class="post-image normal"
+        style="background-image: url(/api/v4/files/file_info_id/thumbnail); background-size: cover;"
+      />
+      <div
+        class="fileData"
+      >
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
+      </div>
+      <a
+        class="action-icon download-icon btn btn-icon btn-sm"
+        href="/api/v4/files/file_info_id?download=1"
+      >
+        <i
+          class="icon icon-download-outline"
+        />
+      </a>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/file_search_result/FileSearchResultItem > should match snapshot with DM 1`] = `
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
+  >
+    <button
+      class="FileSearchResultItem"
+    >
+      <div
+        class="post-image normal"
+        style="background-image: url(/api/v4/files/file_info_id/thumbnail); background-size: cover;"
+      />
+      <div
+        class="fileData"
+      >
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <div
+            class="sc-bcPLoT ejjYjV Tag Tag--xs file-search-channel-name"
+          >
+            <span
+              class="sc-grYavY hdoSIM"
+            >
+              Direct Message
+            </span>
+          </div>
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
+      </div>
+      <a
+        class="action-icon download-icon btn btn-icon btn-sm"
+        href="/api/v4/files/file_info_id?download=1"
+      >
+        <i
+          class="icon icon-download-outline"
+        />
+      </a>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/file_search_result/FileSearchResultItem > should match snapshot with GM 1`] = `
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
+  >
+    <button
+      class="FileSearchResultItem"
+    >
+      <div
+        class="post-image normal"
+        style="background-image: url(/api/v4/files/file_info_id/thumbnail); background-size: cover;"
+      />
+      <div
+        class="fileData"
+      >
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <div
+            class="sc-bcPLoT ejjYjV Tag Tag--xs file-search-channel-name"
+          >
+            <span
+              class="sc-grYavY hdoSIM"
+            >
+              Group Message
+            </span>
+          </div>
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
+      </div>
+      <a
+        class="action-icon download-icon btn btn-icon btn-sm"
+        href="/api/v4/files/file_info_id?download=1"
+      >
+        <i
+          class="icon icon-download-outline"
+        />
+      </a>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/file_search_result/FileSearchResultItem > should match snapshot with channel name 1`] = `
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
+  >
+    <button
+      class="FileSearchResultItem"
+    >
+      <div
+        class="post-image normal"
+        style="background-image: url(/api/v4/files/file_info_id/thumbnail); background-size: cover;"
+      />
+      <div
+        class="fileData"
+      >
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <div
+            class="sc-bcPLoT ejjYjV Tag Tag--xs file-search-channel-name"
+          >
+            <span
+              class="sc-grYavY hdoSIM"
+            >
+              test
+            </span>
+          </div>
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
+      </div>
+      <a
+        class="action-icon download-icon btn btn-icon btn-sm"
+        href="/api/v4/files/file_info_id?download=1"
+      >
+        <i
+          class="icon icon-download-outline"
+        />
+      </a>
+    </button>
+  </div>
+</div>
+`;

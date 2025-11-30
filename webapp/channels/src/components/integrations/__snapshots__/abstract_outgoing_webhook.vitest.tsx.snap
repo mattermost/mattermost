@@ -1,0 +1,561 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/AbstractOutgoingWebhook > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/outgoing_webhooks"
+        >
+          Outgoing Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testOutgoingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title for the webhook settings page. The title can contain up to 64 characters.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your outgoing webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="contentType"
+          >
+            Content Type
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+            >
+              <option
+                value="application/x-www-form-urlencoded"
+              >
+                application/x-www-form-urlencoded
+              </option>
+              <option
+                value="application/json"
+              >
+                application/json
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify the content type by which to send the request.
+            </div>
+            <div
+              class="form__help"
+            >
+              For the server to encode the parameters in a URL format in the request body, select application/x-www-form-urlencoded.
+            </div>
+            <div
+              class="form__help"
+            >
+              For the server to format the request body as JSON, select application/json.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This field is optional if you specify at least one trigger word. Specify the public channel that delivers the payload to the webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="triggerWords"
+          >
+            Trigger Words (One Per Line)
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <textarea
+              class="form-control"
+              id="triggerWords"
+              maxlength="1000"
+              rows="3"
+            >
+              test
+trigger
+word
+
+            </textarea>
+            <div
+              class="form__help"
+            >
+              Specify the trigger words that send an HTTP POST request to your application. The trigger can be for the channel, the outgoing webhook, or both. If you select only Channel, trigger words are optional. If you select both, the message must match both values.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="triggerWords"
+          >
+            Trigger When
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="triggerWhen"
+            >
+              <option
+                value="0"
+              >
+                First word matches a trigger word exactly
+              </option>
+              <option
+                value="1"
+              >
+                First word starts with a trigger word
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify when to trigger the outgoing webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="callbackUrls"
+          >
+            Callback URLs (One Per Line)
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <textarea
+              class="form-control"
+              id="callbackUrls"
+              maxlength="1000"
+              rows="3"
+            >
+              callbackUrl1.com
+callbackUrl2.com
+
+            </textarea>
+            <div
+              class="form__help"
+            >
+              Specify the URL that messages will be sent to. If the URL is private, add it as a 
+              <a
+                href="https://mattermost.com/pl/default-allow-untrusted-internal-connections?utm_source=mattermost&utm_medium=in-product&utm_content=abstract_outgoing_webhook&uid=&sid=&edition=team&server_version="
+                location="abstract_outgoing_webhook"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                trusted internal connection
+              </a>
+              .
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/outgoing_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractOutgoingWebhook > should update state.channelId when on channel change 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/outgoing_webhooks"
+        >
+          Outgoing Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testOutgoingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title for the webhook settings page. The title can contain up to 64 characters.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your outgoing webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="contentType"
+          >
+            Content Type
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+            >
+              <option
+                value="application/x-www-form-urlencoded"
+              >
+                application/x-www-form-urlencoded
+              </option>
+              <option
+                value="application/json"
+              >
+                application/json
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify the content type by which to send the request.
+            </div>
+            <div
+              class="form__help"
+            >
+              For the server to encode the parameters in a URL format in the request body, select application/x-www-form-urlencoded.
+            </div>
+            <div
+              class="form__help"
+            >
+              For the server to format the request body as JSON, select application/json.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This field is optional if you specify at least one trigger word. Specify the public channel that delivers the payload to the webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="triggerWords"
+          >
+            Trigger Words (One Per Line)
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <textarea
+              class="form-control"
+              id="triggerWords"
+              maxlength="1000"
+              rows="3"
+            >
+              test
+trigger
+word
+
+            </textarea>
+            <div
+              class="form__help"
+            >
+              Specify the trigger words that send an HTTP POST request to your application. The trigger can be for the channel, the outgoing webhook, or both. If you select only Channel, trigger words are optional. If you select both, the message must match both values.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="triggerWords"
+          >
+            Trigger When
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="triggerWhen"
+            >
+              <option
+                value="0"
+              >
+                First word matches a trigger word exactly
+              </option>
+              <option
+                value="1"
+              >
+                First word starts with a trigger word
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify when to trigger the outgoing webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="callbackUrls"
+          >
+            Callback URLs (One Per Line)
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <textarea
+              class="form-control"
+              id="callbackUrls"
+              maxlength="1000"
+              rows="3"
+            >
+              callbackUrl1.com
+callbackUrl2.com
+
+            </textarea>
+            <div
+              class="form__help"
+            >
+              Specify the URL that messages will be sent to. If the URL is private, add it as a 
+              <a
+                href="https://mattermost.com/pl/default-allow-untrusted-internal-connections?utm_source=mattermost&utm_medium=in-product&utm_content=abstract_outgoing_webhook&uid=&sid=&edition=team&server_version="
+                location="abstract_outgoing_webhook"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                trusted internal connection
+              </a>
+              .
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/outgoing_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;

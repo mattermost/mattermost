@@ -1,0 +1,301 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/InstalledCommand > should call onDelete function 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          description
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledCommand > should call onRegenToken function 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          description
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledCommand > should filter out command 1`] = `<div />`;
+
+exports[`components/integrations/InstalledCommand > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger auto_complete_hint
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          description
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledCommand > should match snapshot, not autocomplete, no display_name/description/auto_complete_hint 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <div
+          class="item-details__name"
+        >
+          <strong>
+            command_display_name
+          </strong>
+        </div>
+        <span
+          class="item-details__trigger"
+        >
+          - /trigger
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          command_description
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            testToken
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by username on Monday, July 10, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;

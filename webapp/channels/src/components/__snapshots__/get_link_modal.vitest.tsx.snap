@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/GetLinkModal > should match snapshot when all props is set 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/GetLinkModal > should match snapshot when helpText is not set 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

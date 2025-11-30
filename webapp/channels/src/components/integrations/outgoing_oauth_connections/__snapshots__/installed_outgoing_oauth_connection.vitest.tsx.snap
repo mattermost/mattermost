@@ -1,0 +1,187 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/InstalledOutgoingOAuthConnection > should have called props.onDelete on handleDelete  1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          My OAuth Connection
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <a
+            href="/team_name/integrations/outgoing-oauth2-connections/edit?id=someid"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            <code>
+              someid
+            </code>
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client Secret: ********
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Audience URLs: 
+          <code>
+            https://myaudience.com
+          </code>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Token URL: 
+          <code>
+            https://tokenurl.com
+          </code>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOutgoingOAuthConnection > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          My OAuth Connection
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <a
+            href="/team_name/integrations/outgoing-oauth2-connections/edit?id=someid"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            <code>
+              someid
+            </code>
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client Secret: ********
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Audience URLs: 
+          <code>
+            https://myaudience.com
+          </code>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Token URL: 
+          <code>
+            https://tokenurl.com
+          </code>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;

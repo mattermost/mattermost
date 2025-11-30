@@ -1,0 +1,45 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/GlobalSearchNav > should match snapshot with active flagged posts 1`] = `
+<div>
+  <div
+    class="GlobalSearchNav"
+  >
+    <div
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="sc-kgvfea QjsgX a11y__region"
+      id="searchFormContainer"
+      role="button"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-magnify"
+      />
+      Search
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/GlobalSearchNav > should match snapshot with active mentions posts 1`] = `
+<div>
+  <div
+    class="GlobalSearchNav"
+  >
+    <div
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="sc-kgvfea QjsgX a11y__region"
+      id="searchFormContainer"
+      role="button"
+      tabindex="0"
+    >
+      <i
+        class="icon icon-magnify"
+      />
+      Search
+    </div>
+  </div>
+</div>
+`;

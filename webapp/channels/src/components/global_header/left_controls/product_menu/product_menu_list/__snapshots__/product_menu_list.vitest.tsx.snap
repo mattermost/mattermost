@@ -1,0 +1,520 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/global/product_switcher_menu > should match snapshot with id 1`] = `
+<div>
+  <li
+    class="MenuGroup menu-divider"
+    role="separator"
+  />
+  <div>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="nativeAppLink"
+      role="menuitem"
+    >
+      <a
+        href="test–link"
+        location="menu_item_external_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Download Apps
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="about"
+      role="menuitem"
+    >
+      <button
+        aria-label="About "
+        class="style--none "
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            About 
+          </div>
+        </span>
+      </button>
+    </li>
+  </div>
+</div>
+`;
+
+exports[`components/global/product_switcher_menu > should match snapshot with most of the thing enabled 1`] = `
+<div>
+  <li
+    class="MenuGroup menu-divider"
+    role="separator"
+  />
+  <div>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="integrations"
+      role="menuitem"
+    >
+      <a
+        class=""
+        href="//integrations"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15.3,11.1l-1.4-2.6c0.3-0.3,0.4-0.7,0.5-1.1c0-1-0.8-1.9-1.8-2c-1,0-2,0.8-2,1.8s0.8,1.9,1.9,2h0.2l1.3,2.5C14.3,11.4,14.8,11.3,15.3,11.1z M9.7,8.6C9,7,9.7,5.2,11.2,4.5c1.6-0.7,3.4,0.1,4,1.7c0.4,0.9,0.3,1.9-0.1,2.7l1.2,0.7
+	c0.7-1.2,0.8-2.7,0.2-4.1c-1-2.3-3.7-3.5-6-2.5S7.1,6.7,8.1,9c0.2,0.6,0.7,1.2,1.1,1.6l-2.3,3.8c-0.4-0.1-0.8,0-1.2,0.2
+	c-0.9,0.5-1.3,1.6-0.8,2.6c0.5,0.9,1.7,1.3,2.6,0.8c0.9-0.5,1.3-1.6,0.8-2.5c0-0.1-0.1-0.1-0.1-0.2l3.1-5L11,10.1
+	C10.4,9.8,9.9,9.3,9.7,8.6z M11.1,15.6H9.8v1c-0.1,0.5-0.2,1-0.6,1.4c-1,1.4-2.9,1.8-4.3,0.8s-1.7-2.9-0.7-4.3
+	c0.6-0.8,1.4-1.3,2.4-1.4v-1.4c-1.4,0.1-2.7,0.7-3.6,2c-1.4,2.1-1,5,1.1,6.4c2.1,1.5,4.9,1,6.4-1.1c0.3-0.5,0.5-1,0.6-1.5
+	c-0.1-0.3-0.1-0.6-0.1-1C11,16.2,11,15.9,11.1,15.6z M16,15.5v-2l-3,3l3,3v-2h4v-2H16z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Integrations
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="nativeAppLink"
+      role="menuitem"
+    >
+      <a
+        href="test–link"
+        location="menu_item_external_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Download Apps
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="about"
+      role="menuitem"
+    >
+      <button
+        aria-label="About "
+        class="style--none "
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            About 
+          </div>
+        </span>
+      </button>
+    </li>
+  </div>
+</div>
+`;
+
+exports[`components/global/product_switcher_menu > should match userGroups snapshot with EnableCustomGroups config 1`] = `
+<li
+  class="MenuItem MenuItem--with-icon"
+  id="userGroups"
+  role="menuitem"
+>
+  <button
+    aria-label="User Groups"
+    class="style--none "
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      <span
+        class="icon"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="text"
+      >
+        User Groups
+      </div>
+    </span>
+  </button>
+</li>
+`;
+
+exports[`components/global/product_switcher_menu > should match userGroups snapshot with cloud free 1`] = `
+<li
+  class="MenuItem MenuItem--with-icon"
+  id="userGroups"
+  role="menuitem"
+>
+  <button
+    aria-label="User Groups"
+    class="style--none disabled"
+    disabled=""
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      <span
+        class="icon"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="text"
+      >
+        User Groups
+      </div>
+    </span>
+  </button>
+</li>
+`;
+
+exports[`components/global/product_switcher_menu > should match userGroups snapshot with cloud free trial 1`] = `
+<li
+  class="MenuItem MenuItem--with-icon"
+  id="userGroups"
+  role="menuitem"
+>
+  <button
+    aria-label="User Groups"
+    class="style--none "
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      <span
+        class="icon"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="text"
+      >
+        User Groups
+      </div>
+    </span>
+  </button>
+</li>
+`;
+
+exports[`components/global/product_switcher_menu > should show integrations > should show integrations modal 1`] = `
+<div>
+  <li
+    class="MenuGroup menu-divider"
+    role="separator"
+  />
+  <div>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="integrations"
+      role="menuitem"
+    >
+      <a
+        class=""
+        href="//integrations"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15.3,11.1l-1.4-2.6c0.3-0.3,0.4-0.7,0.5-1.1c0-1-0.8-1.9-1.8-2c-1,0-2,0.8-2,1.8s0.8,1.9,1.9,2h0.2l1.3,2.5C14.3,11.4,14.8,11.3,15.3,11.1z M9.7,8.6C9,7,9.7,5.2,11.2,4.5c1.6-0.7,3.4,0.1,4,1.7c0.4,0.9,0.3,1.9-0.1,2.7l1.2,0.7
+	c0.7-1.2,0.8-2.7,0.2-4.1c-1-2.3-3.7-3.5-6-2.5S7.1,6.7,8.1,9c0.2,0.6,0.7,1.2,1.1,1.6l-2.3,3.8c-0.4-0.1-0.8,0-1.2,0.2
+	c-0.9,0.5-1.3,1.6-0.8,2.6c0.5,0.9,1.7,1.3,2.6,0.8c0.9-0.5,1.3-1.6,0.8-2.5c0-0.1-0.1-0.1-0.1-0.2l3.1-5L11,10.1
+	C10.4,9.8,9.9,9.3,9.7,8.6z M11.1,15.6H9.8v1c-0.1,0.5-0.2,1-0.6,1.4c-1,1.4-2.9,1.8-4.3,0.8s-1.7-2.9-0.7-4.3
+	c0.6-0.8,1.4-1.3,2.4-1.4v-1.4c-1.4,0.1-2.7,0.7-3.6,2c-1.4,2.1-1,5,1.1,6.4c2.1,1.5,4.9,1,6.4-1.1c0.3-0.5,0.5-1,0.6-1.5
+	c-0.1-0.3-0.1-0.6-0.1-1C11,16.2,11,15.9,11.1,15.6z M16,15.5v-2l-3,3l3,3v-2h4v-2H16z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Integrations
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="nativeAppLink"
+      role="menuitem"
+    >
+      <a
+        href="test–link"
+        location="menu_item_external_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Download Apps
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="about"
+      role="menuitem"
+    >
+      <button
+        aria-label="About "
+        class="style--none "
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            About 
+          </div>
+        </span>
+      </button>
+    </li>
+  </div>
+</div>
+`;
+
+exports[`components/global/product_switcher_menu > user groups button is disabled for free 1`] = `
+<li
+  class="MenuItem MenuItem--with-icon"
+  id="userGroups"
+  role="menuitem"
+>
+  <button
+    aria-label="User Groups"
+    class="style--none disabled"
+    disabled=""
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      <span
+        class="icon"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="text"
+      >
+        User Groups
+      </div>
+    </span>
+  </button>
+</li>
+`;

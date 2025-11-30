@@ -1,0 +1,1647 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/AbstractIncomingWebhook > should call action function 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testIncomingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols "-", "_", and "." . If left blank, the name specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconURL"
+          >
+            Profile Picture
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconURL"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testIncomingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols "-", "_", and "." . If left blank, the name specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconURL"
+          >
+            Profile Picture
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconURL"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook > should match snapshot when channelLocked is true 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testIncomingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols "-", "_", and "." . If left blank, the name specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconURL"
+          >
+            Profile Picture
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconURL"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook > should match snapshot, displays client error when no initial hook 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols "-", "_", and "." . If left blank, the name specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconURL"
+          >
+            Profile Picture
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconURL"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <div
+            class="pull-left has-error"
+          >
+            <label
+              class="control-label"
+            >
+              A valid channel is required
+            </label>
+          </div>
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook > should match snapshot, hiding post icon url if not enabled 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testIncomingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols "-", "_", and "." . If left blank, the name specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook > should match snapshot, hiding post username if not enabled 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testIncomingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconURL"
+          >
+            Profile Picture
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconURL"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook > should match snapshot, on serverError 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testIncomingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols "-", "_", and "." . If left blank, the name specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconURL"
+          >
+            Profile Picture
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconURL"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <div
+            class="pull-left has-error"
+          >
+            <label
+              class="control-label"
+            >
+              serverError
+            </label>
+          </div>
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractIncomingWebhook > should update state.channelId when on channel change 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/team_name/integrations/incoming_webhooks"
+        >
+          Incoming Webhooks
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="testIncomingWebhook"
+            />
+            <div
+              class="form__help"
+            >
+              Specify a title, of up to 64 characters, for the webhook settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="500"
+              type="text"
+              value="testing"
+            />
+            <div
+              class="form__help"
+            >
+              Describe your incoming webhook.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelId"
+          >
+            Channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="channelSelect"
+            >
+              <option
+                value=""
+              >
+                --- Select a channel ---
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              This is the default public or private channel that receives the webhook payloads. When setting up the webhook, you must belong to the private channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="channelLocked"
+          >
+            Lock to this channel
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              id="channelLocked"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              If set, the incoming webhook can post only to the selected channel.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Specify the username this integration will post as. Usernames must be in lowercase, be up to 22 characters, and can contain numbers and the symbols "-", "_", and "." . If left blank, the name specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="iconURL"
+          >
+            Profile Picture
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconURL"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              Enter the URL of a .png or .jpg file for the profile picture of this integration when posting. The file should be at least 128 pixels by 128 pixels. If left blank, the profile picture specified by the webhook creator is used.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/team_name/integrations/incoming_webhooks"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveWebhook"
+            type="submit"
+          >
+            Footer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,559 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/InstalledOAuthApp > should filter out OAuthApp 1`] = `<div />`;
+
+exports[`components/integrations/InstalledOAuthApp > should have called props.onDelete on handleDelete  1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="integration__icon integration-list__icon"
+    >
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          testApp
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+            id="showSecretButton"
+          >
+            Show Secret
+          </button>
+           - 
+          <button
+            class="style--none color--link"
+            id="regenerateSecretButton"
+          >
+            Regenerate Secret
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Is Trusted: 
+          <strong>
+            Yes
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            facxd9wpzpbpfp8pad78xj75pr
+          </strong>
+          <button
+            aria-label="Copy Client Id"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client Secret: 
+          <strong>
+            ***************
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: https://test.com/callback, https://test.com/callback2
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOAuthApp > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="integration__icon integration-list__icon"
+    >
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          testApp
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+            id="showSecretButton"
+          >
+            Show Secret
+          </button>
+           - 
+          <button
+            class="style--none color--link"
+            id="regenerateSecretButton"
+          >
+            Regenerate Secret
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Is Trusted: 
+          <strong>
+            Yes
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            facxd9wpzpbpfp8pad78xj75pr
+          </strong>
+          <button
+            aria-label="Copy Client Id"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client Secret: 
+          <strong>
+            ***************
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: https://test.com/callback, https://test.com/callback2
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOAuthApp > should match snapshot from app 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="integration__icon integration-list__icon"
+    >
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          testApp
+        </strong>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Managed by Apps Framework
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOAuthApp > should match snapshot, on error 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="integration__icon integration-list__icon"
+    >
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          testApp
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+            id="showSecretButton"
+          >
+            Show Secret
+          </button>
+           - 
+          <button
+            class="style--none color--link"
+            id="regenerateSecretButton"
+          >
+            Regenerate Secret
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Is Trusted: 
+          <strong>
+            Yes
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            facxd9wpzpbpfp8pad78xj75pr
+          </strong>
+          <button
+            aria-label="Copy Client Id"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client Secret: 
+          <strong>
+            ***************
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: https://test.com/callback, https://test.com/callback2
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOAuthApp > should match snapshot, when oauthApp is without name and not trusted 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="integration__icon integration-list__icon"
+    >
+      <img
+        alt="get app screenshot"
+        src="https://test.com/icon"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          Unnamed OAuth 2.0 Application
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+            id="showSecretButton"
+          >
+            Show Secret
+          </button>
+           - 
+          <button
+            class="style--none color--link"
+            id="regenerateSecretButton"
+          >
+            Regenerate Secret
+          </button>
+           - 
+          <a
+            href="/team_name/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          testing
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Is Trusted: 
+          <strong>
+            No
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client ID: 
+          <strong>
+            facxd9wpzpbpfp8pad78xj75pr
+          </strong>
+          <button
+            aria-label="Copy Client Id"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Client Secret: 
+          <strong>
+            ***************
+          </strong>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: https://test.com/callback, https://test.com/callback2
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by somename on Saturday, July 29, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1533,18 +1533,23 @@ exports[`components/FilePreviewModal > should match snapshot, loaded with image 
                 <div
                   class="file-preview-modal__content"
                 >
-                  <a
-                    class="image_preview"
-                    href="#"
+                  <div
+                    class="view-image__loading"
                   >
-                    <img
-                      alt="preview url image"
-                      class="image_preview__image"
-                      data-testid="imagePreview"
-                      loading="lazy"
-                      src="/api/v4/files/file_id/preview"
+                    <span
+                      class="LoadingSpinner"
+                      data-testid="loadingSpinner"
+                      id="loadingSpinner"
+                    >
+                      <span
+                        class="fa fa-spinner fa-fw fa-pulse spinner"
+                        title="Loading Icon"
+                      />
+                    </span>
+                    <span
+                      class="loader-percent"
                     />
-                  </a>
+                  </div>
                 </div>
               </div>
             </div>

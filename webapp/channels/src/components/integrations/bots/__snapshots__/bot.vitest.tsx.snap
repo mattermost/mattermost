@@ -1,0 +1,242 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/bots/Bot > app bot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="bot-list-img-container"
+    >
+      <img
+        alt="bot image"
+        class="bot-list-img"
+        src="/api/v4/users/1/image?_=0"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          App Bot (@appbot)
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+            id="createToken"
+          >
+            Create New Token
+          </button>
+           - 
+          <a
+            href="/DN/integrations/bots/edit?id=1"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="style--none color--link"
+          >
+            Disable
+          </button>
+        </div>
+      </div>
+      <div
+        class="bot-details__description"
+      >
+        <p>
+          An app bot description
+        </p>
+      </div>
+      <div
+        class="light small"
+      >
+        Managed by 
+        Apps Framework
+      </div>
+      <div
+        class="bot-list is-empty"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/bots/Bot > bot with owner 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="bot-list-img-container"
+    >
+      <img
+        alt="bot image"
+        class="bot-list-img"
+        src="/api/v4/users/1/image?_=0"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          Owned Bot (@ownedbot)
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+            id="createToken"
+          >
+            Create New Token
+          </button>
+           - 
+          <a
+            href="/DN/integrations/bots/edit?id=1"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="style--none color--link"
+          >
+            Disable
+          </button>
+        </div>
+      </div>
+      <div
+        class="bot-details__description"
+      >
+        <p>
+          A bot with an owner
+        </p>
+      </div>
+      <div
+        class="light small"
+      >
+        Managed by 
+        botowner
+      </div>
+      <div
+        class="bot-list is-empty"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/bots/Bot > disabled bot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="bot-list-img-container"
+    >
+      <img
+        alt="bot image"
+        class="bot-list-img"
+        src="/api/v4/users/1/image?_=0"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          Disabled Bot (@disabledbot)
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Enable
+          </button>
+        </div>
+      </div>
+      <div
+        class="bot-details__description"
+      >
+        <p>
+          A disabled bot description
+        </p>
+      </div>
+      <div
+        class="light small"
+      >
+        Managed by 
+        plugin
+      </div>
+      <div
+        class="bot-list is-empty"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/bots/Bot > regular bot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="bot-list-img-container"
+    >
+      <img
+        alt="bot image"
+        class="bot-list-img"
+        src="/api/v4/users/1/image?_=0"
+      />
+    </div>
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          Test Bot (@testbot)
+        </strong>
+      </div>
+      <div
+        class="bot-details__description"
+      >
+        <p>
+          A test bot description
+        </p>
+      </div>
+      <div
+        class="light small"
+      >
+        Managed by 
+        plugin
+      </div>
+      <div
+        class="bot-list is-empty"
+      />
+    </div>
+  </div>
+</div>
+`;

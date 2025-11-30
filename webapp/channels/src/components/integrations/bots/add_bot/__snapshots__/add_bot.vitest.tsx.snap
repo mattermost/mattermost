@@ -1,0 +1,281 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/bots/AddBot > blank 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        <a
+          href="/DN/integrations/bots"
+        >
+          Bot Accounts
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Add
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
+      >
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="username"
+          >
+            Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="22"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              You can use lowercase letters, numbers, periods, dashes, and underscores.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="boticon"
+          >
+            Bot Icon
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <div
+              class="bot-img-container"
+            >
+              <img
+                alt="bot image"
+                class="bot-img"
+                src="/src/images/bot_default_icon.png"
+              />
+            </div>
+            <div
+              class="btn btn-primary btn-file"
+            >
+              Upload Image
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                class="btn-file__input"
+                type="file"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Display Name
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) You can choose to display your bot's full name rather than its username.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="1024"
+              type="text"
+              value=""
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Let others know what this bot does.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="role"
+          >
+            Role
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+            >
+              <option
+                value="Member"
+              >
+                Member
+              </option>
+              <option
+                value="System Admin"
+              >
+                System Admin
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Choose what role the bot should have.
+            </div>
+          </div>
+        </div>
+        <div
+          class="row bot-profile__section"
+        >
+          <div
+            class="col-md-5 col-sm-8 col-sm-offset-4"
+          >
+            Select additional permissions for the account. 
+            <a
+              href="https://mattermost.com/pl/personal-access-tokens?utm_source=mattermost&utm_medium=in-product&utm_content=add_bot&uid=&sid=&edition=team&server_version="
+              location="add_bot"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Read more about roles and permissions
+            </a>
+            .
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="postAll"
+          >
+            post:all
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <div
+              class="checkbox no-padding"
+            >
+              <label
+                for="postAll"
+              >
+                <input
+                  id="postAll"
+                  type="checkbox"
+                />
+                Enabled
+              </label>
+            </div>
+            <div
+              class="form__help"
+            >
+              Bot will have access to post to all Mattermost channels including direct messages.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="postChannels"
+          >
+            post:channels
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <div
+              class="checkbox no-padding"
+            >
+              <label
+                for="postChannels"
+              >
+                <input
+                  id="postChannels"
+                  type="checkbox"
+                />
+                Enabled
+              </label>
+            </div>
+            <div
+              class="form__help"
+            >
+              Bot will have access to post to all Mattermost public channels.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/DN/integrations/bots"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveBot"
+            type="submit"
+          >
+            Create Bot Account
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+`;

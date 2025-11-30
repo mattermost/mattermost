@@ -1,0 +1,75 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/InstalledIncomingWebhook > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          build
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <a
+            href="/test/integrations/incoming_webhooks/edit?id=9w96t4nhbfdiij64wfqors4i1r"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          build status
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          URL: 
+          <code>
+            http://localhost:8065/hooks/9w96t4nhbfdiij64wfqors4i1r
+          </code>
+          <span>
+            <button
+              aria-label="Copy URL"
+              class="btn btn-link icon-content-copy ml-2"
+              data-testid="copyText"
+            />
+          </span>
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by creator on Friday, August 11, 2017
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
