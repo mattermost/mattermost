@@ -134,3 +134,49 @@ describe('Utils.URL', () => {
         });
     });
 });
+
+describe('Utils.URL - In-App Links', () => {
+    const {isMattermostAppURL, isUrlSafe, isInternalURL, shouldOpenInNewTab} = require('utils/url');
+    
+    describe('isMattermostAppURL', () => {
+        test.each([
+            ['mattermost://team/channels/channel', true],
+            ['mattermost://team/pl/postid', true],
+            ['MATTERMOST://team/channels/channel', true],
+            ['http://example.com', false],
+            ['https://example.com', false],
+            ['javascript:alert(1)', false],
+            ['', false],
+        ])('isMattermostAppURL(%s) should return %s', (url, expected) => {
+            expect(isMattermostAppURL(url)).toBe(expected);
+        });
+    });
+    
+    describe('isUrlSafe with mattermost:// URLs', () => {
+        test('mattermost:// URLs should be safe', () => {
+            expect(isUrlSafe('mattermost://team/channels/channel')).toBe(true);
+        });
+        
+        test('dangerous schemes should not be safe', () => {
+            expect(isUrlSafe('javascript:alert(1)')).toBe(false);
+            expect(isUrlSafe('data:text/html,<script>alert(1)</script>')).toBe(false);
+            expect(isUrlSafe('vbscript:msgbox(1)')).toBe(false);
+        });
+    });
+    
+    describe('isInternalURL with mattermost:// URLs', () => {
+        test('mattermost:// URLs should be internal', () => {
+            expect(isInternalURL('mattermost://team/channels/channel')).toBe(true);
+        });
+    });
+    
+    describe('shouldOpenInNewTab with mattermost:// URLs', () => {
+        test('mattermost:// URLs should not open in new tab', () => {
+            expect(shouldOpenInNewTab('mattermost://team/channels/channel')).toBe(false);
+        });
+        
+        test('external URLs should open in new tab', () => {
+            expect(shouldOpenInNewTab('https://external.com')).toBe(true);
+        });
+    });
+});
