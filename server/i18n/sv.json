@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -10941,7 +10941,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggningen skulle tas bort."
+    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggning och tillhörande data skulle tas bort."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
