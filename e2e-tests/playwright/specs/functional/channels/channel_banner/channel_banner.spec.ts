@@ -13,14 +13,14 @@ test('Should show channel banner when configured', async ({pw}) => {
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(getRandomId(), 'O');
+    await channelsPage.newChannel(await getRandomId(), 'O');
 
     let channelSettingsModal = await channelsPage.openChannelSettings();
     let configurationTab = await channelSettingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('Example channel banner text');
-    await configurationTab.setChannelBannerTextColor('#77DD88');
+    await configurationTab.setChannelBannerTextColor('77DD88');
 
     await configurationTab.save();
     await channelSettingsModal.close();
@@ -58,14 +58,14 @@ test('Should render markdown', async ({pw}) => {
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(getRandomId(), 'O');
+    await channelsPage.newChannel(await getRandomId(), 'O');
 
     const channelSettingsModal = await channelsPage.openChannelSettings();
     const configurationTab = await channelSettingsModal.openConfigurationTab();
 
     await configurationTab.enableChannelBanner();
     await configurationTab.setChannelBannerText('**bold** *italic* ~~strikethrough~~');
-    await configurationTab.setChannelBannerTextColor('#77DD88');
+    await configurationTab.setChannelBannerTextColor('77DD88');
 
     await configurationTab.save();
     await channelSettingsModal.close();

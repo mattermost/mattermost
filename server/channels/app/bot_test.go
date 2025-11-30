@@ -979,3 +979,147 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
 }
+
+func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("bot owned by current user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, owned)
+	})
+
+	t.Run("bot owned by different user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser2.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
+	})
+
+	t.Run("invalid bot ID", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, model.NewId())
+		require.NotNil(t, appErr)
+		assert.False(t, owned)
+		require.Equal(t, "store.sql_bot.get.missing.app_error", appErr.Id)
+	})
+
+	t.Run("bot owned by plugin when no plugins environment", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginID := "test-plugin-id"
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     pluginID,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
+	})
+
+	t.Run("bot owned by plugin", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginID := "com.mattermost.testplugin"
+		pluginCode := `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+		pluginManifest := `{"id": "com.mattermost.testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     pluginID,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotOwnedByCurrentUserOrPlugin(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, owned)
+	})
+}
