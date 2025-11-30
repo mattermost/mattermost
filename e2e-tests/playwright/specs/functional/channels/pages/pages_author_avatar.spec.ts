@@ -10,14 +10,14 @@ import {createWikiThroughUI, createTestChannel, createDraftThroughUI, getEditor,
  */
 test('displays author avatar and username in draft editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Avatar Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Avatar Wiki ${await pw.random.id()}`);
 
     // # Create draft to see author avatar
     await createDraftThroughUI(page, 'Draft Page for Avatar');
@@ -44,14 +44,14 @@ test('displays author avatar and username in draft editor', {tag: '@pages'}, asy
  */
 test('includes accessibility label for author section', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `A11y Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `A11y Wiki ${await pw.random.id()}`);
 
     // # Create draft
     await createDraftThroughUI(page, 'Accessibility Test Page');
@@ -71,14 +71,14 @@ test('includes accessibility label for author section', {tag: '@pages'}, async (
  */
 test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and draft
-    const wiki = await createWikiThroughUI(page, `Persist Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Persist Wiki ${await pw.random.id()}`);
     await createDraftThroughUI(page, 'Persistence Test Page');
 
     // * Verify author avatar is visible before reload
@@ -107,14 +107,14 @@ test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sh
  */
 test('does not show author avatar in published page view', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and draft
-    const wiki = await createWikiThroughUI(page, `Published Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Published Wiki ${await pw.random.id()}`);
     await createDraftThroughUI(page, 'Page to Publish', 'Published content');
 
     // # Publish the page

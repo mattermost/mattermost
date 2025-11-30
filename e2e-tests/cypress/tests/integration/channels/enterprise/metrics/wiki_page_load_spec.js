@@ -29,17 +29,15 @@ describe('Wiki > Page Load Performance', () => {
         cy.apiInitSetup().then(({team, channel, user}) => {
             testChannel = channel;
 
-            // # Grant wiki and page permissions
+            // # Grant wiki (channel properties) and page permissions
+            // Wiki operations now use manage_*_channel_properties permissions
             cy.apiGetRolesByNames(['channel_user']).then(({roles}) => {
                 const role = roles[0];
                 const permissions = [
                     ...role.permissions,
-                    'create_wiki_public_channel',
-                    'create_wiki_private_channel',
-                    'edit_wiki_public_channel',
-                    'edit_wiki_private_channel',
-                    'create_page_public_channel',
-                    'create_page_private_channel',
+                    'manage_public_channel_properties',
+                    'manage_private_channel_properties',
+                    'create_page',
                 ];
                 cy.apiPatchRole(role.id, {permissions});
             });

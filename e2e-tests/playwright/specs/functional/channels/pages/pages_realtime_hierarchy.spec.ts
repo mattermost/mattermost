@@ -41,13 +41,13 @@ test('removes page from source wiki hierarchy when moved to different wiki', {ta
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const sourceWiki = await createWikiThroughUI(page1, `Source Wiki ${pw.random.id()}`);
-    const pageTitle = `Page to Move ${pw.random.id()}`;
+    const sourceWiki = await createWikiThroughUI(page1, `Source Wiki ${await pw.random.id()}`);
+    const pageTitle = `Page to Move ${await pw.random.id()}`;
     const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be moved');
 
     // # Navigate back to channel to create target wiki
     await channelsPage1.goto(team.name, channel.name);
-    const targetWiki = await createWikiThroughUI(page1, `Target Wiki ${pw.random.id()}`);
+    const targetWiki = await createWikiThroughUI(page1, `Target Wiki ${await pw.random.id()}`);
 
     // # Create user2 and add to channel
     const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -141,8 +141,8 @@ test('shows notification and redirects when viewed page is deleted by another us
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
-    const pageTitle = `Page to Delete ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+    const pageTitle = `Page to Delete ${await pw.random.id()}`;
     const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be deleted');
 
     // # Create user2 with delete permissions
@@ -150,8 +150,7 @@ test('shows notification and redirects when viewed page is deleted by another us
 
     // # Grant delete permissions to channel_user role
     const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
-        'delete_page_public_channel',
-        'delete_page_private_channel',
+        'delete_page',
     ]);
 
     // # User 2 logs in and navigates to the channel FIRST (to ensure proper channel context)
@@ -244,8 +243,8 @@ test('updates page title in hierarchy when renamed by another user', {tag: '@pag
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
-    const originalTitle = `Original Title ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+    const originalTitle = `Original Title ${await pw.random.id()}`;
     const createdPage = await createPageThroughUI(page1, originalTitle, 'Test content');
 
     // # Create user2 and add to channel
@@ -286,7 +285,7 @@ test('updates page title in hierarchy when renamed by another user', {tag: '@pag
     });
 
     // # User 1 renames the page via UI
-    const newTitle = `Renamed Title ${pw.random.id()}`;
+    const newTitle = `Renamed Title ${await pw.random.id()}`;
     await renamePageViaContextMenu(page1, originalTitle, newTitle);
     await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
@@ -318,8 +317,8 @@ test('shows new child page in hierarchy when added by another user', {tag: '@pag
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
-    const parentTitle = `Parent Page ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+    const parentTitle = `Parent Page ${await pw.random.id()}`;
     const parentPage = await createPageThroughUI(page1, parentTitle, 'Parent content');
 
     // # Create user2 and add to channel
@@ -351,7 +350,7 @@ test('shows new child page in hierarchy when added by another user', {tag: '@pag
 
 
     // # User 1 creates child page under parent via UI
-    const childTitle = `Child Page ${pw.random.id()}`;
+    const childTitle = `Child Page ${await pw.random.id()}`;
     await createChildPageThroughContextMenu(page1, parentPage.id, childTitle, 'Child page content');
     await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
@@ -399,8 +398,8 @@ test('removes page from hierarchy for other users when page is deleted', {tag: '
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
-    const pageTitle = `Page to Delete ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+    const pageTitle = `Page to Delete ${await pw.random.id()}`;
     const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be deleted');
 
     // # Create user2 and add to channel

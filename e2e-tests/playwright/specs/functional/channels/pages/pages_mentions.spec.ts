@@ -50,7 +50,7 @@ test('sends notification to mentioned user when page is published', {tag: '@page
     // # Switch back to author page
     await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page with @mention
     const newPageButton = getNewPageButton(authorPage);
@@ -122,7 +122,7 @@ test('does not send duplicate notification when page is edited without new menti
     // # Switch back to author page
     await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page with @mention
     const newPageButton = getNewPageButton(authorPage);
@@ -218,7 +218,7 @@ test('sends notification only to newly mentioned user when mention is added on e
     // # Switch back to author page
     await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page with first @mention
     const newPageButton = getNewPageButton(authorPage);
@@ -301,7 +301,7 @@ test('displays page mention in Recent Mentions panel', {tag: '@pages'}, async ({
     const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
     await authorChannelsPage.goto(team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page with @mention
     const pageTitle = 'Page with Mention in RHS';
@@ -381,7 +381,7 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
     // # Switch back to author page
     await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page with first @mention
     const newPageButton = getNewPageButton(authorPage);

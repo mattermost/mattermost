@@ -10,14 +10,14 @@ import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextM
  */
 test('auto-saves draft while editing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Draft Wiki ${await pw.random.id()}`);
 
     // # Create draft
     const newPageButton = getNewPageButton(page);
@@ -52,14 +52,14 @@ test('auto-saves draft while editing', {tag: '@pages'}, async ({pw, sharedPagesS
  */
 test('auto-saves draft when navigating away and auto-resumes on edit', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Setup: Create wiki with two pages
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     const pageA = await createPageThroughUI(page, 'Page A', 'Original content A');
     const pageB = await createPageThroughUI(page, 'Page B', 'Original content B');
 
@@ -120,14 +120,14 @@ test('auto-saves draft when navigating away and auto-resumes on edit', {tag: '@p
  */
 test.skip('displays saving indicator during auto-save', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and draft
-    const wiki = await createWikiThroughUI(page, `Indicator Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Indicator Wiki ${await pw.random.id()}`);
 
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
@@ -168,14 +168,14 @@ test.skip('displays saving indicator during auto-save', {tag: '@pages'}, async (
  */
 test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Discard Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Discard Wiki ${await pw.random.id()}`);
 
     // # Create draft
     const newPageButton = getNewPageButton(page);
@@ -204,14 +204,14 @@ test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw, s
  */
 test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Draft Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Draft Wiki ${await pw.random.id()}`);
 
     // # Create first draft
     let newPageButton = getNewPageButton(page);
@@ -270,14 +270,14 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
  */
 test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Refresh Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Refresh Wiki ${await pw.random.id()}`);
 
     // # Create draft
     const newPageButton = getNewPageButton(page);
@@ -326,7 +326,7 @@ test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw, shared
  */
 test('converts published page to draft when editing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -334,7 +334,7 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
     await channelsPage.toBeVisible();
 
     // # Create wiki and published page through UI
-    const wiki = await createWikiThroughUI(page, `Edit Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Edit Wiki ${await pw.random.id()}`);
     const publishedPage = await createPageThroughUI(page, 'Published Page', 'Original content');
 
     // # Start editing
@@ -386,14 +386,14 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
  */
 test('navigates to draft editor when clicking draft node', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Nav Draft Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Nav Draft Wiki ${await pw.random.id()}`);
 
     // # Create draft
     const newPageButton = getNewPageButton(page);
@@ -433,7 +433,7 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
  */
 test('shows draft node as child of intended parent in tree', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -442,7 +442,7 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
     await channelsPage.toBeVisible();
 
     // # Create wiki and parent page through UI
-    const wiki = await createWikiThroughUI(page, `Hierarchy Draft Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Hierarchy Draft Wiki ${await pw.random.id()}`);
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // # Wait for parent node to appear in tree
@@ -492,14 +492,14 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
  */
 test('switches between multiple drafts without losing content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Switch Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Switch Wiki ${await pw.random.id()}`);
 
     // # Create first draft
     let newPageButton = getNewPageButton(page);
@@ -569,14 +569,14 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
  */
 test('displays draft nodes with visual distinction from published pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and published page through UI
-    const wiki = await createWikiThroughUI(page, `Visual Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Visual Wiki ${await pw.random.id()}`);
     const publishedPage = await createPageThroughUI(page, 'Published Page', 'Published content');
 
     // # Create draft
@@ -623,7 +623,7 @@ test('displays draft nodes with visual distinction from published pages', {tag: 
  */
 test('removes draft from hierarchy after immediately publishing default wiki page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -631,7 +631,7 @@ test('removes draft from hierarchy after immediately publishing default wiki pag
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI (creates default page as draft)
-    const wikiName = `Wiki ${pw.random.id()}`;
+    const wikiName = `Wiki ${await pw.random.id()}`;
     const wiki = await createWikiThroughUI(page, wikiName);
 
     // # Ensure pages panel is open
@@ -683,14 +683,14 @@ test('removes draft from hierarchy after immediately publishing default wiki pag
  */
 test('publishes parent draft and child draft stays under published parent', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Parent Child Draft Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Parent Child Draft Wiki ${await pw.random.id()}`);
 
     // # Create parent draft (NOT published)
     const parentDraft = await createDraftThroughUI(page, 'Parent Draft', 'Parent draft content');

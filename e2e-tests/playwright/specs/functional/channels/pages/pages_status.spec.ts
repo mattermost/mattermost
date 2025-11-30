@@ -22,14 +22,14 @@ const PAGE_STATUSES = [
  */
 test('displays default in_progress status for newly published pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Status Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Status Wiki ${await pw.random.id()}`);
 
     // # Create and publish a page
     const pageName = 'Test Page';
@@ -52,7 +52,7 @@ test('displays default in_progress status for newly published pages', {tag: '@pa
  */
 test('changes page status from in_progress to in_review', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -60,7 +60,7 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Status Change Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Status Change Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -101,14 +101,14 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
  */
 test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Persist Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Persist Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -157,14 +157,14 @@ test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, 
  */
 test('allows selection of all valid status values', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `All Status Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `All Status Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -209,14 +209,14 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
  */
 test('shows status selector in draft mode and status badge in view mode', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${await pw.random.id()}`);
 
     // # Click "New Page" to create a new draft
     const newPageButton = getNewPageButton(page);
@@ -252,14 +252,14 @@ test('shows status selector in draft mode and status badge in view mode', {tag: 
  */
 test('maintains independent status for multiple pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Page Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Page Wiki ${await pw.random.id()}`);
 
     // # Create first page
     const page1 = await createPageThroughUI(page, 'Page 1', 'Content 1');
@@ -324,14 +324,14 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
  */
 test('updates status display after edit and update', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Update Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Update Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -379,14 +379,14 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
  */
 test('persists status selected in draft mode after publishing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${await pw.random.id()}`);
 
     // # Click "New Page" to create a new draft
     const newPageButton = getNewPageButton(page);
@@ -432,14 +432,14 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
  */
 test('persists status through draft autosave and browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Autosave Status Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Autosave Status Wiki ${await pw.random.id()}`);
 
     // # Click "New Page" to create a new draft
     const newPageButton = getNewPageButton(page);
@@ -499,7 +499,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
  */
 test('persists status when updating existing page through draft', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -507,7 +507,7 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await channelsPage.toBeVisible();
 
     // # Create wiki and initial page
-    const wiki = await createWikiThroughUI(page, `Update Status Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Update Status Wiki ${await pw.random.id()}`);
     const createdPage = await createPageThroughUI(page, 'Page to Update', 'Initial content');
     await page.waitForLoadState('networkidle');
 

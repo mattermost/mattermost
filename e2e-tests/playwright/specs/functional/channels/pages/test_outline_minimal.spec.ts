@@ -6,14 +6,14 @@ import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTest
  */
 test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki
-    const wiki = await createWikiThroughUI(page, `Minimal Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Minimal Test Wiki ${await pw.random.id()}`);
 
     // # Create page with empty content
     const page1 = await createPageThroughUI(page, 'Test Page', ' ');

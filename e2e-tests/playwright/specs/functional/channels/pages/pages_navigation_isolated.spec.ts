@@ -13,14 +13,14 @@ import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextM
  */
 test('parent page content renders after breadcrumb navigation from child page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and parent page
-    const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // * Verify parent page is currently displayed with content

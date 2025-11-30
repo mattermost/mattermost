@@ -477,7 +477,7 @@ func TestMovePageToWiki(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		th.RemovePermissionFromRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
 
 		otherUser := th.CreateUser(t)
 		_, _, addTeamErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, otherUser.Id, "")
@@ -515,7 +515,7 @@ func TestMovePageToWiki(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		th.RemovePermissionFromRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 		otherUser := th.CreateUser(t)
 		_, _, addTeamErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, otherUser.Id, "")

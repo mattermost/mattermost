@@ -1118,24 +1118,8 @@ func (a *App) getAddChannelBookmarksPermissionsMigration() (permissionsMap, erro
 }
 
 func (a *App) getAddChannelWikisPermissionsMigration() (permissionsMap, error) {
-	return permissionsMap{
-		permissionTransformation{
-			On: permissionOr(
-				isRole(model.ChannelUserRoleId),
-				isRole(model.ChannelAdminRoleId),
-				isRole(model.TeamAdminRoleId),
-				isRole(model.SystemAdminRoleId),
-			),
-			Add: []string{
-				model.PermissionCreateWikiPublicChannel.Id,
-				model.PermissionEditWikiPublicChannel.Id,
-				model.PermissionDeleteWikiPublicChannel.Id,
-				model.PermissionCreateWikiPrivateChannel.Id,
-				model.PermissionEditWikiPrivateChannel.Id,
-				model.PermissionDeleteWikiPrivateChannel.Id,
-			},
-		},
-	}, nil
+	// Wiki permissions have been removed - wikis now use manage_channel_properties permissions
+	return permissionsMap{}, nil
 }
 
 func (a *App) getAddChannelPagesPermissionsMigration() (permissionsMap, error) {
@@ -1143,19 +1127,26 @@ func (a *App) getAddChannelPagesPermissionsMigration() (permissionsMap, error) {
 		permissionTransformation{
 			On: permissionOr(
 				isRole(model.ChannelUserRoleId),
-				isRole(model.ChannelAdminRoleId),
-				isRole(model.TeamAdminRoleId),
 				isRole(model.SystemAdminRoleId),
 			),
 			Add: []string{
-				model.PermissionCreatePagePublicChannel.Id,
-				model.PermissionReadPagePublicChannel.Id,
-				model.PermissionEditPagePublicChannel.Id,
-				model.PermissionDeletePagePublicChannel.Id,
-				model.PermissionCreatePagePrivateChannel.Id,
-				model.PermissionReadPagePrivateChannel.Id,
-				model.PermissionEditPagePrivateChannel.Id,
-				model.PermissionDeletePagePrivateChannel.Id,
+				model.PermissionReadPage.Id,
+				model.PermissionCreatePage.Id,
+				model.PermissionEditPage.Id,
+				model.PermissionDeleteOwnPage.Id,
+			},
+		},
+		permissionTransformation{
+			On: permissionOr(
+				isRole(model.ChannelAdminRoleId),
+				isRole(model.TeamAdminRoleId),
+			),
+			Add: []string{
+				model.PermissionReadPage.Id,
+				model.PermissionCreatePage.Id,
+				model.PermissionEditPage.Id,
+				model.PermissionDeleteOwnPage.Id,
+				model.PermissionDeletePage.Id,
 			},
 		},
 		permissionTransformation{
@@ -1164,8 +1155,7 @@ func (a *App) getAddChannelPagesPermissionsMigration() (permissionsMap, error) {
 				isRole(model.TeamGuestRoleId),
 			),
 			Add: []string{
-				model.PermissionReadPagePublicChannel.Id,
-				model.PermissionReadPagePrivateChannel.Id,
+				model.PermissionReadPage.Id,
 			},
 		},
 	}, nil

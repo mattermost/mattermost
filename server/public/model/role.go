@@ -668,15 +668,6 @@ func isModeratedBookmarkPermission(permission string) bool {
 	return false
 }
 
-func isModeratedWikiPermission(permission string) bool {
-	for _, mwp := range ModeratedWikiPermissions {
-		if mwp.Id == permission {
-			return true
-		}
-	}
-	return false
-}
-
 func isModeratedPagePermission(permission string) bool {
 	for _, mpp := range ModeratedPagePermissions {
 		if mpp.Id == permission {
@@ -717,14 +708,8 @@ func (r *Role) GetChannelModeratedPermissions(channelType ChannelType) map[strin
 					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionAddBookmarkPublicChannel.Id
 					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionAddBookmarkPrivateChannel.Id
 					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
-				} else if isModeratedWikiPermission(moderated) {
-					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionCreateWikiPublicChannel.Id
-					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionCreateWikiPrivateChannel.Id
-					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
 				} else if isModeratedPagePermission(moderated) {
-					canManagePublic := channelType == ChannelTypeOpen && moderated == PermissionCreatePagePublicChannel.Id
-					canManagePrivate := channelType == ChannelTypePrivate && moderated == PermissionCreatePagePrivateChannel.Id
-					moderatedPermissions[moderatedPermissionValue] = canManagePublic || canManagePrivate
+					moderatedPermissions[moderatedPermissionValue] = moderated == PermissionCreatePage.Id
 				} else {
 					moderatedPermissions[moderatedPermissionValue] = true
 				}
@@ -880,8 +865,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditPost.Id,
 			PermissionCreatePost.Id,
 			PermissionUseChannelMentions.Id,
-			PermissionReadPagePublicChannel.Id,
-			PermissionReadPagePrivateChannel.Id,
+			PermissionReadPage.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -916,20 +900,10 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditBookmarkPrivateChannel.Id,
 			PermissionDeleteBookmarkPrivateChannel.Id,
 			PermissionOrderBookmarkPrivateChannel.Id,
-			PermissionCreateWikiPublicChannel.Id,
-			PermissionEditWikiPublicChannel.Id,
-			PermissionDeleteWikiPublicChannel.Id,
-			PermissionCreateWikiPrivateChannel.Id,
-			PermissionEditWikiPrivateChannel.Id,
-			PermissionDeleteWikiPrivateChannel.Id,
-			PermissionCreatePagePublicChannel.Id,
-			PermissionReadPagePublicChannel.Id,
-			PermissionEditPagePublicChannel.Id,
-			PermissionDeletePagePublicChannel.Id,
-			PermissionCreatePagePrivateChannel.Id,
-			PermissionReadPagePrivateChannel.Id,
-			PermissionEditPagePrivateChannel.Id,
-			PermissionDeletePagePrivateChannel.Id,
+			PermissionReadPage.Id,
+			PermissionCreatePage.Id,
+			PermissionEditPage.Id,
+			PermissionDeleteOwnPage.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -950,20 +924,11 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditBookmarkPrivateChannel.Id,
 			PermissionDeleteBookmarkPrivateChannel.Id,
 			PermissionOrderBookmarkPrivateChannel.Id,
-			PermissionCreateWikiPublicChannel.Id,
-			PermissionEditWikiPublicChannel.Id,
-			PermissionDeleteWikiPublicChannel.Id,
-			PermissionCreateWikiPrivateChannel.Id,
-			PermissionEditWikiPrivateChannel.Id,
-			PermissionDeleteWikiPrivateChannel.Id,
-			PermissionCreatePagePublicChannel.Id,
-			PermissionReadPagePublicChannel.Id,
-			PermissionEditPagePublicChannel.Id,
-			PermissionDeletePagePublicChannel.Id,
-			PermissionCreatePagePrivateChannel.Id,
-			PermissionReadPagePrivateChannel.Id,
-			PermissionEditPagePrivateChannel.Id,
-			PermissionDeletePagePrivateChannel.Id,
+			PermissionReadPage.Id,
+			PermissionCreatePage.Id,
+			PermissionEditPage.Id,
+			PermissionDeleteOwnPage.Id,
+			PermissionDeletePage.Id,
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
 			PermissionManageChannelAccessRules.Id,
@@ -1054,12 +1019,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PermissionEditBookmarkPrivateChannel.Id,
 			PermissionDeleteBookmarkPrivateChannel.Id,
 			PermissionOrderBookmarkPrivateChannel.Id,
-			PermissionCreateWikiPublicChannel.Id,
-			PermissionEditWikiPublicChannel.Id,
-			PermissionDeleteWikiPublicChannel.Id,
-			PermissionCreateWikiPrivateChannel.Id,
-			PermissionEditWikiPrivateChannel.Id,
-			PermissionDeleteWikiPrivateChannel.Id,
+			PermissionDeletePage.Id,
 			PermissionManagePublicChannelBanner.Id,
 			PermissionManagePrivateChannelBanner.Id,
 			PermissionManageChannelAccessRules.Id,

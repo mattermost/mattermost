@@ -438,7 +438,7 @@ func TestPublishPageDraft(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
 	th.SetupPagePermissions()
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	user := th.BasicUser
@@ -636,9 +636,9 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	th.SetupPagePermissions()
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	user := th.BasicUser
 	channel := th.BasicChannel

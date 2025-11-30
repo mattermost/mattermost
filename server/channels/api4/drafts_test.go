@@ -215,9 +215,9 @@ func TestPageDraftPermissions(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{

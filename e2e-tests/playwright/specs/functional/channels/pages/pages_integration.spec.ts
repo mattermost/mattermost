@@ -57,7 +57,7 @@ test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Integration Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Integration Wiki ${await pw.random.id()}`);
 
     // # Step 1: Create parent page
     const parentPage = await createPageThroughUI(page, 'Parent Integration Page', 'Parent page content');
@@ -99,7 +99,7 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Flow Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Draft Flow Wiki ${await pw.random.id()}`);
 
     // # Step 1: Create draft
     const newPageButton = getNewPageButton(page);
@@ -158,7 +158,7 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Comment Preservation Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Comment Preservation Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Page with Comments', 'Content with comment marker');
 
     // # Enter edit mode and add inline comment using proven helper
@@ -256,7 +256,7 @@ test('creates multi-level hierarchy with comments and breadcrumb navigation', {t
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Hierarchy Flow Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Hierarchy Flow Wiki ${await pw.random.id()}`);
 
     // # Create level 1 page
     const level1Page = await createPageThroughUI(page, 'Level 1 Page', 'Level 1 content');
@@ -303,7 +303,7 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Delete Flow Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Delete Flow Wiki ${await pw.random.id()}`);
 
     // # Create parent with child through UI
     const parent = await createPageThroughUI(page, 'Parent to Delete', 'Parent content');
@@ -341,7 +341,7 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Rename Flow Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Rename Flow Wiki ${await pw.random.id()}`);
 
     const oldTitle = 'Original Page Title';
     const newTitle = 'Renamed Page Title';
@@ -405,7 +405,7 @@ test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: 
     await channelsPage.toBeVisible();
 
     // # Create wiki and pages through UI
-    const wiki = await createWikiThroughUI(page, `Deep Link Flow Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Deep Link Flow Wiki ${await pw.random.id()}`);
     const parent = await createPageThroughUI(page, 'Deep Link Parent', 'Parent content');
     const child = await createChildPageThroughContextMenu(page, parent.id!, 'Deep Link Child', 'Child deep link content');
 
@@ -450,7 +450,7 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Complex Workflow Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Complex Workflow Wiki ${await pw.random.id()}`);
 
     // # Step 1: Create root page
     const rootPage = await createPageThroughUI(page, 'Root Project Page', 'Root project documentation');
@@ -509,7 +509,7 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Recovery Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Draft Recovery Wiki ${await pw.random.id()}`);
 
     // # Create draft via modal
     const newPageButton = getNewPageButton(page);
@@ -582,7 +582,7 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Move Page Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Move Page Wiki ${await pw.random.id()}`);
 
     // # Create pages: Parent A, Parent B, Child (under A) through UI
     const parentA = await createPageThroughUI(page, 'Parent A', 'Parent A content');
@@ -642,8 +642,8 @@ test('searches pages with filters and verifies results', {tag: '@pages'}, async 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const searchTerm = `FilterTest${pw.random.id()}`;
-    const wiki = await createWikiThroughUI(page, `Search Filters Wiki ${pw.random.id()}`);
+    const searchTerm = `FilterTest${await pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page, `Search Filters Wiki ${await pw.random.id()}`);
 
     // # Create multiple pages through UI
     await createPageThroughUI(page, `${searchTerm} First Page`, 'First page content');

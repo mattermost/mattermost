@@ -18,7 +18,7 @@ test('handles large content correctly', {tag: '@pages'}, async ({pw, sharedPages
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Large Content Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Large Content Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -83,7 +83,7 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Unicode Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Unicode Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -154,7 +154,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -208,12 +208,12 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create another channel to mention
-    const mentionedChannel = await createTestChannel(adminClient, team.id, `mentioned-channel-${pw.random.id()}`);
+    const mentionedChannel = await createTestChannel(adminClient, team.id, `mentioned-channel-${await pw.random.id()}`);
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Channel Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Channel Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -286,7 +286,7 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Mention Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -368,7 +368,7 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Mention Bug Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Mention Bug Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -439,7 +439,7 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Mention Bug Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Mention Bug Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -506,7 +506,7 @@ test('shows mention dropdown on second attempt after canceling first', {tag: '@p
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Dropdown Bug Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Dropdown Bug Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -574,7 +574,7 @@ test.skip('sends notification to mentioned user when page is published', {tag: '
     const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(user);
     await authorChannelsPage.goto(team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(authorPage, `Notification Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(authorPage, `Notification Wiki ${await pw.random.id()}`);
 
     // # Create new page with @mention
     const newPageButton = getNewPageButton(authorPage);
@@ -664,7 +664,7 @@ test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, asy
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Link Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Link Test Wiki ${await pw.random.id()}`);
 
     // # Create a page first so we have pages to link to
     await createPageThroughUI(page, 'Existing Page');
@@ -701,7 +701,7 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Filter Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Filter Wiki ${await pw.random.id()}`);
 
     // # Create multiple pages with different names
     await createPageThroughUI(page, 'Getting Started Guide');
@@ -763,7 +763,7 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Insert Link Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Insert Link Wiki ${await pw.random.id()}`);
 
     // # Create target page to link to
     const targetPage = await createPageThroughUI(page, 'Target Page');
@@ -823,7 +823,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Navigation Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Navigation Wiki ${await pw.random.id()}`);
 
     // # Create target page with distinctive content
     const targetPage = await createPageThroughUI(page, 'Linked Target Page', 'This is the linked page content');
@@ -915,7 +915,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Link Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Link Wiki ${await pw.random.id()}`);
 
     // # Create multiple target pages and capture their IDs
     const firstPage = await createPageThroughUI(page, 'First Page');
@@ -1064,12 +1064,12 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Create a unique channel for this test (to avoid cross-wiki page pollution)
-    const uniqueChannel = await createTestChannel(adminClient, team.id, `empty-test-${pw.random.id()}`);
+    const uniqueChannel = await createTestChannel(adminClient, team.id, `empty-test-${await pw.random.id()}`);
 
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, uniqueChannel.name);
 
     // # Create wiki through UI (but don't create any pages)
-    const wiki = await createWikiThroughUI(page, `Empty Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Empty Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -1097,7 +1097,7 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Escape Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Escape Wiki ${await pw.random.id()}`);
 
     // # Create page
     await createPageThroughUI(page, 'Test Page');
@@ -1141,7 +1141,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Hierarchy Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Hierarchy Wiki ${await pw.random.id()}`);
 
     // # Create parent page
     const parentPage = await createPageThroughUI(page, 'Parent Page');
@@ -1238,7 +1238,7 @@ test('formatting buttons show correct active state for text formatting', {tag: '
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Formatting Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Formatting Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -1338,7 +1338,7 @@ test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pag
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Character Limit Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Character Limit Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -1425,7 +1425,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Image Paste Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Image Paste Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -1544,7 +1544,7 @@ test('formatting bar includes divider button from shared registry', {tag: '@page
     const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Formatting Bar Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Formatting Bar Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Formatting Bar Test');

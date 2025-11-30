@@ -27,22 +27,19 @@ const (
 	PageOperationDelete
 )
 
-func getPagePermission(channelType model.ChannelType, operation PageOperation) *model.Permission {
-	permMap := map[model.ChannelType]map[PageOperation]*model.Permission{
-		model.ChannelTypeOpen: {
-			PageOperationCreate: model.PermissionCreatePagePublicChannel,
-			PageOperationRead:   model.PermissionReadPagePublicChannel,
-			PageOperationEdit:   model.PermissionEditPagePublicChannel,
-			PageOperationDelete: model.PermissionDeletePagePublicChannel,
-		},
-		model.ChannelTypePrivate: {
-			PageOperationCreate: model.PermissionCreatePagePrivateChannel,
-			PageOperationRead:   model.PermissionReadPagePrivateChannel,
-			PageOperationEdit:   model.PermissionEditPagePrivateChannel,
-			PageOperationDelete: model.PermissionDeletePagePrivateChannel,
-		},
+func getPagePermission(operation PageOperation) *model.Permission {
+	switch operation {
+	case PageOperationCreate:
+		return model.PermissionCreatePage
+	case PageOperationRead:
+		return model.PermissionReadPage
+	case PageOperationEdit:
+		return model.PermissionEditPage
+	case PageOperationDelete:
+		return model.PermissionDeleteOwnPage
+	default:
+		return nil
 	}
-	return getEntityPermissionByChannelType(channelType, operation, permMap)
 }
 
 // HasPermissionToModifyPage checks if a user can perform an action on a page.
@@ -71,10 +68,10 @@ func (a *App) HasPermissionToModifyPage(
 
 	switch channel.Type {
 	case model.ChannelTypeOpen, model.ChannelTypePrivate:
-		permission := getPagePermission(channel.Type, operation)
+		permission := getPagePermission(operation)
 		if permission == nil {
-			rctx.Logger().Error("Invalid channel type for page permission")
-			return model.NewAppError(operationName, "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
+			rctx.Logger().Error("Invalid operation for page permission")
+			return model.NewAppError(operationName, "api.page.permission.invalid_operation", nil, "", http.StatusForbidden)
 		}
 
 		rctx.Logger().Debug("Checking page permission",
@@ -100,18 +97,8 @@ func (a *App) HasPermissionToModifyPage(
 
 		if operation == PageOperationDelete {
 			if page.UserId != session.UserId {
-				member, err := a.GetChannelMember(rctx, channel.Id, session.UserId)
-				if err != nil {
-					rctx.Logger().Warn("Failed to get channel member for permission check",
-						mlog.String("user_id", session.UserId),
-						mlog.String("channel_id", channel.Id),
-						mlog.Err(err),
-					)
-					return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(err)
-				}
-
-				if !member.SchemeAdmin {
-					rctx.Logger().Warn("User cannot delete others' pages without being channel admin",
+				if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionDeletePage) {
+					rctx.Logger().Warn("User cannot delete others' pages without delete_page permission",
 						mlog.String("user_id", session.UserId),
 						mlog.String("page_owner", page.UserId),
 						mlog.String("channel_id", channel.Id),
@@ -119,7 +106,7 @@ func (a *App) HasPermissionToModifyPage(
 					return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 				}
 
-				rctx.Logger().Debug("User is channel admin, allowing delete of others' pages",
+				rctx.Logger().Debug("User has delete_page permission, allowing delete of others' pages",
 					mlog.String("user_id", session.UserId),
 					mlog.String("channel_id", channel.Id),
 				)
@@ -184,12 +171,11 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, chanErr
 	}
 
-	var permission *model.Permission
 	switch channel.Type {
-	case model.ChannelTypeOpen:
-		permission = model.PermissionCreatePagePublicChannel
-	case model.ChannelTypePrivate:
-		permission = model.PermissionCreatePagePrivateChannel
+	case model.ChannelTypeOpen, model.ChannelTypePrivate:
+		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionCreatePage) {
+			return nil, model.NewAppError("CreatePage", "app.page.create.permissions.app_error", nil, "", http.StatusForbidden)
+		}
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		if _, err := a.GetChannelMember(rctx, channel.Id, userID); err != nil {
 			return nil, model.NewAppError("CreatePage", "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
@@ -203,10 +189,6 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		}
 	default:
 		return nil, model.NewAppError("CreatePage", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
-	}
-
-	if permission != nil && !a.HasPermissionToChannel(rctx, userID, channelID, permission) {
-		return nil, model.NewAppError("CreatePage", "app.page.create.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if pageParentID != "" {

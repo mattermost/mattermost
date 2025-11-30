@@ -27,15 +27,13 @@ func setupPagePermissions(th *TestHelper) {
 		panic(err)
 	}
 
+	// channel_user gets delete_own_page (can delete their own pages)
+	// channel_admin gets delete_page (can delete anyone's pages) - handled separately
 	permissions := append(role.Permissions,
-		model.PermissionCreatePagePublicChannel.Id,
-		model.PermissionReadPagePublicChannel.Id,
-		model.PermissionEditPagePublicChannel.Id,
-		model.PermissionDeletePagePublicChannel.Id,
-		model.PermissionCreatePagePrivateChannel.Id,
-		model.PermissionReadPagePrivateChannel.Id,
-		model.PermissionEditPagePrivateChannel.Id,
-		model.PermissionDeletePagePrivateChannel.Id,
+		model.PermissionCreatePage.Id,
+		model.PermissionReadPage.Id,
+		model.PermissionEditPage.Id,
+		model.PermissionDeleteOwnPage.Id,
 	)
 
 	_, err = th.App.PatchRole(role, &model.RolePatch{Permissions: &permissions})
@@ -796,7 +794,7 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 
 			guestRole, _ := th.App.GetRoleByName(th.Context, "channel_guest")
 			originalPerms := guestRole.Permissions
-			guestRole.Permissions = []string{model.PermissionReadPagePublicChannel.Id}
+			guestRole.Permissions = []string{model.PermissionReadPage.Id}
 			_, _ = th.App.UpdateRole(guestRole)
 			defer func() {
 				guestRole.Permissions = originalPerms
@@ -849,8 +847,8 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 		})
 
 		t.Run("user without edit_page_public_channel permission fails", func(t *testing.T) {
-			th.RemovePermissionFromRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
 
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)

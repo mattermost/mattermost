@@ -2003,8 +2003,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 	manageMembers := model.ChannelModeratedPermissions[2]
 	channelMentions := model.ChannelModeratedPermissions[3]
 	manageBookmarks := model.ChannelModeratedPermissions[4]
-	manageWikis := model.ChannelModeratedPermissions[5]
-	managePages := model.ChannelModeratedPermissions[6]
+	managePages := model.ChannelModeratedPermissions[5]
 
 	nonChannelModeratedPermission := model.PermissionCreateBot.Id
 
@@ -2271,6 +2270,12 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			},
 			HigherScopedGuestPermissions: []string{},
 			ShouldError:                  false,
+			RevertChannelModerationsPatch: []*model.ChannelModerationPatch{
+				{
+					Name:  &createPosts,
+					Roles: &model.ChannelModeratedRolesPatch{Members: model.NewPointer(true)},
+				},
+			},
 		},
 		{
 			Name: "Channel should have no scheme when all moderated permissions are equivalent to higher scoped role",
@@ -2304,12 +2309,6 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				},
 				{
 					Name: &manageBookmarks,
-					Roles: &model.ChannelModeratedRolesPatch{
-						Members: model.NewPointer(true),
-					},
-				},
-				{
-					Name: &manageWikis,
 					Roles: &model.ChannelModeratedRolesPatch{
 						Members: model.NewPointer(true),
 					},
@@ -2387,7 +2386,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 				if permission, found := tc.PermissionsModeratedByPatch[moderation.Name]; found && permission.Guests != nil {
 					require.Equal(t, moderation.Roles.Guests.Value, permission.Guests.Value)
 					require.Equal(t, moderation.Roles.Guests.Enabled, permission.Guests.Enabled)
-				} else if moderation.Name == manageMembers || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_wikis" || moderation.Name == "manage_pages" {
+				} else if moderation.Name == manageMembers || moderation.Name == "manage_bookmarks" || moderation.Name == "manage_pages" {
 					require.Empty(t, moderation.Roles.Guests)
 				} else {
 					require.Equal(t, moderation.Roles.Guests.Value, true)

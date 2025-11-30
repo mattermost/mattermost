@@ -20,7 +20,7 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Unsaved Changes Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Unsaved Changes Wiki ${await pw.random.id()}`);
 
     // # Create new page
     // Scope to pages hierarchy panel to avoid strict mode violations with duplicate elements
@@ -83,7 +83,7 @@ test.skip('warns when using browser back button with unsaved changes', {tag: '@p
     await channelsPage.toBeVisible();
 
     // # Create wiki and published page through UI
-    const wiki = await createWikiThroughUI(page, `Back Button Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Back Button Wiki ${await pw.random.id()}`);
     const publishedPage = await createPageThroughUI(page, 'Published Page', 'Original content');
 
     // Navigate to page
@@ -126,7 +126,7 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Scroll Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Scroll Wiki ${await pw.random.id()}`);
 
     // # Create page with long content through UI
     const newPageButton = getNewPageButton(page);
@@ -181,7 +181,7 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Refresh Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Refresh Wiki ${await pw.random.id()}`);
 
     // Reload to ensure clean state (wiki is already visible after creation)
     await page.reload();

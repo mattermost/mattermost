@@ -148,17 +148,23 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
 
-        // For page posts, convert Tiptap JSON to plain text for display
-        if (isPagePost(post) && post.message) {
-            const plaintext = extractPlaintextFromTipTapJSON(post.message);
-            if (plaintext) {
-                // Show title and preview of content (first 200 chars)
-                const title = post.props?.title as string || 'Untitled Page';
-                const preview = plaintext.length > 200 ? plaintext.substring(0, 200) + '...' : plaintext;
-                message = `**${title}**\n\n${preview}`;
-            } else if (post.props?.title) {
-                // Fallback to just showing title if content extraction fails
-                message = `**${post.props.title}**`;
+        // For page posts, show title and content preview
+        // Note: Page content is stored in PageContents table, not in post.message
+        if (isPagePost(post)) {
+            const title = post.props?.title as string || 'Untitled Page';
+            if (post.message) {
+                const plaintext = extractPlaintextFromTipTapJSON(post.message);
+                if (plaintext) {
+                    // Show title and preview of content (first 200 chars)
+                    const preview = plaintext.length > 200 ? plaintext.substring(0, 200) + '...' : plaintext;
+                    message = `**${title}**\n\n${preview}`;
+                } else {
+                    // Content exists but extraction failed - just show title
+                    message = `**${title}**`;
+                }
+            } else {
+                // No content in post.message - just show title (content is in PageContents table)
+                message = `**${title}**`;
             }
         }
 

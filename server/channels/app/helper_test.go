@@ -773,22 +773,27 @@ func (th *TestHelper) AddPermissionsToRole(permissions []string, roleName string
 }
 
 func (th *TestHelper) SetupPagePermissions() {
-	pagePermissions := []string{
-		model.PermissionCreatePagePublicChannel.Id,
-		model.PermissionReadPagePublicChannel.Id,
-		model.PermissionEditPagePublicChannel.Id,
-		model.PermissionDeletePagePublicChannel.Id,
-		model.PermissionCreatePagePrivateChannel.Id,
-		model.PermissionReadPagePrivateChannel.Id,
-		model.PermissionEditPagePrivateChannel.Id,
-		model.PermissionDeletePagePrivateChannel.Id,
+	// channel_user gets basic page permissions including delete_own_page
+	channelUserPermissions := []string{
+		model.PermissionCreatePage.Id,
+		model.PermissionReadPage.Id,
+		model.PermissionEditPage.Id,
+		model.PermissionDeleteOwnPage.Id,
 	}
 
-	th.AddPermissionsToRole(pagePermissions, model.ChannelUserRoleId)
-	th.AddPermissionsToRole(pagePermissions, model.ChannelAdminRoleId)
+	// channel_admin gets all page permissions including delete_page (can delete anyone's pages)
+	channelAdminPermissions := []string{
+		model.PermissionCreatePage.Id,
+		model.PermissionReadPage.Id,
+		model.PermissionEditPage.Id,
+		model.PermissionDeleteOwnPage.Id,
+		model.PermissionDeletePage.Id,
+	}
+
+	th.AddPermissionsToRole(channelUserPermissions, model.ChannelUserRoleId)
+	th.AddPermissionsToRole(channelAdminPermissions, model.ChannelAdminRoleId)
 	th.AddPermissionsToRole([]string{
-		model.PermissionReadPagePublicChannel.Id,
-		model.PermissionReadPagePrivateChannel.Id,
+		model.PermissionReadPage.Id,
 	}, model.ChannelGuestRoleId)
 }
 

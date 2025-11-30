@@ -178,14 +178,8 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Additive permission check: Need BOTH page permission (content) AND wiki permission (container)
 
 	// Check page permission (content)
-	var pagePermission *model.Permission
-	if channel.Type == model.ChannelTypeOpen {
-		pagePermission = model.PermissionCreatePagePublicChannel
-	} else {
-		pagePermission = model.PermissionCreatePagePrivateChannel
-	}
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, pagePermission) {
-		c.SetPermissionError(pagePermission)
+	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePage) {
+		c.SetPermissionError(model.PermissionCreatePage)
 		return
 	}
 

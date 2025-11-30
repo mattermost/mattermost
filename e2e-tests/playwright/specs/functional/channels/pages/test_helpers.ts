@@ -3049,9 +3049,11 @@ export async function appendContentInEditor(page: Page, newContent: string) {
  * @returns Cleanup function that restores original permissions
  *
  * @example
+ * // Page permissions: create_page, read_page, edit_page, delete_own_page, delete_page
+ * // Wiki permissions: use manage_public_channel_properties, manage_private_channel_properties
  * const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
- *     'edit_page_public_channel',
- *     'edit_page_private_channel',
+ *     'edit_page',
+ *     'manage_public_channel_properties',
  * ]);
  *
  * // ... test code that needs the permissions ...

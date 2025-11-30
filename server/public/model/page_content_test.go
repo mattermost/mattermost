@@ -535,6 +535,119 @@ func TestExtractTextFromNode(t *testing.T) {
 		text := extractTextFromNode(node)
 		require.Empty(t, text)
 	})
+
+	t.Run("extracts text from user mention node with label", func(t *testing.T) {
+		node := map[string]any{
+			"type": "mention",
+			"attrs": map[string]any{
+				"id":    "user123",
+				"label": "john.doe",
+			},
+		}
+
+		text := extractTextFromNode(node)
+		require.Equal(t, "@john.doe", text)
+	})
+
+	t.Run("extracts text from user mention node with id fallback", func(t *testing.T) {
+		node := map[string]any{
+			"type": "mention",
+			"attrs": map[string]any{
+				"id": "user123",
+			},
+		}
+
+		text := extractTextFromNode(node)
+		require.Equal(t, "@user123", text)
+	})
+
+	t.Run("extracts text from channel mention node", func(t *testing.T) {
+		node := map[string]any{
+			"type": "channelMention",
+			"attrs": map[string]any{
+				"id":              "channel123",
+				"label":           "general",
+				"data-channel-id": "channel123",
+			},
+		}
+
+		text := extractTextFromNode(node)
+		require.Equal(t, "@general", text)
+	})
+}
+
+func TestExtractSimpleTextWithMentions(t *testing.T) {
+	t.Run("extracts mentions from document with mixed content", func(t *testing.T) {
+		doc := TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []any{
+						map[string]any{
+							"type": "text",
+							"text": "Hello ",
+						},
+						map[string]any{
+							"type": "mention",
+							"attrs": map[string]any{
+								"id":    "user123",
+								"label": "john",
+							},
+						},
+						map[string]any{
+							"type": "text",
+							"text": " how are you?",
+						},
+					},
+				},
+			},
+		}
+
+		text := extractSimpleText(doc)
+		require.Contains(t, text, "Hello")
+		require.Contains(t, text, "@john")
+		require.Contains(t, text, "how are you?")
+	})
+
+	t.Run("extracts multiple mentions from document", func(t *testing.T) {
+		doc := TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []any{
+						map[string]any{
+							"type": "text",
+							"text": "CC ",
+						},
+						map[string]any{
+							"type": "mention",
+							"attrs": map[string]any{
+								"id":    "user1",
+								"label": "alice",
+							},
+						},
+						map[string]any{
+							"type": "text",
+							"text": " and ",
+						},
+						map[string]any{
+							"type": "mention",
+							"attrs": map[string]any{
+								"id":    "user2",
+								"label": "bob",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		text := extractSimpleText(doc)
+		require.Contains(t, text, "@alice")
+		require.Contains(t, text, "@bob")
+	})
 }
 
 func TestSanitizeTipTapDocument(t *testing.T) {

@@ -49,14 +49,14 @@ import {
  */
 test('creates inline comment on selected text', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Comment Wiki ${pw.random.id()}`, 'Test Page', 'This is important text');
+    await createWikiAndPage(page, `Comment Wiki ${await pw.random.id()}`, 'Test Page', 'This is important text');
 
     // # Enter edit mode
     await enterEditMode(page);
@@ -82,14 +82,14 @@ test('creates inline comment on selected text', {tag: '@pages'}, async ({pw, sha
  */
 test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Reply Wiki ${pw.random.id()}`, 'Discussion Page', 'This feature needs discussion about implementation details');
+    await createWikiAndPage(page, `Reply Wiki ${await pw.random.id()}`, 'Discussion Page', 'This feature needs discussion about implementation details');
 
     // # Add initial comment
     await enterEditMode(page);
@@ -114,7 +114,7 @@ test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context, s
  */
 test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -123,7 +123,7 @@ test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, shar
     // # Setup: Create wiki, page, add comment, and publish
     const {marker} = await setupPageWithComment(
         page,
-        `Resolve Wiki ${pw.random.id()}`,
+        `Resolve Wiki ${await pw.random.id()}`,
         'Review Page',
         'This section needs review by team lead',
         'Reviewed and approved'
@@ -151,14 +151,14 @@ test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, shar
  */
 test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${await pw.random.id()}`);
 
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
@@ -221,14 +221,14 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
  */
 test('displays multiple inline comment markers distinctly', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Markers Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Markers Wiki ${await pw.random.id()}`);
 
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
@@ -298,14 +298,14 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
  */
 test('preserves inline comment position after nearby text edits', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Edit Preserve Wiki ${pw.random.id()}`, 'Editable Page', 'The quick brown fox jumps over the lazy dog');
+    await createWikiAndPage(page, `Edit Preserve Wiki ${await pw.random.id()}`, 'Editable Page', 'The quick brown fox jumps over the lazy dog');
 
     // # Add inline comment
     await enterEditMode(page);
@@ -333,14 +333,14 @@ test('preserves inline comment position after nearby text edits', {tag: '@pages'
  */
 test('deletes inline comment and removes marker', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Delete Comment Wiki ${pw.random.id()}`, 'Page With Comment', 'This text has a comment');
+    await createWikiAndPage(page, `Delete Comment Wiki ${await pw.random.id()}`, 'Page With Comment', 'This text has a comment');
 
     // # Add inline comment using reusable helpers
     await enterEditMode(page);
@@ -372,7 +372,7 @@ test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sh
     await channelsPage.toBeVisible();
 
     // # Create wiki and page with inline comment
-    await createWikiAndPage(page, `RHS Wiki ${pw.random.id()}`, 'Product Specs', 'The performance metrics need review');
+    await createWikiAndPage(page, `RHS Wiki ${await pw.random.id()}`, 'Product Specs', 'The performance metrics need review');
 
     // # Add inline comment (publishes page and verifies marker)
     await enterEditMode(page);
@@ -410,14 +410,14 @@ test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sh
  */
 test('clicks active comment marker to close RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Toggle RHS Wiki ${pw.random.id()}`, 'Design Doc', 'The color scheme needs adjustment');
+    await createWikiAndPage(page, `Toggle RHS Wiki ${await pw.random.id()}`, 'Design Doc', 'The color scheme needs adjustment');
 
     // # Add inline comment
     await enterEditMode(page);
@@ -448,7 +448,7 @@ test('closes RHS via close button', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Close RHS Wiki ${pw.random.id()}`, 'Requirements', 'Security requirements must be defined');
+    await createWikiAndPage(page, `Close RHS Wiki ${await pw.random.id()}`, 'Requirements', 'Security requirements must be defined');
 
     // # Add inline comment
     await enterEditMode(page);
@@ -477,7 +477,7 @@ test('switches between multiple comment threads in RHS', {tag: '@pages'}, async 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Thread Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Thread Wiki ${await pw.random.id()}`);
 
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
@@ -548,14 +548,14 @@ test('switches between multiple comment threads in RHS', {tag: '@pages'}, async 
  */
 test('switches between Page Comments and All Threads tabs in RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and pages through UI
-    await createWikiAndPage(page, `Tab Switch Wiki ${pw.random.id()}`, 'First Page', 'Content for first page');
+    await createWikiAndPage(page, `Tab Switch Wiki ${await pw.random.id()}`, 'First Page', 'Content for first page');
 
     // # Add inline comment
     await enterEditMode(page);
@@ -612,7 +612,7 @@ test('displays all threads from multiple pages in All Threads tab', {tag: '@page
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `All Threads Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `All Threads Wiki ${await pw.random.id()}`);
 
     // # Create first page with inline comment
     await createPageThroughUI(page, 'Architecture Page', 'Frontend architecture needs review');
@@ -656,14 +656,14 @@ test('displays all threads from multiple pages in All Threads tab', {tag: '@page
  */
 test('displays correct anchor text for each inline comment in wiki RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Anchor Test Wiki ${pw.random.id()}`, 'Multiple Anchors Test', 'First section with unique content. Second section with different content. Third section with more content.');
+    await createWikiAndPage(page, `Anchor Test Wiki ${await pw.random.id()}`, 'Multiple Anchors Test', 'First section with unique content. Second section with different content. Third section with more content.');
 
     // # Enter edit mode and add first inline comment
     await enterEditMode(page);
@@ -718,14 +718,14 @@ test('displays correct anchor text for each inline comment in wiki RHS', {tag: '
  */
 test('creates inline comment from formatting bar with correct anchor text', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Format Bar Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Format Bar Wiki ${await pw.random.id()}`);
 
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
@@ -773,14 +773,14 @@ test('creates inline comment from formatting bar with correct anchor text', {tag
  */
 test('displays correct anchor text for each thread in global Threads view', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    await createWikiThroughUI(page, `Threads Anchor Test Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Threads Anchor Test Wiki ${await pw.random.id()}`);
 
     // # Create a page with three distinct text sections
     await ensurePanelOpen(page);
@@ -904,7 +904,7 @@ test('displays correct anchor text for each thread in global Threads view', {tag
  */
 test('resolves and unresolves inline comment with filters', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
@@ -913,7 +913,7 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
     // # Setup: Create wiki, page, add comment, and publish
     const {marker} = await setupPageWithComment(
         page,
-        `Resolution Wiki ${pw.random.id()}`,
+        `Resolution Wiki ${await pw.random.id()}`,
         'Resolution Page',
         'This text needs review',
         'This needs clarification'

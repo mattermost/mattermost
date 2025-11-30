@@ -33,13 +33,13 @@ test('shows summarize to page option in post actions menu', {tag: '@pages'}, asy
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Summarize Test ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Summarize Test ${await pw.random.id()}`);
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Create wiki first (required for page creation)
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
-    const wikiName = `Test Wiki ${pw.random.id()}`;
+    const wikiName = `Test Wiki ${await pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
     // # Check if AI plugin is available while we're in wiki view
@@ -90,13 +90,13 @@ test('prompts for page title when summarize to page is clicked', {tag: '@pages'}
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Summarize Prompt Test ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Summarize Prompt Test ${await pw.random.id()}`);
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Create wiki
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
-    const wikiName = `Test Wiki ${pw.random.id()}`;
+    const wikiName = `Test Wiki ${await pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
     // # Check AI plugin availability
@@ -160,13 +160,13 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `Summarize Create Test ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Summarize Create Test ${await pw.random.id()}`);
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Create wiki
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
-    const wikiName = `Test Wiki ${pw.random.id()}`;
+    const wikiName = `Test Wiki ${await pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
     // # Check AI plugin availability
@@ -257,13 +257,13 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 test('hides summarize to page option when AI plugin is not available', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
-    const channel = await createTestChannel(adminClient, team.id, `No AI Test ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `No AI Test ${await pw.random.id()}`);
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Create wiki
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
-    const wikiName = `Test Wiki ${pw.random.id()}`;
+    const wikiName = `Test Wiki ${await pw.random.id()}`;
     await createWikiThroughUI(page, wikiName);
 
     // # Check if AI plugin is available - skip test if it IS available

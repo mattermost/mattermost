@@ -16,14 +16,14 @@ import {
  */
 test('shows PDF export option for published page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Test Page', 'Test content for PDF export');
 
     // # Open page context menu
@@ -42,14 +42,14 @@ test('shows PDF export option for published page', {tag: '@pages'}, async ({pw, 
  */
 test('shows PDF export option for draft page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and draft through UI
-    await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     const draft = await createDraftThroughUI(page, 'Draft Page', 'Draft content');
 
     // # Open page context menu for draft
@@ -65,14 +65,14 @@ test('shows PDF export option for draft page', {tag: '@pages'}, async ({pw, shar
  */
 test('triggers print dialog when Export to PDF is clicked', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Test Page', 'Test content for PDF export');
 
     // # Setup window.print() spy
@@ -106,14 +106,14 @@ test('triggers print dialog when Export to PDF is clicked', {tag: '@pages'}, asy
  */
 test('positions PDF export option after Duplicate page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Test Page', 'Test content for PDF export');
 
     // # Open page context menu

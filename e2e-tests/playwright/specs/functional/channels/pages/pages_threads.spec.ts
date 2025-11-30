@@ -24,7 +24,7 @@ import {
  */
 test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -32,7 +32,7 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     await channelsPage.toBeVisible();
 
     // # Create wiki and page with content
-    const wiki = await createWikiThroughUI(page, `Threads Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Threads Wiki ${await pw.random.id()}`);
     const pageTitle = 'Getting Started Guide';
     const pageContent = 'This guide covers user authentication, API endpoints, and deployment. It provides step-by-step instructions for new developers.';
     const testPage = await createPageThroughUI(page, pageTitle, pageContent);
@@ -89,14 +89,14 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
  */
 test('displays page comments and inline comments in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Comments Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Comments Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Documentation Page', 'Introduction: This covers authentication and API endpoints for developers');
 
     // # Start editing
@@ -150,14 +150,14 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
  */
 test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Replies Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Replies Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Feature Spec', 'This feature should support real-time collaboration and offline mode');
 
     // # Add initial comment
@@ -212,14 +212,14 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
  */
 test('displays multiple inline comments in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'API Documentation', 'Authentication uses JWT tokens. Rate limiting is 100 requests per minute. Pagination uses cursor-based approach.');
 
     // # Start editing

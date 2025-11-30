@@ -24,8 +24,8 @@ test('creates bookmark from page to another channel', {tag: '@pages'}, async ({p
     const {team, user, adminClient} = sharedPagesSetup;
 
     // # Create two test channels
-    const sourceChannel = await createTestChannel(adminClient, team.id, `Source Channel ${pw.random.id()}`);
-    const targetChannel = await createTestChannel(adminClient, team.id, `Target Channel ${pw.random.id()}`);
+    const sourceChannel = await createTestChannel(adminClient, team.id, `Source Channel ${await pw.random.id()}`);
+    const targetChannel = await createTestChannel(adminClient, team.id, `Target Channel ${await pw.random.id()}`);
 
     // # Add user to both channels so they appear in the channel selector
     await adminClient.addToChannel(user.id, sourceChannel.id);
@@ -35,7 +35,7 @@ test('creates bookmark from page to another channel', {tag: '@pages'}, async ({p
 
     // # Navigate to source channel and create wiki with page
     await channelsPage.goto(team.name, sourceChannel.name);
-    const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     await createPageThroughUI(page, 'Page to Bookmark', 'Content for bookmarking');
 
     // # Open page actions menu and click "Bookmark in channel..." option
@@ -88,7 +88,7 @@ test('creates bookmark from page to another channel', {tag: '@pages'}, async ({p
  */
 test('disables bookmark button when no channel selected', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Add user to channel
     await adminClient.addToChannel(user.id, channel.id);
@@ -98,7 +98,7 @@ test('disables bookmark button when no channel selected', {tag: '@pages'}, async
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     await createPageThroughUI(page, 'Test Page', 'Test content');
 
     // # Open page actions menu and click "Bookmark in channel..."
@@ -119,7 +119,7 @@ test('disables bookmark button when no channel selected', {tag: '@pages'}, async
  */
 test('cancels bookmark creation and closes modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Add user to channel
     await adminClient.addToChannel(user.id, channel.id);
@@ -129,7 +129,7 @@ test('cancels bookmark creation and closes modal', {tag: '@pages'}, async ({pw, 
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     await createPageThroughUI(page, 'Test Page', 'Test content');
 
     // # Open page actions menu and click "Bookmark in channel..."
@@ -156,7 +156,7 @@ test('cancels bookmark creation and closes modal', {tag: '@pages'}, async ({pw, 
  */
 test('creates bookmark in same channel as page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Add user to channel so it appears in the channel selector
     await adminClient.addToChannel(user.id, channel.id);
@@ -166,7 +166,7 @@ test('creates bookmark in same channel as page', {tag: '@pages'}, async ({pw, sh
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     await createPageThroughUI(page, 'Same Channel Page', 'Content');
 
     // # Open page actions menu and click "Bookmark in channel..."

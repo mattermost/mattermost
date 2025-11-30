@@ -38,14 +38,14 @@ test('shows AI rewrite button when text is selected', {tag: '@pages'}, async ({p
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `AI Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `AI Test Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -91,14 +91,14 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Menu Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `AI Menu Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Menu Test Page');
@@ -150,14 +150,14 @@ test('displays all 7 rewrite actions in menu', {tag: '@pages'}, async ({pw, shar
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Actions Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `AI Actions Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Actions Test Page');
@@ -210,14 +210,14 @@ test('displays all 7 rewrite actions in menu', {tag: '@pages'}, async ({pw, shar
 test('gracefully degrades when AI plugin is not available', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `No AI Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `No AI Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'No AI Test Page');
@@ -264,14 +264,14 @@ test('shows AI rewrite in inline comment toolbar when viewing page', {tag: '@pag
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page with content
-    const wiki = await createWikiThroughUI(page, `AI Inline Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `AI Inline Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Inline Test Page');
@@ -319,14 +319,14 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Integration Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `AI Integration Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Integration Test Page');
@@ -434,14 +434,14 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
         await configureAIPlugin(adminClient);
     }
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Error Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `AI Error Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Error Test Page');

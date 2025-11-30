@@ -259,21 +259,16 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var permission *model.Permission
 	switch channel.Type {
-	case model.ChannelTypeOpen:
-		permission = model.PermissionCreatePagePublicChannel
-	case model.ChannelTypePrivate:
-		permission = model.PermissionCreatePagePrivateChannel
+	case model.ChannelTypeOpen, model.ChannelTypePrivate:
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetWiki.ChannelId, model.PermissionCreatePage) {
+			c.SetPermissionError(model.PermissionCreatePage)
+			return
+		}
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		permission = nil
+		// No permission check needed for DM/Group channels
 	default:
 		c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.invalid_channel_type", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if permission != nil && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetWiki.ChannelId, permission) {
-		c.SetPermissionError(permission)
 		return
 	}
 

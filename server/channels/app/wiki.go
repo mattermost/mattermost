@@ -22,30 +22,14 @@ const (
 	WikiOperationDelete
 )
 
-func getWikiPermission(channelType model.ChannelType, operation WikiOperation) *model.Permission {
-	permMap := map[model.ChannelType]map[WikiOperation]*model.Permission{
-		model.ChannelTypeOpen: {
-			WikiOperationCreate: model.PermissionCreateWikiPublicChannel,
-			WikiOperationEdit:   model.PermissionEditWikiPublicChannel,
-			WikiOperationDelete: model.PermissionDeleteWikiPublicChannel,
-		},
-		model.ChannelTypePrivate: {
-			WikiOperationCreate: model.PermissionCreateWikiPrivateChannel,
-			WikiOperationEdit:   model.PermissionEditWikiPrivateChannel,
-			WikiOperationDelete: model.PermissionDeleteWikiPrivateChannel,
-		},
-	}
-	return getEntityPermissionByChannelType(channelType, operation, permMap)
-}
-
 func (a *App) HasPermissionToModifyWiki(rctx request.CTX, session *model.Session, channel *model.Channel, operation WikiOperation, operationName string) *model.AppError {
 	switch channel.Type {
-	case model.ChannelTypeOpen, model.ChannelTypePrivate:
-		permission := getWikiPermission(channel.Type, operation)
-		if permission == nil {
-			return model.NewAppError(operationName, "api.wiki.permission.forbidden.app_error", nil, "", http.StatusForbidden)
+	case model.ChannelTypeOpen:
+		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionManagePublicChannelProperties) {
+			return model.NewAppError(operationName, "api.wiki.permission.app_error", nil, "", http.StatusForbidden)
 		}
-		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, permission) {
+	case model.ChannelTypePrivate:
+		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionManagePrivateChannelProperties) {
 			return model.NewAppError(operationName, "api.wiki.permission.app_error", nil, "", http.StatusForbidden)
 		}
 

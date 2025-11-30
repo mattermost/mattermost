@@ -18,8 +18,8 @@ func TestCreateWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	t.Run("create wiki in public channel successfully", func(t *testing.T) {
 		wiki := &model.Wiki{
@@ -166,10 +166,10 @@ func TestUpdateWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
@@ -247,10 +247,10 @@ func TestDeleteWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeleteWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
@@ -367,9 +367,9 @@ func TestGetPage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki1 := &model.Wiki{
@@ -505,12 +505,12 @@ func TestWikiPermissions(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("create wiki permissions", func(t *testing.T) {
-		t.Run("public channel requires PermissionCreateWikiPublicChannel", func(t *testing.T) {
+		t.Run("public channel requires PermissionManagePublicChannelProperties", func(t *testing.T) {
 			publicChannel := th.CreatePublicChannel(t)
 			th.AddUserToChannel(t, th.BasicUser2, publicChannel)
 
-			th.RemovePermissionFromRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -526,12 +526,12 @@ func TestWikiPermissions(t *testing.T) {
 			CheckForbiddenStatus(t, resp)
 		})
 
-		t.Run("private channel requires PermissionCreateWikiPrivateChannel", func(t *testing.T) {
+		t.Run("private channel requires PermissionManagePrivateChannelProperties", func(t *testing.T) {
 			privateChannel := th.CreatePrivateChannel(t)
 			th.AddUserToChannel(t, th.BasicUser2, privateChannel)
 
-			th.RemovePermissionFromRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -567,7 +567,7 @@ func TestWikiPermissions(t *testing.T) {
 	})
 
 	t.Run("edit wiki permissions", func(t *testing.T) {
-		t.Run("public channel requires PermissionEditWikiPublicChannel", func(t *testing.T) {
+		t.Run("public channel requires PermissionManagePublicChannelProperties", func(t *testing.T) {
 			publicChannel := th.CreatePublicChannel(t)
 			th.AddUserToChannel(t, th.BasicUser2, publicChannel)
 
@@ -579,8 +579,8 @@ func TestWikiPermissions(t *testing.T) {
 			wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 			require.Nil(t, appErr)
 
-			th.RemovePermissionFromRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -592,7 +592,7 @@ func TestWikiPermissions(t *testing.T) {
 			CheckForbiddenStatus(t, resp)
 		})
 
-		t.Run("private channel requires PermissionEditWikiPrivateChannel", func(t *testing.T) {
+		t.Run("private channel requires PermissionManagePrivateChannelProperties", func(t *testing.T) {
 			privateChannel := th.CreatePrivateChannel(t)
 			th.AddUserToChannel(t, th.BasicUser2, privateChannel)
 
@@ -604,8 +604,8 @@ func TestWikiPermissions(t *testing.T) {
 			wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 			require.Nil(t, appErr)
 
-			th.RemovePermissionFromRole(t, model.PermissionEditWikiPrivateChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionEditWikiPrivateChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -619,7 +619,7 @@ func TestWikiPermissions(t *testing.T) {
 	})
 
 	t.Run("delete wiki permissions", func(t *testing.T) {
-		t.Run("public channel requires PermissionDeleteWikiPublicChannel", func(t *testing.T) {
+		t.Run("public channel requires PermissionManagePublicChannelProperties", func(t *testing.T) {
 			publicChannel := th.CreatePublicChannel(t)
 			th.AddUserToChannel(t, th.BasicUser2, publicChannel)
 
@@ -631,8 +631,8 @@ func TestWikiPermissions(t *testing.T) {
 			wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 			require.Nil(t, appErr)
 
-			th.RemovePermissionFromRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -643,7 +643,7 @@ func TestWikiPermissions(t *testing.T) {
 			CheckForbiddenStatus(t, resp)
 		})
 
-		t.Run("private channel requires PermissionDeleteWikiPrivateChannel", func(t *testing.T) {
+		t.Run("private channel requires PermissionManagePrivateChannelProperties", func(t *testing.T) {
 			privateChannel := th.CreatePrivateChannel(t)
 			th.AddUserToChannel(t, th.BasicUser2, privateChannel)
 
@@ -655,8 +655,8 @@ func TestWikiPermissions(t *testing.T) {
 			wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 			require.Nil(t, appErr)
 
-			th.RemovePermissionFromRole(t, model.PermissionDeleteWikiPrivateChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionDeleteWikiPrivateChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -692,8 +692,8 @@ func TestWikiPermissions(t *testing.T) {
 		appErr = th.App.AddPageToWiki(th.Context, page.Id, wiki.Id)
 		require.Nil(t, appErr)
 
-		th.RemovePermissionFromRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 		client2 := th.CreateClient()
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -732,9 +732,9 @@ func TestWikiPermissions(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Len(t, pages, 1)
 
-		th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
-		th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
-		th.AddPermissionToRole(t, model.PermissionDeletePagePublicChannel.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
 		resp, err = th.Client.DeletePage(context.Background(), wiki.Id, page.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -758,10 +758,10 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	t.Run("complete E2E flow: create wiki, save draft, publish page, access via URL", func(t *testing.T) {
@@ -865,9 +865,9 @@ func TestCreatePage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
@@ -917,22 +917,17 @@ func TestPagePermissionMatrix(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeletePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeletePagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeleteOwnPage.Id, model.ChannelUserRoleId)
 
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeleteWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelAdminRoleId)
 
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelGuestRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePrivateChannel.Id, model.ChannelGuestRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelGuestRoleId)
 
 	t.Run("Public Channel - Page Create Permission", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel(t)
@@ -953,8 +948,8 @@ func TestPagePermissionMatrix(t *testing.T) {
 		})
 
 		t.Run("user without permission cannot create page", func(t *testing.T) {
-			th.RemovePermissionFromRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -985,8 +980,8 @@ func TestPagePermissionMatrix(t *testing.T) {
 		})
 
 		t.Run("user without permission cannot create page", func(t *testing.T) {
-			th.RemovePermissionFromRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -1021,8 +1016,8 @@ func TestPagePermissionMatrix(t *testing.T) {
 		})
 
 		t.Run("user without read permission cannot view page", func(t *testing.T) {
-			th.RemovePermissionFromRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -1093,8 +1088,8 @@ func TestPagePermissionMatrix(t *testing.T) {
 		require.Nil(t, appErr)
 
 		t.Run("requires both wiki edit and page create permissions", func(t *testing.T) {
-			th.RemovePermissionFromRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -1110,8 +1105,8 @@ func TestPagePermissionMatrix(t *testing.T) {
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
 
-			th.RemovePermissionFromRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			client2 := th.CreateClient()
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -1129,7 +1124,7 @@ func TestPageGuestPermissions(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelGuestRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelGuestRoleId)
 
 	publicChannel := th.CreatePublicChannel(t)
 	guest, guestClient := th.CreateGuestAndClient(t)
@@ -1167,12 +1162,12 @@ func TestPageCommentsE2E(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionDeletePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeletePage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
@@ -1451,16 +1446,16 @@ func TestMovePageToWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	t.Run("successfully move page to target wiki in same channel", func(t *testing.T) {
@@ -1592,8 +1587,8 @@ func TestMovePageToWiki(t *testing.T) {
 		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 
-		th.RemovePermissionFromRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 		client2 := th.CreateClient()
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -1823,16 +1818,16 @@ func TestDuplicatePage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	t.Run("successfully duplicate page to target wiki in same channel", func(t *testing.T) {
@@ -1974,8 +1969,8 @@ func TestDuplicatePage(t *testing.T) {
 		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Duplicate", "", th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 
-		th.RemovePermissionFromRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-		defer th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 		client2 := th.CreateClient()
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
@@ -2019,11 +2014,11 @@ func TestGetPageBreadcrumb(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	t.Run("get breadcrumb for root page", func(t *testing.T) {
@@ -2184,12 +2179,12 @@ func TestUpdatePageParent(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	t.Run("successfully change page parent", func(t *testing.T) {
@@ -2380,9 +2375,9 @@ func TestUpdatePageStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
@@ -2448,9 +2443,9 @@ func TestGetPageStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
@@ -2535,8 +2530,8 @@ func TestResolvePageComment(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{

@@ -34,7 +34,7 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Permission Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Permission Wiki ${await pw.random.id()}`);
 
     // # Attempt to create page
     const newPageButton = getNewPageButton(page);
@@ -69,7 +69,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         await channelsPage.goto(team.name, privateChannel.name);
 
         // # Create wiki and page through UI
-        const wiki = await createWikiThroughUI(userPage, `Private Wiki ${pw.random.id()}`);
+        const wiki = await createWikiThroughUI(userPage, `Private Wiki ${await pw.random.id()}`);
         const testPage = await createPageThroughUI(userPage, 'Private Page', 'Private content');
 
         // # Create user NOT in channel (using MM pattern)
@@ -123,7 +123,7 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Edit Permission Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Edit Permission Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Editable Page', 'Original content');
 
     // # Attempt to edit
@@ -162,7 +162,7 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Admin Delete Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Admin Delete Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Page to Delete', 'Content');
 
     // # Open page actions menu
@@ -198,16 +198,16 @@ test.skip('inherits permissions when page moved to wiki in different channel', {
     // # Create two channels
     const channel1 = await adminClient.createChannel({
         team_id: team.id,
-        name: `channel1-${pw.random.id()}`,
-        display_name: `Channel 1 ${pw.random.id()}`,
+        name: `channel1-${await pw.random.id()}`,
+        display_name: `Channel 1 ${await pw.random.id()}`,
         type: 'O',
     });
     await adminClient.addToChannel(user.id, channel1.id);
 
     const channel2 = await adminClient.createChannel({
         team_id: team.id,
-        name: `channel2-${pw.random.id()}`,
-        display_name: `Channel 2 ${pw.random.id()}`,
+        name: `channel2-${await pw.random.id()}`,
+        display_name: `Channel 2 ${await pw.random.id()}`,
         type: 'O',
     });
     await adminClient.addToChannel(user.id, channel2.id);
@@ -216,12 +216,12 @@ test.skip('inherits permissions when page moved to wiki in different channel', {
 
     // # Create wiki1 and page in channel1 through UI
     await channelsPage.goto(team.name, channel1.name);
-    const wiki1 = await createWikiThroughUI(page, `Wiki 1 ${pw.random.id()}`);
+    const wiki1 = await createWikiThroughUI(page, `Wiki 1 ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Page to Move', 'Content');
 
     // # Create wiki2 in channel2 through UI
     await channelsPage.goto(team.name, channel2.name);
-    const wiki2 = await createWikiThroughUI(page, `Wiki 2 ${pw.random.id()}`);
+    const wiki2 = await createWikiThroughUI(page, `Wiki 2 ${await pw.random.id()}`);
 
     // # Navigate back to the page in wiki1
     const pageUrl = buildWikiPageUrl(pw.url, team.name, channel1.id, wiki1.id, testPage.id);
@@ -277,7 +277,7 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(userPage, `Readonly Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(userPage, `Readonly Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(userPage, 'Protected Page', 'Protected content');
 
     // # Create guest user with read-only access

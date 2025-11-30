@@ -39,7 +39,7 @@ test.skip('shows notification when another user publishes while editing', {tag: 
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
     const pageTitle = 'Notification Test Page';
     const page = await createPageThroughUI(page1, pageTitle, 'Original content');
 
@@ -116,13 +116,13 @@ test.skip('allows user to refresh and see latest changes during conflict', {tag:
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Conflict Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Conflict Wiki ${await pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Conflict Page', 'Base content here');
 
     // # Create user2 and add to channel
     const user2 = await adminClient.createUser({
-        username: `testuser${pw.random.id()}`,
-        email: `testuser${pw.random.id()}@example.com`,
+        username: `testuser${await pw.random.id()}`,
+        email: `testuser${await pw.random.id()}@example.com`,
         password: 'Password123!',
     }, '', '');
     user2.password = 'Password123!';
@@ -185,13 +185,13 @@ test.skip('allows user to overwrite during conflict with confirmation', {tag: '@
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Overwrite Test', 'Original text');
 
     // # Create user2 and add to channel
     const user2 = await adminClient.createUser({
-        username: `testuser${pw.random.id()}`,
-        email: `testuser${pw.random.id()}@example.com`,
+        username: `testuser${await pw.random.id()}`,
+        email: `testuser${await pw.random.id()}@example.com`,
         password: 'Password123!',
     }, '', '');
     user2.password = 'Password123!';
@@ -259,13 +259,13 @@ test.skip('shows visual indicator when another user is editing same page', {tag:
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Collaborative Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Collaborative Wiki ${await pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Collaborative Page', 'Shared content');
 
     // # Create user2 and add to channel
     const user2 = await adminClient.createUser({
-        username: `testuser${pw.random.id()}`,
-        email: `testuser${pw.random.id()}@example.com`,
+        username: `testuser${await pw.random.id()}`,
+        email: `testuser${await pw.random.id()}@example.com`,
         password: 'Password123!',
     }, '', '');
     user2.password = 'Password123!';
@@ -314,13 +314,13 @@ test.skip('preserves both users changes when merging non-conflicting edits', {ta
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Merge Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Merge Wiki ${await pw.random.id()}`);
     const page = await createPageThroughUI(page1, 'Merge Test', 'Section A content.\n\nSection B content.');
 
     // # Create user2 and add to channel
     const user2 = await adminClient.createUser({
-        username: `testuser${pw.random.id()}`,
-        email: `testuser${pw.random.id()}@example.com`,
+        username: `testuser${await pw.random.id()}`,
+        email: `testuser${await pw.random.id()}@example.com`,
         password: 'Password123!',
     }, '', '');
     user2.password = 'Password123!';
@@ -382,7 +382,7 @@ test('applies first-write-wins when saving concurrent edits from multiple tabs',
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Concurrent Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Concurrent Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page1, 'Concurrent Edit Page', 'Original content');
 
     // # User 1: Enter edit mode and make changes (but don't save yet)
@@ -395,12 +395,12 @@ test('applies first-write-wins when saving concurrent edits from multiple tabs',
     // # Create user2 FIRST (before granting permissions)
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    // # Grant page and wiki edit permissions to channel_user role AFTER user is created
+    // # Grant page edit and wiki (channel properties) permissions to channel_user role AFTER user is created
+    // Wiki operations now use manage_*_channel_properties permissions
     const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
-        'edit_page_public_channel',
-        'edit_page_private_channel',
-        'edit_wiki_public_channel',
-        'edit_wiki_private_channel',
+        'edit_page',
+        'manage_public_channel_properties',
+        'manage_private_channel_properties',
     ]);
 
     // Wait a moment for permission changes to propagate
@@ -516,7 +516,7 @@ test('allows explicit overwrite after confirmation when user overrides first-wri
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
     const testPage = await createPageThroughUI(page1, 'Overwrite Test Page', 'Original content');
 
     // # User 1: Enter edit mode and make changes (but don't save yet)
@@ -529,12 +529,12 @@ test('allows explicit overwrite after confirmation when user overrides first-wri
     // # Create user2 with permissions
     const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    // Grant edit permissions
+    // Grant page edit and wiki (channel properties) permissions
+    // Wiki operations now use manage_*_channel_properties permissions
     const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
-        'edit_page_public_channel',
-        'edit_page_private_channel',
-        'edit_wiki_public_channel',
-        'edit_wiki_private_channel',
+        'edit_page',
+        'manage_public_channel_properties',
+        'manage_private_channel_properties',
     ]);
 
     await page1.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -657,7 +657,7 @@ test.skip('opens published page in new tab when View Changes clicked during conf
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
     const pageTitle = 'Conflict Test Page';
     const originalContent = 'Original content that both users will modify';
     const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
@@ -756,7 +756,7 @@ test('copies content to clipboard when Copy Content clicked during conflict', {t
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
     const pageTitle = 'Copy Content Test';
     const originalContent = 'Original content';
     const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
@@ -846,7 +846,7 @@ test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
     const pageTitle = 'Cancel Conflict Test';
     const originalContent = 'Original content to be edited';
     const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);

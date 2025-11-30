@@ -20,7 +20,7 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `XSS Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `XSS Test Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -69,7 +69,7 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `XSS Title Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `XSS Title Wiki ${await pw.random.id()}`);
 
     // # Create new page with XSS attempt in title
     const xssTitle = '<img src=x onerror=alert("XSS")>';
@@ -114,7 +114,7 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, share
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `SQL Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `SQL Test Wiki ${await pw.random.id()}`);
     await createPageThroughUI(page, 'Normal Page', 'Normal content');
 
     // # Attempt SQL injection in search
@@ -155,7 +155,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Validation Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Validation Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);

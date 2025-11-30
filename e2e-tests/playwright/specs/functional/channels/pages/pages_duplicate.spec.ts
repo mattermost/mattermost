@@ -10,7 +10,7 @@ import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextM
  */
 test('duplicates page to same wiki with default title', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -18,7 +18,7 @@ test('duplicates page to same wiki with default title', {tag: '@pages'}, async (
     await channelsPage.toBeVisible();
 
     // # Create wiki and original page through UI
-    const wiki = await createWikiThroughUI(page, `Duplicate Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Duplicate Wiki ${await pw.random.id()}`);
     const originalPage = await createPageThroughUI(page, 'Original Page', 'Original content here');
 
     // # Wait for page to be fully committed to database
@@ -47,14 +47,14 @@ test('duplicates page to same wiki with default title', {tag: '@pages'}, async (
  */
 test('duplicates child page at same level as source', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and parent page
-    await createWikiThroughUI(page, `Hierarchy Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Hierarchy Wiki ${await pw.random.id()}`);
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // # Create a child page under the parent
@@ -96,14 +96,14 @@ test('duplicates child page at same level as source', {tag: '@pages'}, async ({p
  */
 test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and page with content
-    await createWikiThroughUI(page, `Content Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Content Wiki ${await pw.random.id()}`);
     const contentPage = await createPageThroughUI(page, 'Content Page', 'This is the original page content with some text.');
 
     // # Wait for page to be fully committed to database
@@ -134,14 +134,14 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
  */
 test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki and root-level pages
-    await createWikiThroughUI(page, `Root Level Wiki ${pw.random.id()}`);
+    await createWikiThroughUI(page, `Root Level Wiki ${await pw.random.id()}`);
     const rootPage1 = await createPageThroughUI(page, 'Root Page 1', 'First root content');
     const rootPage2 = await createPageThroughUI(page, 'Root Page 2', 'Second root content');
 

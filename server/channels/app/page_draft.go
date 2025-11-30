@@ -373,7 +373,7 @@ func (a *App) validateDraftPermissions(rctx request.CTX, draft *model.PageDraft,
 func (a *App) checkPageCreatePermission(rctx request.CTX, session *model.Session, channel *model.Channel) *model.AppError {
 	switch channel.Type {
 	case model.ChannelTypeOpen, model.ChannelTypePrivate:
-		permission := getPagePermission(channel.Type, PageOperationCreate)
+		permission := getPagePermission(PageOperationCreate)
 		if permission == nil {
 			return model.NewAppError("checkPageCreatePermission", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
 		}

@@ -41,7 +41,7 @@ test('shows newly published page in hierarchy panel for other users without refr
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
 
     // # Create user2 and add to channel
     const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -58,7 +58,7 @@ test('shows newly published page in hierarchy panel for other users without refr
     await expect(emptyState).toBeVisible();
 
     // # User 1 creates and publishes a new page
-    const pageTitle = `New Page ${pw.random.id()}`;
+    const pageTitle = `New Page ${await pw.random.id()}`;
     await createPageThroughUI(page1, pageTitle, 'This is a test page created by user 1');
 
     // # Wait for page to be published
@@ -92,13 +92,13 @@ test('shows moved page in target wiki hierarchy for other users without refresh'
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const sourceWiki = await createWikiThroughUI(page1, `Source Wiki ${pw.random.id()}`);
-    const pageTitle = `Page to Move ${pw.random.id()}`;
+    const sourceWiki = await createWikiThroughUI(page1, `Source Wiki ${await pw.random.id()}`);
+    const pageTitle = `Page to Move ${await pw.random.id()}`;
     const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be moved');
 
     // # Navigate back to channel to create second wiki
     await channelsPage1.goto(team.name, channel.name);
-    const targetWiki = await createWikiThroughUI(page1, `Target Wiki ${pw.random.id()}`);
+    const targetWiki = await createWikiThroughUI(page1, `Target Wiki ${await pw.random.id()}`);
 
     // # Create user2 and add to channel
     const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
@@ -161,8 +161,8 @@ test('updates page content in real-time when another user publishes', {tag: '@pa
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${pw.random.id()}`);
-    const pageTitle = `Realtime Update Test ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+    const pageTitle = `Realtime Update Test ${await pw.random.id()}`;
     const originalContent = 'Original version 1';
     const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
@@ -226,8 +226,8 @@ test('shows updated content without refresh when page is modified multiple times
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Multi-Edit Wiki ${pw.random.id()}`);
-    const pageTitle = `Multi-Edit Page ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Multi-Edit Wiki ${await pw.random.id()}`);
+    const pageTitle = `Multi-Edit Page ${await pw.random.id()}`;
     const version1 = 'Version 1 content';
     const createdPage = await createPageThroughUI(page1, pageTitle, version1);
 
@@ -311,9 +311,9 @@ test('shows published version when navigating back after external publish', {tag
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Nav Test Wiki ${pw.random.id()}`);
-    const pageATitle = `Page A ${pw.random.id()}`;
-    const pageBTitle = `Page B ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Nav Test Wiki ${await pw.random.id()}`);
+    const pageATitle = `Page A ${await pw.random.id()}`;
+    const pageBTitle = `Page B ${await pw.random.id()}`;
     const pageA = await createPageThroughUI(page1, pageATitle, 'Page A original content');
     const pageB = await createPageThroughUI(page1, pageBTitle, 'Page B content');
 
@@ -398,10 +398,10 @@ test('shows consistent state when both users navigate away and return to same pa
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Navigation Wiki ${pw.random.id()}`);
-    const pageATitle = `Page A ${pw.random.id()}`;
-    const pageBTitle = `Page B ${pw.random.id()}`;
-    const pageCTitle = `Page C ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Navigation Wiki ${await pw.random.id()}`);
+    const pageATitle = `Page A ${await pw.random.id()}`;
+    const pageBTitle = `Page B ${await pw.random.id()}`;
+    const pageCTitle = `Page C ${await pw.random.id()}`;
 
     const pageA = await createPageThroughUI(page1, pageATitle, 'Page A content - version 1');
     const pageB = await createPageThroughUI(page1, pageBTitle, 'Page B content');
@@ -541,8 +541,8 @@ test('protects active drafts from being overwritten by external page publishes',
     await channelsPage1.goto(team.name, channel.name);
     await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Draft Protection Wiki ${pw.random.id()}`);
-    const pageTitle = `Test Page ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page1, `Draft Protection Wiki ${await pw.random.id()}`);
+    const pageTitle = `Test Page ${await pw.random.id()}`;
     const originalContent = 'Original published content';
 
     const testPage = await createPageThroughUI(page1, pageTitle, originalContent);

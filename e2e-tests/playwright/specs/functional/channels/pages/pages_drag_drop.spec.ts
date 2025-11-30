@@ -22,14 +22,14 @@ test.skip('makes page a child via drag-drop', {tag: '@pages'}, async ({pw, share
     // 2. Use visual regression testing for drag behavior
     // 3. Implement custom CDP drag-and-drop for react-beautiful-dnd
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Drag Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Drag Wiki ${await pw.random.id()}`);
 
     // # Create two root-level pages
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
@@ -107,14 +107,14 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
     // The UI functionality WORKS - dragging child between root nodes should promote it
     // The underlying API is tested via "moves page to new parent within same wiki" test (uses modal)
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Promote Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Promote Wiki ${await pw.random.id()}`);
 
     // # Create parent page and a child page
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');

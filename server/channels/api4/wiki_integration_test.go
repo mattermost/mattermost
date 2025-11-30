@@ -19,10 +19,10 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -123,9 +123,9 @@ func TestMultiUserPageEditing(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
 
 	th.LinkUserToTeam(t, th.BasicUser2, th.BasicTeam)
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
@@ -232,11 +232,11 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -338,12 +338,12 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 	privateChannel := th.CreatePrivateChannel(t)
 	th.AddUserToChannel(t, th.BasicUser, privateChannel)
@@ -398,11 +398,11 @@ func TestPublishPageDraft_OptimisticLocking_Success(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
@@ -442,11 +442,11 @@ func TestPublishPageDraft_OptimisticLocking_Returns409(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 
@@ -496,11 +496,11 @@ func TestPublishPageDraft_WrongBaseUpdateAtReturns409(t *testing.T) {
 
 	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
 
 	th.Context.Session().UserId = th.BasicUser.Id
 

@@ -279,14 +279,11 @@ const values = {
     DELETE_BOOKMARK_PRIVATE_CHANNEL: 'delete_bookmark_private_channel',
     ORDER_BOOKMARK_PRIVATE_CHANNEL: 'order_bookmark_private_channel',
 
-    CREATE_PAGE_PUBLIC_CHANNEL: 'create_page_public_channel',
-    READ_PAGE_PUBLIC_CHANNEL: 'read_page_public_channel',
-    EDIT_PAGE_PUBLIC_CHANNEL: 'edit_page_public_channel',
-    DELETE_PAGE_PUBLIC_CHANNEL: 'delete_page_public_channel',
-    CREATE_PAGE_PRIVATE_CHANNEL: 'create_page_private_channel',
-    READ_PAGE_PRIVATE_CHANNEL: 'read_page_private_channel',
-    EDIT_PAGE_PRIVATE_CHANNEL: 'edit_page_private_channel',
-    DELETE_PAGE_PRIVATE_CHANNEL: 'delete_page_private_channel',
+    CREATE_PAGE: 'create_page',
+    READ_PAGE: 'read_page',
+    EDIT_PAGE: 'edit_page',
+    DELETE_OWN_PAGE: 'delete_own_page',
+    DELETE_PAGE: 'delete_page',
 };
 
 values.SYSCONSOLE_READ_PERMISSIONS = [

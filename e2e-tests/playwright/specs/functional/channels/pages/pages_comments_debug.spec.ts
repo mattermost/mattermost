@@ -24,14 +24,14 @@ import {
  */
 test('DEBUG: add two inline comments with detailed logging', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // Create wiki
-    const wiki = await createWikiThroughUI(page, `Debug Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Debug Wiki ${await pw.random.id()}`);
 
     // Create page with two distinct paragraphs using Enter key
     const newPageButton = getNewPageButton(page);

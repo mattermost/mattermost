@@ -150,6 +150,22 @@ func extractTextFromNode(node map[string]any) string {
 		}
 	}
 
+	// Handle TipTap mention nodes (user mentions and channel mentions)
+	// Mentions are stored as {type: "mention", attrs: {id: "...", label: "username"}}
+	// The label contains the username which should be searchable
+	if nodeType, ok := node["type"].(string); ok && (nodeType == "mention" || nodeType == "channelMention") {
+		if attrs, ok := node["attrs"].(map[string]any); ok {
+			// Extract label (username) for search - this allows @mentions to be found in search
+			if label, ok := attrs["label"].(string); ok && label != "" {
+				// Add with @ prefix to make mentions searchable (e.g., "@john")
+				parts = append(parts, "@"+label)
+			} else if id, ok := attrs["id"].(string); ok && id != "" {
+				// Fall back to id if label is not set
+				parts = append(parts, "@"+id)
+			}
+		}
+	}
+
 	if contentVal, ok := node["content"]; ok {
 		var childNodes []map[string]any
 

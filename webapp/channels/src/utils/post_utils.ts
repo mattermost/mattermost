@@ -876,9 +876,5 @@ export function canEditPage(state: GlobalState, page: Post, channel: Channel): b
         return false;
     }
 
-    const permission = channel.type === Constants.OPEN_CHANNEL ?
-        Permissions.EDIT_PAGE_PUBLIC_CHANNEL :
-        Permissions.EDIT_PAGE_PRIVATE_CHANNEL;
-
-    return haveIChannelPermission(state, channel.team_id, channel.id, permission);
+    return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_PAGE);
 }

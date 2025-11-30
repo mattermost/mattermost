@@ -21,7 +21,7 @@ test('publishes page with Confluence-like content without draggableId errors', {
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Confluence Test Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Confluence Test Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -140,7 +140,7 @@ test('shows proper error message when draft not found during publish', {tag: '@p
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Invalid Draft Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Invalid Draft Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -211,7 +211,7 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Drag Drop Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Drag Drop Wiki ${await pw.random.id()}`);
 
     // # Create a parent page first
     const newPageButton = getNewPageButton(page);

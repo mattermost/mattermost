@@ -122,20 +122,11 @@ var PermissionAddBookmarkPrivateChannel *Permission
 var PermissionEditBookmarkPrivateChannel *Permission
 var PermissionDeleteBookmarkPrivateChannel *Permission
 var PermissionOrderBookmarkPrivateChannel *Permission
-var PermissionCreateWikiPublicChannel *Permission
-var PermissionEditWikiPublicChannel *Permission
-var PermissionDeleteWikiPublicChannel *Permission
-var PermissionCreateWikiPrivateChannel *Permission
-var PermissionEditWikiPrivateChannel *Permission
-var PermissionDeleteWikiPrivateChannel *Permission
-var PermissionCreatePagePublicChannel *Permission
-var PermissionReadPagePublicChannel *Permission
-var PermissionEditPagePublicChannel *Permission
-var PermissionDeletePagePublicChannel *Permission
-var PermissionCreatePagePrivateChannel *Permission
-var PermissionReadPagePrivateChannel *Permission
-var PermissionEditPagePrivateChannel *Permission
-var PermissionDeletePagePrivateChannel *Permission
+var PermissionCreatePage *Permission
+var PermissionReadPage *Permission
+var PermissionEditPage *Permission
+var PermissionDeleteOwnPage *Permission
+var PermissionDeletePage *Permission
 var PermissionReadOtherUsersTeams *Permission
 var PermissionEditBrand *Permission
 var PermissionManageSharedChannels *Permission
@@ -429,7 +420,6 @@ var SysconsoleWritePermissions []*Permission
 
 var PermissionManageOutgoingOAuthConnections *Permission
 var ModeratedBookmarkPermissions []*Permission
-var ModeratedWikiPermissions []*Permission
 var ModeratedPagePermissions []*Permission
 
 func initializePermissions() {
@@ -1336,87 +1326,32 @@ func initializePermissions() {
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionCreateWikiPublicChannel = &Permission{
-		"create_wiki_public_channel",
+	PermissionCreatePage = &Permission{
+		"create_page",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionEditWikiPublicChannel = &Permission{
-		"edit_wiki_public_channel",
+	PermissionReadPage = &Permission{
+		"read_page",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionDeleteWikiPublicChannel = &Permission{
-		"delete_wiki_public_channel",
+	PermissionEditPage = &Permission{
+		"edit_page",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionCreateWikiPrivateChannel = &Permission{
-		"create_wiki_private_channel",
+	PermissionDeleteOwnPage = &Permission{
+		"delete_own_page",
 		"",
 		"",
 		PermissionScopeChannel,
 	}
-	PermissionEditWikiPrivateChannel = &Permission{
-		"edit_wiki_private_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionDeleteWikiPrivateChannel = &Permission{
-		"delete_wiki_private_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-
-	PermissionCreatePagePublicChannel = &Permission{
-		"create_page_public_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionReadPagePublicChannel = &Permission{
-		"read_page_public_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionEditPagePublicChannel = &Permission{
-		"edit_page_public_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionDeletePagePublicChannel = &Permission{
-		"delete_page_public_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionCreatePagePrivateChannel = &Permission{
-		"create_page_private_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionReadPagePrivateChannel = &Permission{
-		"read_page_private_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionEditPagePrivateChannel = &Permission{
-		"edit_page_private_channel",
-		"",
-		"",
-		PermissionScopeChannel,
-	}
-	PermissionDeletePagePrivateChannel = &Permission{
-		"delete_page_private_channel",
+	PermissionDeletePage = &Permission{
+		"delete_page",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2678,20 +2613,11 @@ func initializePermissions() {
 		PermissionEditBookmarkPrivateChannel,
 		PermissionDeleteBookmarkPrivateChannel,
 		PermissionOrderBookmarkPrivateChannel,
-		PermissionCreateWikiPublicChannel,
-		PermissionEditWikiPublicChannel,
-		PermissionDeleteWikiPublicChannel,
-		PermissionCreateWikiPrivateChannel,
-		PermissionEditWikiPrivateChannel,
-		PermissionDeleteWikiPrivateChannel,
-		PermissionCreatePagePublicChannel,
-		PermissionReadPagePublicChannel,
-		PermissionEditPagePublicChannel,
-		PermissionDeletePagePublicChannel,
-		PermissionCreatePagePrivateChannel,
-		PermissionReadPagePrivateChannel,
-		PermissionEditPagePrivateChannel,
-		PermissionDeletePagePrivateChannel,
+		PermissionCreatePage,
+		PermissionReadPage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
@@ -2773,7 +2699,6 @@ func initializePermissions() {
 		"manage_members",
 		PermissionUseChannelMentions.Id,
 		"manage_bookmarks",
-		"manage_wikis",
 		"manage_pages",
 	}
 
@@ -2797,36 +2722,20 @@ func initializePermissions() {
 		PermissionOrderBookmarkPrivateChannel,
 	}
 
-	ModeratedWikiPermissions = []*Permission{
-		PermissionCreateWikiPublicChannel,
-		PermissionEditWikiPublicChannel,
-		PermissionDeleteWikiPublicChannel,
-		PermissionCreateWikiPrivateChannel,
-		PermissionEditWikiPrivateChannel,
-		PermissionDeleteWikiPrivateChannel,
-	}
-
 	ModeratedPagePermissions = []*Permission{
-		PermissionCreatePagePublicChannel,
-		PermissionReadPagePublicChannel,
-		PermissionEditPagePublicChannel,
-		PermissionDeletePagePublicChannel,
-		PermissionCreatePagePrivateChannel,
-		PermissionReadPagePrivateChannel,
-		PermissionEditPagePrivateChannel,
-		PermissionDeletePagePrivateChannel,
+		PermissionCreatePage,
+		PermissionReadPage,
+		PermissionEditPage,
+		PermissionDeleteOwnPage,
+		PermissionDeletePage,
 	}
 
 	for _, mbp := range ModeratedBookmarkPermissions {
 		ChannelModeratedPermissionsMap[mbp.Id] = ChannelModeratedPermissions[4]
 	}
 
-	for _, mwp := range ModeratedWikiPermissions {
-		ChannelModeratedPermissionsMap[mwp.Id] = ChannelModeratedPermissions[5]
-	}
-
 	for _, mpp := range ModeratedPagePermissions {
-		ChannelModeratedPermissionsMap[mpp.Id] = ChannelModeratedPermissions[6]
+		ChannelModeratedPermissionsMap[mpp.Id] = ChannelModeratedPermissions[5]
 	}
 }
 

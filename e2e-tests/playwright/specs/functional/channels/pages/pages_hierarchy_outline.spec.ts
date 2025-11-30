@@ -35,14 +35,14 @@ import {
  */
 test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Outline Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Outline Wiki ${await pw.random.id()}`);
 
     // # Create a page with headings through UI
     const newPageButton = page.locator('[data-testid="new-page-button"]');
@@ -131,7 +131,7 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
  */
 test('updates outline in hierarchy when page headings change', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
@@ -139,7 +139,7 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Outline Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Outline Wiki ${await pw.random.id()}`);
 
     // # Create a page with empty content (we'll add headings by editing)
     const testPage = await createPageThroughUI(page, 'Page with Headings', ' ');
@@ -248,14 +248,14 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
  */
 test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Outline Click Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Outline Click Wiki ${await pw.random.id()}`);
 
     // # Create a page with empty content (we'll add headings by editing)
     const testPage = await createPageThroughUI(page, 'Navigate to Headings', ' ');
@@ -324,14 +324,14 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
  */
 test('preserves outline visibility setting when navigating between pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Persist Outline Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Persist Outline Wiki ${await pw.random.id()}`);
 
     // # Create page 1 and immediately add headings (before creating page 2)
     const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');

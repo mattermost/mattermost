@@ -17,10 +17,10 @@ test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Search Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Search Wiki ${await pw.random.id()}`);
 
     // # Create multiple pages with different titles through UI
-    const searchableTitle = `UniqueSearchableTitle${pw.random.id()}`;
+    const searchableTitle = `UniqueSearchableTitle${await pw.random.id()}`;
     await createPageThroughUI(page, searchableTitle, 'Some content');
     await createPageThroughUI(page, 'Other Page Title', 'Different content');
     await createPageThroughUI(page, 'Another Page', 'More content');
@@ -56,11 +56,11 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Tree Filter Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Tree Filter Wiki ${await pw.random.id()}`);
 
     // # Create page with specific title and different content
     const pageTitle = 'Engineering Documentation';
-    const uniqueContent = `UniqueInternalContent${pw.random.id()}`;
+    const uniqueContent = `UniqueInternalContent${await pw.random.id()}`;
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, pageTitle);
@@ -107,10 +107,10 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Global Search Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Global Search Wiki ${await pw.random.id()}`);
 
     // # Create page with unique title through UI
-    const searchableTitle = `GlobalSearchableTitle${pw.random.id()}`;
+    const searchableTitle = `GlobalSearchableTitle${await pw.random.id()}`;
     await createPageThroughUI(page, searchableTitle, 'Test content for global search');
 
     // # Wait for page to be indexed (pages need to be saved to PageContents for search)
@@ -142,10 +142,10 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Content Global Search Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Content Global Search Wiki ${await pw.random.id()}`);
 
     // # Create page with unique content through UI
-    const uniqueContent = `GlobalSearchContent${pw.random.id()}`;
+    const uniqueContent = `GlobalSearchContent${await pw.random.id()}`;
     const pageTitle = 'Page for Global Content Search';
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
