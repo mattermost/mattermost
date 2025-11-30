@@ -1,0 +1,106 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`EmojiPage > should render without crashing 1`] = `
+<div>
+  <div
+    class="backstage-content emoji-list"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        Custom Emoji
+      </h1>
+      <a
+        class="add-link"
+        href="/team/emoji/add"
+      >
+        <button
+          class="btn btn-primary"
+          type="button"
+        >
+          Add Custom Emoji
+        </button>
+      </a>
+    </div>
+    <div>
+      <div
+        class="backstage-filters"
+      >
+        <div
+          class="backstage-filter__search"
+        >
+          <i
+            class="fa fa-search"
+            title="Search Icon"
+          />
+          <input
+            class="form-control"
+            placeholder="Search Custom Emoji"
+            style="flex-grow: 0; flex-shrink: 0;"
+            type="search"
+          />
+        </div>
+      </div>
+      <span
+        class="backstage-list__help"
+      >
+        <p>
+          Custom emoji are available to everyone on your server. Type ":" followed by two characters in a message box to bring up the emoji selection menu.
+        </p>
+        <p>
+          Tip: If you add #, ##, or ### as the first character on a new line containing emoji, you can use larger sized emoji. To try it out, send a message such as: '# :smile:'.
+        </p>
+      </span>
+      <div
+        class="backstage-list"
+      >
+        <table
+          class="emoji-list__table"
+        >
+          <thead>
+            <tr
+              class="backstage-list__item emoji-list__table-header"
+            >
+              <th
+                class="emoji-list__name"
+              >
+                Name
+              </th>
+              <th
+                class="emoji-list__image"
+              >
+                Image
+              </th>
+              <th
+                class="emoji-list__creator"
+              >
+                Creator
+              </th>
+              <th
+                class="emoji-list_actions"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              class="backstage-list__item backstage-list__empty"
+            >
+              <td
+                colspan="4"
+              >
+                No Custom Emoji Found
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        class="filter-controls pt-3"
+      />
+    </div>
+  </div>
+</div>
+`;

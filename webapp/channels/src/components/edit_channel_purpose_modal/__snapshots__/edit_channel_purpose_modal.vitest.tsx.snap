@@ -1,0 +1,298 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`comoponents/EditChannelPurposeModal > should match for private channel 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="editChannelPurposeModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="editChannelPurposeModalLabel"
+            >
+              <span>
+                Edit Purpose for 
+                <span
+                  class="name"
+                >
+                  name
+                </span>
+              </span>
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              This text appears in the "View Info" modal of the private channel.
+            </p>
+            <textarea
+              aria-label="edit purpose"
+              class="form-control no-resize"
+              maxlength="250"
+              rows="6"
+            >
+              testPurpose
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary cancel-button"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              type="button"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`comoponents/EditChannelPurposeModal > should match on init 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="editChannelPurposeModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="editChannelPurposeModalLabel"
+            >
+              <span>
+                Edit Purpose for 
+                <span
+                  class="name"
+                >
+                  name
+                </span>
+              </span>
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.
+            </p>
+            <textarea
+              aria-label="edit purpose"
+              class="form-control no-resize"
+              maxlength="250"
+              rows="6"
+            >
+              testPurpose
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary cancel-button"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              type="button"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`comoponents/EditChannelPurposeModal > should match with display name 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="editChannelPurposeModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="editChannelPurposeModalLabel"
+            >
+              <span>
+                Edit Purpose for 
+                <span
+                  class="name"
+                >
+                  channel name
+                </span>
+              </span>
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <p>
+              Describe how this channel should be used. This text appears in the channel list in the "More..." menu and helps others decide whether to join.
+            </p>
+            <textarea
+              aria-label="edit purpose"
+              class="form-control no-resize"
+              maxlength="250"
+              rows="6"
+            >
+              testPurpose
+            </textarea>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary cancel-button"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary"
+              type="button"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

@@ -372,7 +372,7 @@ exports[`components/AddGroupsToChannelModal > should match state when addValue i
                         alt="group picture"
                         class="more-modal__image"
                         height="32"
-                        src="/src/images/groups-avatar.png"
+                        src="mocked-groups-avatar.png"
                         width="32"
                       />
                       <div
@@ -599,7 +599,7 @@ exports[`components/AddGroupsToChannelModal > should match when renderOption is 
                         alt="group picture"
                         class="more-modal__image"
                         height="32"
-                        src="/src/images/groups-avatar.png"
+                        src="mocked-groups-avatar.png"
                         width="32"
                       />
                       <div

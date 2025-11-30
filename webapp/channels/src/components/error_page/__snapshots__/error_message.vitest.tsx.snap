@@ -1,0 +1,158 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/error_page/ErrorMessage > should match snapshot, channel_not_found type 1`] = `
+<div>
+  <p>
+    The channel you're requesting is private or does not exist. Please contact an Administrator to be added to the channel.
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, channel_not_found type 2`] = `
+<div>
+  <p>
+    Your guest account has no channels assigned. Please contact an administrator.
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, local_storage type 1`] = `
+<div>
+  <div>
+    Mattermost was unable to load because a setting in your browser prevents the use of its local storage features. To allow Mattermost to load, try the following actions:
+    <ul>
+      <li>
+        Enable cookies
+      </li>
+      <li>
+        Turn off private browsing
+      </li>
+      <li>
+        Use a supported browser (IE 11, Chrome 61+, Firefox 60+, Safari 12+, Edge 42+)
+      </li>
+    </ul>
+  </div>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, no type but with message 1`] = `
+<div>
+  <p>
+    error message
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, no type nor message 1`] = `
+<div>
+  <p>
+    An error has occurred.
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, oauth_access_denied type 1`] = `
+<div>
+  <p>
+    You must authorize Mattermost to log in with Gitlab.
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, oauth_invalid_param type 1`] = `
+<div>
+  <p>
+    error message
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, oauth_invalid_redirect_url type 1`] = `
+<div>
+  <p>
+    error message
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, oauth_missing_code type 1`] = `
+<div>
+  <div>
+    <p>
+      The service provider Gitlab did not provide an authorization code in the redirect URL.
+    </p>
+    <p>
+      For 
+      <a
+        href="https://docs.mattermost.com/deployment/sso-google.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=&sid=&edition=team&server_version="
+        location="error_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Google Apps
+      </a>
+       make sure your administrator enabled the Google+ API.
+    </p>
+    <p>
+      For 
+      <a
+        href="https://docs.mattermost.com/deployment/sso-office.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=&sid=&edition=team&server_version="
+        location="error_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Entra ID
+      </a>
+       make sure the administrator of your Microsoft organization has enabled the Mattermost app.
+    </p>
+    <p>
+      For 
+      <a
+        href="https://docs.mattermost.com/deployment/sso-gitlab.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=&sid=&edition=team&server_version="
+        location="error_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        GitLab
+      </a>
+       please make sure you followed the setup instructions.
+    </p>
+    <p>
+      If you reviewed the above and are still having trouble with configuration, you may post in our 
+      <a
+        href="https://forum.mattermost.com/c/trouble-shoot?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=&sid=&edition=team&server_version="
+        location="error_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Troubleshooting forum
+      </a>
+       where we'll be happy to help with issues during setup.
+    </p>
+  </div>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, page_not_found type 1`] = `
+<div>
+  <p>
+    The page you were trying to reach does not exist
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, permalink_not_found type 1`] = `
+<div>
+  <p>
+    Permalink belongs to a deleted message or to a channel to which you do not have access.
+  </p>
+</div>
+`;
+
+exports[`components/error_page/ErrorMessage > should match snapshot, team_not_found type 1`] = `
+<div>
+  <p>
+    The team you're requesting is private or does not exist. Please contact your Administrator for an invitation.
+  </p>
+</div>
+`;

@@ -11,6 +11,11 @@ import {renderWithContext, cleanup, act, screen, fireEvent, waitFor} from 'tests
 import AddGroupsToChannelModal from './add_groups_to_channel_modal';
 import type {Props} from './add_groups_to_channel_modal';
 
+// Mock the image import to prevent network requests
+vi.mock('images/groups-avatar.png', () => ({
+    default: 'mocked-groups-avatar.png',
+}));
+
 describe('components/AddGroupsToChannelModal', () => {
     beforeEach(() => {
         vi.useFakeTimers({shouldAdvanceTime: true});

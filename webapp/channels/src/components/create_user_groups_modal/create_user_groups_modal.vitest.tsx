@@ -409,7 +409,7 @@ describe('component/create_user_groups_modal', () => {
         });
     });
 
-    test('should fail to create with username conflict error', async () => {
+    test('should fail to create with duplicate mention error', async () => {
         const createGroupWithUserIds = vi.fn().mockImplementation(() =>
             Promise.resolve({error: {message: 'test error', server_error_id: 'app.group.username_conflict'}}),
         );

@@ -1,0 +1,97 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModalFooter > should match snapshot the desktop view 1`] = `
+<div>
+  <div
+    class="file-preview-modal-footer"
+  >
+    <div
+      class="file-preview-modal__info"
+    >
+      <img
+        alt=""
+        class="Avatar Avatar-lg file-preview-modal__avatar"
+        loading="lazy"
+        src="/api/v4/users/user_id/image?_=0"
+      />
+      <div
+        class="file-preview-modal__info-details"
+      >
+        <h5
+          class="file-preview-modal__user-name"
+        >
+          Someone
+        </h5>
+        <span
+          class="file-preview-modal__channel"
+        />
+      </div>
+    </div>
+    <div
+      class="file-preview-modal-main-actions__actions"
+    >
+      <a
+        aria-label="Download"
+        class="file-preview-modal-main-actions__action-item"
+        download="img.png"
+        href="https://example.com/img.png"
+        location="file_preview_modal_main_actions"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <i
+          class="icon icon-download-outline"
+        />
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModalFooter > should match snapshot the mobile view 1`] = `
+<div>
+  <div
+    class="file-preview-modal-footer"
+  >
+    <div
+      class="file-preview-modal__info"
+    >
+      <img
+        alt=""
+        class="Avatar Avatar-lg file-preview-modal__avatar"
+        loading="lazy"
+        src="/api/v4/users/user_id/image?_=0"
+      />
+      <div
+        class="file-preview-modal__info-details"
+      >
+        <h5
+          class="file-preview-modal__user-name"
+        >
+          Someone
+        </h5>
+        <span
+          class="file-preview-modal__channel"
+        />
+      </div>
+    </div>
+    <div
+      class="file-preview-modal-main-actions__actions"
+    >
+      <a
+        aria-label="Download"
+        class="file-preview-modal-main-actions__action-item"
+        download="img.png"
+        href="https://example.com/img.png"
+        location="file_preview_modal_main_actions"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <i
+          class="icon icon-download-outline"
+        />
+      </a>
+    </div>
+  </div>
+</div>
+`;

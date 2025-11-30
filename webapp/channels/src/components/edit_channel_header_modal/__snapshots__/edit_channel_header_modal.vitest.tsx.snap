@@ -1,0 +1,394 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/EditChannelHeaderModal > should match snapshot, init 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="editChannelHeaderModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="editChannelHeaderModalLabel"
+            >
+              Edit Header for Fake Channel
+            </h1>
+          </div>
+          <div
+            class="modal-body edit-modal-body"
+          >
+            <div>
+              <label
+                class="textarea-label"
+                for="edit_textbox"
+              >
+                Edit the text appearing next to the channel name in the header.
+              </label>
+              <div
+                class="textarea-wrapper"
+              >
+                <div
+                  class="textarea-wrapper"
+                >
+                  <div
+                    class="form-control custom-textarea textbox-preview-area"
+                  >
+                    <p>
+                      Fake Channel
+                    </p>
+                  </div>
+                  <div
+                    class=""
+                  >
+                    <div
+                      class="input-wrapper"
+                    >
+                      <div>
+                        <textarea
+                          aria-autocomplete="list"
+                          aria-controls="suggestionList"
+                          aria-expanded="false"
+                          autocomplete="off"
+                          class="form-control custom-textarea textbox-edit-area"
+                          data-testid="edit_textbox"
+                          dir="auto"
+                          height="0"
+                          id="edit_textbox"
+                          placeholder="Enter the Channel Header"
+                          role="textbox"
+                          rows="1"
+                          spellcheck="true"
+                          style="overflow-y: hidden;"
+                        >
+                          Fake Channel
+                        </textarea>
+                        <div
+                          style="height: 0px; overflow: hidden;"
+                        >
+                          <div
+                            aria-hidden="true"
+                            class="form-control custom-textarea textbox-edit-area"
+                            dir="auto"
+                            disabled=""
+                            id="edit_textbox-reference"
+                            style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
+                          >
+                            Fake Channel
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="post-create-footer"
+              >
+                <div
+                  class="help__text "
+                >
+                  <div
+                    class="help__format-text"
+                    style="visibility: visible; opacity: 0.45;"
+                  >
+                    <b>
+                      **bold**
+                    </b>
+                    <i>
+                      *italic*
+                    </i>
+                    <span>
+                      ~~
+                      <s>
+                        strike
+                      </s>
+                      ~~ 
+                    </span>
+                    <span>
+                      \`inline code\`
+                    </span>
+                    <span>
+                      \`\`\`preformatted\`\`\`
+                    </span>
+                    <span>
+                      &gt;quote
+                    </span>
+                  </div>
+                  <button
+                    class="style--none textbox-preview-link color--link"
+                    id="previewLink"
+                  >
+                    Preview
+                  </button>
+                  <a
+                    class="textbox-help-link"
+                    href="https://docs.mattermost.com/collaborate/format-messages.html?utm_source=mattermost&utm_medium=in-product&utm_content=textbox_links&uid=&sid=&edition=team&server_version="
+                    location="textbox_links"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Help
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary cancel-button"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary save-button"
+              type="button"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/EditChannelHeaderModal > submitted 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="editChannelHeaderModalLabel"
+      class="fade in modal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="editChannelHeaderModalLabel"
+            >
+              Edit Header for Fake Channel
+            </h1>
+          </div>
+          <div
+            class="modal-body edit-modal-body"
+          >
+            <div>
+              <label
+                class="textarea-label"
+                for="edit_textbox"
+              >
+                Edit the text appearing next to the channel name in the header.
+              </label>
+              <div
+                class="textarea-wrapper"
+              >
+                <div
+                  class="textarea-wrapper"
+                >
+                  <div
+                    class="form-control custom-textarea textbox-preview-area"
+                  >
+                    <p>
+                      New header
+                    </p>
+                  </div>
+                  <div
+                    class=""
+                  >
+                    <div
+                      class="input-wrapper"
+                    >
+                      <div>
+                        <textarea
+                          aria-autocomplete="list"
+                          aria-controls="suggestionList"
+                          aria-expanded="false"
+                          autocomplete="off"
+                          class="form-control custom-textarea textbox-edit-area"
+                          data-testid="edit_textbox"
+                          dir="auto"
+                          height="0"
+                          id="edit_textbox"
+                          placeholder="Enter the Channel Header"
+                          role="textbox"
+                          rows="1"
+                          spellcheck="true"
+                          style="overflow-y: hidden;"
+                        >
+                          New header
+                        </textarea>
+                        <div
+                          style="height: 0px; overflow: hidden;"
+                        >
+                          <div
+                            aria-hidden="true"
+                            class="form-control custom-textarea textbox-edit-area"
+                            dir="auto"
+                            disabled=""
+                            id="edit_textbox-reference"
+                            style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
+                          >
+                            New header
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="post-create-footer"
+              >
+                <div
+                  class="help__text "
+                >
+                  <div
+                    class="help__format-text"
+                    style="visibility: visible; opacity: 0.45;"
+                  >
+                    <b>
+                      **bold**
+                    </b>
+                    <i>
+                      *italic*
+                    </i>
+                    <span>
+                      ~~
+                      <s>
+                        strike
+                      </s>
+                      ~~ 
+                    </span>
+                    <span>
+                      \`inline code\`
+                    </span>
+                    <span>
+                      \`\`\`preformatted\`\`\`
+                    </span>
+                    <span>
+                      &gt;quote
+                    </span>
+                  </div>
+                  <button
+                    class="style--none textbox-preview-link color--link"
+                    id="previewLink"
+                  >
+                    Preview
+                  </button>
+                  <a
+                    class="textbox-help-link"
+                    href="https://docs.mattermost.com/collaborate/format-messages.html?utm_source=mattermost&utm_medium=in-product&utm_content=textbox_links&uid=&sid=&edition=team&server_version="
+                    location="textbox_links"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Help
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary cancel-button"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-primary save-button"
+              disabled=""
+              type="button"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

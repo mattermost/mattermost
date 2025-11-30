@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/drafts/draft_actions > should match snapshot 1`] = `
+<div>
+  In: 
+  <i
+    class="icon icon-globe"
+  />
+   
+  <span>
+    Test Channel
+  </span>
+</div>
+`;

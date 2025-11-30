@@ -1,0 +1,51 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/FilePreviewModalInfo > should match snapshot 1`] = `
+<div>
+  <div
+    class="file-preview-modal__info"
+  >
+    <img
+      alt=""
+      class="Avatar Avatar-lg file-preview-modal__avatar"
+      loading="lazy"
+      src="/api/v4/users/user_id/image?_=0"
+    />
+    <div
+      class="file-preview-modal__info-details"
+    >
+      <h5
+        class="file-preview-modal__user-name"
+      >
+        some-user
+      </h5>
+      <span
+        class="file-preview-modal__channel"
+      >
+        Shared in ~name
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FilePreviewModalInfo > should match snapshot where post is missing and avoid crash 1`] = `
+<div>
+  <div
+    class="file-preview-modal__info"
+  >
+    <div
+      class="file-preview-modal__info-details"
+    >
+      <h5
+        class="file-preview-modal__user-name"
+      >
+        Someone
+      </h5>
+      <span
+        class="file-preview-modal__channel"
+      />
+    </div>
+  </div>
+</div>
+`;
