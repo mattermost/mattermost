@@ -33,13 +33,6 @@ import (
 )
 
 const (
-	TokenTypePasswordRecovery  = "password_recovery"
-	TokenTypeVerifyEmail       = "verify_email"
-	TokenTypeTeamInvitation    = "team_invitation"
-	TokenTypeGuestInvitation   = "guest_invitation"
-	TokenTypeCWSAccess         = "cws_access_token"
-	PasswordRecoverExpiryTime  = 1000 * 60 * 60 * 24 // 24 hours
-	InvitationExpiryTime       = 1000 * 60 * 60 * 48 // 48 hours
 	ImageProfilePixelDimension = 128
 )
 
@@ -48,11 +41,11 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		return nil, err
 	}
 
-	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation {
+	if !token.IsInvitationToken() {
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
+	if token.IsExpired() {
 		if appErr := a.DeleteToken(token); appErr != nil {
 			rctx.Logger().Warn("Error while deleting expired signup-invite token", mlog.Err(appErr))
 		}
@@ -95,7 +88,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 
 	var ruser *model.User
 	var err *model.AppError
-	if token.Type == TokenTypeTeamInvitation {
+	if token.Type == model.TokenTypeTeamInvitation {
 		ruser, err = a.CreateUser(rctx, user)
 	} else {
 		ruser, err = a.CreateGuest(rctx, user)
@@ -112,7 +105,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		return nil, appErr
 	}
 
-	if token.Type == TokenTypeGuestInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
+	if token.Type == model.TokenTypeGuestInvitation || token.Type == model.TokenTypeGuestMagicLinkInvitation || (token.Type == model.TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
 			_, err := a.AddChannelMember(rctx, ruser.Id, channel, ChannelMemberOpts{})
 			if err != nil {
@@ -126,6 +119,98 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 	}
 
 	return ruser, nil
+}
+
+// AuthenticateUserForGuestMagicLink validates an guest magic link token and creates a guest user.
+// This function handles the passwordless "guest magic link" flow where clicking an email link logs the user in.
+// Follows the same pattern as SAML/OAuth SSO by creating the user then calling AddUserToTeamByToken.
+func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString string) (*model.User, *model.AppError) {
+	// Get and validate token type and expiry
+	token, err := a.Srv().Store().Token().GetByToken(tokenString)
+	if err != nil {
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if token.Type != model.TokenTypeGuestMagicLinkInvitation && token.Type != model.TokenTypeGuestMagicLink {
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// We have the token we were looking for, so remove it from the database ASAP
+	err = a.Srv().Store().Token().Delete(tokenString)
+	if err != nil {
+		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
+	}
+
+	if token.IsExpired() {
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.expired_token.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Extract email from token
+	tokenData := model.MapFromJSON(strings.NewReader(token.Extra))
+	email := tokenData["email"]
+
+	// Check if user already exists
+	existingUser, getUserErr := a.GetUserByEmail(email)
+
+	// Handle login-only tokens (TokenTypeGuestMagicLink) - for existing users only
+	if token.Type == model.TokenTypeGuestMagicLink {
+		if getUserErr != nil || existingUser == nil {
+			// Return generic error to prevent user enumeration
+			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest)
+		}
+		return existingUser, nil
+	}
+
+	// Handle invitation tokens (TokenTypeGuestMagicLinkInvitation) - create new guest user
+	if getUserErr == nil && existingUser != nil {
+		// Log the specific reason internally for debugging
+		rctx.Logger().Warn("Guest magic link invitation token attempted for existing user", mlog.String("email", email))
+
+		// Return generic error to prevent user enumeration - don't reveal that user exists
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Generate username from email
+	username := model.CleanUsername(rctx.Logger(), strings.Split(email, "@")[0])
+	// Ensure username is unique by appending random suffix if needed
+	// Try up to 10 times to find a unique username
+	originalUsername := username
+	usernameFound := false
+	for range 10 {
+		if _, usernameErr := a.GetUserByUsername(username); usernameErr != nil {
+			// Username is available
+			usernameFound = true
+			break
+		}
+		// Username exists, try with a random suffix (8 characters for better uniqueness)
+		username = originalUsername + model.NewId()[0:8]
+	}
+
+	if !usernameFound {
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.username_generation_failed.app_error", nil, "could not generate unique username after 10 attempts", http.StatusInternalServerError)
+	}
+
+	// Create guest user with auto-generated username
+	user := &model.User{
+		Email:         email,
+		EmailVerified: true,
+		Username:      username,
+		Password:      model.NewId(), // Random password - user won't use it
+		AuthService:   model.UserAuthServiceMagicLink,
+	}
+
+	guestUser, createErr := a.CreateGuest(rctx, user)
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	// Add user to team and channels using the shared SSO pattern
+	// This handles team joining, channel assignment, and token deletion
+	if _, _, addErr := a.AddUserToTeamWithToken(rctx, guestUser.Id, token); addErr != nil {
+		return nil, addErr
+	}
+
+	return guestUser, nil
 }
 
 func (a *App) CreateUserWithInviteId(rctx request.CTX, user *model.User, inviteId, redirect string) (*model.User, *model.AppError) {
@@ -1172,6 +1257,39 @@ func (a *App) DeactivateGuests(rctx request.CTX) *model.AppError {
 	return nil
 }
 
+func (a *App) DeactivateMagicLinkGuests(rctx request.CTX) *model.AppError {
+	userIDs, err := a.ch.srv.userService.DeactivateMagicLinkGuests()
+	if err != nil {
+		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, userID := range userIDs {
+		if err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
+			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	for _, userID := range userIDs {
+		if err := a.userDeactivated(rctx, userID); err != nil {
+			return err
+		}
+	}
+
+	if err := a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLinkInvitation); err != nil {
+		rctx.Logger().Warn("Error while removing guest magic link invitation tokens", mlog.Err(err))
+	}
+	if err := a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLink); err != nil {
+		rctx.Logger().Warn("Error while removing guest magic link tokens", mlog.Err(err))
+	}
+	a.Srv().Store().Channel().ClearCaches()
+	a.Srv().Store().User().ClearCaches()
+
+	message := model.NewWebSocketEvent(model.WebsocketEventGuestsDeactivated, "", "", "", nil, "")
+	a.Publish(message)
+
+	return nil
+}
+
 func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	return a.ch.srv.userService.GetSanitizeOptions(asAdmin)
 }
@@ -1592,7 +1710,10 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 	if err != nil {
 		return err
 	}
-	if nowMilli-token.CreateAt >= PasswordRecoverExpiryTime {
+
+	// We cannot use IsExpired() here because we need to check
+	// with the argument passed in.
+	if nowMilli > token.CreateAt+model.PasswordRecoverExpiryTime {
 		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1617,6 +1738,10 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 
 	if user.IsSSOUser() {
 		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	}
+
+	if user.IsGuest() && user.IsMagicLinkEnabled() {
+		return model.NewAppError("ResetPasswordFromCode", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	// don't allow password reset for remote/synthetic users
@@ -1652,6 +1777,10 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
+	if user.IsGuest() && user.IsMagicLinkEnabled() {
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	}
+
 	token, err := a.CreatePasswordRecoveryToken(rctx, user.Id, user.Email)
 	if err != nil {
 		return false, err
@@ -1684,7 +1813,7 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(err))
 	}
 
-	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
+	token := model.NewToken(model.TokenTypePasswordRecovery, string(jsonData))
 	if err := a.Srv().Store().Token().Save(token); err != nil {
 		var appErr *model.AppError
 		switch {
@@ -1699,7 +1828,7 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 }
 
 func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError {
-	tokens, err := a.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+	tokens, err := a.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 	if err != nil {
 		return model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1731,7 +1860,7 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 	if err != nil {
 		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	if rtoken.Type != TokenTypePasswordRecovery {
+	if rtoken.Type != model.TokenTypePasswordRecovery {
 		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.broken_token.app_error", nil, "", http.StatusBadRequest)
 	}
 	return rtoken, nil
@@ -2040,7 +2169,7 @@ func (a *App) VerifyEmailFromToken(rctx request.CTX, userSuppliedTokenString str
 	if err != nil {
 		return err
 	}
-	if model.GetMillis()-token.CreateAt >= PasswordRecoverExpiryTime {
+	if token.IsExpired() {
 		return model.NewAppError("VerifyEmailFromToken", "api.user.verify_email.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2084,7 +2213,7 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 	if err != nil {
 		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.bad_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	if rtoken.Type != TokenTypeVerifyEmail {
+	if rtoken.Type != model.TokenTypeVerifyEmail {
 		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.broken_token.app_error", nil, "", http.StatusBadRequest)
 	}
 	return rtoken, nil
