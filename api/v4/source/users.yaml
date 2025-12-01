@@ -1040,9 +1040,9 @@
     put:
       tags:
         - users
-      summary: Update user active status
+      summary: Activate or deactivate a user
       description: >
-        Update user active or inactive status.
+        Activate or deactivate a user's account. A deactivated user can't log into Mattermost or use it without being reactivated.
 
 
         __Since server version 4.6, users using a SSO provider to login can be activated or deactivated with this endpoint. However, if their activation status in Mattermost does not reflect their status in the SSO provider, the next synchronization or login by that user will reset the activation status to that of their account in the SSO provider. Server versions 4.5 and before do not allow activation or deactivation of SSO users from this endpoint.__
@@ -1070,11 +1070,11 @@
               properties:
                 active:
                   type: boolean
-        description: Use `true` to set the user active, `false` for inactive
+        description: Use `true` to activate the user or `false` to deactivate them
         required: true
       responses:
         "200":
-          description: User active status update successful
+          description: User activation/deactivation update successful
           content:
             application/json:
               schema:
@@ -2063,6 +2063,54 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/users/login/type:
+    post:
+      tags:
+        - users
+      summary: Get login authentication type
+      description: >
+        Get the authentication service type (auth_service) for a user to determine
+        how they should authenticate. This endpoint is typically used in the login flow
+        to determine which authentication method to use.
+
+
+        For this version, the endpoint only returns a non-empty `auth_service` if the user has magic_link enabled.
+        For all other authentication methods (email/password, OAuth, SAML, LDAP), an empty string is returned.
+
+        ##### Permissions
+
+        No permission required
+      operationId: GetLoginType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  description: The user ID (optional, can be used with login_id)
+                  type: string
+                login_id:
+                  description: The login ID (email, username, or unique identifier)
+                  type: string
+                device_id:
+                  description: The device ID for audit logging purposes
+                  type: string
+        description: Login type request object
+        required: true
+      responses:
+        "200":
+          description: Login type retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auth_service:
+                    description: The authentication service type. Returns the actual service type if guest_magic_link is enabled (in which case a magic link is also sent to the user's email). Returns an empty string for all other authentication methods.
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
   "/api/v4/users/{user_id}/tokens":
     post:
       tags:

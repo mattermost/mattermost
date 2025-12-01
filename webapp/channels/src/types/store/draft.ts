@@ -29,6 +29,9 @@ export type PostDraft = {
             requested_ack?: boolean;
             persistent_notifications?: boolean;
         };
+        burn_on_read?: {
+            enabled: boolean;
+        };
         files?: FileInfo[];
     };
 };
@@ -38,7 +41,17 @@ export function isPostDraftEmpty(draft: PostDraft): boolean {
     const hasAttachment = draft.fileInfos?.length > 0;
     const hasUploadingFiles = draft.uploadsInProgress?.length > 0;
 
-    return !hasMessage && !hasAttachment && !hasUploadingFiles;
+    // Check for priority metadata
+    const hasPriority = draft.metadata?.priority && (
+        draft.metadata.priority.priority ||
+        draft.metadata.priority.requested_ack ||
+        draft.metadata.priority.persistent_notifications
+    );
+
+    // Check for burn-on-read metadata
+    const hasBurnOnRead = draft.metadata?.burn_on_read?.enabled;
+
+    return !hasMessage && !hasAttachment && !hasUploadingFiles && !hasPriority && !hasBurnOnRead;
 }
 
 export function scheduledPostToPostDraft(scheduledPost: ScheduledPost): PostDraft {
