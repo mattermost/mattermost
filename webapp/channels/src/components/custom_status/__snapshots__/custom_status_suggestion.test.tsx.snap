@@ -1,11 +1,13 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/custom_status/custom_status_emoji should match snapshot 1`] = `
-<button
+<div
   className="statusSuggestion__row cursor--pointer"
   onClick={[Function]}
+  onKeyDown={[Function]}
   onMouseEnter={[Function]}
   onMouseLeave={[Function]}
+  role="button"
   tabIndex={0}
 >
   <div
@@ -20,15 +22,17 @@ exports[`components/custom_status/custom_status_emoji should match snapshot 1`] 
     className="statusSuggestion__text"
     text=""
   />
-</button>
+</div>
 `;
 
 exports[`components/custom_status/custom_status_emoji should match snapshot with duration 1`] = `
-<button
+<div
   className="statusSuggestion__row cursor--pointer"
   onClick={[Function]}
+  onKeyDown={[Function]}
   onMouseEnter={[Function]}
   onMouseLeave={[Function]}
+  role="button"
   tabIndex={0}
 >
   <div
@@ -51,5 +55,5 @@ exports[`components/custom_status/custom_status_emoji should match snapshot with
       id="custom_status.expiry_dropdown.today"
     />
   </span>
-</button>
+</div>
 `;

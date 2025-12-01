@@ -62,7 +62,7 @@ exports[`components/delete_channel_modal should match snapshot for delete_channe
       </p>
       <p>
         <MemoizedFormattedMessage
-          defaultMessage="Are you sure you wish to archive the <strong>{display_name}</strong> channel?"
+          defaultMessage="Are you sure you wish to archive the <b>{display_name}</b> channel?"
           id="deleteChannelModal.confirmArchive"
           values={
             Object {

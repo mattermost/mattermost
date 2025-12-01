@@ -1,0 +1,179 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/search_results/MessagesOrFilesSelector > should match snapshot, on files selected 1`] = `
+<div>
+  <div
+    class="MessagesOrFilesSelector"
+  >
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
+    >
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="false"
+        class="tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="-1"
+      >
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="filesPanel"
+        aria-selected="true"
+        class="active tab files-tab"
+        id="filesTab"
+        role="tab"
+        tabindex="0"
+      >
+        Files
+        <span
+          class="counter"
+        >
+          10
+        </span>
+      </button>
+    </div>
+    <div
+      class="FilesFilterMenu"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          class="sc-pqjAT czAcNl action-icon dots-icon"
+          id="filesFilterButton"
+          type="button"
+        >
+          <i
+            class="icon-dot"
+          />
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/MessagesOrFilesSelector > should match snapshot, on messages selected 1`] = `
+<div>
+  <div
+    class="MessagesOrFilesSelector"
+  >
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
+    >
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="true"
+        class="active tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="0"
+      >
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+      <button
+        aria-controls="filesPanel"
+        aria-selected="false"
+        class="tab files-tab"
+        id="filesTab"
+        role="tab"
+        tabindex="-1"
+      >
+        Files
+        <span
+          class="counter"
+        >
+          10
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/search_results/MessagesOrFilesSelector > should match snapshot, without files tab 1`] = `
+<div>
+  <div
+    class="MessagesOrFilesSelector"
+  >
+    <div
+      aria-label="Messages or Files"
+      class="buttons-container"
+      role="tablist"
+    >
+      <button
+        aria-controls="messagesPanel"
+        aria-selected="false"
+        class="tab messages-tab"
+        id="messagesTab"
+        role="tab"
+        tabindex="-1"
+      >
+        Messages
+        <span
+          class="counter"
+        >
+          5
+        </span>
+      </button>
+    </div>
+    <div
+      class="FilesFilterMenu"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          class="sc-pqjAT czAcNl action-icon dots-icon"
+          id="filesFilterButton"
+          type="button"
+        >
+          <i
+            class="icon-dot"
+          />
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6,13H18V11H6M3,6V8H21V6M10,18H14V16H10V18Z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

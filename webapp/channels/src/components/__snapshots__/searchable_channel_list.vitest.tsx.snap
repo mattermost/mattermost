@@ -1,0 +1,129 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/SearchableChannelList > should match init snapshot 1`] = `
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <span
+        aria-hidden="true"
+        id="searchIcon"
+      >
+        <i
+          class="icon icon-magnify"
+        />
+      </span>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          aria-label="Search Channels"
+          class="form-control filter-textbox"
+          id="searchChannelsTextbox"
+          placeholder="Search channels"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="more-modal__dropdown"
+    >
+      <span
+        id="channelCountLabel"
+      >
+        0 Results
+      </span>
+      <span
+        aria-live="polite"
+        class="sr-only"
+        role="status"
+      >
+        0 Results
+      </span>
+      <div
+        id="modalPreferenceContainer"
+      >
+        <div
+          aria-atomic="true"
+          class="sr-only"
+          role="status"
+        >
+          Channel type filter set to {filterType}
+        </div>
+        <button
+          aria-controls="browseChannelsDropdown"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-label="Channel type filter"
+          class=""
+          id="menuWrapper"
+        >
+          Channel Type: All
+          <svg
+            fill="rgba(var(--center-channel-color-rgb), 0.64)"
+            height="16"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+            />
+          </svg>
+        </button>
+        <div
+          aria-checked="false"
+          aria-label="Hide joined channels"
+          id="hideJoinedPreferenceCheckbox"
+          role="checkbox"
+          tabindex="0"
+        >
+          <div
+            class="get-app__checkbox"
+          />
+          Hide Joined
+        </div>
+      </div>
+    </div>
+    <div
+      class="more-modal__list"
+      role="search"
+      tabindex="-1"
+    >
+      <div
+        id="moreChannelsList"
+        tabindex="-1"
+      >
+        <div
+          class="loading-screen"
+          style="position: relative;"
+        >
+          <div
+            class="loading__content"
+          >
+            <p>
+              Loading
+            </p>
+            <div
+              class="round round-1"
+            />
+            <div
+              class="round round-2"
+            />
+            <div
+              class="round round-3"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="filter-controls"
+    />
+  </div>
+</div>
+`;

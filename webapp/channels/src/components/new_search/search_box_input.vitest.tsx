@@ -55,6 +55,13 @@ describe('components/new_search/SearchBoxInput', () => {
         expect(props.onKeyDown).toHaveBeenCalledTimes(1);
     });
 
+    test('should call on key down when there is a key down event on the input field', () => {
+        const props = {...baseProps};
+        renderWithContext(<SearchBoxInput {...props}/>);
+        fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter'});
+        expect(props.onKeyDown).toHaveBeenCalledTimes(1);
+    });
+
     test('should update the search term on change', () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxInput {...props}/>);

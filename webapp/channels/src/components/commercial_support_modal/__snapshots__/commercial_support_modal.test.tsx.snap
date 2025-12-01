@@ -52,11 +52,11 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
       className="CommercialSupportModal"
     >
       <MemoizedFormattedMessage
-        defaultMessage="If you're experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
+        defaultMessage="If you're experiencing issues, <a>submit a support ticket</a>. To help with troubleshooting, it's recommended to download the Support Packet below that includes more details about your Mattermost environment."
         id="commercial_support_modal.description"
         values={
           Object {
-            "supportLink": [Function],
+            "a": [Function],
           }
         }
       />

@@ -63,11 +63,11 @@ describe('components/post_view/embedded_bindings/embedded_binding', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test("should match snapshot when the attachment hasn't any emojis in the title", () => {
+    test('should match snapshot when the attachment hasn\'t any emojis in the title', () => {
         const props = {
             ...baseProps,
             attachment: {
-                title: "Don't you like emojis?",
+                title: 'Don\'t you like emojis?',
             } as MessageAttachmentType,
         };
 

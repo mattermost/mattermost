@@ -1,0 +1,59 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/RhsThread > should match snapshot 1`] = `
+<div>
+  <div
+    class="sidebar-right__body"
+    id="rhsContainer"
+  >
+    <div
+      class="sidebar--right__header"
+    >
+      <span
+        class="sidebar--right__title"
+        id="rhsPanelTitle"
+      >
+        Thread
+      </span>
+      <div
+        class="controls"
+      >
+        <button
+          aria-label="Open in new window"
+          class="btn btn-icon btn-sm PopoutButton"
+          type="button"
+        >
+          <i
+            aria-hidden="true"
+            class="icon icon-dock-window"
+          />
+        </button>
+        <button
+          aria-label="Expand Sidebar Icon"
+          class="sidebar--right__expand btn btn-icon btn-sm"
+          type="button"
+        >
+          <i
+            class="icon icon-arrow-expand"
+          />
+          <i
+            class="icon icon-arrow-collapse"
+          />
+        </button>
+        <button
+          aria-label="Close"
+          class="sidebar--right__close btn btn-icon btn-sm"
+          id="rhsCloseButton"
+          type="button"
+        >
+          <i
+            aria-label="Close Sidebar Icon"
+            class="icon icon-close"
+          />
+        </button>
+      </div>
+    </div>
+    <span />
+  </div>
+</div>
+`;
