@@ -278,7 +278,7 @@ func renameTeamCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	newDisplayName, err := cmd.Flags().GetString("display_name")
+	newDisplayName, err := cmd.Flags().GetString("display-name")
 	if err != nil {
 		return err
 	}

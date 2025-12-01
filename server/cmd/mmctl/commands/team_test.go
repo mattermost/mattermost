@@ -127,7 +127,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 
 		args := []string{""}
 		args[0] = "existingName"
-		cmd.Flags().String("display_name", "newDisplayName", "Team Display Name")
+		cmd.Flags().String("display-name", "newDisplayName", "Team Display Name")
 
 		// Mocking : GetTeam searches with team id, if team not found proceeds with team name search
 		s.client.
@@ -158,7 +158,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args := []string{""}
 
 		args[0] = existingName
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
+		cmd.Flags().String("display-name", newDisplayName, "Display Name")
 		cmd.Flags().String("name", newName, "Name")
 
 		// Only reduced model.Team struct for testing per say
@@ -210,7 +210,7 @@ func (s *MmctlUnitTestSuite) TestRenameTeamCmdF() {
 		args := []string{""}
 
 		args[0] = existingName
-		cmd.Flags().String("display_name", newDisplayName, "Display Name")
+		cmd.Flags().String("display-name", newDisplayName, "Display Name")
 		cmd.Flags().String("name", newName, "Name")
 
 		foundTeam := &model.Team{

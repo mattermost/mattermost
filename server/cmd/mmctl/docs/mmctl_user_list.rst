@@ -27,11 +27,12 @@ Options
 
 ::
 
-      --all            Fetch all users. --page flag will be ignore if provided
+      --all            Fetch all users. --page flag will be ignored if provided
   -h, --help           help for list
-      --inactive       If supplied, only users which are inactive will be fetch
+      --inactive       If supplied, only users which are inactive will be fetched
       --page int       Page number to fetch for the list of users
       --per-page int   Number of users to be fetched (default 200)
+      --role string    If supplied, only users with the given role will be fetched
       --team string    If supplied, only users belonging to this team will be listed
 
 Options inherited from parent commands
