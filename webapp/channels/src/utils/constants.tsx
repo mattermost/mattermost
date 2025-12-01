@@ -1335,6 +1335,11 @@ export const PermissionsScope = {
     [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_CHANNEL_ACCESS_RULES]: 'channel_scope',
+    [Permissions.CREATE_PAGE]: 'channel_scope',
+    [Permissions.READ_PAGE]: 'channel_scope',
+    [Permissions.EDIT_PAGE]: 'channel_scope',
+    [Permissions.DELETE_OWN_PAGE]: 'channel_scope',
+    [Permissions.DELETE_PAGE]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1394,6 +1399,10 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.READ_PAGE,
+        Permissions.CREATE_PAGE,
+        Permissions.EDIT_PAGE,
+        Permissions.DELETE_OWN_PAGE,
     ],
     channel_admin: [
         Permissions.MANAGE_CHANNEL_ROLES,
@@ -1417,6 +1426,11 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
         Permissions.MANAGE_CHANNEL_ACCESS_RULES,
+        Permissions.READ_PAGE,
+        Permissions.CREATE_PAGE,
+        Permissions.EDIT_PAGE,
+        Permissions.DELETE_OWN_PAGE,
+        Permissions.DELETE_PAGE,
     ],
     team_admin: [
         Permissions.EDIT_OTHERS_POSTS,
@@ -1456,6 +1470,11 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
         Permissions.MANAGE_CHANNEL_ACCESS_RULES,
+        Permissions.READ_PAGE,
+        Permissions.CREATE_PAGE,
+        Permissions.EDIT_PAGE,
+        Permissions.DELETE_OWN_PAGE,
+        Permissions.DELETE_PAGE,
     ],
     guests: [
         Permissions.EDIT_POST,
@@ -1465,6 +1484,7 @@ export const DefaultRolePermissions = {
         Permissions.READ_CHANNEL,
         Permissions.UPLOAD_FILE,
         Permissions.CREATE_POST,
+        Permissions.READ_PAGE,
     ],
 };
 
@@ -1486,6 +1506,11 @@ export const ModeratedPermissions = [
     Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
     Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
     Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+    Permissions.CREATE_PAGE,
+    Permissions.READ_PAGE,
+    Permissions.EDIT_PAGE,
+    Permissions.DELETE_OWN_PAGE,
+    Permissions.DELETE_PAGE,
 ];
 
 export const Locations = {

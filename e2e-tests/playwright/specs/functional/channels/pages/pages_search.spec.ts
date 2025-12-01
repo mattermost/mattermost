@@ -209,13 +209,13 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     const wikiView = page.locator('[data-testid="wiki-view"]');
     await expect(wikiView).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // * Verify the page title is displayed in the editor
-    const pageTitleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await expect(pageTitleInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(pageTitleInput).toHaveValue(pageTitle);
+    // * Verify the page title is displayed in the viewer
+    const pageTitleElement = page.locator('[data-testid="page-viewer-title"]');
+    await expect(pageTitleElement).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageTitleElement).toHaveText(pageTitle);
 
     // * Verify the page content is visible
-    const pageEditor = page.locator('[data-testid="wiki-page-editor"]');
-    await expect(pageEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(pageEditor).toContainText(uniqueContent);
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageContent).toContainText(uniqueContent);
 });
