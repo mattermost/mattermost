@@ -83,6 +83,12 @@ const baseState: DeepPartial<GlobalState> = {
     },
 };
 
+// For some reason, the first time we render, the modal does not
+// completely renders. This makes it so further tests go properly through.
+test('do first render to avoid other testing issues', () => {
+    renderWithContext(<UserSettingsModal {...baseProps}/>, baseState);
+});
+
 describe('plugin tabs are only rendered on content product settings', () => {
     test('plugin tabs are properly rendered', async () => {
         const uiName1 = 'plugin_a';

@@ -1,825 +1,123 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`components/FilePreviewModal > should fall back to default preview if plugin does not need to override preview component 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
->
-  <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
-  >
-    <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
-    >
-      <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
-      >
-        <div
-          class="modal-content"
-          role="document"
-        >
-          <div
-            class="file-preview-modal__body modal-body"
-          >
-            <div
-              class="modal-image__wrapper"
-            >
-              <div
-                class="file-preview-modal__main-ctr"
-              >
-                <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
-                >
-                  <div
-                    class="file-preview-modal-header"
-                  >
-                    <div
-                      class="file-preview-modal__info"
-                    >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/fallback_test?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    class="view-image__loading"
-                  >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    <span
-                      class="loader-percent"
-                    >
-                      Loading 
-                       50%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
-`;
-
 exports[`components/FilePreviewModal > should match snapshot 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
 >
   <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
   >
     <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
+      class="modal-content"
+      role="document"
     >
       <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
+        class="file-preview-modal__body modal-body"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-image__wrapper"
         >
           <div
-            class="file-preview-modal__body modal-body"
+            class="file-preview-modal__main-ctr"
           >
             <div
-              class="modal-image__wrapper"
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
             >
               <div
-                class="file-preview-modal__main-ctr"
+                class="file-preview-modal-header"
               >
                 <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
+                  class="file-preview-modal__info"
                 >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
                   <div
-                    class="file-preview-modal-header"
+                    class="file-preview-modal__info-details"
                   >
-                    <div
-                      class="file-preview-modal__info"
+                    <h5
+                      class="file-preview-modal__file-name"
                     >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    class="view-image__loading"
-                  >
+                      name
+                    </h5>
                     <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
+                      class="file-preview-modal__file-details"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    <span
-                      class="loader-percent"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
-`;
-
-exports[`components/FilePreviewModal > should match snapshot for external file 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
->
-  <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
-  >
-    <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
-    >
-      <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
-      >
-        <div
-          class="modal-content"
-          role="document"
-        >
-          <div
-            class="file-preview-modal__body modal-body"
-          >
-            <div
-              class="modal-image__wrapper"
-            >
-              <div
-                class="file-preview-modal__main-ctr"
-              >
-                <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
-                >
-                  <div
-                    class="file-preview-modal-header"
-                  >
-                    <div
-                      class="file-preview-modal__info"
-                    >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          external.png
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="external.png"
-                        href="/api/v4/files/file_info_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    class="view-image__loading"
-                  >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    <span
-                      class="loader-percent"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
-`;
-
-exports[`components/FilePreviewModal > should match snapshot when plugin overrides the preview component 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
->
-  <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
-  >
-    <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
-    >
-      <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
-      >
-        <div
-          class="modal-content"
-          role="document"
-        >
-          <div
-            class="file-preview-modal__body modal-body"
-          >
-            <div
-              class="modal-image__wrapper"
-            >
-              <div
-                class="file-preview-modal__main-ctr"
-              >
-                <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
-                >
-                  <div
-                    class="file-preview-modal-header"
-                  >
-                    <div
-                      class="file-preview-modal__info"
-                    >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    data-testid="plugin-preview"
-                  >
-                    Preview
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
-`;
-
-exports[`components/FilePreviewModal > should match snapshot, loaded 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
->
-  <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
-  >
-    <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
-    >
-      <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
-      >
-        <div
-          class="modal-content"
-          role="document"
-        >
-          <div
-            class="file-preview-modal__body modal-body"
-          >
-            <div
-              class="modal-image__wrapper"
-            >
-              <div
-                class="file-preview-modal__main-ctr"
-              >
-                <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
-                >
-                  <div
-                    class="file-preview-modal-header"
-                  >
-                    <div
-                      class="file-preview-modal__info"
-                    >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    class="view-image__loading"
-                  >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    <span
-                      class="loader-percent"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
-`;
-
-exports[`components/FilePreviewModal > should match snapshot, loaded and showing footer 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
->
-  <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
-  >
-    <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
-    >
-      <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
-      >
-        <div
-          class="modal-content"
-          role="document"
-        >
-          <div
-            class="file-preview-modal__body modal-body"
-          >
-            <div
-              class="modal-image__wrapper"
-            >
-              <div
-                class="file-preview-modal__main-ctr"
-              >
-                <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
-                >
-                  <div
-                    class="file-preview-modal-header"
-                  >
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                    <div />
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    class="view-image__loading"
-                  >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    <span
-                      class="loader-percent"
-                    />
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal-footer"
-                >
-                  <div
-                    class="file-preview-modal__info"
-                  >
-                    <img
-                      alt=""
-                      class="Avatar Avatar-lg file-preview-modal__avatar"
-                      loading="lazy"
-                      src="/api/v4/users/user_id/image?_=0"
-                    />
-                    <div
-                      class="file-preview-modal__info-details"
-                    >
-                      <h5
-                        class="file-preview-modal__user-name"
+                        class="file-preview-modal__file-details-user-name"
                       >
                         Someone
-                      </h5>
+                      </span>
                       <span
                         class="file-preview-modal__channel"
                       />
-                    </div>
-                  </div>
-                  <div
-                    class="file-preview-modal-main-actions__actions"
-                  >
-                    <a
-                      aria-label="Get a public link"
-                      class="file-preview-modal-main-actions__action-item"
-                      href="#"
-                    >
-                      <i
-                        class="icon icon-link-variant"
-                      />
-                    </a>
-                    <a
-                      aria-label="Download"
-                      class="file-preview-modal-main-actions__action-item"
-                      download="name"
-                      href="/api/v4/files/file_id?download=1"
-                      location="file_preview_modal_main_actions"
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      <i
-                        class="icon icon-download-outline"
-                      />
-                    </a>
+                    </span>
                   </div>
                 </div>
+                <div />
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
+                  >
+                    <i
+                      class="icon icon-link-variant"
+                    />
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="name"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                class="view-image__loading"
+              >
+                <span
+                  class="LoadingSpinner"
+                  data-testid="loadingSpinner"
+                  id="loadingSpinner"
+                >
+                  <span
+                    class="fa fa-spinner fa-fw fa-pulse spinner"
+                    title="Loading Icon"
+                  />
+                </span>
+                <span
+                  class="loader-percent"
+                />
               </div>
             </div>
           </div>
@@ -827,144 +125,642 @@ exports[`components/FilePreviewModal > should match snapshot, loaded and showing
       </div>
     </div>
   </div>
-</body>
+</div>
+`;
+
+exports[`components/FilePreviewModal > should match snapshot for external file 1`] = `
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
+>
+  <div
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
+  >
+    <div
+      class="modal-content"
+      role="document"
+    >
+      <div
+        class="file-preview-modal__body modal-body"
+      >
+        <div
+          class="modal-image__wrapper"
+        >
+          <div
+            class="file-preview-modal__main-ctr"
+          >
+            <div
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
+            >
+              <div
+                class="file-preview-modal-header"
+              >
+                <div
+                  class="file-preview-modal__info"
+                >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
+                  <div
+                    class="file-preview-modal__info-details"
+                  >
+                    <h5
+                      class="file-preview-modal__file-name"
+                    >
+                      external.png
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
+                    >
+                      <span
+                        class="file-preview-modal__file-details-user-name"
+                      >
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
+                      />
+                    </span>
+                  </div>
+                </div>
+                <div />
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
+                  >
+                    <i
+                      class="icon icon-link-variant"
+                    />
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="external.png"
+                    href="/api/v4/files/file_info_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                class="view-image__loading"
+              >
+                <span
+                  class="LoadingSpinner"
+                  data-testid="loadingSpinner"
+                  id="loadingSpinner"
+                >
+                  <span
+                    class="fa fa-spinner fa-fw fa-pulse spinner"
+                    title="Loading Icon"
+                  />
+                </span>
+                <span
+                  class="loader-percent"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FilePreviewModal > should match snapshot when plugin overrides the preview component 1`] = `
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
+>
+  <div
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
+  >
+    <div
+      class="modal-content"
+      role="document"
+    >
+      <div
+        class="file-preview-modal__body modal-body"
+      >
+        <div
+          class="modal-image__wrapper"
+        >
+          <div
+            class="file-preview-modal__main-ctr"
+          >
+            <div
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
+            >
+              <div
+                class="file-preview-modal-header"
+              >
+                <div
+                  class="file-preview-modal__info"
+                >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
+                  <div
+                    class="file-preview-modal__info-details"
+                  >
+                    <h5
+                      class="file-preview-modal__file-name"
+                    >
+                      name
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
+                    >
+                      <span
+                        class="file-preview-modal__file-details-user-name"
+                      >
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
+                      />
+                    </span>
+                  </div>
+                </div>
+                <div />
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
+                  >
+                    <i
+                      class="icon icon-link-variant"
+                    />
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="name"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                data-testid="plugin-preview"
+              >
+                Preview
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FilePreviewModal > should match snapshot, loaded 1`] = `
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
+>
+  <div
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
+  >
+    <div
+      class="modal-content"
+      role="document"
+    >
+      <div
+        class="file-preview-modal__body modal-body"
+      >
+        <div
+          class="modal-image__wrapper"
+        >
+          <div
+            class="file-preview-modal__main-ctr"
+          >
+            <div
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
+            >
+              <div
+                class="file-preview-modal-header"
+              >
+                <div
+                  class="file-preview-modal__info"
+                >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
+                  <div
+                    class="file-preview-modal__info-details"
+                  >
+                    <h5
+                      class="file-preview-modal__file-name"
+                    >
+                      name
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
+                    >
+                      <span
+                        class="file-preview-modal__file-details-user-name"
+                      >
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
+                      />
+                    </span>
+                  </div>
+                </div>
+                <div />
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
+                  >
+                    <i
+                      class="icon icon-link-variant"
+                    />
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="name"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                class="view-image__loading"
+              >
+                <span
+                  class="LoadingSpinner"
+                  data-testid="loadingSpinner"
+                  id="loadingSpinner"
+                >
+                  <span
+                    class="fa fa-spinner fa-fw fa-pulse spinner"
+                    title="Loading Icon"
+                  />
+                </span>
+                <span
+                  class="loader-percent"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FilePreviewModal > should match snapshot, loaded and showing footer 1`] = `
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
+>
+  <div
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
+  >
+    <div
+      class="modal-content"
+      role="document"
+    >
+      <div
+        class="file-preview-modal__body modal-body"
+      >
+        <div
+          class="modal-image__wrapper"
+        >
+          <div
+            class="file-preview-modal__main-ctr"
+          >
+            <div
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
+            >
+              <div
+                class="file-preview-modal-header"
+              >
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+                <div />
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                class="view-image__loading"
+              >
+                <span
+                  class="LoadingSpinner"
+                  data-testid="loadingSpinner"
+                  id="loadingSpinner"
+                >
+                  <span
+                    class="fa fa-spinner fa-fw fa-pulse spinner"
+                    title="Loading Icon"
+                  />
+                </span>
+                <span
+                  class="loader-percent"
+                />
+              </div>
+            </div>
+            <div
+              class="file-preview-modal-footer"
+            >
+              <div
+                class="file-preview-modal__info"
+              >
+                <img
+                  alt=""
+                  class="Avatar Avatar-lg file-preview-modal__avatar"
+                  loading="lazy"
+                  src="/api/v4/users/user_id/image?_=0"
+                />
+                <div
+                  class="file-preview-modal__info-details"
+                >
+                  <h5
+                    class="file-preview-modal__user-name"
+                  >
+                    Someone
+                  </h5>
+                  <span
+                    class="file-preview-modal__channel"
+                  />
+                </div>
+              </div>
+              <div
+                class="file-preview-modal-main-actions__actions"
+              >
+                <a
+                  aria-label="Get a public link"
+                  class="file-preview-modal-main-actions__action-item"
+                  href="#"
+                >
+                  <i
+                    class="icon icon-link-variant"
+                  />
+                </a>
+                <a
+                  aria-label="Download"
+                  class="file-preview-modal-main-actions__action-item"
+                  download="name"
+                  href="/api/v4/files/file_id?download=1"
+                  location="file_preview_modal_main_actions"
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <i
+                    class="icon icon-download-outline"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/FilePreviewModal > should match snapshot, loaded with .js file 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
 >
   <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
+    class="a11y__modal modal-image file-preview-modal modal-code modal-dialog"
   >
     <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
+      class="modal-content"
+      role="document"
     >
       <div
-        class="a11y__modal modal-image file-preview-modal modal-code modal-dialog"
+        class="file-preview-modal__body modal-body"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-image__wrapper"
         >
           <div
-            class="file-preview-modal__body modal-body"
+            class="file-preview-modal__main-ctr"
           >
             <div
-              class="modal-image__wrapper"
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
             >
               <div
-                class="file-preview-modal__main-ctr"
+                class="file-preview-modal-header"
               >
                 <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
+                  class="file-preview-modal__info"
                 >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
                   <div
-                    class="file-preview-modal-header"
+                    class="file-preview-modal__info-details"
                   >
-                    <div
-                      class="file-preview-modal__info"
+                    <h5
+                      class="file-preview-modal__file-name"
                     >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          test.js
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <span
-                        aria-label="Copy code"
-                        class="post-code__clipboard file-preview-modal-main-actions__action-item"
-                        role="button"
-                      >
-                        <i
-                          class="icon icon-content-copy"
-                        />
-                      </span>
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="test.js"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    class="view-image__loading"
-                  >
+                      test.js
+                    </h5>
                     <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
+                      class="file-preview-modal__file-details"
                     >
                       <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
+                        class="file-preview-modal__file-details-user-name"
+                      >
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
                       />
                     </span>
                   </div>
+                </div>
+                <div />
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <span
+                    aria-label="Copy code"
+                    class="post-code__clipboard file-preview-modal-main-actions__action-item"
+                    role="button"
+                  >
+                    <i
+                      class="icon icon-content-copy"
+                    />
+                  </span>
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
+                  >
+                    <i
+                      class="icon icon-link-variant"
+                    />
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="test.js"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                class="post-code code-preview"
+              >
+                <span
+                  class="post-code__language"
+                >
+                  test.js - JavaScript
+                </span>
+                <div
+                  class="hljs"
+                >
+                  <div
+                    class="post-code__line-numbers"
+                  >
+                    1
+                  </div>
+                  <code>
+                    <span
+                      class="hljs-comment"
+                    >
+                      // mock code content
+                    </span>
+                  </code>
                 </div>
               </div>
             </div>
@@ -973,433 +769,397 @@ exports[`components/FilePreviewModal > should match snapshot, loaded with .js fi
       </div>
     </div>
   </div>
-</body>
+</div>
 `;
 
 exports[`components/FilePreviewModal > should match snapshot, loaded with .m4a file 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
 >
   <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
   >
     <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
+      class="modal-content"
+      role="document"
     >
       <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
+        class="file-preview-modal__body modal-body"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-image__wrapper"
         >
           <div
-            class="file-preview-modal__body modal-body"
+            class="file-preview-modal__main-ctr"
           >
             <div
-              class="modal-image__wrapper"
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
             >
               <div
-                class="file-preview-modal__main-ctr"
+                class="file-preview-modal-header"
               >
                 <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
+                  class="file-preview-modal__info"
                 >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
                   <div
-                    class="file-preview-modal-header"
+                    class="file-preview-modal__info-details"
                   >
-                    <div
-                      class="file-preview-modal__info"
+                    <h5
+                      class="file-preview-modal__file-name"
                     >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
+                      name
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
+                    >
+                      <span
+                        class="file-preview-modal__file-details-user-name"
+                      >
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
                       />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
+                    </span>
                   </div>
                 </div>
+                <div />
                 <div
-                  class="file-preview-modal__content"
+                  class="file-preview-modal-main-actions__actions"
                 >
-                  <video
-                    controls=""
-                    data-setup="{}"
-                    height="480"
-                    width="640"
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
                   >
-                    <source
-                      src="/api/v4/files/file_id"
+                    <i
+                      class="icon icon-link-variant"
                     />
-                  </video>
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="name"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
                 </div>
               </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <video
+                controls=""
+                data-setup="{}"
+                height="480"
+                width="640"
+              >
+                <source
+                  src="/api/v4/files/file_id"
+                />
+              </video>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</body>
+</div>
 `;
 
 exports[`components/FilePreviewModal > should match snapshot, loaded with .mov file 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
 >
   <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
   >
     <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
+      class="modal-content"
+      role="document"
     >
       <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
+        class="file-preview-modal__body modal-body"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-image__wrapper"
         >
           <div
-            class="file-preview-modal__body modal-body"
+            class="file-preview-modal__main-ctr"
           >
             <div
-              class="modal-image__wrapper"
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
             >
               <div
-                class="file-preview-modal__main-ctr"
+                class="file-preview-modal-header"
               >
                 <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
+                  class="file-preview-modal__info"
                 >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
                   <div
-                    class="file-preview-modal-header"
+                    class="file-preview-modal__info-details"
                   >
-                    <div
-                      class="file-preview-modal__info"
+                    <h5
+                      class="file-preview-modal__file-name"
                     >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
+                      name
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
+                    >
+                      <span
+                        class="file-preview-modal__file-details-user-name"
+                      >
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
                       />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
+                    </span>
                   </div>
                 </div>
+                <div />
                 <div
-                  class="file-preview-modal__content"
+                  class="file-preview-modal-main-actions__actions"
                 >
-                  <video
-                    controls=""
-                    data-setup="{}"
-                    height="480"
-                    width="640"
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
                   >
-                    <source
-                      src="/api/v4/files/file_id"
+                    <i
+                      class="icon icon-link-variant"
                     />
-                  </video>
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="name"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
                 </div>
               </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <video
+                controls=""
+                data-setup="{}"
+                height="480"
+                width="640"
+              >
+                <source
+                  src="/api/v4/files/file_id"
+                />
+              </video>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</body>
+</div>
 `;
 
 exports[`components/FilePreviewModal > should match snapshot, loaded with footer 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
 >
   <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
   >
     <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
+      class="modal-content"
+      role="document"
     >
       <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
+        class="file-preview-modal__body modal-body"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-image__wrapper"
         >
           <div
-            class="file-preview-modal__body modal-body"
+            class="file-preview-modal__main-ctr"
           >
             <div
-              class="modal-image__wrapper"
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
             >
               <div
-                class="file-preview-modal__main-ctr"
+                class="file-preview-modal-header"
               >
                 <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
+                  class="file-preview-modal__info"
                 >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
                   <div
-                    class="file-preview-modal-header"
+                    class="file-preview-modal__info-details"
                   >
-                    <div
-                      class="file-preview-modal__info"
+                    <h5
+                      class="file-preview-modal__file-name"
                     >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      class="file_preview_modal_main_nav"
+                      name
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
                     >
-                      <button
-                        aria-label="Previous file"
-                        class="file_preview_modal_main_nav__prev"
-                        id="previewArrowLeft"
-                      >
-                        <i
-                          class="icon icon-chevron-left"
-                        />
-                      </button>
                       <span
-                        aria-atomic="true"
-                        aria-live="polite"
-                        class="modal-bar-file-count"
+                        class="file-preview-modal__file-details-user-name"
                       >
-                        1 of 3
+                        Someone
                       </span>
-                      <button
-                        aria-label="Next file"
-                        class="file_preview_modal_main_nav__next"
-                        id="previewArrowRight"
-                      >
-                        <i
-                          class="icon icon-chevron-right"
-                        />
-                      </button>
-                    </div>
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/file_id_1?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
+                      <span
+                        class="file-preview-modal__channel"
+                      />
+                    </span>
                   </div>
                 </div>
                 <div
-                  class="file-preview-modal__content"
+                  class="file_preview_modal_main_nav"
                 >
-                  <div
-                    class="view-image__loading"
+                  <button
+                    aria-label="Previous file"
+                    class="file_preview_modal_main_nav__prev"
+                    id="previewArrowLeft"
                   >
-                    <span
-                      class="LoadingSpinner"
-                      data-testid="loadingSpinner"
-                      id="loadingSpinner"
-                    >
-                      <span
-                        class="fa fa-spinner fa-fw fa-pulse spinner"
-                        title="Loading Icon"
-                      />
-                    </span>
-                    <span
-                      class="loader-percent"
+                    <i
+                      class="icon icon-chevron-left"
                     />
-                  </div>
+                  </button>
+                  <span
+                    aria-atomic="true"
+                    aria-live="polite"
+                    class="modal-bar-file-count"
+                  >
+                    1 of 3
+                  </span>
+                  <button
+                    aria-label="Next file"
+                    class="file_preview_modal_main_nav__next"
+                    id="previewArrowRight"
+                  >
+                    <i
+                      class="icon icon-chevron-right"
+                    />
+                  </button>
                 </div>
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
+                  >
+                    <i
+                      class="icon icon-link-variant"
+                    />
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="name"
+                    href="/api/v4/files/file_id_1?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                class="view-image__loading"
+              >
+                <span
+                  class="LoadingSpinner"
+                  data-testid="loadingSpinner"
+                  id="loadingSpinner"
+                >
+                  <span
+                    class="fa fa-spinner fa-fw fa-pulse spinner"
+                    title="Loading Icon"
+                  />
+                </span>
+                <span
+                  class="loader-percent"
+                />
               </div>
             </div>
           </div>
@@ -1407,285 +1167,261 @@ exports[`components/FilePreviewModal > should match snapshot, loaded with footer
       </div>
     </div>
   </div>
-</body>
+</div>
 `;
 
 exports[`components/FilePreviewModal > should match snapshot, loaded with image 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
 >
   <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
   >
     <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
+      class="modal-content"
+      role="document"
     >
       <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
+        class="file-preview-modal__body modal-body"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-image__wrapper"
         >
           <div
-            class="file-preview-modal__body modal-body"
+            class="file-preview-modal__main-ctr"
           >
             <div
-              class="modal-image__wrapper"
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
             >
               <div
-                class="file-preview-modal__main-ctr"
+                class="file-preview-modal-header"
               >
                 <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
+                  class="file-preview-modal__info"
                 >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
                   <div
-                    class="file-preview-modal-header"
+                    class="file-preview-modal__info-details"
                   >
-                    <div
-                      class="file-preview-modal__info"
+                    <h5
+                      class="file-preview-modal__file-name"
                     >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
+                      name
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
+                    >
+                      <span
+                        class="file-preview-modal__file-details-user-name"
+                      >
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
                       />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          name
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="name"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
+                    </span>
                   </div>
                 </div>
+                <div />
                 <div
-                  class="file-preview-modal__content"
+                  class="file-preview-modal-main-actions__actions"
                 >
                   <a
-                    class="image_preview"
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
                     href="#"
                   >
-                    <img
-                      alt="preview url image"
-                      class="image_preview__image"
-                      data-testid="imagePreview"
-                      loading="lazy"
-                      src="/api/v4/files/file_id/preview"
+                    <i
+                      class="icon icon-link-variant"
                     />
                   </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="name"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
                 </div>
               </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <a
+                class="image_preview"
+                href="#"
+              >
+                <img
+                  alt="preview url image"
+                  class="image_preview__image"
+                  data-testid="imagePreview"
+                  loading="lazy"
+                  src="/api/v4/files/file_id/preview"
+                />
+              </a>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</body>
+</div>
 `;
 
 exports[`components/FilePreviewModal > should match snapshot, loaded with other file 1`] = `
-<body
-  class="modal-open"
-  style="padding-right: 0px;"
+<div
+  aria-labelledby="viewImageModalLabel"
+  class="fade modal-image file-preview-modal in modal"
+  role="dialog"
+  style="display: block; padding-left: 0px; padding-right: 0px;"
+  tabindex="-1"
 >
   <div
-    aria-hidden="true"
-  />
-  <div
-    role="none"
+    class="a11y__modal modal-image file-preview-modal modal-dialog"
   >
     <div
-      aria-labelledby="viewImageModalLabel"
-      class="fade modal-image file-preview-modal in modal"
-      role="dialog"
-      style="display: block; padding-left: 0px; padding-right: 0px;"
-      tabindex="-1"
+      class="modal-content"
+      role="document"
     >
       <div
-        class="a11y__modal modal-image file-preview-modal modal-dialog"
+        class="file-preview-modal__body modal-body"
       >
         <div
-          class="modal-content"
-          role="document"
+          class="modal-image__wrapper"
         >
           <div
-            class="file-preview-modal__body modal-body"
+            class="file-preview-modal__main-ctr"
           >
             <div
-              class="modal-image__wrapper"
+              class="file-preview-modal__title modal-title"
+              id="viewImageModalLabel"
             >
               <div
-                class="file-preview-modal__main-ctr"
+                class="file-preview-modal-header"
               >
                 <div
-                  class="file-preview-modal__title modal-title"
-                  id="viewImageModalLabel"
+                  class="file-preview-modal__info"
                 >
+                  <img
+                    alt=""
+                    class="Avatar Avatar-lg file-preview-modal__avatar"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image?_=0"
+                  />
                   <div
-                    class="file-preview-modal-header"
+                    class="file-preview-modal__info-details"
                   >
-                    <div
-                      class="file-preview-modal__info"
+                    <h5
+                      class="file-preview-modal__file-name"
                     >
-                      <img
-                        alt=""
-                        class="Avatar Avatar-lg file-preview-modal__avatar"
-                        loading="lazy"
-                        src="/api/v4/users/user_id/image?_=0"
-                      />
-                      <div
-                        class="file-preview-modal__info-details"
-                      >
-                        <h5
-                          class="file-preview-modal__file-name"
-                        >
-                          file.other
-                        </h5>
-                        <span
-                          class="file-preview-modal__file-details"
-                        >
-                          <span
-                            class="file-preview-modal__file-details-user-name"
-                          >
-                            Someone
-                          </span>
-                          <span
-                            class="file-preview-modal__channel"
-                          />
-                        </span>
-                      </div>
-                    </div>
-                    <div />
-                    <div
-                      class="file-preview-modal-main-actions__actions"
-                    >
-                      <a
-                        aria-label="Get a public link"
-                        class="file-preview-modal-main-actions__action-item"
-                        href="#"
-                      >
-                        <i
-                          class="icon icon-link-variant"
-                        />
-                      </a>
-                      <a
-                        aria-label="Download"
-                        class="file-preview-modal-main-actions__action-item"
-                        download="file.other"
-                        href="/api/v4/files/file_id?download=1"
-                        location="file_preview_modal_main_actions"
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <i
-                          class="icon icon-download-outline"
-                        />
-                      </a>
-                      <button
-                        aria-label="Close"
-                        class="file-preview-modal-main-actions__action-item"
-                      >
-                        <i
-                          class="icon icon-close"
-                        />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  class="file-preview-modal__content"
-                >
-                  <div
-                    class="file-details__container"
-                  >
-                    <a
-                      class="file-details__preview"
-                      href="/api/v4/files/file_id"
+                      file.other
+                    </h5>
+                    <span
+                      class="file-preview-modal__file-details"
                     >
                       <span
-                        class="file-details__preview-helper"
-                      />
-                      <img
-                        alt="file preview"
-                        src="data:image/svg+xml,%3csvg%20width='32'%20height='40'%20viewBox='0%200%2032%2040'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M1.59518%2010.3571L10.4929%201.57645C10.8672%201.20709%2011.3718%201%2011.8977%201H28C29.6569%201%2031%202.34315%2031%204V36C31%2037.6569%2029.6569%2039%2028%2039H4C2.34315%2039%201%2037.6569%201%2036V11.7806C1%2011.2456%201.21437%2010.7329%201.59518%2010.3571Z'%20stroke='%23338AFF'%20stroke-width='2'/%3e%3cpath%20d='M11%202V11C11%2011.5523%2010.5523%2012%2010%2012H2'%20stroke='%23338AFF'%20stroke-width='2'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M21.7791%2017.1452C21.2806%2016.6467%2020.6909%2016.3074%2020.0147%2016.1314C19.3421%2015.9563%2018.6668%2015.9562%2017.9942%2016.131C17.324%2016.2989%2016.7342%2016.6394%2016.2283%2017.1452L9.54617%2023.8274C8.87%2024.5036%208.4115%2025.2967%208.17592%2026.2028C7.94136%2027.105%207.94136%2028.0098%208.17592%2028.912C8.4115%2029.818%208.87%2030.6112%209.54617%2031.2874C10.2224%2031.9636%2011.0155%2032.4221%2011.9216%2032.6576C12.8237%2032.8922%2013.7286%2032.8922%2014.6307%2032.6576C15.5368%2032.4221%2016.33%2031.9636%2017.0062%2031.2874L22.9282%2025.3654C23.1234%2025.1701%2023.1234%2024.8535%2022.9282%2024.6583L22.2211%2023.9511C22.0258%2023.7559%2021.7092%2023.7559%2021.514%2023.9511L15.5919%2029.8732C15.1741%2030.291%2014.6862%2030.5711%2014.1234%2030.7176C13.5577%2030.8648%2012.9946%2030.8648%2012.4289%2030.7176C11.8662%2030.5711%2011.3782%2030.291%2010.9604%2029.8732C10.5425%2029.4553%2010.2624%2028.9674%2010.116%2028.4047C9.96871%2027.8389%209.96871%2027.2759%2010.116%2026.7101C10.2624%2026.1474%2010.5425%2025.6595%2010.9604%2025.2416L17.6425%2018.5595C17.8907%2018.3113%2018.1736%2018.1513%2018.4954%2018.0726L18.5003%2018.0714C18.839%2017.983%2019.1696%2017.9797%2019.4969%2018.0593C19.8296%2018.1465%2020.1174%2018.3119%2020.3649%2018.5595C20.613%2018.8076%2020.7731%2019.0905%2020.8517%2019.4123L20.853%2019.4172C20.9408%2019.7537%2020.9408%2020.0875%2020.853%2020.4241L20.8518%2020.429C20.7731%2020.7508%2020.613%2021.0337%2020.3649%2021.2818L14.3191%2027.3276C14.2026%2027.4441%2014.0692%2027.4997%2013.8998%2027.4997C13.7541%2027.4997%2013.6273%2027.4489%2013.506%2027.3276C13.3873%2027.2089%2013.3293%2027.0777%2013.3214%2026.921C13.3292%2026.7643%2013.3873%2026.6331%2013.506%2026.5144L18.7916%2021.2288C18.9869%2021.0335%2018.9869%2020.7169%2018.7916%2020.5217L18.0845%2019.8146C17.8892%2019.6193%2017.5726%2019.6193%2017.3774%2019.8146L12.0918%2025.1002C11.7629%2025.4291%2011.5382%2025.8193%2011.4216%2026.2662L11.4204%2026.2711C11.3146%2026.7036%2011.3146%2027.1384%2011.4203%2027.5709L11.4216%2027.5758C11.5382%2028.0227%2011.7629%2028.4129%2012.0918%2028.7418C12.42%2029.0701%2012.8066%2029.2916%2013.2474%2029.3998C13.6877%2029.5143%2014.1277%2029.5195%2014.5625%2029.4132L14.5674%2029.4119C15.0143%2029.2954%2015.4045%2029.0707%2015.7334%2028.7418L21.7791%2022.696C22.285%2022.1902%2022.6255%2021.6004%2022.7934%2020.9302C22.9682%2020.2575%2022.968%2019.5823%2022.793%2018.9096C22.617%2018.2335%2022.2777%2017.6438%2021.7791%2017.1452Z'%20fill='%23338AFF'/%3e%3c/svg%3e"
-                      />
-                    </a>
-                    <div
-                      class="file-details"
-                    >
-                      <div
-                        class="file-details__name"
+                        class="file-preview-modal__file-details-user-name"
                       >
-                        file.other
-                      </div>
-                      <div
-                        class="file-details__info"
-                      >
-                        File type OTHER, Size 1B
-                      </div>
-                    </div>
+                        Someone
+                      </span>
+                      <span
+                        class="file-preview-modal__channel"
+                      />
+                    </span>
+                  </div>
+                </div>
+                <div />
+                <div
+                  class="file-preview-modal-main-actions__actions"
+                >
+                  <a
+                    aria-label="Get a public link"
+                    class="file-preview-modal-main-actions__action-item"
+                    href="#"
+                  >
+                    <i
+                      class="icon icon-link-variant"
+                    />
+                  </a>
+                  <a
+                    aria-label="Download"
+                    class="file-preview-modal-main-actions__action-item"
+                    download="file.other"
+                    href="/api/v4/files/file_id?download=1"
+                    location="file_preview_modal_main_actions"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <i
+                      class="icon icon-download-outline"
+                    />
+                  </a>
+                  <button
+                    aria-label="Close"
+                    class="file-preview-modal-main-actions__action-item"
+                  >
+                    <i
+                      class="icon icon-close"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="file-preview-modal__content"
+            >
+              <div
+                class="file-details__container"
+              >
+                <a
+                  class="file-details__preview"
+                  href="/api/v4/files/file_id"
+                >
+                  <span
+                    class="file-details__preview-helper"
+                  />
+                  <img
+                    alt="file preview"
+                    src="data:image/svg+xml,%3csvg%20width='32'%20height='40'%20viewBox='0%200%2032%2040'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M1.59518%2010.3571L10.4929%201.57645C10.8672%201.20709%2011.3718%201%2011.8977%201H28C29.6569%201%2031%202.34315%2031%204V36C31%2037.6569%2029.6569%2039%2028%2039H4C2.34315%2039%201%2037.6569%201%2036V11.7806C1%2011.2456%201.21437%2010.7329%201.59518%2010.3571Z'%20stroke='%23338AFF'%20stroke-width='2'/%3e%3cpath%20d='M11%202V11C11%2011.5523%2010.5523%2012%2010%2012H2'%20stroke='%23338AFF'%20stroke-width='2'/%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M21.7791%2017.1452C21.2806%2016.6467%2020.6909%2016.3074%2020.0147%2016.1314C19.3421%2015.9563%2018.6668%2015.9562%2017.9942%2016.131C17.324%2016.2989%2016.7342%2016.6394%2016.2283%2017.1452L9.54617%2023.8274C8.87%2024.5036%208.4115%2025.2967%208.17592%2026.2028C7.94136%2027.105%207.94136%2028.0098%208.17592%2028.912C8.4115%2029.818%208.87%2030.6112%209.54617%2031.2874C10.2224%2031.9636%2011.0155%2032.4221%2011.9216%2032.6576C12.8237%2032.8922%2013.7286%2032.8922%2014.6307%2032.6576C15.5368%2032.4221%2016.33%2031.9636%2017.0062%2031.2874L22.9282%2025.3654C23.1234%2025.1701%2023.1234%2024.8535%2022.9282%2024.6583L22.2211%2023.9511C22.0258%2023.7559%2021.7092%2023.7559%2021.514%2023.9511L15.5919%2029.8732C15.1741%2030.291%2014.6862%2030.5711%2014.1234%2030.7176C13.5577%2030.8648%2012.9946%2030.8648%2012.4289%2030.7176C11.8662%2030.5711%2011.3782%2030.291%2010.9604%2029.8732C10.5425%2029.4553%2010.2624%2028.9674%2010.116%2028.4047C9.96871%2027.8389%209.96871%2027.2759%2010.116%2026.7101C10.2624%2026.1474%2010.5425%2025.6595%2010.9604%2025.2416L17.6425%2018.5595C17.8907%2018.3113%2018.1736%2018.1513%2018.4954%2018.0726L18.5003%2018.0714C18.839%2017.983%2019.1696%2017.9797%2019.4969%2018.0593C19.8296%2018.1465%2020.1174%2018.3119%2020.3649%2018.5595C20.613%2018.8076%2020.7731%2019.0905%2020.8517%2019.4123L20.853%2019.4172C20.9408%2019.7537%2020.9408%2020.0875%2020.853%2020.4241L20.8518%2020.429C20.7731%2020.7508%2020.613%2021.0337%2020.3649%2021.2818L14.3191%2027.3276C14.2026%2027.4441%2014.0692%2027.4997%2013.8998%2027.4997C13.7541%2027.4997%2013.6273%2027.4489%2013.506%2027.3276C13.3873%2027.2089%2013.3293%2027.0777%2013.3214%2026.921C13.3292%2026.7643%2013.3873%2026.6331%2013.506%2026.5144L18.7916%2021.2288C18.9869%2021.0335%2018.9869%2020.7169%2018.7916%2020.5217L18.0845%2019.8146C17.8892%2019.6193%2017.5726%2019.6193%2017.3774%2019.8146L12.0918%2025.1002C11.7629%2025.4291%2011.5382%2025.8193%2011.4216%2026.2662L11.4204%2026.2711C11.3146%2026.7036%2011.3146%2027.1384%2011.4203%2027.5709L11.4216%2027.5758C11.5382%2028.0227%2011.7629%2028.4129%2012.0918%2028.7418C12.42%2029.0701%2012.8066%2029.2916%2013.2474%2029.3998C13.6877%2029.5143%2014.1277%2029.5195%2014.5625%2029.4132L14.5674%2029.4119C15.0143%2029.2954%2015.4045%2029.0707%2015.7334%2028.7418L21.7791%2022.696C22.285%2022.1902%2022.6255%2021.6004%2022.7934%2020.9302C22.9682%2020.2575%2022.968%2019.5823%2022.793%2018.9096C22.617%2018.2335%2022.2777%2017.6438%2021.7791%2017.1452Z'%20fill='%23338AFF'/%3e%3c/svg%3e"
+                  />
+                </a>
+                <div
+                  class="file-details"
+                >
+                  <div
+                    class="file-details__name"
+                  >
+                    file.other
+                  </div>
+                  <div
+                    class="file-details__info"
+                  >
+                    File type OTHER, Size 1B
                   </div>
                 </div>
               </div>
@@ -1695,5 +1431,5 @@ exports[`components/FilePreviewModal > should match snapshot, loaded with other 
       </div>
     </div>
   </div>
-</body>
+</div>
 `;

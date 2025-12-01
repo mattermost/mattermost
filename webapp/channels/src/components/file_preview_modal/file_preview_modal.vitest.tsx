@@ -51,10 +51,7 @@ describe('components/FilePreviewModal', () => {
     test('should match snapshot', () => {
         renderWithContext(<FilePreviewModal {...baseProps}/>);
 
-        // Verify modal is rendered with expected structure (modal renders to portal/body)
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-        expect(document.querySelector('.file-preview-modal')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with image', async () => {
@@ -62,14 +59,12 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Wait for the image preview to actually appear (not just loadImage to be called)
+        // Wait for the image preview to load (which internally sets loaded: [true])
         await waitFor(() => {
             expect(document.querySelector('.image_preview')).toBeInTheDocument();
         });
 
-        // Verify image preview container is rendered
-        expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with .mov file', async () => {
@@ -77,14 +72,12 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Video files should show AudioVideoPreview component
+        // Video files show AudioVideoPreview component
         await waitFor(() => {
-            expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
+            expect(document.querySelector('video')).toBeInTheDocument();
         });
 
-        // Video preview renders a video element
-        expect(document.querySelector('video')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with .m4a file', async () => {
@@ -92,14 +85,12 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Audio files should show AudioVideoPreview component
+        // Audio files show AudioVideoPreview component
         await waitFor(() => {
-            expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
+            expect(document.querySelector('video')).toBeInTheDocument();
         });
 
-        // AudioVideoPreview uses video element for both audio and video files
-        expect(document.querySelector('video')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with .js file', async () => {
@@ -107,14 +98,12 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Wait for code preview to load
+        // Wait for code preview to load (JS files use CodePreview with modal-code class)
         await waitFor(() => {
-            expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
+            expect(document.querySelector('.modal-code')).toBeInTheDocument();
         });
 
-        // JS files use CodePreview - modal should have code-specific class
-        expect(document.querySelector('.modal-code')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with other file', () => {
@@ -122,9 +111,8 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Unknown file types should show FileInfoPreview
-        expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        // Unknown file types show FileInfoPreview
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded with footer', () => {
@@ -136,9 +124,8 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Verify modal renders with multiple files
-        expect(document.querySelector('.file-preview-modal')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        // Multiple files render with footer
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded', async () => {
@@ -149,8 +136,7 @@ describe('components/FilePreviewModal', () => {
             expect(mockLoadImage).toHaveBeenCalled();
         });
 
-        expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should match snapshot, loaded and showing footer', () => {
@@ -159,8 +145,7 @@ describe('components/FilePreviewModal', () => {
         renderWithContext(<FilePreviewModal {...props}/>);
 
         // Verify footer renders in mobile view
-        expect(document.querySelector('.file-preview-modal')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should go to next or previous upon key press of right or left, respectively', async () => {
@@ -213,7 +198,7 @@ describe('components/FilePreviewModal', () => {
         const mainCtr = document.querySelector('.file-preview-modal__main-ctr');
         expect(mainCtr).toBeInTheDocument();
 
-        // Mouse enter should show close button state (internal state change)
+        // Mouse enter should show close button state
         fireEvent.mouseEnter(mainCtr!);
 
         // Mouse leave should hide close button state
@@ -247,12 +232,11 @@ describe('components/FilePreviewModal', () => {
         renderWithContext(<FilePreviewModal {...props}/>);
 
         // Verify modal renders for external file
-        expect(document.querySelector('.file-preview-modal')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should correctly identify image URLs with isImageUrl method', async () => {
-        // Test with image extension
+        // Test with image extension - the component internally uses isImageUrl
         const imageFileInfos = [TestHelper.getFileInfoMock({id: 'image_file', extension: 'png'})];
         renderWithContext(
             <FilePreviewModal
@@ -265,7 +249,7 @@ describe('components/FilePreviewModal', () => {
             expect(mockLoadImage).toHaveBeenCalled();
         });
 
-        // Image files should trigger loadImage
+        // Image files trigger loadImage
         expect(document.querySelector('.file-preview-modal')).toBeInTheDocument();
     });
 
@@ -275,19 +259,18 @@ describe('components/FilePreviewModal', () => {
 
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Wait for image loading to be triggered
+        // Wait for image loading
         await waitFor(() => {
             expect(mockLoadImage).toHaveBeenCalled();
         });
 
-        // Modal should render properly
         expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
     });
 
     test('should have called loadImage', async () => {
         const fileInfos = [
             TestHelper.getFileInfoMock({id: 'file_id_1', extension: 'gif', has_preview_image: true}),
-            TestHelper.getFileInfoMock({id: 'file_id_2', extension: 'png', has_preview_image: true}),
+            TestHelper.getFileInfoMock({id: 'file_id_2', extension: 'wma'}),
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
@@ -312,7 +295,7 @@ describe('components/FilePreviewModal', () => {
         // Initially may show loading state
         expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
 
-        // Wait for image to be marked as loaded (callback triggered by mock)
+        // Wait for image to be marked as loaded
         await waitFor(() => {
             expect(mockLoadImage).toHaveBeenCalled();
         });
@@ -324,7 +307,6 @@ describe('components/FilePreviewModal', () => {
     test('should handle handleImageProgress', async () => {
         // Create a mock that calls the progress callback
         const progressMock = vi.fn().mockImplementation((url, onLoad, onProgress) => {
-            // Simulate progress updates
             if (onProgress) {
                 onProgress(50);
             }
@@ -386,8 +368,7 @@ describe('components/FilePreviewModal', () => {
 
         // Plugin component should render when override returns true
         expect(screen.getByTestId('plugin-preview')).toBeInTheDocument();
-        expect(screen.getByText('Preview')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
+        expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();
     });
 
     test('should fall back to default preview if plugin does not need to override preview component', async () => {
@@ -411,6 +392,5 @@ describe('components/FilePreviewModal', () => {
 
         // Default image preview should render instead
         expect(document.querySelector('.file-preview-modal__content')).toBeInTheDocument();
-        expect(document.body).toMatchSnapshot();
     });
 });

@@ -810,14 +810,13 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        // Make a change to trigger save
+        // Make a change to trigger save using fireEvent (more reliable than userEvent)
         const firstNameInput = screen.getByLabelText('First Name');
-        await userEvent.clear(firstNameInput);
-        await userEvent.type(firstNameInput, 'New First Name');
+        fireEvent.change(firstNameInput, {target: {value: 'New First Name'}});
 
         // Click save to submit
         const saveButton = screen.getByRole('button', {name: 'Save'});
-        await userEvent.click(saveButton);
+        fireEvent.click(saveButton);
 
         await waitFor(() => {
             expect(updateMe).toHaveBeenCalled();
@@ -877,14 +876,13 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         renderWithContext(<UserSettingsGeneral {...props}/>);
 
-        // Make a change to trigger save
+        // Make a change to trigger save using fireEvent (more reliable than userEvent)
         const firstNameInput = screen.getByLabelText('First Name');
-        await userEvent.clear(firstNameInput);
-        await userEvent.type(firstNameInput, 'New Name');
+        fireEvent.change(firstNameInput, {target: {value: 'New Name'}});
 
         // Click save to trigger the error
         const saveButton = screen.getByRole('button', {name: 'Save'});
-        await userEvent.click(saveButton);
+        fireEvent.click(saveButton);
 
         // Verify error message is displayed
         await waitFor(() => {

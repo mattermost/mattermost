@@ -5,7 +5,7 @@ import React from 'react';
 
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
-import {renderWithContext, screen} from 'tests/vitest_react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/vitest_react_testing_utils';
 
 let mockLocation = {pathname: '', search: '', hash: ''};
 
@@ -127,7 +127,7 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
         expect(carousel).not.toBeInTheDocument();
     });
 
-    test('should call on close', () => {
+    test('should call on close', async () => {
         const mockOnClose = vi.fn();
 
         renderWithContext(
@@ -142,13 +142,13 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
 
         // Find and click the close button
         const closeButton = screen.getByLabelText('Close');
-        closeButton.click();
+        await userEvent.click(closeButton);
 
         // The modal renders and has a close button
         expect(closeButton).toBeInTheDocument();
     });
 
-    test('should call on exited', () => {
+    test('should call on exited', async () => {
         const mockOnExited = vi.fn();
 
         renderWithContext(
@@ -162,10 +162,13 @@ describe('components/trial_benefits_modal/trial_benefits_modal', () => {
 
         // Find and click the close button
         const closeButton = screen.getByLabelText('Close');
-        closeButton.click();
+        await userEvent.click(closeButton);
 
-        // The modal renders and has a close button
-        expect(closeButton).toBeInTheDocument();
+        // Wait for transition to complete
+        await waitFor(() => {
+            // The modal renders and has a close button
+            expect(closeButton).toBeInTheDocument();
+        });
     });
 
     test('should present the just started trial modal content', () => {

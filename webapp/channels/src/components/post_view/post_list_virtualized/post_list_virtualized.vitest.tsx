@@ -522,7 +522,7 @@ describe('PostList', () => {
         // For scrollOffset=489: offsetFromBottom = 1000 - 500 - 489 = 11 (not at bottom)
         // For scrollOffset=490: offsetFromBottom = 1000 - 500 - 490 = 10 (at bottom)
         // For scrollOffset=501: offsetFromBottom = 1000 - 500 - 501 = -1 (at bottom)
-        test.each([
+        for (const testCase of [
             {
                 name: 'when viewing the top of the post list',
                 scrollOffset: 0,
@@ -543,24 +543,27 @@ describe('PostList', () => {
                 scrollOffset: 501,
                 expected: true,
             },
-        ])('$name', ({scrollOffset, expected}) => {
-            renderWithContext(<PostList {...baseProps}/>);
+        ]) {
+            // eslint-disable-next-line no-loop-func
+            test(testCase.name, () => {
+                renderWithContext(<PostList {...baseProps}/>);
 
-            expect(capturedOnScroll).not.toBeNull();
+                expect(capturedOnScroll).not.toBeNull();
 
-            act(() => {
-                capturedOnScroll!({
-                    scrollDirection: 'forward',
-                    scrollOffset,
-                    scrollUpdateWasRequested: false,
-                    scrollHeight,
-                    clientHeight,
+                act(() => {
+                    capturedOnScroll!({
+                        scrollDirection: 'forward',
+                        scrollOffset: testCase.scrollOffset,
+                        scrollUpdateWasRequested: false,
+                        scrollHeight,
+                        clientHeight,
+                    });
                 });
-            });
 
-            // Verify isAtBottom returns the expected value by checking atBottom state
-            expect(screen.getByTestId('toast-wrapper')).toHaveAttribute('data-at-bottom', String(expected));
-        });
+                // Verify isAtBottom returns the expected value by checking atBottom state
+                expect(screen.getByTestId('toast-wrapper')).toHaveAttribute('data-at-bottom', String(testCase.expected));
+            });
+        }
     });
 
     describe('updateAtBottom', () => {

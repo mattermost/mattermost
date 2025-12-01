@@ -282,6 +282,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
 
         // Verify component renders with teammate name display section
+        // The section may or may not have radio buttons depending on config
         expect(container).toBeInTheDocument();
     });
 

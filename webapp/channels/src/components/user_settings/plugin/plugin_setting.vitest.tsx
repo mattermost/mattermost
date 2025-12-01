@@ -211,11 +211,10 @@ describe('plugin setting', () => {
     });
 
     test('custom setting component throws', () => {
-        // eslint-disable-next-line no-console
-        const consoleError = console.error;
-
-        // eslint-disable-next-line no-console
-        console.error = vi.fn();
+        // Suppress all error output (React console.error + jsdom stderr)
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const originalStderrWrite = process.stderr.write.bind(process.stderr);
+        process.stderr.write = vi.fn();
 
         const props = getBaseProps();
         props.section.settings = [{
@@ -230,10 +229,11 @@ describe('plugin setting', () => {
         expect(screen.queryByText('An error occurred in the pluginId plugin.')).toBeInTheDocument();
         expect(screen.queryByText('Refresh?')).toBeInTheDocument();
 
-        // eslint-disable-next-line no-console
-        expect(console.error).toHaveBeenCalled();
+        // Verify React logged the error
+        expect(consoleErrorSpy).toHaveBeenCalled();
 
-        // eslint-disable-next-line no-console
-        console.error = consoleError;
+        // Restore
+        consoleErrorSpy.mockRestore();
+        process.stderr.write = originalStderrWrite;
     });
 });

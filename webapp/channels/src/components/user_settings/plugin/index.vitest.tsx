@@ -109,11 +109,10 @@ describe('plugin tab', () => {
     });
 
     test('custom section component throws', () => {
-        // eslint-disable-next-line no-console
-        const consoleError = console.error;
-
-        // eslint-disable-next-line no-console
-        console.error = vi.fn();
+        // Suppress all error output (React console.error + jsdom stderr)
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const originalStderrWrite = process.stderr.write.bind(process.stderr);
+        process.stderr.write = vi.fn();
 
         const props = getBaseProps();
         props.settings.sections.push({
@@ -121,14 +120,17 @@ describe('plugin tab', () => {
             component: CustomSectionThrows,
         });
         renderWithContext(<PluginTab {...props}/>);
+
+        // Verify error boundary catches the error and displays error message
         expect(screen.queryAllByText('plugin A Settings')).toHaveLength(2);
         expect(screen.queryByText(CUSTOM_SECTION_TEXT)).not.toBeInTheDocument();
         expect(screen.queryByText('An error occurred in the pluginA plugin.')).toBeInTheDocument();
 
-        // eslint-disable-next-line no-console
-        expect(console.error).toHaveBeenCalled();
+        // Verify React logged the error
+        expect(consoleErrorSpy).toHaveBeenCalled();
 
-        // eslint-disable-next-line no-console
-        console.error = consoleError;
+        // Restore
+        consoleErrorSpy.mockRestore();
+        process.stderr.write = originalStderrWrite;
     });
 });

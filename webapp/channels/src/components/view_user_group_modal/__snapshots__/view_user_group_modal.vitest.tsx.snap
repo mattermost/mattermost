@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`component/view_user_group_modal > should match snapshot 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

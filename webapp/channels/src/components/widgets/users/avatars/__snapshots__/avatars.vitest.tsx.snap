@@ -1,0 +1,166 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/widgets/users/Avatars > should fetch missing users 1`] = `
+<div>
+  <div
+    class="Avatars Avatars___xl"
+  >
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="first.last1 profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/1/image?_=1620680333191"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="user profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/6/image?_=0"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="user profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/7/image?_=0"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <div
+      class="Avatar Avatar-xl Avatar-plain"
+      data-content="+3"
+      style="background: rgb(240, 240, 241);"
+      tabindex="0"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/widgets/users/Avatars > should properly count overflow 1`] = `
+<div>
+  <div
+    class="Avatars Avatars___xl"
+  >
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="first.last1 profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/1/image?_=1620680333191"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="first.last2 profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/2/image?_=1620680333191"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="first.last3 profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/3/image?_=1620680333191"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <div
+      class="Avatar Avatar-xl Avatar-plain"
+      data-content="+2"
+      style="background: rgb(240, 240, 241);"
+      tabindex="0"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/widgets/users/Avatars > should support userIds 1`] = `
+<div>
+  <div
+    class="Avatars Avatars___xl"
+  >
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="first.last1 profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/1/image?_=1620680333191"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="first.last2 profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/2/image?_=1620680333191"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+    <button
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      class="style--none btn-round"
+    >
+      <img
+        alt="first.last3 profile image"
+        class="Avatar Avatar-xl"
+        loading="lazy"
+        src="/api/v4/users/3/image?_=1620680333191"
+        style="background: rgb(240, 240, 241);"
+        tabindex="-1"
+      />
+    </button>
+  </div>
+</div>
+`;
