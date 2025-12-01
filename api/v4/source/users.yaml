@@ -1040,9 +1040,9 @@
     put:
       tags:
         - users
-      summary: Update user active status
+      summary: Activate or deactivate a user
       description: >
-        Update user active or inactive status.
+        Activate or deactivate a user's account. A deactivated user can't log into Mattermost or use it without being reactivated.
 
 
         __Since server version 4.6, users using a SSO provider to login can be activated or deactivated with this endpoint. However, if their activation status in Mattermost does not reflect their status in the SSO provider, the next synchronization or login by that user will reset the activation status to that of their account in the SSO provider. Server versions 4.5 and before do not allow activation or deactivation of SSO users from this endpoint.__
@@ -1070,11 +1070,11 @@
               properties:
                 active:
                   type: boolean
-        description: Use `true` to set the user active, `false` for inactive
+        description: Use `true` to activate the user or `false` to deactivate them
         required: true
       responses:
         "200":
-          description: User active status update successful
+          description: User activation/deactivation update successful
           content:
             application/json:
               schema:
