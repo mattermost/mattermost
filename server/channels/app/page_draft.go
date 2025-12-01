@@ -612,21 +612,26 @@ func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
 	a.Publish(message)
 }
 
-// PublishPageDraft publishes a draft as a page
-func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText, message, pageStatus string, baseUpdateAt int64, force bool) (*model.Post, *model.AppError) {
-	draft, wiki, _, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId, message)
+// PublishPageDraft publishes a draft as a page.
+// Uses PublishPageDraftOptions to consolidate the many parameters into a structured options object.
+func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.PublishPageDraftOptions) (*model.Post, *model.AppError) {
+	if err := opts.IsValid(); err != nil {
+		return nil, err
+	}
+
+	draft, wiki, _, err := a.validatePageDraftForPublish(rctx, userId, opts.WikiId, opts.DraftId, opts.ParentId, opts.Content)
 	if err != nil {
 		return nil, err
 	}
 
-	if pageStatus != "" {
+	if opts.PageStatus != "" {
 		if draft.Props == nil {
 			draft.Props = make(map[string]any)
 		}
-		draft.Props["page_status"] = pageStatus
+		draft.Props["page_status"] = opts.PageStatus
 	}
 
-	savedPost, err := a.applyDraftToPage(rctx, draft, wikiId, parentId, title, searchText, message, userId, baseUpdateAt, force)
+	savedPost, err := a.applyDraftToPage(rctx, draft, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseUpdateAt, opts.Force)
 	if err != nil {
 		return nil, err
 	}
@@ -637,11 +642,11 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 	}
 
 	// Delete draft from both tables
-	if deleteErr := a.DeletePageDraft(rctx, userId, wikiId, draftId); deleteErr != nil {
-		rctx.Logger().Warn("Failed to delete draft after successful publish", mlog.String("draft_id", draftId), mlog.Err(deleteErr))
+	if deleteErr := a.DeletePageDraft(rctx, userId, opts.WikiId, opts.DraftId); deleteErr != nil {
+		rctx.Logger().Warn("Failed to delete draft after successful publish", mlog.String("draft_id", opts.DraftId), mlog.Err(deleteErr))
 	}
 
-	if updateErr := a.updateChildDraftParentReferences(rctx, userId, wikiId, draftId, savedPost.Id); updateErr != nil {
+	if updateErr := a.updateChildDraftParentReferences(rctx, userId, opts.WikiId, opts.DraftId, savedPost.Id); updateErr != nil {
 		rctx.Logger().Warn("Failed to update child draft parent references", mlog.Err(updateErr))
 	}
 
@@ -659,7 +664,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 	}
 
 	// Broadcast to all clients in the channel
-	a.BroadcastPagePublished(savedPost, wikiId, wiki.ChannelId, draftId, userId)
+	a.BroadcastPagePublished(savedPost, opts.WikiId, wiki.ChannelId, opts.DraftId, userId)
 
 	return savedPost, nil
 }

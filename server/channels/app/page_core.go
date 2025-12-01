@@ -182,16 +182,8 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 
 		// If content looks like JSON (starts with {), validate it
 		if strings.HasPrefix(trimmedContent, "{") {
-			var testJSON map[string]any
-			if err := json.Unmarshal([]byte(content), &testJSON); err != nil {
-				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "content must be valid JSON", http.StatusBadRequest).Wrap(err)
-			}
-
-			// Valid JSON but not TipTap format - reject it
-			// TipTap documents must have type:"doc"
-			docType, ok := testJSON["type"].(string)
-			if !ok || docType != "doc" {
-				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "content must be valid TipTap JSON with type: doc", http.StatusBadRequest)
+			if err := model.ValidateTipTapDocument(content); err != nil {
+				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		} else {
 			// Not JSON - treat as plain text and auto-convert to TipTap JSON
@@ -290,24 +282,42 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 	return post, nil
 }
 
+// PageContentLoadOptions specifies what page content to load for a PostList.
+type PageContentLoadOptions struct {
+	// IncludeDeleted includes content for deleted pages (used for version history)
+	IncludeDeleted bool
+	// SearchTextOnly loads only search_text into Props instead of full document JSON
+	// This is more efficient for search results where full content isn't needed
+	SearchTextOnly bool
+}
+
 // LoadPageContentForPostList loads page content from the pagecontent table for any pages in the PostList.
 // This populates the Message field with the full page content stored in the pagecontent table.
 func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, false)
+	return a.loadPageContentForPostList(rctx, postList, PageContentLoadOptions{})
 }
 
 // LoadPageContentForPostListIncludingDeleted loads page content including historical (deleted) versions.
 // Use this for version history where posts have DeleteAt > 0.
 func (a *App) LoadPageContentForPostListIncludingDeleted(rctx request.CTX, postList *model.PostList) *model.AppError {
-	return a.loadPageContentForPostList(rctx, postList, true)
+	return a.loadPageContentForPostList(rctx, postList, PageContentLoadOptions{IncludeDeleted: true})
 }
 
-func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostList, includeDeleted bool) *model.AppError {
+// EnrichPagesWithSearchText adds search_text to Props for pages in search results.
+// This is used for displaying page content in search results without modifying Post.Message.
+// Post.Message stays empty for pages; search_text in Props is used only for display.
+func (a *App) EnrichPagesWithSearchText(rctx request.CTX, postList *model.PostList) *model.AppError {
+	return a.loadPageContentForPostList(rctx, postList, PageContentLoadOptions{SearchTextOnly: true})
+}
+
+// loadPageContentForPostList is the unified implementation for loading page content.
+// It handles full content loading, search text only, and deleted content based on options.
+func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostList, opts PageContentLoadOptions) *model.AppError {
 	if postList == nil || postList.Posts == nil {
 		return nil
 	}
 
-	pageIDs := []string{}
+	pageIDs := make([]string, 0, len(postList.Posts))
 	for _, post := range postList.Posts {
 		if NeedsContentLoading(post) {
 			pageIDs = append(pageIDs, post.Id)
@@ -321,7 +331,7 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	var pageContents []*model.PageContent
 	var contentErr error
 
-	if includeDeleted {
+	if opts.IncludeDeleted {
 		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContentsWithDeleted(pageIDs)
 	} else {
 		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContents(pageIDs)
@@ -336,61 +346,31 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	}
 
 	for _, post := range postList.Posts {
-		if NeedsContentLoading(post) {
-			pageContent, found := contentMap[post.Id]
-			if !found {
-				post.Message = ""
-				continue
-			}
+		if !NeedsContentLoading(post) {
+			continue
+		}
 
+		pageContent, found := contentMap[post.Id]
+		if !found {
+			if !opts.SearchTextOnly {
+				post.Message = ""
+			}
+			continue
+		}
+
+		if opts.SearchTextOnly {
+			if pageContent.SearchText != "" {
+				if post.Props == nil {
+					post.Props = make(model.StringInterface)
+				}
+				post.Props["search_text"] = pageContent.SearchText
+			}
+		} else {
 			contentJSON, jsonErr := pageContent.GetDocumentJSON()
 			if jsonErr != nil {
 				return model.NewAppError("loadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 			}
 			post.Message = contentJSON
-		}
-	}
-
-	return nil
-}
-
-// EnrichPagesWithSearchText adds search_text to Props for pages in search results.
-// This is used for displaying page content in search results without modifying Post.Message.
-// Post.Message stays empty for pages; search_text in Props is used only for display.
-func (a *App) EnrichPagesWithSearchText(rctx request.CTX, postList *model.PostList) *model.AppError {
-	if postList == nil || postList.Posts == nil {
-		return nil
-	}
-
-	pageIDs := []string{}
-	for _, post := range postList.Posts {
-		if NeedsContentLoading(post) {
-			pageIDs = append(pageIDs, post.Id)
-		}
-	}
-
-	if len(pageIDs) == 0 {
-		return nil
-	}
-
-	pageContents, err := a.Srv().Store().Page().GetManyPageContents(pageIDs)
-	if err != nil {
-		return model.NewAppError("EnrichPagesWithSearchText", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	searchTextMap := make(map[string]string, len(pageContents))
-	for _, content := range pageContents {
-		searchTextMap[content.PageId] = content.SearchText
-	}
-
-	for _, post := range postList.Posts {
-		if NeedsContentLoading(post) {
-			if searchText, ok := searchTextMap[post.Id]; ok && searchText != "" {
-				if post.Props == nil {
-					post.Props = make(model.StringInterface)
-				}
-				post.Props["search_text"] = searchText
-			}
 		}
 	}
 
@@ -810,20 +790,7 @@ func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 
 // isValidTipTapJSON checks if the given content is valid TipTap JSON format
 func isValidTipTapJSON(content string) bool {
-	// Quick check: TipTap JSON always starts with {"type":"doc"
-	if !strings.HasPrefix(strings.TrimSpace(content), "{") {
-		return false
-	}
-
-	// Parse as JSON to verify structure
-	var doc map[string]any
-	if err := json.Unmarshal([]byte(content), &doc); err != nil {
-		return false
-	}
-
-	// TipTap documents must have type:"doc"
-	docType, ok := doc["type"].(string)
-	return ok && docType == "doc"
+	return model.ValidateTipTapDocument(content) == nil
 }
 
 // convertPlainTextToTipTapJSON converts plain text content to TipTap JSON format

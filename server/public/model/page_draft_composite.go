@@ -74,6 +74,35 @@ func (pd *PageDraft) IsContentEmpty() bool {
 	return len(pd.Content.Content) == 0 && len(pd.FileIds) == 0
 }
 
+// PublishPageDraftOptions contains options for publishing a page draft.
+// This consolidates the many parameters into a structured options object.
+type PublishPageDraftOptions struct {
+	WikiId       string `json:"wiki_id"`
+	DraftId      string `json:"draft_id"`
+	ParentId     string `json:"page_parent_id,omitempty"`
+	Title        string `json:"title"`
+	SearchText   string `json:"search_text,omitempty"`
+	Content      string `json:"content,omitempty"`
+	PageStatus   string `json:"page_status,omitempty"`
+	BaseUpdateAt int64  `json:"base_update_at,omitempty"`
+	Force        bool   `json:"force,omitempty"`
+}
+
+// IsValid validates the PublishPageDraftOptions struct.
+func (opts *PublishPageDraftOptions) IsValid() *AppError {
+	if !IsValidId(opts.WikiId) {
+		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.wiki_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if opts.DraftId == "" {
+		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.draft_id.app_error", nil, "", http.StatusBadRequest)
+	}
+	if len(opts.Title) > MaxPageTitleLength {
+		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.title_too_long.app_error",
+			map[string]any{"Length": len(opts.Title), "MaxLength": MaxPageTitleLength}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 // IsValid validates the PageDraft composite struct.
 func (pd *PageDraft) IsValid() *AppError {
 	if !IsValidId(pd.UserId) {

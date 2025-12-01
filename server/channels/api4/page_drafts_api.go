@@ -204,22 +204,17 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct {
-		PageParentId string `json:"page_parent_id"`
-		Title        string `json:"title"`
-		SearchText   string `json:"search_text"`
-		Content      string `json:"content"`
-		PageStatus   string `json:"page_status"`
-		BaseUpdateAt int64  `json:"base_update_at"`
-		Force        bool   `json:"force"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var opts model.PublishPageDraftOptions
+	if err := json.NewDecoder(r.Body).Decode(&opts); err != nil {
 		c.SetInvalidParamWithErr("request", err)
 		return
 	}
 
-	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText, req.Content, req.PageStatus, req.BaseUpdateAt, req.Force)
+	// Set WikiId and DraftId from URL params (API layer responsibility)
+	opts.WikiId = c.Params.WikiId
+	opts.DraftId = c.Params.DraftId
+
+	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return

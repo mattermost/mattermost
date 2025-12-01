@@ -801,7 +801,11 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		assert.JSONEq(t, updatedDraftMessage, updatedContent)
 
 		pageTitle := "Test Page"
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", pageTitle, "", "", "", 0, false)
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
+			WikiId:  createdWiki.Id,
+			DraftId: draftId,
+			Title:   pageTitle,
+		})
 		require.Nil(t, appErr)
 		require.NotEmpty(t, publishedPage.Id)
 		require.Equal(t, model.PostTypePage, publishedPage.Type)
@@ -848,14 +852,23 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, createTipTapContent("Parent page content"), "Parent Page", "", nil)
 		require.Nil(t, appErr)
 
-		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, "", "Parent Page", "", "", "", 0, false)
+		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
+			WikiId:  createdWiki.Id,
+			DraftId: parentDraftId,
+			Title:   "Parent Page",
+		})
 		require.Nil(t, appErr)
 
 		childDraftId := model.NewId()
 		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, createTipTapContent("Child page content"), "Child Page", "", nil)
 		require.Nil(t, appErr)
 
-		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, parentPage.Id, "Child Page", "", "", "", 0, false)
+		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
+			WikiId:   createdWiki.Id,
+			DraftId:  childDraftId,
+			ParentId: parentPage.Id,
+			Title:    "Child Page",
+		})
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, childPage.PageParentId)
 	})

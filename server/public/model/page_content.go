@@ -266,3 +266,28 @@ func sanitizeURL(url string) string {
 	}
 	return url
 }
+
+// ValidateTipTapDocument validates that content is valid TipTap JSON format.
+// Returns nil if valid, error describing the validation failure otherwise.
+func ValidateTipTapDocument(contentJSON string) error {
+	if contentJSON == "" {
+		return nil
+	}
+
+	trimmed := strings.TrimSpace(contentJSON)
+	if !strings.HasPrefix(trimmed, "{") {
+		return errors.New("content must be valid JSON starting with {")
+	}
+
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(contentJSON), &doc); err != nil {
+		return errors.Wrap(err, "content must be valid JSON")
+	}
+
+	docType, ok := doc["type"].(string)
+	if !ok || docType != "doc" {
+		return errors.New("content must be valid TipTap JSON with type: doc")
+	}
+
+	return nil
+}
