@@ -43,9 +43,7 @@ jobs:
       - name: ci/i18n-extract
         working-directory: webapp/channels
         run: |
-          cp src/i18n/en.json /tmp/en.json
-          npm run i18n-extract
-          diff /tmp/en.json src/i18n/en.json
+          npm run i18n-extract:check
 
   check-types:
     runs-on: ubuntu-22.04
