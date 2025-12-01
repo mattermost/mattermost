@@ -2,18 +2,34 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createTestChannel, getEditorAndWait, typeInEditor, fillCreatePageModal, getNewPageButton, clickPageInHierarchy, enterEditMode, publishPage, navigateToPage, deletePageDraft, createTestUserInChannel, createMultipleTestUsersInChannel, SHORT_WAIT, AUTOSAVE_WAIT, WEBSOCKET_WAIT, HIERARCHY_TIMEOUT, STALE_CLEANUP_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createTestChannel,
+    getEditorAndWait,
+    typeInEditor,
+    fillCreatePageModal,
+    getNewPageButton,
+    clickPageInHierarchy,
+    enterEditMode,
+    publishPage,
+    navigateToPage,
+    deletePageDraft,
+    createTestUserInChannel,
+    createMultipleTestUsersInChannel,
+    AUTOSAVE_WAIT,
+    WEBSOCKET_WAIT,
+    HIERARCHY_TIMEOUT,
+} from './test_helpers';
 
 /**
  * @objective Verify active editors indicator displays when another user edits the same page
  */
-test('shows active editor when another user edits page', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
+test('shows active editor when another user edits page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Create a second user
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 logs in and creates a wiki with a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -27,7 +43,7 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     await fillCreatePageModal(page1, 'Shared Page');
 
     // # Wait for editor to appear
-    const editor1 = await getEditorAndWait(page1);
+    await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
 
     // # Wait for draft to save
@@ -42,7 +58,9 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
 
     // Verify all URL components are valid
     if (!pageId || !wiki.id || !channel.id || !team.name) {
-        throw new Error(`Missing URL components: pageId=${pageId}, wikiId=${wiki.id}, channelId=${channel.id}, teamName=${team.name}`);
+        throw new Error(
+            `Missing URL components: pageId=${pageId}, wikiId=${wiki.id}, channelId=${channel.id}, teamName=${team.name}`,
+        );
     }
 
     // # User 2 logs in and navigates directly to the wiki page
@@ -53,12 +71,12 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
     await channelsPage2.toBeVisible();
 
     // Now navigate to the specific page
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
+    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
     // # Start editing the page
     await enterEditMode(page2);
 
-    const editor2 = await getEditorAndWait(page2);
+    await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 editing');
 
     // # Wait for draft to save
@@ -81,13 +99,13 @@ test('shows active editor when another user edits page', {tag: '@pages'}, async 
 /**
  * @objective Verify active editors indicator shows multiple editors
  */
-test('displays multiple active editors with avatars and count', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
+test('displays multiple active editors with avatars and count', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Create two additional users
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
-    const {user: user3, userId: user3Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
 
     // # User 1 logs in and creates a wiki with a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -99,7 +117,7 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
     await newPageButton.click();
     await fillCreatePageModal(page1, 'Multi Editor Page');
 
-    const editor1 = await getEditorAndWait(page1);
+    await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
     await page1.waitForTimeout(WEBSOCKET_WAIT);
 
@@ -112,21 +130,21 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
 
     // # User 2 logs in and starts editing
     const {page: page2} = await pw.testBrowser.login(user2);
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
+    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
     await enterEditMode(page2);
 
-    const editor2 = await getEditorAndWait(page2);
+    await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 content');
     await page2.waitForTimeout(AUTOSAVE_WAIT);
 
     // # User 3 logs in and starts editing
     const {page: page3} = await pw.testBrowser.login(user3);
-    await navigateToPage(page3, pw.url, team.name, channel.id, wiki.id, pageId);
+    await navigateToPage(page3, pw.url, team.name, channel.id, wiki.id, pageId!);
 
     await enterEditMode(page3);
 
-    const editor3 = await getEditorAndWait(page3);
+    await getEditorAndWait(page3);
     await typeInEditor(page3, ' User 3 content');
     await page3.waitForTimeout(WEBSOCKET_WAIT);
 
@@ -148,12 +166,12 @@ test('displays multiple active editors with avatars and count', {tag: '@pages'},
 /**
  * @objective Verify active editors indicator disappears when editors stop editing
  */
-test('removes editor from indicator when draft is deleted', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
+test('removes editor from indicator when draft is deleted', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Create a second user
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -165,7 +183,7 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
     await newPageButton.click();
     await fillCreatePageModal(page1, 'Removal Test Page');
 
-    const editor1 = await getEditorAndWait(page1);
+    await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
     await page1.waitForTimeout(WEBSOCKET_WAIT);
 
@@ -183,11 +201,11 @@ test('removes editor from indicator when draft is deleted', {tag: '@pages'}, asy
     await channelsPage2.toBeVisible();
     await page2.waitForLoadState('networkidle');
 
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
+    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
     await enterEditMode(page2);
 
-    const editor2 = await getEditorAndWait(page2);
+    await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 content');
     await page2.waitForTimeout(AUTOSAVE_WAIT);
 
@@ -216,13 +234,13 @@ test('does not show current user in active editors list', {tag: '@pages'}, async
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page, `Self Edit Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Self Edit Wiki ${await pw.random.id()}`);
 
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Self Edit Page');
 
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
     await typeInEditor(page, 'User editing their own draft');
     await page.waitForTimeout(AUTOSAVE_WAIT);
 
@@ -234,7 +252,7 @@ test('does not show current user in active editors list', {tag: '@pages'}, async
 /**
  * @objective Verify active editors indicator shows correct count with overflow
  */
-test('displays overflow count when more than 3 editors', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
+test('displays overflow count when more than 3 editors', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
@@ -252,7 +270,7 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
     await newPageButton.click();
     await fillCreatePageModal(page1, 'Overflow Page');
 
-    const editor1 = await getEditorAndWait(page1);
+    await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
     await page1.waitForTimeout(WEBSOCKET_WAIT);
 
@@ -276,7 +294,7 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
 
         await enterEditMode(userPage);
 
-        const editor = await getEditorAndWait(userPage);
+        await getEditorAndWait(userPage);
         await typeInEditor(userPage, ` User ${i} content`);
         await userPage.waitForTimeout(WEBSOCKET_WAIT);
 
@@ -312,12 +330,12 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
  * authenticated requests during beforeunload. The system relies on 5-minute stale cleanup for this case.
  * React Router navigation (test below) works correctly with immediate cleanup.
  */
-test.skip('removes editor from indicator when user navigates away', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
+test.skip('removes editor from indicator when user navigates away', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Create a second user
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a page
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -330,7 +348,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     await newPageButton.click();
     await fillCreatePageModal(page1, 'Navigate Away Page');
 
-    const editor1 = await getEditorAndWait(page1);
+    await getEditorAndWait(page1);
     await typeInEditor(page1, 'Initial content');
     await page1.waitForTimeout(WEBSOCKET_WAIT);
 
@@ -348,11 +366,11 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     await channelsPage2.toBeVisible();
     await page2.waitForLoadState('networkidle');
 
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
+    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
     await enterEditMode(page2);
 
-    const editor2 = await getEditorAndWait(page2);
+    await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 editing');
     await page2.waitForTimeout(AUTOSAVE_WAIT);
 
@@ -370,7 +388,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     await expect(activeEditorsIndicator).not.toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
     // # Verify draft still exists for User 2 (can resume editing)
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId);
+    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageId!);
 
     // # Click Edit button to resume editing the draft
     await enterEditMode(page2);
@@ -385,12 +403,12 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
 /**
  * @objective Verify active editors are removed when navigating to a different page within the wiki
  */
-test('removes editor when navigating to different wiki page', {tag: '@pages'}, async ({pw, sharedPagesSetup, context}) => {
+test('removes editor when navigating to different wiki page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     // # Create a second user
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     // # User 1 creates a wiki with two pages
     const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user);
@@ -402,7 +420,7 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
     const newPageButton1 = getNewPageButton(page1);
     await newPageButton1.click();
     await fillCreatePageModal(page1, 'Page A');
-    const editor1 = await getEditorAndWait(page1);
+    await getEditorAndWait(page1);
     await typeInEditor(page1, 'Content for Page A');
     await page1.waitForTimeout(WEBSOCKET_WAIT);
     await publishPage(page1);
@@ -414,16 +432,15 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
     const newPageButton2 = getNewPageButton(page1);
     await newPageButton2.click();
     await fillCreatePageModal(page1, 'Page B');
-    const editor2 = await getEditorAndWait(page1);
+    await getEditorAndWait(page1);
     await typeInEditor(page1, 'Content for Page B');
     await page1.waitForTimeout(WEBSOCKET_WAIT);
     await publishPage(page1);
 
-    const pageBUrl = page1.url();
-    const pageBId = pageBUrl.split('/').pop();
+    // Page B is created, but we don't need to capture its ID
 
     // # User 1 navigates to Page A and waits there
-    await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, pageAId);
+    await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, pageAId!);
 
     // # User 2 starts editing Page A
     const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
@@ -432,10 +449,10 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
     await channelsPage2.toBeVisible();
     await page2.waitForLoadState('networkidle');
 
-    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageAId);
+    await navigateToPage(page2, pw.url, team.name, channel.id, wiki.id, pageAId!);
     await enterEditMode(page2);
 
-    const editorA = await getEditorAndWait(page2);
+    await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 editing Page A');
     await page2.waitForTimeout(AUTOSAVE_WAIT);
 
@@ -453,7 +470,7 @@ test('removes editor when navigating to different wiki page', {tag: '@pages'}, a
 
     // # User 2 starts editing Page B
     await enterEditMode(page2);
-    const editorB = await getEditorAndWait(page2);
+    await getEditorAndWait(page2);
     await typeInEditor(page2, ' User 2 editing Page B');
     await page2.waitForTimeout(AUTOSAVE_WAIT);
 

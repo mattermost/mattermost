@@ -548,23 +548,18 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Different permission model for pages vs regular posts
-	if originalPost.Type == model.PostTypePage {
-		// Wiki pages: Anyone with READ permission can view history
-		// This aligns with industry standard (Confluence, SharePoint, GitHub Wiki)
+	// Pages have relaxed edit history permissions (any channel member can view)
+	// Regular posts require author to be the viewer
+	if app.HasRelaxedEditHistoryPermissions(originalPost) {
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionReadChannel) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
-		// Skip author check for pages - any channel member can view history
 	} else {
-		// Regular posts: Keep existing restrictive model
-		// Only post author can view edit history (privacy for chat messages)
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost) {
 			c.SetPermissionError(model.PermissionEditPost)
 			return
 		}
-
 		if c.AppContext.Session().UserId != originalPost.UserId {
 			c.SetPermissionError(model.PermissionEditPost)
 			return
@@ -853,6 +848,11 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		return
 	}
 
+	// Enrich page posts with wiki_id for navigation
+	if enrichErr := c.App.EnrichPagesWithProperties(c.AppContext, clientPostList); enrichErr != nil {
+		c.Logger.Warn("Failed to enrich page search results", mlog.Err(enrichErr))
+	}
+
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "search_results", results)
 	auditRec.Success()
@@ -896,8 +896,8 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For pages, use page-specific permissions instead of generic post edit permission
-	if originalPost.Type == model.PostTypePage {
+	// Pages use page-specific permissions; regular posts use generic edit permission
+	if app.RequiresPageModifyPermission(originalPost) {
 		if permErr := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "updatePost"); permErr != nil {
 			c.Err = permErr
 			return
@@ -1003,8 +1003,8 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, message *string) {
 	auditRec.AddEventPriorState(originalPost)
 	auditRec.AddEventObjectType("post")
 
-	// For pages, use page-specific permissions instead of generic post edit permission
-	if originalPost.Type == model.PostTypePage {
+	// Pages use page-specific permissions; regular posts use generic edit permission
+	if app.RequiresPageModifyPermission(originalPost) {
 		if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), originalPost, app.PageOperationEdit, "patchPost"); err != nil {
 			c.Err = err
 			return

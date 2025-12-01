@@ -2661,10 +2661,6 @@
     "translation": "Cannot publish page: parent page not found."
   },
   {
-    "id": "api.page.publish.parent_not_page.app_error",
-    "translation": "Cannot publish page: parent is not a page."
-  },
-  {
     "id": "api.payload.parse.error",
     "translation": "An error occurred while parsing the payload."
   },
@@ -7007,10 +7003,6 @@
     "translation": "Parent must be a page."
   },
   {
-    "id": "app.page.create.permissions.app_error",
-    "translation": "You do not have permission to create a page."
-  },
-  {
     "id": "app.page.create.store_error.app_error",
     "translation": "Unable to create page."
   },
@@ -7101,10 +7093,6 @@
   {
     "id": "app.page.get_active_editors.get_drafts.app_error",
     "translation": "Unable to get active editors."
-  },
-  {
-    "id": "app.page.get_comments.not_a_page.app_error",
-    "translation": "Post is not a page."
   },
   {
     "id": "app.page.get_comments.page_not_found.app_error",
@@ -8919,6 +8907,10 @@
   {
     "id": "app.wiki.get_pages.app_error",
     "translation": "Unable to get wiki pages."
+  },
+  {
+    "id": "app.wiki.get_wiki_field.app_error",
+    "translation": "Unable to get wiki property field."
   },
   {
     "id": "app.wiki.get_wiki_for_page.not_found",

@@ -25,71 +25,75 @@ import {
  * @precondition
  * Two users must be members of the same team and channel
  */
-test('sends notification to mentioned user when page is published', {tag: '@pages'}, async ({pw, headless, browserName}) => {
-    test.skip(
-        headless && browserName !== 'firefox',
-        'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
-    );
+test(
+    'sends notification to mentioned user when page is published',
+    {tag: '@pages'},
+    async ({pw, headless, browserName}) => {
+        test.skip(
+            headless && browserName !== 'firefox',
+            'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
+        );
 
-    const {team, user: authorUser, adminClient} = await pw.initSetup();
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user: authorUser, adminClient} = await pw.initSetup();
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # Create a second user who will be mentioned (team member, can be mentioned even if not in channel)
-    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
+        // # Create a second user who will be mentioned (team member, can be mentioned even if not in channel)
+        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
-    // # Login as author user first
-    const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-    await authorChannelsPage.goto(team.name, channel.name);
+        // # Login as author user first
+        const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
+        await authorChannelsPage.goto(team.name, channel.name);
 
-    // # Login as mentioned user in separate page to stub notifications
-    const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
-    await mentionedChannelsPage.goto(team.name, channel.name);
-    await mentionedChannelsPage.toBeVisible();
-    await pw.stubNotification(mentionedPage, 'granted');
+        // # Login as mentioned user in separate page to stub notifications
+        const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
+        await mentionedChannelsPage.goto(team.name, channel.name);
+        await mentionedChannelsPage.toBeVisible();
+        await pw.stubNotification(mentionedPage, 'granted');
 
-    // # Switch back to author page
-    await authorPage.bringToFront();
+        // # Switch back to author page
+        await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
-    // # Create new page with @mention
-    const newPageButton = getNewPageButton(authorPage);
-    await newPageButton.click();
-    await fillCreatePageModal(authorPage, 'Page with Mention Notification');
+        // # Create new page with @mention
+        const newPageButton = getNewPageButton(authorPage);
+        await newPageButton.click();
+        await fillCreatePageModal(authorPage, 'Page with Mention Notification');
 
-    // # Type content with @mention
-    const editor = await getEditorAndWait(authorPage);
-    await typeInEditor(authorPage, `Hello @${mentionedUser.username}`);
+        // # Type content with @mention
+        const editor = await getEditorAndWait(authorPage);
+        await typeInEditor(authorPage, `Hello @${mentionedUser.username}`);
 
-    // # Select the mentioned user from dropdown
-    await selectMentionFromDropdown(authorPage, mentionedUser.username);
+        // # Select the mentioned user from dropdown
+        await selectMentionFromDropdown(authorPage, mentionedUser.username);
 
-    // * Verify mention is properly created with data-id attribute
-    await authorPage.waitForTimeout(SHORT_WAIT);
-    const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
-    await expect(userMentionInEditor).toBeVisible();
+        // * Verify mention is properly created with data-id attribute
+        await authorPage.waitForTimeout(SHORT_WAIT);
+        const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
+        await expect(userMentionInEditor).toBeVisible();
 
-    // # Add remaining text
-    await editor.type(', please review this page!');
+        // # Add remaining text
+        await editor.type(', please review this page!');
 
-    await publishPage(authorPage);
+        await publishPage(authorPage);
 
-    // * Verify page is published
-    const pageContent = getPageViewerContent(authorPage);
-    await expect(pageContent).toBeVisible();
+        // * Verify page is published
+        const pageContent = getPageViewerContent(authorPage);
+        await expect(pageContent).toBeVisible();
 
-    // # Wait for notification to be sent via WebSocket
-    await authorPage.waitForTimeout(WEBSOCKET_WAIT);
+        // # Wait for notification to be sent via WebSocket
+        await authorPage.waitForTimeout(WEBSOCKET_WAIT);
 
-    // * Verify notification was received by mentioned user
-    const notifications = await pw.waitForNotification(mentionedPage);
-    expect(notifications.length).toBeGreaterThanOrEqual(1);
+        // * Verify notification was received by mentioned user
+        const notifications = await pw.waitForNotification(mentionedPage);
+        expect(notifications.length).toBeGreaterThanOrEqual(1);
 
-    const notification = notifications[0];
-    expect(notification.title).toContain(channel.display_name);
-    expect(notification.body).toContain(authorUser.username);
-    expect(notification.body).toContain('mentioned you');
-});
+        const notification = notifications[0];
+        expect(notification.title).toContain(channel.display_name);
+        expect(notification.body).toContain(authorUser.username);
+        expect(notification.body).toContain('mentioned you');
+    },
+);
 
 /**
  * @objective Verify mentioned user does NOT receive duplicate notification when page is edited without adding new mentions
@@ -97,88 +101,92 @@ test('sends notification to mentioned user when page is published', {tag: '@page
  * @precondition
  * Two users must be members of the same team and channel, and a page with existing mention must exist
  */
-test('does not send duplicate notification when page is edited without new mentions', {tag: '@pages'}, async ({pw, headless, browserName}) => {
-    test.skip(
-        headless && browserName !== 'firefox',
-        'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
-    );
+test(
+    'does not send duplicate notification when page is edited without new mentions',
+    {tag: '@pages'},
+    async ({pw, headless, browserName}) => {
+        test.skip(
+            headless && browserName !== 'firefox',
+            'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
+        );
 
-    const {team, user: authorUser, adminClient} = await pw.initSetup();
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user: authorUser, adminClient} = await pw.initSetup();
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # Create a second user who will be mentioned (team member, can be mentioned even if not in channel)
-    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
+        // # Create a second user who will be mentioned (team member, can be mentioned even if not in channel)
+        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
-    // # Login as author user first
-    const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-    await authorChannelsPage.goto(team.name, channel.name);
+        // # Login as author user first
+        const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
+        await authorChannelsPage.goto(team.name, channel.name);
 
-    // # Login as mentioned user in separate page to stub notifications
-    const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
-    await mentionedChannelsPage.goto(team.name, channel.name);
-    await mentionedChannelsPage.toBeVisible();
-    await pw.stubNotification(mentionedPage, 'granted');
+        // # Login as mentioned user in separate page to stub notifications
+        const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
+        await mentionedChannelsPage.goto(team.name, channel.name);
+        await mentionedChannelsPage.toBeVisible();
+        await pw.stubNotification(mentionedPage, 'granted');
 
-    // # Switch back to author page
-    await authorPage.bringToFront();
+        // # Switch back to author page
+        await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
-    // # Create new page with @mention
-    const newPageButton = getNewPageButton(authorPage);
-    await newPageButton.click();
-    await fillCreatePageModal(authorPage, 'Page with No Duplicate Notification');
+        // # Create new page with @mention
+        const newPageButton = getNewPageButton(authorPage);
+        await newPageButton.click();
+        await fillCreatePageModal(authorPage, 'Page with No Duplicate Notification');
 
-    // # Type content with @mention
-    const editor = await getEditorAndWait(authorPage);
-    await typeInEditor(authorPage, `Hello @${mentionedUser.username}`);
+        // # Type content with @mention
+        const editor = await getEditorAndWait(authorPage);
+        await typeInEditor(authorPage, `Hello @${mentionedUser.username}`);
 
-    // # Select the mentioned user from dropdown
-    await selectMentionFromDropdown(authorPage, mentionedUser.username);
+        // # Select the mentioned user from dropdown
+        await selectMentionFromDropdown(authorPage, mentionedUser.username);
 
-    // * Verify mention is properly created
-    await authorPage.waitForTimeout(SHORT_WAIT);
-    const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
-    await expect(userMentionInEditor).toBeVisible();
+        // * Verify mention is properly created
+        await authorPage.waitForTimeout(SHORT_WAIT);
+        const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
+        await expect(userMentionInEditor).toBeVisible();
 
-    await publishPage(authorPage);
+        await publishPage(authorPage);
 
-    // * Verify page is published
-    const pageContent = getPageViewerContent(authorPage);
-    await expect(pageContent).toBeVisible();
+        // * Verify page is published
+        const pageContent = getPageViewerContent(authorPage);
+        await expect(pageContent).toBeVisible();
 
-    // # Wait for notification to be sent
-    await authorPage.waitForTimeout(WEBSOCKET_WAIT);
+        // # Wait for notification to be sent
+        await authorPage.waitForTimeout(WEBSOCKET_WAIT);
 
-    // * Verify first notification was received
-    let notifications = await pw.waitForNotification(mentionedPage);
-    const initialNotificationCount = notifications.length;
-    expect(initialNotificationCount).toBeGreaterThanOrEqual(1);
+        // * Verify first notification was received
+        let notifications = await pw.waitForNotification(mentionedPage);
+        const initialNotificationCount = notifications.length;
+        expect(initialNotificationCount).toBeGreaterThanOrEqual(1);
 
-    // # Click edit button to edit the page
-    await clickPageEditButton(authorPage);
+        // # Click edit button to edit the page
+        await clickPageEditButton(authorPage);
 
-    // * Verify editor is visible
-    await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify editor is visible
+        await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Edit the page content (keeping the same mention)
-    await editor.click();
-    await authorPage.keyboard.press('End');
-    await editor.type(' Additional text without new mentions.');
+        // # Edit the page content (keeping the same mention)
+        await editor.click();
+        await authorPage.keyboard.press('End');
+        await editor.type(' Additional text without new mentions.');
 
-    // # Publish the edited page
-    await publishPage(authorPage);
+        // # Publish the edited page
+        await publishPage(authorPage);
 
-    // * Verify page is published
-    await expect(pageContent).toBeVisible();
+        // * Verify page is published
+        await expect(pageContent).toBeVisible();
 
-    // # Wait for potential notification
-    await authorPage.waitForTimeout(WEBSOCKET_WAIT);
+        // # Wait for potential notification
+        await authorPage.waitForTimeout(WEBSOCKET_WAIT);
 
-    // * Verify NO new notification was sent (count should be the same)
-    notifications = await pw.waitForNotification(mentionedPage);
-    expect(notifications.length).toBe(initialNotificationCount);
-});
+        // * Verify NO new notification was sent (count should be the same)
+        notifications = await pw.waitForNotification(mentionedPage);
+        expect(notifications.length).toBe(initialNotificationCount);
+    },
+);
 
 /**
  * @objective Verify only newly mentioned user receives notification when a new mention is added to existing page
@@ -186,103 +194,109 @@ test('does not send duplicate notification when page is edited without new menti
  * @precondition
  * Three users must be members of the same team and channel, and a page with one existing mention must exist
  */
-test('sends notification only to newly mentioned user when mention is added on edit', {tag: '@pages'}, async ({pw, headless, browserName}) => {
-    test.skip(
-        headless && browserName !== 'firefox',
-        'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
-    );
+test(
+    'sends notification only to newly mentioned user when mention is added on edit',
+    {tag: '@pages'},
+    async ({pw, headless, browserName}) => {
+        test.skip(
+            headless && browserName !== 'firefox',
+            'Works across browsers and devices, except in headless mode, where stubbing the Notification API is supported only in Firefox and WebKit.',
+        );
 
-    const {team, user: authorUser, adminClient} = await pw.initSetup();
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const {team, user: authorUser, adminClient} = await pw.initSetup();
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # Create two users who will be mentioned (team members, can be mentioned even if not in channel)
-    const {user: firstMentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned1');
-    const {user: secondMentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned2');
+        // # Create two users who will be mentioned (team members, can be mentioned even if not in channel)
+        const {user: firstMentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned1');
+        const {user: secondMentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned2');
 
-    // # Login as author user first
-    const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
-    await authorChannelsPage.goto(team.name, channel.name);
+        // # Login as author user first
+        const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
+        await authorChannelsPage.goto(team.name, channel.name);
 
-    // # Login as first mentioned user in separate page and stub notifications
-    const {page: firstMentionedPage, channelsPage: firstMentionedChannelsPage} = await pw.testBrowser.login(firstMentionedUser);
-    await firstMentionedChannelsPage.goto(team.name, channel.name);
-    await firstMentionedChannelsPage.toBeVisible();
-    await pw.stubNotification(firstMentionedPage, 'granted');
+        // # Login as first mentioned user in separate page and stub notifications
+        const {page: firstMentionedPage, channelsPage: firstMentionedChannelsPage} =
+            await pw.testBrowser.login(firstMentionedUser);
+        await firstMentionedChannelsPage.goto(team.name, channel.name);
+        await firstMentionedChannelsPage.toBeVisible();
+        await pw.stubNotification(firstMentionedPage, 'granted');
 
-    // # Login as second mentioned user in separate page and stub notifications
-    const {page: secondMentionedPage, channelsPage: secondMentionedChannelsPage} = await pw.testBrowser.login(secondMentionedUser);
-    await secondMentionedChannelsPage.goto(team.name, channel.name);
-    await secondMentionedChannelsPage.toBeVisible();
-    await pw.stubNotification(secondMentionedPage, 'granted');
+        // # Login as second mentioned user in separate page and stub notifications
+        const {page: secondMentionedPage, channelsPage: secondMentionedChannelsPage} =
+            await pw.testBrowser.login(secondMentionedUser);
+        await secondMentionedChannelsPage.goto(team.name, channel.name);
+        await secondMentionedChannelsPage.toBeVisible();
+        await pw.stubNotification(secondMentionedPage, 'granted');
 
-    // # Switch back to author page
-    await authorPage.bringToFront();
+        // # Switch back to author page
+        await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
-    // # Create new page with first @mention
-    const newPageButton = getNewPageButton(authorPage);
-    await newPageButton.click();
-    await fillCreatePageModal(authorPage, 'Page with Delta Notification');
+        // # Create new page with first @mention
+        const newPageButton = getNewPageButton(authorPage);
+        await newPageButton.click();
+        await fillCreatePageModal(authorPage, 'Page with Delta Notification');
 
-    // # Type content with first @mention
-    const editor = await getEditorAndWait(authorPage);
-    await typeInEditor(authorPage, `Hello @${firstMentionedUser.username}`);
+        // # Type content with first @mention
+        const editor = await getEditorAndWait(authorPage);
+        await typeInEditor(authorPage, `Hello @${firstMentionedUser.username}`);
 
-    // # Select the first mentioned user from dropdown
-    await selectMentionFromDropdown(authorPage, firstMentionedUser.username);
+        // # Select the first mentioned user from dropdown
+        await selectMentionFromDropdown(authorPage, firstMentionedUser.username);
 
-    await publishPage(authorPage);
+        await publishPage(authorPage);
 
-    // * Verify page is published
-    const pageContent = getPageViewerContent(authorPage);
-    await expect(pageContent).toBeVisible();
+        // * Verify page is published
+        const pageContent = getPageViewerContent(authorPage);
+        await expect(pageContent).toBeVisible();
 
-    // # Wait for notification to be sent
-    await authorPage.waitForTimeout(WEBSOCKET_WAIT);
+        // # Wait for notification to be sent
+        await authorPage.waitForTimeout(WEBSOCKET_WAIT);
 
-    // * Verify first user received notification
-    let firstUserNotifications = await pw.waitForNotification(firstMentionedPage);
-    const firstUserInitialCount = firstUserNotifications.length;
-    expect(firstUserInitialCount).toBeGreaterThanOrEqual(1);
+        // * Verify first user received notification
+        let firstUserNotifications = await pw.waitForNotification(firstMentionedPage);
+        const firstUserInitialCount = firstUserNotifications.length;
+        expect(firstUserInitialCount).toBeGreaterThanOrEqual(1);
 
-    // * Verify second user has NO notifications yet
-    let secondUserNotifications = await pw.waitForNotification(secondMentionedPage);
-    const secondUserInitialCount = secondUserNotifications.length;
+        // * Verify second user has NO notifications yet
+        let secondUserNotifications = await pw.waitForNotification(secondMentionedPage);
+        const secondUserInitialCount = secondUserNotifications.length;
 
-    // # Click edit button to edit the page
-    await clickPageEditButton(authorPage);
+        // # Click edit button to edit the page
+        await clickPageEditButton(authorPage);
 
-    // * Verify editor is visible
-    await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify editor is visible
+        await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Add second @mention
-    await editor.click();
-    await authorPage.keyboard.press('End');
-    await editor.type(' and ');
-    await editor.type(`@${secondMentionedUser.username}`);
+        // # Add second @mention
+        await editor.click();
+        await authorPage.keyboard.press('End');
+        await editor.type(' and ');
+        await editor.type(`@${secondMentionedUser.username}`);
 
-    // # Select the second mentioned user from dropdown
-    await selectMentionFromDropdown(authorPage, secondMentionedUser.username);
+        // # Select the second mentioned user from dropdown
+        await selectMentionFromDropdown(authorPage, secondMentionedUser.username);
 
-    // # Publish the edited page
-    await publishPage(authorPage);
+        // # Publish the edited page
+        await publishPage(authorPage);
 
-    // * Verify page is published
-    await expect(pageContent).toBeVisible();
+        // * Verify page is published
+        await expect(pageContent).toBeVisible();
 
-    // # Wait for potential notification
-    await authorPage.waitForTimeout(WEBSOCKET_WAIT);
+        // # Wait for potential notification
+        await authorPage.waitForTimeout(WEBSOCKET_WAIT);
 
-    // * Verify first user did NOT receive duplicate notification
-    firstUserNotifications = await pw.waitForNotification(firstMentionedPage);
-    expect(firstUserNotifications.length).toBe(firstUserInitialCount);
+        // * Verify first user did NOT receive duplicate notification
+        firstUserNotifications = await pw.waitForNotification(firstMentionedPage);
+        expect(firstUserNotifications.length).toBe(firstUserInitialCount);
 
-    // * Verify second user received NEW notification
-    secondUserNotifications = await pw.waitForNotification(secondMentionedPage);
-    expect(secondUserNotifications.length).toBeGreaterThan(secondUserInitialCount);
-    expect(secondUserNotifications.length).toBeGreaterThanOrEqual(1);
-});
+        // * Verify second user received NEW notification
+        secondUserNotifications = await pw.waitForNotification(secondMentionedPage);
+        expect(secondUserNotifications.length).toBeGreaterThan(secondUserInitialCount);
+        expect(secondUserNotifications.length).toBeGreaterThanOrEqual(1);
+    },
+);
 
 /**
  * @objective Verify mentioned users receive notifications and mentions appear in Recent Mentions panel
@@ -301,7 +315,7 @@ test('displays page mention in Recent Mentions panel', {tag: '@pages'}, async ({
     const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(authorUser);
     await authorChannelsPage.goto(team.name, channel.name);
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page with @mention
     const pageTitle = 'Page with Mention in RHS';
@@ -310,7 +324,7 @@ test('displays page mention in Recent Mentions panel', {tag: '@pages'}, async ({
     await fillCreatePageModal(authorPage, pageTitle);
 
     // # Type content with @mention
-    const editor = await getEditorAndWait(authorPage);
+    await getEditorAndWait(authorPage);
     await typeInEditor(authorPage, `Hello @${mentionedUser.username}`);
 
     // # Select the mentioned user from dropdown
@@ -367,13 +381,15 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
     await authorChannelsPage.goto(team.name, channel.name);
 
     // # Login as first mentioned user in separate page and stub notifications
-    const {page: firstMentionedPage, channelsPage: firstMentionedChannelsPage} = await pw.testBrowser.login(firstMentionedUser);
+    const {page: firstMentionedPage, channelsPage: firstMentionedChannelsPage} =
+        await pw.testBrowser.login(firstMentionedUser);
     await firstMentionedChannelsPage.goto(team.name, channel.name);
     await firstMentionedChannelsPage.toBeVisible();
     await pw.stubNotification(firstMentionedPage, 'granted');
 
     // # Login as second mentioned user in separate page and stub notifications
-    const {page: secondMentionedPage, channelsPage: secondMentionedChannelsPage} = await pw.testBrowser.login(secondMentionedUser);
+    const {page: secondMentionedPage, channelsPage: secondMentionedChannelsPage} =
+        await pw.testBrowser.login(secondMentionedUser);
     await secondMentionedChannelsPage.goto(team.name, channel.name);
     await secondMentionedChannelsPage.toBeVisible();
     await pw.stubNotification(secondMentionedPage, 'granted');
@@ -381,7 +397,7 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
     // # Switch back to author page
     await authorPage.bringToFront();
 
-    const wiki = await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(authorPage, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page with first @mention
     const newPageButton = getNewPageButton(authorPage);
@@ -405,7 +421,7 @@ test('handles mention removal and addition correctly', {tag: '@pages'}, async ({
     await authorPage.waitForTimeout(WEBSOCKET_WAIT);
 
     // * Verify first user received notification
-    let firstUserNotifications = await pw.waitForNotification(firstMentionedPage);
+    const firstUserNotifications = await pw.waitForNotification(firstMentionedPage);
     expect(firstUserNotifications.length).toBeGreaterThanOrEqual(1);
 
     // * Verify second user has NO notifications yet

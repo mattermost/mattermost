@@ -2,8 +2,21 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, openSlashCommandMenu, insertViaSlashCommand, verifyEditorElement, selectAllText, getEditorAndWait, typeInEditor, SHORT_WAIT, ELEMENT_TIMEOUT, WEBSOCKET_WAIT, EDITOR_LOAD_WAIT, UI_MICRO_WAIT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    getNewPageButton,
+    fillCreatePageModal,
+    openSlashCommandMenu,
+    insertViaSlashCommand,
+    verifyEditorElement,
+    selectAllText,
+    getEditorAndWait,
+    SHORT_WAIT,
+    ELEMENT_TIMEOUT,
+    WEBSOCKET_WAIT,
+    EDITOR_LOAD_WAIT,
+    UI_MICRO_WAIT,
+} from './test_helpers';
 
 /**
  * @objective Verify slash command menu appears when typing / on blank line
@@ -18,7 +31,7 @@ test('opens slash command menu when typing / on blank line', {tag: '@pages'}, as
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Command Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash Command Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Command Test');
@@ -46,7 +59,7 @@ test('does not open slash command menu when / typed mid-line', {tag: '@pages'}, 
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Mid Line Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash Mid Line Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Mid Line Test');
@@ -82,7 +95,7 @@ test('opens slash command menu when / typed at start of new line', {tag: '@pages
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash New Line Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash New Line Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash New Line Test');
@@ -123,7 +136,7 @@ test('filters slash command menu items by typing search query', {tag: '@pages'},
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Filter Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash Filter Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Filter Test');
@@ -186,7 +199,7 @@ test('inserts heading 1 when selected from slash command menu', {tag: '@pages'},
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Insert Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash Insert Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Insert Test');
@@ -218,7 +231,7 @@ test('inserts bulleted list when selected from slash command menu', {tag: '@page
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash List Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash List Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash List Test');
@@ -257,7 +270,7 @@ test('opens image insertion when selected from slash command menu', {tag: '@page
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Image Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash Image Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Image Test');
@@ -304,9 +317,8 @@ test('opens image insertion when selected from slash command menu', {tag: '@page
         throw new Error(`JavaScript errors occurred: ${pageErrors.map((e) => e.message).join('\n')}`);
     }
 
-    const filteredConsoleErrors = consoleErrors.filter((err) =>
-        !err.includes('DevTools') &&
-        !err.includes('ReactDOM.render is no longer supported')
+    const filteredConsoleErrors = consoleErrors.filter(
+        (err) => !err.includes('DevTools') && !err.includes('ReactDOM.render is no longer supported'),
     );
     if (filteredConsoleErrors.length > 0) {
         throw new Error(`Console errors occurred: ${filteredConsoleErrors.join('\n')}`);
@@ -318,45 +330,49 @@ test('opens image insertion when selected from slash command menu', {tag: '@page
     // * Verify either image URL modal is visible OR file picker was triggered
     // (file picker is native and can't be directly tested, but we verify no errors occurred)
     const imageUrlModal = page.locator('[data-testid="image-url-modal"]');
-    const modalOrPickerTriggered = await imageUrlModal.isVisible().catch(() => false);
+    await imageUrlModal.isVisible().catch(() => false);
 });
 
 /**
  * @objective Verify slash command keyboard navigation with arrow keys
  */
-test('navigates slash command menu with arrow keys and selects with Enter', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'navigates slash command menu with arrow keys and selects with Enter',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Nav Wiki ${await pw.random.id()}`);
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Slash Nav Test');
+        // # Create wiki and page
+        await createWikiThroughUI(page, `Slash Nav Wiki ${await pw.random.id()}`);
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Slash Nav Test');
 
-    // # Open slash menu
-    const slashMenu = await openSlashCommandMenu(page);
+        // # Open slash menu
+        const slashMenu = await openSlashCommandMenu(page);
 
-    // # Navigate with arrow keys and select
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(UI_MICRO_WAIT * 2);
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(UI_MICRO_WAIT * 2);
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
+        // # Navigate with arrow keys and select
+        await page.keyboard.press('ArrowDown');
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+        await page.keyboard.press('ArrowDown');
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
-    // * Verify menu closed after selection
-    await expect(slashMenu).not.toBeVisible();
+        // * Verify menu closed after selection
+        await expect(slashMenu).not.toBeVisible();
 
-    // * Verify content was modified
-    const editor = await getEditorAndWait(page);
-    const editorContent = await editor.textContent();
-    expect(editorContent).not.toBe('/');
-});
+        // * Verify content was modified
+        const editor = await getEditorAndWait(page);
+        const editorContent = await editor.textContent();
+        expect(editorContent).not.toBe('/');
+    },
+);
 
 /**
  * @objective Verify slash command menu closes when pressing Escape
@@ -370,7 +386,7 @@ test('closes slash command menu when pressing Escape', {tag: '@pages'}, async ({
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Escape Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash Escape Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Escape Test');
@@ -398,7 +414,7 @@ test('closes slash command menu when clicking away', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash Click Away Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash Click Away Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash Click Away Test');
@@ -430,7 +446,7 @@ test('verifies ESC key closes slash command menu', {tag: '@pages'}, async ({pw, 
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Slash ESC Key Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Slash ESC Key Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Slash ESC Key Test');
@@ -466,7 +482,7 @@ test('displays placeholder text in empty editor', {tag: '@pages'}, async ({pw, s
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Placeholder Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Placeholder Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Placeholder Test Page');
@@ -506,7 +522,7 @@ test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Placeholder Line Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Placeholder Line Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Placeholder Line Test');

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from './pages_test_fixture';
+/* eslint-disable no-console */
 
+import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     getNewPageButton,
@@ -15,12 +16,11 @@ import {
     publishPage,
     closeWikiRHS,
     SHORT_WAIT,
-    ELEMENT_TIMEOUT,
     EDITOR_LOAD_WAIT,
 } from './test_helpers';
 
 /**
- * DEBUG TEST: Verify adding two inline comments step-by-step
+ * @objective Verify adding two inline comments step-by-step with detailed logging
  */
 test('DEBUG: add two inline comments with detailed logging', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
@@ -30,8 +30,8 @@ test('DEBUG: add two inline comments with detailed logging', {tag: '@pages'}, as
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    // Create wiki
-    const wiki = await createWikiThroughUI(page, `Debug Wiki ${await pw.random.id()}`);
+    // # Create wiki
+    await createWikiThroughUI(page, `Debug Wiki ${await pw.random.id()}`);
 
     // Create page with two distinct paragraphs using Enter key
     const newPageButton = getNewPageButton(page);
@@ -114,7 +114,6 @@ test('DEBUG: add two inline comments with detailed logging', {tag: '@pages'}, as
         await page.waitForTimeout(SHORT_WAIT * 2);
         const modal2AfterSubmit = await commentModal2.isVisible().catch(() => false);
         console.log(`  ✓ Modal 2 after submit (should be false): ${modal2AfterSubmit}`);
-
     } catch (error: any) {
         console.log(`  ✗ ERROR opening/filling second comment: ${error.message}`);
     }
@@ -139,6 +138,6 @@ test('DEBUG: add two inline comments with detailed logging', {tag: '@pages'}, as
     const countPublished = await markersPublished.count();
     console.log(`✓ Markers after publish: ${countPublished}`);
 
-    // Assertion
+    // * Verify at least 2 comment markers exist after publish
     expect(countPublished).toBeGreaterThanOrEqual(2);
 });

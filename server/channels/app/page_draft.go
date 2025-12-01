@@ -69,16 +69,6 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		props["page_id"] = pageId
 	}
 
-	rctx.Logger().Info("=== [SavePageDraftWithMetadata] Props received ===",
-		mlog.String("draft_id", draftId),
-		mlog.Any("props", props),
-		mlog.Any("page_status", props["page_status"]))
-	if originalUpdateAt, ok := props["original_page_update_at"]; ok {
-		rctx.Logger().Debug("[APP] original_page_update_at present in props", mlog.Any("value", originalUpdateAt))
-	} else {
-		rctx.Logger().Debug("[APP] original_page_update_at NOT present in props")
-	}
-
 	draft := &model.Draft{
 		UserId:    userId,
 		WikiId:    wikiId,
@@ -88,24 +78,6 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		FileIds:   []string{},
 	}
 	draft.SetProps(props)
-
-	draftProps := draft.GetProps()
-	rctx.Logger().Info("=== [SavePageDraftWithMetadata] Draft props after SetProps ===",
-		mlog.String("draft_id", draftId),
-		mlog.Any("props", draftProps),
-		mlog.Any("page_status", draftProps["page_status"]))
-	if originalUpdateAt, ok := draftProps["original_page_update_at"]; ok {
-		rctx.Logger().Debug("[APP] original_page_update_at in draft", mlog.Any("value", originalUpdateAt))
-	} else {
-		rctx.Logger().Debug("[APP] original_page_update_at NOT in draft")
-	}
-
-	rctx.Logger().Info("About to upsert page draft with transaction",
-		mlog.String("user_id", userId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("draft_id", draftId),
-		mlog.String("title", title),
-		mlog.String("page_id_param", pageId))
 
 	// Save both content and metadata in a single transaction (DraftStore owns both tables - MM pattern)
 	savedContent, savedDraft, err := a.Srv().Store().Draft().UpsertPageDraftWithTransaction(pageDraftContent, draft)
@@ -135,12 +107,11 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		message.Add("page_id", pageId)
 		message.Add("user_id", userId)
 		message.Add("timestamp", savedDraft.UpdateAt)
+		draftJSON, jsonErr := json.Marshal(combinedDraft)
+		if jsonErr == nil {
+			message.Add("draft", string(draftJSON))
+		}
 		a.Publish(message)
-
-		rctx.Logger().Info("Sent draft updated WebSocket event for active editor",
-			mlog.String("page_id", pageId),
-			mlog.String("user_id", userId),
-			mlog.Int("timestamp", int(savedDraft.UpdateAt)))
 	}
 
 	result = "success"
@@ -203,11 +174,6 @@ func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, draftId string) (*m
 
 // DeletePageDraft deletes a page draft from both Drafts and PageDraftContents tables
 func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) *model.AppError {
-	rctx.Logger().Info("Deleting page draft",
-		mlog.String("user_id", userId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("draft_id", draftId))
-
 	// Fetch wiki to get channelId
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
@@ -216,16 +182,6 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) 
 
 	// Check if this draft is for an existing page (draftId might be the pageId)
 	pageId := draftId // Use draftId as pageId for WebSocket event (works for both existing pages and new drafts)
-	_, postErr := a.GetSinglePost(rctx, draftId, false)
-	if postErr == nil {
-		rctx.Logger().Info("Draft deletion is for existing page",
-			mlog.String("page_id", pageId),
-			mlog.String("user_id", userId))
-	} else {
-		rctx.Logger().Info("Draft deletion is for new page draft",
-			mlog.String("draft_id", draftId),
-			mlog.String("user_id", userId))
-	}
 
 	// Delete from both PageDraftContents and Drafts tables in a single transaction (DraftStore owns both tables - MM pattern)
 	// Page drafts store WikiId in ChannelId field, so pass wikiId for both parameters
@@ -245,10 +201,6 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) 
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
 	a.Publish(message)
-
-	rctx.Logger().Info("Sent page draft deleted WebSocket event for active editor",
-		mlog.String("page_id", pageId),
-		mlog.String("user_id", userId))
 
 	return nil
 }
@@ -405,13 +357,9 @@ func (a *App) validateParentPage(rctx request.CTX, parentId string, wiki *model.
 		return nil
 	}
 
-	parentPage, err := a.GetSinglePost(rctx, parentId, false)
+	parentPage, err := a.getPagePost(rctx, parentId)
 	if err != nil {
 		return model.NewAppError("validateParentPage", "api.page.publish.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	if parentPage.Type != model.PostTypePage {
-		return model.NewAppError("validateParentPage", "api.page.publish.parent_not_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if parentPage.ChannelId != wiki.ChannelId {
@@ -480,22 +428,10 @@ func (a *App) validateCircularReference(rctx request.CTX, pageId, parentId strin
 }
 
 func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *model.PageDraft, isUpdate bool) {
-	rctx.Logger().Info("=== applyDraftPageStatus CALLED ===",
-		mlog.String("page_id", page.Id),
-		mlog.Any("draft_props", draft.Props),
-		mlog.Bool("is_update", isUpdate))
-
-	// Check if page_status exists
 	rawStatus, exists := draft.Props["page_status"]
 	if !exists {
-		rctx.Logger().Info("No page_status key in draft props", mlog.String("page_id", page.Id))
 		return
 	}
-
-	rctx.Logger().Info("=== page_status value found ===",
-		mlog.String("page_id", page.Id),
-		mlog.Any("raw_value", rawStatus),
-		mlog.String("type", fmt.Sprintf("%T", rawStatus)))
 
 	// Try string type assertion
 	statusValue, ok := rawStatus.(string)
@@ -503,23 +439,14 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 		// If not a string, try to convert to string
 		if rawStatus != nil {
 			statusValue = fmt.Sprintf("%v", rawStatus)
-			rctx.Logger().Info("Converted page_status to string",
-				mlog.String("page_id", page.Id),
-				mlog.String("status", statusValue))
 		} else {
-			rctx.Logger().Info("page_status is nil", mlog.String("page_id", page.Id))
 			return
 		}
 	}
 
 	if statusValue == "" {
-		rctx.Logger().Info("page_status is empty string", mlog.String("page_id", page.Id))
 		return
 	}
-
-	rctx.Logger().Info("Setting page status from draft",
-		mlog.String("page_id", page.Id),
-		mlog.String("status", statusValue))
 
 	if err := a.SetPageStatus(rctx, page.Id, statusValue); err != nil {
 		logLevel := mlog.LvlWarn
@@ -530,10 +457,6 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 			mlog.String("page_id", page.Id),
 			mlog.String("status", statusValue),
 			mlog.Err(err))
-	} else {
-		rctx.Logger().Info("Successfully set page status",
-			mlog.String("page_id", page.Id),
-			mlog.String("status", statusValue))
 	}
 }
 
@@ -568,11 +491,6 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 		}
 	}
 
-	rctx.Logger().Info("Page updated from draft",
-		mlog.String("page_id", updatedPost.Id),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("parent_id", parentId))
-
 	return updatedPost, nil
 }
 
@@ -584,11 +502,6 @@ func (a *App) createPageFromDraft(rctx request.CTX, wikiId, parentId, title, con
 	if err != nil {
 		return nil, err
 	}
-
-	rctx.Logger().Info("Page created from draft",
-		mlog.String("page_id", createdPost.Id),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("parent_id", parentId))
 
 	return createdPost, nil
 }
@@ -618,13 +531,6 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 }
 
 func (a *App) BroadcastPagePublished(page *model.Post, wikiId, channelId, draftId, userId string, sourceWikiId ...string) {
-	mlog.Info("Broadcasting page published event",
-		mlog.String("page_id", page.Id),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("channel_id", channelId),
-		mlog.String("draft_id", draftId),
-		mlog.String("user_id", userId))
-
 	pageJSON, jsonErr := page.ToJSON()
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode page to JSON", mlog.Err(jsonErr))
@@ -644,18 +550,10 @@ func (a *App) BroadcastPagePublished(page *model.Post, wikiId, channelId, draftI
 		ChannelId: channelId,
 	})
 
-	mlog.Info("Publishing message to websocket", mlog.String("event_type", string(model.WebsocketEventPagePublished)))
 	a.Publish(message)
-	mlog.Info("Message published to websocket")
 }
 
 func (a *App) broadcastPageDeleted(pageId, wikiId, channelId, userId string) {
-	mlog.Info("Broadcasting page deleted event",
-		mlog.String("page_id", pageId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("channel_id", channelId),
-		mlog.String("user_id", userId))
-
 	message := model.NewWebSocketEvent(model.WebsocketEventPageDeleted, "", channelId, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("wiki_id", wikiId)
@@ -664,19 +562,11 @@ func (a *App) broadcastPageDeleted(pageId, wikiId, channelId, userId string) {
 		ChannelId: channelId,
 	})
 
-	mlog.Info("Publishing message to websocket", mlog.String("event_type", string(model.WebsocketEventPageDeleted)))
 	a.Publish(message)
-	mlog.Info("Message published to websocket")
 }
 
 // BroadcastPageTitleUpdated broadcasts a page title update to all clients with access to the channel
 func (a *App) BroadcastPageTitleUpdated(pageId, title, wikiId, channelId string, updateAt int64) {
-	mlog.Info("Broadcasting page title updated event",
-		mlog.String("page_id", pageId),
-		mlog.String("title", title),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("channel_id", channelId))
-
 	message := model.NewWebSocketEvent(model.WebsocketEventPageTitleUpdated, "", channelId, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("title", title)
@@ -686,19 +576,11 @@ func (a *App) BroadcastPageTitleUpdated(pageId, title, wikiId, channelId string,
 		ChannelId: channelId,
 	})
 
-	mlog.Info("Publishing message to websocket", mlog.String("event_type", string(model.WebsocketEventPageTitleUpdated)))
 	a.Publish(message)
 }
 
 // BroadcastPageMoved broadcasts a page hierarchy change to all clients with access to the channel
 func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, channelId string, updateAt int64, sourceWikiId ...string) {
-	mlog.Info("Broadcasting page moved event",
-		mlog.String("page_id", pageId),
-		mlog.String("old_parent_id", oldParentId),
-		mlog.String("new_parent_id", newParentId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("channel_id", channelId))
-
 	message := model.NewWebSocketEvent(model.WebsocketEventPageMoved, "", channelId, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("old_parent_id", oldParentId)
@@ -712,17 +594,11 @@ func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, chann
 		ChannelId: channelId,
 	})
 
-	mlog.Info("Publishing message to websocket", mlog.String("event_type", string(model.WebsocketEventPageMoved)))
 	a.Publish(message)
 }
 
 // BroadcastWikiUpdated broadcasts wiki metadata changes to all clients with access to the channel
 func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
-	mlog.Info("Broadcasting wiki updated event",
-		mlog.String("wiki_id", wiki.Id),
-		mlog.String("title", wiki.Title),
-		mlog.String("channel_id", wiki.ChannelId))
-
 	message := model.NewWebSocketEvent(model.WebsocketEventWikiUpdated, "", wiki.ChannelId, "", nil, "")
 	message.Add("wiki_id", wiki.Id)
 	message.Add("channel_id", wiki.ChannelId)
@@ -733,39 +609,21 @@ func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
 		ChannelId: wiki.ChannelId,
 	})
 
-	mlog.Info("Publishing message to websocket", mlog.String("event_type", string(model.WebsocketEventWikiUpdated)))
 	a.Publish(message)
 }
 
 // PublishPageDraft publishes a draft as a page
 func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText, message, pageStatus string, baseUpdateAt int64, force bool) (*model.Post, *model.AppError) {
-	rctx.Logger().Debug("Publishing page draft",
-		mlog.String("user_id", userId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("draft_id", draftId),
-		mlog.Int("message_length", len(message)),
-		mlog.Bool("force", force))
-
 	draft, wiki, _, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId, message)
 	if err != nil {
 		return nil, err
 	}
-
-	rctx.Logger().Info("=== [PublishPageDraft] Draft fetched from DB ===",
-		mlog.String("draft_id", draftId),
-		mlog.Any("draft_props", draft.Props),
-		mlog.String("pageStatus_param", pageStatus))
 
 	if pageStatus != "" {
 		if draft.Props == nil {
 			draft.Props = make(map[string]any)
 		}
 		draft.Props["page_status"] = pageStatus
-		rctx.Logger().Info("=== [PublishPageDraft] Overriding draft status with pageStatus param ===",
-			mlog.String("pageStatus_param", pageStatus))
-	} else {
-		rctx.Logger().Info("=== [PublishPageDraft] No pageStatus param, using draft props ===",
-			mlog.Any("draft_status", draft.Props["page_status"]))
 	}
 
 	savedPost, err := a.applyDraftToPage(rctx, draft, wikiId, parentId, title, searchText, message, userId, baseUpdateAt, force)
@@ -774,55 +632,26 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 	}
 
 	// Enrich the page with properties immediately after publishing
-	// This ensures both API response and websocket payload have enriched properties
-	rctx.Logger().Info("=== BEFORE ENRICHMENT ===",
-		mlog.String("page_id", savedPost.Id),
-		mlog.Any("props_before", savedPost.Props))
-
 	if enrichErr := a.EnrichPageWithProperties(rctx, savedPost); enrichErr != nil {
-		rctx.Logger().Error("Failed to enrich published page with properties",
-			mlog.String("page_id", savedPost.Id),
-			mlog.Err(enrichErr))
+		rctx.Logger().Warn("Failed to enrich published page with properties", mlog.String("page_id", savedPost.Id), mlog.Err(enrichErr))
 	}
-
-	rctx.Logger().Info("=== AFTER ENRICHMENT ===",
-		mlog.String("page_id", savedPost.Id),
-		mlog.Any("props_after", savedPost.Props),
-		mlog.Bool("has_page_status", savedPost.Props != nil && savedPost.Props["page_status"] != nil))
 
 	// Delete draft from both tables
 	if deleteErr := a.DeletePageDraft(rctx, userId, wikiId, draftId); deleteErr != nil {
-		rctx.Logger().Warn("Failed to delete draft after successful publish - orphaned draft will remain",
-			mlog.String("user_id", userId),
-			mlog.String("wiki_id", wikiId),
-			mlog.String("draft_id", draftId),
-			mlog.String("page_id", savedPost.Id),
-			mlog.Err(deleteErr))
-	} else {
-		rctx.Logger().Info("Draft deleted successfully, now updating child draft references",
-			mlog.String("deleted_draft_id", draftId),
-			mlog.String("published_page_id", savedPost.Id))
+		rctx.Logger().Warn("Failed to delete draft after successful publish", mlog.String("draft_id", draftId), mlog.Err(deleteErr))
 	}
 
 	if updateErr := a.updateChildDraftParentReferences(rctx, userId, wikiId, draftId, savedPost.Id); updateErr != nil {
-		rctx.Logger().Error("Failed to update child draft parent references after publish",
-			mlog.String("wiki_id", wikiId),
-			mlog.String("published_draft_id", draftId),
-			mlog.String("new_page_id", savedPost.Id),
-			mlog.Err(updateErr))
+		rctx.Logger().Warn("Failed to update child draft parent references", mlog.Err(updateErr))
 	}
 
-	// Load page content for the response (PageContent table stores the actual content)
-	// This is separate from enrichment and fetches the full page content
+	// Load page content for the response
 	pageContent, contentErr := a.Srv().Store().Page().GetPageContent(savedPost.Id)
 	if contentErr != nil {
-		rctx.Logger().Warn("Failed to fetch page content after publish", mlog.String("page_id", savedPost.Id), mlog.Err(contentErr))
-		// Don't fail the whole operation, just return without content
 		savedPost.Message = ""
 	} else {
 		contentJSON, jsonErr := pageContent.GetDocumentJSON()
 		if jsonErr != nil {
-			rctx.Logger().Warn("Failed to serialize page content", mlog.String("page_id", savedPost.Id), mlog.Err(jsonErr))
 			savedPost.Message = ""
 		} else {
 			savedPost.Message = contentJSON
@@ -830,101 +659,52 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 	}
 
 	// Broadcast to all clients in the channel
-	rctx.Logger().Info("=== BROADCASTING PAGE ===",
-		mlog.String("page_id", savedPost.Id),
-		mlog.Any("props_to_broadcast", savedPost.Props),
-		mlog.Bool("has_page_status", savedPost.Props != nil && savedPost.Props["page_status"] != nil))
 	a.BroadcastPagePublished(savedPost, wikiId, wiki.ChannelId, draftId, userId)
-
-	rctx.Logger().Info("=== RETURNING PAGE FROM API ===",
-		mlog.String("page_id", savedPost.Id),
-		mlog.Any("props_in_response", savedPost.Props))
 
 	return savedPost, nil
 }
 
 func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId, oldDraftId, newPageId string) *model.AppError {
-	rctx.Logger().Info("=== updateChildDraftParentReferences CALLED ===",
-		mlog.String("user_id", userId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("old_draft_id", oldDraftId),
-		mlog.String("new_page_id", newPageId))
-
 	drafts, err := a.GetPageDraftsForWiki(rctx, userId, wikiId)
 	if err != nil {
-		rctx.Logger().Error("Failed to get drafts for wiki", mlog.Err(err))
 		return err
 	}
 
-	rctx.Logger().Info("Found drafts in wiki", mlog.Int("draft_count", len(drafts)))
-
 	for _, childDraft := range drafts {
 		draftId := childDraft.DraftId
-		rctx.Logger().Info("Checking draft",
-			mlog.String("draft_id", draftId),
-			mlog.Any("props", childDraft.Props))
 
 		parentIdProp, hasParent := childDraft.Props["page_parent_id"]
 		if !hasParent {
-			rctx.Logger().Info("Draft has NO page_parent_id prop", mlog.String("draft_id", draftId))
 			continue
 		}
 
 		parentId, ok := parentIdProp.(string)
 		if !ok {
-			rctx.Logger().Info("page_parent_id is NOT a string",
-				mlog.String("draft_id", draftId),
-				mlog.Any("parent_id_prop", parentIdProp))
 			continue
 		}
-
-		rctx.Logger().Info("Comparing parent IDs",
-			mlog.String("draft_id", draftId),
-			mlog.String("draft_parent_id", parentId),
-			mlog.String("looking_for_draft_id", oldDraftId),
-			mlog.Bool("match", parentId == oldDraftId))
 
 		if parentId != oldDraftId {
 			continue
 		}
 
-		rctx.Logger().Info("=== FOUND CHILD DRAFT TO UPDATE ===",
-			mlog.String("child_draft_id", draftId),
-			mlog.String("old_parent_draft_id", oldDraftId),
-			mlog.String("new_parent_page_id", newPageId))
-
 		updatedProps := maps.Clone(childDraft.Props)
 		updatedProps["page_parent_id"] = newPageId
 
-		rctx.Logger().Info("About to update draft props only",
-			mlog.String("child_draft_id", draftId),
-			mlog.Any("updated_props", updatedProps))
-
 		updateErr := a.Srv().Store().Draft().UpdatePropsOnly(userId, wikiId, draftId, updatedProps, childDraft.UpdateAt)
 		if updateErr != nil {
-			rctx.Logger().Warn("Skipping child draft update due to concurrent modification",
-				mlog.String("child_draft_id", draftId),
-				mlog.Err(updateErr))
-		} else {
-			rctx.Logger().Info("=== SUCCESSFULLY UPDATED CHILD DRAFT PROPS ===",
-				mlog.String("child_draft_id", draftId),
-				mlog.String("new_parent_id", newPageId))
+			continue
+		}
 
-			childDraft.Props = updatedProps
-			childDraft.UpdateAt = model.GetMillis()
+		childDraft.Props = updatedProps
+		childDraft.UpdateAt = model.GetMillis()
 
-			message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", childDraft.ChannelId, userId, nil, "")
-			draftJSON, jsonErr := json.Marshal(childDraft)
-			if jsonErr != nil {
-				rctx.Logger().Warn("Failed to encode updated draft to JSON", mlog.Err(jsonErr))
-			} else {
-				message.Add("draft", string(draftJSON))
-				a.Publish(message)
-				rctx.Logger().Info("Sent websocket event for updated child draft", mlog.String("child_draft_id", draftId))
-			}
+		message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", childDraft.ChannelId, userId, nil, "")
+		draftJSON, jsonErr := json.Marshal(childDraft)
+		if jsonErr == nil {
+			message.Add("draft", string(draftJSON))
+			a.Publish(message)
 		}
 	}
 
-	rctx.Logger().Info("=== updateChildDraftParentReferences COMPLETED ===")
 	return nil
 }

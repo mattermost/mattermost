@@ -34,3 +34,37 @@ func shouldSendCommentDeletedEvent(post *model.Post) bool {
 func shouldUseCustomMentionParsing(post *model.Post) bool {
 	return post.Type == model.PostTypePage
 }
+
+// IsPagePost returns true if the post is a wiki page.
+func IsPagePost(post *model.Post) bool {
+	return post != nil && post.Type == model.PostTypePage
+}
+
+// IsPageComment returns true if the post is a page comment.
+func IsPageComment(post *model.Post) bool {
+	return post != nil && post.Type == model.PostTypePageComment
+}
+
+// IsPageRelatedPost returns true if the post is either a page or a page comment.
+func IsPageRelatedPost(post *model.Post) bool {
+	return IsPagePost(post) || IsPageComment(post)
+}
+
+// HasRelaxedEditHistoryPermissions returns true if this post type allows any channel member
+// to view edit history (not just the author). Pages follow industry standard (Confluence, etc.)
+// where any member can view version history.
+func HasRelaxedEditHistoryPermissions(post *model.Post) bool {
+	return IsPagePost(post)
+}
+
+// RequiresPageModifyPermission returns true if this post type needs page-specific
+// permission checking (HasPermissionToModifyPage) instead of generic post permissions.
+func RequiresPageModifyPermission(post *model.Post) bool {
+	return IsPagePost(post)
+}
+
+// NeedsContentLoading returns true if this post type stores content separately
+// and needs content loaded from PageContent table.
+func NeedsContentLoading(post *model.Post) bool {
+	return IsPagePost(post)
+}

@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
     createWikiThroughUI,
     createPageThroughUI,
-    createChildPageThroughContextMenu,
     createTestChannel,
     getNewPageButton,
     fillCreatePageModal,
@@ -21,7 +19,6 @@ import {
     verifyWikiRHSContent,
     addInlineCommentInEditMode,
     addInlineCommentAndVerify,
-    openCommentDotMenu,
     toggleCommentResolution,
     deleteCommentFromRHS,
     publishPage,
@@ -35,11 +32,11 @@ import {
     verifyCommentsEmptyState,
     getThreadItemAndVerify,
     getEditor,
+    waitForFormattingBar,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
-    HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
     UI_MICRO_WAIT,
 } from './test_helpers';
@@ -80,7 +77,7 @@ test('creates inline comment on selected text', {tag: '@pages'}, async ({pw, sha
 /**
  * @objective Verify reply threading in inline comments
  */
-test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+test('replies to inline comment thread', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
@@ -89,7 +86,12 @@ test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context, s
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Reply Wiki ${await pw.random.id()}`, 'Discussion Page', 'This feature needs discussion about implementation details');
+    await createWikiAndPage(
+        page,
+        `Reply Wiki ${await pw.random.id()}`,
+        'Discussion Page',
+        'This feature needs discussion about implementation details',
+    );
 
     // # Add initial comment
     await enterEditMode(page);
@@ -126,11 +128,11 @@ test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, shar
         `Resolve Wiki ${await pw.random.id()}`,
         'Review Page',
         'This section needs review by team lead',
-        'Reviewed and approved'
+        'Reviewed and approved',
     );
 
     // # Click marker to open RHS
-    const rhs = await clickCommentMarkerAndOpenRHS(page, marker);
+    const rhs = await clickCommentMarkerAndOpenRHS(page, marker ?? undefined);
 
     // # Resolve the comment
     await toggleCommentResolution(page, rhs);
@@ -158,7 +160,7 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Multi Comment Wiki ${await pw.random.id()}`);
 
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
@@ -228,7 +230,7 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Markers Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Markers Wiki ${await pw.random.id()}`);
 
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
@@ -277,8 +279,8 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
     await expect(marker2).toBeVisible();
 
     // * Verify each marker has a unique ID attribute
-    const marker1Id = await marker1.getAttribute('data-comment-id') || await marker1.getAttribute('id');
-    const marker2Id = await marker2.getAttribute('data-comment-id') || await marker2.getAttribute('id');
+    const marker1Id = (await marker1.getAttribute('data-comment-id')) || (await marker1.getAttribute('id'));
+    const marker2Id = (await marker2.getAttribute('data-comment-id')) || (await marker2.getAttribute('id'));
 
     expect(marker1Id).toBeTruthy();
     expect(marker2Id).toBeTruthy();
@@ -305,7 +307,12 @@ test('preserves inline comment position after nearby text edits', {tag: '@pages'
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Edit Preserve Wiki ${await pw.random.id()}`, 'Editable Page', 'The quick brown fox jumps over the lazy dog');
+    await createWikiAndPage(
+        page,
+        `Edit Preserve Wiki ${await pw.random.id()}`,
+        'Editable Page',
+        'The quick brown fox jumps over the lazy dog',
+    );
 
     // # Add inline comment
     await enterEditMode(page);
@@ -340,7 +347,12 @@ test('deletes inline comment and removes marker', {tag: '@pages'}, async ({pw, s
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Delete Comment Wiki ${await pw.random.id()}`, 'Page With Comment', 'This text has a comment');
+    await createWikiAndPage(
+        page,
+        `Delete Comment Wiki ${await pw.random.id()}`,
+        'Page With Comment',
+        'This text has a comment',
+    );
 
     // # Add inline comment using reusable helpers
     await enterEditMode(page);
@@ -372,7 +384,12 @@ test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sh
     await channelsPage.toBeVisible();
 
     // # Create wiki and page with inline comment
-    await createWikiAndPage(page, `RHS Wiki ${await pw.random.id()}`, 'Product Specs', 'The performance metrics need review');
+    await createWikiAndPage(
+        page,
+        `RHS Wiki ${await pw.random.id()}`,
+        'Product Specs',
+        'The performance metrics need review',
+    );
 
     // # Add inline comment (publishes page and verifies marker)
     await enterEditMode(page);
@@ -417,7 +434,12 @@ test('clicks active comment marker to close RHS', {tag: '@pages'}, async ({pw, s
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Toggle RHS Wiki ${await pw.random.id()}`, 'Design Doc', 'The color scheme needs adjustment');
+    await createWikiAndPage(
+        page,
+        `Toggle RHS Wiki ${await pw.random.id()}`,
+        'Design Doc',
+        'The color scheme needs adjustment',
+    );
 
     // # Add inline comment
     await enterEditMode(page);
@@ -448,7 +470,12 @@ test('closes RHS via close button', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    await createWikiAndPage(page, `Close RHS Wiki ${await pw.random.id()}`, 'Requirements', 'Security requirements must be defined');
+    await createWikiAndPage(
+        page,
+        `Close RHS Wiki ${await pw.random.id()}`,
+        'Requirements',
+        'Security requirements must be defined',
+    );
 
     // # Add inline comment
     await enterEditMode(page);
@@ -477,7 +504,7 @@ test('switches between multiple comment threads in RHS', {tag: '@pages'}, async 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Thread Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Multi Thread Wiki ${await pw.random.id()}`);
 
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
@@ -654,124 +681,325 @@ test('displays all threads from multiple pages in All Threads tab', {tag: '@page
 /**
  * @objective Verify that when multiple inline comments exist on different parts of a page, each comment displays its correct anchor text in the wiki RHS
  */
-test('displays correct anchor text for each inline comment in wiki RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'displays correct anchor text for each inline comment in wiki RHS',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and page through UI
-    await createWikiAndPage(page, `Anchor Test Wiki ${await pw.random.id()}`, 'Multiple Anchors Test', 'First section with unique content. Second section with different content. Third section with more content.');
+        // # Create wiki and page through UI
+        await createWikiAndPage(
+            page,
+            `Anchor Test Wiki ${await pw.random.id()}`,
+            'Multiple Anchors Test',
+            'First section with unique content. Second section with different content. Third section with more content.',
+        );
 
-    // # Enter edit mode and add first inline comment
-    await enterEditMode(page);
-    await addInlineCommentInEditMode(page, 'Comment on first section');
+        // # Enter edit mode and add first inline comment
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'Comment on first section');
 
-    // # Add second inline comment
-    const editor = getEditor(page);
-    await editor.click();
-    await selectTextInEditor(page);
-    const commentModal = await openInlineCommentModal(page);
-    await fillAndSubmitCommentModal(page, commentModal, 'Comment on second section');
+        // # Add second inline comment
+        const editor = getEditor(page);
+        await editor.click();
+        await selectTextInEditor(page);
+        const commentModal = await openInlineCommentModal(page);
+        await fillAndSubmitCommentModal(page, commentModal, 'Comment on second section');
 
-    // # Publish the page
-    await publishPage(page);
+        // # Publish the page
+        await publishPage(page);
 
-    // # Check if inline comment markers exist
-    const commentMarkers = page.locator('.inline-comment-marker, [data-inline-comment-marker], [data-comment-id]');
-    const markerCount = await commentMarkers.count();
+        // # Check if inline comment markers exist
+        const commentMarkers = page.locator('.inline-comment-marker, [data-inline-comment-marker], [data-comment-id]');
+        const markerCount = await commentMarkers.count();
 
-    // Note: Adding multiple inline comments programmatically is complex
-    // This test verifies UI behavior if inline comments exist
-    if (markerCount >= 1) {
-        // # Click first marker to open RHS
-        await commentMarkers.nth(0).click();
-        await page.waitForTimeout(SHORT_WAIT);
+        // Note: Adding multiple inline comments programmatically is complex
+        // This test verifies UI behavior if inline comments exist
+        if (markerCount >= 1) {
+            // # Click first marker to open RHS
+            await commentMarkers.nth(0).click();
+            await page.waitForTimeout(SHORT_WAIT);
 
-        // # Verify RHS opened
-        const wikiRHS = page.locator('[data-testid="wiki-rhs"]');
-        await expect(wikiRHS).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        // * Verify anchor text context is displayed in RHS
-        const anchorContext = wikiRHS.locator('.inline-comment-anchor-box');
-        await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
-        // * Verify it contains some text from the page
-        const contextText = await anchorContext.first().textContent();
-        expect(contextText).toBeTruthy();
-
-        // # If multiple markers exist, test navigation between them
-        if (markerCount >= 2) {
-            await commentMarkers.nth(1).click();
-            await page.waitForTimeout(UI_MICRO_WAIT * 3);
-
-            // * Verify anchor context updates
+            // # Verify RHS opened
+            const wikiRHS = page.locator('[data-testid="wiki-rhs"]');
+            await expect(wikiRHS).toBeVisible({timeout: ELEMENT_TIMEOUT});
+            // * Verify anchor text context is displayed in RHS
+            const anchorContext = wikiRHS.locator('.inline-comment-anchor-box');
             await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
-            const secondContextText = await anchorContext.first().textContent();
-            expect(secondContextText).toBeTruthy();
+            // * Verify it contains some text from the page
+            const contextText = await anchorContext.first().textContent();
+            expect(contextText).toBeTruthy();
+
+            // # If multiple markers exist, test navigation between them
+            if (markerCount >= 2) {
+                await commentMarkers.nth(1).click();
+                await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+                // * Verify anchor context updates
+                await expect(anchorContext).toBeVisible({timeout: WEBSOCKET_WAIT});
+                const secondContextText = await anchorContext.first().textContent();
+                expect(secondContextText).toBeTruthy();
+            }
         }
-    }
-});
+    },
+);
 
 /**
  * @objective Verify inline comment from formatting bar displays correct anchor text during editing
  */
-test('creates inline comment from formatting bar with correct anchor text', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'creates inline comment from formatting bar with correct anchor text',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Format Bar Wiki ${await pw.random.id()}`);
+        // # Create wiki and page through UI
+        await createWikiThroughUI(page, `Format Bar Wiki ${await pw.random.id()}`);
 
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Test Page');
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Test Page');
 
-    // # Type content in the editor
-    const editor = getEditor(page);
-    await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await editor.click();
-    await editor.type('important information');
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
+        // # Type content in the editor
+        const editor = getEditor(page);
+        await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await editor.click();
+        await editor.type('important information');
+        await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
-    // # Publish the page first (inline comments only work on published pages, not new drafts)
-    await publishPage(page);
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # Publish the page first (inline comments only work on published pages, not new drafts)
+        await publishPage(page);
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # Enter edit mode and add inline comment
-    await enterEditMode(page);
-    await addInlineCommentInEditMode(page, 'This section needs review');
+        // # Enter edit mode and add inline comment
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'This section needs review');
 
-    // * Verify RHS opened automatically and contains correct content
-    const rhs = page.locator('[data-testid="wiki-rhs"]');
-    await verifyWikiRHSContent(page, rhs, ['important information', 'This section needs review']);
+        // * Verify RHS opened automatically and contains correct content
+        const rhs = page.locator('[data-testid="wiki-rhs"]');
+        await verifyWikiRHSContent(page, rhs, ['important information', 'This section needs review']);
 
-    // * Verify it does NOT show the generic "Comment thread" text
-    const rhsText = await rhs.textContent();
-    expect(rhsText).not.toContain('Comment thread');
+        // * Verify it does NOT show the generic "Comment thread" text
+        const rhsText = await rhs.textContent();
+        expect(rhsText).not.toContain('Comment thread');
 
-    // # Publish the page again to save the comment
-    await publishPage(page);
+        // # Publish the page again to save the comment
+        await publishPage(page);
 
-    // * Verify comment marker is visible and click to verify RHS still works
-    const commentMarker = await verifyCommentMarkerVisible(page);
-    await commentMarker.click();
-    await page.waitForTimeout(SHORT_WAIT);
+        // * Verify comment marker is visible and click to verify RHS still works
+        const commentMarker = await verifyCommentMarkerVisible(page);
+        await commentMarker.click();
+        await page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify RHS still shows the comment with correct anchor text after publishing
-    await verifyWikiRHSContent(page, rhs, ['important information']);
-    const rhsTextAfterPublish = await rhs.textContent();
-    expect(rhsTextAfterPublish).not.toContain('Comment thread');
-});
+        // * Verify RHS still shows the comment with correct anchor text after publishing
+        await verifyWikiRHSContent(page, rhs, ['important information']);
+        const rhsTextAfterPublish = await rhs.textContent();
+        expect(rhsTextAfterPublish).not.toContain('Comment thread');
+    },
+);
 
 /**
  * @objective Verify that when multiple inline comments exist on different parts of a page, each thread displays its correct anchor text in the global Threads view
  */
-test('displays correct anchor text for each thread in global Threads view', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test(
+    'displays correct anchor text for each thread in global Threads view',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Threads Anchor Test Wiki ${await pw.random.id()}`);
+
+        // # Create a page with three distinct text sections
+        await ensurePanelOpen(page);
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Global Threads Anchors Test');
+
+        const editor = getEditor(page);
+        await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await editor.click();
+
+        // Type content with Enter keys for proper paragraph separation
+        await editor.type('Alpha section text here.');
+        await page.keyboard.press('Enter');
+        await page.keyboard.press('Enter');
+        await editor.type('Beta section text here.');
+        await page.keyboard.press('Enter');
+        await page.keyboard.press('Enter');
+        await editor.type('Gamma section text here.');
+
+        // # Publish the page first (required before adding inline comments)
+        await publishPage(page);
+
+        // # Now edit to add first inline comment
+        await enterEditMode(page);
+
+        const comment1Added = await addInlineCommentAndPublish(
+            page,
+            'Alpha section text here',
+            'Comment on alpha',
+            true,
+        );
+
+        // # Edit page again to add second comment (if first succeeded)
+        if (comment1Added) {
+            await enterEditMode(page);
+
+            await addInlineCommentAndPublish(page, 'Beta section text here', 'Comment on beta', true);
+        }
+
+        // # Check if any inline comments were actually created
+        const commentMarkers = page.locator('.inline-comment-marker, [data-inline-comment-marker], [data-comment-id]');
+        const markerCount = await commentMarkers.count();
+
+        // Note: Adding multiple inline comments programmatically is complex
+        // This test verifies UI behavior if inline comments exist
+        if (markerCount >= 1) {
+            // # Navigate to global Threads view
+            const threadsButton = page
+                .locator('[aria-label*="Threads"]')
+                .or(page.locator('button:has-text("Threads")'))
+                .first();
+            await expect(threadsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+            await threadsButton.click();
+            await page.waitForTimeout(SHORT_WAIT);
+
+            // * Verify Threads view is visible
+            const threadsView = page.locator('.ThreadList');
+            await expect(threadsView).toBeVisible({timeout: ELEMENT_TIMEOUT});
+            // # Get all thread items
+            const threadItems = threadsView.locator('.ThreadItem');
+            const threadCount = await threadItems.count();
+
+            if (threadCount > 0) {
+                // # Find thread items for our page (they should have "Commented on the page:" text)
+                const pageThreads = threadItems.filter({hasText: 'Commented on the page:'});
+                const pageThreadCount = await pageThreads.count();
+
+                if (pageThreadCount >= 1) {
+                    // * Verify first thread shows anchor text
+                    const firstThread = pageThreads.nth(0);
+                    const firstThreadText = await firstThread.textContent();
+                    expect(firstThreadText).toBeTruthy();
+
+                    // # If multiple threads exist, verify the second one
+                    if (pageThreadCount >= 2) {
+                        const secondThread = pageThreads.nth(1);
+                        const secondThreadText = await secondThread.textContent();
+                        expect(secondThreadText).toBeTruthy();
+                    }
+
+                    // # Click into first thread to verify detail view
+                    await firstThread.click();
+                    await page.waitForTimeout(SHORT_WAIT);
+
+                    // * Verify thread pane shows anchor context
+                    const threadPane = page.locator('.ThreadPane');
+                    await expect(threadPane).toBeVisible({timeout: ELEMENT_TIMEOUT});
+                    const firstPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
+                    await expect(firstPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
+                    const anchorText = await firstPaneAnchor.first().textContent();
+                    expect(anchorText).toBeTruthy();
+
+                    // # If multiple threads exist, test navigation to second thread
+                    if (pageThreadCount >= 2) {
+                        const backButton = page.locator('.ThreadPane button.back');
+                        await expect(backButton).toBeVisible({timeout: WEBSOCKET_WAIT});
+                        await backButton.click();
+                        await page.waitForTimeout(UI_MICRO_WAIT * 3);
+
+                        const secondThread = pageThreads.nth(1);
+                        await secondThread.click();
+                        await page.waitForTimeout(SHORT_WAIT);
+
+                        // * Verify thread pane shows anchor for second thread
+                        const secondPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
+                        await expect(secondPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
+                        const secondAnchorText = await secondPaneAnchor.first().textContent();
+                        expect(secondAnchorText).toBeTruthy();
+                    }
+                }
+            }
+        }
+    },
+);
+
+/**
+ * @objective Verify back button in thread view returns to comments tab view
+ */
+test(
+    'navigates back from thread view to comments tabs using back button',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Setup: Create wiki, page, add comment, and publish using helper
+        const {marker} = await setupPageWithComment(
+            page,
+            `Back Button Wiki ${await pw.random.id()}`,
+            'Back Button Test Page',
+            'This text has a comment for testing back navigation',
+            'Test comment for back button',
+        );
+
+        // # Click marker to open thread view in RHS using helper
+        const rhs = await clickCommentMarkerAndOpenRHS(page, marker ?? undefined);
+
+        // * Verify RHS is in thread view (header shows "Thread")
+        const rhsHeader = rhs.locator('[data-testid="wiki-rhs-header-title"]');
+        await expect(rhsHeader).toHaveText('Thread');
+
+        // * Verify back button is visible in thread view
+        const backButton = rhs.locator('[data-testid="wiki-rhs-back-button"]');
+        await expect(backButton).toBeVisible();
+
+        // * Verify tabs are NOT visible in thread view
+        const pageCommentsTab = rhs.getByText('Page Comments', {exact: true});
+        await expect(pageCommentsTab).not.toBeVisible();
+
+        // # Click back button to return to comments tabs view
+        await backButton.click();
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // * Verify RHS header now shows "Comments" (tabs view)
+        await expect(rhsHeader).toHaveText('Comments');
+
+        // * Verify back button is no longer visible
+        await expect(backButton).not.toBeVisible();
+
+        // * Verify tabs are now visible
+        await expect(pageCommentsTab).toBeVisible();
+        const allThreadsTab = rhs.getByText('All Threads', {exact: true});
+        await expect(allThreadsTab).toBeVisible();
+    },
+);
+
+/**
+ * @objective Verify back button returns to the same tab that was active before opening thread
+ */
+test('back button returns to previously active tab', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
@@ -779,124 +1007,45 @@ test('displays correct anchor text for each thread in global Threads view', {tag
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    await createWikiThroughUI(page, `Threads Anchor Test Wiki ${await pw.random.id()}`);
-
-    // # Create a page with three distinct text sections
-    await ensurePanelOpen(page);
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Global Threads Anchors Test');
-
-    const editor = getEditor(page);
-    await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await editor.click();
-
-    // Type content with Enter keys for proper paragraph separation
-    await editor.type('Alpha section text here.');
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
-    await editor.type('Beta section text here.');
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
-    await editor.type('Gamma section text here.');
-
-    // # Publish the page first (required before adding inline comments)
-    await publishPage(page);
-
-    // # Now edit to add first inline comment
-    await enterEditMode(page);
-
-    const comment1Added = await addInlineCommentAndPublish(
+    // # Setup: Create wiki, page, add comment, and publish using helper
+    await setupPageWithComment(
         page,
-        'Alpha section text here',
-        'Comment on alpha',
-        true,
+        `Tab Preserve Wiki ${await pw.random.id()}`,
+        'Tab Preserve Test Page',
+        'This text has a comment',
+        'Test comment',
     );
 
-    // # Edit page again to add second comment (if first succeeded)
-    if (comment1Added) {
-        await enterEditMode(page);
+    // # Reload and open RHS via toggle button (shows tabs) using helper
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+    const rhs = await openWikiRHSViaToggleButton(page);
 
-        await addInlineCommentAndPublish(
-            page,
-            'Beta section text here',
-            'Comment on beta',
-            true,
-        );
-    }
+    // # Switch to All Threads tab using helper
+    await switchToWikiRHSTab(page, rhs, 'All Threads');
 
-    // # Check if any inline comments were actually created
-    const commentMarkers = page.locator('.inline-comment-marker, [data-inline-comment-marker], [data-comment-id]');
-    const markerCount = await commentMarkers.count();
+    // * Verify All Threads tab is active
+    const allThreadsContent = rhs.locator('[data-testid="wiki-rhs-all-threads-content"]');
+    await expect(allThreadsContent).toBeVisible();
 
-    // Note: Adding multiple inline comments programmatically is complex
-    // This test verifies UI behavior if inline comments exist
-    if (markerCount >= 1) {
-        // # Navigate to global Threads view
-        const threadsButton = page.locator('[aria-label*="Threads"]').or(page.locator('button:has-text("Threads")')).first();
-        await expect(threadsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        await threadsButton.click();
-        await page.waitForTimeout(SHORT_WAIT);
+    // # Click on a thread to open thread view
+    const threadItem = allThreadsContent.locator('.WikiRHS__thread-item').first();
+    await expect(threadItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await threadItem.click();
+    await page.waitForTimeout(SHORT_WAIT);
 
-        // * Verify Threads view is visible
-        const threadsView = page.locator('.ThreadList');
-        await expect(threadsView).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        // # Get all thread items
-        const threadItems = threadsView.locator('.ThreadItem');
-        const threadCount = await threadItems.count();
+    // * Verify we're in thread view
+    const rhsHeader = rhs.locator('[data-testid="wiki-rhs-header-title"]');
+    await expect(rhsHeader).toHaveText('Thread');
 
-        if (threadCount > 0) {
-            // # Find thread items for our page (they should have "Commented on the page:" text)
-            const pageThreads = threadItems.filter({hasText: 'Commented on the page:'});
-            const pageThreadCount = await pageThreads.count();
+    // # Click back button
+    const backButton = rhs.locator('[data-testid="wiki-rhs-back-button"]');
+    await backButton.click();
+    await page.waitForTimeout(SHORT_WAIT);
 
-            if (pageThreadCount >= 1) {
-                // * Verify first thread shows anchor text
-                const firstThread = pageThreads.nth(0);
-                const firstThreadText = await firstThread.textContent();
-                expect(firstThreadText).toBeTruthy();
-
-                // # If multiple threads exist, verify the second one
-                if (pageThreadCount >= 2) {
-                    const secondThread = pageThreads.nth(1);
-                    const secondThreadText = await secondThread.textContent();
-                    expect(secondThreadText).toBeTruthy();
-                }
-
-                // # Click into first thread to verify detail view
-                await firstThread.click();
-                await page.waitForTimeout(SHORT_WAIT);
-
-                // * Verify thread pane shows anchor context
-                const threadPane = page.locator('.ThreadPane');
-                await expect(threadPane).toBeVisible({timeout: ELEMENT_TIMEOUT});
-                const firstPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
-                await expect(firstPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
-                const anchorText = await firstPaneAnchor.first().textContent();
-                expect(anchorText).toBeTruthy();
-
-                // # If multiple threads exist, test navigation to second thread
-                if (pageThreadCount >= 2) {
-                    const backButton = page.locator('.ThreadPane button.back');
-                    await expect(backButton).toBeVisible({timeout: WEBSOCKET_WAIT});
-                    await backButton.click();
-                    await page.waitForTimeout(UI_MICRO_WAIT * 3);
-
-                    const secondThread = pageThreads.nth(1);
-                    await secondThread.click();
-                    await page.waitForTimeout(SHORT_WAIT);
-
-                    // * Verify thread pane shows anchor for second thread
-                    const secondPaneAnchor = threadPane.locator('.inline-comment-anchor-box');
-                    await expect(secondPaneAnchor).toBeVisible({timeout: WEBSOCKET_WAIT});
-                    const secondAnchorText = await secondPaneAnchor.first().textContent();
-                    expect(secondAnchorText).toBeTruthy();
-                }
-            }
-        }
-    }
+    // * Verify we're back to tabs view with All Threads still active
+    await expect(rhsHeader).toHaveText('Comments');
+    await expect(allThreadsContent).toBeVisible();
 });
 
 /**
@@ -916,11 +1065,11 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
         `Resolution Wiki ${await pw.random.id()}`,
         'Resolution Page',
         'This text needs review',
-        'This needs clarification'
+        'This needs clarification',
     );
 
     // # Click marker to open RHS (opens thread-level view)
-    const threadRhs = await clickCommentMarkerAndOpenRHS(page, marker);
+    const threadRhs = await clickCommentMarkerAndOpenRHS(page, marker ?? undefined);
 
     // # Resolve the comment
     await toggleCommentResolution(page, threadRhs);
@@ -964,4 +1113,106 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
     // * Verify thread no longer appears in resolved filter after unresolving
     await clickCommentFilter(page, pageRhs, 'resolved');
     await verifyCommentsEmptyState(pageRhs, 'No resolved comments');
+});
+
+/**
+ * @objective Verify that inline comments cannot be created on new pages in creation mode (initial draft)
+ *
+ * @precondition
+ * Page must be a new draft that has never been published (creation mode)
+ */
+test(
+    'does not allow inline comments on new pages in creation mode',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Creation Mode Wiki ${await pw.random.id()}`);
+
+        // # Start creating a new page (but don't publish it)
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'New Draft Page');
+
+        // # Type content in the editor
+        const editor = getEditor(page);
+        await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await editor.click();
+        await editor.type('This is draft content that should not have comments');
+        await page.waitForTimeout(AUTOSAVE_WAIT);
+
+        // # Select text in editor to trigger the formatting bar
+        await selectTextInEditor(page);
+
+        // # Wait for the formatting bar bubble to appear
+        const formattingBarBubble = await waitForFormattingBar(page);
+
+        // * Verify the inline comment button is NOT visible in the formatting bar for new drafts
+        const inlineCommentButton = formattingBarBubble.locator(
+            'button[title="Add Comment"], [data-testid="inline-comment-submit"]',
+        );
+        await expect(inlineCommentButton).not.toBeVisible();
+
+        // * Verify the comments toggle button is NOT visible in the header for new drafts
+        const commentsToggleButton = page.locator('[data-testid="wiki-page-toggle-comments"]');
+        await expect(commentsToggleButton).not.toBeVisible();
+    },
+);
+
+/**
+ * @objective Verify that inline comments become available after publishing a new page
+ *
+ * @precondition
+ * Page starts as new draft and gets published
+ */
+test('enables inline comments after publishing a new page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, `Publish Enable Wiki ${await pw.random.id()}`);
+
+    // # Start creating a new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Page To Publish');
+
+    // # Type content in the editor
+    const editor = getEditor(page);
+    await editor.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await editor.click();
+    await editor.type('This content will be commentable after publish');
+    await page.waitForTimeout(AUTOSAVE_WAIT);
+
+    // # Publish the page
+    await publishPage(page);
+
+    // * Verify the comments toggle button IS visible after publishing
+    const commentsToggleButton = page.locator('[data-testid="wiki-page-toggle-comments"]');
+    await expect(commentsToggleButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // # Enter edit mode to check formatting bar
+    await enterEditMode(page);
+
+    // # Select text in editor to trigger the formatting bar
+    await selectTextInEditor(page);
+
+    // # Wait for the formatting bar bubble to appear
+    const formattingBarBubble = await waitForFormattingBar(page);
+
+    // * Verify the inline comment button IS visible after publishing (now editing an existing page)
+    const inlineCommentButton = formattingBarBubble.locator(
+        'button[title="Add Comment"], [data-testid="inline-comment-submit"]',
+    );
+    await expect(inlineCommentButton).toBeVisible();
 });

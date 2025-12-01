@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
+import WithTooltip from 'components/with_tooltip';
 
 import AllWikiThreads from './all_wiki_threads';
 import WikiThreadViewer from './wiki_thread_viewer_container';
@@ -23,12 +25,19 @@ type Props = {
         publishPage: (wikiId: string, pageId: string) => Promise<any>;
         closeRightHandSide: () => void;
         setWikiRhsActiveTab: (tab: 'page_comments' | 'all_threads') => void;
+        setFocusedInlineCommentId: (commentId: string | null) => void;
         openWikiRhs: (pageId: string, wikiId: string, focusedInlineCommentId?: string) => void;
         toggleRhsExpanded: () => void;
     };
 };
 
 const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedInlineCommentId, isExpanded, actions}: Props) => {
+    const {formatMessage} = useIntl();
+
+    const handleBackClick = useCallback(() => {
+        actions.setFocusedInlineCommentId(null);
+    }, [actions]);
+
     const handleTabSwitch = useCallback((key: any) => {
         if (typeof key === 'string') {
             actions.setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
@@ -38,12 +47,18 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
     const handleThreadClick = useCallback((targetPageId: string, threadId: string) => {
         if (wikiId) {
             actions.openWikiRhs(targetPageId, wikiId, threadId);
-            actions.setWikiRhsActiveTab('page_comments');
         }
     }, [wikiId, actions]);
 
     // When focused on an inline comment, show single thread view (no tabs)
     if (focusedInlineCommentId) {
+        const backToCommentsTooltip = (
+            <FormattedMessage
+                id='wiki_rhs.backToCommentsTooltip'
+                defaultMessage='Back to comments'
+            />
+        );
+
         return (
             <div
                 className='sidebar--right__content WikiRHS'
@@ -53,6 +68,16 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                     className='WikiRHS__header'
                     data-testid='wiki-rhs-header'
                 >
+                    <WithTooltip title={backToCommentsTooltip}>
+                        <button
+                            className='sidebar--right__back btn btn-icon btn-sm'
+                            onClick={handleBackClick}
+                            aria-label={formatMessage({id: 'wiki_rhs.back.icon', defaultMessage: 'Back Icon'})}
+                            data-testid='wiki-rhs-back-button'
+                        >
+                            <i className='icon icon-arrow-back-ios'/>
+                        </button>
+                    </WithTooltip>
                     <h2 data-testid='wiki-rhs-header-title'>{'Thread'}</h2>
                     <div
                         className='WikiRHS__header-actions'

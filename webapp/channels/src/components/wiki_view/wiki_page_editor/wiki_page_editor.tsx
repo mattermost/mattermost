@@ -199,7 +199,7 @@ const WikiPageEditor = ({
                     pages={pages}
                     inlineComments={inlineComments}
                     onCommentClick={handleCommentClick}
-                    onCreateInlineComment={handleCreateInlineComment}
+                    onCreateInlineComment={isExistingPage ? handleCreateInlineComment : undefined}
                 />
             </div>
             {showCommentModal && commentAnchor && (

@@ -286,7 +286,7 @@ export async function updateCustomProfileAttributeVisibility(
 
         // Update the fieldsMap with the updated field
         fieldsMap[updatedField.id] = updatedField;
-    } catch (error) {
+    } catch {
         // Failed to update visibility
     }
 }
@@ -344,7 +344,7 @@ export async function setupCustomProfileAttributeFields(
             }
             return fieldsMap;
         }
-    } catch (error) {
+    } catch {
         // If request fails, continue to create new fields
     }
 
@@ -353,7 +353,7 @@ export async function setupCustomProfileAttributeFields(
         try {
             const createdField = await adminClient.createCustomProfileAttributeField(field);
             fieldsMap[createdField.id] = createdField;
-        } catch (error) {
+        } catch {
             // Failed to create field
         }
     }
@@ -396,7 +396,7 @@ export async function setupCustomProfileAttributeValues(
     if (Object.keys(valuesByFieldId).length > 0) {
         try {
             await userClient.updateCustomProfileAttributeValues(valuesByFieldId);
-        } catch (error) {
+        } catch {
             // Failed to set attribute values
         }
     }
@@ -440,7 +440,7 @@ export async function setupCustomProfileAttributeValuesForUser(
         try {
             // Use the admin client method for updating other user's values
             await adminClient.updateUserCustomProfileAttributesValues(targetUserId, valuesByFieldId);
-        } catch (error) {
+        } catch {
             // Failed to set attribute values for user
         }
     }
@@ -459,7 +459,7 @@ export async function deleteCustomProfileAttributes(
     for (const id of Object.keys(attributes)) {
         try {
             await adminClient.deleteCustomProfileAttributeField(id);
-        } catch (error) {
+        } catch {
             // Failed to delete field
         }
     }
@@ -470,7 +470,7 @@ export async function deleteCustomProfileAttributes(
         if (response && response.length > 0) {
             // Not all custom profile attributes were deleted
         }
-    } catch (error) {
+    } catch {
         // Error checking if all fields were deleted
     }
 }

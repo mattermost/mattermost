@@ -2,8 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, waitForPageInHierarchy, waitForDuplicatedPageInHierarchy, getPageIdFromUrl, publishCurrentPage, getEditorAndWait, getHierarchyPanel, duplicatePageThroughUI, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createChildPageThroughContextMenu,
+    createTestChannel,
+    ensurePanelOpen,
+    waitForPageInHierarchy,
+    waitForDuplicatedPageInHierarchy,
+    getHierarchyPanel,
+    duplicatePageThroughUI,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    PAGE_LOAD_TIMEOUT,
+} from './test_helpers';
 
 /**
  * @objective Verify page duplication creates a copy with default "Copy of [title]" naming at same level
@@ -18,7 +30,7 @@ test('duplicates page to same wiki with default title', {tag: '@pages'}, async (
     await channelsPage.toBeVisible();
 
     // # Create wiki and original page through UI
-    const wiki = await createWikiThroughUI(page, `Duplicate Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Duplicate Wiki ${await pw.random.id()}`);
     const originalPage = await createPageThroughUI(page, 'Original Page', 'Original content here');
 
     // # Wait for page to be fully committed to database
@@ -104,7 +116,11 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
 
     // # Create wiki and page with content
     await createWikiThroughUI(page, `Content Wiki ${await pw.random.id()}`);
-    const contentPage = await createPageThroughUI(page, 'Content Page', 'This is the original page content with some text.');
+    const contentPage = await createPageThroughUI(
+        page,
+        'Content Page',
+        'This is the original page content with some text.',
+    );
 
     // # Wait for page to be fully committed to database
     await page.waitForTimeout(AUTOSAVE_WAIT);
@@ -143,7 +159,7 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
     // # Create wiki and root-level pages
     await createWikiThroughUI(page, `Root Level Wiki ${await pw.random.id()}`);
     const rootPage1 = await createPageThroughUI(page, 'Root Page 1', 'First root content');
-    const rootPage2 = await createPageThroughUI(page, 'Root Page 2', 'Second root content');
+    await createPageThroughUI(page, 'Root Page 2', 'Second root content');
 
     // # Ensure panel is open
     await ensurePanelOpen(page);
@@ -157,7 +173,7 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
 
     // * Verify duplicated page appears at root level
     const hierarchyPanel = getHierarchyPanel(page).first();
-    const rootPages = hierarchyPanel.locator('[data-page-id]').filter({hasNotText: 'Copy of'});
+    hierarchyPanel.locator('[data-page-id]').filter({hasNotText: 'Copy of'});
     const duplicatePages = hierarchyPanel.locator('[data-page-id]').filter({hasText: 'Copy of Root Page 1'});
 
     // * All root pages (original + duplicate) should be at the same indentation level

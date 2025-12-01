@@ -1008,28 +1008,13 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		patch.DisableMentionHighlights()
 	}
 
-	rctx.Logger().Debug("[PatchPost] Before patching",
-		mlog.String("post_id", post.Id),
-		mlog.String("post_type", post.Type),
-		mlog.String("current_page_parent_id", post.PageParentId),
-		mlog.Any("patch_page_parent_id", patch.PageParentId),
-		mlog.Any("patch_props", patch.Props))
-
 	post.Patch(patch)
-
-	rctx.Logger().Debug("[PatchPost] After patching",
-		mlog.String("post_id", post.Id),
-		mlog.String("patched_page_parent_id", post.PageParentId))
 
 	patchPostOptions.SafeUpdate = false
 	updatedPost, err := a.UpdatePost(rctx, post, patchPostOptions)
 	if err != nil {
 		return nil, err
 	}
-
-	rctx.Logger().Debug("[PatchPost] After UpdatePost",
-		mlog.String("post_id", updatedPost.Id),
-		mlog.String("updated_page_parent_id", updatedPost.PageParentId))
 
 	return updatedPost, nil
 }
@@ -1808,6 +1793,12 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		default:
 			return nil, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	// Enrich pages with search_text for display in search results
+	if appErr := a.EnrichPagesWithSearchText(rctx, postSearchResults.PostList); appErr != nil {
+		rctx.Logger().Warn("Failed to enrich pages with search text", mlog.Err(appErr))
+		// Non-fatal - continue with results even if enrichment fails
 	}
 
 	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {

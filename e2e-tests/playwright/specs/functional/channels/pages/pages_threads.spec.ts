@@ -2,17 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
     waitForEditModeReady,
-    getEditorAndWait,
     addInlineCommentInEditMode,
     verifyCommentMarkerVisible,
     clickCommentMarkerAndOpenRHS,
-    SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
@@ -32,10 +29,11 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     await channelsPage.toBeVisible();
 
     // # Create wiki and page with content
-    const wiki = await createWikiThroughUI(page, `Threads Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Threads Wiki ${await pw.random.id()}`);
     const pageTitle = 'Getting Started Guide';
-    const pageContent = 'This guide covers user authentication, API endpoints, and deployment. It provides step-by-step instructions for new developers.';
-    const testPage = await createPageThroughUI(page, pageTitle, pageContent);
+    const pageContent =
+        'This guide covers user authentication, API endpoints, and deployment. It provides step-by-step instructions for new developers.';
+    await createPageThroughUI(page, pageTitle, pageContent);
 
     // # Add inline comment by clicking Edit (to test edit mode inline comments)
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -57,15 +55,17 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     const commentMarker = await verifyCommentMarkerVisible(page);
 
     // # Click comment marker to open thread in RHS (creates participation)
-    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
+    await clickCommentMarkerAndOpenRHS(page, commentMarker);
 
     // * Verify RHS opens with page post showing title (not JSON)
     // Wait for the specific content to appear, don't just check the wrapper
     await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
     await page.waitForSelector(`:text("${pageTitle}")`, {timeout: HIERARCHY_TIMEOUT});
 
+    const rhs = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').first();
     await expect(rhs).toBeVisible();
-    await expect(rhs).not.toContainText('{"type"');
+    // * Verify no JSON artifacts visible in RHS - checking for "type" key pattern
+    await expect(rhs).not.toContainText('"type"');
 
     // # Navigate to Threads view
     const threadsLink = page.locator('a[href*="/threads"]').first();
@@ -76,11 +76,11 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     // * Verify page appears in threads list (if comment was created successfully)
     const bodyText = await page.locator('body').textContent();
     if (bodyText && !bodyText.includes('No followed threads yet')) {
-        // Thread appeared - verify proper formatting
+        // * Verify thread appeared with proper formatting
         await expect(page.locator('body')).toContainText(pageTitle);
 
-        // * Verify no JSON artifacts visible in threads
-        await expect(page.locator('body')).not.toContainText('{"type"');
+        // * Verify no JSON artifacts visible in threads - checking for "type" key pattern
+        await expect(page.locator('body')).not.toContainText('"type"');
     }
 });
 
@@ -96,8 +96,12 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Comments Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Documentation Page', 'Introduction: This covers authentication and API endpoints for developers');
+    await createWikiThroughUI(page, `Comments Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(
+        page,
+        'Documentation Page',
+        'Introduction: This covers authentication and API endpoints for developers',
+    );
 
     // # Start editing
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -116,7 +120,9 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     await page.waitForLoadState('networkidle');
 
     // # Click comment marker to open thread in RHS
-    const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
+    const commentMarker = page
+        .locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]')
+        .first();
     await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await commentMarker.click();
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -132,8 +138,8 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     // * Verify inline comment appears
     await page.waitForSelector(':text("Needs more detail here")', {timeout: HIERARCHY_TIMEOUT});
 
-    // * Verify no JSON artifacts in RHS
-    await expect(rhs).not.toContainText('{"type"');
+    // * Verify no JSON artifacts in RHS - checking for "type" key pattern
+    await expect(rhs).not.toContainText('"type"');
 
     // # Navigate to global Threads view to verify comment shows there
     const threadsLink = page.locator('a[href*="/threads"]').first();
@@ -157,8 +163,12 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Replies Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Feature Spec', 'This feature should support real-time collaboration and offline mode');
+    await createWikiThroughUI(page, `Replies Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(
+        page,
+        'Feature Spec',
+        'This feature should support real-time collaboration and offline mode',
+    );
 
     // # Add initial comment
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -178,7 +188,7 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
 
     // # Verify comment marker and click to open RHS
     const commentMarker = await verifyCommentMarkerVisible(page);
-    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
+    await clickCommentMarkerAndOpenRHS(page, commentMarker);
 
     // Wait for RHS content to load
     await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
@@ -219,8 +229,12 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Multi Comment Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'API Documentation', 'Authentication uses JWT tokens. Rate limiting is 100 requests per minute. Pagination uses cursor-based approach.');
+    await createWikiThroughUI(page, `Multi Comment Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(
+        page,
+        'API Documentation',
+        'Authentication uses JWT tokens. Rate limiting is 100 requests per minute. Pagination uses cursor-based approach.',
+    );
 
     // # Start editing
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -242,7 +256,9 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     await page.waitForLoadState('networkidle');
 
     // # Click first comment marker to open thread
-    const firstCommentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
+    const firstCommentMarker = page
+        .locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]')
+        .first();
     await expect(firstCommentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await firstCommentMarker.click();
 
@@ -254,7 +270,9 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     await expect(rhs).toBeVisible();
 
     // * Verify one of the comments is visible (order may vary)
-    await page.waitForSelector(':text("Should document the error codes"), :text("Can we add OAuth2 support?")', {timeout: HIERARCHY_TIMEOUT});
+    await page.waitForSelector(':text("Should document the error codes"), :text("Can we add OAuth2 support?")', {
+        timeout: HIERARCHY_TIMEOUT,
+    });
 
     // # Navigate to global Threads view to see all comments
     const threadsLink = page.locator('a[href*="/threads"]').first();

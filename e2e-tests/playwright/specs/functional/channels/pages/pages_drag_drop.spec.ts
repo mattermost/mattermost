@@ -2,8 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, getHierarchyPanel, SHORT_WAIT, ELEMENT_TIMEOUT, UI_MICRO_WAIT, DRAG_ANIMATION_WAIT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createChildPageThroughContextMenu,
+    createTestChannel,
+    getHierarchyPanel,
+    SHORT_WAIT,
+    ELEMENT_TIMEOUT,
+    UI_MICRO_WAIT,
+    DRAG_ANIMATION_WAIT,
+} from './test_helpers';
 
 /**
  * @objective Verify drag-and-drop to make a page a child of another page
@@ -29,7 +38,7 @@ test.skip('makes page a child via drag-drop', {tag: '@pages'}, async ({pw, share
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Drag Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Drag Wiki ${await pw.random.id()}`);
 
     // # Create two root-level pages
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
@@ -114,7 +123,7 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Promote Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Promote Wiki ${await pw.random.id()}`);
 
     // # Create parent page and a child page
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
@@ -178,7 +187,10 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
 
     // * Verify child node is now at root level (no longer under parent)
     // Parent node should no longer have expand button (or should collapse)
-    const parentStillHasExpandButton = await parentNode.locator('[data-testid="page-tree-node-expand-button"]').isVisible().catch(() => false);
+    const parentStillHasExpandButton = await parentNode
+        .locator('[data-testid="page-tree-node-expand-button"]')
+        .isVisible()
+        .catch(() => false);
 
     // If parent still has expand button, it should show child is gone
     if (parentStillHasExpandButton) {
@@ -189,12 +201,16 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
         await page.waitForTimeout(SHORT_WAIT);
 
         // Child should not be visible under parent anymore
-        const childStillUnderParent = await hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`).count();
+        const childStillUnderParent = await hierarchyPanel
+            .locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`)
+            .count();
         expect(childStillUnderParent).toBe(0);
     }
 
     // * Verify promoted child now appears at root level with same padding as other root pages
-    const promotedChildNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`).first();
+    const promotedChildNode = hierarchyPanel
+        .locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`)
+        .first();
     await expect(promotedChildNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const newChildPadding = await promotedChildNode.evaluate((el) => {
@@ -208,6 +224,7 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
 /**
  * @objective Verify drag-and-drop reordering of pages at the same hierarchy level
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 test.skip('reorders pages at same level via drag-drop', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // BLOCKED: Requires DisplayOrder field implementation
     //

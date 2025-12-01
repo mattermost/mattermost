@@ -23,9 +23,7 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
     }
 
     if (!testConfig.aiPluginApiKey) {
-        throw new Error(
-            'OpenAI API key is not configured. Set PW_AI_PLUGIN_OPENAI_KEY environment variable.',
-        );
+        throw new Error('OpenAI API key is not configured. Set PW_AI_PLUGIN_OPENAI_KEY environment variable.');
     }
 
     // Get current config

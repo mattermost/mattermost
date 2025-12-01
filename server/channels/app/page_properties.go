@@ -222,40 +222,25 @@ func (a *App) validatePageStatus(field *model.PropertyField, status string) *mod
 	return model.NewAppError("validatePageStatus", "app.page.validate_status.invalid_value", map[string]any{"Status": status}, "", http.StatusBadRequest)
 }
 
-// EnrichPageWithProperties adds property values to page props before returning to client
+// EnrichPageWithProperties adds property values to page props before returning to client.
+// This method reuses the batch enrichment logic to avoid redundant DB queries.
 func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post) *model.AppError {
 	if page == nil || page.Type != model.PostTypePage {
 		return nil
 	}
 
-	rctx.Logger().Info("EnrichPageWithProperties called", mlog.String("page_id", page.Id))
-
-	status, err := a.GetPageStatus(rctx, page.Id)
-	if err != nil {
-		rctx.Logger().Warn("EnrichPageWithProperties: failed to get page status",
-			mlog.String("page_id", page.Id),
-			mlog.Err(err))
-		return nil
+	// Wrap single page in a PostList and use the batch method
+	// This avoids 4 separate DB queries that GetPageStatus would make
+	postList := &model.PostList{
+		Posts: map[string]*model.Post{page.Id: page},
+		Order: []string{page.Id},
 	}
 
-	rctx.Logger().Info("EnrichPageWithProperties: got status",
-		mlog.String("page_id", page.Id),
-		mlog.String("status", status))
-
-	if status != "" {
-		if page.Props == nil {
-			page.Props = make(model.StringInterface)
-		}
-		page.Props["page_status"] = status
-		rctx.Logger().Info("EnrichPageWithProperties: set page_status prop",
-			mlog.String("page_id", page.Id),
-			mlog.String("status", status))
-	}
-
-	return nil
+	return a.EnrichPagesWithProperties(rctx, postList)
 }
 
 // EnrichPagesWithProperties enriches multiple pages with their property values
+// (page_status and wiki_id) in batched queries to minimize DB trips.
 func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostList) *model.AppError {
 	if postList == nil || len(postList.Posts) == 0 {
 		return nil
@@ -274,6 +259,12 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		return nil
 	}
 
+	wikiField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameWiki)
+	if err != nil {
+		rctx.Logger().Warn("EnrichPagesWithProperties: failed to get wiki field, skipping wiki_id enrichment", mlog.Err(err))
+		// Continue without wiki enrichment - status enrichment can still proceed
+	}
+
 	// Collect all page IDs
 	pageIds := make([]string, 0, len(postList.Posts))
 	for _, page := range postList.Posts {
@@ -286,44 +277,71 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		return nil
 	}
 
-	// Batch fetch ALL property values in ONE query
-	searchOpts := model.PropertyValueSearchOpts{
+	// Batch fetch status property values in ONE query
+	statusSearchOpts := model.PropertyValueSearchOpts{
 		TargetIDs: pageIds,
 		FieldID:   statusField.ID,
 		PerPage:   len(pageIds),
 	}
 
-	values, err := a.Srv().propertyService.SearchPropertyValues(group.ID, searchOpts)
+	statusValues, err := a.Srv().propertyService.SearchPropertyValues(group.ID, statusSearchOpts)
 	if err != nil {
-		rctx.Logger().Warn("EnrichPagesWithProperties: search returned error, skipping enrichment", mlog.Err(err))
+		rctx.Logger().Warn("EnrichPagesWithProperties: status search returned error, skipping enrichment", mlog.Err(err))
 		return nil
 	}
 
 	// Build a map of pageId -> status value
 	statusMap := make(map[string]string)
-	for _, value := range values {
+	for _, value := range statusValues {
 		var status string
 		if jsonErr := json.Unmarshal(value.Value, &status); jsonErr == nil {
 			statusMap[value.TargetID] = status
 		}
 	}
 
-	// Apply status to each page
+	// Batch fetch wiki property values in ONE query (if wiki field is available)
+	wikiMap := make(map[string]string)
+	if wikiField != nil {
+		wikiSearchOpts := model.PropertyValueSearchOpts{
+			TargetIDs: pageIds,
+			FieldID:   wikiField.ID,
+			PerPage:   len(pageIds),
+		}
+
+		wikiValues, wikiErr := a.Srv().propertyService.SearchPropertyValues(group.ID, wikiSearchOpts)
+		if wikiErr != nil {
+			rctx.Logger().Warn("EnrichPagesWithProperties: wiki search returned error, skipping wiki_id enrichment", mlog.Err(wikiErr))
+		} else {
+			for _, value := range wikiValues {
+				var wikiId string
+				if jsonErr := json.Unmarshal(value.Value, &wikiId); jsonErr == nil {
+					wikiMap[value.TargetID] = wikiId
+				}
+			}
+		}
+	}
+
+	// Apply status and wiki_id to each page
 	for _, page := range postList.Posts {
 		if page.Type != model.PostTypePage {
 			continue
-		}
-
-		status, found := statusMap[page.Id]
-		if !found {
-			status = model.PageStatusInProgress
 		}
 
 		props := page.GetProps()
 		if props == nil {
 			props = make(map[string]any)
 		}
+
+		status, found := statusMap[page.Id]
+		if !found {
+			status = model.PageStatusInProgress
+		}
 		props["page_status"] = status
+
+		if wikiId, found := wikiMap[page.Id]; found && wikiId != "" {
+			props["wiki_id"] = wikiId
+		}
+
 		page.SetProps(props)
 	}
 

@@ -74,7 +74,6 @@ import {
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
 import {General, Permissions} from 'mattermost-redux/constants';
-import {PostTypes as Posts} from 'mattermost-redux/constants/posts';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
     getChannel,
@@ -134,6 +133,7 @@ import {handleActiveEditorDraftCreated, handleActiveEditorDraftUpdated, handleAc
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {getPageReceiveActions} from 'utils/page_utils';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -816,13 +816,9 @@ export function handleNewPostEvent(msg) {
         myDispatch(handleNewPost(post, msg));
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
-        // If this is a page, add it to the wiki pages store
-        if (post.type === Posts.PAGE && post.props?.wiki_id) {
-            myDispatch({
-                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-                data: {page: post, wikiId: post.props.wiki_id},
-            });
-        }
+        // Handle page-specific store updates (wiki pages store)
+        const pageActions = getPageReceiveActions(post);
+        pageActions.forEach((action) => myDispatch(action));
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -883,13 +879,9 @@ export function handlePostEditEvent(msg) {
 
     dispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
 
-    // If this is a page, update it in the wiki pages store
-    if (post.type === Posts.PAGE && post.props?.wiki_id) {
-        dispatch({
-            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-            data: {page: post, wikiId: post.props.wiki_id},
-        });
-    }
+    // Handle page-specific store updates (wiki pages store)
+    const pageActions = getPageReceiveActions(post);
+    pageActions.forEach((action) => dispatch(action));
 }
 
 async function handlePostDeleteEvent(msg) {

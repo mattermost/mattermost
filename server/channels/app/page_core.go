@@ -42,6 +42,45 @@ func getPagePermission(operation PageOperation) *model.Permission {
 	}
 }
 
+// checkPagePermissionInChannel checks if a user can perform an operation on pages in a channel.
+// This is the core permission checking logic used by both CreatePage and HasPermissionToModifyPage.
+// For ownership-based checks (edit/delete others' pages), use HasPermissionToModifyPage instead.
+func (a *App) checkPagePermissionInChannel(
+	rctx request.CTX,
+	userID string,
+	channel *model.Channel,
+	operation PageOperation,
+	operationName string,
+) *model.AppError {
+	switch channel.Type {
+	case model.ChannelTypeOpen, model.ChannelTypePrivate:
+		permission := getPagePermission(operation)
+		if permission == nil {
+			return model.NewAppError(operationName, "api.page.permission.invalid_operation", nil, "", http.StatusForbidden)
+		}
+		if !a.HasPermissionToChannel(rctx, userID, channel.Id, permission) {
+			return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		if _, err := a.GetChannelMember(rctx, channel.Id, userID); err != nil {
+			return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
+		}
+		user, err := a.GetUser(userID)
+		if err != nil {
+			return err
+		}
+		if user.IsGuest() {
+			return model.NewAppError(operationName, "api.page.permission.guest_cannot_modify", nil, "", http.StatusForbidden)
+		}
+
+	default:
+		return model.NewAppError(operationName, "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
+	}
+
+	return nil
+}
+
 // HasPermissionToModifyPage checks if a user can perform an action on a page.
 // For Create/Read/Edit: Checks if user has the channel-level page permission.
 // For Delete: Checks permission AND requires user to be page author OR channel admin.
@@ -57,89 +96,32 @@ func (a *App) HasPermissionToModifyPage(
 		return err
 	}
 
-	rctx.Logger().Debug("HasPermissionToModifyPage called",
-		mlog.String("operation", fmt.Sprintf("%d", operation)),
-		mlog.String("operation_name", operationName),
-		mlog.String("user_id", session.UserId),
-		mlog.String("channel_id", channel.Id),
-		mlog.String("channel_type", string(channel.Type)),
-		mlog.String("page_id", page.Id),
-	)
+	if err := a.checkPagePermissionInChannel(rctx, session.UserId, channel, operation, operationName); err != nil {
+		return err
+	}
 
-	switch channel.Type {
-	case model.ChannelTypeOpen, model.ChannelTypePrivate:
-		permission := getPagePermission(operation)
-		if permission == nil {
-			rctx.Logger().Error("Invalid operation for page permission")
-			return model.NewAppError(operationName, "api.page.permission.invalid_operation", nil, "", http.StatusForbidden)
-		}
-
-		rctx.Logger().Debug("Checking page permission",
-			mlog.String("permission", permission.Id),
-			mlog.String("user_id", session.UserId),
-			mlog.String("channel_id", channel.Id),
-		)
-
-		hasPermission := a.SessionHasPermissionToChannel(rctx, *session, channel.Id, permission)
-		rctx.Logger().Debug("Permission check result",
-			mlog.Bool("has_permission", hasPermission),
-			mlog.String("permission", permission.Id),
-		)
-
-		if !hasPermission {
-			rctx.Logger().Warn("User lacks required page permission",
-				mlog.String("user_id", session.UserId),
-				mlog.String("permission", permission.Id),
-				mlog.String("channel_id", channel.Id),
-			)
-			return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-		}
-
-		if operation == PageOperationDelete {
-			if page.UserId != session.UserId {
-				if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, model.PermissionDeletePage) {
-					rctx.Logger().Warn("User cannot delete others' pages without delete_page permission",
-						mlog.String("user_id", session.UserId),
-						mlog.String("page_owner", page.UserId),
-						mlog.String("channel_id", channel.Id),
-					)
-					return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-				}
-
-				rctx.Logger().Debug("User has delete_page permission, allowing delete of others' pages",
-					mlog.String("user_id", session.UserId),
-					mlog.String("channel_id", channel.Id),
-				)
+	// Additional ownership checks for existing pages in Open/Private channels
+	if channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate {
+		if operation == PageOperationDelete && page.UserId != session.UserId {
+			if !a.HasPermissionToChannel(rctx, session.UserId, channel.Id, model.PermissionDeletePage) {
+				return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 			}
 		}
+	}
 
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		if _, err := a.GetChannelMember(rctx, channel.Id, session.UserId); err != nil {
-			return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
-		}
-
-		user, err := a.GetUser(session.UserId)
-		if err != nil {
-			return err
-		}
-		if user.IsGuest() {
-			return model.NewAppError(operationName, "api.page.permission.guest_cannot_modify", nil, "", http.StatusForbidden)
-		}
-
+	// Additional ownership checks for existing pages in DM/Group channels
+	if channel.Type == model.ChannelTypeGroup || channel.Type == model.ChannelTypeDirect {
 		if operation == PageOperationEdit || operation == PageOperationDelete {
 			if page.UserId != session.UserId {
-				member, err := a.GetChannelMember(rctx, channel.Id, session.UserId)
-				if err != nil {
-					return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(err)
+				member, memberErr := a.GetChannelMember(rctx, channel.Id, session.UserId)
+				if memberErr != nil {
+					return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(memberErr)
 				}
 				if !member.SchemeAdmin {
 					return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 				}
 			}
 		}
-
-	default:
-		return model.NewAppError(operationName, "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
 	}
 
 	return nil
@@ -154,11 +136,6 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		}
 	}()
 
-	rctx.Logger().Debug("Creating page",
-		mlog.String("channel_id", channelID),
-		mlog.String("title", title),
-		mlog.String("parent_id", pageParentID))
-
 	if title == "" {
 		return nil, model.NewAppError("CreatePage", "app.page.create.missing_title.app_error", nil, "title is required for pages", http.StatusBadRequest)
 	}
@@ -171,24 +148,8 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, chanErr
 	}
 
-	switch channel.Type {
-	case model.ChannelTypeOpen, model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionCreatePage) {
-			return nil, model.NewAppError("CreatePage", "app.page.create.permissions.app_error", nil, "", http.StatusForbidden)
-		}
-	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		if _, err := a.GetChannelMember(rctx, channel.Id, userID); err != nil {
-			return nil, model.NewAppError("CreatePage", "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
-		}
-		user, err := a.GetUser(userID)
-		if err != nil {
-			return nil, err
-		}
-		if user.IsGuest() {
-			return nil, model.NewAppError("CreatePage", "api.page.permission.guest_cannot_modify", nil, "", http.StatusForbidden)
-		}
-	default:
-		return nil, model.NewAppError("CreatePage", "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
+	if permErr := a.checkPagePermissionInChannel(rctx, userID, channel, PageOperationCreate, "CreatePage"); permErr != nil {
+		return nil, permErr
 	}
 
 	if pageParentID != "" {
@@ -234,11 +195,6 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 			}
 		} else {
 			// Not JSON - treat as plain text and auto-convert to TipTap JSON
-			rctx.Logger().Info("Auto-converting plain text content to TipTap JSON",
-				mlog.String("user_id", userID),
-				mlog.String("channel_id", channelID),
-				mlog.Int("content_length", len(content)))
-
 			content = convertPlainTextToTipTapJSON(content)
 
 			// Extract search text from plain content if not provided
@@ -267,16 +223,29 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, model.NewAppError("CreatePage", "app.page.create.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
 	}
 
-	rctx.Logger().Info("Page created successfully",
-		mlog.String("page_id", createdPage.Id),
-		mlog.String("channel_id", channelID),
-		mlog.String("parent_id", pageParentID))
-
 	if enrichErr := a.EnrichPageWithProperties(rctx, createdPage); enrichErr != nil {
 		return nil, enrichErr
 	}
 
 	return createdPage, nil
+}
+
+// getPagePost fetches a page post and validates it is of type PostTypePage.
+// This is an internal helper that does NOT check permissions or load content.
+// Use GetPage for external API calls that need permission checks and full content.
+func (a *App) getPagePost(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
+	post, err := a.GetSinglePost(rctx, pageID, false)
+	if err != nil {
+		return nil, model.NewAppError("getPagePost", "app.page.get.not_found.app_error",
+			nil, "page not found", http.StatusNotFound).Wrap(err)
+	}
+
+	if post.Type != model.PostTypePage {
+		return nil, model.NewAppError("getPagePost", "app.page.get.not_a_page.app_error",
+			nil, "post is not a page", http.StatusBadRequest)
+	}
+
+	return post, nil
 }
 
 // GetPage fetches a page with permission check
@@ -288,45 +257,29 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 		}
 	}()
 
-	rctx.Logger().Debug("GetPage called", mlog.String("page_id", pageID))
-
-	post, err := a.GetSinglePost(rctx, pageID, false)
+	post, err := a.getPagePost(rctx, pageID)
 	if err != nil {
-		rctx.Logger().Error("GetPage: GetSinglePost failed", mlog.String("page_id", pageID), mlog.Err(err))
-		return nil, model.NewAppError("GetPage", "app.page.get.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
-	}
-
-	if post.Type != model.PostTypePage {
-		rctx.Logger().Error("GetPage: post is not a page", mlog.String("page_id", pageID), mlog.String("type", post.Type))
-		return nil, model.NewAppError("GetPage", "app.page.get.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
-	}
-
-	rctx.Logger().Debug("GetPage: page retrieved", mlog.String("page_id", pageID))
-
-	session := rctx.Session()
-	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationRead, "GetPage"); err != nil {
-		rctx.Logger().Error("GetPage: permission denied", mlog.String("page_id", pageID))
 		return nil, err
 	}
 
-	rctx.Logger().Debug("GetPage: fetching content", mlog.String("page_id", pageID))
+	session := rctx.Session()
+	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationRead, "GetPage"); err != nil {
+		return nil, err
+	}
+
 	pageContent, contentErr := a.Srv().Store().Page().GetPageContent(pageID)
 	if contentErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(contentErr, &nfErr) {
-			rctx.Logger().Warn("GetPage: PageContent not found", mlog.String("page_id", pageID))
 			post.Message = ""
 		} else {
-			rctx.Logger().Error("GetPage: error fetching PageContent", mlog.String("page_id", pageID), mlog.Err(contentErr))
 			return nil, model.NewAppError("GetPage", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 		}
 	} else {
 		contentJSON, jsonErr := pageContent.GetDocumentJSON()
 		if jsonErr != nil {
-			rctx.Logger().Error("GetPage: error serializing content", mlog.String("page_id", pageID), mlog.Err(jsonErr))
 			return nil, model.NewAppError("GetPage", "app.page.get.serialize_content.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 		}
-		rctx.Logger().Debug("GetPage: content retrieved", mlog.String("page_id", pageID), mlog.Int("content_length", len(contentJSON)))
 		post.Message = contentJSON
 	}
 
@@ -334,7 +287,6 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 		return nil, enrichErr
 	}
 
-	rctx.Logger().Debug("GetPage: returning post", mlog.String("page_id", pageID), mlog.Int("message_length", len(post.Message)))
 	return post, nil
 }
 
@@ -357,7 +309,7 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 
 	pageIDs := []string{}
 	for _, post := range postList.Posts {
-		if post.Type == model.PostTypePage {
+		if NeedsContentLoading(post) {
 			pageIDs = append(pageIDs, post.Id)
 		}
 	}
@@ -375,7 +327,6 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 		pageContents, contentErr = a.Srv().Store().Page().GetManyPageContents(pageIDs)
 	}
 	if contentErr != nil {
-		rctx.Logger().Error("loadPageContentForPostList: error fetching PageContents", mlog.Int("count", len(pageIDs)), mlog.Bool("include_deleted", includeDeleted), mlog.Err(contentErr))
 		return model.NewAppError("loadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 	}
 
@@ -385,20 +336,61 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	}
 
 	for _, post := range postList.Posts {
-		if post.Type == model.PostTypePage {
+		if NeedsContentLoading(post) {
 			pageContent, found := contentMap[post.Id]
 			if !found {
-				rctx.Logger().Warn("loadPageContentForPostList: PageContent not found for page", mlog.String("page_id", post.Id))
 				post.Message = ""
 				continue
 			}
 
 			contentJSON, jsonErr := pageContent.GetDocumentJSON()
 			if jsonErr != nil {
-				rctx.Logger().Error("loadPageContentForPostList: error serializing page content", mlog.String("page_id", post.Id), mlog.Err(jsonErr))
 				return model.NewAppError("loadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
 			}
 			post.Message = contentJSON
+		}
+	}
+
+	return nil
+}
+
+// EnrichPagesWithSearchText adds search_text to Props for pages in search results.
+// This is used for displaying page content in search results without modifying Post.Message.
+// Post.Message stays empty for pages; search_text in Props is used only for display.
+func (a *App) EnrichPagesWithSearchText(rctx request.CTX, postList *model.PostList) *model.AppError {
+	if postList == nil || postList.Posts == nil {
+		return nil
+	}
+
+	pageIDs := []string{}
+	for _, post := range postList.Posts {
+		if NeedsContentLoading(post) {
+			pageIDs = append(pageIDs, post.Id)
+		}
+	}
+
+	if len(pageIDs) == 0 {
+		return nil
+	}
+
+	pageContents, err := a.Srv().Store().Page().GetManyPageContents(pageIDs)
+	if err != nil {
+		return model.NewAppError("EnrichPagesWithSearchText", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	searchTextMap := make(map[string]string, len(pageContents))
+	for _, content := range pageContents {
+		searchTextMap[content.PageId] = content.SearchText
+	}
+
+	for _, post := range postList.Posts {
+		if NeedsContentLoading(post) {
+			if searchText, ok := searchTextMap[post.Id]; ok && searchText != "" {
+				if post.Props == nil {
+					post.Props = make(model.StringInterface)
+				}
+				post.Props["search_text"] = searchText
+			}
 		}
 	}
 
@@ -412,7 +404,7 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return nil, model.NewAppError("UpdatePage", "app.page.update.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
 	}
 
@@ -441,16 +433,11 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
 	}
 
-	rctx.Logger().Info("Page updated successfully",
-		mlog.String("page_id", pageID),
-		mlog.Bool("title_updated", title != ""),
-		mlog.Bool("content_updated", content != ""))
-
-	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
-
 	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
 		return nil, enrichErr
 	}
+
+	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
 
 	// Broadcast title update if title was changed
 	if title != "" {
@@ -501,20 +488,13 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 		}
 		modifiedAt := post.UpdateAt
 
-		rctx.Logger().Info("Page update conflict detected",
-			mlog.String("page_id", pageID),
-			mlog.String("modified_by", modifiedBy),
-			mlog.Int("modified_at", modifiedAt),
-			mlog.Int("base_update_at", baseUpdateAt))
-
 		if a.Metrics() != nil {
 			a.Metrics().IncrementWikiEditConflict()
 		}
 
-		appErr := model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
-			nil, "page was modified by another user", http.StatusConflict)
-		appErr.DetailedError = fmt.Sprintf("modified_by=%s,modified_at=%d", modifiedBy, modifiedAt)
-		return nil, appErr
+		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
+			map[string]any{"ModifiedBy": modifiedBy, "ModifiedAt": modifiedAt},
+			fmt.Sprintf("page was modified by another user, modified_by=%s, modified_at=%d", modifiedBy, modifiedAt), http.StatusConflict)
 	}
 
 	if title != "" {
@@ -543,17 +523,11 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
 	}
 
-	rctx.Logger().Info("Page updated successfully with optimistic locking",
-		mlog.String("page_id", pageID),
-		mlog.Bool("title_updated", title != ""),
-		mlog.Bool("content_updated", content != ""),
-		mlog.Int("base_update_at", baseUpdateAt))
-
-	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
-
 	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
 		return nil, enrichErr
 	}
+
+	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
 
 	return updatedPost, nil
 }
@@ -580,8 +554,6 @@ func (a *App) DeletePage(rctx request.CTX, pageID string, wikiId ...string) *mod
 	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationDelete, "DeletePage"); err != nil {
 		return err
 	}
-
-	rctx.Logger().Info("Deleting page", mlog.String("page_id", pageID))
 
 	if deleteErr := a.Srv().Store().Page().DeletePage(pageID, session.UserId); deleteErr != nil {
 		return model.NewAppError("DeletePage", "app.page.delete.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
@@ -624,7 +596,6 @@ func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
 			return model.NewAppError("RestorePage",
 				"app.page.restore.content_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
-		rctx.Logger().Warn("PageContent not found during restore", mlog.String("page_id", pageID))
 	}
 
 	restoredPost := post.Clone()
@@ -639,22 +610,15 @@ func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
 	a.invalidateCacheForChannelPosts(restoredPost.ChannelId)
 
 	if enrichErr := a.EnrichPageWithProperties(rctx, restoredPost); enrichErr != nil {
-		rctx.Logger().Warn("Failed to enrich restored page",
-			mlog.String("page_id", pageID),
-			mlog.Err(enrichErr))
+		rctx.Logger().Warn("Failed to enrich restored page", mlog.String("page_id", pageID), mlog.Err(enrichErr))
 	}
 
 	wikiId, wikiErr := a.GetWikiIdForPage(rctx, pageID)
 	if wikiErr != nil {
-		rctx.Logger().Warn("Could not get wiki ID for restored page, broadcasting with empty wiki ID",
-			mlog.String("page_id", pageID),
-			mlog.Err(wikiErr))
 		wikiId = ""
 	}
 
 	a.BroadcastPagePublished(restoredPost, wikiId, restoredPost.ChannelId, "", session.UserId)
-
-	rctx.Logger().Info("Restored page", mlog.String("page_id", pageID))
 	return nil
 }
 
@@ -675,13 +639,10 @@ func (a *App) PermanentDeletePage(rctx request.CTX, pageID string) *model.AppErr
 		return err
 	}
 
-	rctx.Logger().Info("Permanently deleting page", mlog.String("page_id", pageID))
-
 	if err := a.Srv().Store().Page().PermanentDeletePageContent(pageID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
-			rctx.Logger().Warn("Failed to permanently delete PageContent",
-				mlog.String("page_id", pageID), mlog.Err(err))
+			rctx.Logger().Warn("Failed to permanently delete PageContent", mlog.String("page_id", pageID), mlog.Err(err))
 		}
 	}
 
@@ -698,38 +659,20 @@ type PageActiveEditors struct {
 }
 
 func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActiveEditors, *model.AppError) {
-	rctx.Logger().Info("Fetching active editors for page", mlog.String("page_id", pageId))
-
 	fiveMinutesAgo := model.GetMillis() - (5 * 60 * 1000)
-	rctx.Logger().Info("Active editors query params",
-		mlog.String("page_id", pageId),
-		mlog.Int("five_minutes_ago", fiveMinutesAgo),
-		mlog.Int("current_time", model.GetMillis()))
 
 	drafts, err := a.Srv().Store().Draft().GetActiveEditorsForPage(pageId, fiveMinutesAgo)
 	if err != nil {
-		rctx.Logger().Error("Failed to get active editors", mlog.Err(err))
 		return nil, model.NewAppError("App.GetPageActiveEditors", "app.page.get_active_editors.get_drafts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	rctx.Logger().Info("Retrieved drafts from database",
-		mlog.Int("draft_count", len(drafts)),
-		mlog.String("page_id", pageId),
-		mlog.Int("min_update_at", int(fiveMinutesAgo)))
 
 	userIds := []string{}
 	lastActivities := make(map[string]int64)
 
 	for _, draft := range drafts {
-		rctx.Logger().Debug("Processing draft",
-			mlog.String("user_id", draft.UserId),
-			mlog.String("draft_id", draft.DraftId),
-			mlog.Int("update_at", draft.UpdateAt))
 		userIds = append(userIds, draft.UserId)
 		lastActivities[draft.UserId] = draft.UpdateAt
 	}
-
-	rctx.Logger().Debug("Found active editors", mlog.Int("count", len(userIds)), mlog.String("page_id", pageId))
 
 	return &PageActiveEditors{
 		UserIds:        userIds,
@@ -738,14 +681,10 @@ func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActive
 }
 
 func (a *App) GetPageVersionHistory(rctx request.CTX, pageId string) ([]*model.Post, *model.AppError) {
-	rctx.Logger().Debug("Fetching version history for page", mlog.String("page_id", pageId))
-
 	posts, err := a.Srv().Store().Page().GetPageVersionHistory(pageId)
 	if err != nil {
 		return nil, model.NewAppError("App.GetPageVersionHistory", "app.page.get_version_history.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-
-	rctx.Logger().Debug("Found page version history", mlog.Int("count", len(posts)), mlog.String("page_id", pageId))
 
 	postList := &model.PostList{
 		Posts: make(map[string]*model.Post, len(posts)),
@@ -773,15 +712,12 @@ func (a *App) RestorePageVersion(
 	historicalContent, storeErr := a.Srv().Store().Page().GetPageContentWithDeleted(restoreVersionID)
 	if storeErr != nil {
 		var notFoundErr *store.ErrNotFound
-		if errors.As(storeErr, &notFoundErr) {
-			rctx.Logger().Warn("No historical page content found - will restore metadata only",
-				mlog.String("page_id", pageID),
-				mlog.String("restore_version_id", restoreVersionID))
-		} else {
+		if !errors.As(storeErr, &notFoundErr) {
 			return nil, model.NewAppError("RestorePageVersion",
 				"app.page.restore.get_content.app_error", nil, "",
 				http.StatusInternalServerError).Wrap(storeErr)
 		}
+		// No historical content found - will restore metadata only
 	}
 
 	// Step 2: Extract title from historical post
@@ -840,12 +776,9 @@ func (a *App) RestorePageVersion(
 		}
 	}
 
-	// Step 5: Reload the complete page with content to get fresh data for WebSocket
+	// Reload the complete page with content for WebSocket event
 	freshPage, getErr := a.GetPage(rctx, pageID)
 	if getErr != nil {
-		rctx.Logger().Warn("Failed to reload page after restore - WebSocket event will use potentially stale data",
-			mlog.String("page_id", pageID),
-			mlog.Err(getErr))
 		freshPage = updatedPost
 	}
 
@@ -871,10 +804,6 @@ func (a *App) sendPageEditedEvent(rctx request.CTX, page *model.Post) {
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId: page.ChannelId,
 	})
-
-	rctx.Logger().Debug("Publishing POST_EDITED event for page",
-		mlog.String("page_id", page.Id),
-		mlog.String("channel_id", page.ChannelId))
 
 	a.Publish(message)
 }

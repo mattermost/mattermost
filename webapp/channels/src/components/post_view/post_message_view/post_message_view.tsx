@@ -19,7 +19,7 @@ import type {AttachmentTextOverflowType} from 'components/post_view/show_more/sh
 
 import Pluggable from 'plugins/pluggable';
 import {PostTypes} from 'utils/constants';
-import {isPagePost} from 'utils/page_utils';
+import {getPageDisplayMessage} from 'utils/page_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 import * as Utils from 'utils/utils';
@@ -149,23 +149,9 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         const isEphemeral = isPostEphemeral(post);
 
         // For page posts, show title and content preview
-        // Note: Page content is stored in PageContents table, not in post.message
-        if (isPagePost(post)) {
-            const title = post.props?.title as string || 'Untitled Page';
-            if (post.message) {
-                const plaintext = extractPlaintextFromTipTapJSON(post.message);
-                if (plaintext) {
-                    // Show title and preview of content (first 200 chars)
-                    const preview = plaintext.length > 200 ? plaintext.substring(0, 200) + '...' : plaintext;
-                    message = `**${title}**\n\n${preview}`;
-                } else {
-                    // Content exists but extraction failed - just show title
-                    message = `**${title}**`;
-                }
-            } else {
-                // No content in post.message - just show title (content is in PageContents table)
-                message = `**${title}**`;
-            }
+        const pageDisplayMessage = getPageDisplayMessage(post, extractPlaintextFromTipTapJSON);
+        if (pageDisplayMessage !== null) {
+            message = pageDisplayMessage;
         }
 
         if (compactDisplay && isEphemeral) {

@@ -197,9 +197,9 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 }
 
 func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
-	post, err := a.GetSinglePost(rctx, pageId, false)
+	post, err := a.getPagePost(rctx, pageId)
 	if err != nil {
-		return err
+		return model.NewAppError("AddPageToWiki", "api.wiki.add.not_a_page", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	pageTitle := post.GetPageTitle()
@@ -209,10 +209,6 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 		mlog.String("wiki_id", wikiId),
 		mlog.String("page_title", pageTitle),
 		mlog.String("page_parent_id", post.PageParentId))
-
-	if post.Type != model.PostTypePage {
-		return model.NewAppError("AddPageToWiki", "api.wiki.add.not_a_page", nil, "", http.StatusBadRequest)
-	}
 
 	wiki, getErr := a.GetWiki(rctx, wikiId)
 	if getErr != nil {
@@ -248,9 +244,9 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 		return model.NewAppError("AddPageToWiki", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(grpErr)
 	}
 
-	wikiField, fldErr := a.GetPagePropertyFieldByName("wiki")
+	wikiField, fldErr := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", "wiki")
 	if fldErr != nil {
-		return fldErr
+		return model.NewAppError("AddPageToWiki", "app.wiki.get_wiki_field.app_error", nil, "", http.StatusInternalServerError).Wrap(fldErr)
 	}
 
 	valueJSON, _ := json.Marshal(wikiId)
@@ -394,9 +390,9 @@ func (a *App) GetWikiIdForPage(rctx request.CTX, pageId string) (string, *model.
 		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	wikiField, appErr := a.GetPagePropertyFieldByName("wiki")
-	if appErr != nil {
-		return "", appErr
+	wikiField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", "wiki")
+	if err != nil {
+		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	opts := model.PropertyValueSearchOpts{

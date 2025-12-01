@@ -52,6 +52,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
             publishPage: jest.fn(),
             closeRightHandSide: jest.fn(),
             setWikiRhsActiveTab: jest.fn(),
+            setFocusedInlineCommentId: jest.fn(),
             openWikiRhs: jest.fn(),
             toggleRhsExpanded: jest.fn(),
         },
@@ -353,6 +354,73 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             const tabs = container.querySelector('.WikiRHS__tabs');
             expect(tabs).toBeInTheDocument();
+        });
+    });
+
+    describe('Thread View (Back Button)', () => {
+        test('should render back button when focusedInlineCommentId is set', () => {
+            const baseProps = {
+                ...getBaseProps(),
+                focusedInlineCommentId: 'comment-123',
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            expect(screen.getByTestId('wiki-rhs-back-button')).toBeInTheDocument();
+        });
+
+        test('should call setFocusedInlineCommentId with null when back button clicked', async () => {
+            const user = userEvent.setup();
+            const setFocusedInlineCommentId = jest.fn();
+            const baseProps = {
+                ...getBaseProps(),
+                focusedInlineCommentId: 'comment-123',
+                actions: {
+                    ...getBaseProps().actions,
+                    setFocusedInlineCommentId,
+                },
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            const backBtn = screen.getByTestId('wiki-rhs-back-button');
+            await user.click(backBtn);
+
+            expect(setFocusedInlineCommentId).toHaveBeenCalledWith(null);
+        });
+
+        test('should NOT render back button when focusedInlineCommentId is null', () => {
+            const baseProps = {
+                ...getBaseProps(),
+                focusedInlineCommentId: null,
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            expect(screen.queryByTestId('wiki-rhs-back-button')).not.toBeInTheDocument();
+        });
+
+        test('should render Thread header when focusedInlineCommentId is set', () => {
+            const baseProps = {
+                ...getBaseProps(),
+                focusedInlineCommentId: 'comment-123',
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            expect(screen.getByRole('heading', {name: 'Thread'})).toBeInTheDocument();
+        });
+
+        test('should not render tabs when focusedInlineCommentId is set', () => {
+            const baseProps = {
+                ...getBaseProps(),
+                focusedInlineCommentId: 'comment-123',
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            expect(screen.queryByText('Page Comments')).not.toBeInTheDocument();
+            expect(screen.queryByText('All Threads')).not.toBeInTheDocument();
         });
     });
 });

@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
-    appendContentInEditor,
     createChildPageThroughContextMenu,
     createPageThroughUI,
     createTestChannel,
@@ -12,15 +10,8 @@ import {
     deleteDefaultDraftThroughUI,
     deletePageThroughUI,
     editPageThroughUI,
-    ensurePanelOpen,
     getHierarchyPanel,
-    getPageTreeNodeByTitle,
-    getVersionHistoryItems,
-    getVersionHistoryModal,
-    openVersionHistoryModal,
-    publishPage,
     SHORT_WAIT,
-    verifyVersionHistoryModal,
 } from './test_helpers';
 
 /**
@@ -35,7 +26,7 @@ test('creates wiki and root page through full UI flow', {tag: '@pages'}, async (
     await channelsPage.toBeVisible();
 
     // # Create wiki through bookmarks UI
-    const wiki = await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
 
     // * Verify navigated to new wiki
     await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
@@ -162,7 +153,9 @@ test('wiki starts with default draft page', {tag: '@pages'}, async ({pw, sharedP
     await createWikiThroughUI(page, `New Wiki ${await pw.random.id()}`);
 
     // * Verify default draft page appears in sidebar
-    const draftNode = page.locator('[data-testid="page-tree-node"]').filter({has: page.locator('[data-testid="draft-badge"]')});
+    const draftNode = page
+        .locator('[data-testid="page-tree-node"]')
+        .filter({has: page.locator('[data-testid="draft-badge"]')});
     await expect(draftNode).toBeVisible();
 });
 
@@ -246,6 +239,7 @@ test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) =
     await expect(status).toContainText('In progress');
 });
 
-test.skip('exports page to PDF', {tag: '@pages'}, async ({pw}) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+test.skip('exports page to PDF', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // Implementation TBD
 });

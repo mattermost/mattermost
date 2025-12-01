@@ -2,8 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createTestChannel, createDraftThroughUI, getEditor, publishPage, getPageViewerContent, HIERARCHY_TIMEOUT, ELEMENT_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createTestChannel,
+    createDraftThroughUI,
+    getEditor,
+    publishPage,
+    getPageViewerContent,
+    HIERARCHY_TIMEOUT,
+    ELEMENT_TIMEOUT,
+} from './test_helpers';
 
 /**
  * @objective Verify author avatar appears in wiki page draft editor
@@ -17,7 +25,7 @@ test('displays author avatar and username in draft editor', {tag: '@pages'}, asy
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Avatar Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Avatar Wiki ${await pw.random.id()}`);
 
     // # Create draft to see author avatar
     await createDraftThroughUI(page, 'Draft Page for Avatar');
@@ -51,7 +59,7 @@ test('includes accessibility label for author section', {tag: '@pages'}, async (
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `A11y Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `A11y Wiki ${await pw.random.id()}`);
 
     // # Create draft
     await createDraftThroughUI(page, 'Accessibility Test Page');
@@ -78,7 +86,7 @@ test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sh
     await channelsPage.toBeVisible();
 
     // # Create wiki and draft
-    const wiki = await createWikiThroughUI(page, `Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Persist Wiki ${await pw.random.id()}`);
     await createDraftThroughUI(page, 'Persistence Test Page');
 
     // * Verify author avatar is visible before reload
@@ -114,7 +122,7 @@ test('does not show author avatar in published page view', {tag: '@pages'}, asyn
     await channelsPage.toBeVisible();
 
     // # Create wiki and draft
-    const wiki = await createWikiThroughUI(page, `Published Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Published Wiki ${await pw.random.id()}`);
     await createDraftThroughUI(page, 'Page to Publish', 'Published content');
 
     // # Publish the page

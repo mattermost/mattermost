@@ -1,8 +1,23 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import {expect, test} from './pages_test_fixture';
-import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel, enterEditMode, waitForEditModeReady, getEditor, clearEditorContent, ELEMENT_TIMEOUT, EDITOR_LOAD_WAIT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    addHeadingToEditor,
+    createTestChannel,
+    showPageOutline,
+    getHierarchyPanel,
+    enterEditMode,
+    waitForEditModeReady,
+    clearEditorContent,
+    ELEMENT_TIMEOUT,
+    EDITOR_LOAD_WAIT,
+} from './test_helpers';
 
 /**
- * Minimal test to isolate the outline visibility issue
+ * @objective Verify page outline displays heading after publishing a page with heading content
  */
 test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
@@ -13,7 +28,7 @@ test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'
     await channelsPage.toBeVisible();
 
     // # Create wiki
-    const wiki = await createWikiThroughUI(page, `Minimal Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Minimal Test Wiki ${await pw.random.id()}`);
 
     // # Create page with empty content
     const page1 = await createPageThroughUI(page, 'Test Page', ' ');
@@ -43,6 +58,9 @@ test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'
     await showPageOutline(page, page1.id);
 
     // * Verify the heading appears in the outline
-    const outlineHeading = page.locator('[role="treeitem"]').filter({hasText: /Test Heading/}).first();
+    const outlineHeading = page
+        .locator('[role="treeitem"]')
+        .filter({hasText: /Test Heading/})
+        .first();
     await expect(outlineHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });

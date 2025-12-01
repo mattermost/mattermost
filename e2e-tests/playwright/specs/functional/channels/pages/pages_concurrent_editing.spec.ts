@@ -2,18 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
-    buildWikiPageUrl,
     createWikiThroughUI,
     createPageThroughUI,
     enterEditMode,
     getEditorAndWait,
     publishPage,
-    switchToWikiTab,
-    verifyPageContentContains,
     createTestUserInChannel,
-    clickPageInHierarchy,
     selectAllText,
     withRolePermissions,
     SHORT_WAIT,
@@ -30,607 +25,599 @@ import {
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test.skip('shows notification when another user publishes while editing', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'shows notification when another user publishes while editing',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-    await channelsPage1.goto(team.name, channel.name);
-    await channelsPage1.toBeVisible();
+        // # User 1 creates wiki and page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-    const pageTitle = 'Notification Test Page';
-    const page = await createPageThroughUI(page1, pageTitle, 'Original content');
+        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const pageTitle = 'Notification Test Page';
+        const page = await createPageThroughUI(page1, pageTitle, 'Original content');
 
-    // # Create user2 and add to channel
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    const {page: user2Page} = await pw.testBrowser.login(user2);
+        const {page: user2Page} = await pw.testBrowser.login(user2);
 
-    // # User 2 navigates to page and enters edit mode
-    const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${page.id}`;
-    await user2Page.goto(wikiPageUrl);
-    await user2Page.waitForLoadState('networkidle');
+        // # User 2 navigates to page and enters edit mode
+        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${page.id}`;
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
 
-    const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
-    await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+        const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
+        await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-    const pageNode = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode.click();
-    await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+        const pageNode = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode.click();
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    await enterEditMode(user2Page);
-    const editor2 = await getEditorAndWait(user2Page);
+        await enterEditMode(user2Page);
+        const editor2 = await getEditorAndWait(user2Page);
 
-    // # User 2 starts making changes (but doesn't publish yet)
-    await editor2.click();
-    await editor2.pressSequentially(' - User 2 is typing...');
+        // # User 2 starts making changes (but doesn't publish yet)
+        await editor2.click();
+        await editor2.pressSequentially(' - User 2 is typing...');
 
-    // # User 1 enters edit mode and publishes
-    const hierarchyPanel1 = page1.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode1 = hierarchyPanel1.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode1.click();
-    await page1.waitForLoadState('networkidle');
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # User 1 enters edit mode and publishes
+        const hierarchyPanel1 = page1.locator('[data-testid="pages-hierarchy-panel"]');
+        const pageNode1 = hierarchyPanel1.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode1.click();
+        await page1.waitForLoadState('networkidle');
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    await enterEditMode(page1);
-    const editor1 = await getEditorAndWait(page1);
-    await editor1.click();
-    await editor1.pressSequentially(' - User 1 published changes');
-    await publishPage(page1);
-    await page1.waitForTimeout(AUTOSAVE_WAIT);
+        await enterEditMode(page1);
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await editor1.pressSequentially(' - User 1 published changes');
+        await publishPage(page1);
+        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
-    // * Verify User 1's publish succeeded
-    const pageContent1 = page1.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent1).toContainText('User 1 published changes');
+        // * Verify User 1's publish succeeded
+        const pageContent1 = page1.locator('[data-testid="page-viewer-content"]');
+        await expect(pageContent1).toContainText('User 1 published changes');
 
-    // * Verify User 2 sees a notification/banner that page was modified
-    // This could be a toast notification, banner, or indicator
-    const notification = user2Page.locator('.page-modified-notification, .toast, [role="alert"], .alert, .banner').first();
-    await expect(notification).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    await expect(notification).toContainText(/modified|updated|changed|published/i);
+        // * Verify User 2 sees a notification/banner that page was modified
+        // This could be a toast notification, banner, or indicator
+        const notification = user2Page
+            .locator('.page-modified-notification, .toast, [role="alert"], .alert, .banner')
+            .first();
+        await expect(notification).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await expect(notification).toContainText(/modified|updated|changed|published/i);
 
-    // * Verify User 2 is still in edit mode (not kicked out)
-    const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await expect(publishButton2).toBeVisible();
+        // * Verify User 2 is still in edit mode (not kicked out)
+        const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await expect(publishButton2).toBeVisible();
 
-    // * Verify User 2's draft changes are still preserved
-    await expect(editor2).toContainText('User 2 is typing');
+        // * Verify User 2's draft changes are still preserved
+        await expect(editor2).toContainText('User 2 is typing');
 
-    await user2Page.close();
-});
+        await user2Page.close();
+    },
+);
 
 /**
  * @objective Verify user can refresh editor to see latest changes during conflict
  */
-test.skip('allows user to refresh and see latest changes during conflict', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'allows user to refresh and see latest changes during conflict',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page through UI
-    const {page: page1} = await pw.testBrowser.login(user1);
-    const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        // # User 1 creates wiki and page through UI
+        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Conflict Wiki ${await pw.random.id()}`);
-    const page = await createPageThroughUI(page1, 'Conflict Page', 'Base content here');
+        const wiki = await createWikiThroughUI(page1, `Conflict Wiki ${await pw.random.id()}`);
+        const page = await createPageThroughUI(page1, 'Conflict Page', 'Base content here');
 
-    // # Create user2 and add to channel
-    const user2 = await adminClient.createUser({
-        username: `testuser${await pw.random.id()}`,
-        email: `testuser${await pw.random.id()}@example.com`,
-        password: 'Password123!',
-    }, '', '');
-    user2.password = 'Password123!';
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    await adminClient.addToTeam(team.id, user2.id);
-    await adminClient.addToChannel(user2.id, channel.id);
+        const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton1).toBeVisible();
+        await editButton1.click();
 
-    const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton1).toBeVisible();
-    await editButton1.click();
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+        await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
+        await user2Page.waitForLoadState('networkidle');
 
-    const user2Page = await context.newPage();
-    await pw.testBrowser.login(user2, {page: user2Page});
-    await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
-    await user2Page.waitForLoadState('networkidle');
+        const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton2).toBeVisible();
+        await editButton2.click();
 
-    const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton2).toBeVisible();
-    await editButton2.click();
+        // # User 1 publishes first
+        const editor1 = page1.locator('.ProseMirror').first();
+        await editor1.click();
+        await editor1.pressSequentially(' User 1 changes');
 
-    // # User 1 publishes first
-    const editor1 = page1.locator('.ProseMirror').first();
-    await editor1.click();
-    await editor1.pressSequentially(' User 1 changes');
+        const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton1.click();
+        await page1.waitForLoadState('networkidle');
 
-    const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton1.click();
-    await page1.waitForLoadState('networkidle');
+        // # User 2 tries to publish
+        const editor2 = user2Page.locator('.ProseMirror').first();
+        await editor2.click();
+        await editor2.pressSequentially(' User 2 changes');
 
-    // # User 2 tries to publish
-    const editor2 = user2Page.locator('.ProseMirror').first();
-    await editor2.click();
-    await editor2.pressSequentially(' User 2 changes');
+        const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
 
-    const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
+        // # Look for refresh/reload option (implementation-specific)
+        const refreshButton = user2Page.locator('button:has-text("Refresh"), button:has-text("Reload")').first();
 
-    // # Look for refresh/reload option (implementation-specific)
-    const refreshButton = user2Page.locator('button:has-text("Refresh"), button:has-text("Reload")').first();
+        await expect(refreshButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await refreshButton.click();
 
-    await expect(refreshButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await refreshButton.click();
-
-    // * Verify User 2's editor reloads with User 1's changes
-    await user2Page.waitForLoadState('networkidle');
-    const editorContent2 = user2Page.locator('.ProseMirror').first();
-    await expect(editorContent2).toContainText('User 1 changes');
-});
+        // * Verify User 2's editor reloads with User 1's changes
+        await user2Page.waitForLoadState('networkidle');
+        const editorContent2 = user2Page.locator('.ProseMirror').first();
+        await expect(editorContent2).toContainText('User 1 changes');
+    },
+);
 
 /**
  * @objective Verify user can overwrite during conflict with confirmation
  */
-test.skip('allows user to overwrite during conflict with confirmation', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'allows user to overwrite during conflict with confirmation',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page through UI
-    const {page: page1} = await pw.testBrowser.login(user1);
-    const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        // # User 1 creates wiki and page through UI
+        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
-    const page = await createPageThroughUI(page1, 'Overwrite Test', 'Original text');
+        const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
+        const page = await createPageThroughUI(page1, 'Overwrite Test', 'Original text');
 
-    // # Create user2 and add to channel
-    const user2 = await adminClient.createUser({
-        username: `testuser${await pw.random.id()}`,
-        email: `testuser${await pw.random.id()}@example.com`,
-        password: 'Password123!',
-    }, '', '');
-    user2.password = 'Password123!';
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    await adminClient.addToTeam(team.id, user2.id);
-    await adminClient.addToChannel(user2.id, channel.id);
+        const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton1).toBeVisible();
+        await editButton1.click();
 
-    const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton1).toBeVisible();
-    await editButton1.click();
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+        await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
+        await user2Page.waitForLoadState('networkidle');
 
-    const user2Page = await context.newPage();
-    await pw.testBrowser.login(user2, {page: user2Page});
-    await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
-    await user2Page.waitForLoadState('networkidle');
+        const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton2).toBeVisible();
+        await editButton2.click();
 
-    const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton2).toBeVisible();
-    await editButton2.click();
+        // # User 1 publishes
+        const editor1 = page1.locator('.ProseMirror').first();
+        await editor1.click();
+        await editor1.pressSequentially(' - Version A');
 
-    // # User 1 publishes
-    const editor1 = page1.locator('.ProseMirror').first();
-    await editor1.click();
-    await editor1.pressSequentially(' - Version A');
+        const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton1.click();
+        await page1.waitForLoadState('networkidle');
 
-    const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton1.click();
-    await page1.waitForLoadState('networkidle');
+        // # User 2 tries to overwrite
+        const editor2 = user2Page.locator('.ProseMirror').first();
+        await editor2.click();
+        await editor2.pressSequentially(' - Version B');
 
-    // # User 2 tries to overwrite
-    const editor2 = user2Page.locator('.ProseMirror').first();
-    await editor2.click();
-    await editor2.pressSequentially(' - Version B');
+        const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
 
-    const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
+        // # Look for overwrite button (implementation-specific)
+        const overwriteButton = user2Page.locator('button:has-text("Overwrite"), button:has-text("Force")').first();
 
-    // # Look for overwrite button (implementation-specific)
-    const overwriteButton = user2Page.locator('button:has-text("Overwrite"), button:has-text("Force")').first();
+        await expect(overwriteButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await overwriteButton.click();
 
-    await expect(overwriteButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await overwriteButton.click();
+        // * Check for confirmation dialog
+        const confirmButton = user2Page.locator('[data-testid="confirm-button"], button:has-text("Yes")').first();
+        await expect(confirmButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await confirmButton.click();
 
-    // * Check for confirmation dialog
-    const confirmButton = user2Page.locator('[data-testid="confirm-button"], button:has-text("Yes")').first();
-    await expect(confirmButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await confirmButton.click();
-
-    // * Verify User 2's version is saved
-    await user2Page.waitForLoadState('networkidle');
-    const pageContent = user2Page.locator('[data-testid="page-content"], [data-testid="page-viewer"], .wiki-page-content').first();
-    await expect(pageContent).toContainText('Version B');
-});
+        // * Verify User 2's version is saved
+        await user2Page.waitForLoadState('networkidle');
+        const pageContent = user2Page
+            .locator('[data-testid="page-content"], [data-testid="page-viewer"], .wiki-page-content')
+            .first();
+        await expect(pageContent).toContainText('Version B');
+    },
+);
 
 /**
  * @objective Verify visual indicator when another user is editing same page
  */
-test.skip('shows visual indicator when another user is editing same page', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'shows visual indicator when another user is editing same page',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page through UI
-    const {page: page1} = await pw.testBrowser.login(user1);
-    const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        // # User 1 creates wiki and page through UI
+        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Collaborative Wiki ${await pw.random.id()}`);
-    const page = await createPageThroughUI(page1, 'Collaborative Page', 'Shared content');
+        const wiki = await createWikiThroughUI(page1, `Collaborative Wiki ${await pw.random.id()}`);
+        const page = await createPageThroughUI(page1, 'Collaborative Page', 'Shared content');
 
-    // # Create user2 and add to channel
-    const user2 = await adminClient.createUser({
-        username: `testuser${await pw.random.id()}`,
-        email: `testuser${await pw.random.id()}@example.com`,
-        password: 'Password123!',
-    }, '', '');
-    user2.password = 'Password123!';
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    await adminClient.addToTeam(team.id, user2.id);
-    await adminClient.addToChannel(user2.id, channel.id);
+        const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton1).toBeVisible();
+        await editButton1.click();
 
-    const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton1).toBeVisible();
-    await editButton1.click();
+        // # User 2 views same page
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+        await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
+        await user2Page.waitForLoadState('networkidle');
 
-    // # User 2 views same page
-    const user2Page = await context.newPage();
-    await pw.testBrowser.login(user2, {page: user2Page});
-    await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
-    await user2Page.waitForLoadState('networkidle');
+        // * Verify User 2 sees "User 1 is editing" indicator (implementation-specific)
+        const editingIndicator = user2Page.locator('[data-testid="editing-indicator"], .editing-indicator').first();
 
-    // * Verify User 2 sees "User 1 is editing" indicator (implementation-specific)
-    const editingIndicator = user2Page.locator('[data-testid="editing-indicator"], .editing-indicator').first();
+        // Check if indicator exists
+        await expect(editingIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(editingIndicator).toContainText(user1.username);
 
-    // Check if indicator exists
-    await expect(editingIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(editingIndicator).toContainText(user1.username);
+        // # User 2 clicks edit
+        const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton2).toBeVisible();
+        await editButton2.click();
 
-    // # User 2 clicks edit
-    const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton2).toBeVisible();
-    await editButton2.click();
-
-    // * Verify warning appears (implementation-specific)
-    const warningBanner = user2Page.locator('[data-testid="concurrent-edit-warning"], .warning, .alert').first();
-    await expect(warningBanner).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(warningBanner).toContainText(/editing|edit/i);
-});
+        // * Verify warning appears (implementation-specific)
+        const warningBanner = user2Page.locator('[data-testid="concurrent-edit-warning"], .warning, .alert').first();
+        await expect(warningBanner).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(warningBanner).toContainText(/editing|edit/i);
+    },
+);
 
 /**
  * @objective Verify system handles non-conflicting edits gracefully
  */
-test.skip('preserves both users changes when merging non-conflicting edits', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'preserves both users changes when merging non-conflicting edits',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page through UI
-    const {page: page1} = await pw.testBrowser.login(user1);
-    const {channelsPage} = await pw.testBrowser.login(user1, {page: page1});
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        // # User 1 creates wiki and page through UI
+        const {page: page1, channelsPage} = await pw.testBrowser.login(user1);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Merge Wiki ${await pw.random.id()}`);
-    const page = await createPageThroughUI(page1, 'Merge Test', 'Section A content.\n\nSection B content.');
+        const wiki = await createWikiThroughUI(page1, `Merge Wiki ${await pw.random.id()}`);
+        const page = await createPageThroughUI(page1, 'Merge Test', 'Section A content.\n\nSection B content.');
 
-    // # Create user2 and add to channel
-    const user2 = await adminClient.createUser({
-        username: `testuser${await pw.random.id()}`,
-        email: `testuser${await pw.random.id()}@example.com`,
-        password: 'Password123!',
-    }, '', '');
-    user2.password = 'Password123!';
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    await adminClient.addToTeam(team.id, user2.id);
-    await adminClient.addToChannel(user2.id, channel.id);
+        const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton1).toBeVisible();
+        await editButton1.click();
 
-    const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton1).toBeVisible();
-    await editButton1.click();
+        const {page: user2Page} = await pw.testBrowser.login(user2);
+        await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
+        await user2Page.waitForLoadState('networkidle');
 
-    const user2Page = await context.newPage();
-    await pw.testBrowser.login(user2, {page: user2Page});
-    await user2Page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${page.id}`);
-    await user2Page.waitForLoadState('networkidle');
+        const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton2).toBeVisible();
+        await editButton2.click();
 
-    const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    await expect(editButton2).toBeVisible();
-    await editButton2.click();
+        // # User 1 edits Section A
+        const editor1 = page1.locator('.ProseMirror').first();
+        await editor1.click();
 
-    // # User 1 edits Section A
-    const editor1 = page1.locator('.ProseMirror').first();
-    await editor1.click();
+        // Select and replace "Section A content"
+        await selectAllText(page1);
+        await page1.keyboard.type('Section A modified by User 1\n\nSection B content.');
 
-    // Select and replace "Section A content"
-    await selectAllText(page1);
-    await page1.keyboard.type('Section A modified by User 1\n\nSection B content.');
+        const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton1.click();
+        await page1.waitForLoadState('networkidle');
 
-    const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton1.click();
-    await page1.waitForLoadState('networkidle');
+        // # User 2 tries to edit Section B (different section)
+        const editor2 = user2Page.locator('.ProseMirror').first();
+        await editor2.click();
 
-    // # User 2 tries to edit Section B (different section)
-    const editor2 = user2Page.locator('.ProseMirror').first();
-    await editor2.click();
+        // Replace content with modified Section B
+        await selectAllText(user2Page);
+        await user2Page.keyboard.type('Section A content.\n\nSection B modified by User 2');
 
-    // Replace content with modified Section B
-    await selectAllText(user2Page);
-    await user2Page.keyboard.type('Section A content.\n\nSection B modified by User 2');
+        const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
 
-    const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
-
-    // * Implementation-specific: Either both changes are preserved (intelligent merging)
-    // OR User 2 sees conflict (simple conflict detection)
-    // This test documents the expected behavior
-    await user2Page.waitForLoadState('networkidle');
-});
+        // * Implementation-specific: Either both changes are preserved (intelligent merging)
+        // OR User 2 sees conflict (simple conflict detection)
+        // This test documents the expected behavior
+        await user2Page.waitForLoadState('networkidle');
+    },
+);
 
 /**
  * @objective Verify first-write-wins behavior when concurrent edits occur from multiple tabs
  */
-test('applies first-write-wins when saving concurrent edits from multiple tabs', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'applies first-write-wins when saving concurrent edits from multiple tabs',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1: Create wiki and page, then enter edit mode
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-    await channelsPage1.goto(team.name, channel.name);
-    await channelsPage1.toBeVisible();
+        // # User 1: Create wiki and page, then enter edit mode
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Concurrent Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page1, 'Concurrent Edit Page', 'Original content');
+        const wiki = await createWikiThroughUI(page1, `Concurrent Wiki ${await pw.random.id()}`);
+        const testPage = await createPageThroughUI(page1, 'Concurrent Edit Page', 'Original content');
 
-    // # User 1: Enter edit mode and make changes (but don't save yet)
-    await enterEditMode(page1);
-    const editor1 = await getEditorAndWait(page1);
-    await editor1.click();
-    await page1.keyboard.press('End');
-    await editor1.pressSequentially(' - User 1 edit');
+        // # User 1: Enter edit mode and make changes (but don't save yet)
+        await enterEditMode(page1);
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await page1.keyboard.press('End');
+        await editor1.pressSequentially(' - User 1 edit');
 
-    // # Create user2 FIRST (before granting permissions)
-    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        // # Create user2 FIRST (before granting permissions)
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    // # Grant page edit and wiki (channel properties) permissions to channel_user role AFTER user is created
-    // Wiki operations now use manage_*_channel_properties permissions
-    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
-        'edit_page',
-        'manage_public_channel_properties',
-        'manage_private_channel_properties',
-    ]);
+        // # Grant page edit and wiki (channel properties) permissions to channel_user role AFTER user is created
+        // Wiki operations now use manage_*_channel_properties permissions
+        const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+            'edit_page',
+            'manage_public_channel_properties',
+            'manage_private_channel_properties',
+        ]);
 
-    // Wait a moment for permission changes to propagate
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        // Wait a moment for permission changes to propagate
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # User 2: Login and navigate to the same page
-    const {page: page2, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+        // # User 2: Login and navigate to the same page
+        const {page: page2} = await pw.testBrowser.login(user2);
 
-    const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${testPage.id}`;
-    await page2.goto(wikiPageUrl);
-    await page2.waitForLoadState('networkidle');
-
-    // # User 2: Enter edit mode
-    await enterEditMode(page2);
-
-    // # User 2: Make different changes
-    const editor2 = await getEditorAndWait(page2);
-    await expect(editor2).toContainText('Original content', {timeout: ELEMENT_TIMEOUT});
-    await editor2.click();
-    await page2.keyboard.press('End');
-    await editor2.pressSequentially(' - User 2 edit');
-
-    // # Wait for autosave
-    await page2.waitForTimeout(WEBSOCKET_WAIT);
-
-    // * Verify User 2 editor has the expected content before publishing
-    await expect(editor2).toContainText('Original content');
-    await expect(editor2).toContainText('User 2 edit');
-
-    // # User 2: Click publish button
-    const publishButton2 = page2.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
-    await page2.waitForLoadState('networkidle', {timeout: HIERARCHY_TIMEOUT});
-    await page2.waitForTimeout(EDITOR_LOAD_WAIT);
-
-    // # Check if conflict modal appeared and handle it
-    const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
-    const hasConflict = await conflictModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
-
-    if (hasConflict) {
-        const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite/i});
-        await overwriteButton2.click();
+        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${testPage.id}`;
+        await page2.goto(wikiPageUrl);
         await page2.waitForLoadState('networkidle');
-    }
 
-    // * Verify User 2's content was saved via UI (first write wins)
-    const pageViewer2 = page2.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer2).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    await expect(pageViewer2).toContainText('User 2 edit');
-    await expect(pageViewer2).toContainText('Original content');
+        // # User 2: Enter edit mode
+        await enterEditMode(page2);
 
-    // # User 1: Wait a bit, then try to publish (should show conflict modal)
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # User 2: Make different changes
+        const editor2 = await getEditorAndWait(page2);
+        await expect(editor2).toContainText('Original content', {timeout: ELEMENT_TIMEOUT});
+        await editor2.click();
+        await page2.keyboard.press('End');
+        await editor2.pressSequentially(' - User 2 edit');
 
-    // # User 1: Click publish (will show conflict modal since User 2 already saved)
-    const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton1.click();
-    await page1.waitForLoadState('networkidle');
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # Wait for autosave
+        await page2.waitForTimeout(WEBSOCKET_WAIT);
 
-    // * Verify conflict modal appears for User 1 (first-write-wins prevents automatic overwrite)
-    const conflictModal = page1.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
-    await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        // * Verify User 2 editor has the expected content before publishing
+        await expect(editor2).toContainText('Original content');
+        await expect(editor2).toContainText('User 2 edit');
 
-    // # User 1: Cancel the conflict to preserve first-write-wins behavior
-    const cancelButton = conflictModal.getByRole('button', {name: /Cancel/i});
-    await cancelButton.click();
-    await page1.waitForTimeout(SHORT_WAIT);
+        // # User 2: Click publish button
+        const publishButton2 = page2.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
+        await page2.waitForLoadState('networkidle', {timeout: HIERARCHY_TIMEOUT});
+        await page2.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // * Verify modal closes
-    await expect(conflictModal).not.toBeVisible();
+        // # Check if conflict modal appeared and handle it
+        const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
+        const hasConflict = await conflictModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
 
-    // * Verify User 1 is still in edit mode after canceling with their unsaved changes
-    const publishButtonStillVisible = page1.locator('[data-testid="wiki-page-publish-button"]').first();
-    await expect(publishButtonStillVisible).toBeVisible();
-    const editor1After = await getEditorAndWait(page1);
-    await expect(editor1After).toContainText('User 1 edit');
+        if (hasConflict) {
+            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite/i});
+            await overwriteButton2.click();
+            await page2.waitForLoadState('networkidle');
+        }
 
-    // # User 1: Navigate to the published page to view the final content
-    const publishedPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${testPage.id}`;
-    await page1.goto(publishedPageUrl);
-    await page1.waitForLoadState('networkidle');
-    const pageViewer1 = page1.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer1).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(pageViewer1).toContainText('User 2 edit');
-    await expect(pageViewer1).toContainText('Original content');
-    await expect(pageViewer1).not.toContainText('User 1 edit');
+        // * Verify User 2's content was saved via UI (first write wins)
+        const pageViewer2 = page2.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer2).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await expect(pageViewer2).toContainText('User 2 edit');
+        await expect(pageViewer2).toContainText('Original content');
 
-    // * Verify via User 2's view - User 2's content remains unchanged
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
-    const pageViewer2After = page2.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer2After).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(pageViewer2After).toContainText('User 2 edit');
-    await expect(pageViewer2After).not.toContainText('User 1 edit');
+        // # User 1: Wait a bit, then try to publish (should show conflict modal)
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    await page2.close();
+        // # User 1: Click publish (will show conflict modal since User 2 already saved)
+        const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton1.click();
+        await page1.waitForLoadState('networkidle');
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # Cleanup: Restore original permissions
-    await restorePermissions();
-});
+        // * Verify conflict modal appears for User 1 (first-write-wins prevents automatic overwrite)
+        const conflictModal = page1.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
+        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+        // # User 1: Cancel the conflict to preserve first-write-wins behavior
+        const cancelButton = conflictModal.getByRole('button', {name: /Cancel/i});
+        await cancelButton.click();
+        await page1.waitForTimeout(SHORT_WAIT);
+
+        // * Verify modal closes
+        await expect(conflictModal).not.toBeVisible();
+
+        // * Verify User 1 is still in edit mode after canceling with their unsaved changes
+        const publishButtonStillVisible = page1.locator('[data-testid="wiki-page-publish-button"]').first();
+        await expect(publishButtonStillVisible).toBeVisible();
+        const editor1After = await getEditorAndWait(page1);
+        await expect(editor1After).toContainText('User 1 edit');
+
+        // # User 1: Navigate to the published page to view the final content
+        const publishedPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${testPage.id}`;
+        await page1.goto(publishedPageUrl);
+        await page1.waitForLoadState('networkidle');
+        const pageViewer1 = page1.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer1).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(pageViewer1).toContainText('User 2 edit');
+        await expect(pageViewer1).toContainText('Original content');
+        await expect(pageViewer1).not.toContainText('User 1 edit');
+
+        // * Verify via User 2's view - User 2's content remains unchanged
+        await page2.reload();
+        await page2.waitForLoadState('networkidle');
+        const pageViewer2After = page2.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer2After).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(pageViewer2After).toContainText('User 2 edit');
+        await expect(pageViewer2After).not.toContainText('User 1 edit');
+
+        await page2.close();
+
+        // # Cleanup: Restore original permissions
+        await restorePermissions();
+    },
+);
 
 /**
  * @objective Verify explicit overwrite with confirmation when user chooses to override first-write-wins
  */
-test('allows explicit overwrite after confirmation when user overrides first-write-wins', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'allows explicit overwrite after confirmation when user overrides first-write-wins',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1: Create wiki and page, then enter edit mode
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        // # User 1: Create wiki and page, then enter edit mode
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
 
-    await channelsPage1.goto(team.name, channel.name);
-    await channelsPage1.toBeVisible();
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page1, 'Overwrite Test Page', 'Original content');
+        const wiki = await createWikiThroughUI(page1, `Overwrite Wiki ${await pw.random.id()}`);
+        const testPage = await createPageThroughUI(page1, 'Overwrite Test Page', 'Original content');
 
-    // # User 1: Enter edit mode and make changes (but don't save yet)
-    await enterEditMode(page1);
-    const editor1 = await getEditorAndWait(page1);
-    await editor1.click();
-    await page1.keyboard.press('End');
-    await editor1.pressSequentially(' - User 1 edit');
+        // # User 1: Enter edit mode and make changes (but don't save yet)
+        await enterEditMode(page1);
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await page1.keyboard.press('End');
+        await editor1.pressSequentially(' - User 1 edit');
 
-    // # Create user2 with permissions
-    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        // # Create user2 with permissions
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    // Grant page edit and wiki (channel properties) permissions
-    // Wiki operations now use manage_*_channel_properties permissions
-    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
-        'edit_page',
-        'manage_public_channel_properties',
-        'manage_private_channel_properties',
-    ]);
+        // Grant page edit and wiki (channel properties) permissions
+        // Wiki operations now use manage_*_channel_properties permissions
+        const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+            'edit_page',
+            'manage_public_channel_properties',
+            'manage_private_channel_properties',
+        ]);
 
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # User 2: Login and navigate to the same page
-    const {page: page2} = await pw.testBrowser.login(user2);
+        // # User 2: Login and navigate to the same page
+        const {page: page2} = await pw.testBrowser.login(user2);
 
-    const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${testPage.id}`;
-    await page2.goto(wikiPageUrl);
-    await page2.waitForLoadState('networkidle');
-
-    // # User 2: Enter edit mode
-    await enterEditMode(page2);
-
-    // # User 2: Make different changes
-    const editor2 = await getEditorAndWait(page2);
-    await expect(editor2).toContainText('Original content', {timeout: ELEMENT_TIMEOUT});
-    await editor2.click();
-    await page2.keyboard.press('End');
-    await editor2.pressSequentially(' - User 2 edit');
-
-    // # User 2: Publish (first write wins)
-    await page2.waitForTimeout(WEBSOCKET_WAIT);
-    const publishButton2 = page2.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
-    await page2.waitForLoadState('networkidle', {timeout: HIERARCHY_TIMEOUT});
-
-    // # Handle conflict modal if it appears for User 2
-    const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
-    const hasConflict = await conflictModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
-    if (hasConflict) {
-        const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite/i});
-        await overwriteButton2.click();
-        const confirmModal2 = page2.locator('.confirm-overwrite-modal').first();
-        if (await confirmModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false)) {
-            const confirmButton2 = confirmModal2.getByRole('button', {name: /Yes|Confirm|Overwrite/i});
-            await confirmButton2.click();
-        }
+        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${testPage.id}`;
+        await page2.goto(wikiPageUrl);
         await page2.waitForLoadState('networkidle');
-    }
 
-    // * Verify User 2's content was saved (first write)
-    const pageViewer2 = page2.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer2).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    await expect(pageViewer2).toContainText('User 2 edit');
+        // # User 2: Enter edit mode
+        await enterEditMode(page2);
 
-    // # User 1: Try to publish (should show conflict modal)
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
-    const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton1.click();
-    await page1.waitForLoadState('networkidle');
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # User 2: Make different changes
+        const editor2 = await getEditorAndWait(page2);
+        await expect(editor2).toContainText('Original content', {timeout: ELEMENT_TIMEOUT});
+        await editor2.click();
+        await page2.keyboard.press('End');
+        await editor2.pressSequentially(' - User 2 edit');
 
-    // * Verify conflict modal appears for User 1
-    const conflictModal = page1.locator('[data-testid="conflict-warning-modal"]').first();
-    await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        // # User 2: Publish (first write wins)
+        await page2.waitForTimeout(WEBSOCKET_WAIT);
+        const publishButton2 = page2.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
+        await page2.waitForLoadState('networkidle', {timeout: HIERARCHY_TIMEOUT});
 
-    // # User 1: Click Overwrite button (shows confirmation modal)
-    const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite/i});
-    await overwriteButton.click();
-    await page1.waitForTimeout(SHORT_WAIT);
+        // # Handle conflict modal if it appears for User 2
+        const conflictModal2 = page2.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
+        const hasConflict = await conflictModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
+        if (hasConflict) {
+            const overwriteButton2 = conflictModal2.getByRole('button', {name: /Overwrite/i});
+            await overwriteButton2.click();
+            const confirmModal2 = page2.locator('.confirm-overwrite-modal').first();
+            if (await confirmModal2.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false)) {
+                const confirmButton2 = confirmModal2.getByRole('button', {name: /Yes|Confirm|Overwrite/i});
+                await confirmButton2.click();
+            }
+            await page2.waitForLoadState('networkidle');
+        }
 
-    // * Verify confirmation modal appears
-    const confirmModal = page1.locator('.confirm-overwrite-modal').first();
-    await expect(confirmModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(confirmModal).toContainText(/permanently replace|overwrite/i);
+        // * Verify User 2's content was saved (first write)
+        const pageViewer2 = page2.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer2).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await expect(pageViewer2).toContainText('User 2 edit');
 
-    // * Verify confirmation modal has action buttons
-    await expect(confirmModal.getByRole('button', {name: /Go Back|Cancel/i})).toBeVisible();
-    await expect(confirmModal.getByRole('button', {name: /Yes|Confirm|Overwrite/i})).toBeVisible();
+        // # User 1: Try to publish (should show conflict modal)
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton1.click();
+        await page1.waitForLoadState('networkidle');
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # User 1: Confirm overwrite
-    const confirmButton = confirmModal.getByRole('button', {name: /Yes|Confirm|Overwrite/i});
-    await confirmButton.click();
+        // * Verify conflict modal appears for User 1
+        const conflictModal = page1.locator('[data-testid="conflict-warning-modal"]').first();
+        await expect(conflictModal).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-    // * Verify User 1's content now replaces User 2's (escape hatch worked)
-    await page1.waitForLoadState('networkidle');
-    const pageViewer1 = page1.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer1).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(pageViewer1).toContainText('User 1 edit');
-    await expect(pageViewer1).toContainText('Original content');
-    await expect(pageViewer1).not.toContainText('User 2 edit');
+        // # User 1: Click Overwrite button (shows confirmation modal)
+        const overwriteButton = conflictModal.getByRole('button', {name: /Overwrite/i});
+        await overwriteButton.click();
+        await page1.waitForTimeout(SHORT_WAIT);
 
-    // * Verify via User 2's view - User 1's content now visible
-    await page2.reload();
-    await page2.waitForLoadState('networkidle');
-    const pageViewer2After = page2.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer2After).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(pageViewer2After).toContainText('User 1 edit');
-    await expect(pageViewer2After).not.toContainText('User 2 edit');
+        // * Verify confirmation modal appears
+        const confirmModal = page1.locator('.confirm-overwrite-modal').first();
+        await expect(confirmModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(confirmModal).toContainText(/permanently replace|overwrite/i);
 
-    await page2.close();
+        // * Verify confirmation modal has action buttons
+        await expect(confirmModal.getByRole('button', {name: /Go Back|Cancel/i})).toBeVisible();
+        await expect(confirmModal.getByRole('button', {name: /Yes|Confirm|Overwrite/i})).toBeVisible();
 
-    // # Cleanup: Restore original permissions
-    await restorePermissions();
-});
+        // # User 1: Confirm overwrite
+        const confirmButton = confirmModal.getByRole('button', {name: /Yes|Confirm|Overwrite/i});
+        await confirmButton.click();
+
+        // * Verify User 1's content now replaces User 2's (escape hatch worked)
+        await page1.waitForLoadState('networkidle');
+        const pageViewer1 = page1.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer1).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(pageViewer1).toContainText('User 1 edit');
+        await expect(pageViewer1).toContainText('Original content');
+        await expect(pageViewer1).not.toContainText('User 2 edit');
+
+        // * Verify via User 2's view - User 1's content now visible
+        await page2.reload();
+        await page2.waitForLoadState('networkidle');
+        const pageViewer2After = page2.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer2After).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(pageViewer2After).toContainText('User 1 edit');
+        await expect(pageViewer2After).not.toContainText('User 2 edit');
+
+        await page2.close();
+
+        // # Cleanup: Restore original permissions
+        await restorePermissions();
+    },
+);
 
 /**
  * @objective Verify View Changes button shows diff between versions during conflict
@@ -645,101 +632,104 @@ test('allows explicit overwrite after confirmation when user overrides first-wri
  * Two users are editing the same page concurrently
  * User 1 publishes first, creating a conflict for User 2
  */
-test.skip('opens published page in new tab when View Changes clicked during conflict', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    // SKIPPED: window.open() with _blank is blocked by browser security in automated tests.
-    // The functionality is implemented (see handleConflictViewChanges in hooks.ts) but cannot
-    // be reliably tested in Playwright. Manual testing confirms this works correctly.
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'opens published page in new tab when View Changes clicked during conflict',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        // SKIPPED: window.open() with _blank is blocked by browser security in automated tests.
+        // The functionality is implemented (see handleConflictViewChanges in hooks.ts) but cannot
+        // be reliably tested in Playwright. Manual testing confirms this works correctly.
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-    await channelsPage1.goto(team.name, channel.name);
-    await channelsPage1.toBeVisible();
+        // # User 1 creates wiki and page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-    const pageTitle = 'Conflict Test Page';
-    const originalContent = 'Original content that both users will modify';
-    const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
+        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const pageTitle = 'Conflict Test Page';
+        const originalContent = 'Original content that both users will modify';
+        const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
-    // # User 1 enters edit mode
-    const hierarchyPanel = page1.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode.click();
-    await page1.waitForLoadState('networkidle');
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
-    await enterEditMode(page1);
+        // # User 1 enters edit mode
+        const hierarchyPanel = page1.locator('[data-testid="pages-hierarchy-panel"]');
+        const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode.click();
+        await page1.waitForLoadState('networkidle');
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        await enterEditMode(page1);
 
-    // # Create user2 and add to channel
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    const {page: user2Page} = await pw.testBrowser.login(user2);
+        const {page: user2Page} = await pw.testBrowser.login(user2);
 
-    // # User 2 navigates to page and enters edit mode
-    const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${createdPage.id}`;
-    await user2Page.goto(wikiPageUrl);
-    await user2Page.waitForLoadState('networkidle');
+        // # User 2 navigates to page and enters edit mode
+        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${createdPage.id}`;
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
 
-    const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
-    await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+        const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
+        await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-    const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode2.click();
-    await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
-    await enterEditMode(user2Page);
+        const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode2.click();
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+        await enterEditMode(user2Page);
 
-    // # User 1 makes changes and publishes
-    const editor1 = await getEditorAndWait(page1);
-    await editor1.click();
-    await editor1.pressSequentially(' - User 1 version');
-    await publishPage(page1);
-    await page1.waitForTimeout(AUTOSAVE_WAIT);
+        // # User 1 makes changes and publishes
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await editor1.pressSequentially(' - User 1 version');
+        await publishPage(page1);
+        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
-    // # User 2 makes different changes and tries to publish
-    const editor2 = await getEditorAndWait(user2Page);
-    await editor2.click();
-    await editor2.pressSequentially(' - User 2 version');
+        // # User 2 makes different changes and tries to publish
+        const editor2 = await getEditorAndWait(user2Page);
+        await editor2.click();
+        await editor2.pressSequentially(' - User 2 version');
 
-    const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
-    await user2Page.waitForLoadState('networkidle');
-    await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+        const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
+        await user2Page.waitForLoadState('networkidle');
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // * Verify conflict modal appears
-    const conflictModal = user2Page.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
-    await pw.waitUntil(
-        async () => {
-            return await conflictModal.isVisible();
-        },
-        {timeout: HIERARCHY_TIMEOUT},
-    );
+        // * Verify conflict modal appears
+        const conflictModal = user2Page
+            .locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")')
+            .first();
+        await pw.waitUntil(
+            async () => {
+                return await conflictModal.isVisible();
+            },
+            {timeout: HIERARCHY_TIMEOUT},
+        );
 
-    // # Click View Their Changes button and wait for new tab
-    const viewChangesButton = conflictModal.getByRole('button', {name: /View.*Changes/i});
-    const [newPage] = await Promise.all([
-        context.waitForEvent('page'),
-        viewChangesButton.click(),
-    ]);
+        // # Click View Their Changes button and wait for new tab
+        const viewChangesButton = conflictModal.getByRole('button', {name: /View.*Changes/i});
+        const [newPage] = await Promise.all([user2Page.context().waitForEvent('page'), viewChangesButton.click()]);
 
-    // * Verify new tab opens and loads
-    await newPage.waitForLoadState('networkidle');
+        // * Verify new tab opens and loads
+        await newPage.waitForLoadState('networkidle');
 
-    // * Verify the new tab shows the published content (User 1's version)
-    const newPageViewer = newPage.locator('[data-testid="page-viewer-content"]');
-    await expect(newPageViewer).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(newPageViewer).toContainText('User 1 version');
-    await expect(newPageViewer).not.toContainText('User 2 version');
+        // * Verify the new tab shows the published content (User 1's version)
+        const newPageViewer = newPage.locator('[data-testid="page-viewer-content"]');
+        await expect(newPageViewer).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(newPageViewer).toContainText('User 1 version');
+        await expect(newPageViewer).not.toContainText('User 2 version');
 
-    // * Verify original tab still has conflict modal visible and editor with User 2's draft
-    await expect(conflictModal).toBeVisible();
-    const user2Editor = await getEditorAndWait(user2Page);
-    await expect(user2Editor).toContainText('User 2 version');
+        // * Verify original tab still has conflict modal visible and editor with User 2's draft
+        await expect(conflictModal).toBeVisible();
+        const user2Editor = await getEditorAndWait(user2Page);
+        await expect(user2Editor).toContainText('User 2 version');
 
-    await newPage.close();
-    await user2Page.close();
-});
+        await newPage.close();
+        await user2Page.close();
+    },
+);
 
 /**
  * @objective Verify Copy Content button copies user's changes to clipboard during conflict
@@ -747,89 +737,95 @@ test.skip('opens published page in new tab when View Changes clicked during conf
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test('copies content to clipboard when Copy Content clicked during conflict', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
-    const {team, user: user1, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'copies content to clipboard when Copy Content clicked during conflict',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # User 1 creates wiki and page
-    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
-    await channelsPage1.goto(team.name, channel.name);
-    await channelsPage1.toBeVisible();
+        // # User 1 creates wiki and page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
 
-    const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
-    const pageTitle = 'Copy Content Test';
-    const originalContent = 'Original content';
-    const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
+        const wiki = await createWikiThroughUI(page1, `Test Wiki ${await pw.random.id()}`);
+        const pageTitle = 'Copy Content Test';
+        const originalContent = 'Original content';
+        const createdPage = await createPageThroughUI(page1, pageTitle, originalContent);
 
-    // # User 1 enters edit mode
-    const hierarchyPanel = page1.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode.click();
-    await page1.waitForLoadState('networkidle');
-    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
-    await enterEditMode(page1);
+        // # User 1 enters edit mode
+        const hierarchyPanel = page1.locator('[data-testid="pages-hierarchy-panel"]');
+        const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode.click();
+        await page1.waitForLoadState('networkidle');
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+        await enterEditMode(page1);
 
-    // # Create user2 and add to channel
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
-    const {page: user2Page} = await pw.testBrowser.login(user2);
+        const {page: user2Page} = await pw.testBrowser.login(user2);
 
-    // # User 2 navigates to page and enters edit mode
-    const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${createdPage.id}`;
-    await user2Page.goto(wikiPageUrl);
-    await user2Page.waitForLoadState('networkidle');
+        // # User 2 navigates to page and enters edit mode
+        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${createdPage.id}`;
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
 
-    const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
-    await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+        const user2HierarchyPanel = user2Page.locator('[data-testid="pages-hierarchy-panel"]');
+        await user2HierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-    const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
-    await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await pageNode2.click();
-    await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
-    await enterEditMode(user2Page);
+        const pageNode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+        await pageNode2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await pageNode2.click();
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+        await enterEditMode(user2Page);
 
-    // # User 1 makes changes and publishes
-    const editor1 = await getEditorAndWait(page1);
-    await editor1.click();
-    await editor1.pressSequentially(' - User 1 changes');
-    await publishPage(page1);
-    await page1.waitForTimeout(AUTOSAVE_WAIT);
+        // # User 1 makes changes and publishes
+        const editor1 = await getEditorAndWait(page1);
+        await editor1.click();
+        await editor1.pressSequentially(' - User 1 changes');
+        await publishPage(page1);
+        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
-    // # User 2 makes different changes
-    const user2Content = 'Original content - User 2 unique changes';
-    const editor2 = await getEditorAndWait(user2Page);
-    await editor2.click();
-    await editor2.fill(user2Content);
+        // # User 2 makes different changes
+        const user2Content = 'Original content - User 2 unique changes';
+        const editor2 = await getEditorAndWait(user2Page);
+        await editor2.click();
+        await editor2.fill(user2Content);
 
-    const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton2.click();
-    await user2Page.waitForLoadState('networkidle');
-    await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+        const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton2.click();
+        await user2Page.waitForLoadState('networkidle');
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // * Verify conflict modal appears
-    const conflictModal = user2Page.locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")').first();
-    await pw.waitUntil(
-        async () => {
-            return await conflictModal.isVisible();
-        },
-        {timeout: HIERARCHY_TIMEOUT},
-    );
+        // * Verify conflict modal appears
+        const conflictModal = user2Page
+            .locator('.conflict-warning-modal, .modal:has-text("Page Was Modified")')
+            .first();
+        await pw.waitUntil(
+            async () => {
+                return await conflictModal.isVisible();
+            },
+            {timeout: HIERARCHY_TIMEOUT},
+        );
 
-    // # Grant clipboard permissions
-    await user2Page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+        // # Grant clipboard permissions
+        await user2Page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 
-    // # Click Copy Content button
-    const copyButton = conflictModal.getByRole('button', {name: /Copy.*Content/i});
-    await copyButton.click();
-    await user2Page.waitForTimeout(SHORT_WAIT);
+        // # Click Copy Content button
+        const copyButton = conflictModal.getByRole('button', {name: /Copy.*Content/i});
+        await copyButton.click();
+        await user2Page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify content was copied to clipboard
-    const clipboardText = await user2Page.evaluate(() => navigator.clipboard.readText());
-    expect(clipboardText).toContain('User 2 unique changes');
+        // * Verify content was copied to clipboard
+        const clipboardText = await user2Page.evaluate(() => navigator.clipboard.readText());
+        expect(clipboardText).toContain('User 2 unique changes');
 
-    await user2Page.close();
-});
+        await user2Page.close();
+    },
+);
 
 /**
  * @objective Verify Cancel button closes conflict modal and keeps user in edit mode
@@ -837,7 +833,7 @@ test('copies content to clipboard when Copy Content clicked during conflict', {t
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user: user1, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
@@ -861,7 +857,7 @@ test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}
     await enterEditMode(page1);
 
     // # Create user2 and add to channel
-    const {user: user2, userId: user2Id} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
 
     const {page: user2Page} = await pw.testBrowser.login(user2);
 

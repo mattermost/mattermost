@@ -2,14 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
-    addInlineCommentAndPublish,
     addInlineCommentInEditMode,
     addReplyToCommentThread,
     buildWikiPageUrl,
     clickCommentMarkerAndOpenRHS,
-    clickPageContextMenuItem,
     confirmMoveToTarget,
     createChildPageThroughContextMenu,
     createPageThroughUI,
@@ -25,8 +22,6 @@ import {
     navigateToPage,
     openInlineCommentModal,
     openMovePageModal,
-    openPageActionsMenu,
-    publishCurrentPage,
     publishPage,
     selectTextInEditor,
     toggleCommentResolution,
@@ -57,7 +52,7 @@ test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Integration Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Integration Wiki ${await pw.random.id()}`);
 
     // # Step 1: Create parent page
     const parentPage = await createPageThroughUI(page, 'Parent Integration Page', 'Parent page content');
@@ -90,61 +85,67 @@ test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'
 /**
  * @objective Verify draft save, navigate away, return, edit, publish workflow
  */
-test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'saves draft, navigates away, returns to draft, then publishes',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Flow Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        const wiki = await createWikiThroughUI(page, `Draft Flow Wiki ${await pw.random.id()}`);
 
-    // # Step 1: Create draft
-    const newPageButton = getNewPageButton(page);
-    await expect(newPageButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Draft Flow Test');
+        // # Step 1: Create draft
+        const newPageButton = getNewPageButton(page);
+        await expect(newPageButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Draft Flow Test');
 
-    const editor = await getEditorAndWait(page);
-    await editor.click();
-    await editor.type('Draft content in progress');
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+        await editor.type('Draft content in progress');
 
-    // * Wait for auto-save
-    await page.waitForTimeout(ELEMENT_TIMEOUT);
+        // * Wait for auto-save
+        await page.waitForTimeout(ELEMENT_TIMEOUT);
 
-    // # Step 2: Navigate away (without publishing)
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        // # Step 2: Navigate away (without publishing)
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Step 3: Return to wiki by clicking the wiki tab
-    const wikiTab = page.getByRole('tab', {name: wiki.title});
-    await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await wikiTab.click();
-    await page.waitForLoadState('networkidle');
+        // # Step 3: Return to wiki by clicking the wiki tab
+        const wikiTab = page.getByRole('tab', {name: wiki.title});
+        await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await wikiTab.click();
+        await page.waitForLoadState('networkidle');
 
-    // # Step 4: Find and open draft (drafts are integrated in tree with data-is-draft attribute)
-    const hierarchyPanel = getHierarchyPanel(page);
-    const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft Flow Test'});
-    await expect(draftNode).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    await draftNode.click();
-    await page.waitForLoadState('networkidle');
+        // # Step 4: Find and open draft (drafts are integrated in tree with data-is-draft attribute)
+        const hierarchyPanel = getHierarchyPanel(page);
+        const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {
+            hasText: 'Draft Flow Test',
+        });
+        await expect(draftNode).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await draftNode.click();
+        await page.waitForLoadState('networkidle');
 
-    // * Verify draft content restored
-    const editorContent = await editor.textContent();
-    expect(editorContent).toContain('Draft content in progress');
+        // * Verify draft content restored
+        const editorContent = await editor.textContent();
+        expect(editorContent).toContain('Draft content in progress');
 
-    // # Step 5: Edit draft
-    await editor.click();
-    await editor.type(' - additional content');
+        // # Step 5: Edit draft
+        await editor.click();
+        await editor.type(' - additional content');
 
-    // # Step 6: Publish
-    await publishPage(page);
+        // # Step 6: Publish
+        await publishPage(page);
 
-    // * Verify published
-    await verifyPageContentContains(page, 'Draft content in progress - additional content');
-});
+        // * Verify published
+        await verifyPageContentContains(page, 'Draft content in progress - additional content');
+    },
+);
 
 /**
  * @objective Verify page with inline comments can be edited without losing comments
@@ -158,8 +159,8 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Comment Preservation Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Page with Comments', 'Content with comment marker');
+    await createWikiThroughUI(page, `Comment Preservation Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(page, 'Page with Comments', 'Content with comment marker');
 
     // # Enter edit mode and add inline comment using proven helper
     await enterEditMode(page);
@@ -169,7 +170,7 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
     await publishPage(page);
 
     // * Verify comment marker visible in viewer mode
-    const commentMarker = await verifyCommentMarkerVisible(page);
+    await verifyCommentMarkerVisible(page);
 
     // # Edit page content again to verify comment preservation
     await enterEditMode(page);
@@ -193,103 +194,115 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
 /**
  * @objective Verify search, navigate to result, add comment, navigate back
  */
-test('searches page, opens result, adds comment, returns to search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'searches page, opens result, adds comment, returns to search',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and page through UI
-    const uniqueTerm = `SearchTerm${await pw.random.id()}`;
-    const wiki = await createWikiThroughUI(page, `Search Flow Wiki ${await pw.random.id()}`);
-    const searchablePage = await createPageThroughUI(page, `Page with ${uniqueTerm}`, `Content containing ${uniqueTerm}`);
+        // # Create wiki and page through UI
+        const uniqueTerm = `SearchTerm${await pw.random.id()}`;
+        await createWikiThroughUI(page, `Search Flow Wiki ${await pw.random.id()}`);
+        const searchablePage = await createPageThroughUI(
+            page,
+            `Page with ${uniqueTerm}`,
+            `Content containing ${uniqueTerm}`,
+        );
 
-    // # Perform search
-    const searchInput = page.locator('[data-testid="pages-search-input"]').first();
-    await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await searchInput.fill(uniqueTerm);
-    await waitForSearchDebounce(page);
+        // # Perform search
+        const searchInput = page.locator('[data-testid="pages-search-input"]').first();
+        await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await searchInput.fill(uniqueTerm);
+        await waitForSearchDebounce(page);
 
-    // # Click search result - use getByRole to find the button containing the search term
-    const searchResult = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
-    await expect(searchResult).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await searchResult.click();
-    await page.waitForLoadState('networkidle');
+        // # Click search result - use getByRole to find the button containing the search term
+        const searchResult = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
+        await expect(searchResult).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await searchResult.click();
+        await page.waitForLoadState('networkidle');
 
-    // * Verify on correct page
-    const currentUrl = page.url();
-    expect(currentUrl).toContain(searchablePage.id);
+        // * Verify on correct page
+        const currentUrl = page.url();
+        expect(currentUrl).toContain(searchablePage.id);
 
-    // # Add comment
-    await enterEditMode(page);
-    await addInlineCommentInEditMode(page, 'Comment from search flow');
-    await publishPage(page);
+        // # Add comment
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'Comment from search flow');
+        await publishPage(page);
 
-    // # Navigate back
-    await page.goBack();
-    await page.waitForLoadState('networkidle');
+        // # Navigate back
+        await page.goBack();
+        await page.waitForLoadState('networkidle');
 
-    // * Verify search input is visible (confirms we're back in the wiki view)
-    await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify search input is visible (confirms we're back in the wiki view)
+        await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // * Verify we can still perform searches
-    await searchInput.clear();
-    await searchInput.fill(uniqueTerm);
-    await waitForSearchDebounce(page);
+        // * Verify we can still perform searches
+        await searchInput.clear();
+        await searchInput.fill(uniqueTerm);
+        await waitForSearchDebounce(page);
 
-    // * Verify search results are functional
-    const searchResultAfterBack = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
-    await expect(searchResultAfterBack).toBeVisible({timeout: ELEMENT_TIMEOUT});
-});
+        // * Verify search results are functional
+        const searchResultAfterBack = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
+        await expect(searchResultAfterBack).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    },
+);
 
 /**
  * @objective Verify create nested hierarchy, add comments at each level, navigate via breadcrumbs
  */
-test('creates multi-level hierarchy with comments and breadcrumb navigation', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'creates multi-level hierarchy with comments and breadcrumb navigation',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Hierarchy Flow Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Hierarchy Flow Wiki ${await pw.random.id()}`);
 
-    // # Create level 1 page
-    const level1Page = await createPageThroughUI(page, 'Level 1 Page', 'Level 1 content');
+        // # Create level 1 page
+        const level1Page = await createPageThroughUI(page, 'Level 1 Page', 'Level 1 content');
 
-    // # Add comment to level 1
-    await enterEditMode(page);
-    await addInlineCommentInEditMode(page, 'Level 1 comment');
-    await publishPage(page);
+        // # Add comment to level 1
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'Level 1 comment');
+        await publishPage(page);
 
-    // # Create level 2 page (child)
-    const level2Page = await createChildPageThroughContextMenu(page, level1Page.id!, 'Level 2 Page', 'Level 2 content');
+        // # Create level 2 page (child)
+        await createChildPageThroughContextMenu(page, level1Page.id!, 'Level 2 Page', 'Level 2 content');
 
-    // # Add comment to level 2
-    await enterEditMode(page);
-    await addInlineCommentInEditMode(page, 'Level 2 comment');
-    await publishPage(page);
+        // # Add comment to level 2
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'Level 2 comment');
+        await publishPage(page);
 
-    // # Navigate back to level 1 via breadcrumb
-    const breadcrumb = getBreadcrumb(page);
-    await breadcrumb.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    const level1Link = breadcrumb.locator('text="Level 1 Page"').first();
-    await level1Link.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await level1Link.click();
-    await page.waitForLoadState('networkidle');
+        // # Navigate back to level 1 via breadcrumb
+        const breadcrumb = getBreadcrumb(page);
+        await breadcrumb.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        const level1Link = breadcrumb.locator('text="Level 1 Page"').first();
+        await level1Link.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await level1Link.click();
+        await page.waitForLoadState('networkidle');
 
-    // * Verify on level 1 page
-    await verifyPageContentContains(page, 'Level 1 content');
+        // * Verify on level 1 page
+        await verifyPageContentContains(page, 'Level 1 content');
 
-    // * Verify level 1 comment still accessible
-    const marker = await verifyCommentMarkerVisible(page);
-    const rhs = await clickCommentMarkerAndOpenRHS(page, marker);
-    await verifyWikiRHSContent(page, rhs, ['Level 1 comment']);
-});
+        // * Verify level 1 comment still accessible
+        const marker = await verifyCommentMarkerVisible(page);
+        const rhs = await clickCommentMarkerAndOpenRHS(page, marker);
+        await verifyWikiRHSContent(page, rhs, ['Level 1 comment']);
+    },
+);
 
 /**
  * @objective Verify page deletion with confirmation and hierarchy update
@@ -307,7 +320,7 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
 
     // # Create parent with child through UI
     const parent = await createPageThroughUI(page, 'Parent to Delete', 'Parent content');
-    const child = await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
+    await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
 
     // # Navigate back to parent page (createChildPageThroughContextMenu leaves us on the child)
     await navigateToPage(page, pw.url, team.name, channel.id, wiki.id, parent.id!);
@@ -396,47 +409,56 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
 /**
  * @objective Verify deep link with multiple features: comments, editing, hierarchy
  */
-test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'opens page via deep link, adds comment, edits, verifies hierarchy',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and pages through UI
-    const wiki = await createWikiThroughUI(page, `Deep Link Flow Wiki ${await pw.random.id()}`);
-    const parent = await createPageThroughUI(page, 'Deep Link Parent', 'Parent content');
-    const child = await createChildPageThroughContextMenu(page, parent.id!, 'Deep Link Child', 'Child deep link content');
+        // # Create wiki and pages through UI
+        const wiki = await createWikiThroughUI(page, `Deep Link Flow Wiki ${await pw.random.id()}`);
+        const parent = await createPageThroughUI(page, 'Deep Link Parent', 'Parent content');
+        const child = await createChildPageThroughContextMenu(
+            page,
+            parent.id!,
+            'Deep Link Child',
+            'Child deep link content',
+        );
 
-    // # Open child page via deep link
-    const deepLink = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
-    await page.goto(deepLink);
-    await page.waitForLoadState('networkidle');
+        // # Open child page via deep link
+        const deepLink = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
+        await page.goto(deepLink);
+        await page.waitForLoadState('networkidle');
 
-    // * Verify page loaded
-    await verifyPageContentContains(page, 'Child deep link content');
+        // * Verify page loaded
+        await verifyPageContentContains(page, 'Child deep link content');
 
-    // # Add comment
-    await enterEditMode(page);
-    await addInlineCommentInEditMode(page, 'Deep link comment');
-    await publishPage(page);
+        // # Add comment
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, 'Deep link comment');
+        await publishPage(page);
 
-    // # Edit page again
-    await enterEditMode(page);
-    const editor = await getEditorAndWait(page);
-    await editor.click();
-    await editor.type(' - EDITED');
-    await publishPage(page);
+        // # Edit page again
+        await enterEditMode(page);
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+        await editor.type(' - EDITED');
+        await publishPage(page);
 
-    // * Verify breadcrumb shows hierarchy
-    await verifyBreadcrumbContains(page, 'Deep Link Parent');
-    await verifyBreadcrumbContains(page, 'Deep Link Child');
+        // * Verify breadcrumb shows hierarchy
+        await verifyBreadcrumbContains(page, 'Deep Link Parent');
+        await verifyBreadcrumbContains(page, 'Deep Link Child');
 
-    // * Verify hierarchy panel shows structure
-    await verifyHierarchyContains(page, 'Deep Link Parent');
-    await verifyHierarchyContains(page, 'Deep Link Child');
-});
+        // * Verify hierarchy panel shows structure
+        await verifyHierarchyContains(page, 'Deep Link Parent');
+        await verifyHierarchyContains(page, 'Deep Link Child');
+    },
+);
 
 /**
  * @objective Verify complex workflow: multi-level hierarchy, comments, editing, permissions
@@ -450,13 +472,13 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Complex Workflow Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Complex Workflow Wiki ${await pw.random.id()}`);
 
     // # Step 1: Create root page
     const rootPage = await createPageThroughUI(page, 'Root Project Page', 'Root project documentation');
 
     // # Step 2: Create child pages
-    const childPage = await createChildPageThroughContextMenu(page, rootPage.id!, 'Requirements', 'Project requirements');
+    await createChildPageThroughContextMenu(page, rootPage.id!, 'Requirements', 'Project requirements');
 
     // # Step 3: Enter edit mode to add inline comment
     await enterEditMode(page);
@@ -500,75 +522,84 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
 /**
  * @objective Verify draft to publish workflow with auto-save and recovery
  */
-test('creates draft with auto-save, closes browser, recovers and publishes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'creates draft with auto-save, closes browser, recovers and publishes',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Recovery Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        const wiki = await createWikiThroughUI(page, `Draft Recovery Wiki ${await pw.random.id()}`);
 
-    // # Create draft via modal
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await newPageButton.click();
+        // # Create draft via modal
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await newPageButton.click();
 
-    // # Fill modal and create page
-    await fillCreatePageModal(page, 'Draft Recovery Test');
+        // # Fill modal and create page
+        await fillCreatePageModal(page, 'Draft Recovery Test');
 
-    // # Edit draft content
-    const editor = await getEditorAndWait(page);
-    await editor.click();
-    await editor.type('Important draft content that must not be lost');
+        // # Edit draft content
+        const editor = await getEditorAndWait(page);
+        await editor.click();
+        await editor.type('Important draft content that must not be lost');
 
-    // * Wait for auto-save
-    await page.waitForTimeout(ELEMENT_TIMEOUT);
+        // * Wait for auto-save
+        await page.waitForTimeout(ELEMENT_TIMEOUT);
 
-    // # Simulate browser close (navigate away)
-    await page.goto(`${pw.url}/${team.name}/channels/town-square`);
-    await page.waitForLoadState('networkidle');
+        // # Simulate browser close (navigate away)
+        await page.goto(`${pw.url}/${team.name}/channels/town-square`);
+        await page.waitForLoadState('networkidle');
 
-    // # Return to wiki (use correct wiki URL format)
-    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
-    await page.waitForLoadState('networkidle');
+        // # Return to wiki (use correct wiki URL format)
+        await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+        await page.waitForLoadState('networkidle');
 
-    // # Wait for hierarchy panel to load
-    const hierarchyPanel = getHierarchyPanel(page);
-    await hierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+        // # Wait for hierarchy panel to load
+        const hierarchyPanel = getHierarchyPanel(page);
+        await hierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-    // Wait for draft to appear in hierarchy
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+        // Wait for draft to appear in hierarchy
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
-    // # Recover draft (drafts are integrated in tree with data-is-draft attribute)
-    const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]').filter({hasText: 'Draft Recovery Test'});
-    await draftNode.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-    await draftNode.click();
-    await page.waitForLoadState('networkidle');
+        // # Recover draft (drafts are integrated in tree with data-is-draft attribute)
+        const draftNode = hierarchyPanel
+            .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
+            .filter({hasText: 'Draft Recovery Test'});
+        await draftNode.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+        await draftNode.click();
+        await page.waitForLoadState('networkidle');
 
-    // * Verify content recovered
-    const editorContent = await editor.textContent();
-    expect(editorContent).toContain('Important draft content that must not be lost');
+        // * Verify content recovered
+        const editor2 = await getEditorAndWait(page);
+        const editorContent = await editor2.textContent();
+        expect(editorContent).toContain('Important draft content that must not be lost');
 
-    // # Publish draft
-    await publishPage(page);
+        // # Publish draft
+        await publishPage(page);
 
-    // * Verify published successfully
-    await verifyPageContentContains(page, 'Important draft content that must not be lost');
+        // * Verify published successfully
+        await verifyPageContentContains(page, 'Important draft content that must not be lost');
 
-    // * Verify draft no longer in drafts section (use correct wiki URL format)
-    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
-    await page.waitForLoadState('networkidle');
+        // * Verify draft no longer in drafts section (use correct wiki URL format)
+        await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+        await page.waitForLoadState('networkidle');
 
-    const hierarchyPanel2 = getHierarchyPanel(page);
-    await hierarchyPanel2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        const hierarchyPanel2 = getHierarchyPanel(page);
+        await hierarchyPanel2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    const draftNode2 = hierarchyPanel2.locator('[data-testid="page-tree-node"][data-is-draft="true"]').filter({hasText: 'Draft Recovery Test'});
-    await expect(draftNode2).not.toBeVisible({timeout: WEBSOCKET_WAIT});
-});
+        const draftNode2 = hierarchyPanel2
+            .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
+            .filter({hasText: 'Draft Recovery Test'});
+        await expect(draftNode2).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+    },
+);
 
 /**
  * @objective Verify page move affects breadcrumbs, hierarchy, and permissions
@@ -582,12 +613,12 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Move Page Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Move Page Wiki ${await pw.random.id()}`);
 
     // # Create pages: Parent A, Parent B, Child (under A) through UI
     const parentA = await createPageThroughUI(page, 'Parent A', 'Parent A content');
-    const parentB = await createPageThroughUI(page, 'Parent B', 'Parent B content');
-    const childPage = await createChildPageThroughContextMenu(page, parentA.id!, 'Child Page to Move', 'Child content');
+    await createPageThroughUI(page, 'Parent B', 'Parent B content');
+    await createChildPageThroughContextMenu(page, parentA.id!, 'Child Page to Move', 'Child content');
 
     // * Verify initial breadcrumb shows Parent A
     await verifyBreadcrumbContains(page, 'Parent A');
@@ -643,7 +674,7 @@ test('searches pages with filters and verifies results', {tag: '@pages'}, async 
 
     // # Create wiki through UI
     const searchTerm = `FilterTest${await pw.random.id()}`;
-    const wiki = await createWikiThroughUI(page, `Search Filters Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Search Filters Wiki ${await pw.random.id()}`);
 
     // # Create multiple pages through UI
     await createPageThroughUI(page, `${searchTerm} First Page`, 'First page content');

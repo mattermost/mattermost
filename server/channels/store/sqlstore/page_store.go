@@ -178,13 +178,15 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
 			Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
 			Where(sq.And{
 				sq.Or{
+					// Root-level page comments (RootId = pageID)
 					sq.And{
 						sq.Eq{"RootId": pageID},
 						sq.Eq{"Type": model.PostTypePageComment},
 					},
+					// Inline comments and their replies (Props->>'page_id' = pageID)
+					// This catches both root inline comments (RootId = "") and replies (RootId = parentCommentID)
 					sq.And{
 						sq.Expr("Props->>'page_id' = ?", pageID),
-						sq.Eq{"RootId": ""},
 						sq.Eq{"Type": model.PostTypePageComment},
 					},
 				},
@@ -502,6 +504,9 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 
 			if searchText != "" {
 				pageContent.SearchText = searchText
+			} else {
+				// Extract SearchText from content if not provided
+				pageContent.PreSave()
 			}
 
 			contentJSON, jsonErr := pageContent.GetDocumentJSON()

@@ -5,6 +5,7 @@ import type {Page, Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
+
 import {createRandomUser} from '@mattermost/playwright-lib';
 
 /**
@@ -82,7 +83,12 @@ export async function pressModifierKey(page: Page, key: string): Promise<void> {
  * @param type - Channel type: 'O' for open/public (default), 'P' for private
  * @returns The created channel
  */
-export async function createTestChannel(client: Client4, teamId: string, channelName: string, type: 'O' | 'P' = 'O'): Promise<Channel> {
+export async function createTestChannel(
+    client: Client4,
+    teamId: string,
+    channelName: string,
+    type: 'O' | 'P' = 'O',
+): Promise<Channel> {
     const timestamp = Date.now();
     const uniqueName = `${channelName}-${timestamp}`;
     return await client.createChannel({
@@ -101,12 +107,7 @@ export async function createTestChannel(client: Client4, teamId: string, channel
  * @param username - Optional username prefix (defaults to 'user')
  * @returns Object containing the created user and userId
  */
-export async function createTestUserInTeam(
-    pw: any,
-    adminClient: Client4,
-    team: {id: string},
-    username?: string,
-) {
+export async function createTestUserInTeam(pw: any, adminClient: Client4, team: {id: string}, username?: string) {
     const userData = await createRandomUser(username || 'user');
     const user = await adminClient.createUser(userData, '', '');
     user.password = userData.password;
@@ -273,8 +274,11 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
     // # Wait for channel to be fully loaded by checking for the post list or center channel
     // This ensures the app has finished initializing and is showing the channel content
     try {
-        await page.locator('#centerChannelFooter, #postListContent, #post-list').first().waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT + 5000});
-    } catch (e) {
+        await page
+            .locator('#centerChannelFooter, #postListContent, #post-list')
+            .first()
+            .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT + 5000});
+    } catch {
         // If none of the typical channel elements are visible, wait a bit and continue
         // (may be an empty channel or different UI state)
         await page.waitForTimeout(WEBSOCKET_WAIT);
@@ -376,7 +380,13 @@ export async function waitForWikiViewLoad(page: Page, timeout = 30000) {
  * @param channelId - Channel ID
  * @param wikiId - Wiki ID
  */
-export async function navigateToWikiView(page: Page, baseUrl: string, teamName: string, channelId: string, wikiId: string) {
+export async function navigateToWikiView(
+    page: Page,
+    baseUrl: string,
+    teamName: string,
+    channelId: string,
+    wikiId: string,
+) {
     await page.goto(`${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}`);
     await page.waitForLoadState('networkidle');
     await waitForWikiViewLoad(page);
@@ -391,7 +401,14 @@ export async function navigateToWikiView(page: Page, baseUrl: string, teamName: 
  * @param wikiId - Wiki ID
  * @param pageId - Page ID to navigate to
  */
-export async function navigateToPage(page: Page, baseUrl: string, teamName: string, channelId: string, wikiId: string, pageId: string) {
+export async function navigateToPage(
+    page: Page,
+    baseUrl: string,
+    teamName: string,
+    channelId: string,
+    wikiId: string,
+    pageId: string,
+) {
     const url = `${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`;
     await page.goto(url);
 
@@ -414,7 +431,13 @@ export async function navigateToPage(page: Page, baseUrl: string, teamName: stri
  * @param pageId - Page ID (optional)
  * @returns Full URL to the wiki page
  */
-export function buildWikiPageUrl(baseUrl: string, teamName: string, channelId: string, wikiId: string, pageId?: string): string {
+export function buildWikiPageUrl(
+    baseUrl: string,
+    teamName: string,
+    channelId: string,
+    wikiId: string,
+    pageId?: string,
+): string {
     const basePath = `${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}`;
     return pageId ? `${basePath}/${pageId}` : basePath;
 }
@@ -429,10 +452,10 @@ export async function ensurePanelOpen(page: Page) {
 
     // Wait for either the panel or hamburger button to appear
     // This handles both cases: panel already open OR panel collapsed
-    await page.waitForSelector(
-        '[data-testid="pages-hierarchy-panel"], [data-testid="wiki-view-hamburger-button"]',
-        {state: 'visible', timeout: HIERARCHY_TIMEOUT},
-    );
+    await page.waitForSelector('[data-testid="pages-hierarchy-panel"], [data-testid="wiki-view-hamburger-button"]', {
+        state: 'visible',
+        timeout: HIERARCHY_TIMEOUT,
+    });
 
     // Check current state
     const isPanelVisible = await hierarchyPanel.isVisible();
@@ -567,9 +590,12 @@ export async function createChildPageThroughContextMenu(
     await fillCreatePageModal(page, pageTitle);
 
     // # Wait for loading screen to disappear (draft being loaded)
-    await page.locator('.no-results__holder').waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT}).catch(() => {
-        // Loading screen might not appear if draft loads instantly
-    });
+    await page
+        .locator('.no-results__holder')
+        .waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT})
+        .catch(() => {
+            // Loading screen might not appear if draft loads instantly
+        });
 
     // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('.ProseMirror').first();
@@ -867,7 +893,9 @@ export async function showPageOutlineViaRightClick(page: Page, pageTitle: string
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    const showOutlineButton = contextMenu.locator('button:has-text("Show Outline"), [data-testid="page-context-menu-show-outline"]').first();
+    const showOutlineButton = contextMenu
+        .locator('button:has-text("Show Outline"), [data-testid="page-context-menu-show-outline"]')
+        .first();
     await showOutlineButton.waitFor({state: 'visible'});
     await showOutlineButton.click();
 
@@ -901,7 +929,9 @@ export async function hidePageOutline(page: Page, pageId: string) {
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    const hideOutlineButton = contextMenu.locator('button:has-text("Show outline"), button:has-text("Hide outline")').first();
+    const hideOutlineButton = contextMenu
+        .locator('button:has-text("Show outline"), button:has-text("Hide outline")')
+        .first();
     await hideOutlineButton.click();
 
     // Wait for Redux action
@@ -915,7 +945,10 @@ export async function hidePageOutline(page: Page, pageId: string) {
  * @param timeout - Optional timeout in milliseconds
  */
 export async function verifyOutlineHeadingVisible(page: Page, headingText: string, timeout: number = ELEMENT_TIMEOUT) {
-    const headingNode = page.locator('[role="treeitem"]').filter({hasText: new RegExp(`^${headingText}$`)}).first();
+    const headingNode = page
+        .locator('[role="treeitem"]')
+        .filter({hasText: new RegExp(`^${headingText}$`)})
+        .first();
     await headingNode.waitFor({state: 'visible', timeout});
 }
 
@@ -925,7 +958,10 @@ export async function verifyOutlineHeadingVisible(page: Page, headingText: strin
  * @param headingText - Text of the heading to click
  */
 export async function clickOutlineHeading(page: Page, headingText: string) {
-    const headingNode = page.locator('[role="treeitem"]').filter({hasText: new RegExp(`^${headingText}$`)}).first();
+    const headingNode = page
+        .locator('[role="treeitem"]')
+        .filter({hasText: new RegExp(`^${headingText}$`)})
+        .first();
     await headingNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await headingNode.click();
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
@@ -1084,7 +1120,9 @@ export async function addInlineCommentAndPublish(
     const textarea = modal.locator('textarea').first();
     await textarea.fill(commentText);
 
-    const addButton = modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first();
+    const addButton = modal
+        .locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")')
+        .first();
     await addButton.click();
     await page.waitForTimeout(SHORT_WAIT);
 
@@ -1301,7 +1339,7 @@ export async function verifyWikiDeleted(page: Page, channelName: string) {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    const errorLocator = page.locator('text=/not found|error|doesn\'t exist/i');
+    const errorLocator = page.locator("text=/not found|error|doesn't exist/i");
     const isRedirected = page.url().includes(`/channels/${channelName}`) || !page.url().includes('/wiki/');
 
     if (!isRedirected) {
@@ -1478,9 +1516,9 @@ export async function enterEditMode(page: Page, timeout = 5000) {
  * @param isNewPage - Whether this is a new page (use publish button) or edit (use save button)
  */
 export async function saveOrPublishPage(page: Page, isNewPage = false) {
-    const button = isNewPage ?
-        page.locator('[data-testid="wiki-page-publish-button"]') :
-        page.locator('[data-testid="save-button"]').first();
+    const button = isNewPage
+        ? page.locator('[data-testid="wiki-page-publish-button"]')
+        : page.locator('[data-testid="save-button"]').first();
 
     await expect(button).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await button.click();
@@ -1554,7 +1592,11 @@ export async function openWikiRHSViaToggleButton(page: Page): Promise<Locator> {
  * @param rhs - Wiki RHS locator
  * @param tabName - Name of the tab ('Page Comments' or 'All Threads')
  */
-export async function switchToWikiRHSTab(page: Page, rhs: Locator, tabName: 'Page Comments' | 'All Threads'): Promise<void> {
+export async function switchToWikiRHSTab(
+    page: Page,
+    rhs: Locator,
+    tabName: 'Page Comments' | 'All Threads',
+): Promise<void> {
     const tab = rhs.getByText(tabName, {exact: true});
     await expect(tab).toBeVisible();
     await tab.click();
@@ -1577,7 +1619,9 @@ export async function openMovePageModal(page: Page, pageTitle: string): Promise<
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
     await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
 
-    const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move to Wiki"), button:has-text("Move to")').first();
+    const moveButton = contextMenu
+        .locator('[data-testid="page-context-menu-move"], button:has-text("Move to Wiki"), button:has-text("Move to")')
+        .first();
     await expect(moveButton).toBeVisible();
     await moveButton.click();
 
@@ -1619,7 +1663,9 @@ export async function renamePageInline(page: Page, currentTitle: string, newTitl
 
     // Find the page title button/span element more precisely
     // Try multiple selectors to find the clickable title element
-    const titleElement = hierarchyPanel.locator(`button:has-text("${currentTitle}"), span:has-text("${currentTitle}")`).first();
+    const titleElement = hierarchyPanel
+        .locator(`button:has-text("${currentTitle}"), span:has-text("${currentTitle}")`)
+        .first();
 
     await expect(titleElement).toBeVisible();
     await titleElement.dblclick();
@@ -1632,7 +1678,9 @@ export async function renamePageInline(page: Page, currentTitle: string, newTitl
     const isInputVisible = await inlineInput.isVisible({timeout: WEBSOCKET_WAIT}).catch(() => false);
 
     if (!isInputVisible) {
-        throw new Error(`Inline rename not available. The input field did not appear after double-clicking "${currentTitle}". This feature may not be implemented yet.`);
+        throw new Error(
+            `Inline rename not available. The input field did not appear after double-clicking "${currentTitle}". This feature may not be implemented yet.`,
+        );
     }
 
     await expect(inlineInput).toHaveValue(currentTitle);
@@ -1792,11 +1840,7 @@ export async function fillAndSubmitCommentModal(page: Page, commentModal: Locato
  * @param commentText - Comment text to add
  * @param textToSelect - Optional specific text to select (defaults to first paragraph)
  */
-export async function addInlineCommentInEditMode(
-    page: Page,
-    commentText: string,
-    textToSelect?: string,
-) {
+export async function addInlineCommentInEditMode(page: Page, commentText: string, textToSelect?: string) {
     // Select text in editor
     await selectTextInEditor(page, textToSelect);
 
@@ -1813,7 +1857,9 @@ export async function addInlineCommentInEditMode(
  * @returns The comment marker locator
  */
 export async function verifyCommentMarkerVisible(page: Page): Promise<Locator> {
-    const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
+    const commentMarker = page
+        .locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]')
+        .first();
     await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     return commentMarker;
 }
@@ -1825,7 +1871,7 @@ export async function verifyCommentMarkerVisible(page: Page): Promise<Locator> {
  * @returns The wiki RHS locator
  */
 export async function clickCommentMarkerAndOpenRHS(page: Page, commentMarker?: Locator): Promise<Locator> {
-    const marker = commentMarker || await verifyCommentMarkerVisible(page);
+    const marker = commentMarker || (await verifyCommentMarkerVisible(page));
     await marker.click();
 
     const rhs = page.locator('[data-testid="wiki-rhs"]');
@@ -1875,7 +1921,7 @@ export async function addInlineCommentAndVerify(
         }
 
         return null;
-    } catch (error) {
+    } catch {
         return null;
     }
 }
@@ -1896,7 +1942,7 @@ export async function addInlineCommentAndVerify(
 export async function openPostDotMenu(
     page: Page,
     containerLocator: Locator,
-    postSelector: string = '[data-testid="postContent"]'
+    postSelector: string = '[data-testid="postContent"]',
 ): Promise<void> {
     // Wait for container to be ready
     await page.waitForTimeout(SHORT_WAIT);
@@ -1946,7 +1992,7 @@ export async function openPostDotMenu(
 export async function selectPostDotMenuItem(
     page: Page,
     menuItemSelector: string,
-    timeout: number = ELEMENT_TIMEOUT
+    timeout: number = ELEMENT_TIMEOUT,
 ): Promise<void> {
     const menuItem = page.locator(menuItemSelector).first();
     await expect(menuItem).toBeVisible({timeout});
@@ -1977,11 +2023,10 @@ export async function toggleCommentResolution(page: Page, rhs: Locator): Promise
     // The modal is now open and visible (verified by openCommentDotMenu)
     // Find the Resolve/Unresolve menu item
     // The menu item has id="resolve_comment_{postId}" or id="unresolve_comment_{postId}"
-    const resolveMenuItem = page.locator(
-        '[id*="resolve_comment"], ' +
-        '[id*="unresolve_comment"], ' +
-        '[data-testid*="resolve_comment"]'
-    ).or(page.getByRole('menuitem', {name: /Resolve|Unresolve/i})).first();
+    const resolveMenuItem = page
+        .locator('[id*="resolve_comment"], ' + '[id*="unresolve_comment"], ' + '[data-testid*="resolve_comment"]')
+        .or(page.getByRole('menuitem', {name: /Resolve|Unresolve/i}))
+        .first();
     await expect(resolveMenuItem).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await resolveMenuItem.click();
     await page.waitForTimeout(SHORT_WAIT);
@@ -2060,12 +2105,7 @@ export async function waitForPageViewerLoad(page: Page, timeout: number = HIERAR
  * @param pageContent - Content for the page (default: empty string)
  * @returns Object containing the created wiki and page
  */
-export async function createWikiAndPage(
-    page: Page,
-    wikiName: string,
-    pageTitle: string,
-    pageContent: string = ''
-) {
+export async function createWikiAndPage(page: Page, wikiName: string, pageTitle: string, pageContent: string = '') {
     const wiki = await createWikiThroughUI(page, wikiName);
     const testPage = await createPageThroughUI(page, pageTitle, pageContent);
     return {wiki, page: testPage};
@@ -2097,7 +2137,7 @@ export async function setupPageWithComment(
     wikiName: string,
     pageTitle: string,
     pageContent: string,
-    commentText: string
+    commentText: string,
 ) {
     // Create wiki and page
     const {wiki, page: testPage} = await createWikiAndPage(page, wikiName, pageTitle, pageContent);
@@ -2141,7 +2181,9 @@ export async function deletePageThroughUI(page: Page, pageTitle: string) {
  * @param page - Playwright page object
  */
 export async function deleteDefaultDraftThroughUI(page: Page) {
-    const draftNode = page.locator('[data-testid="page-tree-node"]').filter({has: page.locator('[data-testid="draft-badge"]')});
+    const draftNode = page
+        .locator('[data-testid="page-tree-node"]')
+        .filter({has: page.locator('[data-testid="draft-badge"]')});
     await draftNode.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // Click the menu button on the draft node
@@ -2256,7 +2298,7 @@ export async function deletePageViaActionsMenu(page: Page, option?: 'cascade' | 
         const optionId = option === 'cascade' ? 'delete-option-page-and-children' : 'delete-option-page-only';
         const radioOption = confirmModal.locator(`input[id="${optionId}"]`);
 
-        const radioExists = await radioOption.count() > 0;
+        const radioExists = (await radioOption.count()) > 0;
         if (radioExists) {
             await expect(radioOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
             await radioOption.check();
@@ -2292,10 +2334,13 @@ export async function editPageThroughUI(page: Page, newContent: string, clearExi
     await editButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // Wait for button to be enabled (page data must be loaded)
-    await page.waitForFunction(() => {
-        const button = document.querySelector('[data-testid="wiki-page-edit-button"]') as HTMLButtonElement;
-        return button && !button.disabled;
-    }, {timeout: ELEMENT_TIMEOUT});
+    await page.waitForFunction(
+        () => {
+            const button = document.querySelector('[data-testid="wiki-page-edit-button"]') as HTMLButtonElement;
+            return button && !button.disabled;
+        },
+        {timeout: ELEMENT_TIMEOUT},
+    );
 
     await editButton.click();
 
@@ -2341,10 +2386,7 @@ export async function editPageThroughUI(page: Page, newContent: string, clearExi
  * @param page - Playwright page object
  * @param pageId - ID of the page to duplicate
  */
-export async function duplicatePageThroughUI(
-    page: Page,
-    pageId: string,
-) {
+export async function duplicatePageThroughUI(page: Page, pageId: string) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const pageNode = hierarchyPanel.locator(`[data-page-id="${pageId}"]`).first();
     await pageNode.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT + 5000});
@@ -2482,7 +2524,7 @@ export async function clickFormattingButton(page: Page, formattingBar: Locator, 
  */
 export async function isFormattingButtonActive(formattingBar: Locator, buttonTitle: string): Promise<boolean> {
     const button = formattingBar.locator(`button[title="${buttonTitle}"]`);
-    const classes = await button.getAttribute('class') || '';
+    const classes = (await button.getAttribute('class')) || '';
     return classes.includes('active');
 }
 
@@ -2508,13 +2550,10 @@ export async function setupPageInEditMode(
     pageTitle: string,
     pageContent?: string,
 ): Promise<{pageNode: Locator; editor: Locator}> {
-    await openCreatePageModal(page);
-    await typePageTitle(page, pageTitle);
-    if (pageContent) {
-        await typePageContent(page, pageContent);
-    }
-    await submitCreatePageModal(page);
-    const pageNode = await waitForPageInHierarchy(page, pageTitle);
+    await createPageThroughUI(page, pageTitle, pageContent || '');
+    await waitForPageInHierarchy(page, pageTitle);
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const pageNode = hierarchyPanel.getByRole('button', {name: pageTitle, exact: true});
     await pageNode.click();
     await clickPageEditButton(page);
     const editor = page.locator('.tiptap.ProseMirror');
@@ -2576,7 +2615,11 @@ export async function getEditorAndWait(page: Page): Promise<Locator> {
  * @param rhs - Wiki RHS locator
  * @param filterType - Type of filter to click ('all', 'open', 'resolved')
  */
-export async function clickCommentFilter(page: Page, rhs: Locator, filterType: 'all' | 'open' | 'resolved'): Promise<void> {
+export async function clickCommentFilter(
+    page: Page,
+    rhs: Locator,
+    filterType: 'all' | 'open' | 'resolved',
+): Promise<void> {
     const filterBtn = rhs.locator(`[data-testid="filter-${filterType}"]`).first();
     await expect(filterBtn).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await filterBtn.click();
@@ -2740,6 +2783,7 @@ export async function verifyBookmarkNotExists(page: Page, bookmarkName: string):
  * @param page - Playwright page object
  * @param timeout - Maximum time to wait for the tab (default: 2000ms)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function switchToMessagesTab(page: Page, timeout: number = WEBSOCKET_WAIT): Promise<void> {
     const messagesTab = page.locator('#channelHeaderDescription').getByRole('button', {name: 'Messages'});
     const isVisible = await messagesTab.isVisible().catch(() => false);
@@ -2758,10 +2802,14 @@ export async function switchToMessagesTab(page: Page, timeout: number = WEBSOCKE
  * @param wikiName - Name of the wiki to switch to (can be partial match)
  * @param timeout - Maximum time to wait for the tab (default: 10000ms)
  */
-export async function switchToWikiTab(page: Page, wikiName: string, timeout: number = HIERARCHY_TIMEOUT): Promise<void> {
+export async function switchToWikiTab(
+    page: Page,
+    wikiName: string,
+    timeout: number = HIERARCHY_TIMEOUT,
+): Promise<void> {
     // Try exact match first with 'tab' role
     let wikiTab = page.getByRole('tab', {name: wikiName}).first();
-    let isVisible = await wikiTab.isVisible().catch(() => false);
+    const isVisible = await wikiTab.isVisible().catch(() => false);
 
     // If not found with exact name, try regex pattern for case-insensitive match
     if (!isVisible) {
@@ -2843,7 +2891,11 @@ export async function createPostsForSummarization(
  * @param pageTitle - Title of the page to verify
  * @param timeout - Maximum time to wait for the page (default: 10000ms)
  */
-export async function verifyPageInHierarchy(page: Page, pageTitle: string, timeout: number = HIERARCHY_TIMEOUT): Promise<Locator> {
+export async function verifyPageInHierarchy(
+    page: Page,
+    pageTitle: string,
+    timeout: number = HIERARCHY_TIMEOUT,
+): Promise<Locator> {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     await expect(hierarchyPanel).toBeVisible();
 
@@ -2931,11 +2983,7 @@ export function getVersionHistoryItems(page: Page): Locator {
  * @param pageTitle - Expected page title in modal header
  * @param expectedVersionCount - Expected number of historical versions
  */
-export async function verifyVersionHistoryModal(
-    page: Page,
-    pageTitle: string,
-    expectedVersionCount: number,
-) {
+export async function verifyVersionHistoryModal(page: Page, pageTitle: string, expectedVersionCount: number) {
     const versionModal = getVersionHistoryModal(page);
     await expect(versionModal).toBeVisible();
 
@@ -3009,7 +3057,10 @@ export async function getVersionContent(page: Page, versionIndex: number): Promi
 
     // # Expand the version item if collapsed
     const toggleButton = targetVersion.locator('.toggleCollapseButton');
-    const isExpanded = await targetVersion.locator('.edit-post-history__content_container').isVisible().catch(() => false);
+    const isExpanded = await targetVersion
+        .locator('.edit-post-history__content_container')
+        .isVisible()
+        .catch(() => false);
 
     if (!isExpanded) {
         await toggleButton.click();
@@ -3018,7 +3069,7 @@ export async function getVersionContent(page: Page, versionIndex: number): Promi
 
     // # Get the content text
     const contentContainer = targetVersion.locator('.edit-post-history__content_container .post__body');
-    return await contentContainer.textContent() || '';
+    return (await contentContainer.textContent()) || '';
 }
 
 /**
@@ -3064,16 +3115,13 @@ export async function appendContentInEditor(page: Page, newContent: string) {
 export async function withRolePermissions(
     adminClient: Client4,
     roleName: string,
-    permissions: string[]
+    permissions: string[],
 ): Promise<() => Promise<void>> {
     const role = await adminClient.getRoleByName(roleName);
     const originalPermissions = [...role.permissions];
 
     await adminClient.patchRole(role.id, {
-        permissions: [
-            ...role.permissions,
-            ...permissions,
-        ],
+        permissions: [...role.permissions, ...permissions],
     });
 
     return async () => {
@@ -3089,7 +3137,11 @@ export async function withRolePermissions(
  * @param page - Playwright page object
  * @param eventFilters - Array of strings to filter action types (default: PAGE, POST, WIKI, RECEIVED, DELETED, REMOVED, RENAMED)
  */
-export async function setupWebSocketEventLogging(page: Page, eventFilters: string[] = ['PAGE', 'POST', 'WIKI', 'RECEIVED', 'DELETED', 'REMOVED', 'RENAMED']) {
+export async function setupWebSocketEventLogging(
+    page: Page,
+    eventFilters: string[] = ['PAGE', 'POST', 'WIKI', 'RECEIVED', 'DELETED', 'REMOVED', 'RENAMED'],
+) {
+    /* eslint-disable prefer-rest-params */
     await page.evaluate((filters) => {
         (window as any).wsEvents = [];
         (window as any).allActions = [];
@@ -3100,10 +3152,15 @@ export async function setupWebSocketEventLogging(page: Page, eventFilters: strin
         if (webSocketClient && webSocketClient.prototype) {
             const originalHandleEvent = webSocketClient.prototype.handleEvent;
             if (originalHandleEvent) {
-                webSocketClient.prototype.handleEvent = function(msg: any) {
+                webSocketClient.prototype.handleEvent = function (msg: any) {
                     if (msg && msg.event) {
                         const event = String(msg.event).toUpperCase();
-                        if (event.includes('PAGE') || event.includes('POST') || event.includes('WIKI') || event.includes('DELETED')) {
+                        if (
+                            event.includes('PAGE') ||
+                            event.includes('POST') ||
+                            event.includes('WIKI') ||
+                            event.includes('DELETED')
+                        ) {
                             (window as any).rawWebSocketMessages.push({
                                 event: msg.event,
                                 data: msg.data,
@@ -3119,7 +3176,7 @@ export async function setupWebSocketEventLogging(page: Page, eventFilters: strin
         // Intercept Redux dispatch
         const originalDispatch = (window as any).store?.dispatch;
         if (originalDispatch) {
-            (window as any).store.dispatch = function(action: any) {
+            (window as any).store.dispatch = function (action: any) {
                 if (action && action.type) {
                     (window as any).allActions.push({type: action.type, time: Date.now()});
                     const type = String(action.type).toUpperCase();
@@ -3131,6 +3188,7 @@ export async function setupWebSocketEventLogging(page: Page, eventFilters: strin
             };
         }
     }, eventFilters);
+    /* eslint-enable prefer-rest-params */
 }
 
 /**
@@ -3139,6 +3197,7 @@ export async function setupWebSocketEventLogging(page: Page, eventFilters: strin
  * @param testName - Name of the test for debug output
  * @returns Array of captured WebSocket events
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getWebSocketEvents(page: Page, testName: string = 'Test'): Promise<any[]> {
     const wsEvents = await page.evaluate(() => (window as any).wsEvents || []);
     return wsEvents;

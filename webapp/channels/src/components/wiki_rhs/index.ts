@@ -9,7 +9,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {publishPage} from 'actions/pages';
 import {closeRightHandSide, openWikiRhs, toggleRhsExpanded} from 'actions/views/rhs';
-import {setWikiRhsActiveTab} from 'actions/views/wiki_rhs';
+import {setWikiRhsActiveTab, setFocusedInlineCommentId} from 'actions/views/wiki_rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
 import {getSelectedPageId, getWikiRhsWikiId, getWikiRhsActiveTab, getFocusedInlineCommentId} from 'selectors/wiki_rhs';
 
@@ -42,6 +42,7 @@ function mapDispatchToProps(dispatch: any) {
             publishPage,
             closeRightHandSide,
             setWikiRhsActiveTab,
+            setFocusedInlineCommentId,
             openWikiRhs,
             toggleRhsExpanded,
         }, dispatch),

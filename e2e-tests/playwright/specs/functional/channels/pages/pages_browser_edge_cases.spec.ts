@@ -2,8 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    getNewPageButton,
+    fillCreatePageModal,
+    publishCurrentPage,
+    getEditorAndWait,
+    typeInEditor,
+    getHierarchyPanel,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
+} from './test_helpers';
 
 /**
  * @objective Verify warning when navigating away with unsaved changes
@@ -20,7 +32,7 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Unsaved Changes Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Unsaved Changes Wiki ${await pw.random.id()}`);
 
     // # Create new page
     // Scope to pages hierarchy panel to avoid strict mode violations with duplicate elements
@@ -57,7 +69,9 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
 
     // * Verify options: "Stay" or "Discard"
     const stayButton = warningDialog.locator('button:has-text("Stay"), [data-testid="cancel-button"]').first();
-    const discardButton = warningDialog.locator('[data-testid="wiki-page-discard-button"], button:has-text("Leave")').first();
+    const discardButton = warningDialog
+        .locator('[data-testid="wiki-page-discard-button"], button:has-text("Leave")')
+        .first();
 
     await expect(stayButton).toBeVisible();
     await expect(discardButton).toBeVisible();
@@ -73,45 +87,49 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
 /**
  * @objective Verify warning when using browser back button with unsaved changes
  */
-test.skip('warns when using browser back button with unsaved changes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    // # Setup: Create published page
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'warns when using browser back button with unsaved changes',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        // # Setup: Create published page
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and published page through UI
-    const wiki = await createWikiThroughUI(page, `Back Button Wiki ${await pw.random.id()}`);
-    const publishedPage = await createPageThroughUI(page, 'Published Page', 'Original content');
+        // # Create wiki and published page through UI
+        const wiki = await createWikiThroughUI(page, `Back Button Wiki ${await pw.random.id()}`);
+        const publishedPage = await createPageThroughUI(page, 'Published Page', 'Original content');
 
-    // Navigate to page
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${publishedPage.id}`);
-    await page.waitForLoadState('networkidle');
+        // Navigate to page
+        await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${publishedPage.id}`);
+        await page.waitForLoadState('networkidle');
 
-    // # Start editing
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
+        // # Start editing
+        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        await editButton.click();
 
-    const editor = await getEditorAndWait(page);
-    await typeInEditor(page, ' - Modified content');
+        await getEditorAndWait(page);
+        await typeInEditor(page, ' - Modified content');
 
-    // Wait for changes to register
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        // Wait for changes to register
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # Use browser back button
-    await page.goBack();
+        // # Use browser back button
+        await page.goBack();
 
-    // * Playwright cannot interact with browser's native beforeunload dialog
-    // Instead, verify that custom dialog appears or navigation is blocked
-    await page.waitForTimeout(SHORT_WAIT);
+        // * Playwright cannot interact with browser's native beforeunload dialog
+        // Instead, verify that custom dialog appears or navigation is blocked
+        await page.waitForTimeout(SHORT_WAIT);
 
-    const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard/i});
-    await expect(warningDialog).toBeVisible();
+        const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard/i});
+        await expect(warningDialog).toBeVisible();
 
-    await expect(warningDialog).toContainText(/unsaved changes/i);
-});
+        await expect(warningDialog).toContainText(/unsaved changes/i);
+    },
+);
 
 /**
  * @objective Verify scroll position is preserved when navigating back to page
@@ -126,7 +144,7 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Scroll Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Scroll Wiki ${await pw.random.id()}`);
 
     // # Create page with long content through UI
     const newPageButton = getNewPageButton(page);
@@ -137,9 +155,10 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
     await editor.click();
 
     // Generate long content (50 paragraphs)
-    const longContent = Array(50).fill(0).map((_, i) =>
-        `Paragraph ${i + 1} - Lorem ipsum dolor sit amet, consectetur adipiscing elit.`
-    ).join('\n\n');
+    const longContent = Array(50)
+        .fill(0)
+        .map((_, i) => `Paragraph ${i + 1} - Lorem ipsum dolor sit amet, consectetur adipiscing elit.`)
+        .join('\n\n');
 
     await page.keyboard.type(longContent);
 
@@ -147,7 +166,7 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
 
     // # Scroll down
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await pageContent.evaluate((el) => el.scrollTop = 1000);
+    await pageContent.evaluate((el) => (el.scrollTop = 1000));
 
     // Verify we scrolled
     const scrollTopBefore = await pageContent.evaluate((el) => el.scrollTop);
@@ -181,7 +200,7 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Refresh Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Refresh Wiki ${await pw.random.id()}`);
 
     // Reload to ensure clean state (wiki is already visible after creation)
     await page.reload();
@@ -205,7 +224,7 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Draft Before Refresh - Modified');
 
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
     await typeInEditor(page, 'Content that should survive refresh');
 
     // * Wait for auto-save (2s debounce + save operation)

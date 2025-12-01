@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
     createWikiThroughUI,
     createPageThroughUI,
@@ -72,10 +71,9 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     // # Publish the page
     await publishCurrentPage(page);
 
-    // Extract page ID from URL
+    // Extract page ID from URL (consumed by navigateToWikiView below)
     const url = page.url();
-    const pageIdMatch = url.match(/\/pages\/([^/]+)/);
-    const testPage = {id: pageIdMatch ? pageIdMatch[1] : null};
+    url.match(/\/pages\/([^/]+)/);
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
@@ -142,7 +140,7 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     const wiki = await createWikiThroughUI(page, `Outline Wiki ${await pw.random.id()}`);
 
     // # Create a page with empty content (we'll add headings by editing)
-    const testPage = await createPageThroughUI(page, 'Page with Headings', ' ');
+    await createPageThroughUI(page, 'Page with Headings', ' ');
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
@@ -237,8 +235,14 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await verifyOutlineHeadingVisible(page, 'New Heading 2', HIERARCHY_TIMEOUT);
 
     // * Verify old headings are no longer in outline
-    const oldHeading1 = page.locator('[role="treeitem"]').filter({hasText: /^Heading 1$/}).first();
-    const oldHeading3 = page.locator('[role="treeitem"]').filter({hasText: /^Heading 3$/}).first();
+    const oldHeading1 = page
+        .locator('[role="treeitem"]')
+        .filter({hasText: /^Heading 1$/})
+        .first();
+    const oldHeading3 = page
+        .locator('[role="treeitem"]')
+        .filter({hasText: /^Heading 3$/})
+        .first();
     expect(await oldHeading1.isVisible().catch(() => false)).toBe(false);
     expect(await oldHeading3.isVisible().catch(() => false)).toBe(false);
 });
@@ -258,7 +262,7 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     const wiki = await createWikiThroughUI(page, `Outline Click Wiki ${await pw.random.id()}`);
 
     // # Create a page with empty content (we'll add headings by editing)
-    const testPage = await createPageThroughUI(page, 'Navigate to Headings', ' ');
+    await createPageThroughUI(page, 'Navigate to Headings', ' ');
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
@@ -315,104 +319,113 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     await clickOutlineHeading(page, 'Conclusion');
 
     // * Verify page navigates to the heading location (heading is visible in viewport)
-    const conclusionHeading = page.locator('h2:has-text("Conclusion"), h1:has-text("Conclusion"), h3:has-text("Conclusion")').first();
+    const conclusionHeading = page
+        .locator('h2:has-text("Conclusion"), h1:has-text("Conclusion"), h3:has-text("Conclusion")')
+        .first();
     await expect(conclusionHeading).toBeInViewport({timeout: ELEMENT_TIMEOUT});
 });
 
 /**
  * @objective Verify outline visibility persists across page navigation
  */
-test('preserves outline visibility setting when navigating between pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'preserves outline visibility setting when navigating between pages',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Persist Outline Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Persist Outline Wiki ${await pw.random.id()}`);
 
-    // # Create page 1 and immediately add headings (before creating page 2)
-    const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');
+        // # Create page 1 and immediately add headings (before creating page 2)
+        const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');
 
-    const hierarchyPanel = getHierarchyPanel(page);
-    const page1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page1.id}"]`).first();
+        const hierarchyPanel = getHierarchyPanel(page);
+        const page1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page1.id}"]`).first();
 
-    // # Edit Page 1 immediately after creation (no navigation away yet)
-    await enterEditMode(page);
-    await waitForEditModeReady(page);
+        // # Edit Page 1 immediately after creation (no navigation away yet)
+        await enterEditMode(page);
+        await waitForEditModeReady(page);
 
-    const editor1 = page.locator('.ProseMirror').first();
-    await editor1.click();
-    await selectAllText(page);
-    await page.keyboard.press('Backspace');
-    await page.waitForTimeout(UI_MICRO_WAIT * 2);
+        const editor1 = page.locator('.ProseMirror').first();
+        await editor1.click();
+        await selectAllText(page);
+        await page.keyboard.press('Backspace');
+        await page.waitForTimeout(UI_MICRO_WAIT * 2);
 
-    // # Add heading using helper function
-    await addHeadingToEditor(page, 1, 'Page 1 Heading');
+        // # Add heading using helper function
+        await addHeadingToEditor(page, 1, 'Page 1 Heading');
 
-    // Verify heading exists in editor before publishing
-    const h1InEditor = editor1.locator('h1:has-text("Page 1 Heading")');
-    await expect(h1InEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // Verify heading exists in editor before publishing
+        const h1InEditor = editor1.locator('h1:has-text("Page 1 Heading")');
+        await expect(h1InEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Publish page 1
-    await publishCurrentPage(page);
+        // # Publish page 1
+        await publishCurrentPage(page);
 
-    // # Verify the heading was published correctly by checking page viewer
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    const publishedHeading = pageViewer.locator('h1:has-text("Page 1 Heading")');
-    await expect(publishedHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // # Verify the heading was published correctly by checking page viewer
+        const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+        const publishedHeading = pageViewer.locator('h1:has-text("Page 1 Heading")');
+        await expect(publishedHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // Verify the heading has an ID (required for outline)
-    const headingId = await publishedHeading.getAttribute('id');
-    if (!headingId) {
-        throw new Error('Heading does not have an ID attribute - outline will not work');
-    }
+        // Verify the heading has an ID (required for outline)
+        const headingId = await publishedHeading.getAttribute('id');
+        if (!headingId) {
+            throw new Error('Heading does not have an ID attribute - outline will not work');
+        }
 
-    // # Now create page 2 (this will navigate away from page 1)
-    const page2 = await createPageThroughUI(page, 'Page 2 with Headings', ' ');
+        // # Now create page 2 (this will navigate away from page 1)
+        const page2 = await createPageThroughUI(page, 'Page 2 with Headings', ' ');
 
-    // # Show outline for Page 1
-    await showPageOutline(page, page1.id);
+        // # Show outline for Page 1
+        await showPageOutline(page, page1.id);
 
-    // * Verify outline is expanded for Page 1 by looking for the heading in tree items
-    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
+        // * Verify outline is expanded for Page 1 by looking for the heading in tree items
+        await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
 
-    // # Navigate to Page 2
-    const page2Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page2.id}"]`).first();
-    await page2Node.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(SHORT_WAIT);
+        // # Navigate to Page 2
+        const page2Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page2.id}"]`).first();
+        await page2Node.click();
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify outline for Page 1 is still expanded in hierarchy
-    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
+        // * Verify outline for Page 1 is still expanded in hierarchy
+        await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
 
-    // # Navigate back to Page 1
-    await page1Node.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(SHORT_WAIT);
+        // # Navigate back to Page 1
+        await page1Node.click();
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify outline remains expanded
-    await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
+        // * Verify outline remains expanded
+        await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
 
-    // # Hide outline for Page 1
-    await hidePageOutline(page, page1.id);
+        // # Hide outline for Page 1
+        await hidePageOutline(page, page1.id);
 
-    // * Verify outline is collapsed (scoped to Page 1's outline container)
-    const page1OutlineContainer = await getPageOutlineInHierarchy(page, 'Page 1 with Headings');
-    const page1OutlineHeading = page1OutlineContainer.locator('[role="treeitem"]').filter({hasText: /^Page 1 Heading$/}).first();
-    const isCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
-    expect(isCollapsed).toBe(false);
+        // * Verify outline is collapsed (scoped to Page 1's outline container)
+        const page1OutlineContainer = await getPageOutlineInHierarchy(page, 'Page 1 with Headings');
+        const page1OutlineHeading = page1OutlineContainer
+            .locator('[role="treeitem"]')
+            .filter({hasText: /^Page 1 Heading$/})
+            .first();
+        const isCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
+        expect(isCollapsed).toBe(false);
 
-    // # Navigate away and back
-    await page2Node.click();
-    await page.waitForLoadState('networkidle');
-    await page1Node.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(SHORT_WAIT);
+        // # Navigate away and back
+        await page2Node.click();
+        await page.waitForLoadState('networkidle');
+        await page1Node.click();
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify outline remains collapsed after navigation (scoped to Page 1's outline)
-    const stillCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
-    expect(stillCollapsed).toBe(false);
-});
+        // * Verify outline remains collapsed after navigation (scoped to Page 1's outline)
+        const stillCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
+        expect(stillCollapsed).toBe(false);
+    },
+);

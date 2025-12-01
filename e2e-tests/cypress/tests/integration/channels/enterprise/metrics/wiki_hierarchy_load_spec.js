@@ -26,7 +26,7 @@ describe('Wiki > Page Hierarchy Load Performance', () => {
         });
 
         // # Create test team and channel
-        cy.apiInitSetup().then(({team, channel, user}) => {
+        cy.apiInitSetup().then(({channel}) => {
             testChannel = channel;
 
             // # Grant wiki (channel properties) and page permissions

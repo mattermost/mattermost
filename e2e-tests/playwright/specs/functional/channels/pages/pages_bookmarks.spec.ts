@@ -2,16 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
     openPageActionsMenu,
     clickPageContextMenuItem,
-    getPageViewerContent,
     verifyPageContentContains,
-    openBookmarksTab,
     verifyBookmarkExists,
     verifyBookmarkNotExists,
     ELEMENT_TIMEOUT,
@@ -57,7 +54,12 @@ test('creates bookmark from page to another channel', {tag: '@pages'}, async ({p
 
     // * Wait for bookmark creation API call to complete
     const [response] = await Promise.all([
-        page.waitForResponse((resp) => resp.url().includes('/api/v4/channels/') && resp.url().includes('/bookmarks') && resp.request().method() === 'POST'),
+        page.waitForResponse(
+            (resp) =>
+                resp.url().includes('/api/v4/channels/') &&
+                resp.url().includes('/bookmarks') &&
+                resp.request().method() === 'POST',
+        ),
         bookmarkButton.click(),
     ]);
 
@@ -166,7 +168,7 @@ test('creates bookmark in same channel as page', {tag: '@pages'}, async ({pw, sh
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Test Wiki ${await pw.random.id()}`);
     await createPageThroughUI(page, 'Same Channel Page', 'Content');
 
     // # Open page actions menu and click "Bookmark in channel..."

@@ -46,7 +46,7 @@ import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes} from '
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {navigateToPageFromPost} from 'utils/page_navigation';
-import {isPageInlineComment} from 'utils/page_utils';
+import {isPageInlineComment, isPagePost} from 'utils/page_utils';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -381,13 +381,21 @@ function PostComponent(props: Props) {
 
     const handleJumpClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
+
         if (props.isMobileView) {
             props.actions.closeRightHandSide();
         }
 
         props.actions.setRhsExpanded(false);
+
+        // For page posts, navigate to the wiki page view instead of permalink
+        if (isPagePost(post) && post.props?.wiki_id && props.teamName) {
+            navigateToPageFromPost(post, props.teamName);
+            return;
+        }
+
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
-    }, [props.isMobileView, props.actions, props.teamName, post?.id]);
+    }, [props.isMobileView, props.actions, props.teamName, post]);
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 

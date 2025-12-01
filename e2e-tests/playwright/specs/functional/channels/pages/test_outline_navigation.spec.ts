@@ -1,8 +1,23 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 import {expect, test} from './pages_test_fixture';
-import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel, enterEditMode, waitForEditModeReady, clearEditorContent, SHORT_WAIT, ELEMENT_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    addHeadingToEditor,
+    createTestChannel,
+    showPageOutline,
+    getHierarchyPanel,
+    enterEditMode,
+    waitForEditModeReady,
+    clearEditorContent,
+    SHORT_WAIT,
+    ELEMENT_TIMEOUT,
+} from './test_helpers';
 
 /**
- * Test outline with navigation - does navigating away and back cause the issue?
+ * @objective Verify page outline displays correctly after navigating away and back to the page
  */
 test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
@@ -13,7 +28,7 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki
-    const wiki = await createWikiThroughUI(page, `Navigation Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Navigation Test Wiki ${await pw.random.id()}`);
 
     // # Create TWO pages
     const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');
@@ -55,6 +70,9 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
     await showPageOutline(page, page1.id);
 
     // * Verify outline shows the heading
-    const page1OutlineHeading = page.locator('[role="treeitem"]').filter({hasText: /Page 1 Heading/}).first();
+    const page1OutlineHeading = page
+        .locator('[role="treeitem"]')
+        .filter({hasText: /Page 1 Heading/})
+        .first();
     await expect(page1OutlineHeading).toBeVisible({timeout: ELEMENT_TIMEOUT});
 });

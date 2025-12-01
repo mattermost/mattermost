@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from './pages_test_fixture';
 import {createRandomUser} from '@mattermost/playwright-lib';
 
+import {expect, test} from './pages_test_fixture';
 import {
     createPageThroughUI,
     createTestChannel,
@@ -11,7 +11,6 @@ import {
     editPageThroughUI,
     ensurePanelOpen,
     getPageTreeNodeByTitle,
-    getVersionContent,
     getVersionHistoryItems,
     getVersionHistoryModal,
     openVersionHistoryModal,
@@ -193,7 +192,9 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
     const firstItem = historyItems.first();
 
     // * Verify timestamp is displayed (e.g., "5 seconds ago", "1 minute ago", "Today")
-    await expect(firstItem).toContainText(/(\d+\s+(second|minute|hour|day)s?\s+ago|Today|Yesterday)/i, {timeout: ELEMENT_TIMEOUT});
+    await expect(firstItem).toContainText(/(\d+\s+(second|minute|hour|day)s?\s+ago|Today|Yesterday)/i, {
+        timeout: ELEMENT_TIMEOUT,
+    });
 
     // * Expand first item to verify author is displayed
     await firstItem.click();

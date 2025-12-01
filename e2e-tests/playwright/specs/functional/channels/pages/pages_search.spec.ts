@@ -2,8 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    getNewPageButton,
+    fillCreatePageModal,
+    publishCurrentPage,
+    getEditorAndWait,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
+} from './test_helpers';
 
 /**
  * @objective Verify pages can be found using wiki tree panel search by title
@@ -17,7 +26,7 @@ test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Search Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Search Wiki ${await pw.random.id()}`);
 
     // # Create multiple pages with different titles through UI
     const searchableTitle = `UniqueSearchableTitle${await pw.random.id()}`;
@@ -56,7 +65,7 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Tree Filter Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Tree Filter Wiki ${await pw.random.id()}`);
 
     // # Create page with specific title and different content
     const pageTitle = 'Engineering Documentation';
@@ -107,7 +116,7 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Global Search Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Global Search Wiki ${await pw.random.id()}`);
 
     // # Create page with unique title through UI
     const searchableTitle = `GlobalSearchableTitle${await pw.random.id()}`;
@@ -131,7 +140,8 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
 });
 
 /**
- * @objective Verify pages can be found using global Mattermost search by content
+ * @objective Verify pages can be found using global Mattermost search by content,
+ * display "Wiki Page" indicator, and navigate to the page when clicked
  */
 test('searches pages by content using global search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
@@ -142,7 +152,7 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Content Global Search Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Content Global Search Wiki ${await pw.random.id()}`);
 
     // # Create page with unique content through UI
     const uniqueContent = `GlobalSearchContent${await pw.random.id()}`;
@@ -161,6 +171,10 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     // # Wait for page to be indexed
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
+    // # Navigate away from the wiki view to the channel
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
     // # Perform global search for content
     await channelsPage.globalHeader.openSearch();
     const {searchInput} = channelsPage.searchBox;
@@ -174,4 +188,34 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     // * Verify search results contain the page title and content preview
     await channelsPage.sidebarRight.toContainText(pageTitle);
     await channelsPage.sidebarRight.toContainText(uniqueContent);
+
+    // * Verify search result displays "Wiki Page" indicator badge
+    const searchResultContainer = page.locator('[data-testid="search-item-container"]').first();
+    await expect(searchResultContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    const pageIndicator = searchResultContainer.locator('.search-item__page-indicator');
+    await expect(pageIndicator).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageIndicator).toContainText('Wiki Page');
+
+    // # Hover over the search result to reveal the Jump link, then click it
+    await searchResultContainer.hover();
+    const jumpLink = searchResultContainer.getByRole('link', {name: 'Jump'});
+    await expect(jumpLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await jumpLink.click();
+
+    // # Wait for navigation to complete
+    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // * Verify we navigated to the wiki page view
+    const wikiView = page.locator('[data-testid="wiki-view"]');
+    await expect(wikiView).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify the page title is displayed in the editor
+    const pageTitleInput = page.locator('[data-testid="wiki-page-title-input"]');
+    await expect(pageTitleInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageTitleInput).toHaveValue(pageTitle);
+
+    // * Verify the page content is visible
+    const pageEditor = page.locator('[data-testid="wiki-page-editor"]');
+    await expect(pageEditor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(pageEditor).toContainText(uniqueContent);
 });

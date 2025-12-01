@@ -178,7 +178,7 @@ export class PlaywrightExtended {
         this.createNewUserProfile = createNewUserProfile;
         this.makeClient = makeClient;
         this.createPageViaDraft = createPageViaDraft;
-        
+
         // ./visual
         this.matchSnapshot = matchSnapshot;
 

@@ -2,8 +2,31 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, navigateToPage, getBreadcrumb, verifyBreadcrumbContains, getHierarchyPanel, deletePageWithOption, getEditorAndWait, typeInEditor, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, UI_MICRO_WAIT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createChildPageThroughContextMenu,
+    createTestChannel,
+    fillCreatePageModal,
+    renamePageViaContextMenu,
+    createDraftThroughUI,
+    openMovePageModal,
+    confirmMoveToTarget,
+    renamePageInline,
+    waitForSearchDebounce,
+    navigateToWikiView,
+    navigateToPage,
+    getBreadcrumb,
+    verifyBreadcrumbContains,
+    getHierarchyPanel,
+    deletePageWithOption,
+    getEditorAndWait,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
+    WEBSOCKET_WAIT,
+    UI_MICRO_WAIT,
+} from './test_helpers';
 
 /**
  * @objective Verify page hierarchy expansion and collapse functionality
@@ -17,7 +40,7 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPage
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Hierarchy Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Hierarchy Wiki ${await pw.random.id()}`);
 
     // # Create parent and child pages through UI
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
@@ -42,10 +65,10 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPage
     // * Verify parent-child relationship: child appears AFTER parent in DOM order
     const allNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]');
     const parentIndex = await allNodes.evaluateAll((nodes, pId) => {
-        return nodes.findIndex(n => n.getAttribute('data-page-id') === pId);
+        return nodes.findIndex((n) => n.getAttribute('data-page-id') === pId);
     }, parentPage.id);
     const childIndex = await allNodes.evaluateAll((nodes, cId) => {
-        return nodes.findIndex(n => n.getAttribute('data-page-id') === cId);
+        return nodes.findIndex((n) => n.getAttribute('data-page-id') === cId);
     }, childPage.id);
     expect(childIndex).toBeGreaterThan(parentIndex); // Child must come after parent in DOM
 
@@ -92,7 +115,9 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     // # Select "Move" from context menu
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
     await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
-    const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
+    const moveButton = contextMenu
+        .locator('[data-testid="page-context-menu-move"], button:has-text("Move To")')
+        .first();
     await expect(moveButton).toBeVisible();
     await moveButton.click();
 
@@ -122,7 +147,7 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
 
     // Check if Page 1 is collapsed (chevron-right) and expand it
     const chevronRight = page1Node.locator('.icon-chevron-right').first();
-    const isCollapsed = await chevronRight.count() > 0;
+    const isCollapsed = (await chevronRight.count()) > 0;
     if (isCollapsed) {
         await expandButton.click();
         await page.waitForTimeout(SHORT_WAIT);
@@ -162,40 +187,44 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
 /**
  * @objective Verify circular hierarchy prevention
  */
-test('prevents circular hierarchy - cannot move page to own descendant', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'prevents circular hierarchy - cannot move page to own descendant',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Circular Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        const wiki = await createWikiThroughUI(page, `Circular Wiki ${await pw.random.id()}`);
 
-    // # Create hierarchy (grandparent → parent → child) through UI
-    const grandparent = await createPageThroughUI(page, 'Grandparent', 'Grandparent content');
-    const parent = await createChildPageThroughContextMenu(page, grandparent.id!, 'Parent', 'Parent content');
-    const child = await createChildPageThroughContextMenu(page, parent.id!, 'Child', 'Child content');
+        // # Create hierarchy (grandparent → parent → child) through UI
+        const grandparent = await createPageThroughUI(page, 'Grandparent', 'Grandparent content');
+        const parent = await createChildPageThroughContextMenu(page, grandparent.id!, 'Parent', 'Parent content');
+        const child = await createChildPageThroughContextMenu(page, parent.id!, 'Child', 'Child content');
 
-    // Navigate back to wiki view to ensure hierarchy panel is loaded
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+        // Navigate back to wiki view to ensure hierarchy panel is loaded
+        await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
 
-    // # Attempt to move grandparent under its child (circular) - open modal using helper
-    const moveModal = await openMovePageModal(page, 'Grandparent');
+        // # Attempt to move grandparent under its child (circular) - open modal using helper
+        const moveModal = await openMovePageModal(page, 'Grandparent');
 
-    // * Verify descendants are not shown in the page list (circular references prevented by excluding descendants)
-    // The modal should not show any page options with data-page-id since all pages are descendants
-    const childOption = moveModal.locator(`[data-page-id="${child.id}"]`);
-    await expect(childOption).not.toBeVisible();
+        // * Verify descendants are not shown in the page list (circular references prevented by excluding descendants)
+        // The modal should not show any page options with data-page-id since all pages are descendants
+        const childOption = moveModal.locator(`[data-page-id="${child.id}"]`);
+        await expect(childOption).not.toBeVisible();
 
-    const parentOption = moveModal.locator(`[data-page-id="${parent.id}"]`);
-    await expect(parentOption).not.toBeVisible();
+        const parentOption = moveModal.locator(`[data-page-id="${parent.id}"]`);
+        await expect(parentOption).not.toBeVisible();
 
-    // * Verify "Root level" option is still available (you can move to root)
-    const rootOption = moveModal.getByText('Root level (no parent)');
-    await expect(rootOption).toBeVisible();
-});
+        // * Verify "Root level" option is still available (you can move to root)
+        const rootOption = moveModal.getByText('Root level (no parent)');
+        await expect(rootOption).toBeVisible();
+    },
+);
 
 /**
  * @objective Verify moving page between different wikis
@@ -210,7 +239,7 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
 
     // # Create two wikis through UI
     const wiki1 = await createWikiThroughUI(page, `Wiki 1 ${await pw.random.id()}`);
-    const pageInWiki1 = await createPageThroughUI(page, 'Page to Move', 'Content');
+    await createPageThroughUI(page, 'Page to Move', 'Content');
 
     // Navigate back to channel to create second wiki
     await channelsPage.goto(team.name, channel.name);
@@ -285,7 +314,12 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
 
     // # Create parent page and a child page under it
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
-    const existingChild = await createChildPageThroughContextMenu(page, parentPage.id!, 'Existing Child', 'Existing child content');
+    const existingChild = await createChildPageThroughContextMenu(
+        page,
+        parentPage.id!,
+        'Existing Child',
+        'Existing child content',
+    );
 
     // # Create another root page to move
     const pageToMove = await createPageThroughUI(page, 'Page to Move', 'Content to move');
@@ -300,7 +334,9 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     // # Select "Move" from context menu
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
     await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
-    const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
+    const moveButton = contextMenu
+        .locator('[data-testid="page-context-menu-move"], button:has-text("Move To")')
+        .first();
     await expect(moveButton).toBeVisible();
     await moveButton.click();
 
@@ -324,7 +360,7 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
 
     const parentExpandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]').first();
     const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
-    if (await parentChevronRight.count() > 0) {
+    if ((await parentChevronRight.count()) > 0) {
         await parentExpandButton.click();
         await page.waitForTimeout(SHORT_WAIT);
     }
@@ -335,7 +371,7 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
 
     const childExpandButton = existingChildNode.locator('[data-testid="page-tree-node-expand-button"]').first();
     const childChevronRight = existingChildNode.locator('.icon-chevron-right').first();
-    if (await childChevronRight.count() > 0) {
+    if ((await childChevronRight.count()) > 0) {
         await childExpandButton.click();
         await page.waitForTimeout(SHORT_WAIT);
     }
@@ -429,7 +465,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
 
     const parentExpandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]').first();
     const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
-    if (await parentChevronRight.count() > 0) {
+    if ((await parentChevronRight.count()) > 0) {
         await parentExpandButton.click();
         await page.waitForTimeout(SHORT_WAIT);
     }
@@ -440,7 +476,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
 
     const childExpandButton = childNode.locator('[data-testid="page-tree-node-expand-button"]').first();
     const childChevronRight = childNode.locator('.icon-chevron-right').first();
-    if (await childChevronRight.count() > 0) {
+    if ((await childChevronRight.count()) > 0) {
         await childExpandButton.click();
         await page.waitForTimeout(SHORT_WAIT);
     }
@@ -488,8 +524,8 @@ test('renames page via context menu', {tag: '@pages'}, async ({pw, sharedPagesSe
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Rename Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Original Name', 'Content');
+    await createWikiThroughUI(page, `Rename Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(page, 'Original Name', 'Content');
 
     // # Rename page via context menu
     await renamePageViaContextMenu(page, 'Original Name', 'Updated Name');
@@ -522,7 +558,7 @@ test.skip('renames page inline via double-click', {tag: '@pages'}, async ({pw, s
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `Inline Rename Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Original Title', 'Content');
+    await createPageThroughUI(page, 'Original Title', 'Content');
 
     // Navigate back to wiki view to ensure hierarchy panel is visible
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
@@ -547,8 +583,8 @@ test('handles special characters in page names', {tag: '@pages'}, async ({pw, sh
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Unicode Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Simple Name', 'Content');
+    await createWikiThroughUI(page, `Unicode Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(page, 'Simple Name', 'Content');
 
     // # Rename with Unicode and emoji using the helper function
     const specialName = 'Page 🚀 with 中文 and émojis';
@@ -577,7 +613,7 @@ test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw,
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Depth Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Depth Wiki ${await pw.random.id()}`);
 
     // # Create 10-level hierarchy through UI
     const level1 = await createPageThroughUI(page, 'Level 1', 'Content at level 1');
@@ -589,7 +625,7 @@ test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw,
     const level7 = await createChildPageThroughContextMenu(page, level6.id!, 'Level 7', 'Content at level 7');
     const level8 = await createChildPageThroughContextMenu(page, level7.id!, 'Level 8', 'Content at level 8');
     const level9 = await createChildPageThroughContextMenu(page, level8.id!, 'Level 9', 'Content at level 9');
-    const level10 = await createChildPageThroughContextMenu(page, level9.id!, 'Level 10', 'Content at level 10');
+    await createChildPageThroughContextMenu(page, level9.id!, 'Level 10', 'Content at level 10');
 
     // * Verify deepest page content is displayed
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
@@ -629,7 +665,7 @@ test('enforces max hierarchy depth - 12th level fails', {tag: '@pages'}, async (
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Max Depth Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Max Depth Wiki ${await pw.random.id()}`);
 
     // # Create 11-level hierarchy through UI (maximum allowed - depth 0-10)
     const level1 = await createPageThroughUI(page, 'Level 1', 'Level 1 content');
@@ -781,7 +817,7 @@ test('deletes page with children - cascade option', {tag: '@pages'}, async ({pw,
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Cascade Delete Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Cascade Delete Wiki ${await pw.random.id()}`);
 
     // # Create parent page with children through UI
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
@@ -810,11 +846,16 @@ test('deletes page with children - move to root option', {tag: '@pages'}, async 
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Move Delete Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Move Delete Wiki ${await pw.random.id()}`);
 
     // # Create parent page with child through UI
     const parentPage = await createPageThroughUI(page, 'Parent to Delete', 'Parent content');
-    const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child to Preserve', 'Child content');
+    const childPage = await createChildPageThroughContextMenu(
+        page,
+        parentPage.id!,
+        'Child to Preserve',
+        'Child content',
+    );
 
     // # Delete parent page with move-to-parent option (preserves children)
     await deletePageWithOption(page, parentPage.id!, 'move-to-parent');
@@ -832,7 +873,9 @@ test('deletes page with children - move to root option', {tag: '@pages'}, async 
 
     // * Verify child is at root level by checking it's NOT nested inside another page-tree-node
     // Root-level pages are direct children of the tree container, not nested in other page nodes
-    const nestedChildNode = hierarchyPanel.locator('[data-testid="page-tree-node"] [data-testid="page-tree-node"]').filter({has: page.locator(`[data-page-id="${childPage.id}"]`)});
+    const nestedChildNode = hierarchyPanel
+        .locator('[data-testid="page-tree-node"] [data-testid="page-tree-node"]')
+        .filter({has: page.locator(`[data-page-id="${childPage.id}"]`)});
     const isNested = await nestedChildNode.count();
     expect(isNested).toBe(0); // Should be 0 because child is at root level, not nested
 });
@@ -849,13 +892,18 @@ test('creates child page via context menu', {tag: '@pages'}, async ({pw, sharedP
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Context Menu Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Context Menu Wiki ${await pw.random.id()}`);
 
     // # Create parent page through UI
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // # Create child page through context menu
-    const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child via Context Menu', 'Child content');
+    const childPage = await createChildPageThroughContextMenu(
+        page,
+        parentPage.id!,
+        'Child via Context Menu',
+        'Child content',
+    );
 
     // * Verify child page appears under parent in hierarchy
     const hierarchyPanel = getHierarchyPanel(page);
@@ -912,8 +960,12 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify EXACT nodes we created are visible before refresh
-    const published1NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
-    const published2NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage2.id}"]`);
+    const published1NodeBefore = hierarchyPanel.locator(
+        `[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`,
+    );
+    const published2NodeBefore = hierarchyPanel.locator(
+        `[data-testid="page-tree-node"][data-page-id="${publishedPage2.id}"]`,
+    );
     const childNodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);
     const draft1NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft1.id}"]`);
     const draft2NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft2.id}"]`);
@@ -946,15 +998,21 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Expand parent node again after refresh to make child visible
-    const parent1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
+    const parent1NodeAfter = hierarchyPanel.locator(
+        `[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`,
+    );
     const expandButtonAfter = parent1NodeAfter.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButtonAfter).toBeVisible();
     await expandButtonAfter.click();
     await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify EXACT same nodes are visible after refresh
-    const published1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
-    const published2NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage2.id}"]`);
+    const published1NodeAfter = hierarchyPanel.locator(
+        `[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`,
+    );
+    const published2NodeAfter = hierarchyPanel.locator(
+        `[data-testid="page-tree-node"][data-page-id="${publishedPage2.id}"]`,
+    );
     const childNodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);
     const draft1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft1.id}"]`);
     const draft2NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft2.id}"]`);
@@ -994,7 +1052,7 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
 
         // Now delete the channel
         await adminClient.deleteChannel(channel.id);
-    } catch (error) {
+    } catch {
         // Ignore cleanup errors - test has already passed
     }
 });

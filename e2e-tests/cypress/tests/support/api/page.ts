@@ -102,27 +102,26 @@ function apiCreatePageHierarchy(
         }
 
         // Create child pages recursively
-        const createChildren = (parentId: string, currentDepth: number): Cypress.Chainable<any> => {
+        const createChildren = (parentId: string, currentDepth: number, childIndex: number): Cypress.Chainable<any> => {
             if (currentDepth >= depth) {
                 return cy.wrap(null);
             }
 
-            let chain: Cypress.Chainable<any> = cy.wrap(null);
-            for (let i = 0; i < childrenPerLevel; i++) {
-                chain = chain.then(() => {
-                    return cy.
-                        apiCreatePage(wikiId, `Page Depth ${currentDepth + 1} Child ${i + 1} ${getRandomId()}`, defaultContent, parentId).
-                        then(({page: childPage}) => {
-                            pages.push(childPage);
-                            return createChildren(childPage.id, currentDepth + 1);
-                        });
-                });
+            if (childIndex >= childrenPerLevel) {
+                return cy.wrap(null);
             }
 
-            return chain;
+            return cy.
+                apiCreatePage(wikiId, `Page Depth ${currentDepth + 1} Child ${childIndex + 1} ${getRandomId()}`, defaultContent, parentId).
+                then(({page: childPage}) => {
+                    pages.push(childPage);
+                    return createChildren(childPage.id, currentDepth + 1, 0).then(() => {
+                        return createChildren(parentId, currentDepth, childIndex + 1);
+                    });
+                });
         };
 
-        return createChildren(rootPage.id, 1).then(() => {
+        return createChildren(rootPage.id, 1, 0).then(() => {
             return cy.wrap({pages, rootPage});
         });
     });

@@ -47,33 +47,19 @@ func (a *App) createThreadEntryForPageComment(post *model.Post, channel *model.C
 		TeamId:       channel.TeamId,
 	}
 
-	mlog.Debug("Creating Thread entry for page comment",
-		mlog.String("post_id", thread.PostId),
-		mlog.String("channel_id", thread.ChannelId),
-		mlog.String("team_id", thread.TeamId))
-
 	if err := a.Srv().Store().Thread().CreateThreadForPageComment(thread); err != nil {
-		mlog.Error("Failed to create thread entry for page comment", mlog.Err(err))
 		return model.NewAppError("createThreadEntryForPageComment", "app.post.create_thread_entry.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	mlog.Info("Successfully created Thread entry for page comment", mlog.String("post_id", thread.PostId))
 	return nil
 }
 
 // GetPageComments retrieves all comments (including inline comments) for a page
 func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *model.AppError) {
-	page, err := a.GetSinglePost(rctx, pageID, false)
-	if err != nil {
+	if _, err := a.getPagePost(rctx, pageID); err != nil {
 		return nil, model.NewAppError("GetPageComments",
 			"app.page.get_comments.page_not_found.app_error",
 			nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	if page.Type != model.PostTypePage {
-		return nil, model.NewAppError("GetPageComments",
-			"app.page.get_comments.not_a_page.app_error",
-			nil, "post is not a page", http.StatusBadRequest)
 	}
 
 	postList, appErr := a.Srv().Store().Page().GetCommentsForPage(pageID, false)
@@ -97,17 +83,16 @@ func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *
 
 // CreatePageComment creates a top-level comment on a page
 func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inlineAnchor map[string]any) (*model.Post, *model.AppError) {
-	page, err := a.GetSinglePost(rctx, pageID, false)
+	page, err := a.getPagePost(rctx, pageID)
 	if err != nil {
+		if err.Id == "app.page.get.not_a_page.app_error" {
+			return nil, model.NewAppError("CreatePageComment",
+				"app.page.create_comment.not_a_page.app_error",
+				nil, "", http.StatusBadRequest).Wrap(err)
+		}
 		return nil, model.NewAppError("CreatePageComment",
 			"app.page.create_comment.page_not_found.app_error",
 			nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	if page.Type != model.PostTypePage {
-		return nil, model.NewAppError("CreatePageComment",
-			"app.page.create_comment.not_a_page.app_error",
-			nil, "post is not a page", http.StatusBadRequest)
 	}
 
 	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
@@ -154,11 +139,11 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 
 // CreatePageCommentReply creates a reply to a page comment (one level of nesting only)
 func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, message string) (*model.Post, *model.AppError) {
-	page, err := a.GetSinglePost(rctx, pageID, false)
-	if err != nil || page.Type != model.PostTypePage {
+	page, err := a.getPagePost(rctx, pageID)
+	if err != nil {
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.page_not_found.app_error",
-			nil, "", http.StatusNotFound)
+			nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	parentComment, err := a.GetSinglePost(rctx, parentCommentID, false)
@@ -230,6 +215,12 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 
 	parentCommentID := post.RootId
 	pageID, _ := parentComment.Props["page_id"].(string)
+
+	if pageID == "" {
+		rctx.Logger().Warn("Parent comment missing page_id prop, cannot transform reply",
+			mlog.String("parent_comment_id", parentCommentID))
+		return false
+	}
 
 	if parentComment.Props["parent_comment_id"] != nil {
 		return false

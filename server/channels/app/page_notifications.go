@@ -12,12 +12,16 @@ import (
 const twoHoursInMilliseconds = int64(2 * 60 * 60 * 1000)
 
 func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, userId string) {
-	wikiId, err := a.GetWikiIdForPage(rctx, page.Id)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get wiki for page update notification",
-			mlog.String("page_id", page.Id),
-			mlog.Err(err))
-		return
+	wikiId, _ := page.Props["wiki_id"].(string)
+	if wikiId == "" {
+		var err *model.AppError
+		wikiId, err = a.GetWikiIdForPage(rctx, page.Id)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get wiki for page update notification",
+				mlog.String("page_id", page.Id),
+				mlog.Err(err))
+			return
+		}
 	}
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)

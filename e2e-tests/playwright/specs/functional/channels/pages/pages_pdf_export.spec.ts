@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
 import {
     createDraftThroughUI,
     createPageThroughUI,
@@ -124,9 +123,7 @@ test('positions PDF export option after Duplicate page', {tag: '@pages'}, async 
     const menuItems = contextMenu.locator('button[class*="PageContextMenu__item"]');
 
     // Get all menu item labels
-    const labels = await menuItems.evaluateAll((items) =>
-        items.map((item) => item.textContent?.trim() || ''),
-    );
+    const labels = await menuItems.evaluateAll((items) => items.map((item) => item.textContent?.trim() || ''));
 
     // * Verify Duplicate page comes before Export to PDF
     const duplicateIndex = labels.indexOf('Duplicate page');

@@ -13,7 +13,7 @@
 describe('Wiki > Page Load Performance', () => {
     let testChannel;
     let testWiki;
-    let testPages = [];
+    const testPages = [];
 
     before(() => {
         cy.apiRequireLicense();
@@ -26,7 +26,7 @@ describe('Wiki > Page Load Performance', () => {
         });
 
         // # Create test team and channel
-        cy.apiInitSetup().then(({team, channel, user}) => {
+        cy.apiInitSetup().then(({channel}) => {
             testChannel = channel;
 
             // # Grant wiki (channel properties) and page permissions
@@ -46,19 +46,21 @@ describe('Wiki > Page Load Performance', () => {
             cy.apiCreateWiki(testChannel.id, 'Performance Test Wiki', 'Testing page load performance').then(({wiki}) => {
                 testWiki = wiki;
 
-                // # Create multiple pages for testing
-                let chain = cy.wrap(null);
-                for (let i = 0; i < 10; i++) {
-                    chain = chain.then(() => {
-                        return cy.apiCreatePage(
-                            testWiki.id,
-                            `Test Page ${i + 1}`,
-                            `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Content for page ${i + 1}"}]}]}`,
-                        ).then(({page}) => {
-                            testPages.push(page);
-                        });
+                // # Create multiple pages for testing using recursive approach
+                const createPages = (index) => {
+                    if (index >= 10) {
+                        return;
+                    }
+                    cy.apiCreatePage(
+                        testWiki.id,
+                        `Test Page ${index + 1}`,
+                        `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Content for page ${index + 1}"}]}]}`,
+                    ).then(({page}) => {
+                        testPages.push(page);
+                        createPages(index + 1);
                     });
-                }
+                };
+                createPages(0);
             });
         });
     });

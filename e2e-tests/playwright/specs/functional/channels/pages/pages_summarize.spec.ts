@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from './pages_test_fixture';
 import {configureAIPlugin, shouldSkipAITests} from '@mattermost/playwright-lib';
 
+import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     createTestChannel,
@@ -13,7 +13,6 @@ import {
     createPostsForSummarization,
     verifyPageInHierarchy,
     switchToWikiTab,
-    switchToMessagesTab,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -58,10 +57,7 @@ test('shows summarize to page option in post actions menu', {tag: '@pages'}, asy
         adminClient,
         channel.id,
         'Discussion about the new feature implementation',
-        [
-            'We should start with the database schema design',
-            'Then move on to the API endpoints',
-        ],
+        ['We should start with the database schema design', 'Then move on to the API endpoints'],
     );
 
     // # Reload to see the posts
@@ -111,12 +107,9 @@ test('prompts for page title when summarize to page is clicked', {tag: '@pages'}
     await channelsPage.toBeVisible();
 
     // # Create posts
-    const rootPost = await createPostsForSummarization(
-        adminClient,
-        channel.id,
-        'Test discussion for summarization',
-        ['Reply with more context'],
-    );
+    const rootPost = await createPostsForSummarization(adminClient, channel.id, 'Test discussion for summarization', [
+        'Reply with more context',
+    ]);
 
     // # Reload to see posts
     await page.reload();
@@ -254,45 +247,49 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 /**
  * @objective Verify graceful degradation when AI plugin is not available
  */
-test('hides summarize to page option when AI plugin is not available', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+test(
+    'hides summarize to page option when AI plugin is not available',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
 
-    const channel = await createTestChannel(adminClient, team.id, `No AI Test ${await pw.random.id()}`);
-    const {page, channelsPage} = await pw.testBrowser.login(user);
+        const channel = await createTestChannel(adminClient, team.id, `No AI Test ${await pw.random.id()}`);
+        const {page, channelsPage} = await pw.testBrowser.login(user);
 
-    // # Create wiki
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
-    const wikiName = `Test Wiki ${await pw.random.id()}`;
-    await createWikiThroughUI(page, wikiName);
+        // # Create wiki
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+        const wikiName = `Test Wiki ${await pw.random.id()}`;
+        await createWikiThroughUI(page, wikiName);
 
-    // # Check if AI plugin is available - skip test if it IS available
-    const hasAIPlugin = await checkAIPluginAvailability(page);
-    if (hasAIPlugin) {
-        test.skip(true, 'AI plugin is configured - cannot test graceful degradation without disabling plugin');
-        return;
-    }
+        // # Check if AI plugin is available - skip test if it IS available
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (hasAIPlugin) {
+            test.skip(true, 'AI plugin is configured - cannot test graceful degradation without disabling plugin');
+            return;
+        }
 
-    // # Navigate back to channel
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        // # Navigate back to channel
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create a post
-    const postResponse = await adminClient.createPost({
-        channel_id: channel.id,
-        message: 'Test post without AI plugin',
-    });
+        // # Create a post
+        const postResponse = await adminClient.createPost({
+            channel_id: channel.id,
+            message: 'Test post without AI plugin',
+        });
 
-    // # Reload to see posts
-    await page.reload();
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # Reload to see posts
+        await page.reload();
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # Hover over post to show menu
-    const postLocator = page.locator(`#post_${postResponse.id}`);
-    await expect(postLocator).toBeVisible();
-    await postLocator.hover();
+        // # Hover over post to show menu
+        const postLocator = page.locator(`#post_${postResponse.id}`);
+        await expect(postLocator).toBeVisible();
+        await postLocator.hover();
 
-    // * Verify AI actions menu does not appear
-    const aiActionsButton = page.getByTestId('ai-actions-menu');
-    await expect(aiActionsButton).not.toBeVisible();
-});
+        // * Verify AI actions menu does not appear
+        const aiActionsButton = page.getByTestId('ai-actions-menu');
+        await expect(aiActionsButton).not.toBeVisible();
+    },
+);

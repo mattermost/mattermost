@@ -2,8 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel, UI_MICRO_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    getNewPageButton,
+    fillCreatePageModal,
+    publishCurrentPage,
+    getEditorAndWait,
+    typeInEditor,
+    getHierarchyPanel,
+    UI_MICRO_WAIT,
+    EDITOR_LOAD_WAIT,
+} from './test_helpers';
 
 /**
  * @objective Verify XSS attempts in page content are sanitized
@@ -20,7 +30,7 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `XSS Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `XSS Test Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -31,7 +41,7 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
 
     // # Attempt to inject script tag
     const xssAttempt = '<script>alert("XSS")</script>';
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
     await typeInEditor(page, xssAttempt);
 
     await publishCurrentPage(page);
@@ -69,7 +79,7 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `XSS Title Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `XSS Title Wiki ${await pw.random.id()}`);
 
     // # Create new page with XSS attempt in title
     const xssTitle = '<img src=x onerror=alert("XSS")>';
@@ -79,7 +89,7 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
     await typeInEditor(page, 'Content here');
 
     await publishCurrentPage(page);
@@ -114,7 +124,7 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, share
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `SQL Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `SQL Test Wiki ${await pw.random.id()}`);
     await createPageThroughUI(page, 'Normal Page', 'Normal content');
 
     // # Attempt SQL injection in search
@@ -155,7 +165,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Validation Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Validation Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -169,7 +179,7 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill(longTitle);
 
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
     await typeInEditor(page, 'Content');
 
     // # Try to publish
@@ -193,7 +203,10 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
 
         // Dismiss the error banner if it's visible
         if (errorBannerVisible) {
-            const closeButton = errorBanner.locator('a[href="#"], button').filter({hasText: /×|close|dismiss/i}).first();
+            const closeButton = errorBanner
+                .locator('a[href="#"], button')
+                .filter({hasText: /×|close|dismiss/i})
+                .first();
             const closeVisible = await closeButton.isVisible().catch(() => false);
             if (closeVisible) {
                 await closeButton.click();
@@ -220,7 +233,11 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     // * Verify either sanitized/encoded and published, or validation error shown
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
     const pageViewerVisible = await pageViewer.isVisible().catch(() => false);
-    const editorStillVisibleAfterPublish = await page.locator('.ProseMirror').first().isVisible().catch(() => false);
+    const editorStillVisibleAfterPublish = await page
+        .locator('.ProseMirror')
+        .first()
+        .isVisible()
+        .catch(() => false);
 
     if (pageViewerVisible) {
         // * Page published successfully - verify title handling
@@ -242,7 +259,9 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
         await expect(pageViewer).toBeVisible();
     } else if (editorStillVisibleAfterPublish) {
         // * Validation error shown - verify error message exists
-        const validationError = page.locator('[data-testid="title-error"], .error-message, .validation-error, [data-testid="announcement-bar"]').first();
+        const validationError = page
+            .locator('[data-testid="title-error"], .error-message, .validation-error, [data-testid="announcement-bar"]')
+            .first();
         const errorVisible = await validationError.isVisible().catch(() => false);
 
         expect(errorVisible).toBe(true);

@@ -2,50 +2,58 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal, publishCurrentPage, AUTOSAVE_WAIT, HIERARCHY_TIMEOUT, PAGE_LOAD_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createTestChannel,
+    getNewPageButton,
+    fillCreatePageModal,
+    publishCurrentPage,
+    AUTOSAVE_WAIT,
+    HIERARCHY_TIMEOUT,
+    PAGE_LOAD_TIMEOUT,
+} from './test_helpers';
 
 /**
  * Page status display names
  * These are stored directly in the backend as human-readable values
  * Source: server/public/model/wiki.go (PageStatus constants)
  */
-const PAGE_STATUSES = [
-    'Rough draft',
-    'In progress',
-    'In review',
-    'Done',
-] as const;
+const PAGE_STATUSES = ['Rough draft', 'In progress', 'In review', 'Done'] as const;
 
 /**
  * @objective Verify default page status is set to 'in_progress' when creating a new page without selecting status
  */
-test('displays default in_progress status for newly published pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'displays default in_progress status for newly published pages',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Status Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Status Wiki ${await pw.random.id()}`);
 
-    // # Create and publish a page
-    const pageName = 'Test Page';
-    await createPageThroughUI(page, pageName, 'Test content');
+        // # Create and publish a page
+        const pageName = 'Test Page';
+        await createPageThroughUI(page, pageName, 'Test content');
 
-    // # Wait for page to load
-    await page.waitForLoadState('networkidle');
+        // # Wait for page to load
+        await page.waitForLoadState('networkidle');
 
-    // * Verify status is visible in page viewer
-    const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
-    await expect(statusDisplay).toBeVisible();
+        // * Verify status is visible in page viewer
+        const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+        await expect(statusDisplay).toBeVisible();
 
-    // * Verify default status is 'In progress'
-    const statusText = await statusDisplay.textContent();
-    expect(statusText?.trim()).toBe('In progress');
-});
+        // * Verify default status is 'In progress'
+        const statusText = await statusDisplay.textContent();
+        expect(statusText?.trim()).toBe('In progress');
+    },
+);
 
 /**
  * @objective Verify user can change page status in draft mode and it persists after publishing
@@ -60,7 +68,7 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Status Change Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Status Change Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -108,7 +116,7 @@ test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, 
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Persist Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Persist Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -164,7 +172,7 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `All Status Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `All Status Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -207,45 +215,49 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
 /**
  * @objective Verify status selector is visible in draft mode but not in view mode
  */
-test('shows status selector in draft mode and status badge in view mode', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'shows status selector in draft mode and status badge in view mode',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Draft Status Wiki ${await pw.random.id()}`);
 
-    // # Click "New Page" to create a new draft
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Test Page');
-    await page.waitForLoadState('networkidle');
+        // # Click "New Page" to create a new draft
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Test Page');
+        await page.waitForLoadState('networkidle');
 
-    // * Verify status selector IS visible in draft mode
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
-    await expect(statusSelector).toBeVisible();
+        // * Verify status selector IS visible in draft mode
+        const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+        await expect(statusSelector).toBeVisible();
 
-    // # Fill in page content and publish
+        // # Fill in page content and publish
 
-    const editor = page.locator('.ProseMirror');
-    await editor.click();
-    await editor.fill('Test content');
+        const editor = page.locator('.ProseMirror');
+        await editor.click();
+        await editor.fill('Test content');
 
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
-    await publishCurrentPage(page);
+        await publishCurrentPage(page);
 
-    // * Verify status is visible in view mode as a read-only display
-    const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
-    await expect(statusDisplay).toBeVisible();
+        // * Verify status is visible in view mode as a read-only display
+        const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+        await expect(statusDisplay).toBeVisible();
 
-    // * Verify the editable selector is no longer visible
-    const statusSelectorAfter = page.locator('.page-status-wrapper .selectable-select-property__control');
-    await expect(statusSelectorAfter).not.toBeVisible();
-});
+        // * Verify the editable selector is no longer visible
+        const statusSelectorAfter = page.locator('.page-status-wrapper .selectable-select-property__control');
+        await expect(statusSelectorAfter).not.toBeVisible();
+    },
+);
 
 /**
  * @objective Verify multiple pages can have different status values independently
@@ -274,7 +286,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await statusSelector.click();
     let statusMenu = page.locator('.selectable-select-property__menu');
     await expect(statusMenu).toBeVisible();
-    let roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
+    const roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
     await roughDraftOption.click();
     await page.waitForTimeout(AUTOSAVE_WAIT);
 
@@ -285,7 +297,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await page.waitForLoadState('networkidle');
 
     // # Create second page
-    const page2 = await createPageThroughUI(page, 'Page 2', 'Content 2');
+    await createPageThroughUI(page, 'Page 2', 'Content 2');
     await page.waitForLoadState('networkidle');
 
     // # Edit and set status to 'done'
@@ -331,7 +343,7 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Update Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Update Wiki ${await pw.random.id()}`);
     const pageName = 'Test Page';
     await createPageThroughUI(page, pageName, 'Test content');
 
@@ -386,7 +398,7 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Draft Status Wiki ${await pw.random.id()}`);
 
     // # Click "New Page" to create a new draft
     const newPageButton = getNewPageButton(page);
@@ -439,7 +451,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Autosave Status Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Autosave Status Wiki ${await pw.random.id()}`);
 
     // # Click "New Page" to create a new draft
     const newPageButton = getNewPageButton(page);
@@ -507,8 +519,8 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await channelsPage.toBeVisible();
 
     // # Create wiki and initial page
-    const wiki = await createWikiThroughUI(page, `Update Status Wiki ${await pw.random.id()}`);
-    const createdPage = await createPageThroughUI(page, 'Page to Update', 'Initial content');
+    await createWikiThroughUI(page, `Update Status Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(page, 'Page to Update', 'Initial content');
     await page.waitForLoadState('networkidle');
 
     // # Click Edit button to enter draft mode

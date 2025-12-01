@@ -2,8 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal, buildWikiPageUrl, getEditorAndWait, typeInEditor, getHierarchyPanel, SHORT_WAIT, EDITOR_LOAD_WAIT, AUTOSAVE_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, PAGE_LOAD_TIMEOUT} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createChildPageThroughContextMenu,
+    createTestChannel,
+    fillCreatePageModal,
+    buildWikiPageUrl,
+    getEditorAndWait,
+    typeInEditor,
+    getHierarchyPanel,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    AUTOSAVE_WAIT,
+    ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
+    WEBSOCKET_WAIT,
+    PAGE_LOAD_TIMEOUT,
+} from './test_helpers';
 
 /**
  * @objective Verify breadcrumb navigation displays correct page hierarchy
@@ -17,14 +33,14 @@ test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async (
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Breadcrumb Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Breadcrumb Wiki ${await pw.random.id()}`);
 
     // # Create page hierarchy: Grandparent -> Parent -> Child through UI
     const grandparent = await createPageThroughUI(page, 'Grandparent Page', 'Grandparent content');
 
     const parent = await createChildPageThroughContextMenu(page, grandparent.id!, 'Parent Page', 'Parent content');
 
-    const child = await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
+    await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
 
     // * Verify breadcrumb shows full hierarchy
     const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
@@ -101,7 +117,7 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     // # Create wiki through UI
     const wikiName = `Nav Wiki ${await pw.random.id()}`;
-    const wiki = await createWikiThroughUI(page, wikiName);
+    await createWikiThroughUI(page, wikiName);
 
     // # Create parent and child pages through UI
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
@@ -135,7 +151,7 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki and parent page through UI
-    const wiki = await createWikiThroughUI(page, `Breadcrumb Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Breadcrumb Wiki ${await pw.random.id()}`);
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // # Create child page draft via context menu
@@ -150,7 +166,7 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
 
     await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
     await typeInEditor(page, 'Child content');
 
     await page.waitForTimeout(AUTOSAVE_WAIT);
@@ -244,10 +260,10 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     await channelsPage.toBeVisible();
 
     // # Create wiki and 3 pages through UI
-    const wiki = await createWikiThroughUI(page, `Navigation Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Navigation Wiki ${await pw.random.id()}`);
     const page1 = await createPageThroughUI(page, 'First Page', 'First page content');
     const page2 = await createPageThroughUI(page, 'Second Page', 'Second page content');
-    const page3 = await createPageThroughUI(page, 'Third Page', 'Third page content');
+    await createPageThroughUI(page, 'Third Page', 'Third page content');
 
     // # Navigate to page1 using hierarchy panel
     const hierarchyPanel = getHierarchyPanel(page);
@@ -256,7 +272,7 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     await page.waitForLoadState('networkidle');
 
     // * Verify page1 content
-    let pageContent = page.locator('[data-testid="page-viewer-content"]');
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(pageContent).toContainText('First page content');
 
@@ -352,7 +368,7 @@ test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Refresh Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Refresh Test Wiki ${await pw.random.id()}`);
 
     // # Create page with simple content
     await createPageThroughUI(page, 'Refresh Test Page', 'Content that should persist after refresh');
@@ -395,10 +411,10 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Fullscreen Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Fullscreen Wiki ${await pw.random.id()}`);
 
     // # Create page with content
-    const testPage = await createPageThroughUI(page, 'Fullscreen Test Page', 'This is fullscreen test content');
+    await createPageThroughUI(page, 'Fullscreen Test Page', 'This is fullscreen test content');
 
     // * Verify page is visible
     const pageContent = page.locator('[data-testid="page-viewer-content"]');

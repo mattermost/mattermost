@@ -19,6 +19,29 @@
             font-weight: 600;
         }
 
+        .sidebar--right__back {
+            display: flex;
+            width: 28px;
+            height: 28px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            cursor: pointer;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color);
+            }
+
+            .icon {
+                font-size: 18px;
+            }
+        }
+
         &-actions {
             display: flex;
             align-items: center;

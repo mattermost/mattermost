@@ -2,8 +2,34 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from './pages_test_fixture';
-
-import {createTestChannel, createTestUserInTeam, createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText, getHierarchyPanel, loginAndNavigateToChannel, SHORT_WAIT, EDITOR_LOAD_WAIT, ELEMENT_TIMEOUT, HIERARCHY_TIMEOUT, WEBSOCKET_WAIT, AUTOSAVE_WAIT, PAGE_LOAD_TIMEOUT, UI_MICRO_WAIT, pressModifierKey} from './test_helpers';
+import {
+    createTestChannel,
+    createTestUserInTeam,
+    createWikiThroughUI,
+    createPageThroughUI,
+    createChildPageThroughContextMenu,
+    getNewPageButton,
+    openPageLinkModal,
+    openPageLinkModalViaButton,
+    waitForPageInHierarchy,
+    fillCreatePageModal,
+    waitForFormattingBar,
+    verifyFormattingButtonExists,
+    typeInEditor,
+    publishPage,
+    getEditorAndWait,
+    selectTextInEditor,
+    clickPageEditButton,
+    loginAndNavigateToChannel,
+    SHORT_WAIT,
+    EDITOR_LOAD_WAIT,
+    ELEMENT_TIMEOUT,
+    HIERARCHY_TIMEOUT,
+    WEBSOCKET_WAIT,
+    PAGE_LOAD_TIMEOUT,
+    UI_MICRO_WAIT,
+    pressModifierKey,
+} from './test_helpers';
 
 /**
  * @objective Verify editor handles large content correctly
@@ -15,10 +41,10 @@ test('handles large content correctly', {tag: '@pages'}, async ({pw, sharedPages
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Large Content Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Large Content Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -80,10 +106,10 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Unicode Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Unicode Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -151,10 +177,10 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     // # Create another user to mention
     const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Mention Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -210,10 +236,10 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     // # Create another channel to mention
     const mentionedChannel = await createTestChannel(adminClient, team.id, `mentioned-channel-${await pw.random.id()}`);
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Channel Mention Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Channel Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -265,7 +291,9 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
 
     // * Verify navigation to the mentioned channel
     await page.waitForURL(`**/${team.name}/channels/${mentionedChannel.name}`, {timeout: ELEMENT_TIMEOUT});
-    await channelsPage.toBeVisible();
+
+    const channelHeaderTitle = page.locator('#channelHeaderTitle, .channel-header__title').first();
+    await expect(channelHeaderTitle).toBeVisible();
 
     // * Verify we're now viewing the mentioned channel
     const channelHeader = page.locator('#channelHeaderTitle, .channel-header__title').first();
@@ -283,10 +311,10 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'user1');
     const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'user2');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Mention Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Multi Mention Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -365,10 +393,10 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
     // # Create another user to mention
     const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'matttest');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Mention Bug Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Mention Bug Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -411,7 +439,9 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
 
     // Check that "matt" does NOT appear as duplicate text after the mention
     const mentionText = await userMentionInEditor.textContent();
-    const textAfterMention = editorContent.substring(editorContent.indexOf(mentionText || '') + (mentionText?.length || 0));
+    const textAfterMention = (editorContent ?? '').substring(
+        (editorContent ?? '').indexOf(mentionText || '') + (mentionText?.length || 0),
+    );
 
     // * Verify no duplicate "matt" text appears after the mention
     expect(textAfterMention.trim()).not.toContain('matt');
@@ -421,7 +451,7 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
     expect(editorContent).toContain(mentionedUser.username);
 
     // Count occurrences of "matt" - should only appear once (in the mention itself)
-    const mattOccurrences = (editorContent.toLowerCase().match(/matt/g) || []).length;
+    const mattOccurrences = ((editorContent ?? '').toLowerCase().match(/matt/g) || []).length;
     expect(mattOccurrences).toBe(1);
 });
 
@@ -436,10 +466,10 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     const {user: user1} = await createTestUserInTeam(pw, adminClient, team, 'alice');
     const {user: user2} = await createTestUserInTeam(pw, adminClient, team, 'bob');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Mention Bug Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Multi Mention Bug Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -496,55 +526,59 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
 /**
  * @objective Verify mention dropdown reappears after canceling first mention attempt
  */
-test('shows mention dropdown on second attempt after canceling first', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'shows mention dropdown on second attempt after canceling first',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # Create a user to mention
-    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'testuser');
+        // # Create a user to mention
+        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'testuser');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Dropdown Bug Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Dropdown Bug Wiki ${await pw.random.id()}`);
 
-    // # Create new page
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Dropdown Reappearance Test');
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Dropdown Reappearance Test');
 
-    // # Wait for editor to be visible
-    const editor = await getEditorAndWait(page);
+        // # Wait for editor to be visible
+        const editor = await getEditorAndWait(page);
 
-    // # First attempt: Type @ and verify dropdown appears
-    await editor.click();
-    await page.keyboard.type('Testing @test');
+        // # First attempt: Type @ and verify dropdown appears
+        await editor.click();
+        await page.keyboard.type('Testing @test');
 
-    // * Verify first mention dropdown appears
-    const firstDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(firstDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify first mention dropdown appears
+        const firstDropdown = page.locator('.tiptap-mention-popup').first();
+        await expect(firstDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Cancel the first mention by pressing Escape
-    await page.keyboard.press('Escape');
+        // # Cancel the first mention by pressing Escape
+        await page.keyboard.press('Escape');
 
-    // * Verify dropdown is gone
-    await expect(firstDropdown).not.toBeVisible({timeout: WEBSOCKET_WAIT});
+        // * Verify dropdown is gone
+        await expect(firstDropdown).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
-    // # Wait a moment and add some more text
-    await page.waitForTimeout(SHORT_WAIT);
-    await page.keyboard.type(' more text ');
+        // # Wait a moment and add some more text
+        await page.waitForTimeout(SHORT_WAIT);
+        await page.keyboard.type(' more text ');
 
-    // # Second attempt: Type @ again (THIS IS WHERE THE BUG OCCURS)
-    await page.keyboard.type('@test');
+        // # Second attempt: Type @ again (THIS IS WHERE THE BUG OCCURS)
+        await page.keyboard.type('@test');
 
-    // * Verify second mention dropdown appears (BUG: it doesn't appear)
-    const secondDropdown = page.locator('.tiptap-mention-popup').first();
-    await expect(secondDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify second mention dropdown appears (BUG: it doesn't appear)
+        const secondDropdown = page.locator('.tiptap-mention-popup').first();
+        await expect(secondDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // * Verify dropdown has users
-    const userOption = page.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
-});
+        // * Verify dropdown has users
+        const userOption = page.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
+        await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    },
+);
 
 /**
  * @objective Verify mentioned users receive notifications when page is published
@@ -558,101 +592,105 @@ test('shows mention dropdown on second attempt after canceling first', {tag: '@p
  * 1. Whether page mentions trigger the notification system (they should, like post mentions)
  * 2. Why second context page loading is flaky (networkidle doesn't reliably complete)
  */
-test.skip('sends notification to mentioned user when page is published', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test.skip(
+    'sends notification to mentioned user when page is published',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    // # Create a second user who will be mentioned
-    const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
-    await adminClient.addToChannel(mentionedUser.id, channel.id);
+        // # Create a second user who will be mentioned
+        const {user: mentionedUser} = await createTestUserInTeam(pw, adminClient, team, 'mentioned');
+        await adminClient.addToChannel(mentionedUser.id, channel.id);
 
-    // # Also add mentioned user to off-topic channel (they'll navigate there to check mentions)
-    const offTopicChannel = await adminClient.getChannelByName(team.id, 'off-topic');
-    await adminClient.addToChannel(mentionedUser.id, offTopicChannel.id);
+        // # Also add mentioned user to off-topic channel (they'll navigate there to check mentions)
+        const offTopicChannel = await adminClient.getChannelByName(team.id, 'off-topic');
+        await adminClient.addToChannel(mentionedUser.id, offTopicChannel.id);
 
-    // # Login as author user and create wiki
-    const {page: authorPage, channelsPage: authorChannelsPage} = await pw.testBrowser.login(user);
-    await authorChannelsPage.goto(team.name, channel.name);
+        // # Login as author user and create wiki
+        const {page: authorPage} = await pw.testBrowser.login(user);
+        await authorPage.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
 
-    const wiki = await createWikiThroughUI(authorPage, `Notification Wiki ${await pw.random.id()}`);
+        await createWikiThroughUI(authorPage, `Notification Wiki ${await pw.random.id()}`);
 
-    // # Create new page with @mention
-    const newPageButton = getNewPageButton(authorPage);
-    await newPageButton.click();
+        // # Create new page with @mention
+        const newPageButton = getNewPageButton(authorPage);
+        await newPageButton.click();
 
-    // # Type content with @mention
-    const editor = await getEditorAndWait(authorPage);
-    await typeInEditor(authorPage, `Hello @${mentionedUser.username}`);
+        // # Type content with @mention
+        const authorEditor = await getEditorAndWait(authorPage);
+        await typeInEditor(authorPage, `Hello @${mentionedUser.username}`);
 
-    // * Verify mention suggestion dropdown appears
-    const mentionDropdown = authorPage.locator('.tiptap-mention-popup').first();
-    await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify mention suggestion dropdown appears
+        const mentionDropdown = authorPage.locator('.tiptap-mention-popup').first();
+        await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Select the mentioned user from dropdown
-    const userOption = authorPage.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
-    await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await userOption.click();
+        // # Select the mentioned user from dropdown
+        const userOption = authorPage.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
+        await expect(userOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await userOption.click();
 
-    // * Verify mention is properly created with data-id attribute
-    await authorPage.waitForTimeout(SHORT_WAIT);
-    const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
-    await expect(userMentionInEditor).toBeVisible();
+        // * Verify mention is properly created with data-id attribute
+        await authorPage.waitForTimeout(SHORT_WAIT);
+        const userMentionInEditor = authorEditor.locator(`.mention[data-id="${mentionedUser.id}"]`);
+        await expect(userMentionInEditor).toBeVisible();
 
-    // # Add remaining text
-    await editor.type(', please review this page!');
+        // # Add remaining text
+        await authorEditor.type(', please review this page!');
 
-    // # Set title and publish
-    const titleInput = authorPage.locator('[data-testid="wiki-page-title-input"]').first();
-    await titleInput.fill('Page with Mention Notification');
+        // # Set title and publish
+        const titleInput = authorPage.locator('[data-testid="wiki-page-title-input"]').first();
+        await titleInput.fill('Page with Mention Notification');
 
-    await publishPage(authorPage);
-    await authorPage.waitForLoadState('networkidle');
+        await publishPage(authorPage);
+        await authorPage.waitForLoadState('networkidle');
 
-    // * Verify page is published
-    const pageContent = authorPage.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toBeVisible();
+        // * Verify page is published
+        const pageContent = authorPage.locator('[data-testid="page-viewer-content"]');
+        await expect(pageContent).toBeVisible();
 
-    // # Wait a moment for notification to be sent
-    await authorPage.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # Wait a moment for notification to be sent
+        await authorPage.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // # Create a second browser context for mentioned user (simulating them checking notifications)
-    // First get mentioned user's storage state by logging them in temporarily
-    const {page: mentionedUserTempPage} = await pw.testBrowser.login(mentionedUser);
-    const mentionedUserStorageState = await pw.testBrowser.context!.storageState();
-    await mentionedUserTempPage.close();
+        // # Create a second browser context for mentioned user (simulating them checking notifications)
+        // First get mentioned user's storage state by logging them in temporarily
+        const {page: mentionedUserTempPage} = await pw.testBrowser.login(mentionedUser);
+        const mentionedUserStorageState = await pw.testBrowser.context!.storageState();
+        await mentionedUserTempPage.close();
 
-    // # Now create a new context for mentioned user and navigate to a DIFFERENT channel (off-topic)
-    // This ensures the mention appears as "unread" in the mentions list
-    const mentionedUserContext = await pw.testBrowser.browser.newContext({
-        storageState: mentionedUserStorageState,
-    });
-    const mentionedUserPage = await mentionedUserContext.newPage();
-    await mentionedUserPage.goto(`${pw.url}/${team.name}/channels/off-topic`);
-    await mentionedUserPage.waitForLoadState('networkidle');
+        // # Now create a new context for mentioned user and navigate to a DIFFERENT channel (off-topic)
+        // This ensures the mention appears as "unread" in the mentions list
+        const mentionedUserContext = await pw.testBrowser.browser.newContext({
+            storageState: mentionedUserStorageState,
+        });
+        const mentionedUserPage = await mentionedUserContext.newPage();
+        await mentionedUserPage.goto(`${pw.url}/${team.name}/channels/off-topic`);
+        await mentionedUserPage.waitForLoadState('networkidle');
 
-    // * Wait for channel to fully load by checking for post input
-    const postInput = mentionedUserPage.locator('#post_textbox').first();
-    await expect(postInput).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
+        // * Wait for channel to fully load by checking for post input
+        const postInput = mentionedUserPage.locator('#post_textbox').first();
+        await expect(postInput).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
 
-    // # Open the Recent Mentions RHS panel
-    // The button has icon-at class based on the at_mentions_button component
-    const mentionsButton = mentionedUserPage.locator('button:has(i.icon-at)').first();
-    await expect(mentionsButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    await mentionsButton.click();
+        // # Open the Recent Mentions RHS panel
+        // The button has icon-at class based on the at_mentions_button component
+        const mentionsButton = mentionedUserPage.locator('button:has(i.icon-at)').first();
+        await expect(mentionsButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await mentionsButton.click();
 
-    // * Verify RHS panel opened
-    const rhsSidebar = mentionedUserPage.locator('#rhsContainer, .sidebar--right').first();
-    await expect(rhsSidebar).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        // * Verify RHS panel opened
+        const rhsSidebar = mentionedUserPage.locator('#rhsContainer, .sidebar--right').first();
+        await expect(rhsSidebar).toBeVisible({timeout: HIERARCHY_TIMEOUT});
 
-    // * Verify the page mention appears in recent mentions
-    // Note: If this fails with "No mentions yet", investigate whether page mentions
-    // trigger the notification system (they should, like regular post mentions do)
-    await expect(rhsSidebar).toContainText('Page with Mention Notification', {timeout: ELEMENT_TIMEOUT});
-    await expect(rhsSidebar).toContainText(user.username, {timeout: ELEMENT_TIMEOUT});
+        // * Verify the page mention appears in recent mentions
+        // Note: If this fails with "No mentions yet", investigate whether page mentions
+        // trigger the notification system (they should, like regular post mentions do)
+        await expect(rhsSidebar).toContainText('Page with Mention Notification', {timeout: ELEMENT_TIMEOUT});
+        await expect(rhsSidebar).toContainText(user.username, {timeout: ELEMENT_TIMEOUT});
 
-    // # Cleanup
-    await mentionedUserContext.close();
-});
+        // # Cleanup
+        await mentionedUserContext.close();
+    },
+);
 
 /**
  * @objective Verify Ctrl+L keyboard shortcut opens page link modal in editor
@@ -661,10 +699,10 @@ test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, asy
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Link Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Link Test Wiki ${await pw.random.id()}`);
 
     // # Create a page first so we have pages to link to
     await createPageThroughUI(page, 'Existing Page');
@@ -698,10 +736,10 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Filter Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Filter Wiki ${await pw.random.id()}`);
 
     // # Create multiple pages with different names
     await createPageThroughUI(page, 'Getting Started Guide');
@@ -717,10 +755,12 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Getting Started Guide', 15000);
@@ -760,10 +800,10 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Insert Link Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Insert Link Wiki ${await pw.random.id()}`);
 
     // # Create target page to link to
     const targetPage = await createPageThroughUI(page, 'Target Page');
@@ -775,7 +815,9 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -820,10 +862,10 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Navigation Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Navigation Wiki ${await pw.random.id()}`);
 
     // # Create target page with distinctive content
     const targetPage = await createPageThroughUI(page, 'Linked Target Page', 'This is the linked page content');
@@ -835,10 +877,12 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     await fillCreatePageModal(page, 'Source Page with Link');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Linked Target Page', 15000);
@@ -912,10 +956,10 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Multi Link Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Multi Link Wiki ${await pw.random.id()}`);
 
     // # Create multiple target pages and capture their IDs
     const firstPage = await createPageThroughUI(page, 'First Page');
@@ -933,7 +977,9 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -1066,10 +1112,10 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
     // # Create a unique channel for this test (to avoid cross-wiki page pollution)
     const uniqueChannel = await createTestChannel(adminClient, team.id, `empty-test-${await pw.random.id()}`);
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, uniqueChannel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, uniqueChannel.name);
 
     // # Create wiki through UI (but don't create any pages)
-    const wiki = await createWikiThroughUI(page, `Empty Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Empty Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -1077,7 +1123,7 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
     await fillCreatePageModal(page, 'Empty State Test');
 
     // # Wait for editor to be visible
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
 
     // # Open link modal via toolbar button
     const linkModal = await openPageLinkModalViaButton(page);
@@ -1094,10 +1140,10 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Escape Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Escape Wiki ${await pw.random.id()}`);
 
     // # Create page
     await createPageThroughUI(page, 'Test Page');
@@ -1109,7 +1155,9 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
     await fillCreatePageModal(page, 'Test Page for Escape');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -1138,10 +1186,10 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Hierarchy Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Hierarchy Wiki ${await pw.random.id()}`);
 
     // # Create parent page
     const parentPage = await createPageThroughUI(page, 'Parent Page');
@@ -1161,7 +1209,9 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await fillCreatePageModal(page, 'New Page for Links');
 
     // # Wait for navigation to the new draft page (publish button only appears in edit mode)
-    await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
+    await page
+        .locator('[data-testid="wiki-page-publish-button"]')
+        .waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
     // # Wait for editor to load and for loadChannelPages to complete
     const editor = await getEditorAndWait(page);
@@ -1231,185 +1281,195 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
 /**
  * @objective Verify formatting buttons correctly reflect active state based on cursor position
  */
-test('formatting buttons show correct active state for text formatting', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'formatting buttons show correct active state for text formatting',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Formatting Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Formatting Wiki ${await pw.random.id()}`);
 
-    // # Create new page
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Formatting Test Page');
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Formatting Test Page');
 
-    // # Wait for editor to be visible
-    const editor = await getEditorAndWait(page);
+        // # Wait for editor to be visible
+        const editor = await getEditorAndWait(page);
 
-    // # Type test content with different formatting
-    await editor.click();
-    await page.keyboard.type('Plain text ');
+        // # Type test content with different formatting
+        await editor.click();
+        await page.keyboard.type('Plain text ');
 
-    // # Toggle bold on and type
-    await pressModifierKey(page, 'b');
-    await page.keyboard.type('bold text');
-    await pressModifierKey(page, 'b'); // Toggle bold off
+        // # Toggle bold on and type
+        await pressModifierKey(page, 'b');
+        await page.keyboard.type('bold text');
+        await pressModifierKey(page, 'b'); // Toggle bold off
 
-    await page.keyboard.type(' more plain');
-    await page.waitForTimeout(SHORT_WAIT);
+        await page.keyboard.type(' more plain');
+        await page.waitForTimeout(SHORT_WAIT);
 
-    // # Now test if formatting buttons show correct active state
-    // Select just the word "Plain" at the beginning
-    await page.keyboard.press('Home');
-    await page.keyboard.press('Shift+ArrowRight');
-    await page.keyboard.press('Shift+ArrowRight');
-    await page.keyboard.press('Shift+ArrowRight');
-    await page.keyboard.press('Shift+ArrowRight');
-    await page.keyboard.press('Shift+ArrowRight');
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Wait for formatting bubble to appear
-    const formattingBubble = page.locator('.formatting-bar-bubble').first();
-    await formattingBubble.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-
-    // * Verify bold button is NOT active when selection is on plain text
-    const boldButtonInPlain = formattingBubble.locator('button[title*="Bold"]').first();
-    const boldButtonNotActive = await boldButtonInPlain.evaluate((el) => {
-        return !el.classList.contains('is-active');
-    });
-    expect(boldButtonNotActive).toBe(true);
-
-    // # Now select the bold text - "Plain text " is 11 chars, select next 9 chars for "bold text"
-    await page.keyboard.press('Home');
-    for (let i = 0; i < 11; i++) {
-        await page.keyboard.press('ArrowRight');
-    }
-    for (let i = 0; i < 9; i++) {
+        // # Now test if formatting buttons show correct active state
+        // Select just the word "Plain" at the beginning
+        await page.keyboard.press('Home');
         await page.keyboard.press('Shift+ArrowRight');
-    }
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // * Verify bold button IS active when selection is on bold text
-    const boldButton = formattingBubble.locator('button[title*="Bold"]').first();
-    const boldButtonActive = await boldButton.evaluate((el) => {
-        return el.classList.contains('is-active');
-    });
-    expect(boldButtonActive).toBe(true);
-
-    // # Test italic formatting as well
-    await page.keyboard.press('End');
-    await page.keyboard.press('Enter');
-    await pressModifierKey(page, 'i'); // Toggle italic on
-    await page.keyboard.type('italic text');
-    await pressModifierKey(page, 'i'); // Toggle italic off
-    await page.waitForTimeout(SHORT_WAIT);
-
-    // # Select the italic text
-    await page.keyboard.press('Home');
-    for (let i = 0; i < 11; i++) {
         await page.keyboard.press('Shift+ArrowRight');
-    }
-    await page.waitForTimeout(SHORT_WAIT);
+        await page.keyboard.press('Shift+ArrowRight');
+        await page.keyboard.press('Shift+ArrowRight');
+        await page.keyboard.press('Shift+ArrowRight');
+        await page.waitForTimeout(SHORT_WAIT);
 
-    // * Verify italic button IS active when selection is on italic text
-    const italicButton = formattingBubble.locator('button[title*="Italic"]').first();
-    const italicButtonActive = await italicButton.evaluate((el) => {
-        return el.classList.contains('is-active');
-    });
-    expect(italicButtonActive).toBe(true);
+        // # Wait for formatting bubble to appear
+        const formattingBubble = page.locator('.formatting-bar-bubble').first();
+        await formattingBubble.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-    // * Verify bold button is NOT active in italic text (unless bold+italic was applied)
-    const boldButtonInItalic = formattingBubble.locator('button[title*="Bold"]').first();
-    const boldNotActiveInItalic = await boldButtonInItalic.evaluate((el) => {
-        return !el.classList.contains('is-active');
-    });
-    expect(boldNotActiveInItalic).toBe(true);
-});
+        // * Verify bold button is NOT active when selection is on plain text
+        const boldButtonInPlain = formattingBubble.locator('button[title*="Bold"]').first();
+        const boldButtonNotActive = await boldButtonInPlain.evaluate((el) => {
+            return !el.classList.contains('is-active');
+        });
+        expect(boldButtonNotActive).toBe(true);
+
+        // # Now select the bold text - "Plain text " is 11 chars, select next 9 chars for "bold text"
+        await page.keyboard.press('Home');
+        for (let i = 0; i < 11; i++) {
+            await page.keyboard.press('ArrowRight');
+        }
+        for (let i = 0; i < 9; i++) {
+            await page.keyboard.press('Shift+ArrowRight');
+        }
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // * Verify bold button IS active when selection is on bold text
+        const boldButton = formattingBubble.locator('button[title*="Bold"]').first();
+        const boldButtonActive = await boldButton.evaluate((el) => {
+            return el.classList.contains('is-active');
+        });
+        expect(boldButtonActive).toBe(true);
+
+        // # Test italic formatting as well
+        await page.keyboard.press('End');
+        await page.keyboard.press('Enter');
+        await pressModifierKey(page, 'i'); // Toggle italic on
+        await page.keyboard.type('italic text');
+        await pressModifierKey(page, 'i'); // Toggle italic off
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // # Select the italic text
+        await page.keyboard.press('Home');
+        for (let i = 0; i < 11; i++) {
+            await page.keyboard.press('Shift+ArrowRight');
+        }
+        await page.waitForTimeout(SHORT_WAIT);
+
+        // * Verify italic button IS active when selection is on italic text
+        const italicButton = formattingBubble.locator('button[title*="Italic"]').first();
+        const italicButtonActive = await italicButton.evaluate((el) => {
+            return el.classList.contains('is-active');
+        });
+        expect(italicButtonActive).toBe(true);
+
+        // * Verify bold button is NOT active in italic text (unless bold+italic was applied)
+        const boldButtonInItalic = formattingBubble.locator('button[title*="Bold"]').first();
+        const boldNotActiveInItalic = await boldButtonInItalic.evaluate((el) => {
+            return !el.classList.contains('is-active');
+        });
+        expect(boldNotActiveInItalic).toBe(true);
+    },
+);
 
 /**
  * @objective Verify page content exceeding 64KB TEXT column limit can be published successfully
  */
-test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+test(
+    'publishes page with content exceeding 64KB TEXT column limit',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+        const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Character Limit Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Character Limit Wiki ${await pw.random.id()}`);
 
-    // # Create new page
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Character Limit Test');
+        // # Create new page
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Character Limit Test');
 
-    // # Wait for editor to be visible
-    const editor = await getEditorAndWait(page);
+        // # Wait for editor to be visible
+        const editor = await getEditorAndWait(page);
 
-    // # Generate content exceeding 64KB (65,535 bytes - the MySQL TEXT column limit)
-    // Using 100,000 characters to clearly exceed both the post limit (16,383) and TEXT column limit (64KB)
-    const repeatedText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ';
-    const targetCharacters = 100000; // 100K characters, well over 64KB limit
-    const repetitions = Math.ceil(targetCharacters / repeatedText.length);
-    const largeContent = repeatedText.repeat(repetitions);
+        // # Generate content exceeding 64KB (65,535 bytes - the MySQL TEXT column limit)
+        // Using 100,000 characters to clearly exceed both the post limit (16,383) and TEXT column limit (64KB)
+        const repeatedText =
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ';
+        const targetCharacters = 100000; // 100K characters, well over 64KB limit
+        const repetitions = Math.ceil(targetCharacters / repeatedText.length);
+        const largeContent = repeatedText.repeat(repetitions);
 
-    // * Verify we're testing with more than 64KB (assuming worst-case 1 byte per char)
-    expect(largeContent.length).toBeGreaterThan(65535);
-    expect(largeContent.length).toBeGreaterThan(16383);
+        // * Verify we're testing with more than 64KB (assuming worst-case 1 byte per char)
+        expect(largeContent.length).toBeGreaterThan(65535);
+        expect(largeContent.length).toBeGreaterThan(16383);
 
-    // # Paste large content into editor
-    await editor.click();
-    await page.evaluate((content) => {
-        const editorElement = document.querySelector('.ProseMirror');
-        if (editorElement) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.setData('text/plain', content);
-            const pasteEvent = new ClipboardEvent('paste', {
-                clipboardData: dataTransfer,
-                bubbles: true,
-                cancelable: true,
-            });
-            editorElement.dispatchEvent(pasteEvent);
-        }
-    }, largeContent);
+        // # Paste large content into editor
+        await editor.click();
+        await page.evaluate((content) => {
+            const editorElement = document.querySelector('.ProseMirror');
+            if (editorElement) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.setData('text/plain', content);
+                const pasteEvent = new ClipboardEvent('paste', {
+                    clipboardData: dataTransfer,
+                    bubbles: true,
+                    cancelable: true,
+                });
+                editorElement.dispatchEvent(pasteEvent);
+            }
+        }, largeContent);
 
-    // # Wait for content to be inserted
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        // # Wait for content to be inserted
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
-    // * Verify content appears in editor
-    await expect(editor).toContainText('Lorem ipsum');
+        // * Verify content appears in editor
+        await expect(editor).toContainText('Lorem ipsum');
 
-    // # Publish page
-    await publishPage(page);
+        // # Publish page
+        await publishPage(page);
 
-    // # Wait for publish to complete (or for error to appear)
-    await page.waitForTimeout(ELEMENT_TIMEOUT);
+        // # Wait for publish to complete (or for error to appear)
+        await page.waitForTimeout(ELEMENT_TIMEOUT);
 
-    // * Verify publish succeeds WITHOUT "body too long" or similar error
-    // Check for common error indicators
-    const errorBanner = page.locator('[role="alert"], .error, .alert-danger, [class*="error"]');
-    const errorText = await errorBanner.allTextContents();
-    const hasBodyTooLongError = errorText.some(text =>
-        text.toLowerCase().includes('body too long') ||
-        text.toLowerCase().includes('message too long') ||
-        text.toLowerCase().includes('exceeds') ||
-        text.toLowerCase().includes('too large')
-    );
+        // * Verify publish succeeds WITHOUT "body too long" or similar error
+        // Check for common error indicators
+        const errorBanner = page.locator('[role="alert"], .error, .alert-danger, [class*="error"]');
+        const errorText = await errorBanner.allTextContents();
+        const hasBodyTooLongError = errorText.some(
+            (text) =>
+                text.toLowerCase().includes('body too long') ||
+                text.toLowerCase().includes('message too long') ||
+                text.toLowerCase().includes('exceeds') ||
+                text.toLowerCase().includes('too large'),
+        );
 
-    // * Verify NO "body too long" error appears
-    expect(hasBodyTooLongError).toBe(false);
+        // * Verify NO "body too long" error appears
+        expect(hasBodyTooLongError).toBe(false);
 
-    // * Verify page was published successfully
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
-    await expect(pageContent).toContainText('Lorem ipsum');
+        // * Verify page was published successfully
+        const pageContent = page.locator('[data-testid="page-viewer-content"]');
+        await expect(pageContent).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await expect(pageContent).toContainText('Lorem ipsum');
 
-    // * Verify large content persists after publish (should be ~100K characters)
-    const publishedContent = await pageContent.textContent();
-    expect(publishedContent?.length).toBeGreaterThan(65535); // Verify it's more than 64KB
-});
+        // * Verify large content persists after publish (should be ~100K characters)
+        const publishedContent = await pageContent.textContent();
+        expect(publishedContent?.length).toBeGreaterThan(65535); // Verify it's more than 64KB
+    },
+);
 
 /**
  * @objective Verify pasting image from clipboard inserts only one image without broken icon
@@ -1422,10 +1482,10 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Image Paste Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Image Paste Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -1440,12 +1500,13 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
 
     // # Try to load external test image if provided, otherwise use generated test image
     // Default: 100x100 colored rectangle PNG
-    const DEFAULT_BASE64_IMAGE = 'iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QoVEg8kHPx8MQAAAA1pVFh0Q29tbWVudADYLxcBAAAAAW9yTlQBz6J3mgAAABpJREFUeNrt3UENADAIQ0HRf89VJCLgkBmS7P0CAACAfRcAAgAAEAAAgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEDQ9AGaRQMlSSgAAAAASUVORK5CYII=';
+    const DEFAULT_BASE64_IMAGE =
+        'iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QoVEg8kHPx8MQAAAA1pVFh0Q29tbWVudADYLxcBAAAAAW9yTlQBz6J3mgAAABpJREFUeNrt3UENADAIQ0HRf89VJCLgkBmS7P0CAACAfRcAAgAAEAAAgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEDQ9AGaRQMlSSgAAAAASUVORK5CYII=';
 
     let base64Image: string;
     try {
         // Check if external test image exists
-        const fs = require('fs');
+        const fs = await import('fs');
         const externalImagePath = '/tmp/test-paste-image.png';
         if (fs.existsSync(externalImagePath)) {
             const imageBuffer = fs.readFileSync(externalImagePath);
@@ -1454,7 +1515,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
             // Use default generated image (100x100 colored rectangle)
             base64Image = DEFAULT_BASE64_IMAGE;
         }
-    } catch (error) {
+    } catch {
         // Fallback to default image if file reading fails
         base64Image = DEFAULT_BASE64_IMAGE;
     }
@@ -1541,16 +1602,16 @@ test('formatting bar includes divider button from shared registry', {tag: '@page
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-    const {page, channelsPage} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
+    const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `Formatting Bar Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Formatting Bar Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Formatting Bar Test');
 
     // # Type and select text
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
     await typeInEditor(page, 'Test text for formatting');
     await selectTextInEditor(page);
     await page.waitForTimeout(SHORT_WAIT);

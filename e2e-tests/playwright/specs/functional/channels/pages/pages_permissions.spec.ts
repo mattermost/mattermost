@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from './pages_test_fixture';
 import {createRandomUser} from '@mattermost/playwright-lib';
 
+import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     createPageThroughUI,
-    createChildPageThroughContextMenu,
     createTestChannel,
     getNewPageButton,
     openPageActionsMenu,
@@ -15,7 +14,6 @@ import {
     buildWikiPageUrl,
     waitForPageViewerLoad,
     getEditorAndWait,
-    typeInEditor,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
@@ -34,7 +32,7 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Permission Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `Permission Wiki ${await pw.random.id()}`);
 
     // # Attempt to create page
     const newPageButton = getNewPageButton(page);
@@ -49,7 +47,7 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
     await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify editor opened
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
 });
 
 /**
@@ -86,7 +84,9 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         await nonMemberChannelsPage.toBeVisible();
 
         // Now attempt to navigate to the private channel wiki
-        await nonMemberPage.goto(`${pw.url}/${team.name}/channels/${privateChannel.name}/wikis/${wiki.id}/pages/${testPage.id}`);
+        await nonMemberPage.goto(
+            `${pw.url}/${team.name}/channels/${privateChannel.name}/wikis/${wiki.id}/pages/${testPage.id}`,
+        );
         await nonMemberPage.waitForLoadState('networkidle');
 
         // Wait for any redirects to complete
@@ -94,9 +94,8 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
 
         // * Verify access denied (error page, redirect, or permission message)
         const currentUrl = nonMemberPage.url();
-        const isAccessDenied = currentUrl.includes('error') ||
-                              currentUrl.includes('unauthorized') ||
-                              !currentUrl.includes(wiki.id);
+        const isAccessDenied =
+            currentUrl.includes('error') || currentUrl.includes('unauthorized') || !currentUrl.includes(wiki.id);
 
         if (!isAccessDenied) {
             // Check for permission error message on page
@@ -123,8 +122,8 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Edit Permission Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Editable Page', 'Original content');
+    await createWikiThroughUI(page, `Edit Permission Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(page, 'Editable Page', 'Original content');
 
     // # Attempt to edit
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
@@ -139,7 +138,7 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
     await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify editor opened
-    const editor = await getEditorAndWait(page);
+    await getEditorAndWait(page);
 });
 
 /**
@@ -162,8 +161,8 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
     await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
-    const wiki = await createWikiThroughUI(page, `Admin Delete Wiki ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Page to Delete', 'Content');
+    await createWikiThroughUI(page, `Admin Delete Wiki ${await pw.random.id()}`);
+    await createPageThroughUI(page, 'Page to Delete', 'Content');
 
     // # Open page actions menu
     await openPageActionsMenu(page);
@@ -179,82 +178,86 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
 /**
  * @objective Verify permissions update when page moved to wiki in different channel
  */
-test.skip('inherits permissions when page moved to wiki in different channel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    // SKIPPED: This test attempts to move pages between wikis in different channels,
-    // but the current architecture only supports moving pages between wikis within
-    // the same channel. The move modal uses Client4.getChannelWikis(channelId) which
-    // only returns wikis for the current channel, not across all channels in the team.
-    // There is no API endpoint for getting all team wikis to enable cross-channel moves.
-    //
-    // To make this test work, we would need to:
-    // 1. Add a backend API endpoint to get all wikis across channels in a team
-    // 2. Update the move modal to use this new endpoint
-    // 3. Update permission checks to handle cross-channel wiki moves
-    //
-    // The test scenario itself is valid, but requires architectural changes to support.
+test.skip(
+    'inherits permissions when page moved to wiki in different channel',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        // SKIPPED: This test attempts to move pages between wikis in different channels,
+        // but the current architecture only supports moving pages between wikis within
+        // the same channel. The move modal uses Client4.getChannelWikis(channelId) which
+        // only returns wikis for the current channel, not across all channels in the team.
+        // There is no API endpoint for getting all team wikis to enable cross-channel moves.
+        //
+        // To make this test work, we would need to:
+        // 1. Add a backend API endpoint to get all wikis across channels in a team
+        // 2. Update the move modal to use this new endpoint
+        // 3. Update permission checks to handle cross-channel wiki moves
+        //
+        // The test scenario itself is valid, but requires architectural changes to support.
 
-    const {team, user, adminClient} = sharedPagesSetup;
+        const {team, user, adminClient} = sharedPagesSetup;
 
-    // # Create two channels
-    const channel1 = await adminClient.createChannel({
-        team_id: team.id,
-        name: `channel1-${await pw.random.id()}`,
-        display_name: `Channel 1 ${await pw.random.id()}`,
-        type: 'O',
-    });
-    await adminClient.addToChannel(user.id, channel1.id);
+        // # Create two channels
+        const channel1 = await adminClient.createChannel({
+            team_id: team.id,
+            name: `channel1-${await pw.random.id()}`,
+            display_name: `Channel 1 ${await pw.random.id()}`,
+            type: 'O',
+        });
+        await adminClient.addToChannel(user.id, channel1.id);
 
-    const channel2 = await adminClient.createChannel({
-        team_id: team.id,
-        name: `channel2-${await pw.random.id()}`,
-        display_name: `Channel 2 ${await pw.random.id()}`,
-        type: 'O',
-    });
-    await adminClient.addToChannel(user.id, channel2.id);
+        const channel2 = await adminClient.createChannel({
+            team_id: team.id,
+            name: `channel2-${await pw.random.id()}`,
+            display_name: `Channel 2 ${await pw.random.id()}`,
+            type: 'O',
+        });
+        await adminClient.addToChannel(user.id, channel2.id);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {page, channelsPage} = await pw.testBrowser.login(user);
 
-    // # Create wiki1 and page in channel1 through UI
-    await channelsPage.goto(team.name, channel1.name);
-    const wiki1 = await createWikiThroughUI(page, `Wiki 1 ${await pw.random.id()}`);
-    const testPage = await createPageThroughUI(page, 'Page to Move', 'Content');
+        // # Create wiki1 and page in channel1 through UI
+        await channelsPage.goto(team.name, channel1.name);
+        const wiki1 = await createWikiThroughUI(page, `Wiki 1 ${await pw.random.id()}`);
+        const testPage = await createPageThroughUI(page, 'Page to Move', 'Content');
 
-    // # Create wiki2 in channel2 through UI
-    await channelsPage.goto(team.name, channel2.name);
-    const wiki2 = await createWikiThroughUI(page, `Wiki 2 ${await pw.random.id()}`);
+        // # Create wiki2 in channel2 through UI
+        await channelsPage.goto(team.name, channel2.name);
+        const wiki2 = await createWikiThroughUI(page, `Wiki 2 ${await pw.random.id()}`);
 
-    // # Navigate back to the page in wiki1
-    const pageUrl = buildWikiPageUrl(pw.url, team.name, channel1.id, wiki1.id, testPage.id);
-    await page.goto(pageUrl);
-    await page.waitForLoadState('networkidle');
-    await waitForPageViewerLoad(page);
+        // # Navigate back to the page in wiki1
+        const pageUrl = buildWikiPageUrl(pw.url, team.name, channel1.id, wiki1.id, testPage.id);
+        await page.goto(pageUrl);
+        await page.waitForLoadState('networkidle');
+        await waitForPageViewerLoad(page);
 
-    // # Open page actions menu and click Move
-    await openPageActionsMenu(page);
-    await clickPageContextMenuItem(page, 'move');
+        // # Open page actions menu and click Move
+        await openPageActionsMenu(page);
+        await clickPageContextMenuItem(page, 'move');
 
-    // # Select wiki2 in move modal
-    const moveModal = page.getByRole('dialog', {name: /Move/i});
-    await expect(moveModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // # Select wiki2 in move modal
+        const moveModal = page.getByRole('dialog', {name: /Move/i});
+        await expect(moveModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    const wikiSelect = moveModal.locator('#target-wiki-select');
-    await wikiSelect.selectOption(wiki2.id);
+        const wikiSelect = moveModal.locator('#target-wiki-select');
+        await wikiSelect.selectOption(wiki2.id);
 
-    const confirmButton = moveModal.getByRole('button', {name: /Move|Confirm/i});
-    await confirmButton.click();
+        const confirmButton = moveModal.getByRole('button', {name: /Move|Confirm/i});
+        await confirmButton.click();
 
-    await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('networkidle');
 
-    // * Verify page now accessible via wiki2/channel2 permissions
-    const movedPageUrl = buildWikiPageUrl(pw.url, team.name, channel2.id, wiki2.id, testPage.id);
-    await page.goto(movedPageUrl);
-    await page.waitForLoadState('networkidle');
+        // * Verify page now accessible via wiki2/channel2 permissions
+        const movedPageUrl = buildWikiPageUrl(pw.url, team.name, channel2.id, wiki2.id, testPage.id);
+        await page.goto(movedPageUrl);
+        await page.waitForLoadState('networkidle');
 
-    // * Verify page content is accessible
-    await waitForPageViewerLoad(page);
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageContent).toContainText('Content');
-});
+        // * Verify page content is accessible
+        await waitForPageViewerLoad(page);
+        const pageContent = page.locator('[data-testid="page-viewer-content"]');
+        await expect(pageContent).toContainText('Content');
+    },
+);
 
 /**
  * @objective Verify read-only permissions restrict editing
@@ -289,18 +292,18 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
     await adminClient.addToChannel(createdGuestUser.id, channel.id);
 
     // # Login as guest and navigate to the page
-    const {page} = await pw.testBrowser.login(createdGuestUser);
+    const {page: guestPage} = await pw.testBrowser.login(createdGuestUser);
     const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
-    await page.goto(pageUrl);
-    await page.waitForLoadState('networkidle');
+    await guestPage.goto(pageUrl);
+    await guestPage.waitForLoadState('networkidle');
 
     // * Verify page is viewable
-    await waitForPageViewerLoad(page);
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await waitForPageViewerLoad(guestPage);
+    const pageContent = guestPage.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toContainText('Protected content');
 
     // * Verify edit button is not enabled
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    const editButton = guestPage.locator('[data-testid="wiki-page-edit-button"]');
     await expect(editButton).not.toBeEnabled({timeout: AUTOSAVE_WAIT});
 
     // # Restore original guest accounts setting

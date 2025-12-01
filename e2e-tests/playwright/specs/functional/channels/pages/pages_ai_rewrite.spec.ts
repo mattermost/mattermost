@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from './pages_test_fixture';
 import {configureAIPlugin, shouldSkipAITests} from '@mattermost/playwright-lib';
 
+import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     getNewPageButton,
@@ -45,7 +45,7 @@ test('shows AI rewrite button when text is selected', {tag: '@pages'}, async ({p
     await channelsPage.toBeVisible();
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `AI Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `AI Test Wiki ${await pw.random.id()}`);
 
     // # Create new page
     const newPageButton = getNewPageButton(page);
@@ -98,7 +98,7 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Menu Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `AI Menu Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Menu Test Page');
@@ -129,7 +129,7 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
     const improveButton = page.locator('text=Improve writing');
     await expect(improveButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    const rewriteMenu = page.locator('[data-testid="rewrite-menu"]');
+    page.locator('[data-testid="rewrite-menu"]');
 
     // * Verify agent dropdown is visible
     const agentDropdown = page.locator('[role="combobox"]');
@@ -157,7 +157,7 @@ test('displays all 7 rewrite actions in menu', {tag: '@pages'}, async ({pw, shar
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Actions Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `AI Actions Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Actions Test Page');
@@ -217,7 +217,7 @@ test('gracefully degrades when AI plugin is not available', {tag: '@pages'}, asy
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `No AI Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `No AI Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'No AI Test Page');
@@ -256,54 +256,58 @@ test('gracefully degrades when AI plugin is not available', {tag: '@pages'}, asy
  * @precondition
  * AI plugin is enabled and agents are configured (test will skip gracefully if not available)
  */
-test('shows AI rewrite in inline comment toolbar when viewing page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
+test(
+    'shows AI rewrite in inline comment toolbar when viewing page',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
 
-    // # Configure AI plugin if enabled
-    if (!shouldSkipAITests()) {
-        await configureAIPlugin(adminClient);
-    }
+        // # Configure AI plugin if enabled
+        if (!shouldSkipAITests()) {
+            await configureAIPlugin(adminClient);
+        }
 
-    const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
+        const channel = await createTestChannel(adminClient, team.id, `AI Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and page with content
-    const wiki = await createWikiThroughUI(page, `AI Inline Test Wiki ${await pw.random.id()}`);
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'AI Inline Test Page');
+        // # Create wiki and page with content
+        await createWikiThroughUI(page, `AI Inline Test Wiki ${await pw.random.id()}`);
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'AI Inline Test Page');
 
-    // # Add content and publish
-    const editor = await getEditorAndWait(page);
+        // # Add content and publish
+        const editor = await getEditorAndWait(page);
 
-    // # Check if AI plugin is available
-    const hasAIPlugin = await checkAIPluginAvailability(page);
-    if (!hasAIPlugin) {
-        test.skip(true, 'AI plugin not configured - skipping AI rewrite test');
-        return;
-    }
-    await editor.click();
-    await page.keyboard.type('This is published content that can be selected for AI rewriting.');
-    await publishPage(page);
+        // # Check if AI plugin is available
+        const hasAIPlugin = await checkAIPluginAvailability(page);
+        if (!hasAIPlugin) {
+            test.skip(true, 'AI plugin not configured - skipping AI rewrite test');
+            return;
+        }
+        await editor.click();
+        await page.keyboard.type('This is published content that can be selected for AI rewriting.');
+        await publishPage(page);
 
-    // # Wait for page to be in view mode
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await expect(pageViewer).toBeVisible();
+        // # Wait for page to be in view mode
+        await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer).toBeVisible();
 
-    // # Select text in view mode
-    await selectTextInEditor(page, 'published content');
+        // # Select text in view mode
+        await selectTextInEditor(page, 'published content');
 
-    // * Verify inline comment toolbar appears with AI button
-    const inlineToolbar = page.locator('.inline-comment-toolbar');
-    await expect(inlineToolbar).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        // * Verify inline comment toolbar appears with AI button
+        const inlineToolbar = page.locator('.inline-comment-toolbar');
+        await expect(inlineToolbar).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    const aiButton = inlineToolbar.locator('[data-testid="inline-comment-ai-button"]');
-    await expect(aiButton).toBeVisible();
-});
+        const aiButton = inlineToolbar.locator('[data-testid="inline-comment-ai-button"]');
+        await expect(aiButton).toBeVisible();
+    },
+);
 
 /**
  * @objective Verify AI actually processes text and returns rewritten content
@@ -326,7 +330,7 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Integration Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `AI Integration Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Integration Test Page');
@@ -375,7 +379,7 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
     const maxWaitTime = 30000; // 30 seconds max
     const startTime = Date.now();
 
-    while (!contentChanged && (Date.now() - startTime) < maxWaitTime) {
+    while (!contentChanged && Date.now() - startTime < maxWaitTime) {
         const currentContent = await editor.textContent();
         if (currentContent && currentContent !== originalText && currentContent.trim() !== originalText) {
             contentChanged = true;
@@ -441,7 +445,7 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
     await channelsPage.toBeVisible();
 
     // # Create wiki and page
-    const wiki = await createWikiThroughUI(page, `AI Error Test Wiki ${await pw.random.id()}`);
+    await createWikiThroughUI(page, `AI Error Test Wiki ${await pw.random.id()}`);
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'AI Error Test Page');

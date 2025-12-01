@@ -161,9 +161,9 @@ func (a *App) calculateMaxDepthFromPostList(postList *model.PostList) int {
 
 // ChangePageParent updates the parent of a page
 func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID string) *model.AppError {
-	post, err := a.GetSinglePost(rctx, postID, false)
-	if err != nil || post.Type != model.PostTypePage {
-		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "page not found", http.StatusNotFound)
+	post, err := a.getPagePost(rctx, postID)
+	if err != nil {
+		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
 	}
 
 	session := rctx.Session()
@@ -182,11 +182,11 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.circular_reference.app_error", nil, "cannot set page as its own parent", http.StatusBadRequest)
 		}
 
-		parentPost, parentErr := a.GetSinglePost(rctx, newParentID, false)
+		parentPost, parentErr := a.getPagePost(rctx, newParentID)
 		if parentErr != nil {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "parent page not found", http.StatusBadRequest).Wrap(parentErr)
 		}
-		if parentPost.Type != model.PostTypePage || parentPost.ChannelId != post.ChannelId {
+		if parentPost.ChannelId != post.ChannelId {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.invalid_parent.app_error", nil, "parent must be a page in the same channel", http.StatusBadRequest)
 		}
 
