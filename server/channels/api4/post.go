@@ -1419,6 +1419,11 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !model.IsValidId(req.AgentID) {
+		c.SetInvalidParam("agent_id")
+		return
+	}
+
 	// Call app layer to handle business logic
 	response, appErr := c.App.RewriteMessage(
 		c.AppContext,

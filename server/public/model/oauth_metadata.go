@@ -58,7 +58,8 @@ func GetDefaultMetadata(siteURL string) (*AuthorizationServerMetadata, error) {
 			GrantTypeRefreshToken,
 		},
 		TokenEndpointAuthMethodsSupported: []string{
-			ClientAuthMethodClientSecretPost,
+			ClientAuthMethodNone,             // Public clients (PKCE)
+			ClientAuthMethodClientSecretPost, // Confidential clients
 		},
 		ScopesSupported: []string{
 			ScopeUser,
