@@ -25,6 +25,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 )
 
+func enableBoRFeature(th *TestHelper) {
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.BurnOnRead = true
+	})
+}
+
 func makePendingPostId(user *model.User) string {
 	return fmt.Sprintf("%s:%s", user.Id, strconv.FormatInt(model.GetMillis(), 10))
 }
@@ -1312,6 +1319,23 @@ func TestCreatePost(t *testing.T) {
 		createdPost, err := th.App.CreatePost(th.Context, postToCreate, th.BasicChannel, model.CreatePostFlags{ForceNotification: true})
 		require.Nil(t, err)
 		require.NotEmpty(t, createdPost.GetProp(model.PostPropsForceNotification))
+	})
+
+	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableBoRFeature(th)
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "hello world",
+			Type:      model.PostTypeBurnOnRead,
+			FileIds:   []string{model.NewId()},
+		}
+
+		createdPost, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.Empty(t, createdPost.FileIds)
 	})
 }
 
@@ -4406,13 +4430,6 @@ func TestRevealPost(t *testing.T) {
 		return createdPost
 	}
 
-	enableFeature := func() {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.BurnOnRead = true
-		})
-	}
-
 	// Create a second user for testing
 	user2 := th.CreateUser(t)
 	th.LinkUserToTeam(t, user2, th.BasicTeam)
@@ -4429,7 +4446,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("post doesn't have required prop", func(t *testing.T) {
-		enableFeature()
+		enableBoRFeature(th)
 
 		// Create a burn-on-read post without expire_at prop
 		post := &model.Post{
@@ -4454,7 +4471,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("post with invalid expire_at prop type", func(t *testing.T) {
-		enableFeature()
+		enableBoRFeature(th)
 
 		post := createBurnOnReadPost()
 
@@ -4469,7 +4486,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("post with zero expire_at", func(t *testing.T) {
-		enableFeature()
+		enableBoRFeature(th)
 
 		post := createBurnOnReadPost()
 
@@ -4484,7 +4501,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("read receipt does not exist", func(t *testing.T) {
-		enableFeature()
+		enableBoRFeature(th)
 
 		post := createBurnOnReadPost()
 
@@ -4505,7 +4522,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("read receipt exists and not expired", func(t *testing.T) {
-		enableFeature()
+		enableBoRFeature(th)
 
 		post := createBurnOnReadPost()
 
@@ -4525,7 +4542,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("read receipt exists but expired", func(t *testing.T) {
-		enableFeature()
+		enableBoRFeature(th)
 
 		post := createBurnOnReadPost()
 
@@ -4560,7 +4577,7 @@ func TestRevealPost(t *testing.T) {
 	})
 
 	t.Run("revealed post preserves existing metadata", func(t *testing.T) {
-		enableFeature()
+		enableBoRFeature(th)
 
 		fileBytes := []byte("test")
 		fileInfo, err := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
