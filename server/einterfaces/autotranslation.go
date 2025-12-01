@@ -99,4 +99,8 @@ type AutoTranslationInterface interface {
 	//   - confidence: detection confidence (0.0 to 1.0), nil if not available
 	//   - error: only for critical failures, not for failed detection
 	Detect(text string) (lang string, confidence *float64, err *model.AppError)
+
+	// Close cleans up resources used by the auto-translation implementation.
+	// This includes removing the config listener and shutting down the provider if present.
+	Close() error
 }

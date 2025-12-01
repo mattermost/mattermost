@@ -415,6 +415,28 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
 
+	if a.AutoTranslation != nil {
+		// Verify if auto-translation is enabled for this channel before proceeding
+		// This avoids unnecessary detection overhead for disabled channels
+		enabled, err := a.AutoTranslation.IsChannelEnabled(post.ChannelId)
+		if err == nil && enabled {
+			// Detect language and store in props
+			if detectedLang, _, _ := a.AutoTranslation.Detect(post.Message); detectedLang != "" {
+				if post.Props == nil {
+					post.Props = make(map[string]any)
+				}
+				post.Props["detected_language"] = detectedLang
+			}
+
+			ctx := model.WithAutoTranslationPath(rctx.Context(), model.AutoTranslationPathCreate)
+			// We're not doing anything with the result here yet, just firing it off
+			// The fan-out happens inside Translate
+			_, _ = a.AutoTranslation.Translate(ctx, "post", post.Id, post.ChannelId, post.UserId, post)
+		} else if err != nil {
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", post.ChannelId), mlog.Err(err))
+		}
+	}
+
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
 	if ephemeralPost != nil {
 		a.SendEphemeralPost(rctx, post.UserId, ephemeralPost)

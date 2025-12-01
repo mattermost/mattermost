@@ -284,10 +284,8 @@ func (ch *Channels) Stop() error {
 
 	// Cleanup auto-translation resources
 	if ch.AutoTranslation != nil {
-		if closer, ok := ch.AutoTranslation.(interface{ Close() error }); ok {
-			if err := closer.Close(); err != nil {
-				mlog.Warn("Failed to close auto-translation interface", mlog.Err(err))
-			}
+		if err := ch.AutoTranslation.Close(); err != nil {
+			mlog.Warn("Failed to close auto-translation interface", mlog.Err(err))
 		}
 	}
 

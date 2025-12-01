@@ -23,6 +23,7 @@ type TranslationState string
 const (
 	TranslationStateReady       TranslationState = "ready"
 	TranslationStateSkipped     TranslationState = "skipped"
+	TranslationStateTranslating TranslationState = "translating"
 	TranslationStateUnavailable TranslationState = "unavailable"
 )
 
