@@ -4767,24 +4767,28 @@
     "translation": "Post is not a page."
   },
   {
-    "id": "api.wiki.breadcrumb.invalid_wiki",
-    "translation": "Invalid wiki for breadcrumb."
+    "id": "api.wiki.comment.deleted.app_error",
+    "translation": "Cannot modify deleted comment."
+  },
+  {
+    "id": "api.wiki.comment.not_comment.app_error",
+    "translation": "Post is not a comment."
+  },
+  {
+    "id": "api.wiki.comment.not_inline.app_error",
+    "translation": "Comment is not an inline comment."
+  },
+  {
+    "id": "api.wiki.comment.wrong_page.app_error",
+    "translation": "Comment does not belong to this page."
   },
   {
     "id": "api.wiki.create.deleted_channel.forbidden.app_error",
     "translation": "Cannot create wiki in archived channel."
   },
   {
-    "id": "api.wiki.create_comment.invalid_wiki",
-    "translation": "Invalid wiki for comment."
-  },
-  {
     "id": "api.wiki.create_comment.not_page.app_error",
     "translation": "Cannot create comment: post is not a page."
-  },
-  {
-    "id": "api.wiki.create_comment_reply.invalid_wiki",
-    "translation": "Invalid wiki for comment reply."
   },
   {
     "id": "api.wiki.create_comment_reply.not_page.app_error",
@@ -4799,14 +4803,6 @@
     "translation": "Post is not a page."
   },
   {
-    "id": "api.wiki.get_comments.invalid_wiki",
-    "translation": "Invalid wiki for comments."
-  },
-  {
-    "id": "api.wiki.get_page.invalid_wiki",
-    "translation": "Invalid wiki for page."
-  },
-  {
     "id": "api.wiki.get_page.wiki_deleted",
     "translation": "Wiki has been deleted."
   },
@@ -4819,8 +4815,8 @@
     "translation": "Post is not a page."
   },
   {
-    "id": "api.wiki.move_page.invalid_wiki",
-    "translation": "Invalid wiki for page move."
+    "id": "api.wiki.page_wiki_mismatch",
+    "translation": "Page does not belong to this wiki."
   },
   {
     "id": "api.wiki.permission.app_error",
@@ -4837,42 +4833,6 @@
   {
     "id": "api.wiki.permission.forbidden.app_error",
     "translation": "You do not have permission to access this wiki."
-  },
-  {
-    "id": "api.wiki.resolve_comment.deleted.app_error",
-    "translation": "Cannot resolve deleted comment."
-  },
-  {
-    "id": "api.wiki.resolve_comment.not_comment.app_error",
-    "translation": "Post is not a comment."
-  },
-  {
-    "id": "api.wiki.resolve_comment.not_inline.app_error",
-    "translation": "Comment is not an inline comment."
-  },
-  {
-    "id": "api.wiki.resolve_comment.wrong_page.app_error",
-    "translation": "Comment does not belong to this page."
-  },
-  {
-    "id": "api.wiki.unresolve_comment.deleted.app_error",
-    "translation": "Cannot unresolve deleted comment."
-  },
-  {
-    "id": "api.wiki.unresolve_comment.not_comment.app_error",
-    "translation": "Post is not a comment."
-  },
-  {
-    "id": "api.wiki.unresolve_comment.not_inline.app_error",
-    "translation": "Comment is not an inline comment."
-  },
-  {
-    "id": "api.wiki.unresolve_comment.wrong_page.app_error",
-    "translation": "Comment does not belong to this page."
-  },
-  {
-    "id": "api.wiki.update_page_parent.invalid_wiki",
-    "translation": "Invalid wiki for page parent update."
   },
   {
     "id": "api.wiki.update_page_parent.not_page.app_error",
@@ -11403,6 +11363,34 @@
   {
     "id": "model.page_content.is_valid.update_at.app_error",
     "translation": "Invalid page content update time."
+  },
+  {
+    "id": "model.page_draft.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID in page draft."
+  },
+  {
+    "id": "model.page_draft.is_valid.content_invalid.app_error",
+    "translation": "Invalid page draft content."
+  },
+  {
+    "id": "model.page_draft.is_valid.content_too_large.app_error",
+    "translation": "Page draft content exceeds maximum size."
+  },
+  {
+    "id": "model.page_draft.is_valid.draft_id.app_error",
+    "translation": "Invalid draft ID in page draft."
+  },
+  {
+    "id": "model.page_draft.is_valid.title_too_long.app_error",
+    "translation": "Page draft title is too long."
+  },
+  {
+    "id": "model.page_draft.is_valid.user_id.app_error",
+    "translation": "Invalid user ID in page draft."
+  },
+  {
+    "id": "model.page_draft.is_valid.wiki_id.app_error",
+    "translation": "Invalid wiki ID in page draft."
   },
   {
     "id": "model.page_draft_content.is_valid.content_invalid.app_error",
