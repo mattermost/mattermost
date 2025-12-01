@@ -3689,9 +3689,9 @@ func (a *App) getDirectChannel(rctx request.CTX, userID, otherUserID string) (*m
 }
 
 // GetDirectOrGroupMessageMembersCommonTeamsAsUser is a variant of GetDirectOrGroupMessageMembersCommonTeams
-// that returns results relative to the requesting user.
-func (a *App) GetDirectOrGroupMessageMembersCommonTeamsAsUser(rctx request.CTX, requestingUserID, channelID string) ([]*model.Team, *model.AppError) {
-	return a.getDirectOrGroupMessageMembersCommonTeams(rctx, requestingUserID, channelID)
+// that returns results relative to the requesting user from the session in the request context.
+func (a *App) GetDirectOrGroupMessageMembersCommonTeamsAsUser(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+	return a.getDirectOrGroupMessageMembersCommonTeams(rctx, rctx.Session().UserId, channelID)
 }
 
 // GetDirectOrGroupMessageMembersCommonTeams returns the set of teams in common for the members of the given DM/GM channel.

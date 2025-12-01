@@ -2884,19 +2884,19 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		assertTeam1InCommon(t, commonTeams)
 
 		t.Run("as user1", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user1.Id, dmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user1.Id}), dmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1InCommon(t, commonTeams)
 		})
 
 		t.Run("as user2", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user2.Id, dmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), dmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1InCommon(t, commonTeams)
 		})
 
 		t.Run("as unrelatedUser", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, unrelatedUser.Id, dmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), dmChannel.Id)
 			require.Nil(t, appErr)
 			assertNoTeamsInCommon(t, commonTeams)
 		})
@@ -2921,13 +2921,13 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		assertTeam1InCommon(t, commonTeams)
 
 		t.Run("as user1", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user1.Id, dmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user1.Id}), dmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1InCommon(t, commonTeams)
 		})
 
 		t.Run("as deactivatedUser", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, deactivatedUser.Id, dmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: deactivatedUser.Id}), dmChannel.Id)
 			require.Nil(t, appErr)
 
 			// When requesting as deactivated user in the dm, no teams are considered in common.
@@ -2935,7 +2935,7 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		})
 
 		t.Run("as unrelatedUser", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, unrelatedUser.Id, dmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), dmChannel.Id)
 			require.Nil(t, appErr)
 			assertNoTeamsInCommon(t, commonTeams)
 		})
@@ -2951,25 +2951,25 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		assertTeam1InCommon(t, commonTeams)
 
 		t.Run("as user1", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user1.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user1.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1InCommon(t, commonTeams)
 		})
 
 		t.Run("as user2", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user2.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1InCommon(t, commonTeams)
 		})
 
 		t.Run("as user3", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user3.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1InCommon(t, commonTeams)
 		})
 
 		t.Run("as unrelatedUser", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, unrelatedUser.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertNoTeamsInCommon(t, commonTeams)
 		})
@@ -2985,19 +2985,19 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		assertNoTeamsInCommon(t, commonTeams)
 
 		t.Run("as user2", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user2.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertNoTeamsInCommon(t, commonTeams)
 		})
 
 		t.Run("as user3", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user3.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertNoTeamsInCommon(t, commonTeams)
 		})
 
 		t.Run("as unrelatedUser", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, unrelatedUser.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertNoTeamsInCommon(t, commonTeams)
 		})
@@ -3022,19 +3022,19 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		assertTeam1And2InCommon(t, commonTeams)
 
 		t.Run("as user2", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user2.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1And2InCommon(t, commonTeams)
 		})
 
 		t.Run("as user3", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, user3.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertTeam1And2InCommon(t, commonTeams)
 		})
 
 		t.Run("as deactivatedUser", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, deactivatedUser.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: deactivatedUser.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 
 			// When requesting as deactivated user in the gm, no teams are considered in common.
@@ -3042,7 +3042,7 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		})
 
 		t.Run("as unrelatedUser", func(t *testing.T) {
-			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context, unrelatedUser.Id, gmChannel.Id)
+			commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
 			require.Nil(t, appErr)
 			assertNoTeamsInCommon(t, commonTeams)
 		})
