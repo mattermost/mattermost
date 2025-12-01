@@ -373,6 +373,11 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		if a.Metrics() != nil {
 			a.Metrics().IncrementPostFileAttachment(len(post.FileIds))
 		}
+
+		// For BoR posts, remove fileIds after attaching them with the post
+		if post.Type == model.PostTypeBurnOnRead {
+			post.FileIds = []string{}
+		}
 	}
 
 	// We make a copy of the post for the plugin hook to avoid a race condition,
