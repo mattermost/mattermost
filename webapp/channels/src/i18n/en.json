@@ -6726,6 +6726,8 @@
   "widgets.users_emails_input.loading": "Loading",
   "widgets.users_emails_input.no_user_found_matching": "No one found matching **{text}**. Enter their email to invite them.",
   "widgets.users_emails_input.valid_email": "Add **{email}**",
+  "wiki_rhs.back.icon": "Back Icon",
+  "wiki_rhs.backToCommentsTooltip": "Back to comments",
   "wiki_tab.copy_link": "Copy link",
   "wiki_tab.delete": "Delete",
   "wiki_tab.delete_modal_confirm": "Yes, delete",
