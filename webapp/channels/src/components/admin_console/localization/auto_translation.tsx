@@ -7,6 +7,7 @@ import {defineMessages, FormattedMessage} from 'react-intl';
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
 import DropdownSetting from 'components/admin_console/dropdown_setting';
+import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import {
     AdminSection,
     SectionContent,
@@ -17,9 +18,13 @@ import Toggle from 'components/toggle';
 import AutoTranslationInfo from './auto_translation_info';
 import LibreTranslateSettings from './libreTranslate_settings';
 
+import * as I18n from 'i18n/i18n.jsx';
+
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
 import './localization.scss';
 import type {SearchableStrings} from '../types';
+
+const locales = I18n.getAllLanguages();
 
 const messages = defineMessages({
     enableAutoTranslationTitle: {
@@ -49,6 +54,15 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     const handleToggle = useCallback(() => {
         handleChange('Enable', !autoTranslationSettings.Enable);
     }, [autoTranslationSettings, handleChange]);
+
+    const availableLanguages = useMemo(() => {
+        const values: Array<{value: string; text: string; order: number}> = [];
+        for (const l of Object.values(locales)) {
+            values.push({value: l.value, text: l.name, order: l.order});
+        }
+        values.sort((a, b) => a.order - b.order);
+        return values;
+    }, []);
 
     const providerHelpTextValues = useMemo(() => ({
         br: <br/>,
@@ -120,6 +134,26 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     disabled={props.disabled || props.setByEnv}
                     setByEnv={props.setByEnv}
                     onChange={handleChange}
+                />
+                <MultiSelectSetting
+                    id={'TargetLanguages'}
+                    label={
+                        <FormattedMessage
+                            id='admin.site.localization.targetLanguagesTitle'
+                            defaultMessage='Target Languages'
+                        />
+                    }
+                    values={availableLanguages}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.site.localization.targetLanguagesDescription'
+                            defaultMessage='Select which languages to translate messages into. Messages will automatically be translated to these languages in channels where auto-translation is enabled. Users will see translations based on their language preference.'
+                        />
+                    }
+                    selected={(autoTranslationSettings as any).TargetLanguages || ['en']}
+                    onChange={handleChange}
+                    disabled={props.disabled || props.setByEnv}
+                    setByEnv={props.setByEnv}
                 />
                 {autoTranslationSettings.Provider === 'libretranslate' &&
                 <LibreTranslateSettings

@@ -25,6 +25,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 const (
@@ -2696,10 +2697,11 @@ func (s *LocalizationSettings) SetDefaults() {
 }
 
 type AutoTranslationSettings struct {
-	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
-	Provider       *string                         `access:"site_localization,cloud_restrictable"`
-	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
-	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
+	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
+	Provider        *string                         `access:"site_localization,cloud_restrictable"`
+	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
+	TimeoutsMs      *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
+	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
 	// TODO: Enable Agents provider in future release
 	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
@@ -2743,6 +2745,10 @@ func (s *AutoTranslationSettings) SetDefaults() {
 		s.Provider = NewPointer("")
 	}
 
+	if s.TargetLanguages == nil {
+		s.TargetLanguages = &[]string{"en"}
+	}
+
 	if s.TimeoutsMs == nil {
 		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
 	}
@@ -2758,6 +2764,22 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	// 	s.Agents = &AgentsProviderSettings{}
 	// }
 	// s.Agents.SetDefaults()
+}
+
+func (s *AutoTranslationSettings) isValidTargetLanguages() bool {
+	if s.TargetLanguages == nil {
+		return false
+	}
+
+	// Validate each language code
+	supportedLocales := i18n.GetSupportedLocales()
+	for _, lang := range *s.TargetLanguages {
+		if _, ok := supportedLocales[lang]; !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
