@@ -523,10 +523,26 @@ describe('PostList', () => {
         // For scrollOffset=490: offsetFromBottom = 1000 - 500 - 490 = 10 (at bottom)
         // For scrollOffset=501: offsetFromBottom = 1000 - 500 - 501 = -1 (at bottom)
         test.each([
-            {name: 'when viewing the top of the post list', scrollOffset: 0, expected: false},
-            {name: 'when 11 pixel from the bottom', scrollOffset: 489, expected: false},
-            {name: 'when 9 pixel from the bottom also considered to be bottom', scrollOffset: 490, expected: true},
-            {name: 'when clientHeight is less than scrollHeight', scrollOffset: 501, expected: true},
+            {
+                name: 'when viewing the top of the post list',
+                scrollOffset: 0,
+                expected: false,
+            },
+            {
+                name: 'when 11 pixel from the bottom',
+                scrollOffset: 489,
+                expected: false,
+            },
+            {
+                name: 'when 9 pixel from the bottom also considered to be bottom',
+                scrollOffset: 490,
+                expected: true,
+            },
+            {
+                name: 'when clientHeight is less than scrollHeight',
+                scrollOffset: 501,
+                expected: true,
+            },
         ])('$name', ({scrollOffset, expected}) => {
             renderWithContext(<PostList {...baseProps}/>);
 

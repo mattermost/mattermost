@@ -1,0 +1,111 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/threading/global_threads/thread_list > should match snapshot 1`] = `
+<div>
+  <div
+    class="ThreadList"
+    id="threads-list-container"
+    tabindex="0"
+  >
+    <div
+      class="Header"
+      id="tutorial-threads-mobile-header"
+    >
+      <div
+        class="left"
+      >
+        <div
+          aria-label="Filter visible threads"
+          aria-orientation="horizontal"
+          class="tab-buttons-list"
+          role="tablist"
+        >
+          <div
+            class="tab-button-wrapper"
+          >
+            <button
+              aria-controls="threads-list"
+              aria-selected="true"
+              class="Button Button___transparent is-active Button___large Margined"
+              id="threads-list-filter-none"
+              role="tab"
+              tabindex="0"
+            >
+              <span
+                class="Button_label"
+              >
+                Followed threads
+              </span>
+            </button>
+          </div>
+          <div
+            class="tab-button-wrapper"
+            id="threads-list-unread-button"
+          >
+            <button
+              aria-controls="threads-list"
+              aria-selected="false"
+              class="Button Button___transparent Button___large Margined"
+              id="threads-list-filter-unread"
+              role="tab"
+              tabindex="-1"
+            >
+              <span
+                class="Button_label"
+              >
+                Unreads
+                <span
+                  class="dot"
+                />
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div
+        class="spacer"
+      />
+      <div
+        class="right-anchor"
+      >
+        <button
+          aria-label="Mark all threads as read"
+          class="Button Button___transparent Button___large Button___icon"
+          id="threads-list__mark-all-as-read"
+        >
+          <span
+            class="Button_label margin_top"
+          >
+            <span
+              class="icon"
+            >
+              <svg
+                fill="currentColor"
+                height="18"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="18"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14,10H2V12H14V10M14,6H2V8H14V6M2,16H10V14H2V16M21.5,11.5L23,13L16,20L11.5,15.5L13,14L16,17L21.5,11.5Z"
+                />
+              </svg>
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="threads"
+      data-testid="threads_list"
+      id="threads-list"
+      role="tabpanel"
+    >
+      <div
+        style="overflow: visible; height: 0px; width: 0px;"
+      />
+    </div>
+  </div>
+</div>
+`;

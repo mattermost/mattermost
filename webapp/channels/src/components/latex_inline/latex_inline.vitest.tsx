@@ -5,7 +5,7 @@ import React from 'react';
 
 import LatexInline from 'components/latex_inline/latex_inline';
 
-import {renderWithIntl, act} from 'tests/vitest_react_testing_utils';
+import {renderWithIntl, screen, waitFor} from 'tests/vitest_react_testing_utils';
 
 vi.mock('katex', () => ({
     default: {
@@ -31,13 +31,17 @@ describe('components/LatexInline', () => {
     };
 
     test('should match snapshot', async () => {
-        let container: HTMLElement | undefined;
+        renderWithIntl(<LatexInline {...defaultProps}/>);
 
-        await act(async () => {
-            const result = renderWithIntl(<LatexInline {...defaultProps}/>);
-            container = result.container;
+        // Wait for katex to load (component switches from latex-disabled to latex-enabled)
+        await waitFor(() => {
+            expect(screen.getByTestId('latex-enabled')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
+
+        // Verify the katex output is rendered
+        const element = screen.getByTestId('latex-enabled');
+        expect(element).toHaveClass('post-body--code', 'inline-tex');
+        expect(element.querySelector('.katex')).toBeInTheDocument();
     });
 
     test('latex is disabled', async () => {
@@ -46,27 +50,30 @@ describe('components/LatexInline', () => {
             enableInlineLatex: false,
         };
 
-        let container: HTMLElement | undefined;
+        renderWithIntl(<LatexInline {...props}/>);
 
-        await act(async () => {
-            const result = renderWithIntl(<LatexInline {...props}/>);
-            container = result.container;
-        });
-        expect(container).toMatchSnapshot();
+        // When disabled, it immediately shows the disabled version (no async loading)
+        const element = screen.getByTestId('latex-disabled');
+        expect(element).toBeInTheDocument();
+        expect(element).toHaveClass('post-body--code', 'inline-tex');
+        expect(element.textContent).toBe('$e^{i\\pi} + 1 = 0$');
     });
 
     test('error in katex', async () => {
         const props = {
-            content: 'e^{i\\pi + 1 = 0',
+            content: 'e^{i\\pi + 1 = 0', // Missing closing brace
             enableInlineLatex: true,
         };
 
-        let container: HTMLElement | undefined;
+        renderWithIntl(<LatexInline {...props}/>);
 
-        await act(async () => {
-            const result = renderWithIntl(<LatexInline {...props}/>);
-            container = result.container;
+        // Wait for katex to load and render the error
+        await waitFor(() => {
+            expect(screen.getByTestId('latex-enabled')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
+
+        // Verify error is shown
+        const element = screen.getByTestId('latex-enabled');
+        expect(element.querySelector('.katex-error')).toBeInTheDocument();
     });
 });

@@ -1,0 +1,131 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/UserList > should match default snapshot 1`] = `
+<div>
+  <div>
+    <div
+      class="more-modal__placeholder-row no-users-found"
+      data-testid="noUsersFound"
+    >
+      <p>
+        No users found
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/UserList > should match default snapshot when there are users 1`] = `
+<div>
+  <div>
+    <div
+      class="more-modal__row"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="status-wrapper style--none"
+        style="border-radius: 50%; width: 32px; height: 32px;"
+      >
+        <span
+          class="profile-icon "
+        >
+          <img
+            alt="some-user profile image"
+            class="Avatar Avatar-md"
+            loading="lazy"
+            src="/api/v4/users/id1/image"
+          />
+        </span>
+      </button>
+      <div
+        class="more-modal__details"
+        data-testid="userListItemDetails"
+      >
+        <div
+          class="d-flex whitespace--nowrap"
+        >
+          <div
+            class="more-modal__name"
+          >
+            <button
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              class="user-popover style--none"
+            >
+              @some-user
+            </button>
+          </div>
+          <span
+            class="sc-jrkPvW fBNXNp"
+          />
+        </div>
+        <div
+          class="more-modal__description"
+        >
+          <span />
+        </div>
+      </div>
+      <div
+        class="more-modal__actions"
+        data-testid="userListItemActions"
+      />
+    </div>
+    <div
+      class="more-modal__row"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="status-wrapper style--none"
+        style="border-radius: 50%; width: 32px; height: 32px;"
+      >
+        <span
+          class="profile-icon "
+        >
+          <img
+            alt="some-user profile image"
+            class="Avatar Avatar-md"
+            loading="lazy"
+            src="/api/v4/users/id2/image"
+          />
+        </span>
+      </button>
+      <div
+        class="more-modal__details"
+        data-testid="userListItemDetails"
+      >
+        <div
+          class="d-flex whitespace--nowrap"
+        >
+          <div
+            class="more-modal__name"
+            id="userListRowName1"
+          >
+            <button
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              class="user-popover style--none"
+            >
+              @some-user
+            </button>
+          </div>
+          <span
+            class="sc-jrkPvW fBNXNp"
+          />
+        </div>
+        <div
+          class="more-modal__description"
+          id="userListRowEmail1"
+        >
+          <span />
+        </div>
+      </div>
+      <div
+        class="more-modal__actions"
+        data-testid="userListItemActions"
+      />
+    </div>
+  </div>
+</div>
+`;

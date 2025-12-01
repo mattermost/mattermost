@@ -1,0 +1,988 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/signup/Signup > should match snapshot for all signup options enabled with EnableUserCreaton disabled 1`] = `
+<div>
+  <div
+    class="signup-body"
+  >
+    <div
+      class="signup-body-content"
+    >
+      <div
+        class="signup-body-message"
+      >
+        <h1
+          class="signup-body-message-title"
+        >
+          Let’s get started
+        </h1>
+        <p
+          class="signup-body-message-subtitle"
+        >
+          Create your Mattermost account to start collaborating with your team
+        </p>
+      </div>
+      <div
+        class="signup-body-action"
+      >
+        <div
+          class="signup-body-card"
+        >
+          <div
+            class="signup-body-card-content"
+          >
+            <h2
+              class="signup-body-card-title"
+            >
+              Create your account with one of the following:
+            </h2>
+            <div
+              class="signup-body-card-form-login-options column"
+            >
+              <a
+                class="external-login-button direction-column ldap"
+                href="/login?extra=create_ldap"
+                id="ldap"
+              >
+                <span>
+                  <svg
+                    aria-label="Private Channel Icon"
+                    height="13px"
+                    role="presentation"
+                    viewBox="0 0 13 15"
+                    width="12px"
+                  >
+                    <g
+                      fill="inherit"
+                      fill-rule="evenodd"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        fill="inherit"
+                        fill-rule="nonzero"
+                        transform="translate(-116.000000, -175.000000)"
+                      >
+                        <g
+                          transform="translate(95.000000, 0.000000)"
+                        >
+                          <g
+                            transform="translate(20.000000, 113.000000)"
+                          >
+                            <g
+                              transform="translate(1.000000, 62.000000)"
+                            >
+                              <path
+                                d="M12.0714286,6.5 L11.1428571,6.5 L11.1428571,4.64285714 C11.1428571,2.07814286 9.06471429,0 6.5,0 C3.93528571,0 1.85714286,2.07814286 1.85714286,4.64285714 L1.85714286,6.5 L0.928571429,6.5 C0.415071429,6.5 0,7.00792857 0,7.52142857 L0,13.9285714 C0,14.4420714 0.415071429,14.8571429 0.928571429,14.8571429 L12.0714286,14.8571429 C12.5849286,14.8571429 13,14.4420714 13,13.9285714 L13,7.52142857 C13,7.00792857 12.5849286,6.5 12.0714286,6.5 Z M6.5,1.85714286 C8.03585714,1.85714286 9.28571429,3.107 9.28571429,4.64285714 L9.28571429,6.5 L8.35714286,6.5 L4.64285714,6.5 L3.71428571,6.5 L3.71428571,4.64285714 C3.71428571,3.107 4.96414286,1.85714286 6.5,1.85714286 Z"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  AD/LDAP Credentials
+                </span>
+              </a>
+              <a
+                class="external-login-button direction-column saml"
+                href="/login/sso/saml?action=signup"
+                id="saml"
+              >
+                <span>
+                  <svg
+                    aria-label="Private Channel Icon"
+                    height="13px"
+                    role="presentation"
+                    viewBox="0 0 13 15"
+                    width="12px"
+                  >
+                    <g
+                      fill="inherit"
+                      fill-rule="evenodd"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        fill="inherit"
+                        fill-rule="nonzero"
+                        transform="translate(-116.000000, -175.000000)"
+                      >
+                        <g
+                          transform="translate(95.000000, 0.000000)"
+                        >
+                          <g
+                            transform="translate(20.000000, 113.000000)"
+                          >
+                            <g
+                              transform="translate(1.000000, 62.000000)"
+                            >
+                              <path
+                                d="M12.0714286,6.5 L11.1428571,6.5 L11.1428571,4.64285714 C11.1428571,2.07814286 9.06471429,0 6.5,0 C3.93528571,0 1.85714286,2.07814286 1.85714286,4.64285714 L1.85714286,6.5 L0.928571429,6.5 C0.415071429,6.5 0,7.00792857 0,7.52142857 L0,13.9285714 C0,14.4420714 0.415071429,14.8571429 0.928571429,14.8571429 L12.0714286,14.8571429 C12.5849286,14.8571429 13,14.4420714 13,13.9285714 L13,7.52142857 C13,7.00792857 12.5849286,6.5 12.0714286,6.5 Z M6.5,1.85714286 C8.03585714,1.85714286 9.28571429,3.107 9.28571429,4.64285714 L9.28571429,6.5 L8.35714286,6.5 L4.64285714,6.5 L3.71428571,6.5 L3.71428571,4.64285714 C3.71428571,3.107 4.96414286,1.85714286 6.5,1.85714286 Z"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  SAML
+                </span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/signup/Signup > should match snapshot for all signup options enabled with isLicensed disabled 1`] = `
+<div>
+  <div
+    class="signup-body"
+  >
+    <div
+      class="signup-body-content"
+    >
+      <div
+        class="signup-body-message"
+      >
+        <h1
+          class="signup-body-message-title"
+        >
+          Let’s get started
+        </h1>
+        <p
+          class="signup-body-message-subtitle"
+        >
+          Create your Mattermost account to start collaborating with your team
+        </p>
+      </div>
+      <div
+        class="signup-body-action"
+      >
+        <div
+          class="signup-body-card"
+        >
+          <div
+            class="signup-body-card-content"
+          >
+            <h2
+              class="signup-body-card-title"
+            >
+              Create your account
+            </h2>
+            <form
+              class="signup-body-card-form"
+            >
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset signup-body-card-form-email-input Input_fieldset___legend"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend Input_legend___focus"
+                    for="input_email"
+                  >
+                                            
+                    Email address
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-label="Email address"
+                      class="Input form-control large Input__focus"
+                      data-testid="signup-body-card-form-email-input"
+                      id="input_email"
+                      name="email"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset signup-body-card-form-name-input"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_name"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-describedby="error_name"
+                      aria-label="Choose a Username"
+                      class="Input form-control large"
+                      data-testid="signup-body-card-form-name-input"
+                      id="input_name"
+                      name="name"
+                      placeholder="Choose a Username"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="Input___customMessage Input___info"
+                  id="error_name"
+                >
+                  <i
+                    aria-hidden="true"
+                    aria-label=""
+                    class="icon info icon-information-outline"
+                    role="img"
+                  />
+                  <span>
+                    You can use lowercase letters, numbers, periods, dashes, and underscores.
+                  </span>
+                </div>
+              </div>
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset password-input signup-body-card-form-password-input"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_password-input"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper password-input-with-toggle"
+                  >
+                    <input
+                      aria-describedby="error_password-input"
+                      aria-label="Choose a Password"
+                      class="Input form-control large"
+                      data-testid="signup-body-card-form-password-input"
+                      id="input_password-input"
+                      name="password-input"
+                      placeholder="Choose a Password"
+                      type="password"
+                      value=""
+                    />
+                  </div>
+                  <button
+                    aria-label="Show password"
+                    class="password-input-toggle"
+                    id="password_toggle"
+                    type="button"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon-eye-outline"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="Input___customMessage Input___info"
+                  id="error_password-input"
+                >
+                  <i
+                    aria-hidden="true"
+                    aria-label=""
+                    class="icon info icon-information-outline"
+                    role="img"
+                  />
+                  <span>
+                    Your password must be 5-72 characters long.
+                  </span>
+                </div>
+              </div>
+              <div
+                class="newsletter"
+              >
+                <span
+                  class="interested"
+                >
+                  Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
+                </span>
+                <span
+                  class="link"
+                >
+                  Sign up at 
+                  <a
+                    href="https://mattermost.com/security-updates/?utm_source=mattermost&utm_medium=in-product&utm_content=signup&uid=&sid=&edition=team&server_version="
+                    location="signup"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    https://mattermost.com/security-updates/
+                  </a>
+                  .
+                </span>
+              </div>
+              <button
+                class="btn btn-primary signup-body-card-form-button-submit large"
+                data-testid="saveSetting"
+                disabled=""
+                id="saveSetting"
+                type="submit"
+              >
+                <span>
+                  Create Account
+                </span>
+              </button>
+            </form>
+            <div
+              class="signup-body-card-form-divider"
+            >
+              <span
+                class="signup-body-card-form-divider-label"
+              >
+                or create an account with
+              </span>
+            </div>
+            <div
+              class="signup-body-card-form-login-options"
+            >
+              <a
+                class="external-login-button gitlab"
+                href="/oauth/gitlab/signup"
+                id="gitlab"
+              >
+                <span>
+                  <svg
+                    aria-label="Gitlab Icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 17 16"
+                    width="17"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.83325 15.4909L11.7793 6.45337H5.88745L8.83334 15.4909H8.83325Z"
+                      fill="#E24329"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.83339 15.4909L5.88737 6.45337H1.75854L8.83347 15.4908L8.83339 15.4909Z"
+                      fill="#FC6D26"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M1.75846 6.45329L0.863125 9.19966C0.781518 9.45021 0.870921 9.72467 1.08477 9.87941L8.83325 15.4908L1.75846 6.45325V6.45329Z"
+                      fill="#FCA326"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M1.75859 6.45333H5.88742L4.11296 1.01011C4.02169 0.73003 3.62418 0.73003 3.53296 1.01011L1.75854 6.45333H1.75859Z"
+                      fill="#E24329"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.83325 15.4909L11.7793 6.45337H15.9081L8.83334 15.4908L8.83325 15.4909Z"
+                      fill="#FC6D26"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M15.908 6.45329L16.8034 9.19966C16.885 9.45021 16.7956 9.72467 16.5817 9.87941L8.83325 15.4908L15.908 6.45325V6.45329Z"
+                      fill="#FCA326"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M15.9081 6.45333H11.7793L13.5538 1.01011C13.6451 0.73003 14.0426 0.73003 14.1338 1.01011L15.9082 6.45333H15.9081Z"
+                      fill="#E24329"
+                      fill-rule="evenodd"
+                    />
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  GitLab
+                </span>
+              </a>
+            </div>
+            <p
+              class="signup-body-card-agreement"
+            >
+              By proceeding to create your account and use Mattermost, you agree to our 
+              <a
+                location="signup-terms-of-use"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Terms of Use
+              </a>
+               and 
+              <a
+                location="signup-privacy-policy"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Privacy Policy
+              </a>
+              .  If you do not agree, you cannot use Mattermost.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/signup/Signup > should match snapshot for all signup options enabled with isLicensed enabled 1`] = `
+<div>
+  <div
+    class="signup-body"
+  >
+    <div
+      class="signup-body-content"
+    >
+      <div
+        class="signup-body-message"
+      >
+        <h1
+          class="signup-body-message-title"
+        >
+          Let’s get started
+        </h1>
+        <p
+          class="signup-body-message-subtitle"
+        >
+          Create your Mattermost account to start collaborating with your team
+        </p>
+      </div>
+      <div
+        class="signup-body-action"
+      >
+        <div
+          class="signup-body-card"
+        >
+          <div
+            class="signup-body-card-content"
+          >
+            <h2
+              class="signup-body-card-title"
+            >
+              Create your account
+            </h2>
+            <form
+              class="signup-body-card-form"
+            >
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset signup-body-card-form-email-input Input_fieldset___legend"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend Input_legend___focus"
+                    for="input_email"
+                  >
+                                            
+                    Email address
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-label="Email address"
+                      class="Input form-control large Input__focus"
+                      data-testid="signup-body-card-form-email-input"
+                      id="input_email"
+                      name="email"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset signup-body-card-form-name-input"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_name"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper"
+                  >
+                    <input
+                      aria-describedby="error_name"
+                      aria-label="Choose a Username"
+                      class="Input form-control large"
+                      data-testid="signup-body-card-form-name-input"
+                      id="input_name"
+                      name="name"
+                      placeholder="Choose a Username"
+                      type="text"
+                      value=""
+                    />
+                  </div>
+                </div>
+                <div
+                  class="Input___customMessage Input___info"
+                  id="error_name"
+                >
+                  <i
+                    aria-hidden="true"
+                    aria-label=""
+                    class="icon info icon-information-outline"
+                    role="img"
+                  />
+                  <span>
+                    You can use lowercase letters, numbers, periods, dashes, and underscores.
+                  </span>
+                </div>
+              </div>
+              <div
+                class="Input_container"
+              >
+                <div
+                  class="Input_fieldset password-input signup-body-card-form-password-input"
+                  data-testid="input-wrapper"
+                >
+                  <label
+                    class="Input_legend"
+                    for="input_password-input"
+                  >
+                                            
+                  </label>
+                  <div
+                    class="Input_wrapper password-input-with-toggle"
+                  >
+                    <input
+                      aria-describedby="error_password-input"
+                      aria-label="Choose a Password"
+                      class="Input form-control large"
+                      data-testid="signup-body-card-form-password-input"
+                      id="input_password-input"
+                      name="password-input"
+                      placeholder="Choose a Password"
+                      type="password"
+                      value=""
+                    />
+                  </div>
+                  <button
+                    aria-label="Show password"
+                    class="password-input-toggle"
+                    id="password_toggle"
+                    type="button"
+                  >
+                    <i
+                      aria-hidden="true"
+                      class="icon-eye-outline"
+                    />
+                  </button>
+                </div>
+                <div
+                  class="Input___customMessage Input___info"
+                  id="error_password-input"
+                >
+                  <i
+                    aria-hidden="true"
+                    aria-label=""
+                    class="icon info icon-information-outline"
+                    role="img"
+                  />
+                  <span>
+                    Your password must be 5-72 characters long.
+                  </span>
+                </div>
+              </div>
+              <div
+                class="newsletter"
+              >
+                <span
+                  class="interested"
+                >
+                  Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?
+                </span>
+                <span
+                  class="link"
+                >
+                  Sign up at 
+                  <a
+                    href="https://mattermost.com/security-updates/?utm_source=mattermost&utm_medium=in-product&utm_content=signup&uid=&sid=&edition=team&server_version="
+                    location="signup"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    https://mattermost.com/security-updates/
+                  </a>
+                  .
+                </span>
+              </div>
+              <button
+                class="btn btn-primary signup-body-card-form-button-submit large"
+                data-testid="saveSetting"
+                disabled=""
+                id="saveSetting"
+                type="submit"
+              >
+                <span>
+                  Create Account
+                </span>
+              </button>
+            </form>
+            <div
+              class="signup-body-card-form-divider"
+            >
+              <span
+                class="signup-body-card-form-divider-label"
+              >
+                or create an account with
+              </span>
+            </div>
+            <div
+              class="signup-body-card-form-login-options"
+            >
+              <a
+                class="external-login-button gitlab"
+                href="/oauth/gitlab/signup"
+                id="gitlab"
+              >
+                <span>
+                  <svg
+                    aria-label="Gitlab Icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 17 16"
+                    width="17"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.83325 15.4909L11.7793 6.45337H5.88745L8.83334 15.4909H8.83325Z"
+                      fill="#E24329"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.83339 15.4909L5.88737 6.45337H1.75854L8.83347 15.4908L8.83339 15.4909Z"
+                      fill="#FC6D26"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M1.75846 6.45329L0.863125 9.19966C0.781518 9.45021 0.870921 9.72467 1.08477 9.87941L8.83325 15.4908L1.75846 6.45325V6.45329Z"
+                      fill="#FCA326"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M1.75859 6.45333H5.88742L4.11296 1.01011C4.02169 0.73003 3.62418 0.73003 3.53296 1.01011L1.75854 6.45333H1.75859Z"
+                      fill="#E24329"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.83325 15.4909L11.7793 6.45337H15.9081L8.83334 15.4908L8.83325 15.4909Z"
+                      fill="#FC6D26"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M15.908 6.45329L16.8034 9.19966C16.885 9.45021 16.7956 9.72467 16.5817 9.87941L8.83325 15.4908L15.908 6.45325V6.45329Z"
+                      fill="#FCA326"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M15.9081 6.45333H11.7793L13.5538 1.01011C13.6451 0.73003 14.0426 0.73003 14.1338 1.01011L15.9082 6.45333H15.9081Z"
+                      fill="#E24329"
+                      fill-rule="evenodd"
+                    />
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  GitLab
+                </span>
+              </a>
+              <a
+                class="external-login-button google"
+                href="/oauth/google/signup"
+                id="google"
+              >
+                <span>
+                  <svg
+                    aria-label="Google Icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 17 16"
+                    width="17"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      clip-rule="evenodd"
+                      d="M15.5787 8.16364C15.5787 7.6531 15.5329 7.16219 15.4478 6.69092H8.66675V9.47601H12.5417C12.3747 10.376 11.8675 11.1386 11.1049 11.6491V13.4556H13.4318C14.7933 12.2022 15.5787 10.3564 15.5787 8.16364Z"
+                      fill="#4285F4"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.66685 15.2C10.6108 15.2 12.2407 14.5553 13.4319 13.4557L11.105 11.6491C10.4603 12.0811 9.63558 12.3364 8.66685 12.3364C6.79158 12.3364 5.2043 11.0699 4.63812 9.36804H2.23267V11.2335C3.41739 13.5866 5.8523 15.2 8.66685 15.2Z"
+                      fill="#34A853"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M4.63807 9.36806C4.49407 8.93606 4.41225 8.4746 4.41225 8.00006C4.41225 7.52551 4.49407 7.06406 4.63807 6.63206V4.7666H2.23261C1.74498 5.7386 1.4668 6.83824 1.4668 8.00006C1.4668 9.16187 1.74498 10.2615 2.23261 11.2335L4.63807 9.36806Z"
+                      fill="#FBBC05"
+                      fill-rule="evenodd"
+                    />
+                    <path
+                      clip-rule="evenodd"
+                      d="M8.66685 3.66369C9.72394 3.66369 10.673 4.02696 11.4192 4.74041L13.4843 2.67532C12.2374 1.5135 10.6076 0.800049 8.66685 0.800049C5.8523 0.800049 3.41739 2.4135 2.23267 4.76659L4.63812 6.63205C5.2043 4.93023 6.79158 3.66369 8.66685 3.66369Z"
+                      fill="#EA4335"
+                      fill-rule="evenodd"
+                    />
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  Google
+                </span>
+              </a>
+              <a
+                class="external-login-button office365"
+                href="/oauth/office365/signup"
+                id="office365"
+              >
+                <span>
+                  <svg
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M3.38 12.473c0.345 0.215 0.918 0.454 1.524 0.454 0.552 0 1.065 -0.16 1.49 -0.433l0.002 -0.001L8 11.491V15.111a1.387 1.387 0 0 1 -0.732 -0.208z"
+                      fill="#225086"
+                    />
+                    <path
+                      d="m6.98 1.34 -6.667 7.52c-0.515 0.581 -0.38 1.46 0.287 1.876l2.779 1.737c0.345 0.215 0.918 0.454 1.524 0.454 0.552 0 1.065 -0.16 1.49 -0.433l0.002 -0.001L8 11.491l-3.879 -2.425 3.88 -4.377V0.889c-0.377 0 -0.753 0.15 -1.02 0.451Z"
+                      fill="#6df"
+                    />
+                    <path
+                      d="M4.121 9.066L4.167 9.094L8 11.491L8.001 11.491L8.001 11.491L8.001 4.69L8 4.689L4.121 9.066Z"
+                      fill="#cbf8ff"
+                      points="4.636 10.199 4.688 10.231 9 12.927 9.001 12.927 9.001 12.927 9.001 5.276 9 5.275 4.636 10.199"
+                    />
+                    <path
+                      d="M15.399 10.736c0.668 -0.417 0.802 -1.295 0.287 -1.876l-4.374 -4.934a2.756 2.756 0 0 0 -1.167 -0.259c-0.822 0 -1.557 0.355 -2.046 0.912l-0.097 0.109 3.879 4.377 -3.88 2.425v3.62c0.255 0 0.509 -0.069 0.732 -0.208l6.667 -4.167Z"
+                      fill="#074793"
+                    />
+                    <path
+                      d="M8.001 0.889v3.8l0.097 -0.109a2.711 2.711 0 0 1 2.046 -0.912c0.42 0 0.814 0.095 1.167 0.259l-2.292 -2.586A1.351 1.351 0 0 0 8 0.89Z"
+                      fill="#0294e4"
+                    />
+                    <path
+                      d="M11.88 9.066L11.88 9.066L11.88 9.066L8.001 4.69L8.001 11.49L11.88 9.066Z"
+                      fill="#96bcc2"
+                      points="13.365 10.199 13.365 10.199 13.365 10.199 9.001 5.276 9.001 12.926 13.365 10.199"
+                    />
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  Entra ID
+                </span>
+              </a>
+              <a
+                class="external-login-button openid"
+                href="/oauth/openid/signup"
+                id="openid"
+              >
+                <span>
+                  <svg
+                    aria-label="OpenID Icon"
+                    fill="none"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    width="16"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M7.19995 1.2V15.2L9.59995 14V0L7.19995 1.2Z"
+                      fill="#F48018"
+                    />
+                    <path
+                      d="M15.6652 5.3302L16.0001 8.80002L11.313 7.85391"
+                      fill="#AEB0B3"
+                    />
+                    <path
+                      d="M10 4.61206V6.19484C11.015 6.37555 12.0439 6.71905 12.768 7.17939L14.4821 6.09046C13.3141 5.34815 11.686 4.82159 10 4.61206ZM2.42378 9.90251C2.42378 8.13669 4.2954 6.64895 6.84567 6.19484V4.61206C2.94414 5.09733 0 7.28065 0 9.90251C0 12.5244 3.08942 14.8262 7.2 15.2V13.6001C4.43386 13.2433 2.42378 11.7657 2.42378 9.90251Z"
+                      fill="#AEB0B3"
+                    />
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  Open ID
+                </span>
+              </a>
+              <a
+                class="external-login-button ldap"
+                href="/login?extra=create_ldap"
+                id="ldap"
+              >
+                <span>
+                  <svg
+                    aria-label="Private Channel Icon"
+                    height="13px"
+                    role="presentation"
+                    viewBox="0 0 13 15"
+                    width="12px"
+                  >
+                    <g
+                      fill="inherit"
+                      fill-rule="evenodd"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        fill="inherit"
+                        fill-rule="nonzero"
+                        transform="translate(-116.000000, -175.000000)"
+                      >
+                        <g
+                          transform="translate(95.000000, 0.000000)"
+                        >
+                          <g
+                            transform="translate(20.000000, 113.000000)"
+                          >
+                            <g
+                              transform="translate(1.000000, 62.000000)"
+                            >
+                              <path
+                                d="M12.0714286,6.5 L11.1428571,6.5 L11.1428571,4.64285714 C11.1428571,2.07814286 9.06471429,0 6.5,0 C3.93528571,0 1.85714286,2.07814286 1.85714286,4.64285714 L1.85714286,6.5 L0.928571429,6.5 C0.415071429,6.5 0,7.00792857 0,7.52142857 L0,13.9285714 C0,14.4420714 0.415071429,14.8571429 0.928571429,14.8571429 L12.0714286,14.8571429 C12.5849286,14.8571429 13,14.4420714 13,13.9285714 L13,7.52142857 C13,7.00792857 12.5849286,6.5 12.0714286,6.5 Z M6.5,1.85714286 C8.03585714,1.85714286 9.28571429,3.107 9.28571429,4.64285714 L9.28571429,6.5 L8.35714286,6.5 L4.64285714,6.5 L3.71428571,6.5 L3.71428571,4.64285714 C3.71428571,3.107 4.96414286,1.85714286 6.5,1.85714286 Z"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  AD/LDAP Credentials
+                </span>
+              </a>
+              <a
+                class="external-login-button saml"
+                href="/login/sso/saml?action=signup"
+                id="saml"
+              >
+                <span>
+                  <svg
+                    aria-label="Private Channel Icon"
+                    height="13px"
+                    role="presentation"
+                    viewBox="0 0 13 15"
+                    width="12px"
+                  >
+                    <g
+                      fill="inherit"
+                      fill-rule="evenodd"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        fill="inherit"
+                        fill-rule="nonzero"
+                        transform="translate(-116.000000, -175.000000)"
+                      >
+                        <g
+                          transform="translate(95.000000, 0.000000)"
+                        >
+                          <g
+                            transform="translate(20.000000, 113.000000)"
+                          >
+                            <g
+                              transform="translate(1.000000, 62.000000)"
+                            >
+                              <path
+                                d="M12.0714286,6.5 L11.1428571,6.5 L11.1428571,4.64285714 C11.1428571,2.07814286 9.06471429,0 6.5,0 C3.93528571,0 1.85714286,2.07814286 1.85714286,4.64285714 L1.85714286,6.5 L0.928571429,6.5 C0.415071429,6.5 0,7.00792857 0,7.52142857 L0,13.9285714 C0,14.4420714 0.415071429,14.8571429 0.928571429,14.8571429 L12.0714286,14.8571429 C12.5849286,14.8571429 13,14.4420714 13,13.9285714 L13,7.52142857 C13,7.00792857 12.5849286,6.5 12.0714286,6.5 Z M6.5,1.85714286 C8.03585714,1.85714286 9.28571429,3.107 9.28571429,4.64285714 L9.28571429,6.5 L8.35714286,6.5 L4.64285714,6.5 L3.71428571,6.5 L3.71428571,4.64285714 C3.71428571,3.107 4.96414286,1.85714286 6.5,1.85714286 Z"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </span>
+                <span
+                  class="external-login-button-label"
+                >
+                  SAML
+                </span>
+              </a>
+            </div>
+            <p
+              class="signup-body-card-agreement"
+            >
+              By proceeding to create your account and use Mattermost, you agree to our 
+              <a
+                location="signup-terms-of-use"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Terms of Use
+              </a>
+               and 
+              <a
+                location="signup-privacy-policy"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                Privacy Policy
+              </a>
+              .  If you do not agree, you cannot use Mattermost.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

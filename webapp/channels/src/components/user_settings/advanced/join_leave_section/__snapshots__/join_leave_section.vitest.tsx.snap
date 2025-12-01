@@ -1,0 +1,134 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/user_settings/advanced/JoinLeaveSection > should match snapshot 1`] = `
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="joinLeaveTitle"
+      >
+        Enable Join/Leave Messages
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="joinLeaveTitle joinLeaveEdit"
+        class="color--link style--none section-min__edit"
+        id="joinLeaveEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="joinLeaveDesc"
+    >
+      On
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/advanced/JoinLeaveSection > should match snapshot 2`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Enable Join/Leave Messages
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset>
+            <legend
+              class="form-legend hidden-label"
+            >
+              Enable Join/Leave Messages
+            </legend>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  checked=""
+                  class="a11y--active a11y--focused"
+                  id="joinLeaveOn"
+                  name="joinLeave"
+                  type="radio"
+                  value="true"
+                />
+                On
+              </label>
+              <br />
+            </div>
+            <div
+              class="radio"
+            >
+              <label>
+                <input
+                  id="joinLeaveOff"
+                  name="joinLeave"
+                  type="radio"
+                  value="false"
+                />
+                Off
+              </label>
+              <br />
+            </div>
+            <div
+              class="mt-5"
+            >
+              When "On", System Messages saying a user has joined or left a channel will be visible. When "Off", the System Messages about joining or leaving a channel will be hidden. A message will still show up when you are added to a channel, so you can receive a notification.
+            </div>
+          </fieldset>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

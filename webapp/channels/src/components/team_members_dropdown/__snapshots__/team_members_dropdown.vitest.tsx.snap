@@ -1,0 +1,85 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/team_members_dropdown > should match snapshot for a bot with group-constrained team 1`] = `
+<div>
+  <button
+    aria-controls="teamMembersDropdown_bot_menu"
+    aria-expanded="false"
+    aria-haspopup="true"
+    class="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_bot"
+  >
+    <span>
+      Team Admin
+       
+    </span>
+    <i
+      class="fa fa-angle-down"
+      title="Dropdown Icon"
+    />
+  </button>
+</div>
+`;
+
+exports[`components/team_members_dropdown > should match snapshot for team_members_dropdown 1`] = `
+<div>
+  <button
+    aria-controls="teamMembersDropdown_username2_menu"
+    aria-expanded="false"
+    aria-haspopup="true"
+    class="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_username2"
+  >
+    <span>
+      Team Admin
+       
+    </span>
+    <i
+      class="fa fa-angle-down"
+      title="Dropdown Icon"
+    />
+  </button>
+</div>
+`;
+
+exports[`components/team_members_dropdown > should match snapshot opening dropdown upwards 1`] = `
+<div>
+  <button
+    aria-controls="teamMembersDropdown_username2_menu"
+    aria-expanded="false"
+    aria-haspopup="true"
+    class="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_username2"
+  >
+    <span>
+      Team Admin
+       
+    </span>
+    <i
+      class="fa fa-angle-down"
+      title="Dropdown Icon"
+    />
+  </button>
+</div>
+`;
+
+exports[`components/team_members_dropdown > should match snapshot with group-constrained team 1`] = `
+<div>
+  <button
+    aria-controls="teamMembersDropdown_username2_menu"
+    aria-expanded="false"
+    aria-haspopup="true"
+    class="dropdown-toggle theme color--link style--none"
+    id="teamMembersDropdown_username2"
+  >
+    <span>
+      Team Admin
+       
+    </span>
+    <i
+      class="fa fa-angle-down"
+      title="Dropdown Icon"
+    />
+  </button>
+</div>
+`;

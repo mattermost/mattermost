@@ -23,6 +23,7 @@ vi.mock('utils/utils', async () => {
     return {
         ...actual,
         loadImage: (...args: any[]) => mockLoadImage(...args),
+        generateId: () => 'mock_generated_id',
     };
 });
 
@@ -61,9 +62,9 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Wait for image to load
+        // Wait for the image preview to actually appear (not just loadImage to be called)
         await waitFor(() => {
-            expect(mockLoadImage).toHaveBeenCalled();
+            expect(document.querySelector('.image_preview')).toBeInTheDocument();
         });
 
         // Verify image preview container is rendered

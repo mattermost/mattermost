@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/UserProfile > should match snapshot 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+  >
+    nickname
+  </button>
+</div>
+`;
+
+exports[`components/UserProfile > should match snapshot, when displayUsername is enabled 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+  >
+    @username
+  </button>
+</div>
+`;
+
+exports[`components/UserProfile > should match snapshot, when popover is disabled 1`] = `
+<div>
+  <div
+    class="user-popover"
+  >
+    nickname
+  </div>
+</div>
+`;
+
+exports[`components/UserProfile > should match snapshot, when user is shared 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+  >
+    nickname
+  </button>
+</div>
+`;
+
+exports[`components/UserProfile > should match snapshot, with colorization 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+    style="color: rgb(187, 210, 121);"
+  >
+    nickname
+  </button>
+</div>
+`;

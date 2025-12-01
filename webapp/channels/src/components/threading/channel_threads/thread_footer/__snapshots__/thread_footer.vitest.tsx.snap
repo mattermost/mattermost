@@ -1,0 +1,233 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/threading/channel_threads/thread_footer > should match snapshot when a single message is followed 1`] = `
+<div>
+  <div
+    class="ThreadFooter"
+  >
+    <div
+      class="indicator"
+    />
+    <button
+      class="Button Button___transparent is-active separated FollowButton"
+    >
+      <span
+        class="Button_label"
+      >
+        Following
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/threading/channel_threads/thread_footer > should report total number of replies 1`] = `
+<div>
+  <div
+    class="ThreadFooter"
+  >
+    <div
+      class="indicator"
+    />
+    <div
+      class="Avatars Avatars___sm"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none btn-round"
+      >
+        <img
+          alt="first.last5 profile image"
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/5/image?_=0"
+          style="background: rgb(240, 240, 241);"
+          tabindex="-1"
+        />
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none btn-round"
+      >
+        <img
+          alt="first.last4 profile image"
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/4/image?_=0"
+          style="background: rgb(240, 240, 241);"
+          tabindex="-1"
+        />
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none btn-round"
+      >
+        <img
+          alt="first.last3 profile image"
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/3/image?_=0"
+          style="background: rgb(240, 240, 241);"
+          tabindex="-1"
+        />
+      </button>
+      <div
+        class="Avatar Avatar-sm Avatar-plain"
+        data-content="+2"
+        style="background: rgb(240, 240, 241);"
+        tabindex="0"
+      />
+    </div>
+    <button
+      class="Button Button___transparent ReplyButton separated"
+    >
+      <span
+        class="Button_prepended"
+      >
+        <span
+          class="icon"
+        >
+          <i
+            class="icon-reply-outline"
+          />
+        </span>
+      </span>
+      <span
+        class="Button_label"
+      >
+        9 replies
+      </span>
+    </button>
+    <button
+      class="Button Button___transparent is-active separated FollowButton"
+    >
+      <span
+        class="Button_label"
+      >
+        Following
+      </span>
+    </button>
+    <span
+      class="Timestamp separated alt-visible"
+    >
+      Last reply 
+      <time
+        datetime="2019-04-01T23:31:44.000"
+      >
+        April 1, 2019
+      </time>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/threading/channel_threads/thread_footer > should show unread indicator 1`] = `
+<div>
+  <div
+    class="ThreadFooter"
+  >
+    <div
+      class="indicator"
+      tabindex="0"
+    >
+      <div
+        class="dot-unreads"
+      />
+    </div>
+    <div
+      class="Avatars Avatars___sm"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none btn-round"
+      >
+        <img
+          alt="first.last5 profile image"
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/5/image?_=0"
+          style="background: rgb(240, 240, 241);"
+          tabindex="-1"
+        />
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none btn-round"
+      >
+        <img
+          alt="first.last4 profile image"
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/4/image?_=0"
+          style="background: rgb(240, 240, 241);"
+          tabindex="-1"
+        />
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none btn-round"
+      >
+        <img
+          alt="first.last3 profile image"
+          class="Avatar Avatar-sm"
+          loading="lazy"
+          src="/api/v4/users/3/image?_=0"
+          style="background: rgb(240, 240, 241);"
+          tabindex="-1"
+        />
+      </button>
+      <div
+        class="Avatar Avatar-sm Avatar-plain"
+        data-content="+2"
+        style="background: rgb(240, 240, 241);"
+        tabindex="0"
+      />
+    </div>
+    <button
+      class="Button Button___transparent ReplyButton separated"
+    >
+      <span
+        class="Button_prepended"
+      >
+        <span
+          class="icon"
+        >
+          <i
+            class="icon-reply-outline"
+          />
+        </span>
+      </span>
+      <span
+        class="Button_label"
+      >
+        9 replies
+      </span>
+    </button>
+    <button
+      class="Button Button___transparent is-active separated FollowButton"
+    >
+      <span
+        class="Button_label"
+      >
+        Following
+      </span>
+    </button>
+    <span
+      class="Timestamp separated alt-visible"
+    >
+      Last reply 
+      <time
+        datetime="2019-04-01T23:31:44.000"
+      >
+        April 1, 2019
+      </time>
+    </span>
+  </div>
+</div>
+`;

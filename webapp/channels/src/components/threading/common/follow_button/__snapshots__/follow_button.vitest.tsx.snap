@@ -1,0 +1,29 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/threading/common/follow_button > should say follow 1`] = `
+<div>
+  <button
+    class="Button Button___transparent FollowButton"
+  >
+    <span
+      class="Button_label"
+    >
+      Follow
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/threading/common/follow_button > should say following 1`] = `
+<div>
+  <button
+    class="Button Button___transparent is-active FollowButton"
+  >
+    <span
+      class="Button_label"
+    >
+      Following
+    </span>
+  </button>
+</div>
+`;

@@ -1,0 +1,238 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/TextBox > should match snapshot with additional, optional props 1`] = `
+<div>
+  <div
+    class="textarea-wrapper textarea-wrapper-preview textarea-wrapper-preview--disabled"
+  >
+    <div
+      class="form-control custom-textarea textbox-preview-area"
+      tabindex="0"
+    >
+      <p>
+        some test text
+      </p>
+    </div>
+    <div
+      class=""
+    >
+      <div
+        class="input-wrapper"
+      >
+        <div>
+          <textarea
+            aria-autocomplete="list"
+            aria-controls="suggestionList"
+            aria-expanded="false"
+            autocomplete="off"
+            class="form-control custom-textarea textbox-edit-area custom-textarea--emoji-picker bad-connection"
+            data-testid="someid"
+            dir="auto"
+            disabled=""
+            height="0"
+            id="someid"
+            placeholder="placeholder text"
+            role="textbox"
+            rows="1"
+            spellcheck="true"
+            style="overflow-y: hidden;"
+          >
+            some test text
+          </textarea>
+          <div
+            style="height: 0px; overflow: hidden;"
+          >
+            <div
+              aria-hidden="true"
+              class="form-control custom-textarea textbox-edit-area custom-textarea--emoji-picker bad-connection"
+              dir="auto"
+              disabled=""
+              id="someid-reference"
+              style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
+            >
+              some test text
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/TextBox > should match snapshot with required props 1`] = `
+<div>
+  <div
+    class="textarea-wrapper"
+  >
+    <div
+      class="form-control custom-textarea textbox-preview-area"
+      tabindex="0"
+    >
+      <p>
+        some test text
+      </p>
+    </div>
+    <div
+      class=""
+    >
+      <div
+        class="input-wrapper"
+      >
+        <div>
+          <textarea
+            aria-autocomplete="list"
+            aria-controls="suggestionList"
+            aria-expanded="false"
+            autocomplete="off"
+            class="form-control custom-textarea textbox-edit-area"
+            data-testid="someid"
+            dir="auto"
+            height="0"
+            id="someid"
+            placeholder="placeholder text"
+            role="textbox"
+            rows="1"
+            spellcheck="true"
+            style="overflow-y: hidden;"
+          >
+            some test text
+          </textarea>
+          <div
+            style="height: 0px; overflow: hidden;"
+          >
+            <div
+              aria-hidden="true"
+              class="form-control custom-textarea textbox-edit-area"
+              dir="auto"
+              disabled=""
+              id="someid-reference"
+              style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
+            >
+              some test text
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/TextBox > should throw error when new property is too long 1`] = `
+<div>
+  <div
+    class="textarea-wrapper"
+  >
+    <div
+      class="form-control custom-textarea textbox-preview-area"
+      tabindex="0"
+    >
+      <p>
+        some test text
+      </p>
+    </div>
+    <div
+      class=""
+    >
+      <div
+        class="input-wrapper"
+      >
+        <div>
+          <textarea
+            aria-autocomplete="list"
+            aria-controls="suggestionList"
+            aria-expanded="false"
+            autocomplete="off"
+            class="form-control custom-textarea textbox-edit-area"
+            data-testid="someid"
+            dir="auto"
+            height="0"
+            id="someid"
+            placeholder="placeholder text"
+            role="textbox"
+            rows="1"
+            spellcheck="true"
+            style="overflow-y: hidden;"
+          >
+            some test text
+          </textarea>
+          <div
+            style="height: 0px; overflow: hidden;"
+          >
+            <div
+              aria-hidden="true"
+              class="form-control custom-textarea textbox-edit-area"
+              dir="auto"
+              disabled=""
+              id="someid-reference"
+              style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
+            >
+              some test text
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/TextBox > should throw error when value is too long 1`] = `
+<div>
+  <div
+    class="textarea-wrapper"
+  >
+    <div
+      class="form-control custom-textarea textbox-preview-area"
+      tabindex="0"
+    >
+      <p>
+        some test text that exceeds char limit
+      </p>
+    </div>
+    <div
+      class=""
+    >
+      <div
+        class="input-wrapper"
+      >
+        <div>
+          <textarea
+            aria-autocomplete="list"
+            aria-controls="suggestionList"
+            aria-expanded="false"
+            autocomplete="off"
+            class="form-control custom-textarea textbox-edit-area"
+            data-testid="someid"
+            dir="auto"
+            height="0"
+            id="someid"
+            placeholder="placeholder text"
+            role="textbox"
+            rows="1"
+            spellcheck="true"
+            style="overflow-y: hidden;"
+          >
+            some test text that exceeds char limit
+          </textarea>
+          <div
+            style="height: 0px; overflow: hidden;"
+          >
+            <div
+              aria-hidden="true"
+              class="form-control custom-textarea textbox-edit-area"
+              dir="auto"
+              disabled=""
+              id="someid-reference"
+              style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
+            >
+              some test text that exceeds char limit
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

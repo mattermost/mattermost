@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/threading/ThreadViewer > should match snapshot 1`] = `
+<div>
+  <div
+    class="ThreadViewer"
+  >
+    <div
+      class="post-right-comments-container"
+    >
+      <div
+        class="file-overlay hidden right-file-overlay"
+        id="threadView"
+      >
+        <div
+          class="overlay__indent"
+        >
+          <div
+            class="overlay__circle vertical"
+          >
+            <img
+              alt=""
+              class="overlay__files"
+              loading="lazy"
+              src="/src/images/fileOverlay.svg"
+            />
+            Drop a file to upload it.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
