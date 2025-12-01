@@ -211,6 +211,34 @@ func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 	return userIds, nil
 }
 
+func (us SqlUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	curTime := model.GetMillis()
+	updateQuery := us.getQueryBuilder().Update("Users").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
+		Set("Roles", "system_user").
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"AuthService": model.UserAuthServiceMagicLink})
+
+	_, err := us.GetMaster().ExecBuilder(updateQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update Users with auth_service=magic_link")
+	}
+
+	selectQuery := us.getQueryBuilder().
+		Select("Id").
+		From("Users").
+		Where(sq.Eq{"DeleteAt": curTime})
+
+	userIds := []string{}
+	err = us.GetMaster().SelectBuilder(&userIds, selectQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Users")
+	}
+
+	return userIds, nil
+}
+
 func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
 	user.PreUpdate()
 
@@ -1487,7 +1515,7 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 	return v, nil
 }
 
-func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ? AND LastActivityAt <= ?", startTime, endTime)
 
 	if !options.IncludeBotAccounts {
@@ -1515,7 +1543,7 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 		return 0, errors.Wrap(err, "Failed to build query.")
 	}
 
-	var v int64
+	var v int32
 	err = us.GetReplica().Get(&v, queryStr, args...)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to get the active users during the requested period.")

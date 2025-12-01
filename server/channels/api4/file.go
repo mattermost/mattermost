@@ -513,31 +513,77 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "force_download", forceDownload)
 
-	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
-	if err != nil {
-		c.Err = err
-		setInaccessibleFileHeader(w, err)
+	fileInfos, storeErr := c.App.Srv().Store().FileInfo().GetByIds([]string{c.Params.FileId}, true, true)
+	if storeErr != nil {
+		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusInternalServerError)
+		setInaccessibleFileHeader(w, c.Err)
+		return
+	} else if len(fileInfos) == 0 {
+		c.Err = model.NewAppError("getFile", "api.file.get_file_info.app_error", nil, "", http.StatusNotFound)
+		setInaccessibleFileHeader(w, c.Err)
 		return
 	}
-	model.AddEventParameterAuditableToAuditRec(auditRec, "file", info)
 
-	channel, err := c.App.GetChannel(c.AppContext, info.ChannelId)
+	fileInfo := fileInfos[0]
+
+	channel, err := c.App.GetChannel(c.AppContext, fileInfo.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
 	}
-	perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	if info.CreatorId == model.BookmarkFileOwner {
-		if !perm {
+
+	isContentReviewer := false
+	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
+	if asContentReviewer {
+		requireContentFlaggingEnabled(c)
+		if c.Err != nil {
+			return
+		}
+
+		flaggedPostId := r.URL.Query().Get("flagged_post_id")
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
+			return
+		}
+
+		if flaggedPostId != fileInfo.PostId {
+			c.Err = model.NewAppError("getFile", "api.file.get_file.invalid_flagged_post.app_error", nil, "file_id="+fileInfo.Id+", flagged_post_id="+flaggedPostId, http.StatusBadRequest)
+			return
+		}
+
+		requireTeamContentReviewer(c, c.AppContext.Session().UserId, channel.TeamId)
+		if c.Err != nil {
+			return
+		}
+
+		isContentReviewer = true
+	}
+
+	// at this point we may have fetched a deleted file info and
+	// if the user is not a content reviewer, the request should fail as
+	// fetching deleted file info is only allowed for content reviewers of the specific post
+	if fileInfo.DeleteAt != 0 && !isContentReviewer {
+		c.Err = model.NewAppError("getFile", "app.file_info.get.app_error", nil, "", http.StatusNotFound)
+		setInaccessibleFileHeader(w, c.Err)
+		return
+	}
+
+	model.AddEventParameterAuditableToAuditRec(auditRec, "file", fileInfo)
+
+	if !isContentReviewer {
+		perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		if fileInfo.CreatorId == model.BookmarkFileOwner {
+			if !perm {
+				c.SetPermissionError(model.PermissionReadChannelContent)
+				return
+			}
+		} else if fileInfo.CreatorId != c.AppContext.Session().UserId && !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
-	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
 	}
 
-	fileReader, err := c.App.FileReader(info.Path)
+	fileReader, err := c.App.FileReader(fileInfo.Path)
 	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
@@ -547,7 +593,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 
-	web.WriteFileResponse(info.Name, info.MimeType, info.Size, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+	web.WriteFileResponse(fileInfo.Name, fileInfo.MimeType, fileInfo.Size, time.Unix(0, fileInfo.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
 }
 
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
