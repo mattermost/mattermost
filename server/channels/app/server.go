@@ -1633,19 +1633,20 @@ func (s *Server) initJobs() {
 // for the lifetime of the installation.
 //
 // Only one server in a cluster will succeed in writing to the database on first
-// start, after which the other servers will converge on the same value. However,
-// to avoid race conditions between database master and replica nodes, we use the
-// value cached in the telemetry service below as authoritative, once set.
+// start, after which the other servers will converge on the same value.
 func (s *Server) ServerId() string {
 	if s.telemetryService != nil && s.telemetryService.ServerID != "" {
 		return s.telemetryService.ServerID
 	}
 
-	props, err := s.Store().System().Get()
+	prop, err := s.Store().System().GetByNameWithContext(
+		store.RequestContextWithMaster(request.EmptyContext(s.Log())),
+		model.SystemServerId,
+	)
 	if err != nil {
 		return ""
 	}
-	return props[model.SystemServerId]
+	return prop.Value
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {
