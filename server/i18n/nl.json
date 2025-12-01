@@ -11442,5 +11442,65 @@
   {
     "id": "model.post.query_params.invalid_time_field",
     "translation": "Ongeldig tijdveld."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Kanaal niet gevonden."
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Kan geen vertaling ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Kan de actieve talen niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_channel_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus voor de gebruiker niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Kan de taal van de gebruiker niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Kan automatische vertalingsstatus van het kanaal niet ophalen."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Lid niet gevonden."
+  },
+  {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Fout bij het verwerken van de JSON vertaalmetagegevens."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Fout bij het maken van de query."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Fout bij het bewaren van de vertaling."
+  },
+  {
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Vertaalvalidatie mislukt. Het vertaalobject is ongeldig."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Het serialiseren van vertaalmetagegevens naar JSON is mislukt."
+  },
+  {
+    "id": "store.sql_autotranslation.set_channel_enabled.app_error",
+    "translation": "Kan automatische vertaling van het kanaal niet inschakelen."
+  },
+  {
+    "id": "store.sql_autotranslation.set_user_enabled.app_error",
+    "translation": "Kan automatische vertaling voor de gebruiker niet instellen."
   }
 ]
