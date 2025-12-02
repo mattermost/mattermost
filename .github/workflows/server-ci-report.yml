@@ -20,17 +20,17 @@ jobs:
           github-token: ${{ github.token }}
           pattern: "*-test-logs"
           path: reports
-      
+
       - name: report/validate-and-prepare-data
         id: validate
         run: |
           # Create validated data file
           > /tmp/validated-tests.json
-          
+
           find "reports" -type f -name "test-name" | while read -r test_file; do
             folder=$(basename "$(dirname "$test_file")")
             test_name_raw=$(cat "$test_file" | tr -d '\n\r')
-            
+
             # Validate test name: allow alphanumeric, spaces, hyphens, underscores, parentheses, and dots
             if [[ "$test_name_raw" =~ ^[a-zA-Z0-9\ \(\)_.-]+$ ]] && [[ ${#test_name_raw} -le 100 ]]; then
               # Use jq to safely escape the test name as JSON
@@ -40,7 +40,7 @@ jobs:
               echo "Warning: Skipping invalid test name in $test_file: '$test_name_raw'" >&2
             fi
           done
-          
+
           # Verify we have at least some valid tests
           if [[ ! -s /tmp/validated-tests.json ]]; then
             echo "Error: No valid test names found" >&2
@@ -53,11 +53,11 @@ jobs:
           # Convert validated JSON objects to matrix format
           jq -s '{ "test": . }' /tmp/validated-tests.json | tee /tmp/report-matrix
           echo REPORT_MATRIX=$(cat /tmp/report-matrix | jq --compact-output --monochrome-output) >> ${GITHUB_OUTPUT}
-      
+
   publish-report:
     runs-on: ubuntu-22.04
     name: Publish Report ${{ matrix.test.name }}
-    needs: 
+    needs:
       - generate-report-matrix
     permissions:
       pull-requests: write

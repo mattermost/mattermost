@@ -65,7 +65,7 @@ jobs:
           echo "|Download Link|" >> "${GITHUB_STEP_SUMMARY}"
           echo "| --- |" >> "${GITHUB_STEP_SUMMARY}"
           for package in ${PACKAGES_FILE_LIST}
-            do 
+            do
               echo "|[${package}](https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/${package})|" >> "${GITHUB_STEP_SUMMARY}"
           done
 
