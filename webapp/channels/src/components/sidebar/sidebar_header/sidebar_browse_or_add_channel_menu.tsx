@@ -3,6 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     PlusIcon,
@@ -13,10 +14,13 @@ import {
     AccountOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
 import * as Menu from 'components/menu';
-import Pluggable from 'plugins/pluggable';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
+
+import Pluggable from 'plugins/pluggable';
 
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
@@ -36,6 +40,7 @@ type Props = {
 
 export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const {formatMessage} = useIntl();
+    const currentTeamId = useSelector(getCurrentTeamId);
 
     const showCreateAndJoinChannelsTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
     const showInvitePeopleTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
@@ -173,7 +178,10 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}
-            <Pluggable pluggableName='SidebarBrowseOrAddChannelMenu'/>
+            <Pluggable
+                pluggableName='SidebarBrowseOrAddChannelMenu'
+                teamId={currentTeamId}
+            />
             {Boolean(createNewCategoryMenuItem) &&
                 <Menu.Separator/>
             }

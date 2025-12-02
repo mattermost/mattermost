@@ -401,7 +401,9 @@ export type SidebarChannelLinkLabelComponent = PluginComponent & {
 };
 
 export type SidebarBrowseOrAddChannelMenuComponent = PluginComponent & {
-    component: React.ComponentType<BasePluggableProps>;
+    component: React.ComponentType<BasePluggableProps & {
+        teamId: string;
+    }>;
 };
 
 export type PostMessageAttachmentComponent = PluginComponent & {
