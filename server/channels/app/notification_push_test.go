@@ -1352,7 +1352,10 @@ func TestUpdateMobileAppBadgeSync(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("GetSessionsWithActiveDeviceIds", mock.AnythingOfType("string")).Return([]*model.Session{sess1, sess2}, nil)
@@ -1425,7 +1428,10 @@ func TestSendAckToPushProxy(t *testing.T) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockStore.On("User").Return(&mockUserStore)
 	mockStore.On("Post").Return(&mockPostStore)
@@ -1670,7 +1676,10 @@ func BenchmarkPushNotificationThroughput(b *testing.B) {
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
 	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: model.NewId()}, nil)
+
+	diagnosticID := model.NewId()
+	mockSystemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
+	mockSystemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	mockSessionStore := mocks.SessionStore{}
 	mockPreferenceStore := mocks.PreferenceStore{}
