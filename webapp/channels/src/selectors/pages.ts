@@ -131,7 +131,7 @@ export const getChannelWikis = createSelector(
 
 // Get page status field definition
 export const getPageStatusField = (state: GlobalState) => {
-    return (state.entities.wikiPages as any)?.statusField;
+    return state.entities.wikiPages?.statusField;
 };
 
 // Get status for a specific page
