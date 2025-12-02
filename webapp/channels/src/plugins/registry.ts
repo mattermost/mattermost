@@ -1204,13 +1204,20 @@ export default class PluginRegistry {
     });
 
     /**
-     * INTERNAL: Subject to change without notice.
      * Register a component to render in the LHS next to a channel's link label.
      * All parameters are required.
      * Returns a unique identifier.
      */
     registerSidebarChannelLinkLabelComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
         return dispatchPluginComponentAction('SidebarChannelLinkLabel', this.id, component);
+    });
+
+    /**
+     * Register a component in the "Browse or Create Channels" menu in the sidebar.
+     * Accepts a React component. Returns a unique identifier.
+     */
+    registerSidebarBrowseOrAddChannelMenuComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return dispatchPluginComponentAction('SidebarBrowseOrAddChannelMenu', this.id, component);
     });
 
     /**

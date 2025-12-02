@@ -14,6 +14,7 @@ import {
 } from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
+import Pluggable from 'plugins/pluggable';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
@@ -172,6 +173,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}
+            <Pluggable pluggableName='SidebarBrowseOrAddChannelMenu'/>
             {Boolean(createNewCategoryMenuItem) &&
                 <Menu.Separator/>
             }

@@ -66,6 +66,7 @@ export type PluginsState = {
         Global: GlobalComponent[];
         ChannelToast: ChannelToastComponent[];
         SidebarChannelLinkLabel: SidebarChannelLinkLabelComponent[];
+        SidebarBrowseOrAddChannelMenu: SidebarBrowseOrAddChannelMenuComponent[];
         FilesWillUploadHook: FilesWillUploadHook[];
         DesktopNotificationHooks: DesktopNotificationHook[];
         MessageWillFormat: MessageWillFormatHook[];
@@ -397,6 +398,10 @@ export type SidebarChannelLinkLabelComponent = PluginComponent & {
     component: React.ComponentType<BasePluggableProps & {
         channel: Channel;
     }>;
+};
+
+export type SidebarBrowseOrAddChannelMenuComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps>;
 };
 
 export type PostMessageAttachmentComponent = PluginComponent & {
