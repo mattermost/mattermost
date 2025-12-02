@@ -94,7 +94,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 className="last-active__text"
               >
                 <MemoizedFormattedMessage
-                  defaultMessage="Active {timestamp}"
+                  defaultMessage="Last online {timestamp}"
                   id="channel_header.lastActive"
                   values={
                     Object {
@@ -1709,7 +1709,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 className="last-active__text"
               >
                 <MemoizedFormattedMessage
-                  defaultMessage="Active {timestamp}"
+                  defaultMessage="Last online {timestamp}"
                   id="channel_header.lastActive"
                   values={
                     Object {
@@ -1963,7 +1963,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 className="last-active__text"
               >
                 <MemoizedFormattedMessage
-                  defaultMessage="Active {timestamp}"
+                  defaultMessage="Last online {timestamp}"
                   id="channel_header.lastActive"
                   values={
                     Object {

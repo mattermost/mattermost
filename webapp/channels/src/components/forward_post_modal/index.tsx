@@ -162,7 +162,6 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                     defaultMessage='This message is from a private conversation and can only be shared with {participants}'
                     values={{
                         participants: <FormattedList value={participants}/>,
-                        strong: (x: React.ReactNode) => <strong>{x}</strong>,
                     }}
                 />
             );

@@ -536,7 +536,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
     <WithTooltip
       title={
         <Memo(MemoizedFormattedMessage)
-          defaultMessage="{newReplies, plural, =0 {no unread messages} =1 {one unread message} other {# unread messages}}"
+          defaultMessage="{newReplies, plural, =0 {No unread messages} =1 {One unread message} other {# unread messages}}"
           id="threading.numNewMessages"
           values={
             Object {

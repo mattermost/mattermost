@@ -259,7 +259,7 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
                 <br/>
                 <FormattedMessage
                     id='user.settings.timezones.promote'
-                    defaultMessage='Select the time zone used for timestamps in the user interface and email notifications.'
+                    defaultMessage='Select the timezone used for timestamps in the user interface and email notifications.'
                 />
             </div>,
         );

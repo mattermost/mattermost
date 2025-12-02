@@ -158,7 +158,7 @@ const SidebarCategoryMenu = ({
         sortChannelsSelectedValue = (
             <FormattedMessage
                 id='user.settings.sidebar.recent'
-                defaultMessage='Recent Activity'
+                defaultMessage='Recent activity'
             />
         );
         sortChannelsIcon = <ClockOutlineIcon size={18}/>;
@@ -199,7 +199,7 @@ const SidebarCategoryMenu = ({
                 labels={(
                     <FormattedMessage
                         id='sidebar.sortedByRecencyLabel'
-                        defaultMessage='Recent Activity'
+                        defaultMessage='Recent activity'
                     />
                 )}
                 onClick={() => handleSortChannels(CategorySorting.Recency)}
