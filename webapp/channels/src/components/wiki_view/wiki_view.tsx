@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
@@ -27,7 +28,7 @@ import LoadingScreen from 'components/loading_screen';
 import MovePageModal from 'components/move_page_modal';
 import PageVersionHistoryModal from 'components/page_version_history';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
-import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/use_page_menu_handlers';
+import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/usePageMenuHandlers';
 import TextInputModal from 'components/text_input_modal';
 
 import {isEditingExistingPage, getPublishedPageIdFromDraft} from 'utils/page_utils';
@@ -463,7 +464,7 @@ const WikiView = () => {
                     >
                         {!isEmptyState && (() => {
                             const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
-                            const pageLink = currentPageIdForHeader && wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${currentPageIdForHeader}` : undefined;
+                            const pageLink = currentPageIdForHeader && wikiId && channelId ? getWikiUrl(currentTeam?.name || 'team', channelId, wikiId, currentPageIdForHeader) : undefined;
 
                             // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
                             if (isDraft && draftId && !currentDraft) {
@@ -545,14 +546,29 @@ const WikiView = () => {
                             {isEmptyState && (
                                 <div className='PagePane__emptyState'>
                                     <i className='icon-file-document-outline'/>
-                                    <h3>{'No Pages Yet'}</h3>
-                                    <p>{'Create your first page to get started'}</p>
+                                    <h3>
+                                        <FormattedMessage
+                                            id='wiki.empty.no_pages'
+                                            defaultMessage='No Pages Yet'
+                                        />
+                                    </h3>
+                                    <p>
+                                        <FormattedMessage
+                                            id='wiki.empty.create_first'
+                                            defaultMessage='Create your first page to get started'
+                                        />
+                                    </p>
                                 </div>
                             )}
                             {!draftId && !pageId && !isEmptyState && (
                                 <div className='PagePane__emptyState'>
                                     <i className='icon-file-document-outline'/>
-                                    <h3>{'Select a page or create a new one'}</h3>
+                                    <h3>
+                                        <FormattedMessage
+                                            id='wiki.empty.select_or_create'
+                                            defaultMessage='Select a page or create a new one'
+                                        />
+                                    </h3>
                                 </div>
                             )}
                         </div>

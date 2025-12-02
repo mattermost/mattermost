@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo, useCallback, useState} from 'react';
-import {DragDropContext, Droppable, Draggable, type DropResult} from 'react-beautiful-dnd';
+import {DragDropContext, Droppable, Draggable, type DropResult, type DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
+import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -35,7 +36,7 @@ type NodeWrapperProps = {
     isDeleting?: boolean;
     wikiId?: string;
     channelId?: string;
-    dragHandleProps?: any;
+    dragHandleProps?: DraggableProvidedDragHandleProps | null;
 };
 
 const PageTreeNodeWrapper = React.memo(({
@@ -196,7 +197,10 @@ const PageTreeView = ({
     if (visibleNodes.length === 0) {
         return (
             <div className='PageTreeView__empty'>
-                {'No pages found'}
+                <FormattedMessage
+                    id='wiki.page_tree.no_pages'
+                    defaultMessage='No pages found'
+                />
             </div>
         );
     }
@@ -282,7 +286,10 @@ const PageTreeView = ({
                                                             </>
                                                         ) : (
                                                             <div className='PageTreeView__outline-empty'>
-                                                                {'No headings in this page'}
+                                                                <FormattedMessage
+                                                                    id='wiki.outline.no_headings'
+                                                                    defaultMessage='No headings in this page'
+                                                                />
                                                             </div>
                                                         )}
                                                     </div>

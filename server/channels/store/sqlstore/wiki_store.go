@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"strconv"
 
 	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
@@ -262,12 +263,6 @@ func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, builder); err != nil {
 		return nil, errors.Wrap(err, "unable_to_get_wiki_pages")
-	}
-
-	// Debug logging
-	for _, p := range posts {
-		title := p.GetPageTitle()
-		mlog.Debug("GetPages loaded post from DB", mlog.String("post_id", p.Id), mlog.String("page_parent_id", p.PageParentId), mlog.String("title", title))
 	}
 
 	return posts, nil
@@ -561,7 +556,7 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 		return errors.Wrap(err, "failed to update page parent")
 	}
 
-	valueJSON := []byte(`"` + targetWikiId + `"`)
+	valueJSON := []byte(strconv.Quote(targetWikiId))
 	if s.IsBinaryParamEnabled() {
 		valueJSON = AppendBinaryFlag(valueJSON)
 	}
@@ -620,6 +615,18 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 		}
 	}
 
+	// Update wiki_id in Post.Props for all pages in subtree (optimization for fast lookup)
+	updatePostPropsQuery := `
+		UPDATE Posts
+		SET Props = jsonb_set(COALESCE(Props, '{}'::jsonb), '{wiki_id}', $1::jsonb),
+		    UpdateAt = $2
+		WHERE Id = ANY($3) AND DeleteAt = 0
+	`
+
+	if _, err = transaction.Exec(updatePostPropsQuery, valueJSON, updateAt, pq.Array(pageIDs)); err != nil {
+		return errors.Wrap(err, "failed to update wiki_id in Post.Props for page subtree")
+	}
+
 	if err = transaction.Commit(); err != nil {
 		return errors.Wrap(err, "commit_transaction")
 	}
@@ -628,29 +635,18 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 }
 
 func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
-	mlog.Debug("MoveWikiToChannel: Starting",
-		mlog.String("wiki_id", wikiId),
-		mlog.String("target_channel_id", targetChannelId))
-
 	groupID, err := s.getPagePropertyGroupID()
 	if err != nil {
-		mlog.Error("MoveWikiToChannel: Failed to get property group ID", mlog.Err(err))
 		return nil, err
 	}
-	mlog.Debug("MoveWikiToChannel: Got property group ID", mlog.String("group_id", groupID))
 
 	fieldID, err := s.getWikiPropertyFieldID(groupID)
 	if err != nil {
-		mlog.Error("MoveWikiToChannel: Failed to get property field ID",
-			mlog.Err(err),
-			mlog.String("group_id", groupID))
 		return nil, err
 	}
-	mlog.Debug("MoveWikiToChannel: Got property field ID", mlog.String("field_id", fieldID))
 
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
-		mlog.Error("MoveWikiToChannel: Failed to begin transaction", mlog.Err(err))
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
@@ -684,21 +680,10 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 	`
 
 	var pageIDs []string
-	mlog.Debug("MoveWikiToChannel: Executing recursive CTE to find pages",
-		mlog.String("field_id", fieldID),
-		mlog.String("group_id", groupID),
-		mlog.String("wiki_id", wikiId))
 	if err = transaction.Select(&pageIDs, recursiveCTE, fieldID, groupID, wikiId, model.PostTypePage, model.PostTypePage); err != nil {
-		mlog.Error("MoveWikiToChannel: Failed to find wiki pages", mlog.Err(err))
 		return nil, errors.Wrap(err, "failed to find wiki pages")
 	}
 
-	mlog.Debug("MoveWikiToChannel: Found pages", mlog.Int("count", len(pageIDs)))
-	if len(pageIDs) == 0 {
-		mlog.Warn("No pages found for wiki", mlog.String("wiki_id", wikiId))
-	}
-
-	mlog.Debug("MoveWikiToChannel: Updating wiki channel")
 	updateWikiQuery := s.getQueryBuilder().
 		Update("Wikis").
 		Set("ChannelId", targetChannelId).
@@ -710,24 +695,19 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 
 	result, err := transaction.ExecBuilder(updateWikiQuery)
 	if err != nil {
-		mlog.Error("MoveWikiToChannel: Failed to update wiki channel", mlog.Err(err))
 		return nil, errors.Wrap(err, "failed to update wiki channel")
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		mlog.Error("MoveWikiToChannel: Failed to get rows affected", mlog.Err(err))
 		return nil, errors.Wrap(err, "failed to get rows affected")
 	}
 
-	mlog.Debug("MoveWikiToChannel: Wiki updated", mlog.Int("rows_affected", int(rowsAffected)))
 	if rowsAffected == 0 {
-		mlog.Error("MoveWikiToChannel: Wiki not found", mlog.String("wiki_id", wikiId))
 		return nil, store.NewErrNotFound("Wiki", wikiId)
 	}
 
 	if len(pageIDs) > 0 {
-		mlog.Debug("MoveWikiToChannel: Updating pages", mlog.Int("page_count", len(pageIDs)))
 		updatePagesQuery := s.getQueryBuilder().
 			Update("Posts").
 			Set("ChannelId", targetChannelId).
@@ -739,12 +719,9 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 			})
 
 		if _, err = transaction.ExecBuilder(updatePagesQuery); err != nil {
-			mlog.Error("MoveWikiToChannel: Failed to update pages channel", mlog.Err(err))
 			return nil, errors.Wrap(err, "failed to update pages channel")
 		}
-		mlog.Debug("MoveWikiToChannel: Pages updated successfully")
 
-		mlog.Debug("MoveWikiToChannel: Updating regular comments")
 		updateCommentsQuery := s.getQueryBuilder().
 			Update("Posts").
 			Set("ChannelId", targetChannelId).
@@ -756,32 +733,21 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 			})
 
 		if _, err = transaction.ExecBuilder(updateCommentsQuery); err != nil {
-			mlog.Error("MoveWikiToChannel: Failed to update comments channel", mlog.Err(err))
 			return nil, errors.Wrap(err, "failed to update comments channel")
 		}
-		mlog.Debug("MoveWikiToChannel: Regular comments updated successfully")
 
-		mlog.Debug("MoveWikiToChannel: Updating inline comments")
-		for _, pageID := range pageIDs {
-			updateInlineCommentsQuery := s.getQueryBuilder().
-				Update("Posts").
-				Set("ChannelId", targetChannelId).
-				Set("UpdateAt", timestamp).
-				Where(sq.And{
-					sq.Eq{"Type": model.PostTypePageComment},
-					sq.Eq{"RootId": ""},
-					sq.Expr("Props->>'page_id' = ?", pageID),
-					sq.Eq{"DeleteAt": 0},
-				})
+		updateInlineCommentsQuery := `
+			UPDATE Posts
+			SET ChannelId = $1, UpdateAt = $2
+			WHERE Type = $3
+			  AND RootId = ''
+			  AND Props->>'page_id' = ANY($4)
+			  AND DeleteAt = 0
+		`
 
-			if _, err = transaction.ExecBuilder(updateInlineCommentsQuery); err != nil {
-				mlog.Error("MoveWikiToChannel: Failed to update inline comments",
-					mlog.Err(err),
-					mlog.String("page_id", pageID))
-				return nil, errors.Wrap(err, "failed to update inline comments")
-			}
+		if _, err = transaction.Exec(updateInlineCommentsQuery, targetChannelId, timestamp, model.PostTypePageComment, pq.Array(pageIDs)); err != nil {
+			return nil, errors.Wrap(err, "failed to update inline comments")
 		}
-		mlog.Debug("MoveWikiToChannel: Inline comments updated successfully")
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -803,4 +769,28 @@ func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, 
 	}
 
 	return &updatedWiki, nil
+}
+
+func (s *SqlWikiStore) SetWikiIdInPostProps(pageId, wikiId string) error {
+	query := `
+		UPDATE Posts
+		SET Props = jsonb_set(COALESCE(Props, '{}'::jsonb), ?, ?)
+		WHERE Id = ? AND DeleteAt = 0
+	`
+
+	result, err := s.GetMaster().Exec(query, jsonKeyPath("wiki_id"), jsonStringVal(wikiId), pageId)
+	if err != nil {
+		return errors.Wrap(err, "failed to update wiki_id in Post.Props")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("page not found or already deleted")
+	}
+
+	return nil
 }

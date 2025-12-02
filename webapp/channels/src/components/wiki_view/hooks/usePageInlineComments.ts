@@ -4,6 +4,7 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {WebSocketMessage} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 
 import {getPageComments} from 'actions/pages';
@@ -101,7 +102,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
             return undefined;
         }
 
-        const handleNewPost = (msg: any) => {
+        const handleNewPost = (msg: WebSocketMessage) => {
             // Only handle POSTED events
             if (msg.event !== SocketEvents.POSTED) {
                 return;
@@ -131,7 +132,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
             return undefined;
         }
 
-        const handleCommentUpdate = (msg: any) => {
+        const handleCommentUpdate = (msg: WebSocketMessage) => {
             // Handle comment resolution - removes highlight
             if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
                 const commentId = msg.data?.comment_id;

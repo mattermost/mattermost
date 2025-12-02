@@ -35,6 +35,7 @@ export type PostType = 'system_add_remove' |
 'custom_spillage_report' |
 'page' |
 'page_comment' |
+'page_draft' |
 '';
 
 export type PostEmbedType = 'image' | 'link' | 'message_attachment' | 'opengraph' | 'permalink';

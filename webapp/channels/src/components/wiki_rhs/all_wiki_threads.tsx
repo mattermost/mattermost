@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {WebSocketMessage} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
@@ -83,7 +85,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
     // Listen for WebSocket events for new comments
     useEffect(() => {
-        const handleNewPost = (msg: any) => {
+        const handleNewPost = (msg: WebSocketMessage) => {
             // Only handle POSTED events
             if (msg.event !== SocketEvents.POSTED) {
                 return;
@@ -120,7 +122,12 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                 data-testid='wiki-rhs-all-threads-empty'
             >
                 <i className='icon-comment-outline'/>
-                <p>{'No comment threads in this wiki yet'}</p>
+                <p>
+                    <FormattedMessage
+                        id='wiki.comments.no_threads'
+                        defaultMessage='No comment threads in this wiki yet'
+                    />
+                </p>
             </div>
         );
     }

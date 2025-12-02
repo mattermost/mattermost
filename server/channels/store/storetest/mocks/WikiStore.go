@@ -308,6 +308,24 @@ func (_m *WikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
 	return r0, r1
 }
 
+// SetWikiIdInPostProps provides a mock function with given fields: pageId, wikiId
+func (_m *WikiStore) SetWikiIdInPostProps(pageId string, wikiId string) error {
+	ret := _m.Called(pageId, wikiId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetWikiIdInPostProps")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(pageId, wikiId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: wiki
 func (_m *WikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
 	ret := _m.Called(wiki)

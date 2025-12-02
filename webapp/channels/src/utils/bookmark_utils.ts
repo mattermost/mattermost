@@ -3,6 +3,8 @@
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
+import {getWikiUrl} from 'utils/url';
+
 // URL pattern: /:team/wiki/:channelId/:wikiId/:pageId
 const PAGE_URL_PATTERN = /^\/([^/]+)\/wiki\/([^/]+)\/([^/]+)\/([^/]+)$/;
 
@@ -25,5 +27,5 @@ export function parsePageUrl(url: string): {teamName: string; channelId: string;
 }
 
 export function buildPageUrl(teamName: string, channelId: string, wikiId: string, pageId: string): string {
-    return `/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`;
+    return getWikiUrl(teamName, channelId, wikiId, pageId);
 }

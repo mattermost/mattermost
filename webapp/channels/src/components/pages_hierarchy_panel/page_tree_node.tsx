@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useEffect, useRef} from 'react';
+import type {DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -10,6 +12,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import {PageDisplayTypes} from 'utils/constants';
 import {isEditingExistingPage} from 'utils/page_utils';
+import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -34,7 +37,7 @@ type Props = {
     isDeleting?: boolean;
     wikiId?: string;
     channelId?: string;
-    dragHandleProps?: any;
+    dragHandleProps?: DraggableProvidedDragHandleProps | null;
 };
 
 const PageTreeNode = ({
@@ -68,9 +71,10 @@ const PageTreeNode = ({
     const isLoading = isRenaming || isDeleting;
 
     const paddingLeft = (node.depth * 20) + 8;
+    const teamName = currentTeam?.name || 'team';
 
     // Build the link path for the page
-    const pageLink = wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${node.id}` : '#';
+    const pageLink = wikiId && channelId ? getWikiUrl(teamName, channelId, wikiId, node.id) : '#';
 
     // Get appropriate aria label for icon button
     const getIconButtonLabel = () => {
@@ -181,12 +185,15 @@ const PageTreeNode = ({
             </WithTooltip>
 
             {/* Draft badge - only show for new drafts, not when editing existing pages */}
-            {node.page.type === PageDisplayTypes.PAGE_DRAFT && !isEditingExistingPage(node.page as any) && (
+            {node.page.type === PageDisplayTypes.PAGE_DRAFT && !isEditingExistingPage(node.page) && (
                 <span
                     className='PageTreeNode__draftBadge'
                     data-testid='draft-badge'
                 >
-                    {'Draft'}
+                    <FormattedMessage
+                        id='wiki.page_tree_node.draft_badge'
+                        defaultMessage='Draft'
+                    />
                 </span>
             )}
 

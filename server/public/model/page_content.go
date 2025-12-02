@@ -257,12 +257,23 @@ func sanitizeURL(url string) string {
 	if strings.HasPrefix(lower, "javascript:") || strings.HasPrefix(lower, "vbscript:") {
 		return ""
 	}
-	// Block dangerous data URIs but allow safe image data URIs
+	// Block dangerous data URIs but allow safe raster image data URIs
+	// SVG is explicitly excluded because it can contain embedded JavaScript
 	if strings.HasPrefix(lower, "data:") {
-		if strings.HasPrefix(lower, "data:image/") {
-			return url // Allow data:image/* URIs (svg, png, jpeg, etc.)
+		safeImagePrefixes := []string{
+			"data:image/png",
+			"data:image/jpeg",
+			"data:image/jpg",
+			"data:image/gif",
+			"data:image/webp",
+			"data:image/bmp",
 		}
-		return "" // Block all other data: URIs (text/html, etc.)
+		for _, prefix := range safeImagePrefixes {
+			if strings.HasPrefix(lower, prefix) {
+				return url
+			}
+		}
+		return "" // Block all other data: URIs including SVG and text/html
 	}
 	return url
 }

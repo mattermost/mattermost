@@ -13,7 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {getFile} from 'mattermost-redux/selectors/entities/files';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
 import {loadChannelWikis} from 'actions/pages';
@@ -29,7 +29,7 @@ import TextInputModal from 'components/text_input_modal';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {shouldOpenInNewTab} from 'utils/url';
+import {getWikiUrl, shouldOpenInNewTab} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -185,6 +185,8 @@ function ChannelTabs({
     const tabRefs = useRef<{[key: string]: HTMLButtonElement | null}>({});
     const bookmarksObj = useSelector((state: GlobalState) => getChannelBookmarks(state, channelId));
     const teamUrl = useSelector((state: GlobalState) => getCurrentRelativeTeamUrl(state));
+    const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
+    const teamName = currentTeam?.name || 'team';
     const channel = useSelector((state: GlobalState) => getCurrentChannel(state));
 
     // Get permissions and actions
@@ -266,8 +268,8 @@ function ChannelTabs({
                         title: wikiName.trim(),
                     });
                     dispatch(closeModal(ModalIdentifiers.TEXT_INPUT_MODAL));
-                    if (teamUrl && wiki.id) {
-                        history.push(`${teamUrl}/wiki/${channelId}/${wiki.id}`);
+                    if (wiki.id) {
+                        history.push(getWikiUrl(teamName, channelId, wiki.id));
                     }
                 },
                 onCancel: () => {
@@ -275,7 +277,7 @@ function ChannelTabs({
                 },
             },
         }));
-    }, [channelId, dispatch, formatMessage, onTabChange, teamUrl]);
+    }, [channelId, dispatch, formatMessage, onTabChange, teamName]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         let delta = 0;
@@ -329,7 +331,7 @@ function ChannelTabs({
         // If it's a wiki tab, navigate to the wiki URL
         if (tabId.startsWith('wiki-')) {
             const wikiId = tabId.replace('wiki-', '');
-            history.push(`${teamUrl}/wiki/${channelId}/${wikiId}`);
+            history.push(getWikiUrl(teamName, channelId, wikiId));
             return;
         }
 
@@ -344,7 +346,7 @@ function ChannelTabs({
 
         // For other tabs (messages), just change the tab state
         onTabChange(tabId);
-    }, [onTabChange, history, teamUrl, channelId, channel]);
+    }, [onTabChange, history, teamName, teamUrl, channelId, channel]);
 
     return (
         <div

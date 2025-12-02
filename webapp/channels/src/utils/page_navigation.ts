@@ -4,6 +4,7 @@
 import type {Post} from '@mattermost/types/posts';
 
 import {getHistory} from 'utils/browser_history';
+import {getWikiUrl} from 'utils/url';
 
 export type PageNavigationOptions = {
     openRhs?: boolean;
@@ -33,7 +34,7 @@ export function navigateToPageFromPost(
 
     // Check if we're currently viewing a draft (edit mode) by checking the current URL
     const currentPath = window.location.pathname;
-    const draftIdMatch = currentPath.match(/\/draft\/([^/]+)/);
+    const draftIdMatch = currentPath.match(/\/drafts\/([^/]+)/);
 
     let url: string;
 
@@ -44,15 +45,15 @@ export function navigateToPageFromPost(
         // Check if the draft is for the page we're navigating to
         // by checking if the URL contains the same pageId
         if (currentPath.includes(`/${wikiId}/`) && currentPath.includes(pageId)) {
-            // Stay in draft mode
-            url = `/${teamName}/wiki/${channelId}/${wikiId}/draft/${currentDraftId}`;
+            // Stay in draft mode - use getWikiUrl for consistent URL generation
+            url = getWikiUrl(teamName, channelId, wikiId, currentDraftId, true);
             getHistory().push(url);
             return;
         }
     }
 
     // Navigate to view mode
-    url = `/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`;
+    url = getWikiUrl(teamName, channelId, wikiId, pageId, false);
 
     // Add query parameter to open RHS if requested
     if (options?.openRhs) {

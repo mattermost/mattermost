@@ -269,16 +269,12 @@ func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.A
 	return depth, nil
 }
 
-// BuildBreadcrumbPath builds the breadcrumb navigation path for a page
-func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*model.BreadcrumbPath, *model.AppError) {
+// BuildBreadcrumbPath builds the breadcrumb navigation path for a page.
+// Accepts pre-fetched wiki and channel to avoid redundant DB queries.
+func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel) (*model.BreadcrumbPath, *model.AppError) {
 	var breadcrumbItems []*model.BreadcrumbItem
 
 	ancestors, err := a.GetPageAncestors(rctx, page.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	channel, err := a.GetChannel(rctx, page.ChannelId)
 	if err != nil {
 		return nil, err
 	}
@@ -288,15 +284,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*model.Br
 		return nil, err
 	}
 
-	wikiId, err := a.GetWikiIdForPage(rctx, page.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	wiki, err := a.GetWiki(rctx, wikiId)
-	if err != nil {
-		return nil, err
-	}
+	wikiId := wiki.Id
 
 	wikiRoot := &model.BreadcrumbItem{
 		Id:        wikiId,

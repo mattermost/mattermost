@@ -393,6 +393,113 @@ describe('TipTapEditor - Table Extension', () => {
     });
 });
 
+describe('TipTapEditor - Image URL Validation', () => {
+    // Safe raster image data URI prefixes (matching validateImageUrl in tiptap_editor.tsx)
+    const SAFE_IMAGE_DATA_URI_PREFIXES = [
+        'data:image/png',
+        'data:image/jpeg',
+        'data:image/jpg',
+        'data:image/gif',
+        'data:image/webp',
+        'data:image/bmp',
+    ];
+
+    const validateImageUrl = (url: string): string | null => {
+        const trimmed = url.trim();
+        if (!trimmed) {
+            return null;
+        }
+
+        const lower = trimmed.toLowerCase();
+        if (lower.startsWith('data:')) {
+            for (const prefix of SAFE_IMAGE_DATA_URI_PREFIXES) {
+                if (lower.startsWith(prefix)) {
+                    return trimmed;
+                }
+            }
+            return null;
+        }
+
+        // Check for dangerous protocols
+        const unescaped = decodeURIComponent(trimmed).replace(/[^\w:]/g, '').toLowerCase();
+        // eslint-disable-next-line no-script-url
+        if (unescaped.startsWith('javascript:') || unescaped.startsWith('vbscript:')) {
+            return null;
+        }
+
+        // Must be valid HTTP(S) URL
+        if (!(/^https?:\/\//i).test(trimmed)) {
+            return null;
+        }
+
+        return trimmed;
+    };
+
+    it('should accept valid HTTPS URLs', () => {
+        expect(validateImageUrl('https://example.com/image.png')).toBe('https://example.com/image.png');
+        expect(validateImageUrl('https://cdn.example.org/path/to/image.jpg')).toBe('https://cdn.example.org/path/to/image.jpg');
+    });
+
+    it('should accept valid HTTP URLs', () => {
+        expect(validateImageUrl('http://example.com/image.png')).toBe('http://example.com/image.png');
+    });
+
+    it('should reject empty or whitespace-only URLs', () => {
+        expect(validateImageUrl('')).toBeNull();
+        expect(validateImageUrl('   ')).toBeNull();
+        expect(validateImageUrl('\t\n')).toBeNull();
+    });
+
+    it('should trim whitespace from valid URLs', () => {
+        expect(validateImageUrl('  https://example.com/image.png  ')).toBe('https://example.com/image.png');
+    });
+
+    it('should reject javascript: URLs', () => {
+        /* eslint-disable no-script-url */
+        expect(validateImageUrl('javascript:alert(1)')).toBeNull();
+        expect(validateImageUrl('JAVASCRIPT:alert(1)')).toBeNull();
+        expect(validateImageUrl('  javascript:alert(1)  ')).toBeNull();
+        /* eslint-enable no-script-url */
+    });
+
+    it('should reject vbscript: URLs', () => {
+        /* eslint-disable no-script-url */
+        expect(validateImageUrl('vbscript:msgbox(1)')).toBeNull();
+        expect(validateImageUrl('VBSCRIPT:msgbox(1)')).toBeNull();
+        /* eslint-enable no-script-url */
+    });
+
+    it('should reject URLs without protocol', () => {
+        expect(validateImageUrl('example.com/image.png')).toBeNull();
+        expect(validateImageUrl('//example.com/image.png')).toBeNull();
+        expect(validateImageUrl('/path/to/image.png')).toBeNull();
+    });
+
+    it('should accept safe raster image data URIs', () => {
+        const pngDataUri = 'data:image/png;base64,iVBORw0KGgo=';
+        expect(validateImageUrl(pngDataUri)).toBe(pngDataUri);
+
+        const jpegDataUri = 'data:image/jpeg;base64,/9j/4AAQ=';
+        expect(validateImageUrl(jpegDataUri)).toBe(jpegDataUri);
+
+        const gifDataUri = 'data:image/gif;base64,R0lGODlh';
+        expect(validateImageUrl(gifDataUri)).toBe(gifDataUri);
+
+        const webpDataUri = 'data:image/webp;base64,UklGR';
+        expect(validateImageUrl(webpDataUri)).toBe(webpDataUri);
+    });
+
+    it('should reject SVG data URIs (XSS risk)', () => {
+        expect(validateImageUrl('data:image/svg+xml,<svg onload="alert(1)"></svg>')).toBeNull();
+        expect(validateImageUrl('data:image/svg+xml;base64,PHN2ZyBvbmxvYWQ9ImFsZXJ0KDEpIj48L3N2Zz4=')).toBeNull();
+    });
+
+    it('should reject other dangerous data URIs', () => {
+        expect(validateImageUrl('data:text/html,<script>alert(1)</script>')).toBeNull();
+        expect(validateImageUrl('data:application/javascript,alert(1)')).toBeNull();
+    });
+});
+
 describe('TipTapEditor - Page Linking (Ctrl+K and Modal)', () => {
     beforeEach(() => {
         jest.clearAllMocks();

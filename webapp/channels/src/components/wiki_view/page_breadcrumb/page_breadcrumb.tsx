@@ -14,6 +14,8 @@ import {loadWiki, getPageBreadcrumb} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
 import {buildBreadcrumbFromRedux} from 'selectors/pages';
 
+import {getWikiUrl} from 'utils/url';
+
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
@@ -37,10 +39,12 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
 
+    const teamName = currentTeam?.name || 'team';
+
     // Helper to fix breadcrumb item paths - use /wiki/ route not /channels/
     const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
         ...item,
-        path: item.type === 'wiki' ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}` : `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${item.id}`,
+        path: item.type === 'wiki' ? getWikiUrl(teamName, channelId, wikiId) : getWikiUrl(teamName, channelId, wikiId, item.id),
     });
 
     useEffect(() => {
@@ -90,7 +94,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                         id: grandparentId,
                                         title: grandparentPath.current_page.title,
                                         type: 'page',
-                                        path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${grandparentId}`,
+                                        path: getWikiUrl(teamName, channelId, wikiId, grandparentId),
                                         channel_id: channelId,
                                     },
                                 ];
@@ -100,7 +104,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                     id: wikiId,
                                     title: loadedWiki.title,
                                     type: 'wiki',
-                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                    path: getWikiUrl(teamName, channelId, wikiId),
                                     channel_id: channelId,
                                 }];
                             }
@@ -110,7 +114,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                 id: parentPageId,
                                 title: parentTitle,
                                 type: 'page',
-                                path: `/${currentTeam?.name || 'team'}/drafts/${parentPageId}`,
+                                path: getWikiUrl(teamName, channelId, wikiId, parentPageId, true),
                                 channel_id: channelId,
                             });
 
@@ -120,7 +124,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                     id: 'draft',
                                     title: draftTitle || 'Untitled page',
                                     type: 'page',
-                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                    path: getWikiUrl(teamName, channelId, wikiId),
                                     channel_id: channelId,
                                 },
                             };
@@ -141,7 +145,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                         id: parentPageId,
                                         title: parentPath.current_page.title,
                                         type: 'page',
-                                        path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${parentPageId}`,
+                                        path: getWikiUrl(teamName, channelId, wikiId, parentPageId),
                                         channel_id: channelId,
                                     },
                                 ],
@@ -149,7 +153,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                     id: 'draft',
                                     title: draftTitle || 'Untitled page',
                                     type: 'page',
-                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                    path: getWikiUrl(teamName, channelId, wikiId),
                                     channel_id: channelId,
                                 },
                             };
@@ -162,14 +166,14 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                 id: wikiId,
                                 title: loadedWiki.title,
                                 type: 'wiki',
-                                path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                path: getWikiUrl(teamName, channelId, wikiId),
                                 channel_id: channelId,
                             }],
                             current_page: {
                                 id: 'draft',
                                 title: draftTitle || 'Untitled page',
                                 type: 'page',
-                                path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                path: getWikiUrl(teamName, channelId, wikiId),
                                 channel_id: channelId,
                             },
                         };
@@ -205,7 +209,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                             id: wikiId,
                             title: loadedWiki.title,
                             type: 'wiki',
-                            path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                            path: getWikiUrl(teamName, channelId, wikiId),
                             channel_id: channelId,
                         },
                     });

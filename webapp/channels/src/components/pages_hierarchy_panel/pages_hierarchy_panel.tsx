@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect, useMemo, useState, useCallback} from 'react';
 import {useDispatch} from 'react-redux';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 
 import {createBookmarkFromPage} from 'actions/channel_bookmarks';
@@ -20,7 +21,7 @@ import {PageDisplayTypes} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
 
-import {usePageMenuHandlers} from './hooks/use_page_menu_handlers';
+import {usePageMenuHandlers} from './hooks/usePageMenuHandlers';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
 import PagesHeader from './pages_header';
@@ -44,18 +45,18 @@ type Props = {
     isPanelCollapsed: boolean;
     lastInvalidated: number;
     actions: {
-        loadPages: (wikiId: string) => Promise<{data?: Post[]; error?: any}>;
-        loadPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: any}>;
-        removePageDraft: (wikiId: string, draftId: string) => Promise<{data?: boolean; error?: any}>;
+        loadPages: (wikiId: string) => Promise<{data?: Post[]; error?: ServerError}>;
+        loadPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: ServerError}>;
+        removePageDraft: (wikiId: string, draftId: string) => Promise<{data?: boolean; error?: ServerError}>;
         toggleNodeExpanded: (wikiId: string, nodeId: string) => void;
         setSelectedPage: (pageId: string | null) => void;
         expandAncestors: (wikiId: string, ancestorIds: string[]) => void;
-        createPage: (wikiId: string, title: string, pageParentId?: string) => Promise<{data?: any; error?: any}>;
-        updatePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: any}>;
-        deletePage: (pageId: string, wikiId: string) => Promise<{data?: boolean; error?: any}>;
-        movePage: (pageId: string, newParentId: string, wikiId: string) => Promise<{data?: Post; error?: any}>;
-        movePageToWiki: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string) => Promise<{data?: boolean; error?: any}>;
-        duplicatePage: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => Promise<{data?: Post; error?: any}>;
+        createPage: (wikiId: string, title: string, pageParentId?: string) => Promise<{data?: string; error?: ServerError}>;
+        updatePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: ServerError}>;
+        deletePage: (pageId: string, wikiId: string) => Promise<{data?: boolean; error?: ServerError}>;
+        movePage: (pageId: string, newParentId: string, wikiId: string) => Promise<{data?: Post; error?: ServerError}>;
+        movePageToWiki: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string) => Promise<{data?: boolean; error?: ServerError}>;
+        duplicatePage: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => Promise<{data?: Post; error?: ServerError}>;
         closePagesPanel: () => void;
     };
 };

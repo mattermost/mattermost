@@ -275,6 +275,14 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 		return model.NewAppError("AddPageToWiki", "app.wiki.add_page.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
 	}
 
+	// Store wiki_id in Post.Props for fast lookup (optimization to avoid property service queries)
+	if err := a.setWikiIdInPostProps(rctx, pageId, wikiId); err != nil {
+		rctx.Logger().Warn("Failed to store wiki_id in Post.Props (non-fatal)",
+			mlog.String("page_id", pageId),
+			mlog.String("wiki_id", wikiId),
+			mlog.Err(err))
+	}
+
 	rctx.Logger().Info("PropertyValue created successfully",
 		mlog.String("page_id", pageId),
 		mlog.String("wiki_id", wikiId),
@@ -385,37 +393,16 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 }
 
 func (a *App) GetWikiIdForPage(rctx request.CTX, pageId string) (string, *model.AppError) {
-	group, err := a.GetPagePropertyGroup()
+	post, err := a.GetSinglePost(rctx, pageId, false)
 	if err != nil {
-		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.post_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	wikiField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", "wiki")
-	if err != nil {
-		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if wikiId, ok := post.Props["wiki_id"].(string); ok && wikiId != "" {
+		return wikiId, nil
 	}
 
-	opts := model.PropertyValueSearchOpts{
-		TargetType: "post",
-		TargetIDs:  []string{pageId},
-		FieldID:    wikiField.ID,
-		GroupID:    group.ID,
-		PerPage:    1,
-	}
-	propertyValues, err := a.Srv().Store().PropertyValue().SearchPropertyValues(opts)
-	if err != nil {
-		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.search_failed", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if len(propertyValues) == 0 {
-		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.not_found", nil, "", http.StatusNotFound)
-	}
-
-	var wikiId string
-	if jsonErr := json.Unmarshal(propertyValues[0].Value, &wikiId); jsonErr != nil {
-		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.unmarshal_failed", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-
-	return wikiId, nil
+	return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.not_found", nil, "", http.StatusNotFound)
 }
 
 type movePageContext struct {
@@ -812,4 +799,15 @@ func (a *App) MoveWikiToChannel(rctx request.CTX, wiki *model.Wiki, targetChanne
 	)
 
 	return movedWiki, nil
+}
+
+// setWikiIdInPostProps stores wiki_id in the post's Props for fast lookup.
+// This is an optimization to avoid querying the property service on every GetWikiIdForPage call.
+// Uses a direct SQL update that doesn't modify UpdateAt to avoid optimistic locking conflicts.
+func (a *App) setWikiIdInPostProps(rctx request.CTX, pageId, wikiId string) *model.AppError {
+	if err := a.Srv().Store().Wiki().SetWikiIdInPostProps(pageId, wikiId); err != nil {
+		return model.NewAppError("setWikiIdInPostProps", "app.wiki.set_wiki_id_props.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }

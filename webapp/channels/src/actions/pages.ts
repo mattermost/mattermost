@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {matchPath} from 'react-router-dom';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
@@ -246,7 +247,7 @@ export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> 
             return {error};
         }
 
-        const actions: any[] = [
+        const actions: AnyAction[] = [
             {
                 type: PostActionTypes.RECEIVED_POST,
                 data,
@@ -390,7 +391,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         try {
             const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baselineUpdateAt) as Page;
 
-            const actions: any[] = [
+            const actions: AnyAction[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
@@ -411,7 +412,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             }
 
             // Cleanup: Delete user's old drafts for this page
-            const cleanupActions: any[] = [];
+            const cleanupActions: AnyAction[] = [];
             if (pageId && currentUserId) {
                 const draftKeys = getUserDraftKeysForPage(state, wikiId, pageId);
                 draftKeys.forEach((key: string) => {
@@ -441,7 +442,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             dispatch({type: WikiTypes.INVALIDATE_DRAFTS, data: {wikiId, timestamp}});
 
             return {data};
-        } catch (error: any) {
+        } catch (error) {
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
@@ -451,7 +452,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
 
             // Check if this is a conflict error (409 Conflict only, not 403)
             // 403 Forbidden is a permission error, not a concurrency conflict
-            if (error?.status_code === 409 && pageId) {
+            if (error.status_code === 409 && pageId) {
                 // Fetch the current page to get the latest version
                 try {
                     const currentPage = await Client4.getPage(wikiId, pageId) as Page;

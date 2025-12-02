@@ -19,7 +19,7 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.ValidatePageBelongsToWiki() {
+	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
 		return
 	}
 
@@ -153,13 +153,8 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.ValidatePageBelongsToWiki() {
-		return
-	}
-
-	page, pageErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
-	if pageErr != nil {
-		c.Err = pageErr
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
@@ -252,7 +247,22 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// No permission check needed for DM/Group channels
+		// For DM/Group channels: check membership and ensure user is not a guest
+		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
+			c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
+			return
+		}
+
+		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
+		if gAppErr != nil {
+			c.Err = gAppErr
+			return
+		}
+
+		if user.IsGuest() {
+			c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	default:
 		c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.invalid_channel_type", nil, "", http.StatusBadRequest)
 		return
@@ -282,6 +292,16 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
+		return
+	}
+
+	if page.Type != model.PostTypePage {
+		c.SetInvalidParam("page_id")
+		return
+	}
+
 	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
 	if appErr != nil {
 		c.Err = appErr
@@ -299,31 +319,12 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the page
-	page, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	// Check if it's a page
-	if page.Type != model.PostTypePage {
-		c.SetInvalidParam("page_id")
-		return
-	}
-
-	// Check permission to read page
 	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "getPageBreadcrumb"); err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.ValidatePageBelongsToWiki() {
-		return
-	}
-
-	// Build breadcrumb path
-	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page)
+	breadcrumbPath, appErr := c.App.BuildBreadcrumbPath(c.AppContext, page, wiki, channel)
 	if appErr != nil {
 		c.Err = appErr
 		return

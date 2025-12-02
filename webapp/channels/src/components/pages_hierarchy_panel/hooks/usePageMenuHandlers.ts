@@ -6,9 +6,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Wiki} from '@mattermost/types/wikis';
 
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {removePageDraft} from 'actions/page_drafts';
 import {createPage, deletePage, duplicatePage, movePageToWiki} from 'actions/pages';
@@ -49,7 +51,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             root_id: '',
             original_id: '',
             message: draft.message,
-            type: PageDisplayTypes.PAGE_DRAFT as any,
+            type: PageDisplayTypes.PAGE_DRAFT,
             page_parent_id: draft.props?.page_parent_id || '',
             props: {
                 ...draft.props,
@@ -84,7 +86,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
     const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
-    const [availableWikis, setAvailableWikis] = useState<any[]>([]);
+    const [availableWikis, setAvailableWikis] = useState<Wiki[]>([]);
     const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
     const [creatingPage, setCreatingPage] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
@@ -126,14 +128,14 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setCreatingPage(true);
         try {
             const parentPageId = createPageParent?.id;
-            const result = await dispatch(createPage(wikiId, title, parentPageId));
-            if ((result as any).error) {
+            const result = await dispatch(createPage(wikiId, title, parentPageId)) as ActionResult<string>;
+            if (result.error) {
                 setCreatingPage(false);
-                throw (result as any).error;
+                throw result.error;
             }
 
-            if ((result as any).data) {
-                const draftId = (result as any).data;
+            if (result.data) {
+                const draftId = result.data;
                 if (parentPageId) {
                     dispatch(expandAncestors(wikiId, [parentPageId]));
                 }
@@ -215,7 +217,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (!page) {
             return;
         }
-        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
+        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
         if (isDraft) {
             setPageToDelete({page, childCount: 0});
             setShowDeleteModal(true);
@@ -231,15 +233,15 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             return;
         }
         const {page} = pageToDelete;
-        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
+        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
 
         setShowDeleteModal(false);
         setDeletingPageId(page.id);
 
         try {
             if (isDraft) {
-                const result = await dispatch(removePageDraft(wikiId, page.id));
-                if ((result as any).error) {
+                const result = await dispatch(removePageDraft(wikiId, page.id)) as ActionResult<boolean>;
+                if (result.error) {
                     return;
                 }
                 onPageSelect?.('');
@@ -248,14 +250,14 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                     const descendantIds = getAllDescendantIds(page.id);
                     for (const descendantId of descendantIds.reverse()) {
                         // eslint-disable-next-line no-await-in-loop
-                        const result = await dispatch(deletePage(descendantId, wikiId));
-                        if ((result as any).error) {
+                        const result = await dispatch(deletePage(descendantId, wikiId)) as ActionResult<boolean>;
+                        if (result.error) {
                             return;
                         }
                     }
                 }
-                const result = await dispatch(deletePage(page.id, wikiId));
-                if ((result as any).error) {
+                const result = await dispatch(deletePage(page.id, wikiId)) as ActionResult<boolean>;
+                if (result.error) {
                     return;
                 }
 
@@ -280,7 +282,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         }
 
         // Check if this is a draft
-        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
+        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
         if (isDraft) {
             // If it's a draft editing an existing page, use the actual page ID
             const actualPageId = page.props?.page_id as string | undefined;
@@ -312,7 +314,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
         try {
             const wikis = await Client4.getChannelWikis(channelId);
-            const targetWiki = wikis?.find((w: any) => w.id === targetWikiId);
+            const targetWiki = wikis?.find((w) => w.id === targetWikiId);
             if (targetWiki) {
                 const pages = await Client4.getPages(targetWikiId);
                 return pages || [];

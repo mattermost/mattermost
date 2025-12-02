@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {History, Location} from 'history';
+
 import type {Post} from '@mattermost/types/posts';
 
 import {savePageDraft} from 'actions/page_drafts';
@@ -9,6 +11,17 @@ import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
+
+type UnsavedDraftError = {
+    id: string;
+    message: string;
+    data: {
+        existingDraft: PostDraft;
+        draftCreateAt: number;
+        requiresConfirmation: boolean;
+    };
+};
 
 /**
  * Checks if user has an existing draft with unsaved changes for the given page.
@@ -19,7 +32,7 @@ function checkForUnsavedDraft(
     wikiId: string,
     pageId: string,
     publishedContent: string,
-): {error: any} | null {
+): {error: UnsavedDraftError} | null {
     if (!hasUnsavedChanges(state, wikiId, pageId, publishedContent)) {
         return null;
     }
@@ -49,8 +62,8 @@ export function openPageInEditMode(
     channelId: string,
     wikiId: string,
     page: Post,
-    history: any,
-    location: any,
+    history: History,
+    location: Location,
 ): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();

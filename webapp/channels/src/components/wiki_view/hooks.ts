@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Location} from 'history';
+import type {History, Location} from 'history';
 import {useEffect, useLayoutEffect, useState, useCallback, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -60,7 +60,7 @@ export function useWikiPageData(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _teamId: string,
     location: Location,
-    history: any,
+    history: History,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _path: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -228,7 +228,7 @@ export function useWikiPageActions(
     currentPage: Post | null,
     currentDraft: PostDraft | null,
     location: Location,
-    history: any,
+    history: History,
 ): UseWikiPageActionsResult {
     const dispatch = useDispatch();
     const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -482,6 +482,13 @@ export function useWikiPageActions(
         const originalPageUpdateAt = currentDraft.props?.original_page_update_at;
         const title = latestTitleRef.current || currentDraft.props?.title || '';
         const content = latestContentRef.current || currentDraft.message || '';
+
+        const propsToSave = {
+            ...(pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : {}),
+            ...(originalPageUpdateAt ? {original_page_update_at: originalPageUpdateAt} : {}),
+            page_status: newStatus,
+        };
+
         dispatch(savePageDraft(
             channelId,
             wikiId,
@@ -489,11 +496,7 @@ export function useWikiPageActions(
             content,
             title,
             pageIdFromDraft,
-            {
-                ...(pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : {}),
-                ...(originalPageUpdateAt ? {original_page_update_at: originalPageUpdateAt} : {}),
-                page_status: newStatus,
-            },
+            propsToSave,
         ));
     }, [channelId, wikiId, draftId, currentDraft, dispatch]);
 

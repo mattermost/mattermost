@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 
 type Heading = {
     id: string;
@@ -23,7 +24,12 @@ const PageOutline = () => {
         <div className='PageOutline'>
             <nav className='PageOutline__nav'>
                 {headings.length === 0 ? (
-                    <p className='PageOutline__empty'>{'No headings in this page'}</p>
+                    <p className='PageOutline__empty'>
+                        <FormattedMessage
+                            id='wiki.outline.no_headings'
+                            defaultMessage='No headings in this page'
+                        />
+                    </p>
                 ) : (
                     <ul className='PageOutline__list'>
                         {headings.map((heading) => (

@@ -3,6 +3,8 @@
 
 import type {AnyAction} from 'redux';
 
+import {UserTypes} from 'mattermost-redux/action_types';
+
 import type {Heading} from 'utils/page_outline';
 
 export const TOGGLE_NODE_EXPANDED = 'pages_hierarchy/TOGGLE_NODE_EXPANDED';
@@ -134,10 +136,10 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
     case CLEAR_OUTLINE_CACHE: {
         const {pageId} = action.data;
         const restCache = {...state.outlineCache};
-        delete restCache[pageId];
+        Reflect.deleteProperty(restCache, pageId);
 
         const newExpandedNodes = {...state.outlineExpandedNodes};
-        delete newExpandedNodes[pageId];
+        Reflect.deleteProperty(newExpandedNodes, pageId);
 
         return {
             ...state,
@@ -156,6 +158,9 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
             },
         };
     }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialState;
 
     default:
         return state;

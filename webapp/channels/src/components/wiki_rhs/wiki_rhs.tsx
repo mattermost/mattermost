@@ -4,6 +4,8 @@
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
+
 import Tab from 'components/tabs/tab';
 import Tabs from 'components/tabs/tabs';
 import WithTooltip from 'components/with_tooltip';
@@ -22,7 +24,7 @@ type Props = {
     focusedInlineCommentId: string | null;
     isExpanded: boolean;
     actions: {
-        publishPage: (wikiId: string, pageId: string) => Promise<any>;
+        publishPage: (wikiId: string, pageId: string) => Promise<{data?: Post; error?: Error}>;
         closeRightHandSide: () => void;
         setWikiRhsActiveTab: (tab: 'page_comments' | 'all_threads') => void;
         setFocusedInlineCommentId: (commentId: string | null) => void;
@@ -38,10 +40,8 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
         actions.setFocusedInlineCommentId(null);
     }, [actions]);
 
-    const handleTabSwitch = useCallback((key: any) => {
-        if (typeof key === 'string') {
-            actions.setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
-        }
+    const handleTabSwitch = useCallback((key: string) => {
+        actions.setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
     }, [actions]);
 
     const handleThreadClick = useCallback((targetPageId: string, threadId: string) => {
@@ -78,7 +78,12 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                             <i className='icon icon-arrow-back-ios'/>
                         </button>
                     </WithTooltip>
-                    <h2 data-testid='wiki-rhs-header-title'>{'Thread'}</h2>
+                    <h2 data-testid='wiki-rhs-header-title'>
+                        <FormattedMessage
+                            id='wiki.comments.thread_header'
+                            defaultMessage='Thread'
+                        />
+                    </h2>
                     <div
                         className='WikiRHS__header-actions'
                         data-testid='wiki-rhs-header-actions'
@@ -137,7 +142,12 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                 className='WikiRHS__header'
                 data-testid='wiki-rhs-header'
             >
-                <h2 data-testid='wiki-rhs-header-title'>{'Comments'}</h2>
+                <h2 data-testid='wiki-rhs-header-title'>
+                    <FormattedMessage
+                        id='wiki.comments.header'
+                        defaultMessage='Comments'
+                    />
+                </h2>
                 {activeTab === 'page_comments' && pageTitle && (
                     <span
                         className='WikiRHS__page-title'
@@ -180,6 +190,8 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
             <Tabs
                 id='wiki_rhs_tabs'
                 activeKey={activeTab}
+
+                // @ts-expect-error The types that we have for React Bootstrap are for a newer version than we use
                 onSelect={handleTabSwitch}
                 className='WikiRHS__tabs'
             >
@@ -214,7 +226,12 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                                 className='WikiRHS__empty-state'
                                 data-testid='wiki-rhs-empty-state'
                             >
-                                <p>{'Save page to enable comments'}</p>
+                                <p>
+                                    <FormattedMessage
+                                        id='wiki.comments.save_to_enable'
+                                        defaultMessage='Save page to enable comments'
+                                    />
+                                </p>
                             </div>
                         )}
                     </div>
@@ -235,7 +252,12 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                             />
                         ) : (
                             <div className='WikiRHS__empty-state'>
-                                <p>{'No wiki selected'}</p>
+                                <p>
+                                    <FormattedMessage
+                                        id='wiki.comments.no_wiki'
+                                        defaultMessage='No wiki selected'
+                                    />
+                                </p>
                             </div>
                         )}
                     </div>

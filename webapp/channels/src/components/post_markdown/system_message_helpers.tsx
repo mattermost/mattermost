@@ -21,7 +21,7 @@ import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_c
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
 import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
-import {getSiteURL} from 'utils/url';
+import {getSiteURL, getWikiUrl} from 'utils/url';
 
 export function renderUsername(value: unknown): ReactNode {
     const verifiedValue = ensureString(value);
@@ -379,7 +379,7 @@ function renderWikiAddedMessage(post: Post, currentTeamName: string, channel: Ch
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
 
-    const wikiUrl = `/${currentTeamName}/wiki/${channel.id}/${wikiId}`;
+    const wikiUrl = getWikiUrl(currentTeamName, channel.id, wikiId);
     const wikiLink = <Link to={wikiUrl}>{wikiTitle}</Link>;
 
     return (
@@ -417,7 +417,7 @@ function renderPageAddedMessage(post: Post, currentTeamName: string, channel: Ch
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
 
-    const pageUrl = `${getSiteURL()}/${currentTeamName}/wiki/${channel.id}/${wikiId}/${pageId}`;
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
     const pageLink = <a href={pageUrl}>{pageTitle}</a>;
 
     return (
@@ -439,7 +439,7 @@ function renderPageMentionMessage(post: Post, currentTeamName: string, channel: 
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
 
-    const pageUrl = `${getSiteURL()}/${currentTeamName}/wiki/${channel.id}/${wikiId}/${pageId}`;
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
     const pageLink = <a href={pageUrl}>{pageTitle}</a>;
 
     return (
@@ -461,7 +461,7 @@ function renderPageUpdatedMessage(post: Post, currentTeamName: string, channel: 
     const wikiId = ensureString(post.props.wiki_id);
     const updaterIds = post.props.updater_ids;
 
-    const pageUrl = `${getSiteURL()}/${currentTeamName}/wiki/${channel.id}/${wikiId}/${pageId}`;
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
     const pageLink = <a href={pageUrl}>{pageTitle}</a>;
 
     let usersText: ReactNode = '';

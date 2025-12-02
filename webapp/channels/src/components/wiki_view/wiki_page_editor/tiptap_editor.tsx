@@ -21,15 +21,15 @@ import ImageResize from 'tiptap-extension-resize-image';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
 
+import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import {openModal} from 'actions/views/modals';
-import store from 'stores/redux_store';
 
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import FilePreviewModal from 'components/file_preview_modal';
@@ -40,6 +40,7 @@ import {getHistory} from 'utils/browser_history';
 import {PageConstants, ModalIdentifiers} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 import {slugifyHeading} from 'utils/slugify_heading';
+import {getWikiUrl, isUrlSafe, isValidUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -173,6 +174,46 @@ const getInitialContent = (content: string | Record<string, any>) => {
     }
 };
 
+// Safe raster image data URI prefixes (matching backend sanitizeURL in page_content.go)
+const SAFE_IMAGE_DATA_URI_PREFIXES = [
+    'data:image/png',
+    'data:image/jpeg',
+    'data:image/jpg',
+    'data:image/gif',
+    'data:image/webp',
+    'data:image/bmp',
+];
+
+/**
+ * Validates an image URL for safe insertion into the editor.
+ * Returns the validated URL if valid, null otherwise.
+ * Matches backend sanitization in page_content.go
+ */
+const validateImageUrl = (url: string): string | null => {
+    const trimmed = url.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    // Check for safe data URIs (raster images only, no SVG)
+    const lower = trimmed.toLowerCase();
+    if (lower.startsWith('data:')) {
+        for (const prefix of SAFE_IMAGE_DATA_URI_PREFIXES) {
+            if (lower.startsWith(prefix)) {
+                return trimmed;
+            }
+        }
+        return null; // Block SVG and other data URIs
+    }
+
+    // For regular URLs, must be safe and valid HTTP(S)
+    if (!isUrlSafe(trimmed) || !isValidUrl(trimmed)) {
+        return null;
+    }
+
+    return trimmed;
+};
+
 const TipTapEditor = ({
     content,
     onContentChange,
@@ -218,6 +259,20 @@ const TipTapEditor = ({
     const config = useSelector((state: GlobalState) => getConfig(state), shallowEqual);
     const maxFileSize = useMemo(() => parseInt(config.MaxFileSize || '', 10), [config.MaxFileSize]);
     const uploadsEnabled = useMemo(() => canUploadFiles(config), [config]);
+
+    // Get channels and team for channel mention click navigation
+    const allChannels = useSelector(getAllChannels);
+    const team = useSelector((state: GlobalState) => (teamId ? getTeam(state, teamId) : undefined));
+
+    // Refs to hold current values for event handlers (avoids stale closures)
+    const channelsRef = useRef(allChannels);
+    const teamRef = useRef(team);
+    useEffect(() => {
+        channelsRef.current = allChannels;
+    }, [allChannels]);
+    useEffect(() => {
+        teamRef.current = team;
+    }, [team]);
 
     const handleImageUpload = useCallback(async (
         currentEditor: Editor,
@@ -618,7 +673,6 @@ const TipTapEditor = ({
     }, [editor, inlineComments]);
 
     // Handle clicks on channel mentions to navigate to channel
-    // Using Mattermost pattern: access store.getState() directly inside handler to avoid subscriptions
     useEffect(() => {
         if (!editor) {
             return undefined;
@@ -629,22 +683,18 @@ const TipTapEditor = ({
             const channelMention = target.closest('.channel-mention[data-channel-id]');
 
             if (channelMention) {
-                const channelId = channelMention.getAttribute('data-channel-id');
+                const mentionChannelId = channelMention.getAttribute('data-channel-id');
+                const channels = channelsRef.current;
+                const currentTeamData = teamRef.current;
 
-                // Mattermost pattern: Get channels and team directly from store without creating subscription
-                const state = store.getState();
-                const channels = state.entities.channels.channels;
-                const teams = state.entities.teams.teams;
-
-                if (channelId && channels[channelId] && teamId && teams[teamId]) {
+                if (mentionChannelId && channels[mentionChannelId] && currentTeamData) {
                     event.preventDefault();
                     event.stopPropagation();
 
-                    const channel = channels[channelId];
-                    const team = teams[teamId];
+                    const channel = channels[mentionChannelId];
                     const history = getHistory();
                     const teamUrl = (window as any).basename || '';
-                    const channelUrl = `${teamUrl}/${team.name}/channels/${channel.name}`;
+                    const channelUrl = `${teamUrl}/${currentTeamData.name}/channels/${channel.name}`;
                     history.push(channelUrl);
                 }
             }
@@ -656,7 +706,7 @@ const TipTapEditor = ({
         return () => {
             editorElement.removeEventListener('click', handleClick);
         };
-    }, [editor, teamId]);
+    }, [editor]);
 
     // Handle clicks on wiki page links to navigate without full reload
     useEffect(() => {
@@ -786,7 +836,7 @@ const TipTapEditor = ({
         }
 
         // Use the selected page's wiki_id (not the current page's wikiId)
-        const url = `/${currentTeam?.name || 'team'}/wiki/${channelId}/${pageWikiId}/${pageId}`;
+        const url = getWikiUrl(currentTeam?.name || 'team', channelId || '', pageWikiId, pageId);
 
         const {from, to} = editor.state.selection;
 
@@ -936,12 +986,15 @@ const TipTapEditor = ({
                     show={showImageUrlModal}
                     title='Insert Image'
                     placeholder='https://example.com/image.png'
-                    helpText='Enter the URL of the image to insert'
+                    helpText='Enter the URL of the image to insert (must be https://)'
                     confirmButtonText='Insert'
                     cancelButtonText='Cancel'
                     maxLength={2048}
                     onConfirm={(url) => {
-                        editor.chain().focus().setImage({src: url}).run();
+                        const validatedUrl = validateImageUrl(url);
+                        if (validatedUrl) {
+                            editor.chain().focus().setImage({src: validatedUrl}).run();
+                        }
                         setShowImageUrlModal(false);
                     }}
                     onCancel={() => setShowImageUrlModal(false)}

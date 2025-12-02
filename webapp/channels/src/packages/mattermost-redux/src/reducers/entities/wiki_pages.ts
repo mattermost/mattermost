@@ -6,7 +6,7 @@ import type {AnyAction} from 'redux';
 import type {Post} from '@mattermost/types/posts';
 import type {SelectPropertyField} from '@mattermost/types/properties';
 
-import {WikiTypes} from 'mattermost-redux/action_types';
+import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 
 export type WikiPagesState = {
     byWiki: Record<string, string[]>;
@@ -157,19 +157,19 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         const {wikiId} = action.data;
 
         const nextByWiki = {...state.byWiki};
-        delete nextByWiki[wikiId];
+        Reflect.deleteProperty(nextByWiki, wikiId);
 
         const nextLoading = {...state.loading};
-        delete nextLoading[wikiId];
+        Reflect.deleteProperty(nextLoading, wikiId);
 
         const nextError = {...state.error};
-        delete nextError[wikiId];
+        Reflect.deleteProperty(nextError, wikiId);
 
         const nextLastPagesInvalidated = {...state.lastPagesInvalidated};
-        delete nextLastPagesInvalidated[wikiId];
+        Reflect.deleteProperty(nextLastPagesInvalidated, wikiId);
 
         const nextLastDraftsInvalidated = {...state.lastDraftsInvalidated};
-        delete nextLastDraftsInvalidated[wikiId];
+        Reflect.deleteProperty(nextLastDraftsInvalidated, wikiId);
 
         return {
             ...state,
@@ -194,7 +194,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
     case WikiTypes.PUBLISH_DRAFT_FAILURE: {
         const {draftId} = action.data;
         const nextPendingPublishes = {...state.pendingPublishes};
-        delete nextPendingPublishes[draftId];
+        Reflect.deleteProperty(nextPendingPublishes, draftId);
         return {
             ...state,
             pendingPublishes: nextPendingPublishes,
@@ -203,7 +203,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
     case WikiTypes.PUBLISH_DRAFT_COMPLETED: {
         const {draftId} = action.data;
         const nextPendingPublishes = {...state.pendingPublishes};
-        delete nextPendingPublishes[draftId];
+        Reflect.deleteProperty(nextPendingPublishes, draftId);
         return {
             ...state,
             pendingPublishes: nextPendingPublishes,
@@ -236,6 +236,8 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
             statusField: action.data,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialState;
     default:
         return state;
     }

@@ -5,7 +5,7 @@ import type {AnyAction} from 'redux';
 
 import type {Wiki} from '@mattermost/types/wikis';
 
-import {WikiTypes} from 'mattermost-redux/action_types';
+import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 
 type WikisState = {
     byChannel: Record<string, string[]>;
@@ -59,7 +59,7 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
         }
 
         const nextById = {...state.byId};
-        delete nextById[wikiId];
+        Reflect.deleteProperty(nextById, wikiId);
 
         return {
             ...state,
@@ -67,6 +67,8 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
             byId: nextById,
         };
     }
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialState;
     default:
         return state;
     }

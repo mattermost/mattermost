@@ -727,4 +727,35 @@ func TestSanitizeTipTapDocument(t *testing.T) {
 		text := textNode["text"].(string)
 		require.Equal(t, "Item with & symbol", text)
 	})
+
+	t.Run("blocks SVG data URIs to prevent XSS", func(t *testing.T) {
+		pc := &PageContent{
+			PageId: NewId(),
+		}
+
+		// SVG can contain embedded JavaScript via <script> tags or event handlers
+		jsonStr := `{"type":"doc","content":[{"type":"image","attrs":{"src":"data:image/svg+xml,<svg onload='alert(1)'></svg>"}}]}`
+		err := pc.SetDocumentJSON(jsonStr)
+		require.NoError(t, err)
+
+		imageNode := pc.Content.Content[0]
+		attrs := imageNode["attrs"].(map[string]any)
+		require.Empty(t, attrs["src"], "SVG data URIs should be blocked")
+	})
+
+	t.Run("allows safe raster image data URIs", func(t *testing.T) {
+		pc := &PageContent{
+			PageId: NewId(),
+		}
+
+		// Small valid PNG data URI (1x1 transparent pixel)
+		pngDataURI := "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+		jsonStr := `{"type":"doc","content":[{"type":"image","attrs":{"src":"` + pngDataURI + `"}}]}`
+		err := pc.SetDocumentJSON(jsonStr)
+		require.NoError(t, err)
+
+		imageNode := pc.Content.Content[0]
+		attrs := imageNode["attrs"].(map[string]any)
+		require.Equal(t, pngDataURI, attrs["src"], "PNG data URIs should be allowed")
+	})
 }

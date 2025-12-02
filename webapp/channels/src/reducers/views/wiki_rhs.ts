@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {WikiRhsTypes} from 'utils/constants';
+import {UserTypes} from 'mattermost-redux/action_types';
+
+import {ActionTypes, WikiRhsTypes} from 'utils/constants';
+
+import type {MMAction} from 'types/store';
 
 export type WikiRhsState = {
     mode: 'outline' | 'comments';
@@ -19,7 +23,7 @@ const initialState: WikiRhsState = {
     activeTab: 'page_comments',
 };
 
-export default function wikiRhsReducer(state = initialState, action: any): WikiRhsState {
+export default function wikiRhsReducer(state = initialState, action: MMAction): WikiRhsState {
     switch (action.type) {
     case WikiRhsTypes.SET_MODE:
         return {...state, mode: action.mode};
@@ -29,11 +33,13 @@ export default function wikiRhsReducer(state = initialState, action: any): WikiR
         return {...state, focusedInlineCommentId: action.commentId};
     case WikiRhsTypes.SET_ACTIVE_TAB:
         return {...state, activeTab: action.tab};
-    case 'UPDATE_RHS_STATE':
+    case ActionTypes.UPDATE_RHS_STATE:
         if (action.state === 'wiki') {
             return {...state, selectedPageId: action.pageId || ''};
         }
         return {...state, selectedPageId: ''};
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialState;
     default:
         return state;
     }

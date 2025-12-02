@@ -18,20 +18,7 @@ func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if _, _, ok := c.RequireWikiReadPermission(); !ok {
 		return
 	}
 
@@ -55,24 +42,12 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.ValidatePageBelongsToWiki() {
+	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	wiki, _, ok := c.RequireWikiReadPermission()
+	if !ok {
 		return
 	}
 
@@ -81,14 +56,10 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// GetPage loads page content from PageContent table and checks permissions
 	page, appErr := c.App.GetPage(c.AppContext, c.Params.PageId)
 	if appErr != nil {
 		c.Err = appErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "getWikiPage"); err != nil {
-		c.Err = err
 		return
 	}
 

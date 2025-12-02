@@ -26,6 +26,7 @@ import TextInputModal from 'components/text_input_modal';
 import WikiDeleteModal from 'components/wiki_delete_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {getWikiUrl, getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -40,6 +41,7 @@ function WikiTabMenu({wiki, channelId}: Props) {
     const dispatch = useDispatch();
     const history = useHistory();
     const currentTeam = useSelector(getCurrentTeam);
+    const teamName = currentTeam?.name || 'team';
     const teamUrl = useSelector((state: GlobalState) =>
         getCurrentRelativeTeamUrl(state),
     );
@@ -88,11 +90,9 @@ function WikiTabMenu({wiki, channelId}: Props) {
     }, [dispatch, wiki.id, wiki.title, isViewingThisWiki, currentTeam, history, teamUrl, channelId]);
 
     const handleCopyLink = useCallback(() => {
-        if (currentTeam) {
-            const wikiUrl = `${window.location.origin}${teamUrl}/wiki/${channelId}/${wiki.id}`;
-            copyToClipboard(wikiUrl);
-        }
-    }, [currentTeam, teamUrl, channelId, wiki.id]);
+        const wikiUrl = `${getSiteURL()}${getWikiUrl(teamName, channelId, wiki.id)}`;
+        copyToClipboard(wikiUrl);
+    }, [teamName, channelId, wiki.id]);
 
     const handleMove = useCallback(() => {
         dispatch(openModal({

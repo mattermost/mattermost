@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {WebSocketMessage} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
@@ -161,7 +163,7 @@ const WikiPageThreadViewer = (props: Props) => {
             return undefined;
         }
 
-        const handleNewPost = (msg: any) => {
+        const handleNewPost = (msg: WebSocketMessage) => {
             // Only handle POSTED events
             if (msg.event !== SocketEvents.POSTED) {
                 return;
@@ -198,7 +200,7 @@ const WikiPageThreadViewer = (props: Props) => {
             return undefined;
         }
 
-        const handleResolutionUpdate = (msg: any) => {
+        const handleResolutionUpdate = (msg: WebSocketMessage) => {
             // Handle both resolved and unresolved events
             if (msg.event !== SocketEvents.PAGE_COMMENT_RESOLVED && msg.event !== SocketEvents.PAGE_COMMENT_UNRESOLVED) {
                 return;
@@ -297,21 +299,30 @@ const WikiPageThreadViewer = (props: Props) => {
                         onClick={() => setResolutionFilter('all')}
                         data-testid='filter-all'
                     >
-                        {'All'}
+                        <FormattedMessage
+                            id='wiki.comments.all'
+                            defaultMessage='All'
+                        />
                     </button>
                     <button
                         className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'open' ? 'active' : ''}`}
                         onClick={() => setResolutionFilter('open')}
                         data-testid='filter-open'
                     >
-                        {'Open'}
+                        <FormattedMessage
+                            id='wiki.comments.open'
+                            defaultMessage='Open'
+                        />
                     </button>
                     <button
                         className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'resolved' ? 'active' : ''}`}
                         onClick={() => setResolutionFilter('resolved')}
                         data-testid='filter-resolved'
                     >
-                        {'Resolved'}
+                        <FormattedMessage
+                            id='wiki.comments.resolved'
+                            defaultMessage='Resolved'
+                        />
                     </button>
                 </div>
                 {inlineComments.length === 0 ? (

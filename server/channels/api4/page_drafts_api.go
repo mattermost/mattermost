@@ -19,20 +19,7 @@ func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if _, _, ok := c.RequireWikiReadPermission(); !ok {
 		return
 	}
 
@@ -147,20 +134,7 @@ func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if _, _, ok := c.RequireWikiReadPermission(); !ok {
 		return
 	}
 

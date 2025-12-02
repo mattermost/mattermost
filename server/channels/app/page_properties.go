@@ -5,8 +5,8 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -75,7 +75,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 		TargetType: PropertyValueTargetTypePage,
 		GroupID:    group.ID,
 		FieldID:    statusField.ID,
-		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, status)),
+		Value:      json.RawMessage(strconv.Quote(status)),
 	}
 
 	rctx.Logger().Info("SetPageStatus: upserting property value",

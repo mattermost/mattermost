@@ -1211,6 +1211,7 @@ type WikiStore interface {
 	DeleteAllPagesForWiki(wikiId string) error
 	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
 	MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error)
+	SetWikiIdInPostProps(pageId, wikiId string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

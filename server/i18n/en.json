@@ -2629,6 +2629,14 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.page.duplicate.direct_or_group_channels.forbidden.app_error",
+    "translation": "You must be a member of the channel to duplicate pages to it."
+  },
+  {
+    "id": "api.page.duplicate.direct_or_group_channels_by_guests.forbidden.app_error",
+    "translation": "Guests cannot duplicate pages in direct or group channels."
+  },
+  {
     "id": "api.page.duplicate.invalid_channel_type",
     "translation": "Cannot duplicate page to this channel type."
   },
@@ -4811,8 +4819,20 @@
     "translation": "Post is not a page."
   },
   {
+    "id": "api.wiki.not_found",
+    "translation": ""
+  },
+  {
+    "id": "api.wiki.page_not_found",
+    "translation": ""
+  },
+  {
     "id": "api.wiki.page_wiki_mismatch",
     "translation": "Page does not belong to this wiki."
+  },
+  {
+    "id": "api.wiki.page_wiki_not_set",
+    "translation": ""
   },
   {
     "id": "api.wiki.permission.app_error",
@@ -8917,12 +8937,8 @@
     "translation": "Wiki not found for page."
   },
   {
-    "id": "app.wiki.get_wiki_for_page.search_failed",
-    "translation": "Failed to search for wiki containing page."
-  },
-  {
-    "id": "app.wiki.get_wiki_for_page.unmarshal_failed",
-    "translation": "Failed to parse wiki data."
+    "id": "app.wiki.get_wiki_for_page.post_not_found",
+    "translation": ""
   },
   {
     "id": "app.wiki.move_wiki.store_error.app_error",
@@ -8939,6 +8955,10 @@
   {
     "id": "app.wiki.save.app_error",
     "translation": "Unable to save wiki."
+  },
+  {
+    "id": "app.wiki.set_wiki_id_props.app_error",
+    "translation": ""
   },
   {
     "id": "app.wiki.update.app_error",

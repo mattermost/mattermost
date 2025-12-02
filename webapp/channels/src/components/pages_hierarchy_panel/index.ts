@@ -69,4 +69,5 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default connect(mapStateToProps, mapDispatchToProps)(PagesHierarchyPanel as any);

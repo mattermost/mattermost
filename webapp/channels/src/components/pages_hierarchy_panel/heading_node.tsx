@@ -6,6 +6,7 @@ import {useHistory} from 'react-router-dom';
 
 import {scrollToHeading} from 'utils/page_outline';
 import type {Heading} from 'utils/page_outline';
+import {getWikiUrl} from 'utils/url';
 
 import './heading_node.scss';
 
@@ -30,8 +31,9 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
         if (currentPageId === pageId) {
             scrollToHeading(heading.id);
         } else {
-            const wikiUrl = wikiId && channelId ? `/${teamName}/wiki/${channelId}/${wikiId}/${pageId}` : `/${teamName}/pl/${pageId}`;
-            history.push(wikiUrl);
+            // Use getWikiUrl for wiki pages, fallback to permalink format for non-wiki pages
+            const url = wikiId && channelId ? getWikiUrl(teamName, channelId, wikiId, pageId) : `/${teamName}/pl/${pageId}`;
+            history.push(url);
             setTimeout(() => {
                 scrollToHeading(heading.id);
             }, 500);

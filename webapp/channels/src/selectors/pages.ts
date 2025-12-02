@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import type {Post} from '@mattermost/types/posts';
+import type {BreadcrumbItem, BreadcrumbPath} from '@mattermost/types/wikis';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {PageDisplayTypes} from 'utils/constants';
+import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -90,17 +92,24 @@ export const getDraftsLastInvalidated = (state: GlobalState, wikiId: string): nu
 };
 
 // Get all pages from all wikis in a channel (for cross-wiki linking)
+// Uses existing indexes (wikis.byChannel + wikiPages.byWiki) for O(1) lookup
+// instead of iterating all posts O(n)
 export const getChannelPages = createSelector(
     'getChannelPages',
     (state: GlobalState) => state.entities.posts.posts,
+    (state: GlobalState) => state.entities.wikis?.byChannel,
+    (state: GlobalState) => state.entities.wikiPages?.byWiki,
     (_state: GlobalState, channelId: string) => channelId,
-    (posts, channelId) => {
-        // Get all pages (type === PAGE) in this channel
-        return Object.values(posts).filter((post) =>
-            Boolean(post) &&
-            post.type === PostTypes.PAGE &&
-            post.channel_id === channelId,
-        );
+    (posts, wikisByChannel, pagesByWiki, channelId) => {
+        const wikiIds = wikisByChannel?.[channelId] || [];
+        const pageIds = wikiIds.flatMap((wikiId) => pagesByWiki?.[wikiId] || []);
+        return pageIds.
+            map((id) => posts[id]).
+            filter((post): post is Post =>
+                Boolean(post) &&
+                post.type === PostTypes.PAGE &&
+                post.state !== 'DELETED',
+            );
     },
 );
 
@@ -140,7 +149,7 @@ export const buildBreadcrumbFromRedux = (
     pageId: string,
     channelId: string,
     teamName: string,
-): {items: any[]; current_page: any} | null => {
+): BreadcrumbPath | null => {
     const wiki = state.entities.wikis?.byId?.[wikiId];
     if (!wiki) {
         return null;
@@ -152,12 +161,12 @@ export const buildBreadcrumbFromRedux = (
     }
 
     const ancestors = getPageAncestors(state, pageId);
-    const items: any[] = [
+    const items: BreadcrumbItem[] = [
         {
             id: wikiId,
             title: wiki.title,
             type: 'wiki',
-            path: `/${teamName}/wiki/${channelId}/${wikiId}`,
+            path: getWikiUrl(teamName, channelId, wikiId),
             channel_id: channelId,
         },
     ];
@@ -165,9 +174,9 @@ export const buildBreadcrumbFromRedux = (
     ancestors.forEach((ancestor) => {
         items.push({
             id: ancestor.id,
-            title: ancestor.props?.title || 'Untitled',
+            title: (ancestor.props?.title as string) || 'Untitled',
             type: 'page',
-            path: `/${teamName}/wiki/${channelId}/${wikiId}/${ancestor.id}`,
+            path: getWikiUrl(teamName, channelId, wikiId, ancestor.id),
             channel_id: channelId,
         });
     });
@@ -176,9 +185,9 @@ export const buildBreadcrumbFromRedux = (
         items,
         current_page: {
             id: page.id,
-            title: page.props?.title || 'Untitled',
+            title: (page.props?.title as string) || 'Untitled',
             type: 'page',
-            path: `/${teamName}/wiki/${channelId}/${wikiId}/${page.id}`,
+            path: getWikiUrl(teamName, channelId, wikiId, page.id),
             channel_id: channelId,
         },
     };

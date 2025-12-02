@@ -19,24 +19,11 @@ func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.ValidatePageBelongsToWiki() {
+	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+	if _, _, ok := c.RequireWikiReadPermission(); !ok {
 		return
 	}
 
@@ -74,30 +61,12 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.ValidatePageBelongsToWiki() {
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
-	}
-
-	page, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
-	if appErr != nil {
-		c.Err = appErr
+	if _, _, ok := c.RequireWikiReadPermission(); !ok {
 		return
 	}
 
@@ -158,30 +127,12 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
+	if _, _, ok := c.RequireWikiReadPermission(); !ok {
 		return
 	}
 
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
-	}
-
-	if !c.ValidatePageBelongsToWiki() {
-		return
-	}
-
-	page, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
-	if appErr != nil {
-		c.Err = appErr
+	page, ok := c.ValidatePageBelongsToWiki()
+	if !ok {
 		return
 	}
 
