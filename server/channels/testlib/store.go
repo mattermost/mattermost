@@ -97,7 +97,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	diagnosticID := model.NewId()
 	systemStore.On("Get").Return(model.StringMap{model.SystemServerId: diagnosticID}, nil)
-	systemStore.On("GetByNameWithContext", mock.Anything, "DiagnosticId").Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
+	systemStore.On("GetByNameWithContext", mock.Anything, model.SystemServerId).Return(&model.System{Name: model.SystemServerId, Value: diagnosticID}, nil)
 
 	userStore := mocks.UserStore{}
 	userStore.On("Count", mock.AnythingOfType("model.UserCountOptions")).Return(int64(1), nil)
