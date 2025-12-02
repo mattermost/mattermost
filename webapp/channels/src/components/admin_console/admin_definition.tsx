@@ -2239,7 +2239,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     label: defineMessage({id: 'admin.intune.tenantIdTitle', defaultMessage: 'Tenant ID:'}),
                                     help_text: defineMessage({id: 'admin.intune.tenantIdDescription', defaultMessage: 'The Microsoft Entra ID (Azure AD) Tenant ID (also called the Directory ID).\nThis is the globally unique identifier that represents your organization in Microsoft Entra ID.\nMattermost uses this ID to validate tokens issued for Intune MAM.'}),
                                     placeholder: defineMessage({id: 'admin.intune.tenantIdPlaceholder', defaultMessage: 'E.g.: "12345678-1234-1234-1234-123456789012"'}),
-                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable'),
                                     default: (value, config, state) => {
                                         if (state['IntuneSettings.Enable'] && !state['IntuneSettings.TenantId']) {
                                             if (state['IntuneSettings.AuthService'] === 'office365' && config.Office365Settings?.DirectoryId) {
@@ -2255,7 +2255,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     label: defineMessage({id: 'admin.intune.clientIdTitle', defaultMessage: 'Application (Client) ID:'}),
                                     help_text: defineMessage({id: 'admin.intune.clientIdDescription', defaultMessage: 'The Application (Client) ID of your Intune MAM–enabled app registration in Microsoft Entra ID.\nThis is the client identifier that the Mattermost Mobile app uses to request MSAL tokens for Intune MAM enrollment and policy evaluation.'}),
                                     placeholder: defineMessage({id: 'admin.intune.clientIdPlaceholder', defaultMessage: 'E.g.: "87654321-4321-4321-4321-210987654321"'}),
-                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
+                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable'),
                                     default: (value, config, state) => {
                                         if (state['IntuneSettings.Enable'] && !state['IntuneSettings.TenantId']) {
                                             if (state['IntuneSettings.AuthService'] === 'office365' && config.Office365Settings?.Id) {
