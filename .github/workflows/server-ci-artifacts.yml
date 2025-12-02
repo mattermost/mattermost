@@ -3,7 +3,7 @@ name: Server CI Artifacts
 on:
   workflow_run:
     workflows:
-      - "Server CI PR"
+      - "Server CI"
     types:
       - completed
 
@@ -150,7 +150,7 @@ jobs:
           ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }} --policy "$POLICY"
 
   update-failure-final-status:
-    if: failure() || cancelled()
+    if: (failure() || cancelled()) && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:
       - build-docker
@@ -166,7 +166,7 @@ jobs:
           status: failure
 
   update-success-final-status:
-    if: success()
+    if: success() && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:
       - build-docker
