@@ -607,6 +607,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 		}
 	}
 
+	members := make([]*model.ChannelMember, 0, len(users))
 	for _, user := range users {
 		cm := &model.ChannelMember{
 			UserId:      user.Id,
@@ -615,22 +616,26 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 			SchemeGuest: user.IsGuest(),
 			SchemeUser:  !user.IsGuest(),
 		}
+		members = append(members, cm)
+	}
 
-		if _, nErr = a.Srv().Store().Channel().SaveMember(rctx, cm); nErr != nil {
-			var appErr *model.AppError
-			var cErr *store.ErrConflict
-			switch {
-			case errors.As(nErr, &cErr):
-				switch cErr.Resource {
-				case "ChannelMembers":
-					return nil, model.NewAppError("createGroupChannel", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-				}
-			case errors.As(nErr, &appErr):
-				return nil, appErr
-			default:
-				return nil, model.NewAppError("createGroupChannel", "app.channel.create_direct_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	if _, nErr = a.Srv().Store().Channel().SaveMultipleMembers(members); nErr != nil {
+		var appErr *model.AppError
+		var cErr *store.ErrConflict
+		switch {
+		case errors.As(nErr, &cErr):
+			switch cErr.Resource {
+			case "ChannelMembers":
+				return nil, model.NewAppError("createGroupChannel", "app.channel.save_member.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 			}
+		case errors.As(nErr, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("createGroupChannel", "app.channel.create_direct_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+	}
+
+	for _, user := range users {
 		if err := a.Srv().Store().ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
 			return nil, model.NewAppError("createGroupChannel", "app.channel_member_history.log_join_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
