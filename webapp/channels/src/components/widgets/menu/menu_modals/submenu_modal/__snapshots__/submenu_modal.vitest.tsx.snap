@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/submenu_modal > should match snapshot 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

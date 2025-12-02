@@ -8,7 +8,7 @@ import type {PostMetadata} from '@mattermost/types/posts';
 import * as Actions from 'mattermost-redux/actions/status_profile_polling';
 import {Client4} from 'mattermost-redux/client';
 
-import {waitFor} from 'tests/react_testing_utils';
+import {waitFor} from 'tests/vitest_react_testing_utils';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';

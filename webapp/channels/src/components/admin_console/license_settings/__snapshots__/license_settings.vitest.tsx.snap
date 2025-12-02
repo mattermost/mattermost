@@ -1165,7 +1165,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1670 day
+                        Expires in -1671 day
                       </span>
                     </div>
                     <div
@@ -1830,7 +1830,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1670 day
+                        Expires in -1671 day
                       </span>
                     </div>
                     <div
@@ -2481,7 +2481,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1670 day
+                        Expires in -1671 day
                       </span>
                     </div>
                     <div
@@ -3148,7 +3148,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1670 day
+                        Expires in -1671 day
                       </span>
                     </div>
                     <div
@@ -3799,7 +3799,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1670 day
+                        Expires in -1671 day
                       </span>
                     </div>
                     <div
@@ -4451,7 +4451,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1670 day
+                        Expires in -1671 day
                       </span>
                     </div>
                     <div
@@ -5097,7 +5097,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -1670 day
+                        Expires in -1671 day
                       </span>
                     </div>
                     <div
@@ -8168,7 +8168,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -290 day
+                        Expires in -291 day
                       </span>
                     </div>
                     <div
@@ -8684,7 +8684,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
               <div
                 class="AlertBanner__title"
               >
-                License expires in -290 days on February 14, 2025.
+                License expires in -291 days on February 14, 2025.
               </div>
               <div
                 class="AlertBanner__message"
@@ -8816,7 +8816,7 @@ exports[`components/admin_console/license_settings/LicenseSettings > should matc
                       <span
                         class="expiration-days expiration-days-warning expiration-days-danger"
                       >
-                        Expires in -290 day
+                        Expires in -291 day
                       </span>
                     </div>
                     <div

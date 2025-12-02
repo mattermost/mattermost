@@ -740,11 +740,13 @@ exports[`components/FilePreviewModal > should match snapshot, loaded with .js fi
             >
               <div
                 class="post-code code-preview"
+                data-testid="code-preview-mock"
               >
                 <span
                   class="post-code__language"
                 >
-                  test.js - JavaScript
+                  test.js
+                   - JavaScript
                 </span>
                 <div
                   class="hljs"

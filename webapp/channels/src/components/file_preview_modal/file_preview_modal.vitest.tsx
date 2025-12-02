@@ -33,6 +33,28 @@ vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
     headers: new Headers({'content-type': 'text/plain'}),
 }));
 
+// Mock CodePreview to avoid flaky async behavior with syntax highlighting
+vi.mock('components/code_preview', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('components/code_preview')>();
+    return {
+        ...actual,
+        default: ({fileInfo}: {fileInfo: {name: string; extension: string}}) => (
+            <div
+                className='post-code code-preview'
+                data-testid='code-preview-mock'
+            >
+                <span className='post-code__language'>{fileInfo.name}{' - JavaScript'}</span>
+                <div className='hljs'>
+                    <div className='post-code__line-numbers'>{'1'}</div>
+                    <code>
+                        <span className='hljs-comment'>{'// mock code content'}</span>
+                    </code>
+                </div>
+            </div>
+        ),
+    };
+});
+
 describe('components/FilePreviewModal', () => {
     const baseProps = {
         fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', extension: 'jpg'})],
@@ -98,7 +120,7 @@ describe('components/FilePreviewModal', () => {
         const props = {...baseProps, fileInfos};
         renderWithContext(<FilePreviewModal {...props}/>);
 
-        // Wait for code preview to load (JS files use CodePreview with modal-code class)
+        // Wait for code preview modal container to load (CodePreview is mocked for deterministic output)
         await waitFor(() => {
             expect(document.querySelector('.modal-code')).toBeInTheDocument();
         });
