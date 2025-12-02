@@ -9877,10 +9877,6 @@
     "translation": "Intune MAM Client ID must be a valid UUID."
   },
   {
-    "id": "model.config.is_valid.intune_client_secret.app_error",
-    "translation": "Intune MAM Client Secret is required when Intune is enabled."
-  },
-  {
     "id": "model.config.is_valid.intune_requires_office365.app_error",
     "translation": "Intune MAM requires OpenID Connect (Office 365) to be enabled when Auth Service is set to 'office365'."
   },
