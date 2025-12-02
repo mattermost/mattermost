@@ -2265,14 +2265,6 @@ const AdminDefinition: AdminDefinitionType = {
                                         return '';
                                     },
                                 },
-                                {
-                                    type: 'text',
-                                    key: 'IntuneSettings.ClientSecret',
-                                    label: defineMessage({id: 'admin.intune.clientSecretTitle', defaultMessage: 'Client Secret:'}),
-                                    help_text: defineMessage({id: 'admin.intune.clientSecretDescription', defaultMessage: 'The Client Secret for your Intune MAM app registration.\nThis secret is used by the Mattermost server to validate MSAL tokens with Microsoft Entra ID and ensure that app-level policies apply correctly.'}),
-                                    placeholder: defineMessage({id: 'admin.intune.clientSecretPlaceholder', defaultMessage: 'E.g.: "abc123def456..."'}),
-                                    isDisabled: it.stateIsFalse('IntuneSettings.Enable') && it.stateIsFalse('IntuneSettings.AuthService'),
-                                },
                             ],
                         },
                     ],

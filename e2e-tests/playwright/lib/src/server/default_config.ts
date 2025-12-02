@@ -567,7 +567,6 @@ const defaultServerConfig: AdminConfig = {
         Enable: false,
         TenantId: '',
         ClientId: '',
-        ClientSecret: '',
         AuthService: '',
     },
     CacheSettings: {

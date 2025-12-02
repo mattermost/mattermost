@@ -1374,11 +1374,10 @@ func (s *Office365Settings) SSOSettings() *SSOSettings {
 }
 
 type IntuneSettings struct {
-	Enable       *bool   `access:"mobile_intune"`
-	TenantId     *string `access:"mobile_intune"` // telemetry: none
-	ClientId     *string `access:"mobile_intune"` // telemetry: none
-	ClientSecret *string `access:"mobile_intune"` // telemetry: none
-	AuthService  *string `access:"mobile_intune"` // "office365" or "saml"
+	Enable      *bool   `access:"mobile_intune"`
+	TenantId    *string `access:"mobile_intune"` // telemetry: none
+	ClientId    *string `access:"mobile_intune"` // telemetry: none
+	AuthService *string `access:"mobile_intune"` // "office365" or "saml"
 }
 
 func (s *IntuneSettings) SetDefaults() {
@@ -1392,10 +1391,6 @@ func (s *IntuneSettings) SetDefaults() {
 
 	if s.ClientId == nil {
 		s.ClientId = NewPointer("")
-	}
-
-	if s.ClientSecret == nil {
-		s.ClientSecret = NewPointer("")
 	}
 
 	// AuthService has no default - must be explicitly set
@@ -1428,11 +1423,6 @@ func (s *IntuneSettings) IsValid() *AppError {
 	// Validate ClientId format (UUID)
 	if !uuidRegex.MatchString(*s.ClientId) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.intune_client_id_format.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// Must have ClientSecret
-	if s.ClientSecret == nil || *s.ClientSecret == "" {
-		return NewAppError("Config.IsValid", "model.config.is_valid.intune_client_secret.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Must have valid AuthService
@@ -5001,10 +4991,6 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 
 	if o.OpenIdSettings.Secret != nil && *o.OpenIdSettings.Secret != "" {
 		*o.OpenIdSettings.Secret = FakeSetting
-	}
-
-	if o.IntuneSettings.ClientSecret != nil && *o.IntuneSettings.ClientSecret != "" {
-		*o.IntuneSettings.ClientSecret = FakeSetting
 	}
 
 	if o.SqlSettings.DataSource != nil {

@@ -330,7 +330,6 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
     // # Fill in Intune configuration
     await systemConsolePage.mobileSecurity.fillIntuneTenantId('12345678-1234-1234-1234-123456789012');
     await systemConsolePage.mobileSecurity.fillIntuneClientId('87654321-4321-4321-4321-210987654321');
-    await systemConsolePage.mobileSecurity.fillIntuneClientSecret('test-intune-secret');
 
     // # Save settings
     await systemConsolePage.mobileSecurity.clickSaveButton();
@@ -351,7 +350,6 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
     expect(await systemConsolePage.mobileSecurity.intuneClientIdInput.inputValue()).toBe(
         '87654321-4321-4321-4321-210987654321',
     );
-    expect(await systemConsolePage.mobileSecurity.intuneClientSecretInput.inputValue()).toBe('test-intune-secret');
 });
 
 test('should configure new IntuneSettings with SAML auth provider', async ({pw}) => {
@@ -396,7 +394,6 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
     // # Fill in Intune configuration
     await systemConsolePage.mobileSecurity.fillIntuneTenantId('abcdef01-2345-6789-abcd-ef0123456789');
     await systemConsolePage.mobileSecurity.fillIntuneClientId('fedcba98-7654-3210-fedc-ba9876543210');
-    await systemConsolePage.mobileSecurity.fillIntuneClientSecret('test-saml-intune-secret');
 
     // # Save settings
     await systemConsolePage.mobileSecurity.clickSaveButton();
@@ -453,7 +450,6 @@ test('should disable Intune inputs when toggle is off', async ({pw}) => {
     expect(await systemConsolePage.mobileSecurity.intuneAuthServiceDropdown.isDisabled()).toBe(true);
     expect(await systemConsolePage.mobileSecurity.intuneTenantIdInput.isDisabled()).toBe(true);
     expect(await systemConsolePage.mobileSecurity.intuneClientIdInput.isDisabled()).toBe(true);
-    expect(await systemConsolePage.mobileSecurity.intuneClientSecretInput.isDisabled()).toBe(true);
 
     // # Enable Intune
     await systemConsolePage.mobileSecurity.clickEnableIntuneToggleTrue();
@@ -462,7 +458,6 @@ test('should disable Intune inputs when toggle is off', async ({pw}) => {
     expect(await systemConsolePage.mobileSecurity.intuneAuthServiceDropdown.isDisabled()).toBe(false);
     expect(await systemConsolePage.mobileSecurity.intuneTenantIdInput.isDisabled()).toBe(false);
     expect(await systemConsolePage.mobileSecurity.intuneClientIdInput.isDisabled()).toBe(false);
-    expect(await systemConsolePage.mobileSecurity.intuneClientSecretInput.isDisabled()).toBe(false);
 });
 
 test('should hide Intune section when neither Office365 nor SAML is enabled', async ({pw}) => {

@@ -814,7 +814,6 @@ export type IntuneSettings = {
     Enable: boolean;
     TenantId?: string;
     ClientId?: string;
-    ClientSecret?: string;
     AuthService?: string;
 };
 

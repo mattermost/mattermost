@@ -28,7 +28,6 @@ export default class MobileSecurity {
     readonly intuneAuthServiceDropdown: Locator;
     readonly intuneTenantIdInput: Locator;
     readonly intuneClientIdInput: Locator;
-    readonly intuneClientSecretInput: Locator;
 
     readonly saveButton: Locator;
 
@@ -87,7 +86,6 @@ export default class MobileSecurity {
         this.intuneAuthServiceDropdown = this.container.getByTestId('IntuneSettings.AuthServicedropdown');
         this.intuneTenantIdInput = this.container.getByTestId('IntuneSettings.TenantIdinput');
         this.intuneClientIdInput = this.container.getByTestId('IntuneSettings.ClientIdinput');
-        this.intuneClientSecretInput = this.container.getByTestId('IntuneSettings.ClientSecretinput');
 
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
     }
@@ -163,10 +161,6 @@ export default class MobileSecurity {
 
     async fillIntuneClientId(value: string) {
         await this.intuneClientIdInput.fill(value);
-    }
-
-    async fillIntuneClientSecret(value: string) {
-        await this.intuneClientSecretInput.fill(value);
     }
 
     async clickSaveButton() {
