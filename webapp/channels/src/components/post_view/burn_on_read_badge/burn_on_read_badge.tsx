@@ -9,6 +9,7 @@ import {FireIcon} from '@mattermost/compass-icons/components';
 
 import {getBurnOnReadReadReceipt} from 'selectors/burn_on_read_read_receipts';
 
+import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
 import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
@@ -19,6 +20,8 @@ type Props = {
     postId: string;
     isSender: boolean;
     revealed: boolean;
+    expireAt?: number | null;
+    maxExpireAt?: number | null;
     onReveal?: (postId: string) => void;
     onSenderDelete?: () => void;
 };
@@ -27,6 +30,8 @@ function BurnOnReadBadge({
     postId,
     isSender,
     revealed,
+    expireAt,
+    maxExpireAt,
     onReveal,
     onSenderDelete,
 }: Props) {
@@ -90,16 +95,11 @@ function BurnOnReadBadge({
             });
         }
 
-        // For revealed recipient posts, timer chip will be shown separately (next PR)
+        // For revealed recipient posts, no badge tooltip (timer chip shows instead)
         return null;
     };
 
     const tooltipContent = getTooltipContent();
-
-    // Don't render anything if there's no tooltip content
-    if (!tooltipContent) {
-        return null;
-    }
 
     // Get plain text for aria-label
     const getAriaLabel = () => {
@@ -135,26 +135,39 @@ function BurnOnReadBadge({
     const isInteractive = isSender || (!isSender && !revealed);
 
     return (
-        <WithTooltip
-            id={`burn-on-read-tooltip-${postId}`}
-            title={tooltipContent}
-            isVertical={true}
-        >
-            <button
-                type='button'
-                className='BurnOnReadBadge'
-                data-testid={`burn-on-read-badge-${postId}`}
-                aria-label={getAriaLabel()}
-                role='button'
-                onClick={isInteractive ? handleClick : undefined}
-                disabled={!isInteractive}
-            >
-                <FireIcon
-                    size={14}
-                    className='BurnOnReadBadge__icon'
-                />
-            </button>
-        </WithTooltip>
+        <>
+            {/* Register BoR post with global expiration scheduler for auto-deletion */}
+            {/* This always renders even if badge UI doesn't, to ensure scheduling */}
+            <BurnOnReadExpirationHandler
+                postId={postId}
+                expireAt={expireAt}
+                maxExpireAt={maxExpireAt}
+            />
+
+            {/* Only render badge UI if there's tooltip content */}
+            {tooltipContent && (
+                <WithTooltip
+                    id={`burn-on-read-tooltip-${postId}`}
+                    title={tooltipContent}
+                    isVertical={true}
+                >
+                    <button
+                        type='button'
+                        className='BurnOnReadBadge'
+                        data-testid={`burn-on-read-badge-${postId}`}
+                        aria-label={getAriaLabel()}
+                        role='button'
+                        onClick={isInteractive ? handleClick : undefined}
+                        disabled={!isInteractive}
+                    >
+                        <FireIcon
+                            size={14}
+                            className='BurnOnReadBadge__icon'
+                        />
+                    </button>
+                </WithTooltip>
+            )}
+        </>
     );
 }
 

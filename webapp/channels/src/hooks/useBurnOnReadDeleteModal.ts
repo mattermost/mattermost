@@ -36,10 +36,10 @@ interface PreferenceType {
 }
 
 /**
- * Actions interface for BoR delete modal (matches what's available in dot_menu and post_component)
+ * Actions interface for BoR delete modal
  */
 interface BurnOnReadDeleteActions {
-    burnPostNow?: (postId: string, isSender: boolean) => Promise<{data?: boolean; error?: Error}>;
+    burnPostNow?: (postId: string) => Promise<{data?: boolean; error?: Error}>;
     closeModal: (modalId: string) => void;
     savePreferences: (userId: string, preferences: PreferenceType[]) => void;
 }
@@ -58,14 +58,12 @@ export function createBurnOnReadDeleteModalHandlers(
 ): BurnOnReadDeleteModalHandlers {
     return {
         onConfirm: async (skipConfirmation: boolean) => {
-            // Delete the post (pass isSender to determine which endpoint to use)
-            await actions.burnPostNow?.(postId, isSender);
-
-            // Close the modal
+            // Both sender and recipient use burn endpoint
+            await actions.burnPostNow?.(postId);
             actions.closeModal(ModalIdentifiers.BURN_ON_READ_CONFIRMATION);
 
-            // Save "Do not ask me again" preference if user checked it
-            if (skipConfirmation) {
+            // Only recipients can save "don't ask again" preference
+            if (skipConfirmation && !isSender) {
                 const pref = {
                     category: Preferences.CATEGORY_BURN_ON_READ,
                     user_id: userId,
@@ -94,14 +92,11 @@ export function useBurnOnReadDeleteModal(
     const {postId, userId, isSender} = params;
 
     const onConfirm = useCallback(async (skipConfirmation: boolean) => {
-        // Delete the post (pass isSender to determine which endpoint to use)
-        await dispatch(burnPostNow(postId, isSender));
-
-        // Close the modal
+        await dispatch(burnPostNow(postId));
         dispatch(closeModal(ModalIdentifiers.BURN_ON_READ_CONFIRMATION));
 
-        // Save "Do not ask me again" preference if user checked it
-        if (skipConfirmation) {
+        // Only recipients can save "don't ask again" preference
+        if (skipConfirmation && !isSender) {
             const pref: PreferenceType = {
                 category: Preferences.CATEGORY_BURN_ON_READ,
                 user_id: userId,

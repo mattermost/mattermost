@@ -332,10 +332,12 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		}
 	}
 
-	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList, collapsedThreads)
-	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList, collapsedThreads)
-
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
+
+	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
+	// to ensure they only reference posts that are actually in the response
+	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, collapsedThreads)
+	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, collapsedThreads)
 	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err

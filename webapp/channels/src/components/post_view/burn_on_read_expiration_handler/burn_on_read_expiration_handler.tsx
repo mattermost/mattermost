@@ -13,23 +13,28 @@ interface Props {
 
 /**
  * Invisible component that registers burn-on-read posts with the global expiration scheduler.
- * Used for both revealed and unrevealed messages to ensure client-side deletion.
+ * Handles automatic post deletion when timers expire.
  *
- * - Revealed messages: have expire_at (based on burn_on_read setting and time of reveal)
- * - Unrevealed messages: have max_expire_at (based on bunr_on_read setting and max time to live)
+ * - Revealed messages: have expire_at (starts when user reveals the message)
+ * - Unrevealed messages: have max_expire_at (maximum time to live for unopened messages)
+ * - Sender messages: have expire_at (starts after all recipients have revealed)
+ *
+ * The scheduler automatically picks whichever timer expires first.
  */
 const BurnOnReadExpirationHandler = ({postId, expireAt = null, maxExpireAt = null}: Props) => {
+    // Register post with scheduler when component mounts or expiration times change
     useEffect(() => {
-        // Register post with global expiration scheduler
+        // Register with the global scheduler
+        // The scheduler handles all optimization internally (deduplication, schedule recomputation)
         expirationScheduler.registerPost(postId, expireAt, maxExpireAt);
 
+        // Cleanup: unregister when component unmounts (post deleted or scrolled out of view)
         return () => {
-            // Unregister when component unmounts (post deleted or navigated away)
             expirationScheduler.unregisterPost(postId);
         };
     }, [postId, expireAt, maxExpireAt]);
 
-    // This component renders nothing - it only handles scheduling
+    // This component renders nothing - it only manages scheduler registration
     return null;
 };
 

@@ -6,7 +6,6 @@ import {useIntl} from 'react-intl';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
 
-import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
 import WithTooltip from 'components/with_tooltip';
 
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';
@@ -17,30 +16,16 @@ import {isKeyPressed} from 'utils/keyboard';
 import './burn_on_read_timer_chip.scss';
 
 interface Props {
-    postId: string;
     expireAt?: number;
-    maxExpireAt?: number;
-    durationMinutes: number;
     onClick: () => void;
 }
 
-const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, onClick}: Props) => {
+const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
     const {formatMessage} = useIntl();
     const [lastAnnouncement, setLastAnnouncement] = useState<number>(0);
 
-    // Use server-provided expireAt if available, otherwise fallback to calculating from duration
-    const displayExpireAt = useMemo(() => {
-        if (expireAt && !isNaN(expireAt) && expireAt > 0) {
-            return expireAt;
-        }
-
-        // Fallback: calculate from current time + duration
-        const calculated = Date.now() + (durationMinutes * 60 * 1000);
-        return isNaN(calculated) ? Date.now() : calculated;
-    }, [expireAt, durationMinutes]);
-
     const {displayText, remainingMs, isWarning, isExpired} = useBurnOnReadTimer({
-        expireAt: displayExpireAt,
+        expireAt: expireAt || Date.now(),
     });
 
     const handleClick = useCallback((e: React.MouseEvent) => {
@@ -101,13 +86,6 @@ const BurnOnReadTimerChip = ({postId, expireAt, maxExpireAt, durationMinutes, on
 
     return (
         <>
-            {/* Register with expiration scheduler */}
-            <BurnOnReadExpirationHandler
-                postId={postId}
-                expireAt={expireAt}
-                maxExpireAt={maxExpireAt}
-            />
-
             <WithTooltip title={tooltipContent}>
                 <button
                     type='button'

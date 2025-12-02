@@ -793,11 +793,22 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
         let changed = false;
         let nextPostsForChannel = [...postsForChannel];
 
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
+        const shouldRemovePost = (postId: string) => {
+            const isTheDeletedPost = postId === post.id;
+            const isReplyToDeletedPost = prevPosts[postId]?.root_id === post.id;
+
+            if (isBoRPost) {
+                return isTheDeletedPost;
+            }
+
+            return isReplyToDeletedPost;
+        };
+
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
-
-            // Remove any comments for this post
-            const nextOrder = block.order.filter((postId: string) => prevPosts[postId].root_id !== post.id);
+            const nextOrder = block.order.filter((postId) => !shouldRemovePost(postId));
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {
@@ -834,12 +845,18 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
         let changed = false;
 
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
         // Remove the post and its comments from the channel
         let nextPostsForChannel = [...postsForChannel];
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
 
-            const nextOrder = block.order.filter((postId: string) => postId !== post.id && prevPosts[postId].root_id !== post.id);
+            // For BoR posts: only remove the post itself (BoR doesn't support threads)
+            // For regular posts: remove the post and its thread replies
+            const nextOrder = isBoRPost ?
+                block.order.filter((postId: string) => postId !== post.id) :
+                block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {

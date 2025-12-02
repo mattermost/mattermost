@@ -141,8 +141,6 @@ class BurnOnReadExpirationScheduler {
             // Short delay: use setTimeout for exact timing
             this.nextTimerId = setTimeout(() => {
                 this.checkAndExpirePosts();
-
-                // Note: checkAndExpirePosts() calls recomputeSchedule() if needed
             }, delay);
         } else {
             // Long delay: use polling to handle sleep/throttling
@@ -195,7 +193,7 @@ class BurnOnReadExpirationScheduler {
 
         // Dispatch batch expiration if dispatch is available
         if (expiredPosts.length > 0 && this.dispatch) {
-            // Dispatch each expiration (in future, consider batched action to reduce Redux thrash)
+            // Dispatch each expiration
             for (const postId of expiredPosts) {
                 try {
                     this.dispatch(handlePostExpired(postId));

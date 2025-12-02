@@ -104,7 +104,7 @@ export type Props = {
         selectPostCard: (post: Post) => void;
         setRhsExpanded: (rhsExpanded: boolean) => void;
         revealBurnOnReadPost: (postId: string) => Promise<{data?: any; error?: any}>;
-        burnPostNow?: (postId: string, isSender: boolean) => Promise<any>;
+        burnPostNow?: (postId: string) => Promise<any>;
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
@@ -453,16 +453,13 @@ function PostComponent(props: Props) {
     }, [props.actions, formatMessage]);
 
     const handleTimerChipClick = useCallback(() => {
-        // Timer chip is only shown to receivers, so this is always a receiver delete (for themselves only)
         const isSender = post.user_id === props.currentUserId;
 
-        // Skip modal if preference is set
         if (props.burnOnReadSkipConfirmation) {
-            props.actions.burnPostNow?.(post.id, isSender);
+            props.actions.burnPostNow?.(post.id);
             return;
         }
 
-        // Open modal via Redux (zero overhead for non-BoR posts!)
         const handlers = createBurnOnReadDeleteModalHandlers(
             props.actions,
             {
@@ -483,7 +480,6 @@ function PostComponent(props: Props) {
     }, [props.burnOnReadSkipConfirmation, props.actions, post.id, post.user_id, props.currentUserId]);
 
     const handleBadgeClick = useCallback(() => {
-        // Flame icon is only shown to sender, so this is always a sender delete (for everyone)
         const isSender = post.user_id === props.currentUserId;
         const handlers = createBurnOnReadDeleteModalHandlers(
             props.actions,
@@ -637,50 +633,50 @@ function PostComponent(props: Props) {
     }
 
     // Burn-on-Read badge logic
-    // Only show badge on first post in a series (not on consecutive posts)
-    // Note: Badge should display regardless of feature flag being enabled/disabled
-    // The feature flag only controls creation of NEW BoR messages, not display of existing ones
+    // Badge handles expiration scheduling internally via BurnOnReadExpirationHandler
+    // Only shows on first post in series (not consecutive posts)
     let burnOnReadBadge;
-    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost) {
+    const isBoRPost = post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost;
+    if (isBoRPost) {
         const isSender = post.user_id === props.currentUserId;
         const revealed = typeof post.metadata?.expire_at === 'number';
+
+        // Parse expiration times - can be either number or string from API
+        const expireAt = typeof post.metadata?.expire_at === 'number' ?
+            post.metadata.expire_at :
+            (post.metadata?.expire_at ? parseInt(String(post.metadata.expire_at), 10) : null);
+
+        const maxExpireAt = typeof post.props?.max_expire_at === 'number' ?
+            post.props.max_expire_at :
+            (post.props?.max_expire_at ? parseInt(String(post.props.max_expire_at), 10) : null);
 
         burnOnReadBadge = (
             <BurnOnReadBadge
                 postId={post.id}
                 isSender={isSender}
                 revealed={revealed}
+                expireAt={expireAt && !isNaN(expireAt) ? expireAt : null}
+                maxExpireAt={maxExpireAt && !isNaN(maxExpireAt) ? maxExpireAt : null}
                 onReveal={handleRevealBurnOnRead}
                 onSenderDelete={handleBadgeClick}
             />
         );
     }
 
-    // Burn-on-Read countdown timer chip
-    // Note: Timer should display regardless of feature flag being enabled/disabled
-    // The feature flag only controls creation of NEW BoR messages, not display of existing ones
+    // Burn-on-Read countdown timer chip (only for revealed receiver posts)
     let burnOnReadTimerChip;
-    const isBoRSender = post.user_id === props.currentUserId;
-    if (post.type === PostTypes.BURN_ON_READ && post.state !== Posts.POST_DELETED && !props.isConsecutivePost && post.metadata?.expire_at && !isBoRSender) {
-        // Parse expire_at from metadata - it can be either number or string from API
-        const expireAt = typeof post.metadata.expire_at === 'number' ? post.metadata.expire_at : parseInt(String(post.metadata.expire_at), 10);
+    if (isBoRPost) {
+        const isSender = post.user_id === props.currentUserId;
+        const hasExpireAt = typeof post.metadata?.expire_at === 'number';
 
-        let maxExpireAt: number | undefined;
-        if (typeof post.props?.max_expire_at === 'number') {
-            maxExpireAt = post.props.max_expire_at;
-        } else if (post.props?.max_expire_at) {
-            maxExpireAt = parseInt(String(post.props.max_expire_at), 10);
+        if (hasExpireAt && !isSender) {
+            burnOnReadTimerChip = (
+                <BurnOnReadTimerChip
+                    expireAt={post.metadata.expire_at as number}
+                    onClick={handleTimerChipClick}
+                />
+            );
         }
-
-        burnOnReadTimerChip = (
-            <BurnOnReadTimerChip
-                postId={post.id}
-                expireAt={isNaN(expireAt) ? undefined : expireAt}
-                maxExpireAt={maxExpireAt && isNaN(maxExpireAt) ? undefined : maxExpireAt}
-                durationMinutes={props.burnOnReadDurationMinutes}
-                onClick={handleTimerChipClick}
-            />
-        );
     }
 
     let postAriaLabelDivTestId = '';

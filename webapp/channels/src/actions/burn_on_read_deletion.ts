@@ -9,56 +9,32 @@ import type {ActionFuncAsync} from 'types/store';
 
 /**
  * Manual "burn now" action - immediately deletes a burn-on-read post
- * Triggered when user clicks the timer chip and confirms deletion
+ * Triggered when user clicks the timer chip/badge and confirms deletion
+ * Works for both sender (permanent delete) and recipient (per-user burn)
  *
  * @param postId - The ID of the post to burn/delete
- * @param isSender - True if the current user is the post author (sender)
- *                   Sender uses DELETE endpoint (permanent delete for all)
- *                   Recipient uses /burn endpoint (per-user expiration)
  */
-export function burnPostNow(postId: string, isSender: boolean = false): ActionFuncAsync<boolean> {
+export function burnPostNow(postId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
-        console.log('[burnPostNow] START - postId:', postId, 'isSender:', isSender);
         try {
-            // Get the full post object from state before deleting
-            // This is needed for proper cleanup in reducers (channel_id, etc.)
             const state = getState();
             const post = state.entities.posts.posts[postId];
 
-            console.log('[burnPostNow] Post from state:', post ? {id: post.id, channel_id: post.channel_id, user_id: post.user_id} : 'NOT FOUND');
-
             if (!post) {
-                // Post doesn't exist in state, nothing to do
-                console.log('[burnPostNow] Post not found in state, returning');
                 return {data: true};
             }
 
-            if (isSender) {
-                // Sender path: Use standard delete endpoint (DELETE /posts/{id})
-                // This permanently deletes the post for ALL users
-                console.log('[burnPostNow] SENDER path - calling deletePost');
-                await Client4.deletePost(postId);
-            } else {
-                // Recipient path: Use burn endpoint (DELETE /posts/{id}/burn)
-                // This only expires the ReadReceipt for this user
-                console.log('[burnPostNow] RECIPIENT path - calling burnPostNow API');
-                await Client4.burnPostNow(postId);
-            }
+            // Use burn endpoint for both sender and recipient
+            await Client4.burnPostNow(postId);
 
-            console.log('[burnPostNow] API call successful, dispatching POST_REMOVED with post:', {id: post.id, channel_id: post.channel_id});
-
-            // Completely remove post from Redux state
-            // Pass the full post object so postsInChannel reducer can access channel_id
+            // Remove post from Redux state
             dispatch({
                 type: PostTypes.POST_REMOVED,
                 data: post,
             });
 
-            console.log('[burnPostNow] POST_REMOVED dispatched successfully');
-
             return {data: true};
         } catch (error) {
-            console.error('[burnPostNow] ERROR:', error);
             forceLogoutIfNecessary(error, dispatch, getState);
             return {error};
         }
@@ -67,21 +43,22 @@ export function burnPostNow(postId: string, isSender: boolean = false): ActionFu
 
 /**
  * Handles automatic post expiration when timer reaches zero
- * Also used when receiving WebSocket expiration event
+ * Called by the global expiration scheduler when a BoR post's timer expires
+ *
+ * Note: This only removes the post from local Redux state (client-side deletion).
+ * Backend cleanup job handles authoritative deletion. This is a UX optimization
+ * to immediately remove expired posts from the UI without waiting for backend.
  */
 export function handlePostExpired(postId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
-        // Get the full post object from state so we can properly remove it from all reducers
         const state = getState();
         const post = state.entities.posts.posts[postId];
 
         if (!post) {
-            // Post already removed or doesn't exist
             return {data: true};
         }
 
-        // Completely remove post from Redux state (client-side only, no API call)
-        // Pass full post object so postsInChannel reducer can access channel_id
+        // Remove post from Redux state (client-side only)
         dispatch({
             type: PostTypes.POST_REMOVED,
             data: post,
