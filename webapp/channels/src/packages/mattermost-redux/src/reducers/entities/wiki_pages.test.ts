@@ -14,7 +14,6 @@ describe('wiki_pages reducer', () => {
         loading: {},
         error: {},
         pendingPublishes: {},
-        lastInvalidated: {},
         lastPagesInvalidated: {},
         lastDraftsInvalidated: {},
         statusField: null,
@@ -123,7 +122,6 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: [pageId],
                 },
-                lastInvalidated: {},
             };
 
             const action = {
@@ -144,7 +142,6 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: [existingPageId],
                 },
-                lastInvalidated: {},
             };
 
             const newPage = {...mockPage, id: 'new-page'};
@@ -178,7 +175,6 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: ['page1', 'page2', pendingPageId, realPageId],
                 },
-                lastInvalidated: {},
             };
 
             const realPage = {...mockPage, id: realPageId};
@@ -202,7 +198,6 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: ['page1', 'page2', pendingPageId],
                 },
-                lastInvalidated: {},
             };
 
             const realPage = {...mockPage, id: realPageId};
@@ -225,7 +220,6 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: ['page123', 'page456', 'page789'],
                 },
-                lastInvalidated: {},
             };
 
             const action = {
@@ -246,7 +240,6 @@ describe('wiki_pages reducer', () => {
                     wiki1: ['page123', 'page456'],
                     wiki2: ['page456', 'page789'],
                 },
-                lastInvalidated: {},
             };
 
             const action = {
@@ -295,7 +288,6 @@ describe('wiki_pages reducer', () => {
                 pendingPublishes: {
                     [draftId]: true,
                 },
-                lastInvalidated: {},
             };
 
             const action = {
@@ -317,7 +309,6 @@ describe('wiki_pages reducer', () => {
                 pendingPublishes: {
                     [draftId]: true,
                 },
-                lastInvalidated: {},
             };
 
             const action = {
@@ -339,7 +330,6 @@ describe('wiki_pages reducer', () => {
                 pendingPublishes: {
                     [draftId]: true,
                 },
-                lastInvalidated: {},
             };
 
             const action = {

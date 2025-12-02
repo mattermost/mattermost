@@ -98,7 +98,6 @@ export type GlobalState = {
             loading: Record<string, boolean>;
             error: Record<string, string | null>;
             pendingPublishes: Record<string, boolean>;
-            lastInvalidated: Record<string, number>;
             lastPagesInvalidated: Record<string, number>;
             lastDraftsInvalidated: Record<string, number>;
         };

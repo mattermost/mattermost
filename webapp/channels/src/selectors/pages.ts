@@ -81,9 +81,7 @@ export const getPagesError = (state: GlobalState, wikiId: string): string | null
 
 // Get last pages invalidation timestamp for a wiki
 export const getPagesLastInvalidated = (state: GlobalState, wikiId: string): number => {
-    const newValue = state.entities.wikiPages?.lastPagesInvalidated?.[wikiId];
-    const oldValue = state.entities.wikiPages?.lastInvalidated?.[wikiId];
-    return newValue || oldValue || 0;
+    return state.entities.wikiPages?.lastPagesInvalidated?.[wikiId] || 0;
 };
 
 // Get last drafts invalidation timestamp for a wiki

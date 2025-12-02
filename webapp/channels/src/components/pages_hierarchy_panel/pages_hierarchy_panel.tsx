@@ -43,7 +43,6 @@ type Props = {
     expandedNodes: {[pageId: string]: boolean};
     selectedPageId: string | null;
     isPanelCollapsed: boolean;
-    lastInvalidated: number;
     actions: {
         loadPages: (wikiId: string) => Promise<{data?: Post[]; error?: ServerError}>;
         loadPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: ServerError}>;

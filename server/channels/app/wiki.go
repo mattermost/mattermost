@@ -398,11 +398,59 @@ func (a *App) GetWikiIdForPage(rctx request.CTX, pageId string) (string, *model.
 		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.post_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
+	// Fast path: check Props cache
 	if wikiId, ok := post.Props["wiki_id"].(string); ok && wikiId != "" {
 		return wikiId, nil
 	}
 
-	return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.not_found", nil, "", http.StatusNotFound)
+	// Fallback: query PropertyValues (source of truth)
+	wikiId, propErr := a.getWikiIdFromPropertyValues(rctx, pageId)
+	if propErr != nil {
+		rctx.Logger().Debug("GetWikiIdForPage: PropertyValues lookup failed",
+			mlog.String("page_id", pageId),
+			mlog.Err(propErr))
+		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_wiki_for_page.not_found", nil, "", http.StatusNotFound)
+	}
+
+	return wikiId, nil
+}
+
+func (a *App) getWikiIdFromPropertyValues(rctx request.CTX, pageId string) (string, error) {
+	group, grpErr := a.GetPagePropertyGroup()
+	if grpErr != nil {
+		return "", grpErr
+	}
+
+	wikiField, fldErr := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", "wiki")
+	if fldErr != nil {
+		return "", fldErr
+	}
+
+	searchOpts := model.PropertyValueSearchOpts{
+		TargetIDs: []string{pageId},
+		FieldID:   wikiField.ID,
+		PerPage:   1,
+	}
+
+	values, err := a.Srv().propertyService.SearchPropertyValues(group.ID, searchOpts)
+	if err != nil {
+		return "", err
+	}
+
+	if len(values) == 0 {
+		return "", errors.New("no wiki property value found for page")
+	}
+
+	var wikiId string
+	if jsonErr := json.Unmarshal(values[0].Value, &wikiId); jsonErr != nil {
+		return "", jsonErr
+	}
+
+	if wikiId == "" {
+		return "", errors.New("wiki_id is empty")
+	}
+
+	return wikiId, nil
 }
 
 type movePageContext struct {

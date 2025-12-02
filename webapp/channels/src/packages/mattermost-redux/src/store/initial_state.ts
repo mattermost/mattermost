@@ -233,7 +233,6 @@ const state: GlobalState = {
             loading: {},
             error: {},
             pendingPublishes: {},
-            lastInvalidated: {},
             lastPagesInvalidated: {},
             lastDraftsInvalidated: {},
         },
