@@ -4820,11 +4820,11 @@
   },
   {
     "id": "api.wiki.not_found",
-    "translation": ""
+    "translation": "Wiki not found."
   },
   {
     "id": "api.wiki.page_not_found",
-    "translation": ""
+    "translation": "Page not found."
   },
   {
     "id": "api.wiki.page_wiki_mismatch",
@@ -4832,7 +4832,7 @@
   },
   {
     "id": "api.wiki.page_wiki_not_set",
-    "translation": ""
+    "translation": "Page wiki ID is not set."
   },
   {
     "id": "api.wiki.permission.app_error",
@@ -8938,7 +8938,7 @@
   },
   {
     "id": "app.wiki.get_wiki_for_page.post_not_found",
-    "translation": ""
+    "translation": "Post not found when getting wiki for page."
   },
   {
     "id": "app.wiki.move_wiki.store_error.app_error",
@@ -8958,7 +8958,7 @@
   },
   {
     "id": "app.wiki.set_wiki_id_props.app_error",
-    "translation": ""
+    "translation": "Unable to set wiki ID properties."
   },
   {
     "id": "app.wiki.update.app_error",
