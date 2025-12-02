@@ -11385,6 +11385,18 @@
     "translation": "Invalid wiki ID in page draft."
   },
   {
+    "id": "model.page_draft.publish_options.draft_id.app_error",
+    "translation": "Invalid draft ID in publish options."
+  },
+  {
+    "id": "model.page_draft.publish_options.title_too_long.app_error",
+    "translation": "Page title is too long."
+  },
+  {
+    "id": "model.page_draft.publish_options.wiki_id.app_error",
+    "translation": "Invalid wiki ID in publish options."
+  },
+  {
     "id": "model.page_draft_content.is_valid.content_invalid.app_error",
     "translation": "Invalid page draft content."
   },
