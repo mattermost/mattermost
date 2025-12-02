@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AdminConfig} from '@mattermost/types/config';
+
 import {LicenseSkus} from 'utils/constants';
 
 import AdminDefinition from './admin_definition';
-import type {AdminDefinitionSetting} from './types';
+import type {AdminDefinitionSetting, AdminDefinitionConfigSchemaSection} from './types';
 
 describe('AdminDefinition - Burn-on-Read Settings', () => {
     // Helper function to get all settings from all sections
@@ -142,7 +144,7 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
         const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
 
         // Find the Burn-on-Read section
-        const burnOnReadSection = sections?.find((section: any) => section.key === 'PostSettings.BurnOnRead');
+        const burnOnReadSection = sections?.find((section: AdminDefinitionConfigSchemaSection) => section.key === 'PostSettings.BurnOnRead');
         expect(burnOnReadSection).toBeDefined();
 
         // Check that the section uses LicensedSectionContainer
@@ -162,5 +164,37 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
         const usersListSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsersList');
         expect(usersListSetting?.isHidden).toBeDefined();
         expect(typeof usersListSetting?.isHidden).toBe('function');
+    });
+
+    test('Burn-on-Read section isHidden should return true when feature flag is disabled', () => {
+        const postsSection = AdminDefinition.site.subsections.posts;
+        const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
+
+        // Find the Burn-on-Read section
+        const burnOnReadSection = sections?.find((section: AdminDefinitionConfigSchemaSection) => section.key === 'PostSettings.BurnOnRead');
+        expect(burnOnReadSection).toBeDefined();
+
+        // Check that isHidden is defined and is a function
+        expect(burnOnReadSection?.isHidden).toBeDefined();
+        expect(typeof burnOnReadSection?.isHidden).toBe('function');
+
+        // Test that isHidden function returns true when feature flag is false
+        const mockConfigDisabled: Partial<AdminConfig> = {FeatureFlags: {BurnOnRead: false}};
+        const isHiddenFn = burnOnReadSection!.isHidden as (config: Partial<AdminConfig>) => boolean;
+        expect(isHiddenFn(mockConfigDisabled)).toBe(true);
+    });
+
+    test('Burn-on-Read section isHidden should return false when feature flag is enabled', () => {
+        const postsSection = AdminDefinition.site.subsections.posts;
+        const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
+
+        // Find the Burn-on-Read section
+        const burnOnReadSection = sections?.find((section: AdminDefinitionConfigSchemaSection) => section.key === 'PostSettings.BurnOnRead');
+        expect(burnOnReadSection).toBeDefined();
+
+        // Test that isHidden function returns false when feature flag is true
+        const mockConfigEnabled: Partial<AdminConfig> = {FeatureFlags: {BurnOnRead: true}};
+        const isHiddenFn = burnOnReadSection!.isHidden as (config: Partial<AdminConfig>) => boolean;
+        expect(isHiddenFn(mockConfigEnabled)).toBe(false);
     });
 });

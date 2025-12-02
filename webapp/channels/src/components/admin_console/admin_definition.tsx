@@ -3251,6 +3251,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     },
                                 },
                             ],
+                            isHidden: it.configIsFalse('FeatureFlags', 'BurnOnRead'),
                         },
                         {
                             key: 'PostSettings.Previews',
