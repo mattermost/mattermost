@@ -1204,6 +1204,7 @@ export default class PluginRegistry {
     });
 
     /**
+     * INTERNAL: Subject to change without notice.
      * Register a component to render in the LHS next to a channel's link label.
      * All parameters are required.
      * Returns a unique identifier.
