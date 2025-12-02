@@ -66,6 +66,7 @@ type Channels struct {
 	Notification     einterfaces.NotificationInterface
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
+	AutoTranslation  einterfaces.AutoTranslationInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -188,6 +189,9 @@ func NewChannels(s *Server) (*Channels, error) {
 			}
 		})
 	}
+	if autoTranslationInterface != nil {
+		ch.AutoTranslation = autoTranslationInterface(New(ServerConnector(ch)))
+	}
 
 	var imgErr error
 	decoderConcurrency := int(*ch.cfgSvc.Config().FileSettings.MaxImageDecoderConcurrency)
@@ -277,6 +281,15 @@ func (ch *Channels) Start() error {
 
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
+
+	// Cleanup auto-translation resources
+	if ch.AutoTranslation != nil {
+		if closer, ok := ch.AutoTranslation.(interface{ Close() error }); ok {
+			if err := closer.Close(); err != nil {
+				mlog.Warn("Failed to close auto-translation interface", mlog.Err(err))
+			}
+		}
+	}
 
 	ch.dndTaskMut.Lock()
 	if ch.dndTask != nil {
