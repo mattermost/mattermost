@@ -509,52 +509,56 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
 /**
  * @objective Verify status persists when publishing immediately after changing status (no autosave wait)
  */
-test('persists status when publishing immediately after status change', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'persists status when publishing immediately after status change',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki through UI
-    await createWikiThroughUI(page, `Immediate Publish Wiki ${await pw.random.id()}`);
+        // # Create wiki through UI
+        await createWikiThroughUI(page, `Immediate Publish Wiki ${await pw.random.id()}`);
 
-    // # Click "New Page" to create a new draft
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Immediate Status Test');
-    await page.waitForLoadState('networkidle');
+        // # Click "New Page" to create a new draft
+        const newPageButton = getNewPageButton(page);
+        await newPageButton.click();
+        await fillCreatePageModal(page, 'Immediate Status Test');
+        await page.waitForLoadState('networkidle');
 
-    // # Enter page content
-    const editor = page.locator('.ProseMirror');
-    await editor.click();
-    await editor.fill('Testing immediate publish after status change');
+        // # Enter page content
+        const editor = page.locator('.ProseMirror');
+        await editor.click();
+        await editor.fill('Testing immediate publish after status change');
 
-    // # Wait for content autosave only
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+        // # Wait for content autosave only
+        await page.waitForTimeout(AUTOSAVE_WAIT);
 
-    // # Select status 'Done' in draft mode
-    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
-    await expect(statusSelector).toBeVisible();
-    await statusSelector.click();
+        // # Select status 'Done' in draft mode
+        const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+        await expect(statusSelector).toBeVisible();
+        await statusSelector.click();
 
-    const statusMenu = page.locator('.selectable-select-property__menu');
-    await expect(statusMenu).toBeVisible();
+        const statusMenu = page.locator('.selectable-select-property__menu');
+        await expect(statusMenu).toBeVisible();
 
-    const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
-    await doneOption.click();
+        const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+        await doneOption.click();
 
-    // # IMMEDIATELY publish - NO autosave wait after status change
-    // This tests the race condition where status might not persist
-    await publishCurrentPage(page);
+        // # IMMEDIATELY publish - NO autosave wait after status change
+        // This tests the race condition where status might not persist
+        await publishCurrentPage(page);
 
-    // * Verify status is 'Done' in the published page viewer
-    const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
-    await expect(publishedStatus).toBeVisible();
-    const statusText = await publishedStatus.textContent();
-    expect(statusText?.trim()).toBe('Done');
-});
+        // * Verify status is 'Done' in the published page viewer
+        const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
+        await expect(publishedStatus).toBeVisible();
+        const statusText = await publishedStatus.textContent();
+        expect(statusText?.trim()).toBe('Done');
+    },
+);
 
 /**
  * @objective Verify status selected in draft mode for existing page update persists after update

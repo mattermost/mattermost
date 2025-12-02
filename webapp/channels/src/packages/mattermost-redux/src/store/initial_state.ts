@@ -235,6 +235,7 @@ const state: GlobalState = {
             pendingPublishes: {},
             lastPagesInvalidated: {},
             lastDraftsInvalidated: {},
+            statusField: null,
         },
         wikis: {
             byChannel: {},

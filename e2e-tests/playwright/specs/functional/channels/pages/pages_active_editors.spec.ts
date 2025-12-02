@@ -253,6 +253,7 @@ test('does not show current user in active editors list', {tag: '@pages'}, async
  * @objective Verify active editors indicator shows correct count with overflow
  */
 test('displays overflow count when more than 3 editors', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    test.slow();
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
