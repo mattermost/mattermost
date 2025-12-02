@@ -652,7 +652,7 @@ function PostComponent(props: Props) {
 
         burnOnReadBadge = (
             <BurnOnReadBadge
-                postId={post.id}
+                post={post}
                 isSender={isSender}
                 revealed={revealed}
                 expireAt={expireAt && !isNaN(expireAt) ? expireAt : null}

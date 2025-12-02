@@ -4,7 +4,6 @@
 import type {AdminState} from './admin';
 import type {AppsState} from './apps';
 import type {Bot} from './bots';
-import type {BurnOnReadReadReceiptsState} from './burn_on_read_read_receipts';
 import type {ChannelBookmarksState} from './channel_bookmarks';
 import type {ChannelCategoriesState} from './channel_categories';
 import type {ChannelsState} from './channels';
@@ -46,7 +45,6 @@ export type GlobalState = {
         channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
-        burnOnReadReadReceipts: BurnOnReadReadReceiptsState;
         agents: {
             agents: Array<{
                 id: string;

@@ -5,12 +5,20 @@ import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import BurnOnReadBadge from './burn_on_read_badge';
 
 describe('BurnOnReadBadge', () => {
+    const mockPost = TestHelper.getPostMock({
+        id: 'post123',
+        channel_id: 'channel123',
+        user_id: 'user123',
+        type: 'burn_on_read',
+    });
+
     const baseProps = {
-        postId: 'post123',
+        post: mockPost,
         isSender: false,
         revealed: false,
     };

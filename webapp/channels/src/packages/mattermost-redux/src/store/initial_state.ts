@@ -102,7 +102,6 @@ const state: GlobalState = {
             counts: {},
             countsIncludingDirect: {},
         },
-        burnOnReadReadReceipts: {},
         preferences: {
             myPreferences: {},
             userPreferences: {},

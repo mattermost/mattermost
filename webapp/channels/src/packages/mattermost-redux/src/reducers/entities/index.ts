@@ -7,7 +7,6 @@ import admin from './admin';
 import agents from './agents';
 import apps from './apps';
 import bots from './bots';
-import burnOnReadReadReceipts from './burn_on_read_read_receipts';
 import channelBookmarks from './channel_bookmarks';
 import channelCategories from './channel_categories';
 import channels from './channels';
@@ -64,5 +63,4 @@ export default combineReducers({
     scheduledPosts,
     sharedChannels,
     contentFlagging,
-    burnOnReadReadReceipts,
 });

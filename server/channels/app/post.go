@@ -588,7 +588,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 
 	// Send initial read receipt counts for burn-on-read posts
 	if post.Type == model.PostTypeBurnOnRead {
-		if err := a.publishPostRevealedEvent(post, post.UserId, ""); err != nil {
+		if err := a.publishPostRevealedEvent(rctx, post, post.UserId, ""); err != nil {
 			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	}
@@ -3101,7 +3101,7 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 
 	// Publish websocket event if this is the first time revealing
 	if isFirstReveal {
-		if err := a.publishPostRevealedEvent(revealedPost, userID, connectionID); err != nil {
+		if err := a.publishPostRevealedEvent(rctx, revealedPost, userID, connectionID); err != nil {
 			return nil, err
 		}
 	}
@@ -3229,13 +3229,14 @@ func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentT
 	return nil
 }
 
-// publishPostRevealedEvent publishes a websocket event when a post is first revealed.
-func (a *App) publishPostRevealedEvent(post *model.Post, userID string, connectionID string) *model.AppError {
+// publishPostRevealedEvent publishes a websocket event when a burn-on-read post is revealed.
+// Sends the updated recipients list to the post author for real-time recipient count updates.
+func (a *App) publishPostRevealedEvent(rctx request.CTX, post *model.Post, userID string, connectionID string) *model.AppError {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
-		post.ChannelId,
-		userID,
+		"",
+		post.UserId, // Send to post author only
 		nil,
 		connectionID,
 	)
@@ -3246,6 +3247,19 @@ func (a *App) publishPostRevealedEvent(post *model.Post, userID string, connecti
 	}
 
 	event.Add("post", postJSON)
+
+	// Fetch and include recipients who have revealed the post
+	recipients, err := a.Srv().Store().ReadReceipt().GetByPost(rctx, post.Id)
+	if err != nil {
+		rctx.Logger().Warn("Failed to fetch recipients for websocket event", mlog.String("post_id", post.Id), mlog.Err(err))
+	} else {
+		recipientIDs := make([]string, len(recipients))
+		for i, recipient := range recipients {
+			recipientIDs[i] = recipient.UserID
+		}
+		event.Add("recipients", recipientIDs)
+	}
+
 	a.Publish(event)
 
 	return nil

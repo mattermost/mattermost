@@ -311,6 +311,28 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
+    case PostTypes.POST_RECIPIENTS_UPDATED: {
+        const {postId, recipients} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    recipients,
+                },
+            },
+        };
+    }
+
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
 

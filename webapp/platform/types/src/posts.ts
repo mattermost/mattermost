@@ -73,6 +73,7 @@ export type PostMetadata = {
     acknowledgements?: PostAcknowledgement[];
     burn_on_read?: any;
     expire_at?: number;
+    recipients?: string[];
 };
 
 export type Post = {

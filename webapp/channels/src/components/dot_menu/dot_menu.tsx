@@ -189,6 +189,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             canEdit: props.canEdit && !props.isReadOnly,
             canDelete: props.canDelete && !props.isReadOnly,
         };
+
         return state;
     }
 
@@ -656,7 +657,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleFlagMenuItemActivated}
                     />
                 }
-                {Boolean(!isSystemMessage && !this.props.isReadOnly && !this.props.isUnrevealedBurnOnReadPost) &&
+                {Boolean(!isSystemMessage && !this.props.isReadOnly && !isBurnOnReadPost) &&
                     <Menu.Item
                         id={`${this.props.post.is_pinned ? 'unpin' : 'pin'}_post_${this.props.post.id}`}
                         data-testid={`pin_post_${this.props.post.id}`}
@@ -723,7 +724,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.copyText}
                     />
                 }
-                {this.state.canDelete &&
+                {!isSystemMessage && isBurnOnReadPost && <Menu.Separator/>}
+                {(this.state.canDelete || isBurnOnReadPost) &&
                     <Menu.Item
                         id={`delete_post_${this.props.post.id}`}
                         data-testid={`delete_post_${this.props.post.id}`}

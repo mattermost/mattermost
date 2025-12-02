@@ -6,8 +6,11 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
+import type {Post} from '@mattermost/types/posts';
 
-import {getBurnOnReadReadReceipt} from 'selectors/burn_on_read_read_receipts';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import {getBurnOnReadRecipientData} from 'selectors/burn_on_read_recipients';
 
 import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
 import WithTooltip from 'components/with_tooltip';
@@ -17,7 +20,7 @@ import type {GlobalState} from 'types/store';
 import './burn_on_read_badge.scss';
 
 type Props = {
-    postId: string;
+    post: Post;
     isSender: boolean;
     revealed: boolean;
     expireAt?: number | null;
@@ -27,7 +30,7 @@ type Props = {
 };
 
 function BurnOnReadBadge({
-    postId,
+    post,
     isSender,
     revealed,
     expireAt,
@@ -37,8 +40,9 @@ function BurnOnReadBadge({
 }: Props) {
     const {formatMessage} = useIntl();
 
-    // Get read receipt data from Redux store
-    const readReceiptData = useSelector((state: GlobalState) => getBurnOnReadReadReceipt(state, postId));
+    // Get current user ID and calculate recipient data from post metadata
+    const currentUserId = useSelector(getCurrentUserId);
+    const recipientData = useSelector((state: GlobalState) => getBurnOnReadRecipientData(state, post, currentUserId));
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         // Stop propagation to prevent opening RHS or other post click handlers
@@ -53,9 +57,9 @@ function BurnOnReadBadge({
 
         // For recipients with unrevealed content, trigger reveal
         if (!isSender && !revealed && onReveal) {
-            onReveal(postId);
+            onReveal(post.id);
         }
-    }, [isSender, revealed, onReveal, onSenderDelete, postId]);
+    }, [isSender, revealed, onReveal, onSenderDelete, post.id]);
 
     const getTooltipContent = () => {
         if (isSender) {
@@ -65,15 +69,15 @@ function BurnOnReadBadge({
                 defaultMessage: 'Click to delete message for everyone',
             });
 
-            if (readReceiptData) {
+            if (recipientData) {
                 const readReceiptText = formatMessage(
                     {
                         id: 'burn_on_read.badge.read_receipt',
                         defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
                     },
                     {
-                        revealedCount: readReceiptData.revealedCount,
-                        totalRecipients: readReceiptData.totalRecipients,
+                        revealedCount: recipientData.revealedCount,
+                        totalRecipients: recipientData.totalRecipients,
                     },
                 );
                 return (
@@ -108,15 +112,15 @@ function BurnOnReadBadge({
                 id: 'burn_on_read.badge.sender.delete',
                 defaultMessage: 'Click to delete message for everyone',
             });
-            if (readReceiptData) {
+            if (recipientData) {
                 const readReceiptText = formatMessage(
                     {
                         id: 'burn_on_read.badge.read_receipt',
                         defaultMessage: 'Read by {revealedCount} of {totalRecipients} recipients',
                     },
                     {
-                        revealedCount: readReceiptData.revealedCount,
-                        totalRecipients: readReceiptData.totalRecipients,
+                        revealedCount: recipientData.revealedCount,
+                        totalRecipients: recipientData.totalRecipients,
                     },
                 );
                 return `${deleteText}. ${readReceiptText}`;
@@ -139,7 +143,7 @@ function BurnOnReadBadge({
             {/* Register BoR post with global expiration scheduler for auto-deletion */}
             {/* This always renders even if badge UI doesn't, to ensure scheduling */}
             <BurnOnReadExpirationHandler
-                postId={postId}
+                postId={post.id}
                 expireAt={expireAt}
                 maxExpireAt={maxExpireAt}
             />
@@ -147,14 +151,14 @@ function BurnOnReadBadge({
             {/* Only render badge UI if there's tooltip content */}
             {tooltipContent && (
                 <WithTooltip
-                    id={`burn-on-read-tooltip-${postId}`}
+                    id={`burn-on-read-tooltip-${post.id}`}
                     title={tooltipContent}
                     isVertical={true}
                 >
                     <button
                         type='button'
                         className='BurnOnReadBadge'
-                        data-testid={`burn-on-read-badge-${postId}`}
+                        data-testid={`burn-on-read-badge-${post.id}`}
                         aria-label={getAriaLabel()}
                         role='button'
                         onClick={isInteractive ? handleClick : undefined}
