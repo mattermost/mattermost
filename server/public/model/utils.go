@@ -730,7 +730,7 @@ func ParseHashtags(text string) (string, string) {
 		if validHashtag.MatchString(word) {
 			hashtagStringSb.WriteString(" " + word)
 		} else {
-			plainString.WriteString(word)
+			plainString.WriteString(" " + word)
 		}
 	}
 	hashtagString := hashtagStringSb.String()
