@@ -48,40 +48,6 @@ type AutoTranslationInterface interface {
 	//   - error if a critical failure occurs
 	Translate(ctx context.Context, objectType, objectID, channelID, userID string, content any) (*model.Translation, *model.AppError)
 
-	// GetOrWaitForTranslation retrieves a translation for a specific user, optionally waiting for in-flight creation.
-	// This method is designed for WebSocket augmentation (hooks) where translations may be created asynchronously
-	// by the ADLS fan-out mechanism from a Translate() call.
-	//
-	// The method automatically retrieves the user's language preference and skips translation if:
-	//   - The user hasn't opted in to auto-translation
-	//   - The source content language matches the user's preferred language (no translation needed)
-	//
-	// Behavior:
-	//   1. Retrieves user's language preference and checks enablement
-	//   2. Checks cache for existing translation (fast path)
-	//   3. Checks database for existing translation
-	//   4. If waitForInFlight is true and translation is currently being created by another goroutine:
-	//      - Joins the singleflight group to wait for completion
-	//      - Returns the translation if it completes within timeout
-	//   5. Returns nil if translation is not found and not being created
-	//
-	// Parameters:
-	//   - ctx: context for cancellation, deadlines, and request-scoped values
-	//   - objectType: type of content (e.g., "post", "playbook_run")
-	//   - objectID: unique identifier for the object
-	//   - channelID: channel containing the object
-	//   - userID: user requesting the translation (language will be looked up)
-	//   - waitForInFlight: if true, waits for in-flight translations; if false, returns immediately
-	//
-	// Returns:
-	//   - Translation if found or completed within timeout
-	//   - nil, nil if not found, user not opted in, or no translation needed (caller should use original)
-	//   - error only for critical failures (not for timeouts or not-found)
-	//
-	// Usage Example (WebSocket hook):
-	//   translation, err := autoTranslation.GetOrWaitForTranslation(ctx, "post", postID, channelID, userID, true)
-	GetOrWaitForTranslation(ctx context.Context, objectType, objectID, channelID, userID string, waitForInFlight bool) (*model.Translation, *model.AppError)
-
 	// Detect detects the language of the provided content.
 	// The content can be a string, json.RawMessage, map[string]any, or *model.Post.
 	// Returns the ISO language code (e.g., "en", "es", "pt-BR") and an optional confidence score.
