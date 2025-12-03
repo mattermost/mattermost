@@ -17,8 +17,6 @@ const getRecentEmojisKey = (userId: string) => ['recent_emojis', userId].join(':
 const getWasLoggedInKey = () => 'was_logged_in';
 const teamIdJoinedOnLoadKey = 'teamIdJoinedOnLoad';
 const wasNotifiedOfLogInKey = 'was_notified_of_login';
-const markAllReadWithoutConfirmKey = 'mark_all_read_without_confirm';
-const hasSeenFeatureToastKey = (feature: string) => `has_seen_feature_toast_${feature}`;
 
 const getPathScopedKey = (path: string, key: string) => {
     if (path === '' || path === '/') {
@@ -168,27 +166,6 @@ class LocalStorageStoreClass {
 
     getWasNotifiedOfLogIn() {
         return this.getItem(wasNotifiedOfLogInKey) === 'true';
-    }
-
-    /**
-     * The mark-all-as-read shortcut opens a modal with a possible
-     * "Do not show again" checkbox. This is used to ensure that
-     * functionality between sessions.
-     */
-    setMarkAllReadWithoutConfirm(confirm: boolean) {
-        this.setItem(markAllReadWithoutConfirmKey, String(confirm));
-    }
-
-    getMarkAllReadWithoutConfirm() {
-        return this.getItem(markAllReadWithoutConfirmKey) === 'true';
-    }
-
-    setHasSeenFeatureToast(feature: string, hasSeen: boolean) {
-        this.setItem(hasSeenFeatureToastKey(feature), String(hasSeen));
-    }
-
-    getHasSeenFeatureToast(feature: string) {
-        return this.getItem(hasSeenFeatureToastKey(feature)) === 'true';
     }
 }
 
