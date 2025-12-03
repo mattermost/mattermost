@@ -341,6 +341,9 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
 	}
 
+	// saving file IDs here to later attach them to post.
+	// For BoR posts, store layer removes file IDs so we need to retain them here.
+	fileIDs := post.FileIds
 	rpost, nErr := a.Srv().Store().Post().Save(rctx, post)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -365,18 +368,17 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		a.Metrics().IncrementPostCreate()
 	}
 
-	if len(post.FileIds) > 0 {
-		if err = a.attachFilesToPost(rctx, post); err != nil {
-			rctx.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Array("file_ids", post.FileIds), mlog.Err(err))
+	if len(fileIDs) > 0 {
+		var attachedFileIds model.StringArray
+		attachedFileIds, err = a.attachFilesToPost(rctx, post, fileIDs)
+		if err != nil {
+			rctx.Logger().Warn("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Array("file_ids", fileIDs), mlog.Err(err))
+		} else if post.Type != model.PostTypeBurnOnRead {
+			post.FileIds = attachedFileIds
 		}
 
 		if a.Metrics() != nil {
 			a.Metrics().IncrementPostFileAttachment(len(post.FileIds))
-		}
-
-		// For BoR posts, remove fileIds after attaching them with the post
-		if post.Type == model.PostTypeBurnOnRead {
-			post.FileIds = []string{}
 		}
 	}
 
@@ -451,19 +453,17 @@ func (a *App) addPostPreviewProp(rctx request.CTX, post *model.Post) (*model.Pos
 	return post, nil
 }
 
-func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post) *model.AppError {
-	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, post.FileIds)
+func (a *App) attachFilesToPost(rctx request.CTX, post *model.Post, fileIDs model.StringArray) (model.StringArray, *model.AppError) {
+	attachedIds := a.attachFileIDsToPost(rctx, post.Id, post.ChannelId, post.UserId, fileIDs)
 
-	if len(post.FileIds) != len(attachedIds) {
-		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
+	if len(fileIDs) != len(attachedIds) {
 		post.FileIds = attachedIds
-
 		if _, err := a.Srv().Store().Post().Overwrite(rctx, post); err != nil {
-			return model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("attachFilesToPost", "app.post.overwrite.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	return nil
+	return attachedIds, nil
 }
 
 func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID string, fileIDs []string) []string {
