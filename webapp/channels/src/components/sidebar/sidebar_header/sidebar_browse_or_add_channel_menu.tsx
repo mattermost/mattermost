@@ -16,11 +16,12 @@ import {
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
+import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
+
 import * as Menu from 'components/menu';
 import {OnboardingTourSteps} from 'components/tours';
 import {useShowOnboardingTutorialStep, CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 
-import Pluggable from 'plugins/pluggable';
 
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU = 'browserOrAddChannelMenu';
 export const ELEMENT_ID_FOR_BROWSE_OR_ADD_CHANNEL_MENU_BUTTON = 'browseOrAddChannelMenuButton';
@@ -41,6 +42,7 @@ type Props = {
 export default function SidebarBrowserOrAddChannelMenu(props: Props) {
     const {formatMessage} = useIntl();
     const currentTeamId = useSelector(getCurrentTeamId);
+    const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents);
 
     const showCreateAndJoinChannelsTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
     const showInvitePeopleTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
@@ -155,6 +157,27 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
         />
     );
 
+    let pluggableMenuItems: JSX.Element[] = [];
+    if (pluginMenuItems) {
+        pluggableMenuItems = pluginMenuItems.map((item) => {
+            const handlePluginItemClick = () => {
+                if (item.action) {
+                    item.action(currentTeamId);
+                }
+            };
+
+            return (
+                <Menu.Item
+                    id={item.id + '_pluginmenuitem'}
+                    key={item.id + '_pluginmenuitem'}
+                    onClick={handlePluginItemClick}
+                    leadingElement={item.icon}
+                    labels={<span>{item.text}</span>}
+                />
+            );
+        });
+    }
+
     return (
         <Menu.Container
             menuButton={{
@@ -178,10 +201,7 @@ export default function SidebarBrowserOrAddChannelMenu(props: Props) {
             {browseChannelsMenuItem}
             {createDirectMessageMenuItem}
             {createUserGroupMenuItem}
-            <Pluggable
-                pluggableName='SidebarBrowseOrAddChannelMenu'
-                teamId={currentTeamId}
-            />
+            {pluggableMenuItems}
             {Boolean(createNewCategoryMenuItem) &&
                 <Menu.Separator/>
             }

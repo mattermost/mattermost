@@ -1215,10 +1215,36 @@ export default class PluginRegistry {
 
     /**
      * Register a component in the "Browse or Create Channels" menu in the sidebar.
-     * Accepts a React component. Returns a unique identifier.
+     * Accepts the following:
+     * - text - A string or React element to display in the menu
+     * - action - A function to trigger when component is clicked on. It receives the teamId as an argument.
+     * - icon - A React element to use as the button's icon
+     * Returns a unique identifier.
      */
-    registerSidebarBrowseOrAddChannelMenuComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
-        return dispatchPluginComponentAction('SidebarBrowseOrAddChannelMenu', this.id, component);
+    registerSidebarBrowseOrAddChannelMenuAction = reArg([
+        'text',
+        'action',
+        'icon',
+    ], ({
+        text,
+        action,
+        icon,
+    }: {
+        text: ReactResolvable;
+        action: SidebarBrowseOrAddChannelMenuAction['action'];
+        icon: ReactResolvable;
+    }) => {
+        const id = generateId();
+
+        dispatchPluginComponentWithData('SidebarBrowseOrAddChannelMenu', {
+            id,
+            pluginId: this.id,
+            text: resolveReactElement(text),
+            action,
+            icon: resolveReactElement(icon),
+        });
+
+        return id;
     });
 
     /**
