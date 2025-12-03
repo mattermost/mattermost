@@ -295,7 +295,7 @@ func TestPostChannelMentionsAll(t *testing.T) {
 
 func TestPostCurrentTeamIdHandling(t *testing.T) {
 	t.Run("preserves current_team_id before FillInPostProps", func(t *testing.T) {
-		post := &model.Post{
+		post := &Post{
 			Message: "Check ~engineering",
 		}
 		post.AddProp(PostPropsCurrentTeamId, "team123")
@@ -309,7 +309,7 @@ func TestPostCurrentTeamIdHandling(t *testing.T) {
 	t.Run("current_team_id should be removed after processing", func(t *testing.T) {
 		// This test is more of a documentation test
 		// FillInPostProps should call DelProp(PostPropsCurrentTeamId) after using it
-		post := &model.Post{
+		post := &Post{
 			Message: "Check ~engineering",
 		}
 		post.AddProp(PostPropsCurrentTeamId, "team123")

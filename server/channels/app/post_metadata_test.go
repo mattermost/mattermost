@@ -3357,7 +3357,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
-		
+
 		mentions := result.GetProp(model.PostPropsChannelMentions)
 		require.NotNil(t, mentions)
 		mentionsMap, ok := mentions.(map[string]any)
@@ -3382,12 +3382,12 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
-		
+
 		mentions := result.GetProp(model.PostPropsChannelMentions)
 		require.NotNil(t, mentions)
 		mentionsMap, ok := mentions.(map[string]any)
 		require.True(t, ok)
-		
+
 		channelData, ok := mentionsMap[th.BasicChannel.Name].(map[string]any)
 		require.True(t, ok)
 		// Should have current display name from database, not stale data
@@ -3409,7 +3409,7 @@ func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		th.LinkUserToTeam(th.BasicUser, team2)
+		th.LinkUserToTeam(t, th.BasicUser, team2)
 
 		channel2, err := th.App.CreateChannel(th.Context, &model.Channel{
 			TeamId:      team2.Id,

@@ -318,7 +318,7 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 			// (team renames are extremely rare and don't warrant the performance cost)
 			sanitized[channelName] = map[string]any{
 				"display_name": channel.DisplayName, // Fresh from database (handles channel renames)
-				"team_name":    teamName,             // Reused from props (avoids team lookup)
+				"team_name":    teamName,            // Reused from props (avoids team lookup)
 			}
 		}
 		// Otherwise, omit from props (no information disclosure)
