@@ -98,6 +98,14 @@ export const getAppBarPluginComponents = createSelector(
     },
 );
 
+export const getSidebarBrowseOrAddChannelMenuPluginComponents = createSelector(
+    'getSidebarBrowseOrAddChannelMenuPluginComponents',
+    (state: GlobalState) => state.plugins.components.SidebarBrowseOrAddChannelMenu,
+    (components = []) => {
+        return components;
+    },
+);
+
 export const getMainMenuPluginComponents = createSelector(
     'getMainMenuPluginComponents',
     (state: GlobalState) => state.plugins.components.MainMenu,
