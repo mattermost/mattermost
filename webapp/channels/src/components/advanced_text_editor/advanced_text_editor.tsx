@@ -530,18 +530,15 @@ const AdvancedTextEditor = ({
         setCaretPosition((e.target as TextboxElement).selectionStart || 0);
     }, []);
 
-    const prefillMessage = useCallback((message: string, shouldFocus?: boolean) => {
+    const prefillMessage = useCallback((message: string) => {
         handleDraftChange({
             ...draft,
             message,
         });
-        setCaretPosition(message.length);
 
-        if (shouldFocus) {
-            const inputBox = textboxRef.current?.getInputBox();
-            inputBox?.click();
-            focusTextbox(true);
-        }
+        const inputBox = textboxRef.current?.getInputBox();
+        inputBox?.click();
+        focusTextbox(true);
     }, [handleDraftChange, focusTextbox, draft, textboxRef]);
 
     // Update the caret position in the input box when changed by a side effect
