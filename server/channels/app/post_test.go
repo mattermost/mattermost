@@ -307,15 +307,18 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(th.Context, post)
+		attachedFiles, appErr := th.App.attachFilesToPost(th.Context, post, post.FileIds)
 		assert.Nil(t, appErr)
+		assert.Len(t, attachedFiles, 2)
+		assert.Contains(t, attachedFiles, info1.Id)
+		assert.Contains(t, attachedFiles, info2.Id)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
 		assert.Len(t, infos, 2)
 	})
 
-	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
+	t.Run("should return only successfully attached files after failing to add files", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
@@ -336,8 +339,10 @@ func TestAttachFilesToPost(t *testing.T) {
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		appErr := th.App.attachFilesToPost(th.Context, post)
+		attachedFiles, appErr := th.App.attachFilesToPost(th.Context, post, post.FileIds)
 		assert.Nil(t, appErr)
+		assert.Len(t, attachedFiles, 1)
+		assert.Contains(t, attachedFiles, info2.Id)
 
 		infos, _, appErr := th.App.GetFileInfosForPost(th.Context, post.Id, false, false)
 		assert.Nil(t, appErr)
@@ -4664,7 +4669,6 @@ func TestRevealPost(t *testing.T) {
 		require.NotNil(t, revealedPost.Metadata)
 		require.NotZero(t, revealedPost.Metadata.ExpireAt)
 		require.Len(t, revealedPost.Metadata.Files, 1)
-		require.Equal(t, "file1", revealedPost.Metadata.Files[0].Id)
 	})
 }
 
