@@ -36,21 +36,24 @@ describe('WithTooltip', () => {
         });
     });
 
-    // Skip focus test - focus interaction with floating-ui is complex and
-    // the original test used Jest fake timers with userEvent.click which
-    // triggers internal focus state differently than direct focus() call
+    // Skip: floating-ui's useFocus hook uses keyboard modality detection (similar to :focus-visible)
+    // which relies on browser APIs that JSDOM doesn't properly implement.
+    // The hook checks if focus was triggered via keyboard (Tab navigation) vs mouse click.
+    // In JSDOM, neither fireEvent.focus(), element.focus(), userEvent.tab(), nor
+    // keyDown + focus combinations properly trigger floating-ui's keyboard detection.
+    // This would require real browser testing (e.g., Playwright) to properly test.
     test.skip('shows tooltip on focus', async () => {
         renderWithContext(
-            <WithTooltip title='Tooltip will appear on hover'>
-                <button>{'Hover Me'}</button>
+            <WithTooltip title='Tooltip will appear on focus'>
+                <button>{'Focus Me'}</button>
             </WithTooltip>,
         );
 
-        const trigger = screen.getByText('Hover Me');
+        const trigger = screen.getByRole('button', {name: 'Focus Me'});
         trigger.focus();
 
         await waitFor(() => {
-            expect(screen.getByText('Tooltip will appear on hover')).toBeInTheDocument();
+            expect(screen.getByText('Tooltip will appear on focus')).toBeInTheDocument();
         });
     });
 

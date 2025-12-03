@@ -403,8 +403,40 @@ describe('handleUserRemovedEvent', async () => {
         expect(store.dispatch).not.toHaveBeenCalledWith(expectedAction);
     });
 
-    // Skip: Modifying hoisted mockState during test doesn't work correctly in Vitest
-    test.todo('should remove the team user if the user doesn\'t have view members permissions');
+    // Skip: The Jest test expectations don't match current code behavior.
+    // The code dispatches PROFILE_NO_LONGER_VISIBLE (not RECEIVED_PROFILE_NOT_IN_TEAM),
+    // requires msg.broadcast.channel_id (not msg.data.channel_id),
+    // and checks isGuest() rather than view_members permission.
+    // This test was already incorrectly specified in Jest.
+    test.skip('should remove the team user if the user doesn\'t have view members permissions', async () => {
+        // Temporarily remove view_members permission
+        const originalPermissions = mockState.entities.roles.roles.system_guest.permissions;
+        mockState.entities.roles.roles.system_guest.permissions = [];
+
+        const expectedAction = {
+            meta: {batch: true},
+            payload: [
+                {type: 'RECEIVED_PROFILE_NOT_IN_TEAM', data: {id: 'otherTeam', user_id: 'guestId'}},
+                {type: 'REMOVE_MEMBER_FROM_TEAM', data: {team_id: 'otherTeam', user_id: 'guestId'}},
+            ],
+            type: 'BATCHING_REDUCER.BATCH',
+        };
+        const msg = {
+            data: {
+                channel_id: currentChannelId,
+            },
+            broadcast: {
+                user_id: 'guestId',
+            },
+        };
+
+        handleUserRemovedEvent(msg);
+
+        // Restore permissions
+        mockState.entities.roles.roles.system_guest.permissions = originalPermissions;
+
+        expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
 
     test('should load the remover_id user if is not available in the store', async () => {
         const msg = {
@@ -436,11 +468,35 @@ describe('handleUserRemovedEvent', async () => {
         expect(getUser).not.toHaveBeenCalled();
     });
 
-    // Skip: Complex async action dispatching requires more extensive mocking in Vitest
-    test.todo('should redirect if the user removed is the current user from the current channel');
+    test('should redirect if the user removed is the current user from the current channel', async () => {
+        const msg = {
+            data: {
+                channel_id: currentChannelId,
+                remover_id: 'user',
+            },
+            broadcast: {
+                user_id: currentUserId,
+            },
+        };
 
-    // Skip: Complex async action dispatching requires more extensive mocking in Vitest
-    test.todo('should redirect if the user removed themselves from the current channel');
+        handleUserRemovedEvent(msg);
+        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
+    });
+
+    test('should redirect if the user removed themselves from the current channel', async () => {
+        const msg = {
+            data: {
+                channel_id: currentChannelId,
+                remover_id: currentUserId,
+            },
+            broadcast: {
+                user_id: currentUserId,
+            },
+        };
+
+        handleUserRemovedEvent(msg);
+        expect(redirectUserToDefaultTeam).toHaveBeenCalled();
+    });
 
     test('should not redirect if the user removed is not the current user or the channel is not the current channel', async () => {
         // Same channel, different user removed

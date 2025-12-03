@@ -10,16 +10,15 @@ import {LicenseSkus} from 'utils/constants';
 import LicenseSettings from './license_settings';
 
 describe('components/admin_console/license_settings/LicenseSettings', () => {
-    // Mock Date.now() to ensure consistent date-based calculations in snapshots
-    const MOCK_DATE = new Date('2025-01-15T12:00:00Z').getTime();
-    const originalDateNow = Date.now;
-
+    // Mock system time to ensure consistent date-based calculations in snapshots
+    // Using shouldAdvanceTime to allow waitFor() to work properly
     beforeAll(() => {
-        Date.now = vi.fn(() => MOCK_DATE);
+        vi.useFakeTimers({shouldAdvanceTime: true});
+        vi.setSystemTime(new Date('2025-01-15T12:00:00Z'));
     });
 
     afterAll(() => {
-        Date.now = originalDateNow;
+        vi.useRealTimers();
     });
     const defaultProps: ComponentProps<typeof LicenseSettings> = {
         isDisabled: false,

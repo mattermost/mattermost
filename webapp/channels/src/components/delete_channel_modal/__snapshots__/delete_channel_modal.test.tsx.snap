@@ -66,8 +66,8 @@ exports[`components/delete_channel_modal should match snapshot for delete_channe
           id="deleteChannelModal.confirmArchive"
           values={
             Object {
+              "b": [Function],
               "display_name": "testing",
-              "strong": [Function],
             }
           }
         />

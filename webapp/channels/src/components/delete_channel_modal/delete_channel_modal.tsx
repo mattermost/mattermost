@@ -75,7 +75,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                                 defaultMessage='Are you sure you wish to archive the <b>{display_name}</b> channel?'
                                 values={{
                                     display_name: this.props.channel.display_name,
-                                    strong: (chunks) => <strong>{chunks}</strong>,
+                                    b: (chunks) => <strong>{chunks}</strong>,
                                 }}
                             />
                         </p>

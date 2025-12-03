@@ -153,9 +153,9 @@ describe('components/FilePreviewModal', () => {
     test('should match snapshot, loaded', async () => {
         renderWithContext(<FilePreviewModal {...baseProps}/>);
 
-        // Wait for loaded state
+        // Wait for the image preview to actually appear in the DOM (not just the mock being called)
         await waitFor(() => {
-            expect(mockLoadImage).toHaveBeenCalled();
+            expect(document.querySelector('.image_preview')).toBeInTheDocument();
         });
 
         expect(document.querySelector('.file-preview-modal')).toMatchSnapshot();

@@ -5,7 +5,7 @@
 
 const config = {
     snapshotSerializers: ['enzyme-to-json/serializer'],
-    testPathIgnorePatterns: ['/node_modules/'],
+    testPathIgnorePatterns: ['/node_modules/', '\\.vitest\\.(ts|tsx)$'],
     clearMocks: true,
     collectCoverageFrom: [
         'src/**/*.{js,jsx,ts,tsx}',

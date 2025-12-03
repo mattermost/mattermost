@@ -75,7 +75,7 @@ function ChannelSettingsArchiveTab({
                                     defaultMessage='Are you sure you wish to archive the <b>{display_name}</b> channel?'
                                     values={{
                                         display_name: channel.display_name,
-                                        strong: (chunks) => <strong>{chunks}</strong>,
+                                        b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
                                     }}
                                 />
                             </p>

@@ -258,20 +258,28 @@ describe('rhs view actions', async () => {
             expect(executeCommand).not.toHaveBeenCalled();
         });
 
-        // Skip: vi.resetModules + dynamic import pattern doesn't work the same in Vitest ESM as Jest CommonJS
-        test.skip('it calls submitPost on error.sendMessage', async () => {
-            vi.mock('actions/channel_actions', async () => ({
-                executeCommand: vi.fn((message, _args, resolve, reject) => reject({sendMessage: 'test'})),
-            }));
+        test('it calls submitPost on error.sendMessage', async () => {
+            // Reset hook mocks (previous tests may have changed them)
+            vi.mocked(HookActions.runSlashCommandWillBePostedHooks).mockImplementation(
+                (message, args) => () => ({data: {message, args}}),
+            );
+            vi.mocked(HookActions.runMessageWillBePostedHooks).mockImplementation(
+                (post) => () => ({data: post}),
+            );
 
-            vi.resetModules();
+            // Mock executeCommand to return an error with sendMessage property
+            // This simulates when a slash command fails but should fall back to posting the message
+            (executeCommand as ReturnType<typeof vi.fn>).mockImplementationOnce(() => () =>
+                Promise.resolve({error: {sendMessage: true}}),
+            );
 
-            const {submitCommand: remockedSubmitCommand} = await import('actions/views/create_comment');
+            await store.dispatch(submitCommand(channelId, rootId, draft));
 
-            await store.dispatch(remockedSubmitCommand(channelId, rootId, draft));
+            // Verify executeCommand was called
+            expect(executeCommand).toHaveBeenCalledWith(draft.message, args);
 
-            const expectedActions = [{args: ['/test msg', {channel_id: '4j5j4k3k34j4', root_id: 'fc234c34c23', team_id: '4j5nmn4j3'}], type: 'MOCK_ACTIONS_COMMAND_EXECUTE'}];
-            expect(store.getActions()).toEqual(expectedActions);
+            // Verify submitPost was triggered (which calls PostActions.createPost)
+            expect(PostActions.createPost).toHaveBeenCalled();
         });
     });
 
