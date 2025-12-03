@@ -3228,7 +3228,7 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 
 	messagesToView, messagesToClearPushNotifications, times, err := a.Srv().Store().Channel().GetMessagesWithUnreadAndMentions(rctx, userID, user.NotifyProps)
 	if err != nil {
-		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(messagesToView) == 0 {
@@ -3240,9 +3240,9 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
-			return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
