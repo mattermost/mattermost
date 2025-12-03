@@ -68,7 +68,13 @@ jobs:
           npm run check-types
 
   test:
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        node-version: [20, 22, 24]
+    runs-on: ${{ matrix.os }}
+    name: test (${{ matrix.os }}, Node ${{ matrix.node-version }})
     permissions:
       checks: write
       pull-requests: write
@@ -78,21 +84,55 @@ jobs:
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: ci/setup
-        uses: ./.github/actions/webapp-setup
+      - name: ci/setup-node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+      - name: ci/install-dependencies
+        run: make node_modules
       - name: ci/test
         env:
           NODE_OPTIONS: --max_old_space_size=5120
-        run: |
-          npm run test-ci
+        run: npm run test-ci
       - name: Upload coverage to Codecov
-        # Skip coverage upload for cherry-pick PRs into release branches.
-        if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
+        # Skip coverage upload for cherry-pick PRs into release branches. Only upload for one matrix combo.
+        if: ${{ matrix.os == 'ubuntu-22.04' && matrix.node-version == 22 && (github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-')) }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: ./webapp/channels/coverage/lcov.info
+
+  test-vitest:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+        node-version: [20, 22, 24]
+    runs-on: ${{ matrix.os }}
+    name: test-vitest (${{ matrix.os }}, Node ${{ matrix.node-version }})
+    permissions:
+      checks: write
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: webapp/channels
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup-node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+      - name: ci/install-dependencies
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/test-vitest
+        run: npm run test:vitest
 
   build:
     runs-on: ubuntu-22.04
