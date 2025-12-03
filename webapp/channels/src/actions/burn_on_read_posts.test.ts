@@ -25,8 +25,7 @@ describe('burn_on_read_posts actions', () => {
     };
 
     const mockResponse = {
-        post: mockPost,
-        expire_at: 9999999999999,
+        ...mockPost,
     };
 
     beforeEach(() => {
@@ -55,7 +54,7 @@ describe('burn_on_read_posts actions', () => {
             expect(dispatch).toHaveBeenCalledWith({
                 type: PostTypes.REVEAL_BURN_ON_READ_SUCCESS,
                 data: {
-                    post: mockPost,
+                    post: mockResponse,
                     expireAt: 9999999999999,
                 },
             });

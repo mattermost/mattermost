@@ -10,8 +10,7 @@ import BurnOnReadTimerChip from './burn_on_read_timer_chip';
 
 describe('BurnOnReadTimerChip', () => {
     const baseProps = {
-        postId: 'post123',
-        durationMinutes: 10,
+        expireAt: Date.now() + (10 * 60 * 1000),
         onClick: jest.fn(),
     };
 
@@ -65,7 +64,7 @@ describe('BurnOnReadTimerChip', () => {
         renderWithContext(
             <BurnOnReadTimerChip
                 {...baseProps}
-                durationMinutes={0.5}
+                expireAt={Date.now() + (30 * 1000)}
             />,
         );
 
@@ -81,7 +80,7 @@ describe('BurnOnReadTimerChip', () => {
         renderWithContext(
             <BurnOnReadTimerChip
                 {...baseProps}
-                durationMinutes={0.03}
+                expireAt={Date.now() + (2 * 1000)}
             />,
         );
 

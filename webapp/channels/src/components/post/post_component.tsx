@@ -558,7 +558,6 @@ function PostComponent(props: Props) {
                 onReveal={handleRevealBurnOnRead}
                 loading={burnOnReadRevealing}
                 error={burnOnReadRevealError}
-                maxExpireAt={typeof post.props?.max_expire_at === 'number' ? post.props.max_expire_at : undefined}
             />
         );
     } else if (isSearchResultItem) {
@@ -642,13 +641,19 @@ function PostComponent(props: Props) {
         const revealed = typeof post.metadata?.expire_at === 'number';
 
         // Parse expiration times - can be either number or string from API
-        const expireAt = typeof post.metadata?.expire_at === 'number' ?
-            post.metadata.expire_at :
-            (post.metadata?.expire_at ? parseInt(String(post.metadata.expire_at), 10) : null);
+        let expireAt = null;
+        if (typeof post.metadata?.expire_at === 'number') {
+            expireAt = post.metadata.expire_at;
+        } else if (post.metadata?.expire_at) {
+            expireAt = parseInt(String(post.metadata.expire_at), 10);
+        }
 
-        const maxExpireAt = typeof post.props?.max_expire_at === 'number' ?
-            post.props.max_expire_at :
-            (post.props?.max_expire_at ? parseInt(String(post.props.max_expire_at), 10) : null);
+        let maxExpireAt = null;
+        if (typeof post.props?.max_expire_at === 'number') {
+            maxExpireAt = post.props.max_expire_at;
+        } else if (post.props?.max_expire_at) {
+            maxExpireAt = parseInt(String(post.props.max_expire_at), 10);
+        }
 
         burnOnReadBadge = (
             <BurnOnReadBadge

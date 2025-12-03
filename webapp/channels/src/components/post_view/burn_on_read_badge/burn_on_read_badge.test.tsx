@@ -30,7 +30,7 @@ describe('BurnOnReadBadge', () => {
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
         expect(badge).toBeInTheDocument();
-        expect(badge.querySelector('.icon-fire')).toBeInTheDocument();
+        expect(badge.querySelector('svg')).toBeInTheDocument();
     });
 
     it('should show "Click to Reveal" tooltip for unrevealed recipient', () => {

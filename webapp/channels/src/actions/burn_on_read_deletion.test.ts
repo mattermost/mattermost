@@ -20,13 +20,32 @@ describe('burn_on_read_deletion actions', () => {
         it('should call API and dispatch POST_REMOVED on success', async () => {
             (Client4.burnPostNow as jest.Mock).mockResolvedValue({});
 
+            const mockPost = {
+                id: 'post123',
+                user_id: 'user1',
+                channel_id: 'channel1',
+            };
+
+            const mockGetState = () => ({
+                entities: {
+                    users: {
+                        currentUserId: 'user123',
+                    },
+                    posts: {
+                        posts: {
+                            post123: mockPost,
+                        },
+                    },
+                },
+            } as any);
+
             const action = Actions.burnPostNow('post123');
-            const result = await action(mockDispatch, () => ({} as any), undefined);
+            const result = await action(mockDispatch, mockGetState, undefined);
 
             expect(Client4.burnPostNow).toHaveBeenCalledWith('post123');
             expect(mockDispatch).toHaveBeenCalledWith({
                 type: PostTypes.POST_REMOVED,
-                data: {id: 'post123'},
+                data: mockPost,
             });
             expect(result.data).toBe(true);
         });
@@ -35,10 +54,21 @@ describe('burn_on_read_deletion actions', () => {
             const error = new Error('API Error');
             (Client4.burnPostNow as jest.Mock).mockRejectedValue(error);
 
+            const mockPost = {
+                id: 'post123',
+                user_id: 'user1',
+                channel_id: 'channel1',
+            };
+
             const mockGetState = () => ({
                 entities: {
                     users: {
                         currentUserId: 'user123',
+                    },
+                    posts: {
+                        posts: {
+                            post123: mockPost,
+                        },
                     },
                 },
             } as any);
@@ -49,7 +79,7 @@ describe('burn_on_read_deletion actions', () => {
             expect(result.error).toBe(error);
             expect(mockDispatch).not.toHaveBeenCalledWith({
                 type: PostTypes.POST_REMOVED,
-                data: {id: 'post123'},
+                data: mockPost,
             });
         });
     });
