@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {Props as AutoSizerProps} from 'react-virtualized-auto-sizer';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -16,7 +15,6 @@ import type {GlobalState} from 'types/store';
 
 import CustomStatusModal from './custom_status_modal';
 
-jest.mock('react-virtualized-auto-sizer', () => (props: AutoSizerProps) => props.children({height: 100, width: 100, scaledHeight: 100, scaledWidth: 100}));
 jest.mock('images/img_trans.gif', () => 'img_trans.gif');
 
 describe('CustomStatusModal', () => {
