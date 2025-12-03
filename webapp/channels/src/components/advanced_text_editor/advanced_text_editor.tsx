@@ -219,7 +219,7 @@ const AdvancedTextEditor = ({
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
-    const [caretPosition, setCaretPosition] = useState(draft.message.length);
+    // const [caretPosition, setCaretPosition] = useState(draft.message.length);
     const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
     const [showPreview, setShowPreview] = useState(false);
@@ -340,12 +340,7 @@ const AdvancedTextEditor = ({
     } = useEditorEmojiPicker(
         textboxId,
         isDisabled,
-        draft,
-        caretPosition,
-        setCaretPosition,
-        handleDraftChange,
         showPreview,
-        focusTextbox,
     );
     const {
         labels: priorityLabels,
