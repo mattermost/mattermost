@@ -6,7 +6,7 @@ import React, {memo} from 'react';
 import type {MessageAttachment as MessageAttachmentType} from '@mattermost/types/message_attachments';
 import type {PostImage} from '@mattermost/types/posts';
 
-import type {TextFormattingOptions} from 'utils/text_formatting';
+import type {ChannelNamesMap, TextFormattingOptions} from 'utils/text_formatting';
 
 import MessageAttachment from './message_attachment';
 
@@ -28,6 +28,11 @@ type Props = {
     options?: Partial<TextFormattingOptions>;
 
     /**
+     * Map of channel names to channel info for mention linking
+     */
+    channelNamesMap?: ChannelNamesMap;
+
+    /**
      * Images object used for creating placeholders to prevent scroll popup
      */
     imagesMetadata?: Record<string, PostImage>;
@@ -40,6 +45,7 @@ const MessageAttachmentList = ({
     attachments,
     postId,
     options,
+    channelNamesMap,
 }: Props) => (
     <div
         id={`messageAttachmentList_${postId}`}
@@ -51,6 +57,7 @@ const MessageAttachmentList = ({
                 postId={postId}
                 key={'att_' + i}
                 options={options}
+                channelNamesMap={channelNamesMap}
                 imagesMetadata={imagesMetadata}
             />
         ))}

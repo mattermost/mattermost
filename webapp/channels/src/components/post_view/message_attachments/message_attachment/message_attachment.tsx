@@ -23,7 +23,7 @@ import SizeAwareImage from 'components/size_aware_image';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import LinkOnlyRenderer from 'utils/markdown/link_only_renderer';
-import type {TextFormattingOptions} from 'utils/text_formatting';
+import type {ChannelNamesMap, TextFormattingOptions} from 'utils/text_formatting';
 import {isUrlSafe} from 'utils/url';
 import * as Utils from 'utils/utils';
 
@@ -48,6 +48,11 @@ type Props = {
      * Options specific to text formatting
      */
     options?: Partial<TextFormattingOptions>;
+
+    /**
+     * Map of channel names to channel info for mention linking
+     */
+    channelNamesMap?: ChannelNamesMap;
 
     /**
      * images object for dimensions
@@ -279,6 +284,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                     <Markdown
                         message={String(field.value)}
                         postId={this.props.postId}
+                        channelNamesMap={this.props.channelNamesMap}
                     />
                 </td>,
             );
@@ -351,6 +357,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                     <Markdown
                         message={attachment.pretext}
                         postId={this.props.postId}
+                        channelNamesMap={this.props.channelNamesMap}
                     />
                 </div>
             );
@@ -444,6 +451,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         message={attachment.text || ''}
                         options={options}
                         postId={this.props.postId}
+                        channelNamesMap={this.props.channelNamesMap}
                         imageProps={this.imageProps}
                     />
                 </ShowMore>
