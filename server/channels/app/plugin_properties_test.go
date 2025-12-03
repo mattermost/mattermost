@@ -444,7 +444,6 @@ func TestPluginProperties(t *testing.T) {
 
 			import (
 				"fmt"
-				"encoding/json"
 				"github.com/mattermost/mattermost/server/public/plugin"
 				"github.com/mattermost/mattermost/server/public/model"
 			)
@@ -476,8 +475,8 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("source_plugin_id not found in attrs")
 				}
 
-				if sourcePluginID != p.API.GetManifest().Id {
-					return fmt.Errorf("source_plugin_id mismatch: expected %s, got %s", p.API.GetManifest().Id, sourcePluginID)
+				if sourcePluginID != p.API.GetPluginID() {
+					return fmt.Errorf("source_plugin_id mismatch: expected %s, got %s", p.API.GetPluginID(), sourcePluginID)
 				}
 
 				return nil
@@ -564,8 +563,10 @@ func TestPluginProperties(t *testing.T) {
 		cpaGroupID, err := th.App.CpaGroupID()
 		require.NoError(t, err)
 
-		// First plugin creates a protected field
-		tearDown1, pluginIDs1, activationErrors1 := SetAppEnvironmentWithPlugins(t, []string{`
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a protected field
+			`
 			package main
 
 			import (
@@ -600,25 +601,9 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown1()
-		require.Len(t, activationErrors1, 1)
-		require.NoError(t, activationErrors1[0])
-
-		// Get the field created by plugin1
-		fields, appErr := th.App.ListCPAFields()
-		require.Nil(t, appErr)
-		var plugin1FieldID string
-		for _, field := range fields {
-			if field.Name == "Plugin1 Protected Field" {
-				plugin1FieldID = field.ID
-				break
-			}
-		}
-		require.NotEmpty(t, plugin1FieldID)
-
-		// Second plugin tries to update the first plugin's field
-		tearDown2, pluginIDs2, activationErrors2 := SetAppEnvironmentWithPlugins(t, []string{`
+			`,
+			// Plugin 2: tries to update plugin1's field
+			`
 			package main
 
 			import (
@@ -632,15 +617,27 @@ func TestPluginProperties(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				// Try to get and update plugin1's protected field
-				field, err := p.API.GetPropertyField("` + cpaGroupID + `", "` + plugin1FieldID + `")
+				// Search for plugin1's protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
 				if err != nil {
-					return fmt.Errorf("failed to get field: %w", err)
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Plugin1 Protected Field" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
 				}
 
 				// Attempt to update it (should fail)
-				field.Name = "Hacked By Plugin2"
-				_, err = p.API.UpdatePropertyField("` + cpaGroupID + `", field)
+				plugin1Field.Name = "Hacked By Plugin2"
+				_, err = p.API.UpdatePropertyField("` + cpaGroupID + `", plugin1Field)
 				if err == nil {
 					return fmt.Errorf("expected error when updating another plugin's protected field, but got none")
 				}
@@ -652,21 +649,12 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown2()
-		require.Len(t, activationErrors2, 1)
-		require.NoError(t, activationErrors2[0])
-
-		// Clean up
-		err2 := th.App.DisablePlugin(pluginIDs2[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs2[0])
-		require.Nil(t, appErr)
-
-		err2 = th.App.DisablePlugin(pluginIDs1[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs1[0])
-		require.Nil(t, appErr)
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
 	})
 
 	t.Run("test plugin can delete its own protected field", func(t *testing.T) {
@@ -730,8 +718,10 @@ func TestPluginProperties(t *testing.T) {
 		cpaGroupID, err := th.App.CpaGroupID()
 		require.NoError(t, err)
 
-		// First plugin creates a protected field
-		tearDown1, pluginIDs1, activationErrors1 := SetAppEnvironmentWithPlugins(t, []string{`
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a protected field
+			`
 			package main
 
 			import (
@@ -765,30 +755,15 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown1()
-		require.Len(t, activationErrors1, 1)
-		require.NoError(t, activationErrors1[0])
-
-		// Get the field created by plugin1
-		fields, appErr := th.App.ListCPAFields()
-		require.Nil(t, appErr)
-		var plugin1FieldID string
-		for _, field := range fields {
-			if field.Name == "Plugin1 Field To Keep" {
-				plugin1FieldID = field.ID
-				break
-			}
-		}
-		require.NotEmpty(t, plugin1FieldID)
-
-		// Second plugin tries to delete the first plugin's field
-		tearDown2, pluginIDs2, activationErrors2 := SetAppEnvironmentWithPlugins(t, []string{`
+			`,
+			// Plugin 2: tries to delete plugin1's field
+			`
 			package main
 
 			import (
 				"fmt"
 				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
 			)
 
 			type MyPlugin struct {
@@ -796,8 +771,26 @@ func TestPluginProperties(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				// Attempt to delete plugin1's field (should fail)
-				err := p.API.DeletePropertyField("` + cpaGroupID + `", "` + plugin1FieldID + `")
+				// Search for plugin1's protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
+				if err != nil {
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Plugin1 Field To Keep" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
+				}
+
+				// Attempt to delete it (should fail)
+				err = p.API.DeletePropertyField("` + cpaGroupID + `", plugin1Field.ID)
 				if err == nil {
 					return fmt.Errorf("expected error when deleting another plugin's protected field, but got none")
 				}
@@ -809,21 +802,12 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown2()
-		require.Len(t, activationErrors2, 1)
-		require.NoError(t, activationErrors2[0])
-
-		// Clean up
-		err2 := th.App.DisablePlugin(pluginIDs2[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs2[0])
-		require.Nil(t, appErr)
-
-		err2 = th.App.DisablePlugin(pluginIDs1[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs1[0])
-		require.Nil(t, appErr)
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
 	})
 
 	t.Run("test plugin can update values for its own protected field", func(t *testing.T) {
@@ -907,8 +891,12 @@ func TestPluginProperties(t *testing.T) {
 		cpaGroupID, err := th.App.CpaGroupID()
 		require.NoError(t, err)
 
-		// First plugin creates a protected field with a value
-		tearDown1, pluginIDs1, activationErrors1 := SetAppEnvironmentWithPlugins(t, []string{`
+		testTargetID := model.NewId()
+
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a protected field with a value
+			`
 			package main
 
 			import (
@@ -940,7 +928,7 @@ func TestPluginProperties(t *testing.T) {
 				value := &model.PropertyValue{
 					GroupID:    "` + cpaGroupID + `",
 					FieldID:    createdField.ID,
-					TargetID:   "test-target-id",
+					TargetID:   "` + testTargetID + `",
 					TargetType: "user",
 					Value:      []byte("\"plugin1 value\""),
 				}
@@ -956,25 +944,9 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown1()
-		require.Len(t, activationErrors1, 1)
-		require.NoError(t, activationErrors1[0])
-
-		// Get the field and value created by plugin1
-		fields, appErr := th.App.ListCPAFields()
-		require.Nil(t, appErr)
-		var plugin1FieldID string
-		for _, field := range fields {
-			if field.Name == "Plugin1 Field With Protected Values" {
-				plugin1FieldID = field.ID
-				break
-			}
-		}
-		require.NotEmpty(t, plugin1FieldID)
-
-		// Second plugin tries to update the value
-		tearDown2, pluginIDs2, activationErrors2 := SetAppEnvironmentWithPlugins(t, []string{`
+			`,
+			// Plugin 2: tries to update plugin1's field value
+			`
 			package main
 
 			import (
@@ -988,16 +960,34 @@ func TestPluginProperties(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
+				// Search for plugin1's protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
+				if err != nil {
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Plugin1 Field With Protected Values" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
+				}
+
 				// Try to update the value (should fail)
 				value := &model.PropertyValue{
 					GroupID:    "` + cpaGroupID + `",
-					FieldID:    "` + plugin1FieldID + `",
-					TargetID:   "test-target-id",
+					FieldID:    plugin1Field.ID,
+					TargetID:   "` + testTargetID + `",
 					TargetType: "user",
 					Value:      []byte("\"hacked by plugin2\""),
 				}
 
-				_, err := p.API.UpsertPropertyValue(value)
+				_, err = p.API.UpsertPropertyValue(value)
 				if err == nil {
 					return fmt.Errorf("expected error when updating another plugin's protected field value, but got none")
 				}
@@ -1009,29 +999,22 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown2()
-		require.Len(t, activationErrors2, 1)
-		require.NoError(t, activationErrors2[0])
-
-		// Clean up
-		err2 := th.App.DisablePlugin(pluginIDs2[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs2[0])
-		require.Nil(t, appErr)
-
-		err2 = th.App.DisablePlugin(pluginIDs1[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs1[0])
-		require.Nil(t, appErr)
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
 	})
 
 	t.Run("test plugin can modify non-protected CPA fields from other plugins", func(t *testing.T) {
 		cpaGroupID, err := th.App.CpaGroupID()
 		require.NoError(t, err)
 
-		// First plugin creates a NON-protected field
-		tearDown1, pluginIDs1, activationErrors1 := SetAppEnvironmentWithPlugins(t, []string{`
+		// Both plugins in same environment
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t, []string{
+			// Plugin 1: creates a NON-protected field
+			`
 			package main
 
 			import (
@@ -1063,25 +1046,9 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown1()
-		require.Len(t, activationErrors1, 1)
-		require.NoError(t, activationErrors1[0])
-
-		// Get the field created by plugin1
-		fields, appErr := th.App.ListCPAFields()
-		require.Nil(t, appErr)
-		var plugin1FieldID string
-		for _, field := range fields {
-			if field.Name == "Non-Protected Field" {
-				plugin1FieldID = field.ID
-				break
-			}
-		}
-		require.NotEmpty(t, plugin1FieldID)
-
-		// Second plugin should be able to modify it
-		tearDown2, pluginIDs2, activationErrors2 := SetAppEnvironmentWithPlugins(t, []string{`
+			`,
+			// Plugin 2: modifies plugin1's non-protected field
+			`
 			package main
 
 			import (
@@ -1095,15 +1062,27 @@ func TestPluginProperties(t *testing.T) {
 			}
 
 			func (p *MyPlugin) OnActivate() error {
-				// Get plugin1's non-protected field
-				field, err := p.API.GetPropertyField("` + cpaGroupID + `", "` + plugin1FieldID + `")
+				// Search for plugin1's non-protected field
+				fields, err := p.API.SearchPropertyFields("` + cpaGroupID + `", model.PropertyFieldSearchOpts{PerPage: 100})
 				if err != nil {
-					return fmt.Errorf("failed to get field: %w", err)
+					return fmt.Errorf("failed to search fields: %w", err)
+				}
+
+				var plugin1Field *model.PropertyField
+				for _, field := range fields {
+					if field.Name == "Non-Protected Field" {
+						plugin1Field = field
+						break
+					}
+				}
+
+				if plugin1Field == nil {
+					return fmt.Errorf("plugin1 field not found")
 				}
 
 				// Update it (should succeed since it's not protected)
-				field.Name = "Modified By Plugin2"
-				_, err = p.API.UpdatePropertyField("` + cpaGroupID + `", field)
+				plugin1Field.Name = "Modified By Plugin2"
+				_, err = p.API.UpdatePropertyField("` + cpaGroupID + `", plugin1Field)
 				if err != nil {
 					return fmt.Errorf("failed to update non-protected field: %w", err)
 				}
@@ -1114,32 +1093,23 @@ func TestPluginProperties(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
-		defer tearDown2()
-		require.Len(t, activationErrors2, 1)
-		require.NoError(t, activationErrors2[0])
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.Len(t, activationErrors, 2)
+		require.NoError(t, activationErrors[0])
+		require.NoError(t, activationErrors[1])
 
 		// Verify the field was actually updated
 		updatedFields, appErr := th.App.ListCPAFields()
 		require.Nil(t, appErr)
 		var fieldWasUpdated bool
 		for _, field := range updatedFields {
-			if field.ID == plugin1FieldID && field.Name == "Modified By Plugin2" {
+			if field.Name == "Modified By Plugin2" {
 				fieldWasUpdated = true
 				break
 			}
 		}
 		require.True(t, fieldWasUpdated, "Non-protected field should have been updated by plugin2")
-
-		// Clean up
-		err2 := th.App.DisablePlugin(pluginIDs2[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs2[0])
-		require.Nil(t, appErr)
-
-		err2 = th.App.DisablePlugin(pluginIDs1[0])
-		require.Nil(t, err2)
-		appErr = th.App.ch.RemovePlugin(pluginIDs1[0])
-		require.Nil(t, appErr)
 	})
 }
