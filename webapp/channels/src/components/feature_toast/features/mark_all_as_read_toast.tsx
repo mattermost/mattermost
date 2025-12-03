@@ -8,6 +8,8 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import usePreference from 'components/common/hooks/usePreference';
+import {ShortcutSequence, ShortcutKeyVariant} from 'components/shortcut_sequence';
+import {ShortcutKeys} from 'components/with_tooltip';
 
 import * as UserAgent from 'utils/user_agent';
 
@@ -43,20 +45,14 @@ export default function MarkAllAsReadToast() {
     const message = (
         <FormattedMessage
             id='mark_all_as_read_toast.message'
-            defaultMessage="Now you can use {shift} {escape} to mark all of your messages for this team as read. Don't worry, you'll be asked to confirm."
+            defaultMessage="Now you can use {shortcut} to mark all of your messages for this team as read. Don't worry, you'll be asked to confirm."
             values={{
-                shift: <kbd>
-                    <FormattedMessage
-                        id='keyboard.shift'
-                        defaultMessage='Shift'
+                shortcut: (
+                    <ShortcutSequence
+                        keys={[ShortcutKeys.shift, ShortcutKeys.esc]}
+                        variant={ShortcutKeyVariant.InlineContent}
                     />
-                </kbd>,
-                escape: <kbd>
-                    <FormattedMessage
-                        id='keyboard.escape'
-                        defaultMessage='ESC'
-                    />
-                </kbd>,
+                ),
             }}
         />
     );

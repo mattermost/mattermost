@@ -255,7 +255,7 @@ export const KEYBOARD_SHORTCUTS = {
     }),
     markAllRead: defineMessage({
         id: 'shortcuts.msgs.mark_all_read',
-        defaultMessage: 'Mark all messages as read:\tShift|ESC',
+        defaultMessage: 'Mark all messages as read:\tShift|Esc',
     }),
     msgEdit: defineMessage({
         id: 'shortcuts.msgs.edit',

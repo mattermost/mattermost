@@ -3,7 +3,6 @@
 
 import classNames from 'classnames';
 import React from 'react';
-
 import './shortcut_key.scss';
 
 export enum ShortcutKeyVariant {
@@ -11,6 +10,7 @@ export enum ShortcutKeyVariant {
     Tooltip = 'tooltip',
     TutorialTip = 'tutorialTip',
     ShortcutModal = 'shortcut',
+    InlineContent = 'inline-content',
 }
 
 export type ShortcutKeyProps = {
@@ -26,6 +26,7 @@ export const ShortcutKey = ({children, variant}: ShortcutKeyProps): JSX.Element 
                 'shortcut-key--tooltip': variant === ShortcutKeyVariant.Tooltip,
                 'shortcut-key--tutorial-tip': variant === ShortcutKeyVariant.TutorialTip,
                 'shortcut-key--shortcut-modal': variant === ShortcutKeyVariant.ShortcutModal,
+                'shortcut-key--inline-content': variant === ShortcutKeyVariant.InlineContent,
             })}
         >
             {children}

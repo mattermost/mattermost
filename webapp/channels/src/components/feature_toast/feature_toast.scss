@@ -64,12 +64,9 @@
         margin: 0;
     }
 
-    kbd {
-        height: fit-content;
-        flex: 0 0 auto;
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        box-shadow: none;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-weight: 500;
+    mark {
+        & + mark {
+            margin-left: 4px;
+        }
     }
 }

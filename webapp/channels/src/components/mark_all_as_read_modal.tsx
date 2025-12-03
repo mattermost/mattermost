@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 
 import './mark_all_as_read_modal.scss';
+import {ShortcutSequence, ShortcutKeyVariant} from './shortcut_sequence';
+import {ShortcutKeys} from './with_tooltip';
 
 type Props = {
     show: boolean;
@@ -36,20 +38,14 @@ export default function MarkAllAsReadModal({
     const message = (
         <FormattedMessage
             id='mark_all_as_read_modal.message'
-            defaultMessage='{shift} {escape} will mark all messages as read in channels, threads, and Direct Messages for this team. Are you sure?'
+            defaultMessage='{shortcut} will mark all messages as read in channels, threads, and Direct Messages for this team. Are you sure?'
             values={{
-                shift: <kbd>
-                    <FormattedMessage
-                        id='keyboard.shift'
-                        defaultMessage='Shift'
+                shortcut: (
+                    <ShortcutSequence
+                        keys={[ShortcutKeys.shift, ShortcutKeys.esc]}
+                        variant={ShortcutKeyVariant.InlineContent}
                     />
-                </kbd>,
-                escape: <kbd>
-                    <FormattedMessage
-                        id='keyboard.escape'
-                        defaultMessage='ESC'
-                    />
-                </kbd>,
+                ),
             }}
         />
     );
