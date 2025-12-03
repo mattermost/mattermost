@@ -1272,3 +1272,226 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		}, "batch update with managed fields succeeds for admin")
 	})
 }
+
+func TestProtectedFieldRestrictions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic(t)
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("REST API cannot set source_plugin_id on field creation", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "some-plugin-id",
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.source_plugin_id_not_allowed.app_error")
+	})
+
+	t.Run("admin cannot patch protected field", func(t *testing.T) {
+		// Create a protected field directly via app layer (simulating plugin creation)
+		cpaGroupID, cErr := th.App.CpaGroupID()
+		require.NoError(t, cErr)
+
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "test-plugin",
+			},
+		}
+
+		createdField, err := th.App.PropertyService().CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Admin attempts to patch the protected field
+		patch := &model.PropertyFieldPatch{
+			Name: model.NewPointer("Attempted Patch"),
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), createdField.ID, patch)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.field_is_protected.app_error")
+	})
+
+	t.Run("admin CAN delete protected field", func(t *testing.T) {
+		// Create a protected field directly via app layer
+		cpaGroupID, cErr := th.App.CpaGroupID()
+		require.NoError(t, cErr)
+
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "test-plugin",
+			},
+		}
+
+		createdField, err := th.App.PropertyService().CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Admin should be able to delete the protected field
+		resp, err := th.SystemAdminClient.DeleteCPAField(context.Background(), createdField.ID)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Verify the field is marked as deleted
+		deletedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.NotZero(t, deletedField.DeleteAt)
+	})
+}
+
+func TestProtectedFieldValueRestrictions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic(t)
+
+	// add a valid license
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	// Create a protected field for testing
+	cpaGroupID, cErr := th.App.CpaGroupID()
+	require.NoError(t, cErr)
+
+	protectedField := &model.PropertyField{
+		GroupID: cpaGroupID,
+		Name:    "Protected Field",
+		Type:    model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsProtected:      true,
+			model.CustomProfileAttributesPropertyAttrsSourcePluginID: "test-plugin",
+		},
+	}
+
+	createdProtectedField, err := th.App.PropertyService().CreatePropertyField(protectedField)
+	require.NoError(t, err)
+
+	// Also create a non-protected field for comparison
+	regularField := &model.PropertyField{
+		Name: "Regular Field",
+		Type: model.PropertyFieldTypeText,
+	}
+
+	createdRegularField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), regularField)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+
+	t.Run("regular user cannot update protected field values", func(t *testing.T) {
+		values := map[string]json.RawMessage{
+			createdProtectedField.ID: json.RawMessage(`"Attempt to set protected value"`),
+		}
+
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.field_is_protected.app_error")
+	})
+
+	t.Run("admin cannot update protected field values", func(t *testing.T) {
+		values := map[string]json.RawMessage{
+			createdProtectedField.ID: json.RawMessage(`"Admin attempt to set protected value"`),
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), values)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.field_is_protected.app_error")
+	})
+
+	t.Run("batch update fails atomically when protected field included", func(t *testing.T) {
+		// First, set initial values for the regular field
+		_, appErr := th.App.PatchCPAValue(th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value"`), false)
+		require.Nil(t, appErr)
+
+		// Attempt to batch update both protected and regular fields
+		attemptedValues := map[string]json.RawMessage{
+			createdProtectedField.ID: json.RawMessage(`"Protected Value"`),
+			createdRegularField.ID:   json.RawMessage(`"Updated Regular Value"`),
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchCPAValues(context.Background(), attemptedValues)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.field_is_protected.app_error")
+
+		// Verify that the regular field was NOT updated (atomic failure)
+		currentValues, appErr := th.App.ListCPAValues(th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// The regular field should not have the "Updated Regular Value"
+		for _, value := range currentValues {
+			if value.FieldID == createdRegularField.ID {
+				var currentValue string
+				require.NoError(t, json.Unmarshal(value.Value, &currentValue))
+				require.NotEqual(t, "Updated Regular Value", currentValue, "Regular field should not have been updated in failed batch operation")
+			}
+		}
+	})
+
+	t.Run("regular user cannot update protected field values (ForUser endpoint)", func(t *testing.T) {
+		values := map[string]json.RawMessage{
+			createdProtectedField.ID: json.RawMessage(`"Attempt to set protected value"`),
+		}
+
+		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.field_is_protected.app_error")
+	})
+
+	t.Run("admin cannot update protected field values (ForUser endpoint)", func(t *testing.T) {
+		values := map[string]json.RawMessage{
+			createdProtectedField.ID: json.RawMessage(`"Admin attempt to set protected value"`),
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.field_is_protected.app_error")
+	})
+
+	t.Run("batch update fails atomically when protected field included (ForUser endpoint)", func(t *testing.T) {
+		// Set initial values for both fields
+		_, appErr := th.App.PatchCPAValue(th.BasicUser.Id, createdRegularField.ID, json.RawMessage(`"Initial Regular Value 2"`), false)
+		require.Nil(t, appErr)
+
+		// Attempt to batch update both protected and regular fields
+		attemptedValues := map[string]json.RawMessage{
+			createdProtectedField.ID: json.RawMessage(`"Protected Value 2"`),
+			createdRegularField.ID:   json.RawMessage(`"Updated Regular Value 2"`),
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, attemptedValues)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.custom_profile_attributes.field_is_protected.app_error")
+
+		// Verify that the regular field was NOT updated (atomic failure)
+		currentValues, appErr := th.App.ListCPAValues(th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		for _, value := range currentValues {
+			if value.FieldID == createdRegularField.ID {
+				var currentValue string
+				require.NoError(t, json.Unmarshal(value.Value, &currentValue))
+				require.NotEqual(t, "Updated Regular Value 2", currentValue, "Regular field should not have been updated in failed batch operation")
+			}
+		}
+	})
+}

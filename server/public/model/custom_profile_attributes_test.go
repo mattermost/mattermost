@@ -1611,3 +1611,266 @@ func TestCPAField_Patch(t *testing.T) {
 		})
 	}
 }
+
+func TestCPAField_EnsureNoSourcePluginID(t *testing.T) {
+	t.Run("rejects when source_plugin_id is set", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Test Field",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				SourcePluginID: "some-plugin-id",
+			},
+		}
+
+		err := field.EnsureNoSourcePluginID()
+		require.NotNil(t, err)
+		require.Equal(t, "app.custom_profile_attributes.source_plugin_id_not_allowed.app_error", err.Id)
+	})
+
+	t.Run("succeeds when source_plugin_id is empty", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Test Field",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				SourcePluginID: "",
+			},
+		}
+
+		err := field.EnsureNoSourcePluginID()
+		require.Nil(t, err)
+	})
+
+	t.Run("succeeds when source_plugin_id is not set at all", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Test Field",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityWhenSet,
+				// SourcePluginID not set
+			},
+		}
+
+		err := field.EnsureNoSourcePluginID()
+		require.Nil(t, err)
+	})
+}
+
+func TestCanModifyPropertyField(t *testing.T) {
+	t.Run("returns true for non-protected fields", func(t *testing.T) {
+		field := &PropertyField{
+			ID:      NewId(),
+			GroupID: CustomProfileAttributesPropertyGroupName,
+			Name:    "Non-Protected Field",
+			Type:    PropertyFieldTypeText,
+			Attrs: StringInterface{
+				CustomProfileAttributesPropertyAttrsProtected:      false,
+				CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		// Any plugin should be able to modify non-protected fields
+		require.True(t, CanModifyPropertyField(field, "plugin1"))
+		require.True(t, CanModifyPropertyField(field, "plugin2"))
+		require.True(t, CanModifyPropertyField(field, ""))
+	})
+
+	t.Run("returns true for fields without protected attribute", func(t *testing.T) {
+		field := &PropertyField{
+			ID:      NewId(),
+			GroupID: CustomProfileAttributesPropertyGroupName,
+			Name:    "Field Without Protected",
+			Type:    PropertyFieldTypeText,
+			Attrs: StringInterface{
+				CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				// protected not set
+			},
+		}
+
+		// Any plugin should be able to modify when protected is not set
+		require.True(t, CanModifyPropertyField(field, "plugin1"))
+		require.True(t, CanModifyPropertyField(field, "plugin2"))
+	})
+
+	t.Run("returns true for source plugin on protected field", func(t *testing.T) {
+		field := &PropertyField{
+			ID:      NewId(),
+			GroupID: CustomProfileAttributesPropertyGroupName,
+			Name:    "Protected Field",
+			Type:    PropertyFieldTypeText,
+			Attrs: StringInterface{
+				CustomProfileAttributesPropertyAttrsProtected:      true,
+				CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		// Source plugin should be able to modify its own protected field
+		require.True(t, CanModifyPropertyField(field, "plugin1"))
+	})
+
+	t.Run("returns false for non-source plugin on protected field", func(t *testing.T) {
+		field := &PropertyField{
+			ID:      NewId(),
+			GroupID: CustomProfileAttributesPropertyGroupName,
+			Name:    "Protected Field",
+			Type:    PropertyFieldTypeText,
+			Attrs: StringInterface{
+				CustomProfileAttributesPropertyAttrsProtected:      true,
+				CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		// Different plugin should NOT be able to modify
+		require.False(t, CanModifyPropertyField(field, "plugin2"))
+		require.False(t, CanModifyPropertyField(field, "plugin3"))
+		require.False(t, CanModifyPropertyField(field, ""))
+	})
+
+	t.Run("returns true when Attrs is nil", func(t *testing.T) {
+		field := &PropertyField{
+			ID:      NewId(),
+			GroupID: CustomProfileAttributesPropertyGroupName,
+			Name:    "Field With Nil Attrs",
+			Type:    PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+
+		// Any plugin should be able to modify when Attrs is nil
+		require.True(t, CanModifyPropertyField(field, "plugin1"))
+		require.True(t, CanModifyPropertyField(field, "plugin2"))
+		require.True(t, CanModifyPropertyField(field, ""))
+	})
+
+	t.Run("returns false when protected is true but source_plugin_id is empty", func(t *testing.T) {
+		field := &PropertyField{
+			ID:      NewId(),
+			GroupID: CustomProfileAttributesPropertyGroupName,
+			Name:    "Protected Field No Source",
+			Type:    PropertyFieldTypeText,
+			Attrs: StringInterface{
+				CustomProfileAttributesPropertyAttrsProtected: true,
+				// source_plugin_id not set
+			},
+		}
+
+		// No plugin should be able to modify if protected but no source
+		require.False(t, CanModifyPropertyField(field, "plugin1"))
+		require.False(t, CanModifyPropertyField(field, "plugin2"))
+		require.False(t, CanModifyPropertyField(field, ""))
+	})
+}
+
+func TestCPAField_IsProtected(t *testing.T) {
+	t.Run("returns true when protected is true", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Protected Field",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Protected:      true,
+				SourcePluginID: "plugin1",
+			},
+		}
+
+		require.True(t, field.IsProtected())
+	})
+
+	t.Run("returns false when protected is false", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Non-Protected Field",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Protected:      false,
+				SourcePluginID: "plugin1",
+			},
+		}
+
+		require.False(t, field.IsProtected())
+	})
+
+	t.Run("returns false when protected is not set", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Field Without Protected",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Visibility:     CustomProfileAttributesVisibilityWhenSet,
+				SourcePluginID: "plugin1",
+				// Protected not set (defaults to false)
+			},
+		}
+
+		require.False(t, field.IsProtected())
+	})
+}
+
+func TestCPAField_CanModifyField(t *testing.T) {
+	t.Run("delegates to CanModifyPropertyField correctly", func(t *testing.T) {
+		protectedField := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Protected Field",
+				Type:    PropertyFieldTypeText,
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsProtected:      true,
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			Attrs: CPAAttrs{
+				Protected:      true,
+				SourcePluginID: "plugin1",
+			},
+		}
+
+		// Source plugin can modify
+		require.True(t, protectedField.CanModifyField("plugin1"))
+
+		// Different plugin cannot modify
+		require.False(t, protectedField.CanModifyField("plugin2"))
+	})
+
+	t.Run("non-protected field can be modified by any plugin", func(t *testing.T) {
+		nonProtectedField := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: CustomProfileAttributesPropertyGroupName,
+				Name:    "Non-Protected Field",
+				Type:    PropertyFieldTypeText,
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			Attrs: CPAAttrs{
+				Protected:      false,
+				SourcePluginID: "plugin1",
+			},
+		}
+
+		// Any plugin can modify
+		require.True(t, nonProtectedField.CanModifyField("plugin1"))
+		require.True(t, nonProtectedField.CanModifyField("plugin2"))
+		require.True(t, nonProtectedField.CanModifyField(""))
+	})
+}
