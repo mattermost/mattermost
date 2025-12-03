@@ -3738,13 +3738,39 @@ type ImportSettings struct {
 	RetentionDays *int
 }
 
-func (s *ImportSettings) isValid() *AppError {
+func (s *ImportSettings) isValid(pluginDirectory string) *AppError {
 	if *s.Directory == "" {
 		return NewAppError("Config.IsValid", "model.config.is_valid.import.directory.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.RetentionDays <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.import.retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Ensure import directory is not the same as or a subdirectory of plugin directory
+	importDir, err := filepath.Abs(*s.Directory)
+	if err != nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.directory.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	pluginDir, err := filepath.Abs(pluginDirectory)
+	if err != nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.directory.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Resolve symlinks if the paths exist
+	if resolved, err := filepath.EvalSymlinks(importDir); err == nil {
+		importDir = resolved
+	}
+	if resolved, err := filepath.EvalSymlinks(pluginDir); err == nil {
+		pluginDir = resolved
+	}
+
+	importDir += string(filepath.Separator)
+	pluginDir += string(filepath.Separator)
+
+	// Check if either directory is a prefix of the other (same directory or subdirectory)
+	if strings.HasPrefix(importDir, pluginDir) || strings.HasPrefix(pluginDir, importDir) {
+		return NewAppError("Config.IsValid", "model.config.is_valid.import.directory_conflict.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -4122,7 +4148,7 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
-	if appErr := o.ImportSettings.isValid(); appErr != nil {
+	if appErr := o.ImportSettings.isValid(*o.PluginSettings.Directory); appErr != nil {
 		return appErr
 	}
 
