@@ -63,6 +63,7 @@ import type {
     AppBarChannelAction,
     DesktopNotificationHook,
     PluggableText,
+    SidebarBrowseOrAddChannelMenuAction,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
