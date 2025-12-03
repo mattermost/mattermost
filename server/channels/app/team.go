@@ -454,6 +454,10 @@ func (a *App) UpdateTeamMemberRoles(rctx request.CTX, teamID string, userID stri
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if !member.SchemeGuest && !member.SchemeUser {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
 	member, nErr = a.Srv().Store().Team().UpdateMember(rctx, member)

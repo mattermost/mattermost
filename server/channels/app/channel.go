@@ -1316,6 +1316,10 @@ func (a *App) UpdateChannelMemberRoles(rctx request.CTX, channelID string, userI
 		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if !member.SchemeGuest && !member.SchemeUser {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.unset_user_scheme.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
 	return a.updateChannelMember(rctx, member)
