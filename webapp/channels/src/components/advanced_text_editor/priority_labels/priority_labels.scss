@@ -1,7 +1,8 @@
 .priorityLabelsContainer {
     display: flex;
     align-items: center;
-    padding: 16px 0;
+    padding: 0;
+    padding-top: 16px;
     gap: 6px;
 
     &:hover {

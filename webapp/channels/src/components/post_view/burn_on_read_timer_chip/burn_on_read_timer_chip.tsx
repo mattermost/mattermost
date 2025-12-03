@@ -95,7 +95,7 @@ const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
                     aria-label={ariaLabel}
                 >
                     <FireIcon
-                        size={14}
+                        size={10}
                         className='BurnOnReadTimerChip__icon'
                     />
                     <span className='BurnOnReadTimerChip__time'>{displayText}</span>

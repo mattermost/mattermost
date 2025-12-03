@@ -4,18 +4,18 @@
 .BurnOnReadTimerChip {
     display: inline-flex;
     align-items: center;
-    padding: 2px 8px;
+    padding: 0px 4px;
     border: none;
     border-radius: 4px;
     margin-left: 8px;
-    background: rgba(210, 75, 78, 0.16);
+    background: var(--error-text-12, rgba(210, 75, 78, 0.12));
     color: var(--error-text, #d24b4e);
     cursor: pointer;
-    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     gap: 4px;
-    line-height: 20px;
+    height: 16px;
+    line-height: 12px;
     transition: all 0.2s ease;
 
     &:hover {
@@ -33,9 +33,8 @@
     }
 
     &__time {
-        min-width: 38px;
+        min-width: 32px;
         font-variant-numeric: tabular-nums;
-        letter-spacing: 0.5px;
         text-align: center;
     }
 

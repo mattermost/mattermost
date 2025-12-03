@@ -629,7 +629,7 @@ function PostComponent(props: Props) {
 
     let priority;
     if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
-        priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
+        priority = <span className='d-flex'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
     }
 
     // Burn-on-Read badge logic
@@ -750,7 +750,7 @@ function PostComponent(props: Props) {
                                 {...props}
                                 isSystemMessage={isSystemMessage}
                             />
-                            <div className='col d-flex align-items-center'>
+                            <div className='badges-wrapper col d-flex align-items-center'>
                                 {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
