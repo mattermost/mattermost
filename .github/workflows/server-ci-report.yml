@@ -1,3 +1,5 @@
+# Server CI Report can be triggered by any branch, but always runs on the default branch.
+# That means changes to this file won't reflect in a pull request but must first be merged.
 name: Server CI Report
 
 on:
@@ -107,7 +109,7 @@ jobs:
 
       - name: Report retried tests (pull request)
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI PR' }}
+        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI' }}
         env:
           TEST_NAME: "${{ matrix.test.name }}"
           FLAKY_SUMMARY: "${{ steps.report.outputs.flaky_summary }}"
