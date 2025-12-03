@@ -219,7 +219,6 @@ const AdvancedTextEditor = ({
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
-    // const [caretPosition, setCaretPosition] = useState(draft.message.length);
     const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
     const [showPreview, setShowPreview] = useState(false);
@@ -526,10 +525,6 @@ const AdvancedTextEditor = ({
         }
     }, [hasDraftMessage]);
 
-    const handleMouseUpKeyUp = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
-        setCaretPosition((e.target as TextboxElement).selectionStart || 0);
-    }, []);
-
     const prefillMessage = useCallback((message: string) => {
         handleDraftChange({
             ...draft,
@@ -540,14 +535,6 @@ const AdvancedTextEditor = ({
         inputBox?.click();
         focusTextbox(true);
     }, [handleDraftChange, focusTextbox, draft, textboxRef]);
-
-    // Update the caret position in the input box when changed by a side effect
-    useEffect(() => {
-        const textbox: HTMLInputElement | HTMLTextAreaElement | undefined = textboxRef.current?.getInputBox();
-        if (textbox && textbox === document.activeElement && textbox.selectionStart !== caretPosition) {
-            Utils.setCaretPosition(textbox, caretPosition);
-        }
-    }, [caretPosition]);
 
     // Handle width change when there is no message.
     useEffect(() => {
@@ -814,8 +801,6 @@ const AdvancedTextEditor = ({
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onMouseUp={handleMouseUpKeyUp}
-                            onKeyUp={handleMouseUpKeyUp}
                             onComposition={emitTypingEvent}
                             onHeightChange={handleHeightChange}
                             handlePostError={handlePostError}
