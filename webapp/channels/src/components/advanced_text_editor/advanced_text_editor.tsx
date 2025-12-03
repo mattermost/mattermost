@@ -437,7 +437,6 @@ const AdvancedTextEditor = ({
         draft,
         channelId,
         rootId,
-        caretPosition,
         isValidPersistentNotifications,
         location,
         textboxRef,
