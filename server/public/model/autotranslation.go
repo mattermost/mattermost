@@ -77,26 +77,38 @@ func (t *Translation) Clone() *Translation {
 	}
 }
 
-func (t *Translation) IsValid() bool {
+func (t *Translation) IsValid() *AppError {
 	if t == nil {
-		return false
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.nil.app_error", nil, "", 400)
 	}
-	if t.Provider == "" || t.ObjectID == "" || !IsValidId(t.ObjectID) || t.ObjectType == "" || t.Lang == "" || t.Type == "" || t.State != TranslationStateReady {
-		return false
+	if t.Provider == "" {
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.provider.app_error", nil, "provider is empty", 400)
+	}
+	if t.ObjectID == "" || !IsValidId(t.ObjectID) {
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.object_id.app_error", nil, "invalid object id", 400)
+	}
+	if t.ObjectType == "" {
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.object_type.app_error", nil, "object type is empty", 400)
+	}
+	if t.Lang == "" {
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.lang.app_error", nil, "lang is empty", 400)
+	}
+	if t.Type == "" {
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.type.app_error", nil, "type is empty", 400)
 	}
 	if t.Type != TranslationTypeString && t.Type != TranslationTypeObject {
-		return false
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.type_invalid.app_error", nil, "invalid type", 400)
 	}
 	if t.Type == TranslationTypeString && t.Text == "" {
-		return false
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.text.app_error", nil, "text is empty", 400)
 	}
 	if t.Type == TranslationTypeObject && len(t.ObjectJSON) == 0 {
-		return false
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.object_json.app_error", nil, "object json is empty", 400)
 	}
 	if t.NormHash == "" {
-		return false
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.norm_hash.app_error", nil, "norm hash is empty", 400)
 	}
-	return true
+	return nil
 }
 
 // Context keys for auto-translation path tracking

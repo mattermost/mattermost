@@ -415,25 +415,16 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
 	}
 
-	if a.AutoTranslation != nil {
-		// Verify if auto-translation is enabled for this channel before proceeding
-		// This avoids unnecessary detection overhead for disabled channels
-		enabled, err := a.AutoTranslation.IsChannelEnabled(post.ChannelId)
+	if a.Srv().Channels().AutoTranslation != nil {
+		// Verify if auto-translation is enabled for this channel before calling Translate
+		// This avoids unnecessary overhead for disabled channels
+		enabled, err := a.Srv().Channels().AutoTranslation.IsChannelEnabled(rpost.ChannelId)
 		if err == nil && enabled {
-			// Detect language and store in props
-			if detectedLang, _, _ := a.AutoTranslation.Detect(post.Message); detectedLang != "" {
-				if post.Props == nil {
-					post.Props = make(map[string]any)
-				}
-				post.Props["detected_language"] = detectedLang
-			}
-
 			ctx := model.WithAutoTranslationPath(rctx.Context(), model.AutoTranslationPathCreate)
-			// We're not doing anything with the result here yet, just firing it off
-			// The fan-out happens inside Translate
-			_, _ = a.AutoTranslation.Translate(ctx, "post", post.Id, post.ChannelId, post.UserId, post)
+			// We pass the post directly - extraction and detection happen in Translate or the worker
+			_, _ = a.Srv().Channels().AutoTranslation.Translate(ctx, "post", rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 		} else if err != nil {
-			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", post.ChannelId), mlog.Err(err))
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
 		}
 	}
 

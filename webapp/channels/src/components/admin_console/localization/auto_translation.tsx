@@ -40,7 +40,13 @@ const messages = defineMessages({
 export const searchableStrings: SearchableStrings = Object.values(messages);
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
-    const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(props.value as AutoTranslationSettings);
+    const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(() => {
+        const settings = props.value as AutoTranslationSettings;
+        if (!settings.Provider) {
+            return {...settings, Provider: 'libretranslate'};
+        }
+        return settings;
+    });
 
     const handleChange = useCallback((id: string, value: any) => {
         const updatedSettings = {
@@ -52,8 +58,20 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     }, [props, autoTranslationSettings]);
 
     const handleToggle = useCallback(() => {
-        handleChange('Enable', !autoTranslationSettings.Enable);
-    }, [autoTranslationSettings, handleChange]);
+        const newValue = !autoTranslationSettings.Enable;
+        const newSettings = {
+            ...autoTranslationSettings,
+            Enable: newValue,
+        };
+
+        // Ensure provider is set when enabling
+        if (newValue && !newSettings.Provider) {
+            newSettings.Provider = 'libretranslate';
+        }
+
+        setAutoTranslationSettings(newSettings);
+        props.onChange(props.id, newSettings);
+    }, [autoTranslationSettings, handleChange, props]);
 
     const availableLanguages = useMemo(() => {
         const values: Array<{value: string; text: string; order: number}> = [];

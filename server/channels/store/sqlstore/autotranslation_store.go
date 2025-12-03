@@ -20,15 +20,15 @@ type SqlAutoTranslationStore struct {
 type TranslationMeta json.RawMessage
 
 type Translation struct {
-	ObjectType string          `db:"objectType"`
-	ObjectID   string          `db:"objectId"`
-	DstLang    string          `db:"dstLang"`
-	ProviderID string          `db:"providerId"`
-	NormHash   string          `db:"normHash"`
-	Text       string          `db:"text"`
-	Confidence *float64        `db:"confidence"`
-	Meta       TranslationMeta `db:"meta"`
-	UpdateAt   int64           `db:"updateAt"`
+	ObjectType string
+	ObjectID   string
+	DstLang    string
+	ProviderID string
+	NormHash   string
+	Text       string
+	Confidence *float64
+	Meta       TranslationMeta
+	UpdateAt   int64
 }
 
 func (m *TranslationMeta) ToMap() (map[string]any, error) {
@@ -53,9 +53,9 @@ func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
 // Thus this method is really for completeness; callers should use the Channel cache
 func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("autotranslation").
-		From("channels").
-		Where(sq.Eq{"id": channelID})
+		Select("AutoTranslation").
+		From("Channels").
+		Where(sq.Eq{"Id": channelID})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -78,10 +78,10 @@ func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *mod
 
 func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
 	query := s.getQueryBuilder().
-		Update("channels").
-		Set("autotranslation", enabled).
-		Set("updateAt", model.GetMillis()).
-		Where(sq.Eq{"id": channelID})
+		Update("Channels").
+		Set("AutoTranslation", enabled).
+		Set("UpdateAt", model.GetMillis()).
+		Where(sq.Eq{"Id": channelID})
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
@@ -105,11 +105,11 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 
 func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("cm.autotranslation").
-		From("channelmembers cm").
-		Join("channels c ON cm.channelid = c.id").
-		Where(sq.Eq{"cm.userid": userID, "cm.channelid": channelID}).
-		Where("c.autotranslation = true")
+		Select("cm.AutoTranslation").
+		From("ChannelMembers cm").
+		Join("Channels c ON cm.Channelid = c.id").
+		Where(sq.Eq{"cm.UserId": userID, "cm.ChannelId": channelID}).
+		Where("c.AutoTranslation = true")
 
 	var enabled bool
 	if err := s.GetReplica().GetBuilder(&enabled, query); err != nil {
@@ -125,9 +125,9 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 
 func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
 	query := s.getQueryBuilder().
-		Update("channelmembers").
-		Set("autotranslation", enabled).
-		Where(sq.Eq{"userid": userID, "channelid": channelID})
+		Update("ChannelMembers").
+		Set("AutoTranslation", enabled).
+		Where(sq.Eq{"UserId": userID, "ChannelId": channelID})
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
@@ -152,13 +152,13 @@ func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabl
 
 func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("u.locale").
-		From("users u").
-		Join("channelmembers cm ON u.id = cm.userid").
-		Join("channels c ON cm.channelid = c.id").
-		Where(sq.Eq{"u.id": userID, "c.id": channelID}).
-		Where("c.autotranslation = true").
-		Where("cm.autotranslation = true")
+		Select("u.Locale").
+		From("Users u").
+		Join("ChannelMembers cm ON u.Id = cm.UserId").
+		Join("Channels c ON cm.ChannelId = c.Id").
+		Where(sq.Eq{"u.Id": userID, "c.Id": channelID}).
+		Where("c.AutoTranslation = true").
+		Where("cm.AutoTranslation = true")
 
 	var locale string
 	if err := s.GetReplica().GetBuilder(&locale, query); err != nil {
@@ -174,13 +174,13 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 
 func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("DISTINCT u.locale").
-		From("channelmembers cm").
-		Join("channels c ON c.id = cm.channelid").
-		Join("users u ON u.id = cm.userid").
-		Where(sq.Eq{"cm.channelid": channelID}).
-		Where("c.autotranslation = true").
-		Where("cm.autotranslation = true")
+		Select("DISTINCT u.Locale").
+		From("ChannelMembers cm").
+		Join("Channels c ON c.Id = cm.ChannelId").
+		Join("Users u ON u.Id = cm.UserId").
+		Where(sq.Eq{"cm.ChannelId": channelID}).
+		Where("c.AutoTranslation = true").
+		Where("cm.AutoTranslation = true")
 
 	// Filter to specific user IDs if provided (e.g., users with active WebSocket connections)
 	// When filterUserIDs is non-nil and non-empty, squirrel converts it to an IN clause
@@ -207,9 +207,9 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 
 func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("objectType", "objectId", "dstLang", "providerId", "normHash", "text", "confidence", "meta", "updateAt").
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "UpdateAt").
 		From("translations").
-		Where(sq.Eq{"objectId": objectID, "dstLang": dstLang})
+		Where(sq.Eq{"ObjectId": objectID, "DstLang": dstLang})
 
 	var translation Translation
 	if err := s.GetReplica().GetBuilder(&translation, query); err != nil {
@@ -259,9 +259,8 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 }
 
 func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
-	if !translation.IsValid() {
-		return model.NewAppError("SqlAutoTranslationStore.Save",
-			"store.sql_autotranslation.save.invalid_translation", nil, "translation="+translation.ObjectID+" "+translation.Lang, 400)
+	if err := translation.IsValid(); err != nil {
+		return err
 	}
 
 	now := model.GetMillis()
@@ -293,19 +292,19 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	confidence := translation.Confidence
 
 	query := s.getQueryBuilder().
-		Insert("translations").
-		Columns("objectId", "dstLang", "objectType", "providerId", "normHash", "text", "confidence", "meta", "updateAt").
+		Insert("Translations").
+		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "UpdateAt").
 		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), now).
-		Suffix(`ON CONFLICT (objectId, dstLang)
+		Suffix(`ON CONFLICT (ObjectId, dstLang)
 				DO UPDATE SET
-					objectType = EXCLUDED.objectType,
-					providerId = EXCLUDED.providerId,
-					normHash = EXCLUDED.normHash,
-					text = EXCLUDED.text,
-					confidence = EXCLUDED.confidence,
-					meta = EXCLUDED.meta,
-					updateAt = EXCLUDED.updateAt
-					WHERE translations.normHash IS DISTINCT FROM EXCLUDED.normHash`)
+					ObjectType = EXCLUDED.ObjectType,
+					ProviderId = EXCLUDED.ProviderId,
+					NormHash = EXCLUDED.NormHash,
+					Text = EXCLUDED.Text,
+					Confidence = EXCLUDED.Confidence,
+					Meta = EXCLUDED.Meta,
+					UpdateAt = EXCLUDED.UpdateAt
+					WHERE Translations.NormHash IS DISTINCT FROM EXCLUDED.NormHash`)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return model.NewAppError("SqlAutoTranslationStore.Save",
