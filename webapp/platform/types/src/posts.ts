@@ -70,6 +70,7 @@ export type PostMetadata = {
     reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
+    original_language?: string;
 };
 
 export type Post = {
@@ -101,6 +102,10 @@ export type Post = {
     is_following?: boolean;
     exists?: boolean;
     remote_id?: string;
+    translation?: string | Record<string, string>;
+    translation_type?: 'string' | 'object';
+    translation_confidence?: number | null;
+    translation_state?: 'ready' | 'skipped' | 'unavailable';
 };
 
 export type PostState = 'DELETED';

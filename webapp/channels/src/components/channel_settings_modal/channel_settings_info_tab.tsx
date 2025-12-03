@@ -8,9 +8,11 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
+import {patchChannel, setChannelAutotranslation, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getChannelAutotranslation} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -25,6 +27,7 @@ import {
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
+import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
@@ -64,6 +67,12 @@ function ChannelSettingsInfoTab({
     const canManageChannelProperties = useSelector((state: GlobalState) =>
         haveIChannelPermission(state, channel.team_id, channel.id, channelPropertiesPermission),
     );
+
+    // Autotranslation settings
+    const config = useSelector(getConfig);
+    const enableAutoTranslation = config?.EnableAutoTranslation === 'true';
+    const channelAutotranslation = useSelector((state: GlobalState) => getChannelAutotranslation(state, channel.id));
+    const [autotranslation, setAutotranslation] = useState(channelAutotranslation);
 
     // Constants
     const HEADER_MAX_LENGTH = 1024;
@@ -281,6 +290,16 @@ function ChannelSettingsInfoTab({
         setShowConvertConfirmModal(false);
     }, []);
 
+    const handleAutotranslationToggle = useCallback(async () => {
+        const newValue = !autotranslation;
+        setAutotranslation(newValue);
+        const {error} = await dispatch(setChannelAutotranslation(channel.id, newValue));
+        if (error) {
+            setAutotranslation(!newValue); // Revert on error
+            handleServerError(error as ServerError);
+        }
+    }, [autotranslation, channel.id, dispatch]);
+
     const handleCancel = useCallback(() => {
         // First, hide the panel immediately to prevent further interactions
         setSaveChangesPanelState(undefined);
@@ -291,6 +310,7 @@ function ChannelSettingsInfoTab({
         setChannelPurpose(channel?.purpose ?? '');
         setChannelHeader(channel?.header ?? '');
         setChannelType(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
+        setAutotranslation(channelAutotranslation);
 
         // Clear errors
         setUrlError('');
@@ -302,7 +322,7 @@ function ChannelSettingsInfoTab({
         if (onCancel) {
             onCancel();
         }
-    }, [channel, onCancel, setFormError]);
+    }, [channel, channelAutotranslation, onCancel, setFormError]);
 
     // Calculate if there are errors
     const hasErrors = Boolean(formError) ||
@@ -449,6 +469,55 @@ function ChannelSettingsInfoTab({
                 readOnly={!canManageChannelProperties}
                 name={formatMessage({id: 'channel_settings.header.label', defaultMessage: 'Channel Header'})}
             />
+
+            {/* Autotranslation Toggle Section */}
+            {enableAutoTranslation && canManageChannelProperties && (
+                <div className='ChannelSettingsModal__autotranslationSection'>
+                    <div className='ChannelSettingsModal__autotranslationHeader'>
+                        <div className='ChannelSettingsModal__autotranslationHeaderText'>
+                            <label
+                                className='Input_legend'
+                                aria-label={formatMessage({
+                                    id: 'channel_settings.autotranslation.label',
+                                    defaultMessage: 'Enable automatic translation for this channel',
+                                })}
+                            >
+                                {formatMessage({
+                                    id: 'channel_settings.autotranslation.label',
+                                    defaultMessage: 'Enable automatic translation for this channel',
+                                })}
+                            </label>
+                            <label
+                                className='Input_subheading'
+                                aria-label={formatMessage({
+                                    id: 'channel_settings.autotranslation.description',
+                                    defaultMessage: 'When enabled, posts in this channel will be automatically translated to each user\'s preferred language.',
+                                })}
+                            >
+                                {formatMessage({
+                                    id: 'channel_settings.autotranslation.description',
+                                    defaultMessage: 'When enabled, posts in this channel will be automatically translated to each user\'s preferred language.',
+                                })}
+                            </label>
+                        </div>
+                        <div className='ChannelSettingsModal__autotranslationToggle'>
+                            <Toggle
+                                id='channelAutotranslationToggle'
+                                ariaLabel={formatMessage({
+                                    id: 'channel_settings.autotranslation.label',
+                                    defaultMessage: 'Enable automatic translation for this channel',
+                                })}
+                                size='btn-md'
+                                disabled={false}
+                                onToggle={handleAutotranslationToggle}
+                                toggled={autotranslation}
+                                tabIndex={0}
+                                toggleClassName='btn-toggle-primary'
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* SaveChangesPanel for unsaved changes */}
             {(canManageChannelProperties && shouldShowPanel) && (

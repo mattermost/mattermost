@@ -481,7 +481,13 @@ export function handlePendingPosts(state: string[] = [], action: MMReduxAction) 
 export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
-        return {};
+        const {channelId} = action;
+        if (!channelId) {
+            return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;

@@ -12,7 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {Permissions} from 'mattermost-redux/constants';
 import {AppBindingLocations} from 'mattermost-redux/constants/apps';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, isChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {isMarketplaceEnabled, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -74,6 +74,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
             isMarketplaceEnabled(state) &&
             haveICurrentTeamPermission(state, Permissions.SYSCONSOLE_WRITE_PLUGINS)
         ),
+        isChannelAutotranslated: isChannelAutotranslated(state, post.channel_id),
     };
 }
 

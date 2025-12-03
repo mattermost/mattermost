@@ -19,9 +19,10 @@ type Props = {
     pluginPostTypes?: PluginsState['postTypes'];
     isRHS: boolean;
     compactDisplay?: boolean;
+    isChannelAutotranslated?: boolean;
 }
 
-export default function MessageWithAdditionalContent({post, isEmbedVisible, pluginPostTypes, isRHS, compactDisplay}: Props) {
+export default function MessageWithAdditionalContent({post, isEmbedVisible, pluginPostTypes, isRHS, compactDisplay, isChannelAutotranslated}: Props) {
     const hasPlugin = post.type && pluginPostTypes && Object.hasOwn(pluginPostTypes, post.type);
     let msg;
     const messageWrapper = (
@@ -29,6 +30,7 @@ export default function MessageWithAdditionalContent({post, isEmbedVisible, plug
             post={post}
             isRHS={isRHS}
             compactDisplay={compactDisplay}
+            isChannelAutotranslated={isChannelAutotranslated}
         />
     );
     if (post.state === Posts.POST_DELETED || hasPlugin) {

@@ -46,6 +46,7 @@ type Props = {
     maxHeight?: number; /* The max height used by the show more component */
     showPostEditedIndicator?: boolean; /* Whether or not to render the post edited indicator */
     sharedChannelsPluginsEnabled?: boolean;
+    isChannelAutotranslated?: boolean;
 }
 
 type State = {
@@ -148,6 +149,15 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
         if (compactDisplay && isEphemeral) {
             const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
             message = message.concat(visibleMessage);
+        }
+
+        // Use translation if channel is autotranslated and translation is available
+        if (this.props.isChannelAutotranslated && post.translation_state === 'ready' && post.translation) {
+            if (typeof post.translation === 'string') {
+                message = post.translation;
+            } else if (typeof post.translation === 'object') {
+                // TODO: Implement translation object rendering
+            }
         }
 
         const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;

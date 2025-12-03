@@ -368,6 +368,7 @@ export const ModalIdentifiers = {
     USER_SETTINGS: 'user_settings',
     QUICK_SWITCH: 'quick_switch',
     REMOVED_FROM_CHANNEL: 'removed_from_channel',
+    VIEW_TRANSLATION: 'view_translation',
     EMAIL_INVITE: 'email_invite',
     INTERACTIVE_DIALOG: 'interactive_dialog',
     APPS_MODAL: 'apps_modal',

@@ -10,7 +10,7 @@ import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import {General} from 'mattermost-redux/constants';
-import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
+import {getDirectTeammate, isChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
@@ -223,6 +223,7 @@ function makeMapStateToProps() {
             shouldDisplayBurnOnReadConcealed: shouldDisplayConcealedPlaceholder(state, post.id),
             isBurnOnReadEnabled: isBurnOnReadEnabled(state),
             isBurnOnReadPost: isPostBurnOnRead,
+            isChannelAutotranslated: isChannelAutotranslated(state, post.channel_id),
         };
     };
 }

@@ -59,6 +59,7 @@ export default function ChannelNotificationsModal(props: Props) {
     const [serverError, setServerError] = useState('');
 
     const [settings, setSettings] = useState(getStateFromNotifyProps(props.currentUser.notify_props, props.channelMember?.notify_props));
+    const [autotranslation, setAutotranslation] = useState(props.myChannelAutotranslation || false);
 
     const [desktopAndMobileSettingsDifferent, setDesktopAndMobileSettingDifferent] = useState<boolean>(areDesktopAndMobileSettingsDifferent(
         props.collapsedReplyThreads,
@@ -113,6 +114,15 @@ export default function ChannelNotificationsModal(props: Props) {
 
         setSettings({...settings, ...channelNotifyPropsDefaultedToUserNotifyProps});
     }
+
+    const handleAutotranslationToggle = useCallback(async (enabled: boolean) => {
+        setAutotranslation(enabled);
+        const {error} = await props.actions.setMyChannelAutotranslation(props.channel.id, enabled);
+        if (error) {
+            setAutotranslation(!enabled); // Revert on error
+            setServerError(error.message);
+        }
+    }, [props.actions, props.channel.id]);
 
     function handleSave() {
         const channelNotifyProps = createChannelNotifyPropsFromSelectedSettings(props.currentUser.notify_props, settings, desktopAndMobileSettingsDifferent);
@@ -445,6 +455,36 @@ export default function ChannelNotificationsModal(props: Props) {
                                 defaultMessage: 'When enabled, all new replies in this channel will be automatically followed and will appear in your Threads view.',
                             })}
                             content={autoFollowThreadsSectionContent}
+                        />
+                    </>
+                }
+                {props.enableAutoTranslation && props.channelAutotranslationEnabled &&
+                    <>
+                        <div className='ChannelNotificationModal__divider'/>
+                        <ModalSection
+                            title={formatMessage({
+                                id: 'channel_notifications.autotranslationTitle',
+                                defaultMessage: 'Auto-translation',
+                            })}
+                            description={formatMessage({
+                                id: 'channel_notifications.autotranslationDesc',
+                                defaultMessage: 'When enabled, posts in this channel will be automatically translated to your preferred language.',
+                            })}
+                            content={
+                                <CheckboxSettingItem
+                                    inputFieldTitle={formatMessage({
+                                        id: 'channel_notifications.autotranslationTitle',
+                                        defaultMessage: 'Auto-translation',
+                                    })}
+                                    description={formatMessage({
+                                        id: 'channel_notifications.autotranslationDesc',
+                                        defaultMessage: 'When enabled, posts in this channel will be automatically translated to your preferred language.',
+                                    })}
+                                    inputFieldValue={autotranslation}
+                                    inputFieldData={utils.MuteChannelInputFieldData}
+                                    handleChange={handleAutotranslationToggle}
+                                />
+                            }
                         />
                     </>
                 }
