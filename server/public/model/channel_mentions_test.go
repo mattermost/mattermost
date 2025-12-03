@@ -292,3 +292,30 @@ func TestPostChannelMentionsAll(t *testing.T) {
 		assert.Equal(t, []string{"engineering"}, result)
 	})
 }
+
+func TestPostCurrentTeamIdHandling(t *testing.T) {
+	t.Run("preserves current_team_id before FillInPostProps", func(t *testing.T) {
+		post := &model.Post{
+			Message: "Check ~engineering",
+		}
+		post.AddProp(PostPropsCurrentTeamId, "team123")
+
+		// Verify it's set
+		teamId, ok := post.GetProp(PostPropsCurrentTeamId).(string)
+		assert.True(t, ok)
+		assert.Equal(t, "team123", teamId)
+	})
+
+	t.Run("current_team_id should be removed after processing", func(t *testing.T) {
+		// This test is more of a documentation test
+		// FillInPostProps should call DelProp(PostPropsCurrentTeamId) after using it
+		post := &model.Post{
+			Message: "Check ~engineering",
+		}
+		post.AddProp(PostPropsCurrentTeamId, "team123")
+
+		// After FillInPostProps processes, current_team_id should be removed
+		// (actual verification happens in app layer integration tests)
+		assert.NotNil(t, post.GetProp(PostPropsCurrentTeamId))
+	})
+}

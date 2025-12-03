@@ -91,6 +91,7 @@ const (
 	PostPropsPreviewedPost            = "previewed_post"
 	PostPropsForceNotification        = "force_notification"
 	PostPropsChannelMentions          = "channel_mentions"
+	PostPropsCurrentTeamId            = "current_team_id"
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
