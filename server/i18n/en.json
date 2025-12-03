@@ -5495,6 +5495,14 @@
     "translation": "Unable to delete Custom Profile Attribute Values for user"
   },
   {
+    "id": "app.custom_profile_attributes.field_is_protected.app_error",
+    "translation": "This field is protected and can only be modified by the plugin that created it"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_field.app_error",
+    "translation": "Unable to get Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
   },
@@ -5545,6 +5553,10 @@
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search Custom Profile Attribute fields"
+  },
+  {
+    "id": "app.custom_profile_attributes.source_plugin_id_not_allowed.app_error",
+    "translation": "The source_plugin_id field can only be set internally by the Plugin API"
   },
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",

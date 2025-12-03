@@ -12,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+const noPluginId = "" // no plugin related to this request
+
 func (api *API) InitCustomProfileAttributes() {
 	if api.srv.Config().FeatureFlags.CustomProfileAttributes {
 		api.BaseRoutes.CustomProfileAttributesFields.Handle("", api.APISessionRequired(listCPAFields)).Methods(http.MethodGet)
@@ -61,6 +63,12 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	pf.Name = strings.TrimSpace(pf.Name)
+
+	// Validate that REST API doesn't set source_plugin_id
+	if appErr := pf.EnsureNoSourcePluginID(); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateCPAField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -128,6 +136,16 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.AddEventPriorState(originalField)
+
+	// Check if admin/user can modify this field
+	if !originalField.CanModifyField(noPluginId) {
+		c.Err = model.NewAppError("Api4.patchCPAField",
+			"app.custom_profile_attributes.field_is_protected.app_error",
+			nil,
+			"protected fields can only be modified by the source plugin",
+			http.StatusForbidden)
+		return
+	}
 
 	patchedField, appErr := c.App.PatchCPAField(c.Params.FieldId, patch)
 	if appErr != nil {
@@ -222,23 +240,34 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
 
-	// if the user is not an admin, we need to check that there are no
-	// admin-managed fields
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		fields, appErr := c.App.ListCPAFields()
-		if appErr != nil {
-			c.Err = appErr
+	fields, appErr := c.App.ListCPAFields()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check permissions for fields being updated
+	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	for _, field := range fields {
+		if _, isBeingUpdated := updates[field.ID]; !isBeingUpdated {
+			continue
+		}
+		// Check if field is protected (only source plugin can modify values)
+		if !field.CanModifyField(noPluginId) {
+			c.Err = model.NewAppError("Api4.patchCPAValues",
+				"app.custom_profile_attributes.field_is_protected.app_error",
+				nil,
+				"protected field values can only be modified by the source plugin",
+				http.StatusForbidden)
 			return
 		}
-
-		// Check if any of the fields being updated are admin-managed
-		for _, field := range fields {
-			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
-				if field.IsAdminManaged() {
-					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
-					return
-				}
-			}
+		// Check for admin-managed fields
+		if !isAdmin && field.IsAdminManaged() {
+			c.Err = model.NewAppError("Api4.patchCPAValues",
+				"app.custom_profile_attributes.property_field_is_managed.app_error",
+				nil, "",
+				http.StatusForbidden)
+			return
 		}
 	}
 
@@ -298,7 +327,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
-		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("Api4.patchCPAValuesForUser", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -324,23 +353,35 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
 
-	// if the user is not an admin, we need to check that there are no
-	// admin-managed fields
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		fields, appErr := c.App.ListCPAFields()
-		if appErr != nil {
-			c.Err = appErr
+	fields, appErr := c.App.ListCPAFields()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Check permissions for fields being updated
+	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	for _, field := range fields {
+		if _, isBeingUpdated := updates[field.ID]; !isBeingUpdated {
+			continue
+		}
+		// Check if field is protected (only source plugin can modify values)
+		if !field.CanModifyField(noPluginId) {
+			c.Err = model.NewAppError("Api4.patchCPAValuesForUser",
+				"app.custom_profile_attributes.field_is_protected.app_error",
+				nil,
+				"protected field values can only be modified by the source plugin",
+				http.StatusForbidden)
 			return
 		}
 
-		// Check if any of the fields being updated are admin-managed
-		for _, field := range fields {
-			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
-				if field.IsAdminManaged() {
-					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
-					return
-				}
-			}
+		// Check for admin-managed fields
+		if !isAdmin && field.IsAdminManaged() {
+			c.Err = model.NewAppError("Api4.patchCPAValuesForUser",
+				"app.custom_profile_attributes.property_field_is_managed.app_error",
+				nil, "",
+				http.StatusForbidden)
+			return
 		}
 	}
 

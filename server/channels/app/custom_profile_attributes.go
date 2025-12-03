@@ -328,3 +328,52 @@ func (a *App) DeleteCPAValues(userID string) *model.AppError {
 
 	return nil
 }
+
+func (a *App) ValidatePluginFieldUpdate(groupID, fieldID, pluginID string) *model.AppError {
+	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
+	if err != nil {
+		return model.NewAppError("ValidatePluginFieldUpdate",
+			"app.custom_profile_attributes.get_field.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if !model.CanModifyPropertyField(field, pluginID) {
+		return model.NewAppError("ValidatePluginFieldUpdate",
+			"app.custom_profile_attributes.field_is_protected.app_error",
+			nil, "protected fields can only be modified by the source plugin",
+			http.StatusForbidden)
+	}
+	return nil
+}
+
+func (a *App) ValidatePluginFieldDelete(groupID, fieldID, pluginID string) *model.AppError {
+	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
+	if err != nil {
+		return model.NewAppError("ValidatePluginFieldDelete",
+			"app.custom_profile_attributes.get_field.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if !model.CanModifyPropertyField(field, pluginID) {
+		return model.NewAppError("ValidatePluginFieldDelete",
+			"app.custom_profile_attributes.field_is_protected.app_error",
+			nil, "protected fields can only be deleted by the source plugin",
+			http.StatusForbidden)
+	}
+	return nil
+}
+
+// ValidatePluginValueUpdate checks if a plugin can update a value for a CPA field
+func (a *App) ValidatePluginValueUpdate(groupID, fieldID, pluginID string) *model.AppError {
+	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
+	if err != nil {
+		return model.NewAppError("ValidatePluginValueUpdate",
+			"app.custom_profile_attributes.get_field.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if !model.CanModifyPropertyField(field, pluginID) {
+		return model.NewAppError("ValidatePluginValueUpdate",
+			"app.custom_profile_attributes.field_is_protected.app_error",
+			nil, "protected field values can only be modified by the source plugin",
+			http.StatusForbidden)
+	}
+	return nil
+}
