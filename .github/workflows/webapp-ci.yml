@@ -72,7 +72,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
-        node-version: [20, 22, 24]
+        # @vitejs/plugin-react requires node ^20.19.0 || >=22.12.0
+        node-version: ['20.19', '22.12', '24']
     runs-on: ${{ matrix.os }}
     name: test (${{ matrix.os }}, Node ${{ matrix.node-version }})
     permissions:
@@ -98,7 +99,7 @@ jobs:
         run: npm run test-ci
       - name: Upload coverage to Codecov
         # Skip coverage upload for cherry-pick PRs into release branches. Only upload for one matrix combo.
-        if: ${{ matrix.os == 'ubuntu-22.04' && matrix.node-version == 22 && (github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-')) }}
+        if: ${{ matrix.os == 'ubuntu-22.04' && matrix.node-version == '22.12' && (github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-')) }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -110,7 +111,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
-        node-version: [20, 22, 24]
+        # @vitejs/plugin-react requires node ^20.19.0 || >=22.12.0
+        node-version: ['20.19', '22.12', '24']
     runs-on: ${{ matrix.os }}
     name: test-vitest (${{ matrix.os }}, Node ${{ matrix.node-version }})
     permissions:
