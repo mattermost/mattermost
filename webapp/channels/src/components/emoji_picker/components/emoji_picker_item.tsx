@@ -26,7 +26,7 @@ interface Props {
 function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Props) {
     const {formatMessage} = useIntl();
 
-    const handleMouseOver = () => {
+    const handleMouseOver = useCallback(() => {
         if (!isSelected) {
             let emojiId = '';
             if (isSystemEmoji(emoji)) {
@@ -36,13 +36,13 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
             }
             onMouseOver({rowIndex, emojiId, emoji});
         }
-    };
+    }, [emoji, rowIndex, isSelected, onMouseOver]);
 
-    const throttledMouseOver = useCallback(
+    const throttledMouseOver = useCallback(() =>
         throttle(handleMouseOver, EMOJI_SCROLL_THROTTLE_DELAY, {
             leading: true,
             trailing: false,
-        }), []);
+        }), [handleMouseOver]);
 
     const handleClick = () => {
         onClick(emoji);
