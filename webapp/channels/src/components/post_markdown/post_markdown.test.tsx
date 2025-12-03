@@ -45,8 +45,8 @@ describe('components/PostMarkdown', () => {
         isUserCanManageMembers: false,
         isEnterpriseOrCloudOrSKUStarterFree: true,
         isEnterpriseReady: false,
-        renderEmoticonsAsEmoji: true,
         dispatch: jest.fn(),
+        renderEmoticonsAsEmoji: true,
     };
 
     const state = {entities: {
@@ -54,10 +54,7 @@ describe('components/PostMarkdown', () => {
             posts: {},
             postsInThread: {},
         },
-        channels: {
-            channels: {},
-            channelsInTeam: {},
-        },
+        channels: {},
         teams: {
             teams: {
                 currentTeamId: {},
@@ -99,58 +96,22 @@ describe('components/PostMarkdown', () => {
         expect(screen.getByText('message')).toBeInTheDocument();
     });
 
-    test('should render properly with a post', async () => {
-        const testChannel = TestHelper.getChannelMock({
-            id: 'mentioned-channel-id',
-            name: 'test',
-            display_name: 'Test',
-            team_id: 'test-team-id',
-        });
-
-        const postChannel = TestHelper.getChannelMock({
-            id: 'channel-id',
-            team_id: 'test-team-id',
-        });
-
-        const testTeam = TestHelper.getTeamMock({
-            id: 'test-team-id',
-            name: 'test',
-        });
-
-        const stateWithChannel = {
-            ...state,
-            entities: {
-                ...state.entities,
-                channels: {
-                    channels: {
-                        [postChannel.id]: postChannel,
-                        [testChannel.id]: testChannel,
-                    },
-                    channelsInTeam: {},
-                },
-                teams: {
-                    teams: {
-                        [testTeam.id]: testTeam,
-                    },
-                },
-            },
-        };
-
+    test('should render properly with a post', () => {
         const props = {
             ...baseProps,
             message: 'See ~test',
-            channel: postChannel,
-            currentTeam: testTeam,
             post: TestHelper.getPostMock({
-                channel_id: postChannel.id,
-                message: 'See ~test',
-                props: {},
+                props: {
+                    channel_mentions: {
+                        test: {
+                            display_name: 'Test',
+                            team_name: 'test',
+                        },
+                    },
+                },
             }),
         };
-        renderWithContext(<PostMarkdown {...props}/>, stateWithChannel);
-
-        // Wait for async operations to complete
-        await act(async () => {});
+        renderWithContext(<PostMarkdown {...props}/>, state);
 
         const link = screen.getByRole('link');
 

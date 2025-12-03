@@ -51,7 +51,6 @@ describe('PostComponent', () => {
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),
             revealBurnOnReadPost: jest.fn(),
-            fetchChannelsForPostIfNeeded: jest.fn(),
         },
     };
 

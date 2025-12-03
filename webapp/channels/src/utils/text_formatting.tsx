@@ -655,11 +655,8 @@ export function autolinkChannelMentions(
     }
 
     let output = text;
-
-    // Use same pattern as extractChannelMentions - requires at least 1 character after ~
-    const channelMentionRegex = new RegExp(`\\B(~(${CHANNEL_MENTION_PATTERN}))`, 'gi');
     output = output.replace(
-        channelMentionRegex,
+        /\B(~([a-z0-9.\-_]*))/gi,
         replaceChannelMentionWithToken,
     );
 
@@ -1152,87 +1149,4 @@ function fixedCharCodeAt(str: string, idx = 0) {
     }
 
     return code;
-}
-
-/**
- * Channel mention pattern - matches ~channel-name where channel-name contains
- * at least 1 character of alphanumeric, dot, dash, or underscore.
- * This is the base pattern used for both extraction and autolinking.
- */
-const CHANNEL_MENTION_PATTERN = '[a-z0-9.\\-_]+';
-
-/**
- * Compiled regex for extracting channel mentions.
- * Note: This is a global regex, so lastIndex must be reset before each use.
- */
-const CHANNEL_MENTION_REGEX = new RegExp(`\\B~(${CHANNEL_MENTION_PATTERN})`, 'gi');
-
-/**
- * Extracts all channel mentions from text content.
- * Returns unique channel names in lowercase (without the ~ prefix).
- */
-export function extractChannelMentions(text: string): string[] {
-    if (!text || !text.includes('~')) {
-        return [];
-    }
-
-    const mentions = new Set<string>();
-
-    // Reset regex state before use (required for global regex reuse)
-    CHANNEL_MENTION_REGEX.lastIndex = 0;
-    let match;
-
-    while ((match = CHANNEL_MENTION_REGEX.exec(text)) !== null) {
-        const channelName = match[1].toLowerCase();
-        if (channelName) {
-            mentions.add(channelName);
-        }
-    }
-
-    return Array.from(mentions);
-}
-
-/**
- * Helper to add channel mentions from text to a set.
- */
-function addChannelMentionsToSet(text: string | undefined, mentions: Set<string>): void {
-    if (text && typeof text === 'string') {
-        extractChannelMentions(text).forEach((m) => mentions.add(m));
-    }
-}
-
-/**
- * Extracts all channel mentions from a post's message and attachments.
- * Returns unique channel names in lowercase (without the ~ prefix).
- */
-export function extractChannelMentionsFromPost(post: {message: string; props?: {attachments?: unknown}}): string[] {
-    const mentions = new Set<string>();
-
-    // Extract from main message
-    addChannelMentionsToSet(post.message, mentions);
-
-    // Extract from attachments if they exist
-    if (post.props?.attachments && Array.isArray(post.props.attachments)) {
-        post.props.attachments.forEach((attachment: any) => {
-            if (typeof attachment !== 'object' || !attachment) {
-                return;
-            }
-
-            // Extract from pretext and text (not titles - titles are labels)
-            addChannelMentionsToSet(attachment.pretext, mentions);
-            addChannelMentionsToSet(attachment.text, mentions);
-
-            // Extract from field values (not titles - titles are labels)
-            if (attachment.fields && Array.isArray(attachment.fields)) {
-                attachment.fields.forEach((field: any) => {
-                    if (field && typeof field === 'object' && field.value) {
-                        const value = typeof field.value === 'string' ? field.value : String(field.value);
-                        addChannelMentionsToSet(value, mentions);
-                    }
-                });
-            }
-        });
-    }
-
-    return Array.from(mentions);
 }
