@@ -4,7 +4,6 @@ go 1.24.6
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
-	github.com/JohannesKaufmann/html-to-markdown/v2 v2.4.0
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
@@ -83,7 +82,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
-	github.com/JohannesKaufmann/dom v0.2.0 // indirect
 	github.com/PuerkitoBio/goquery v1.10.3 // indirect
 	github.com/STARRY-S/zip v0.2.3 // indirect
 	github.com/advancedlogic/GoOse v0.0.0-20231203033844-ae6b36caf275 // indirect
@@ -149,7 +147,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/isacikgoz/fuzzy v0.2.0 // indirect
 	github.com/jaytaylor/html2text v0.0.0-20200412013138-3577fbdbcff7 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
@@ -226,11 +223,11 @@ require (
 	modernc.org/sqlite v1.39.1 // indirect
 )
 
-// Prevent tablewriter from being upgraded because the downstream dependency 
-// code.sajari.com/docconv/v2 has an indirect dependency on jaytaylor/html2text via 
-// advancedlogic/GoOse. jaytaylor/html2text does not have a go.mod file which makes 
-// it bump to the latest version always. Tablewriter has made breaking changes to its 
+// Prevent tablewriter from being upgraded because the downstream dependency
+// code.sajari.com/docconv/v2 has an indirect dependency on jaytaylor/html2text via
+// advancedlogic/GoOse. jaytaylor/html2text does not have a go.mod file which makes
+// it bump to the latest version always. Tablewriter has made breaking changes to its
 // latest release.
-// There is a proposed PR to fix this for GoOse we should monitor: 
+// There is a proposed PR to fix this for GoOse we should monitor:
 // https://github.com/advancedlogic/GoOse/pull/77
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5

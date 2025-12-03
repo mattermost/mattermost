@@ -161,22 +161,17 @@ func TestSendMailPlainText(t *testing.T) {
 		{
 			name:             "Heading",
 			emailBodyHTML:    "<h1>This is a test from autobot</h1><h2>This is a subheading</h2>",
-			expectedBodyText: "# This is a test from autobot\n\n## This is a subheading",
+			expectedBodyText: "***************************\nThis is a test from autobot\n***************************\n\n--------------------\nThis is a subheading\n--------------------",
 		},
 		{
 			name:             "List",
 			emailBodyHTML:    "<ul><li>Item 1</li><li>Item 2</li></ul>",
-			expectedBodyText: "- Item 1\n- Item 2",
+			expectedBodyText: "* Item 1\n* Item 2",
 		},
 		{
 			name:             "Inline formatting",
-			emailBodyHTML:    "<p><strong>Strong</strong>, <i>italic</i>, <del>deleted</del>, <a href='https://example.com'>link</a> and <code>code</code></p>",
-			expectedBodyText: "**Strong**, *italic*, ~~deleted~~, [link](https://example.com) and `code`",
-		},
-		{
-			name:             "Table",
-			emailBodyHTML:    "<table><thead><tr><th>Header 1</th><th>Header 2</th></tr></thead><tbody><tr><td>Cell 1</td><td>Cell 2</td></tr></tbody></table>",
-			expectedBodyText: "| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |",
+			emailBodyHTML:    "<p><strong>Strong</strong> and <a href='https://example.com'>link</a>",
+			expectedBodyText: "*Strong* and link ( https://example.com )",
 		},
 	}
 
