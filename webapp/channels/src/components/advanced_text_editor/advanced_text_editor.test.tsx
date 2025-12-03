@@ -505,7 +505,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             },
         });
 
-        it.only('should add emojis to the end of the text', async () => {
+        it('should add emojis to the end of the text', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -540,7 +540,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 testState,
-                options,
             );
 
             const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
@@ -563,7 +562,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 testState,
-                options,
             );
 
             const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
@@ -592,7 +590,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 testState,
-                options,
             );
 
             const textbox = screen.getByPlaceholderText('Write to Test Channel') as HTMLTextAreaElement;
