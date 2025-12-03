@@ -3289,3 +3289,108 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 		assertCached(t, nilURL, nil, nil, nil)
 	})
 }
+func TestSanitizeChannelMentionsForUser(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("post with no channel mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Message: "Regular post with no mentions",
+		}
+
+		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("removes inaccessible channel mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a channel on a different team user is not member of
+		team2, err := th.App.CreateTeam(th.Context, &model.Team{
+			DisplayName: "Team 2",
+			Name:        "team-2",
+			Type:        model.TeamOpen,
+		})
+		require.Nil(t, err)
+
+		channel, err := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      team2.Id,
+			Name:        "test-channel",
+			DisplayName: "Test Channel",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message: "Check ~test-channel",
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			channel.Name: map[string]any{
+				"display_name": channel.DisplayName,
+				"team_name":    team2.Name,
+			},
+		})
+
+		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		// Should remove the mention since user can't access the team
+		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
+	})
+
+	t.Run("includes accessible public channel mentions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		post := &model.Post{
+			Message: "Check ~" + th.BasicChannel.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": th.BasicChannel.DisplayName,
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		require.Contains(t, mentionsMap, th.BasicChannel.Name)
+	})
+
+	t.Run("uses fresh display name from database", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Post has stale data
+		post := &model.Post{
+			Message: "Check ~" + th.BasicChannel.Name,
+		}
+		post.AddProp(model.PostPropsChannelMentions, map[string]any{
+			th.BasicChannel.Name: map[string]any{
+				"display_name": "Stale Display Name",
+				"team_name":    th.BasicTeam.Name,
+			},
+		})
+
+		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		
+		mentions := result.GetProp(model.PostPropsChannelMentions)
+		require.NotNil(t, mentions)
+		mentionsMap, ok := mentions.(map[string]any)
+		require.True(t, ok)
+		
+		channelData, ok := mentionsMap[th.BasicChannel.Name].(map[string]any)
+		require.True(t, ok)
+		// Should have current display name from database, not stale data
+		require.Equal(t, th.BasicChannel.DisplayName, channelData["display_name"])
+	})
+}

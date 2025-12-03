@@ -256,4 +256,34 @@ describe('components/post_view/MessageAttachment', () => {
         const wrapper = shallow(<MessageAttachment {...props}/>);
         expect(wrapper.find('.attachment')).toMatchSnapshot();
     });
+
+    test('should pass channelNamesMap to Markdown components', () => {
+        const channelNamesMap = {
+            engineering: {display_name: 'Engineering', team_name: 'myteam'},
+            qa: {display_name: 'QA Team', team_name: 'myteam'},
+        };
+
+        const props = {
+            ...baseProps,
+            channelNamesMap,
+            attachment: {
+                pretext: 'Check ~engineering',
+                text: 'Deploy to ~qa',
+                fields: [{title: 'Channels', value: '~engineering'}],
+            } as MessageAttachmentType,
+        };
+
+        const wrapper = shallow(<MessageAttachment {...props}/>);
+
+        // Find all Markdown components
+        const markdowns = wrapper.find('Markdown');
+
+        // Should have Markdown for pretext, text, and field value (not field title)
+        expect(markdowns.length).toBeGreaterThan(0);
+
+        // Each Markdown should receive channelNamesMap
+        markdowns.forEach((markdown) => {
+            expect(markdown.prop('channelNamesMap')).toEqual(channelNamesMap);
+        });
+    });
 });
