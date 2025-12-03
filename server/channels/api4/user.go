@@ -2311,7 +2311,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Debug("Guest magic link email sent successfully", mlog.String("user_id", user.Id))
 
 		if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
-			AuthService: "guest_magic_link",
+			AuthService: model.UserAuthServiceMagicLink,
 		}); jErr != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
