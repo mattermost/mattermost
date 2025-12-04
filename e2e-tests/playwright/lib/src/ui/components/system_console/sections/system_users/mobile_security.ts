@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, Locator} from '@playwright/test';
+import {expect, Locator, Page} from '@playwright/test';
 
 /**
  * System Console -> Environment -> Mobile Security
  */
 export default class MobileSecurity {
+    readonly page: Page;
     readonly container: Locator;
 
     readonly enableBiometricAuthenticationToggleTrue: Locator;
@@ -28,11 +29,13 @@ export default class MobileSecurity {
     readonly intuneAuthServiceDropdown: Locator;
     readonly intuneTenantIdInput: Locator;
     readonly intuneClientIdInput: Locator;
+    readonly intuneTenantIdRequiredError: Locator;
 
     readonly saveButton: Locator;
 
-    constructor(container: Locator) {
+    constructor(container: Locator, page: Page) {
         this.container = container;
+        this.page = page;
 
         this.enableBiometricAuthenticationToggleTrue = this.container.getByTestId(
             'NativeAppSettings.MobileEnableBiometricstrue',
@@ -77,8 +80,8 @@ export default class MobileSecurity {
         );
 
         // Legacy Intune toggle (will be removed in Phase 6)
-        this.enableIntuneMAMToggleTrue = this.container.getByTestId('NativeAppSettings.EnableIntuneMAMtrue');
-        this.enableIntuneMAMToggleFalse = this.container.getByTestId('NativeAppSettings.EnableIntuneMAMfalse');
+        this.enableIntuneMAMToggleTrue = this.container.getByTestId('IntuneSettings.Enabletrue');
+        this.enableIntuneMAMToggleFalse = this.container.getByTestId('IntuneSettings.Enablefalse');
 
         // New IntuneSettings fields
         this.enableIntuneToggleTrue = this.container.getByTestId('IntuneSettings.Enabletrue');
@@ -86,8 +89,17 @@ export default class MobileSecurity {
         this.intuneAuthServiceDropdown = this.container.getByTestId('IntuneSettings.AuthServicedropdown');
         this.intuneTenantIdInput = this.container.getByTestId('IntuneSettings.TenantIdinput');
         this.intuneClientIdInput = this.container.getByTestId('IntuneSettings.ClientIdinput');
+        this.intuneTenantIdRequiredError = this.container.getByTestId('errorMessage');
 
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
+    }
+
+    async discardChanges() {
+        this.page.getByRole('button', {name: 'Yes, Discard'}).click();
+    }
+
+    async intuneTenantIdRequiredErrorToBeVisible() {
+        await expect(this.intuneTenantIdRequiredError).toBeVisible();
     }
 
     async toBeVisible() {
@@ -136,6 +148,10 @@ export default class MobileSecurity {
 
     async clickEnableIntuneMAMToggleTrue() {
         await this.enableIntuneMAMToggleTrue.click();
+    }
+
+    async selectAuthProvider(value: 'office365' | 'saml') {
+        await this.intuneAuthServiceDropdown.selectOption(value);
     }
 
     async clickEnableIntuneMAMToggleFalse() {
