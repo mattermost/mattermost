@@ -139,11 +139,7 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 	}
 
 	// Files
-	if fileInfos, _, err := a.getFileMetadataForPost(rctx, post, opts.IsNewPost || opts.IsEditPost, opts.IncludeDeleted); err != nil {
-		rctx.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
-	} else {
-		post.Metadata.Files = fileInfos
-	}
+	a.preparePostFilesForClient(rctx, post, opts)
 
 	if post.Type == model.PostTypeBurnOnRead {
 		// if metadata expire is not set, it means the post is not revealed yet
@@ -172,9 +168,20 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 	return post
 }
 
+func (a *App) preparePostFilesForClient(rctx request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	if fileInfos, _, err := a.getFileMetadataForPost(rctx, post, opts.IsNewPost || opts.IsEditPost, opts.IncludeDeleted); err != nil {
+		rctx.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+	} else {
+		post.Metadata.Files = fileInfos
+	}
+
+	return post
+}
+
 func (a *App) PreparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
 	post := a.PreparePostForClient(rctx, originalPost, opts)
 	post = a.getEmbedsAndImages(rctx, post, opts.IsNewPost)
+	post = a.preparePostFilesForClient(rctx, post, opts)
 	return post
 }
 
