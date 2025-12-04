@@ -42,7 +42,7 @@ func (a *App) ServerId() string {
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {
-	return s.htmlTemplateWatcher
+	return s.htmlTemplates
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
