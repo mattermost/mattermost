@@ -11194,5 +11194,85 @@
   {
     "id": "api.user.guest_magic_link.invalid_token_type.app_error",
     "translation": "Nieprawidłowy typ linku zaproszenia."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Brakujący token zaproszenia."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Nie można wygenerować unikalnej nazwy użytkownika. Skontaktuj się z administratorem systemu."
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": "Logowanie za pomocą magicznego linku jest wyłączone."
+  },
+  {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Nie można przekonwertować gościa na zwykłego użytkownika, ponieważ gość używa uwierzytelniania magic link."
+  },
+  {
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Nie można zresetować hasła dla kont gości magic link."
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Nie można załatać pola Atrybut profilu niestandardowego"
+  },
+  {
+    "id": "app.pap.update_access_control_policies_active.app_error",
+    "translation": "Nie można zaktualizować aktywnego statusu polityk kontroli dostępu."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Nie można pobrać postów do raportowania."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Nie można pobrać postów do raportowania. Nieprawidłowe dane wejściowe."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Twoja licencja nie wspiera raportowania postów."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Nie udało się nawiązać połączenia z agentem AI."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Pusta odpowiedź od AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Nieprawidłowa akcja przepisania."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Nie udało się przeanalizować odpowiedzi rewrite od AI."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Nie udało się usunąć tokenu autoryzacji push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Nie udało się uzyskać tokenu autoryzacji z serwera proxy push."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Nie udało się utworzyć żądania HTTP dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Serwer proxy push zwrócił pusty token uwierzytelniania."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Nie udało się zaszyfrować ładunku dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Nie udało się wysłać żądania HTTP do serwera proxy push."
   }
 ]
