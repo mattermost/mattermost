@@ -5,23 +5,24 @@ import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {getProfiles} from 'mattermost-redux/actions/users';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {getMe} from 'mattermost-redux/actions/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {loadProfilesMissingStatus, loadStatusesByIds} from 'actions/status_actions';
+import {loadStatusesByIds} from 'actions/status_actions';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import PopoutController from './popout_controller';
 
 // Mock dependencies
 jest.mock('mattermost-redux/actions/users', () => ({
-    getProfiles: jest.fn(),
+    getMe: jest.fn(),
 }));
 
 jest.mock('actions/status_actions', () => ({
-    loadProfilesMissingStatus: jest.fn(),
     loadStatusesByIds: jest.fn(),
 }));
 
@@ -44,8 +45,7 @@ jest.mock('components/logged_in', () => ({
     default: ({children}: {children: React.ReactNode}) => <div data-testid='logged-in'>{children}</div>,
 }));
 
-const mockGetProfiles = getProfiles as jest.MockedFunction<typeof getProfiles>;
-const mockLoadProfilesMissingStatus = loadProfilesMissingStatus as jest.MockedFunction<typeof loadProfilesMissingStatus>;
+const mockGetMe = getMe as jest.MockedFunction<typeof getMe>;
 const mockLoadStatusesByIds = loadStatusesByIds as jest.MockedFunction<typeof loadStatusesByIds>;
 
 // Base mock route props with meaningful route data
@@ -82,19 +82,13 @@ describe('PopoutController', () => {
         // Reset document.body classes
         document.body.className = '';
 
-        // Setup default mock for getProfiles to return a promise that resolves with profiles
-        const defaultProfiles = [
-            TestHelper.getUserMock({id: 'user-1', username: 'user1'}),
-            TestHelper.getUserMock({id: 'user-2', username: 'user2'}),
-        ];
-        mockGetProfiles.mockReturnValue(() => Promise.resolve({
-            data: defaultProfiles,
-        } as ActionResult<typeof defaultProfiles>));
+        // Setup default mock for getMe to return a promise that resolves
+        const mockUser = TestHelper.getUserMock({id: 'user-123', username: 'testuser'});
+        mockGetMe.mockReturnValue(() => Promise.resolve({
+            data: mockUser,
+        } as ActionResult<UserProfile>));
 
         // Setup default mocks for status actions
-        mockLoadProfilesMissingStatus.mockReturnValue(() => ({
-            data: true,
-        } as ActionResult<boolean>));
         mockLoadStatusesByIds.mockReturnValue(() => ({
             data: true,
         } as ActionResult<boolean>));
@@ -117,12 +111,12 @@ describe('PopoutController', () => {
         expect(document.body.classList.contains('popout')).toBe(true);
     });
 
-    it('should dispatch getProfiles action on mount', () => {
+    it('should dispatch getMe action on mount', () => {
         renderWithContext(
             <PopoutController {...baseRouteProps}/>,
         );
 
-        expect(mockGetProfiles).toHaveBeenCalledTimes(1);
+        expect(mockGetMe).toHaveBeenCalledTimes(1);
     });
 
     it('should render thread popout for thread route', () => {
@@ -182,28 +176,5 @@ describe('PopoutController', () => {
 
         expect(mockLoadStatusesByIds).toHaveBeenCalledTimes(1);
         expect(mockLoadStatusesByIds).toHaveBeenCalledWith([currentUserId]);
-    });
-
-    it('should dispatch loadProfilesMissingStatus when getProfiles returns profiles', async () => {
-        const profiles = [
-            TestHelper.getUserMock({id: 'user-1', username: 'user1'}),
-            TestHelper.getUserMock({id: 'user-2', username: 'user2'}),
-        ];
-        mockGetProfiles.mockReturnValue(() => Promise.resolve({
-            data: profiles,
-        } as ActionResult<typeof profiles>));
-
-        renderWithContext(
-            <PopoutController {...baseRouteProps}/>,
-        );
-
-        await waitFor(() => {
-            expect(mockGetProfiles).toHaveBeenCalledTimes(1);
-        });
-
-        await waitFor(() => {
-            expect(mockLoadProfilesMissingStatus).toHaveBeenCalledTimes(1);
-            expect(mockLoadProfilesMissingStatus).toHaveBeenCalledWith(profiles);
-        });
     });
 });
