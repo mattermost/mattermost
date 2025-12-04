@@ -50,7 +50,7 @@ function TooltipShortcut(props: Props) {
     return (
         <ShortcutSequence
             keys={shortcut}
-            variant={ShortcutKeyVariant.TutorialTip}
+            variant={ShortcutKeyVariant.Tooltip}
         />
     );
 }

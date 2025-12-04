@@ -92,12 +92,12 @@ exports[`TooltipContent have correct structure with title and shortcut 1`] = `
       class="tooltipContentShortcut"
     >
       <mark
-        class="shortcut-key shortcut-key--tutorial-tip"
+        class="shortcut-key shortcut-key--tooltip"
       >
         Ctrl
       </mark>
       <mark
-        class="shortcut-key shortcut-key--tutorial-tip"
+        class="shortcut-key shortcut-key--tooltip"
       >
         K
       </mark>

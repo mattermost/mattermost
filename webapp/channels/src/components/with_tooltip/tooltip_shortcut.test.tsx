@@ -71,4 +71,17 @@ describe('TooltipShortcut', () => {
 
         expect(screen.getByText('Enter')).toBeInTheDocument();
     });
+
+    test('should render with tooltip variant styling', () => {
+        const shortcut = {
+            default: ['K'],
+        };
+
+        renderWithContext(
+            <TooltipShortcut shortcut={shortcut}/>,
+        );
+
+        const keyElement = screen.getByText('K');
+        expect(keyElement).toHaveClass('shortcut-key--tooltip');
+    });
 });
