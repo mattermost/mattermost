@@ -13,6 +13,8 @@ export type UseDataOptions<Entity, Identifier = string, State = GlobalState> = {
 
     fetch: (identifier: Identifier, ...fetchArgs: unknown[]) => Action | ThunkAction<unknown, State, unknown, Action>;
     selector: (state: State, identifier: Identifier) => Entity | undefined;
+
+    shouldFetch?: (state: State, identifier: Identifier) => boolean;
 }
 
 export function makeUseEntity<Entity, Identifier = string, State = GlobalState>(options: UseDataOptions<Entity, Identifier, State>) {
@@ -23,13 +25,15 @@ export function makeUseEntity<Entity, Identifier = string, State = GlobalState>(
         const entity = useSelector((state: State) => {
             return identifier ? options.selector(state, identifier) : undefined;
         });
+        const shouldFetch = useSelector((state: State) => {
+            return options.shouldFetch ? options.shouldFetch(state, identifier) : entity === undefined;
+        });
 
-        const entityLoaded = Boolean(entity);
         useEffect(() => {
-            if (!entityLoaded && identifier) {
+            if (shouldFetch && identifier) {
                 dispatch(options.fetch(identifier, ...fetchArgsRef.current));
             }
-        }, [dispatch, entityLoaded, identifier]);
+        }, [dispatch, shouldFetch, identifier]);
 
         return entity;
     }

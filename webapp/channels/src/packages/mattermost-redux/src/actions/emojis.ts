@@ -4,20 +4,21 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {CustomEmoji, Emoji} from '@mattermost/types/emojis';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {EmojiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {parseEmojiNamesFromText} from 'mattermost-redux/utils/emoji_utils';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {getProfilesByIds} from './users';
 
-import {General, Emoji} from '../constants';
+import {General, Emoji as EmojiConstants} from '../constants';
 
 export let systemEmojis: Set<string> = new Set();
 export function setSystemEmojis(emojis: Set<string>) {
@@ -126,6 +127,25 @@ export function getCustomEmojisByName(names: string[]): ActionFuncAsync {
     };
 }
 
+export function getCustomEmojisByNameBatched(names: string[]): ActionFuncAsync<true> {
+    const maxBatchSize = 200;
+    const wait = 100;
+
+    return async (dispatch, getState, {loaders}: any) => {
+        if (!loaders.emojisByName) {
+            loaders.emojisByName = new DelayedDataLoader<Emoji['name']>({
+                fetchBatch: (names) => dispatch(getCustomEmojisByName(names)),
+                maxBatchSize,
+                wait,
+            });
+        }
+
+        loaders.emojisByName.queue(names);
+
+        return {data: true};
+    };
+}
+
 function filterNeededCustomEmojis(state: GlobalState, names: string[]) {
     const nonExistentEmoji = state.entities.emojis.nonExistentEmoji;
     const customEmojisByName = selectCustomEmojisByName(state);
@@ -148,7 +168,7 @@ export function getCustomEmojisInText(text: string): ActionFuncAsync {
 export function getCustomEmojis(
     page = 0,
     perPage: number = General.PAGE_SIZE_DEFAULT,
-    sort: string = Emoji.SORT_BY_NAME,
+    sort: string = EmojiConstants.SORT_BY_NAME,
     loadUsers = false,
 ): ActionFuncAsync<CustomEmoji[]> {
     return async (dispatch, getState) => {
