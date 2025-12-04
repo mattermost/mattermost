@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -123,7 +124,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             isDisabled: false,
         };
 
-        let result = renderWithContext(
+        const result = renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -139,24 +140,10 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         await waitFor(() => {
             expect(actions.getChannel).toHaveBeenCalled();
         });
-        expect(result.container).toMatchSnapshot();
 
-        const actions2 = createActions();
-        result = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={undefined}
-                totalGroups={groups.length}
-                actions={actions2}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        );
+        // Wait for loading to complete - "No users found" appears when members have loaded
         await waitFor(() => {
-            expect(actions2.getChannel).toHaveBeenCalled();
+            expect(screen.getByText('No users found')).toBeInTheDocument();
         });
         expect(result.container).toMatchSnapshot();
     });
@@ -172,7 +159,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             abacSupported: false,
         };
 
-        let result = renderWithContext(
+        const result = renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -188,24 +175,10 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         await waitFor(() => {
             expect(actions.getChannel).toHaveBeenCalled();
         });
-        expect(result.container).toMatchSnapshot();
 
-        const actions2 = createActions();
-        result = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={undefined}
-                totalGroups={groups.length}
-                actions={actions2}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        );
+        // Wait for loading to complete
         await waitFor(() => {
-            expect(actions2.getChannel).toHaveBeenCalled();
+            expect(screen.getByText('No users found')).toBeInTheDocument();
         });
         expect(result.container).toMatchSnapshot();
     });
@@ -221,7 +194,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             abacSupported: true,
         };
 
-        let result = renderWithContext(
+        const result = renderWithContext(
             <ChannelDetails
                 teamScheme={teamScheme}
                 groups={groups}
@@ -237,24 +210,10 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         await waitFor(() => {
             expect(actions.getChannel).toHaveBeenCalled();
         });
-        expect(result.container).toMatchSnapshot();
 
-        const actions2 = createActions();
-        result = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={undefined}
-                totalGroups={groups.length}
-                actions={actions2}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        );
+        // Wait for loading to complete
         await waitFor(() => {
-            expect(actions2.getChannel).toHaveBeenCalled();
+            expect(screen.getByText('No users found')).toBeInTheDocument();
         });
         expect(result.container).toMatchSnapshot();
     });

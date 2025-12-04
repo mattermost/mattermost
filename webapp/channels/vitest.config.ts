@@ -3,11 +3,9 @@
 
 import path from 'path';
 
-import react from '@vitejs/plugin-react';
 import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
-    plugins: [react()],
     test: {
         globals: true,
         environment: 'jsdom',
@@ -15,7 +13,10 @@ export default defineConfig({
         exclude: ['node_modules', 'dist'],
         setupFiles: ['./src/tests/setup_vitest.ts'],
         testTimeout: 10000,
-        pool: 'threads',
+        hookTimeout: 30000,
+        teardownTimeout: 10000,
+        pool: 'forks',
+        isolate: true,
         coverage: {
             provider: 'v8',
             reporter: ['lcov', 'text-summary'],

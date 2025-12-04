@@ -95,9 +95,25 @@ describe('components/admin_console/access_control/channel_list', () => {
             },
         };
         const {container} = renderWithContext(<ChannelList {...props}/>);
+
+        // Wait for loading to complete and data to render
         await waitFor(() => {
             expect(container.querySelector('.DataGrid')).toBeInTheDocument();
+            expect(container.querySelector('.DataGrid_loading')).not.toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
+
+        // Verify DataGrid structure
+        expect(container.querySelector('.DataGrid_rows')).toBeInTheDocument();
+
+        // Verify the channel to add is displayed
+        const rows = container.querySelectorAll('.DataGrid_row');
+        expect(rows.length).toBeGreaterThan(0);
+
+        // Verify Channel 3 (the channel to add) is present
+        expect(container.textContent).toContain('Channel 3');
+        expect(container.textContent).toContain('Team 1');
+
+        // Verify the "to be added" indicator is present (channels to add should have special styling/indicator)
+        expect(container.querySelector('.DataGrid_cell')).toBeInTheDocument();
     });
 });

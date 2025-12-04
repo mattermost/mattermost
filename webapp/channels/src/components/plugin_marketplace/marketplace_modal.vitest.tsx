@@ -116,16 +116,27 @@ describe('components/marketplace/', () => {
     });
 
     test('should render with no plugins available', async () => {
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             baseState,
         );
 
+        // Wait for loading to complete
         await waitFor(() => {
-            expect(screen.getByRole('tab', {name: 'All'})).toBeInTheDocument();
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(document.querySelector('.loading-screen')).not.toBeInTheDocument();
         });
 
-        expect(baseElement).toMatchSnapshot();
+        // Verify modal structure
+        expect(screen.getByRole('dialog', {name: 'App Marketplace'})).toBeInTheDocument();
+        expect(document.querySelector('.modal-content')).toBeInTheDocument();
+
+        // Verify search input is present
+        expect(document.querySelector('#searchMarketplaceTextbox')).toBeInTheDocument();
+
+        // Verify "no plugins" message is shown
+        expect(document.querySelector('.no_plugins')).toBeInTheDocument();
+        expect(screen.getByText(/No plugins found/i)).toBeInTheDocument();
     });
 
     test('should render with plugins available', async () => {
@@ -140,16 +151,34 @@ describe('components/marketplace/', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             stateWithPlugins,
         );
 
+        // Wait for loading to complete
         await waitFor(() => {
-            expect(screen.getByRole('tab', {name: 'All'})).toBeInTheDocument();
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(document.querySelector('.loading-screen')).not.toBeInTheDocument();
         });
 
-        expect(baseElement).toMatchSnapshot();
+        // Verify modal structure
+        expect(screen.getByRole('dialog', {name: 'App Marketplace'})).toBeInTheDocument();
+        expect(document.querySelector('.modal-content')).toBeInTheDocument();
+
+        // Verify search input is present
+        expect(document.querySelector('#searchMarketplaceTextbox')).toBeInTheDocument();
+
+        // Verify plugin list is rendered
+        expect(document.querySelector('.more-modal__list')).toBeInTheDocument();
+        expect(document.querySelector('#marketplace-plugin-com\\.mattermost\\.nps')).toBeInTheDocument();
+
+        // Verify plugin details are shown
+        expect(screen.getByText('User Satisfaction Surveys')).toBeInTheDocument();
+        expect(screen.getByText(/This plugin sends quarterly user satisfaction surveys/i)).toBeInTheDocument();
+
+        // Verify Install button is shown for non-installed plugin
+        expect(document.querySelector('.plugin-install')).toBeInTheDocument();
     });
 
     test('should render with plugins installed', async () => {
@@ -179,16 +208,26 @@ describe('components/marketplace/', () => {
     test('should render with error banner', async () => {
         // This test verifies error state rendering
         // In RTL we verify the modal renders correctly (error state is handled internally)
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             baseState,
         );
 
+        // Wait for loading to complete
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(document.querySelector('.loading-screen')).not.toBeInTheDocument();
         });
 
-        expect(baseElement).toMatchSnapshot();
+        // Verify modal structure
+        expect(screen.getByRole('dialog', {name: 'App Marketplace'})).toBeInTheDocument();
+        expect(document.querySelector('.modal-content')).toBeInTheDocument();
+
+        // Verify search input is present
+        expect(document.querySelector('#searchMarketplaceTextbox')).toBeInTheDocument();
+
+        // Verify "no plugins" message is shown (base state has no plugins)
+        expect(document.querySelector('.no_plugins')).toBeInTheDocument();
     });
 
     test('hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace', async () => {
@@ -212,19 +251,39 @@ describe('components/marketplace/', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             stateWithStreamlined,
         );
 
-        // Wait for the modal to load - in streamlined mode there are no tabs
+        // Wait for the modal and plugins to load (loading screen should disappear)
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(document.querySelector('.loading-screen')).not.toBeInTheDocument();
         });
 
+        // Verify search is hidden in streamlined mode
         expect(document.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
+
+        // Verify web marketplace banner is shown
         expect(screen.getByText(/Discover community integrations/i)).toBeInTheDocument();
-        expect(baseElement).toMatchSnapshot();
+
+        // Verify modal structure
+        expect(document.querySelector('.modal-content')).toBeInTheDocument();
+        expect(document.querySelector('.GenericModal__body')).toBeInTheDocument();
+
+        // Verify plugins are rendered
+        expect(document.querySelector('.more-modal__list')).toBeInTheDocument();
+        expect(document.querySelector('#marketplace-plugin-com\\.mattermost\\.test')).toBeInTheDocument();
+        expect(document.querySelector('#marketplace-plugin-com\\.mattermost\\.nps')).toBeInTheDocument();
+
+        // Verify installed plugin shows Configure button
+        const testPluginRow = document.querySelector('#marketplace-plugin-com\\.mattermost\\.test');
+        expect(testPluginRow?.querySelector('.plugin-configure')).toBeInTheDocument();
+
+        // Verify non-installed plugin shows Install button
+        const npsPluginRow = document.querySelector('#marketplace-plugin-com\\.mattermost\\.nps');
+        expect(npsPluginRow?.querySelector('.plugin-install')).toBeInTheDocument();
     });
 
     test("doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud", async () => {
@@ -244,17 +303,28 @@ describe('components/marketplace/', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <MarketplaceModal/>,
             stateWithStreamlinedCloud,
         );
 
-        // Wait for the modal to load - in streamlined mode there are no tabs
+        // Wait for the modal to load and loading to complete
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(document.querySelector('.loading-screen')).not.toBeInTheDocument();
         });
 
+        // Verify modal structure
+        expect(document.querySelector('.modal-content')).toBeInTheDocument();
+        expect(document.querySelector('.GenericModal__body')).toBeInTheDocument();
+
+        // Verify web marketplace banner is NOT shown for Cloud
         expect(screen.queryByText(/Discover community integrations/i)).not.toBeInTheDocument();
-        expect(baseElement).toMatchSnapshot();
+
+        // Verify search is hidden in streamlined mode
+        expect(document.querySelector('#searchMarketplaceTextbox')).not.toBeInTheDocument();
+
+        // Verify "no plugins" message is shown (since no plugins in state)
+        expect(document.querySelector('.no_plugins')).toBeInTheDocument();
     });
 });

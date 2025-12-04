@@ -59,16 +59,29 @@ describe('components/TeamSelectorModal', () => {
         },
     };
 
+    const originalRAF = window.requestAnimationFrame;
+
+    beforeEach(() => {
+        // Replace requestAnimationFrame with a no-op to prevent async callbacks
+        // that can fire after component unmount causing "focus on null" errors
+        vi.stubGlobal('requestAnimationFrame', () => {
+            // Don't execute the callback - this prevents the focus error
+            return 0;
+        });
+    });
+
     afterEach(() => {
-        vi.clearAllTimers();
+        // Restore original requestAnimationFrame
+        vi.stubGlobal('requestAnimationFrame', originalRAF);
     });
 
     test('should match snapshot', async () => {
         renderWithContext(<TeamSelectorModal {...defaultProps}/>);
 
-        // Modal should be shown with title
+        // Wait for modal and loading to complete
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(document.querySelector('.loading-screen')).not.toBeInTheDocument();
         });
 
         // Should show teams that are not already selected and not deleted
@@ -93,8 +106,10 @@ describe('components/TeamSelectorModal', () => {
             />,
         );
 
+        // Wait for modal and loading to complete
         await waitFor(() => {
             expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(document.querySelector('.loading-screen')).not.toBeInTheDocument();
         });
 
         // Team 5 is group constrained, so it should be hidden

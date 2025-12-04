@@ -3,7 +3,13 @@
 
 import {DelayedDataLoader, BackgroundDataLoader} from './data_loader';
 
-vi.useFakeTimers();
+beforeAll(() => {
+    vi.useFakeTimers();
+});
+
+afterAll(() => {
+    vi.useRealTimers();
+});
 
 describe('BackgroundDataLoader', () => {
     const maxBatchSize = 10;

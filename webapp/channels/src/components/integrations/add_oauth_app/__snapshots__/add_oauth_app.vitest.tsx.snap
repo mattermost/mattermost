@@ -67,7 +67,7 @@ exports[`components/integrations/AddOAuthApp > should match snapshot 1`] = `
             <div
               class="form__help"
             >
-              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret.
+              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created.
             </div>
           </div>
         </div>

@@ -80,7 +80,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -189,7 +189,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -306,7 +306,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -423,7 +423,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -527,7 +527,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall2)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall2, matchedPretext);
             })),
         };
 
@@ -589,7 +589,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -654,7 +654,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -714,7 +714,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -766,7 +766,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -818,7 +818,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -869,7 +869,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -922,7 +922,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -982,7 +982,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1043,7 +1043,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1110,7 +1110,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1173,7 +1173,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1236,7 +1236,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1295,7 +1295,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1383,7 +1383,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 

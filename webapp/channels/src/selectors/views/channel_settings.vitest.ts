@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {Permissions} from 'mattermost-redux/constants';
-import * as ChannelBannerSelectors from 'mattermost-redux/selectors/entities/channel_banner';
 import * as RolesSelectors from 'mattermost-redux/selectors/entities/roles';
 
 import type {GlobalState} from 'types/store';
@@ -11,10 +10,6 @@ import {canAccessChannelSettings} from './channel_settings';
 
 vi.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveIChannelPermission: vi.fn(() => false),
-}));
-
-vi.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
-    selectChannelBannerEnabled: vi.fn(() => true),
 }));
 
 describe('Selectors.Views.ChannelSettings', () => {
@@ -78,7 +73,6 @@ describe('Selectors.Views.ChannelSettings', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(RolesSelectors.haveIChannelPermission).mockReturnValue(false);
-        vi.mocked(ChannelBannerSelectors.selectChannelBannerEnabled).mockReturnValue(true);
     });
 
     // Helper to set permission check results for specific tests

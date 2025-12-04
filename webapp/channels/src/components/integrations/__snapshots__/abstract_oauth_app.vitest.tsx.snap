@@ -55,6 +55,7 @@ exports[`components/integrations/AbstractOAuthApp > should have correct state wh
               class="radio-inline"
             >
               <input
+                disabled=""
                 name="is_public"
                 type="radio"
                 value="true"
@@ -66,6 +67,7 @@ exports[`components/integrations/AbstractOAuthApp > should have correct state wh
             >
               <input
                 checked=""
+                disabled=""
                 name="is_public"
                 type="radio"
                 value="false"
@@ -75,7 +77,7 @@ exports[`components/integrations/AbstractOAuthApp > should have correct state wh
             <div
               class="form__help"
             >
-              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret.
+              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created.
             </div>
           </div>
         </div>
@@ -292,6 +294,7 @@ exports[`components/integrations/AbstractOAuthApp > should match snapshot 1`] = 
               class="radio-inline"
             >
               <input
+                disabled=""
                 name="is_public"
                 type="radio"
                 value="true"
@@ -303,6 +306,7 @@ exports[`components/integrations/AbstractOAuthApp > should match snapshot 1`] = 
             >
               <input
                 checked=""
+                disabled=""
                 name="is_public"
                 type="radio"
                 value="false"
@@ -312,7 +316,7 @@ exports[`components/integrations/AbstractOAuthApp > should match snapshot 1`] = 
             <div
               class="form__help"
             >
-              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret.
+              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created.
             </div>
           </div>
         </div>
@@ -529,6 +533,7 @@ exports[`components/integrations/AbstractOAuthApp > should match snapshot, displ
               class="radio-inline"
             >
               <input
+                disabled=""
                 name="is_public"
                 type="radio"
                 value="true"
@@ -540,6 +545,7 @@ exports[`components/integrations/AbstractOAuthApp > should match snapshot, displ
             >
               <input
                 checked=""
+                disabled=""
                 name="is_public"
                 type="radio"
                 value="false"
@@ -549,7 +555,7 @@ exports[`components/integrations/AbstractOAuthApp > should match snapshot, displ
             <div
               class="form__help"
             >
-              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret.
+              If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret. This setting cannot be changed after the application is created.
             </div>
           </div>
         </div>

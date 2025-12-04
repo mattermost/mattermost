@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
@@ -8,7 +9,7 @@ import {renderWithContext, waitFor} from 'tests/vitest_react_testing_utils';
 import DataRetentionSettings from './data_retention_settings';
 
 describe('components/admin_console/data_retention_settings/data_retention_settings', () => {
-    const baseProps = {
+    const getBaseProps = () => ({
         config: {
             DataRetentionSettings: {
                 EnableMessageDeletion: true,
@@ -31,9 +32,10 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             deleteDataRetentionCustomPolicy: vi.fn(),
             patchConfig: vi.fn(),
         },
-    };
+    });
 
     test('should match snapshot with no custom policies', async () => {
+        const baseProps = getBaseProps();
         const {container} = renderWithContext(
             <DataRetentionSettings
                 {...baseProps}
@@ -42,10 +44,16 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         await waitFor(() => {
             expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
         });
+
+        // Wait for loading to complete - "No items found" appears when there are no custom policies
+        await waitFor(() => {
+            expect(screen.getByText('No items found')).toBeInTheDocument();
+        });
         expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with custom policy', async () => {
+        const baseProps = getBaseProps();
         const props = {
             ...baseProps,
             customPolicies: {
@@ -65,12 +73,18 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             />,
         );
         await waitFor(() => {
-            expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+            expect(props.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+        });
+
+        // Wait for custom policy to render
+        await waitFor(() => {
+            expect(screen.getByText('Custom policy 1')).toBeInTheDocument();
         });
         expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with custom policy keep forever', async () => {
+        const baseProps = getBaseProps();
         const props = {
             ...baseProps,
             customPolicies: {
@@ -90,12 +104,18 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             />,
         );
         await waitFor(() => {
-            expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+            expect(props.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+        });
+
+        // Wait for custom policy to render
+        await waitFor(() => {
+            expect(screen.getByText('Custom policy 1')).toBeInTheDocument();
         });
         expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with Global Policies disabled', async () => {
+        const baseProps = getBaseProps();
         const props = {
             ...baseProps,
             config: {
@@ -113,7 +133,12 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             />,
         );
         await waitFor(() => {
-            expect(baseProps.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+            expect(props.actions.getDataRetentionCustomPolicies).toHaveBeenCalled();
+        });
+
+        // Wait for loading to complete - "No items found" appears when there are no custom policies
+        await waitFor(() => {
+            expect(screen.getByText('No items found')).toBeInTheDocument();
         });
         expect(container).toMatchSnapshot();
     });

@@ -120,7 +120,7 @@ describe('component/user_groups_modal', () => {
             },
         };
 
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <UserGroupsModal
                 {...baseProps}
                 groups={groups}
@@ -134,6 +134,20 @@ describe('component/user_groups_modal', () => {
             expect(baseProps.actions.getGroups).toHaveBeenCalled();
         });
 
-        expect(baseElement).toMatchSnapshot();
+        // Verify modal is rendered (modal renders to document.body, not container)
+        expect(document.querySelector('#userGroupsModal')).toBeInTheDocument();
+        expect(document.querySelector('.user-groups-list')).toBeInTheDocument();
+
+        // Verify filter dropdown is present
+        expect(document.querySelector('.groups-filter-btn')).toBeInTheDocument();
+
+        // Verify group rows are rendered (virtualized list renders visible items)
+        const groupRows = document.querySelectorAll('.group-row');
+        expect(groupRows.length).toBeGreaterThan(0);
+
+        // Verify groups are rendered with correct content
+        expect(document.querySelector('[aria-label="Group 0 group"]')).toBeInTheDocument();
+        expect(document.querySelector('.group-display-name')).toHaveTextContent('Group 0');
+        expect(document.querySelector('.group-name')).toHaveTextContent('@group0');
     });
 });
