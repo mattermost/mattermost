@@ -5,7 +5,7 @@
 - Ensures every user-facing string in the Channels app is translatable.
 
 ## Workflow
-- Add new message IDs to `en.json` (and other locale files when providing translations).
+- Add new message IDs to `en.json` ONLY.
 - Reference strings via `FormattedMessage`, `intl.formatMessage`, or `t('id')` helpers—never hard-code text.
 - After editing locale files, run `npm run extract-intl --workspace=channels` (or the appropriate script) if available to sync translations.
 - Keep message IDs stable; renaming requires migration guidance for localization teams.
