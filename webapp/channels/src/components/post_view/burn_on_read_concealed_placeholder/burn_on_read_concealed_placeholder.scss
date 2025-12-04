@@ -11,8 +11,8 @@
     border-radius: 4px;
     background: var(--center-channel-color-08, rgba(63, 67, 80, 0.08));
     cursor: pointer;
-    transition: all 0.3s ease;
     animation: fadeIn 0.3s ease;
+    transition: all 0.3s ease;
 
     &:disabled {
         cursor: wait;
@@ -30,8 +30,8 @@
     }
 
     &__icon {
-        color: var(--center-channel-color-64, rgba(63, 67, 80, 0.64));
         flex-shrink: 0;
+        color: var(--center-channel-color-64, rgba(63, 67, 80, 0.64));
 
         &--error {
             color: var(--error-text, #D24B4E);
@@ -54,8 +54,8 @@
 
     &--error {
         background: var(--error-text-08, rgba(210, 75, 78, 0.08)) !important;
-        cursor: default;
         animation: fadeIn 0.3s ease;
+        cursor: default;
 
         &:hover {
             background: var(--error-text-08, rgba(210, 75, 78, 0.08)) !important;

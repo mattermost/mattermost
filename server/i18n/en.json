@@ -7227,10 +7227,6 @@
     "translation": "The provided post history ID does not correspond to a post history item."
   },
   {
-    "id": "app.post.reveal_burn_on_read_posts_for_user.user_id_required.app_error",
-    "translation": "User ID is required to reveal burn-on-read posts."
-  },
-  {
     "id": "app.post.rewrite.agent_call_failed",
     "translation": "Failed to call AI agent."
   },
