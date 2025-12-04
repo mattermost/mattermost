@@ -240,33 +240,6 @@ describe('Actions.Emojis', () => {
             expect(state.entities.emojis.customEmoji[emoji1.id]).toEqual(emoji1);
             expect(state.entities.emojis.nonExistentEmoji).toEqual(new Set(['emoji2']));
         });
-
-        test('should be able to request over 200 emojis', async () => {
-            const emojis = [];
-            for (let i = 0; i < 500; i++) {
-                emojis.push(TestHelper.getCustomEmojiMock({name: 'emoji' + i, id: 'emojiId' + i}));
-            }
-
-            const names = emojis.map((emoji) => emoji.name);
-
-            nock(Client4.getBaseRoute()).
-                post('/emoji/names', names.slice(0, 200)).
-                reply(200, emojis.slice(0, 200));
-            nock(Client4.getBaseRoute()).
-                post('/emoji/names', names.slice(200, 400)).
-                reply(200, emojis.slice(200, 400));
-            nock(Client4.getBaseRoute()).
-                post('/emoji/names', names.slice(400, 500)).
-                reply(200, emojis.slice(400, 500));
-
-            await store.dispatch(Actions.getCustomEmojisByName(names));
-
-            const state = store.getState();
-            expect(Object.keys(state.entities.emojis.customEmoji)).toHaveLength(emojis.length);
-            for (const emoji of emojis) {
-                expect(state.entities.emojis.customEmoji[emoji.id]).toEqual(emoji);
-            }
-        });
     });
 
     it('getCustomEmojisInText', async () => {

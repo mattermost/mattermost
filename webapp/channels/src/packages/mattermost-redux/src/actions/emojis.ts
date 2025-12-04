@@ -44,26 +44,15 @@ export function getCustomEmojisByName(names: string[]): ActionFuncAsync {
             return {data: true};
         }
 
-        // If necessary, split up the list of names into batches based on api4.GetEmojisByNamesMax on the server
-        const batchSize = 200;
-
-        const batches = [];
-        for (let i = 0; i < names.length; i += batchSize) {
-            batches.push(neededNames.slice(i, i + batchSize));
-        }
-
-        let results;
+        let data;
         try {
-            results = await Promise.all(batches.map((batch) => {
-                return Client4.getCustomEmojisByNames(batch);
-            }));
+            data = await Client4.getCustomEmojisByNames(names);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
-        const data = results.flat();
         const actions: AnyAction[] = [{
             type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
             data,
