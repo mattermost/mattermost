@@ -77,7 +77,8 @@ jobs:
       fail-fast: false
       matrix:
         package: [client, components]
-    name: test (platform/${{ matrix.package }})
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    name: test (platform/${{ matrix.package }} run ${{ matrix.run }})
     defaults:
       run:
         working-directory: webapp/platform/${{ matrix.package }}
@@ -92,6 +93,7 @@ jobs:
         run: |
           npm run test-ci -- --coverage
       - name: ci/upload-coverage-artifact
+        if: matrix.run == 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-platform-${{ matrix.package }}
@@ -104,7 +106,11 @@ jobs:
     permissions:
       checks: write
       pull-requests: write
-    name: test (mattermost-redux)
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    name: test (mattermost-redux run ${{ matrix.run }})
     defaults:
       run:
         working-directory: webapp/channels
@@ -119,6 +125,7 @@ jobs:
         run: |
           npm run test:jest:mattermost-redux
       - name: ci/upload-coverage-artifact
+        if: matrix.run == 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-mattermost-redux
@@ -134,8 +141,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
-    name: test (channels shard ${{ matrix.shard }}/3)
+        shard: [1, 2, 3, 4]
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    name: test (channels shard ${{ matrix.shard }}/4 run ${{ matrix.run }})
     defaults:
       run:
         working-directory: webapp/channels
@@ -150,6 +158,7 @@ jobs:
         run: |
           npm run test:jest:channels:shard${{ matrix.shard }}
       - name: ci/upload-coverage-artifact
+        if: matrix.run == 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-channels-shard-${{ matrix.shard }}
