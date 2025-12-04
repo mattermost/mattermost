@@ -65,6 +65,8 @@ import Client4 from '../platform/client/src/client4.ts';
 - **React Intl**: Internationalization
 - **Floating UI**: Tooltips and popovers (prefer `WithTooltip` component)
 - **@mattermost/compass-icons**: Icon library (prefer over font-awesome)
+- **Monaco Editor**: Code editor integration
+- **Styled Components**: Limited use (for MUI and some legacy components)
 
 ## Important Configuration Files
 

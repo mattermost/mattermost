@@ -34,6 +34,7 @@ const HeavyComponent = makeAsyncComponent(
 - **Child Elements**: Use BEM-style suffix (e.g., `.MyComponent__title`).
 - **Theme Variables**: Always use `var(--variable-name)` for colors from `sass/base/_css_variables.scss`.
 - **No !important**: Use proper specificity and naming.
+- **Transparency**: Use `rgba(var(--color-rgb), 0.5)` for opacity.
 
 ```scss
 // my_component.scss
@@ -56,11 +57,13 @@ const HeavyComponent = makeAsyncComponent(
 - **Keyboard Support**: All interactive elements must be keyboard accessible.
 - **Helpers**: Reuse primitives like `GenericModal`, `Menu`, `WithTooltip`, `A11yController` helpers.
 - **Focus**: Use `a11y--focused` class for keyboard focus indicators.
+- **Images**: Alt text required for information images. Empty `alt=""` for decorative.
 
 ## Internationalization
 
 - All UI text must use React Intl.
 - Prefer `<FormattedMessage>` over `useIntl()` hook when possible.
+- **Rich Text**: Use React Intl's rich text support (e.g., `values={{b: (chunks) => <b>{chunks}</b>}}`) instead of splitting strings.
 
 ```typescript
 // Preferred

@@ -31,6 +31,8 @@ import Client4 from '../platform/client/src/client4';
 ## Build Relationship
 Platform packages are automatically built on `npm install` via postinstall hook. Build order: `types` → `client`/`components`.
 
+**Note**: When developing in `channels`, changes in `platform` packages may need a rebuild if not using a watcher that supports them.
+
 ## Adding Dependencies
 When adding dependencies to platform packages:
 ```bash

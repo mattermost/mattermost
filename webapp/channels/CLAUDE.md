@@ -32,6 +32,13 @@ src/
 └── root.tsx        # Root React component
 ```
 
+## State Management
+- **Redux + Redux Thunk**: Central state management using Redux with thunk middleware for async actions.
+- **Redux Persist**: State persistence using localForage with cross-tab synchronization.
+- **Mattermost Redux**: Core Redux logic (`state.entities.*` for server data).
+- **State Views**: `state.views.*` for UI state (modals, sidebars, preferences).
+- **Client4**: Singleton HTTP client for API requests. Should only be used in Redux actions.
+
 ## Key Files
 - `package.json` – workspace-specific scripts, env vars, and browserlist targets.
 - `webpack.config.js` – module federation + alias map; update remotes or exposes here only when necessary.

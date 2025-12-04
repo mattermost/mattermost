@@ -24,7 +24,12 @@ src/
 ```
 
 ## State Organization
-All state managed here lives under `state.entities` (users, channels, posts, teams, etc.). UI-specific state lives outside this package in `state.views`.
+All state managed here lives under `state.entities` (users, channels, posts, teams, etc.).
+- **state.entities**: Server-sourced data.
+- **state.requests**: Network request tracking.
+- **state.errors**: Global errors.
+
+UI-specific state lives outside this package in `state.views`.
 
 ## Import Convention
 Import from mattermost-redux using the package alias:
