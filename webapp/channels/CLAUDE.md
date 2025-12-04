@@ -43,6 +43,7 @@ src/
 - `jest.config.js` – test roots, transformers, moduleNameMapper
 - `tsconfig.json` – project references for `src`, `tests`, and embedded packages
 - `.eslintrc.json` – ESLint configuration
+- `../STYLE_GUIDE.md` – Comprehensive style guide
 
 ## Module Federation
 
@@ -64,9 +65,16 @@ The app uses webpack module federation for plugin architecture:
 
 - **Redux + Redux Thunk**: Central state management with thunk middleware for async actions
 - **Redux Persist**: State persistence using localForage with cross-tab synchronization
+- **Client4**: Singleton HTTP client for API requests. Should only be used in Redux actions.
 - **State Split**:
   - `state.entities.*`: Server-sourced data (users, channels, posts, teams)
   - `state.views.*`: Web app UI state (modals, sidebars, preferences)
+
+## Testing
+
+- **React Testing Library**: Use RTL for all new component tests
+- **Context**: Test files must use `renderWithContext` from `tests/react_testing_utils` to provide necessary context providers
+- **Snapshots**: Avoid snapshot tests. Write explicit assertions (e.g., `expect(...).toBeVisible()`)
 
 ## Dependencies & UI Stack
 

@@ -45,6 +45,7 @@ This repository uses npm workspaces:
 - **@mattermost/client** (`platform/client/`): REST and WebSocket client for the API
 - **@mattermost/components** (`platform/components/`): Shared React components
 - **@mattermost/eslint-plugin** (`platform/eslint-plugin/`): Custom ESLint rules
+- **mattermost-redux** (`channels/src/packages/mattermost-redux/`): Redux state management (legacy internal package)
 
 ### Importing Packages
 
@@ -68,6 +69,19 @@ import Client4 from '../platform/client/src/client4.ts';
 - **React Intl**: Internationalization
 - **Floating UI**: Tooltips and popovers (prefer `WithTooltip` component)
 - **@mattermost/compass-icons**: Icon library (prefer over font-awesome)
+- **Monaco Editor**: Code editor integration
+- **Styled Components**: Limited use (for MUI and some legacy components)
+
+## Module Federation
+
+The app uses webpack module federation for plugin architecture, allowing dynamic loading of remote modules at runtime.
+
+## TypeScript
+
+- **Strict Mode**: TypeScript strict mode enabled with `strictNullChecks`
+- **Path Aliases**: Configured for `@mattermost/*` packages and `mattermost-redux/*`
+- **Composite Projects**: Uses TypeScript project references for workspace packages
+- **No Any**: Avoid `any` types; legacy code may have them but new code should be typed
 
 ## Cross-Cutting Standards
 
@@ -86,6 +100,7 @@ import Client4 from '../platform/client/src/client4.ts';
 - Redux state split: `state.entities.*` (server data via mattermost-redux) vs `state.views.*` (UI/persisted).
 - `Client4` methods return `{response, headers, data}` – unwrap accordingly in actions.
 - Tests requiring Redux/Router/Intl context must render via `renderWithContext` from `channels/src/tests/react_testing_utils.tsx`.
+- Use absolute paths/aliases for imports whenever possible.
 
 ## Nested CLAUDE Files
 

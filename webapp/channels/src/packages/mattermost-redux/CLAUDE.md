@@ -47,7 +47,11 @@ state.entities.preferences  // User preferences
 // ... etc
 ```
 
-UI-specific state lives outside this package in `state.views` (see `../../reducers/views/`).
+Additional state slices:
+- `state.requests`: Tracks the status of network requests (loading, success, failure)
+- `state.errors`: Global error state
+
+**Note**: UI-specific state (modals, expanded sidebars, form state) lives outside this package in `state.views` (see `../../reducers/views/`).
 
 ## Import Convention
 
