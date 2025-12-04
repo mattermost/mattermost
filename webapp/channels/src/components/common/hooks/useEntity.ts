@@ -26,7 +26,11 @@ export function makeUseEntity<Entity, Identifier = string, State = GlobalState>(
             return identifier ? options.selector(state, identifier) : undefined;
         });
         const shouldFetch = useSelector((state: State) => {
-            return options.shouldFetch ? options.shouldFetch(state, identifier) : entity === undefined;
+            if (entity) {
+                return false;
+            }
+
+            return options.shouldFetch ? options.shouldFetch(state, identifier) : true;
         });
 
         useEffect(() => {
