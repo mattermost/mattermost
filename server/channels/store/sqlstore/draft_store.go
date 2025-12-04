@@ -35,7 +35,7 @@ func draftSliceColumns() []string {
 		"FileIds",
 		"Props",
 		"Priority",
-		"BurnOnRead",
+		"Type",
 	}
 }
 
@@ -51,7 +51,7 @@ func draftToSlice(draft *model.Draft) []any {
 		model.ArrayToJSON(draft.FileIds),
 		model.StringInterfaceToJSON(draft.Props),
 		model.StringInterfaceToJSON(draft.Priority),
-		model.StringInterfaceToJSON(draft.BurnOnRead),
+		draft.Type,
 	}
 }
 
@@ -100,7 +100,7 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 	builder := s.getQueryBuilder().Insert("Drafts").
 		Columns(draftSliceColumns()...).
 		Values(draftToSlice(draft)...).
-		SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, BurnOnRead = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, draft.BurnOnRead, 0))
+		SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, Type = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, draft.Type, 0))
 
 	query, args, err := builder.ToSql()
 
@@ -129,7 +129,7 @@ func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft,
 			"Drafts.FileIds",
 			"Drafts.Props",
 			"Drafts.Priority",
-			"Drafts.BurnOnRead",
+			"Drafts.Type",
 		).
 		From("Drafts").
 		InnerJoin("ChannelMembers ON ChannelMembers.ChannelId = Drafts.ChannelId").
