@@ -3877,6 +3877,7 @@
   "channel_tabs.files.table.name": "Name",
   "channel_tabs.files.table.sent_by": "Sent by",
   "channel_tabs.wiki": "Wiki",
+  "channel_tabs.wiki_name_label": "Wiki name",
   "channel_tabs.wiki_name_placeholder": "Enter wiki name",
   "channel_toggle_button.private": "Private",
   "channel_toggle_button.public": "Public",
