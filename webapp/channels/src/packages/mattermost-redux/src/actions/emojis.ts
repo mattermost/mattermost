@@ -36,16 +36,6 @@ export function createCustomEmoji(emoji: any, image: any) {
     });
 }
 
-export function getCustomEmoji(emojiId: string) {
-    return bindClientFunc({
-        clientFunc: Client4.getCustomEmoji,
-        onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
-        params: [
-            emojiId,
-        ],
-    });
-}
-
 export function getCustomEmojisByName(names: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         const neededNames = filterNeededCustomEmojis(getState(), names);

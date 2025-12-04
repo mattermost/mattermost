@@ -196,34 +196,6 @@ describe('Actions.Emojis', () => {
         expect(emojis[created.id]).toBeTruthy();
     });
 
-    it('getCustomEmoji', async () => {
-        const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
-
-        nock(Client4.getBaseRoute()).
-            post('/emoji').
-            reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
-
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
-            {
-                name: TestHelper.generateId(),
-                creator_id: TestHelper.basicUser!.id,
-            },
-            testImageData,
-        ));
-
-        nock(Client4.getBaseRoute()).
-            get(`/emoji/${created.id}`).
-            reply(200, created);
-
-        await store.dispatch(Actions.getCustomEmoji(created.id));
-
-        const state = store.getState();
-
-        const emojis = state.entities.emojis.customEmoji;
-        expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
-    });
-
     describe('getCustomEmojisByName', () => {
         test('should be able to request a single emoji', async () => {
             const emoji1 = TestHelper.getCustomEmojiMock({name: 'emoji1', id: 'emojiId1'});
