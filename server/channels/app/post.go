@@ -743,8 +743,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, appErr
 	}
 
-	// only allow to update the pinned status of burn-on-read posts if the status is different
-	if oldPost.Type == model.PostTypeBurnOnRead && oldPost.IsPinned == receivedUpdatedPost.IsPinned {
+	if oldPost.Type == model.PostTypeBurnOnRead {
 		return nil, model.NewAppError("UpdatePost", "api.post.update_post.burn_on_read.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -888,12 +887,11 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	var postJSON string
 	var jsonErr error
 	if post.Type == model.PostTypeBurnOnRead {
-		post.Message = "This message has to be revealed"
+		post.Message = ""
 		post.FileIds = []string{}
-		postJSON, jsonErr = post.ToJSON()
-	} else {
-		postJSON, jsonErr = post.ToJSON()
 	}
+	postJSON, jsonErr = post.ToJSON()
+
 	if jsonErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
 		a.Log().LogM(mlog.MlvlNotificationError, "Error in marshalling post to JSON",
@@ -1039,9 +1037,7 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 	}
 
 	// only allow to update the pinned status of burn-on-read posts if the status is different
-	if post.Type == model.PostTypeBurnOnRead && model.SafeDereference(patch.IsPinned) == post.IsPinned {
-		post.Message = ""
-		post.Metadata = &model.PostMetadata{}
+	if post.Type == model.PostTypeBurnOnRead {
 		return nil, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_burn_on_read_post.error", nil, "", http.StatusBadRequest)
 	}
 

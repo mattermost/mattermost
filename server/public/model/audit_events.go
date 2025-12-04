@@ -222,6 +222,7 @@ const (
 	AuditEventLoginWithOAuth                             = "loginWithOAuth"                             // login using OAuth authentication provider
 	AuditEventMobileLoginWithOAuth                       = "mobileLoginWithOAuth"                       // mobile application login using OAuth authentication provider
 	AuditEventRegenerateOAuthAppSecret                   = "regenerateOAuthAppSecret"                   // regenerate secret key for OAuth app
+	AuditEventRegisterOAuthClient                        = "registerOAuthClient"                        // register OAuth client via dynamic client registration (RFC 7591)
 	AuditEventSignupWithOAuth                            = "signupWithOAuth"                            // create account using OAuth authentication provider
 	AuditEventUpdateOAuthApp                             = "updateOAuthApp"                             // update OAuth app
 	AuditEventUpdateOutgoingOAuthConnection              = "updateOutgoingOAuthConnection"              // update outgoing OAuth connection
