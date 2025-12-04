@@ -9,8 +9,8 @@
     top: 72px; // Below channel header (56px) + margin
     right: 60px; // Clear app bar (44px) + margin
     display: flex;
-    align-items: flex-start;
     width: 386px;
+    align-items: flex-start;
     padding: 24px;
     border: var(--border-default);
     border-radius: var(--radius-s);
@@ -30,8 +30,8 @@
 
     h3 {
         flex-grow: 1;
-        margin: 0;
         padding-top: 6px; // Align with 32px button
+        margin: 0;
         font-size: 14px;
         font-weight: 600;
         line-height: 20px;
