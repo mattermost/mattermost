@@ -8621,6 +8621,10 @@
     "translation": "Authentication failed. Please try again."
   },
   {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Authentication service initialization failed. Please contact your system administrator."
+  },
+  {
     "id": "ent.intune.validate_token.missing_claims.app_error",
     "translation": "Authentication failed. Required user information is missing."
   },
