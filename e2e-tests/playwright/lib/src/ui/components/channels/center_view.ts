@@ -144,7 +144,7 @@ export default class ChannelsCenterView {
 
     async assertChannelBannerHasBoldText(text: string) {
         const boldText = await this.channelBanner.locator('strong');
-        expect(boldText).toBeVisible();
+        await expect(boldText).toBeVisible();
 
         const actualText = await boldText.textContent();
         expect(actualText).toBe(text);
@@ -152,7 +152,7 @@ export default class ChannelsCenterView {
 
     async assertChannelBannerHasItalicText(text: string) {
         const italicText = await this.channelBanner.locator('em');
-        expect(italicText).toBeVisible();
+        await expect(italicText).toBeVisible();
 
         const actualText = await italicText.textContent();
         expect(actualText).toBe(text);
@@ -160,7 +160,7 @@ export default class ChannelsCenterView {
 
     async assertChannelBannerHasStrikethroughText(text: string) {
         const strikethroughText = await this.channelBanner.locator('del');
-        expect(strikethroughText).toBeVisible();
+        await expect(strikethroughText).toBeVisible();
 
         const actualText = await strikethroughText.textContent();
         expect(actualText).toBe(text);
