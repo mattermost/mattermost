@@ -878,12 +878,6 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 	for _, post := range posts {
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
-		if post.Type == model.PostTypeBurnOnRead {
-			if pl.BurnOnReadPosts == nil {
-				pl.BurnOnReadPosts = make(map[string]*model.Post)
-			}
-			pl.BurnOnReadPosts[post.Id] = post
-		}
 	}
 	return pl, nil
 }

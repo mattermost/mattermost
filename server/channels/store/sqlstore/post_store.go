@@ -1057,11 +1057,11 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 		return err
 	}
 
-	if err = s.permanentTemporaryPosts(transaction, postIds); err != nil {
+	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
 		return err
 	}
 
-	if err = s.permanentReadReceipts(transaction, postIds); err != nil {
+	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
 		return err
 	}
 
@@ -1121,11 +1121,11 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 		return err
 	}
 
-	if err = s.permanentTemporaryPosts(transaction, postIds); err != nil {
+	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
 		return err
 	}
 
-	if err = s.permanentReadReceipts(transaction, postIds); err != nil {
+	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
 		return err
 	}
 
@@ -1210,11 +1210,11 @@ func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId stri
 		}
 		time.Sleep(10 * time.Millisecond)
 
-		if err = s.permanentTemporaryPosts(transaction, ids); err != nil {
+		if err = s.permanentDeleteTemporaryPosts(transaction, ids); err != nil {
 			return err
 		}
 
-		if err = s.permanentReadReceipts(transaction, ids); err != nil {
+		if err = s.permanentDeleteReadReceipts(transaction, ids); err != nil {
 			return err
 		}
 
@@ -3069,7 +3069,7 @@ func (s *SqlPostStore) permanentDeleteReactions(transaction *sqlxTxWrapper, post
 	return nil
 }
 
-func (s *SqlPostStore) permanentReadReceipts(transaction *sqlxTxWrapper, postIds []string) error {
+func (s *SqlPostStore) permanentDeleteReadReceipts(transaction *sqlxTxWrapper, postIds []string) error {
 	query := s.getQueryBuilder().
 		Delete("ReadReceipts").
 		Where(
@@ -3081,7 +3081,7 @@ func (s *SqlPostStore) permanentReadReceipts(transaction *sqlxTxWrapper, postIds
 	return nil
 }
 
-func (s *SqlPostStore) permanentTemporaryPosts(transaction *sqlxTxWrapper, postIds []string) error {
+func (s *SqlPostStore) permanentDeleteTemporaryPosts(transaction *sqlxTxWrapper, postIds []string) error {
 	query := s.getQueryBuilder().
 		Delete("TemporaryPosts").
 		Where(

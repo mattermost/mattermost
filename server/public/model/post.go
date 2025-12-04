@@ -179,7 +179,7 @@ type PostEphemeral struct {
 }
 
 type PostPatch struct {
-	IsPinned     *bool            `json:"-"`
+	IsPinned     *bool            `json:"is_pinned"`
 	Message      *string          `json:"message"`
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`

@@ -174,15 +174,14 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	var mentions *MentionResults
 	var keywords MentionKeywords
-	if post.Type != model.PostTypeBurnOnRead {
-		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
-	} else {
-		// to extract mentions from the burn on read post, we need to get the original content of the post
+	if post.Type == model.PostTypeBurnOnRead {
 		borPost, appErr := a.getBurnOnReadPost(rctx, post)
 		if appErr != nil {
 			return nil, appErr
 		}
 		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, borPost, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	} else {
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
 	}
 
 	var allActivityPushUserIds []string

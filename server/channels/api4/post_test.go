@@ -5668,9 +5668,9 @@ func TestRevealPost(t *testing.T) {
 
 		revealedPost, resp, err := client.RevealPost(context.Background(), post.Id)
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		require.Nil(t, revealedPost)
-		CheckErrorID(t, err, "app.reveal_post.read_receipt_expired.error")
+		CheckErrorID(t, err, "app.post.get.app_error")
 	}, "reveal post with expired read receipt")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
@@ -5761,7 +5761,7 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 		require.NotNil(t, posts)
 		require.NotNil(t, posts.Posts[createdPost.Id])
 		unrevealedPost := posts.Posts[createdPost.Id]
-		require.Equal(t, "This message has to be revealed", unrevealedPost.Message)
+		require.Equal(t, "", unrevealedPost.Message)
 		// Check if the metadata is empty
 		require.Equal(t, model.PostMetadata{}, *unrevealedPost.Metadata)
 
