@@ -261,6 +261,36 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return currentValue !== originalValue;
     };
 
+    // Resolves option IDs to display names for select/multiselect CPA fields.
+    private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
+        if (!value) {
+            return '(empty)';
+        }
+
+        const options = field.attrs?.options || [];
+        if (field.type === 'select' || field.type === 'multiselect') {
+            if (!Array.isArray(value)) {
+                // Select: resolve single ID to its name
+                const option = options.find((opt) => opt.id === value);
+                return option ? option.name : value;
+            }
+
+            // Multiselect: resolve each ID to its name
+            if (value.length === 0) {
+                return '(empty)';
+            }
+
+            const names = value.map((id) => {
+                const option = options.find((opt) => opt.id === id);
+                return option ? option.name : id;
+            });
+            return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
+        }
+
+        // For non-select fields, display as-is
+        return Array.isArray(value) ? value.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value;
+    };
+
     handleTeamsLoaded = (teams: TeamMembership[]) => {
         const teamIds = teams.map((team) => team.team_id);
         this.setState({
@@ -851,38 +881,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     const fieldName = field.name;
                     const originalValue = this.state.originalCpaValues[fieldId];
 
-                    // Helper function to resolve option IDs to names for select/multiselect fields
-                    const resolveOptionNames = (value: string | string[] | undefined) => {
-                        if (!value) {
-                            return '(empty)';
-                        }
-
-                        const options = field.attrs?.options || [];
-                        if (field.type === 'select' || field.type === 'multiselect') {
-                            if (!Array.isArray(value)) {
-                                // Select: resolve single ID to its name
-                                const option = options.find((opt) => opt.id === value);
-                                return option ? option.name : value;
-                            }
-
-                            // Multiselect: resolve each ID to its name
-                            if (value.length === 0) {
-                                return '(empty)';
-                            }
-
-                            const names = value.map((id) => {
-                                const option = options.find((opt) => opt.id === id);
-                                return option ? option.name : id;
-                            });
-                            return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
-                        }
-
-                        // For non-select fields, display as-is
-                        return Array.isArray(value) ? value.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value;
-                    };
-
-                    const oldValue = resolveOptionNames(originalValue);
-                    const newValue = resolveOptionNames(changes[1]);
+                    const oldValue = this.resolveOptionNames(field, originalValue);
+                    const newValue = this.resolveOptionNames(field, changes[1]);
 
                     fields.push(
                         <FormattedMessage
