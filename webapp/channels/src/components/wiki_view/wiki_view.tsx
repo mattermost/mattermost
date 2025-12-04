@@ -12,7 +12,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {openPagesPanel, closePagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
+import {openPagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {loadWikiBundle} from 'actions/wiki_actions';
@@ -21,26 +21,22 @@ import {getPage, getPages} from 'selectors/pages';
 import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
-import ConflictWarningModal from 'components/conflict_warning_modal';
-import ConfirmOverwriteModal from 'components/conflict_warning_modal/confirm_overwrite_modal';
-import DeletePageModal from 'components/delete_page_modal';
 import LoadingScreen from 'components/loading_screen';
-import MovePageModal from 'components/move_page_modal';
-import PageVersionHistoryModal from 'components/page_version_history';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/usePageMenuHandlers';
-import TextInputModal from 'components/text_input_modal';
 
+import {usePublishedDraftCleanup} from 'hooks/usePublishedDraftCleanup';
 import {isEditingExistingPage, getPublishedPageIdFromDraft} from 'utils/page_utils';
 import {canEditPage} from 'utils/post_utils';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
-import {useWikiPageData, useWikiPageActions} from './hooks';
+import {useWikiPageData, useWikiPageActions, useFullscreen, useAutoPageSelection, useVersionHistory} from './hooks';
 import PageViewer from './page_viewer';
 import WikiPageEditor from './wiki_page_editor';
 import WikiPageHeader from './wiki_page_header';
+import WikiViewModals from './wiki_view_modals';
 
 import './wiki_view.scss';
 
@@ -59,70 +55,14 @@ const WikiView = () => {
     const isPanesPanelCollapsed = useSelector((state: GlobalState) => getIsPanesPanelCollapsed(state));
     const lastViewedPageId = useSelector((state: GlobalState) => (wikiId ? getLastViewedPage(state, wikiId) : null));
 
-    // Fullscreen state
-    const [isFullscreen, setIsFullscreen] = React.useState(false);
+    // Fullscreen state and handlers (extracted to hook)
+    const {isFullscreen, toggleFullscreen} = useFullscreen();
 
-    // Store panel state before entering fullscreen
-    const panelStateBeforeFullscreenRef = React.useRef<boolean | null>(null);
+    // Version history modal state (extracted to hook)
+    const {showVersionHistory, versionHistoryPageId, handleVersionHistory, handleCloseVersionHistory} = useVersionHistory();
 
-    // Version history modal state
-    const [showVersionHistory, setShowVersionHistory] = React.useState(false);
-    const [versionHistoryPageId, setVersionHistoryPageId] = React.useState<string | null>(null);
-
-    // Toggle fullscreen
-    const toggleFullscreen = React.useCallback(() => {
-        const newFullscreenState = !isFullscreen;
-        setIsFullscreen(newFullscreenState);
-
-        if (newFullscreenState) {
-            // Entering fullscreen: save current panel state and close panel
-            panelStateBeforeFullscreenRef.current = isPanesPanelCollapsed;
-            dispatch(closePagesPanel());
-        } else {
-            // Exiting fullscreen: restore previous panel state
-            if (panelStateBeforeFullscreenRef.current === false) {
-                dispatch(openPagesPanel());
-            }
-
-            panelStateBeforeFullscreenRef.current = null;
-        }
-    }, [isFullscreen, isPanesPanelCollapsed, dispatch]);
-
-    // Handle version history
-    const handleVersionHistory = (targetPageId: string) => {
-        setVersionHistoryPageId(targetPageId);
-        setShowVersionHistory(true);
-    };
-
-    const handleCloseVersionHistory = () => {
-        setShowVersionHistory(false);
-        setVersionHistoryPageId(null);
-    };
-
-    // Esc key handler
-    React.useEffect(() => {
-        const handleKeydown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape' && isFullscreen) {
-                toggleFullscreen();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeydown);
-        return () => window.removeEventListener('keydown', handleKeydown);
-    }, [isFullscreen, toggleFullscreen]);
-
-    // Body class management
-    React.useEffect(() => {
-        if (isFullscreen) {
-            document.body.classList.add('fullscreen-mode');
-        } else {
-            document.body.classList.remove('fullscreen-mode');
-        }
-
-        return () => {
-            document.body.classList.remove('fullscreen-mode');
-        };
-    }, [isFullscreen]);
+    // Cleanup stale published draft timestamps periodically
+    usePublishedDraftCleanup();
 
     // Track if we're navigating to select a draft
     const isSelectingDraftRef = React.useRef(false);
@@ -255,49 +195,18 @@ const WikiView = () => {
         };
     }, [isDraft, wikiId, draftId, currentDraft?.props?.page_id, publishedPageForDraft?.id]);
 
-    // Auto-select page when at wiki root
-    React.useEffect(() => {
-        if (!pageId && !draftId) {
-            const teamName = getTeamNameFromPath(location.pathname);
-
-            // Priority 1: Try to restore last viewed page if it exists
-            if (lastViewedPageId) {
-                // Check if it's a new draft (not editing existing page)
-                const lastViewedNewDraft = allDrafts.find((d) => d.rootId === lastViewedPageId && !d.props?.page_id);
-                const lastViewedPage = allPages.find((p) => p.id === lastViewedPageId);
-
-                if (lastViewedNewDraft) {
-                    const draftUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedNewDraft.rootId, true);
-                    history.replace(draftUrl);
-                    return;
-                } else if (lastViewedPage) {
-                    const pageUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedPage.id, false);
-                    history.replace(pageUrl);
-                    return;
-                }
-            }
-
-            // Priority 2: Select first NEW draft if one exists (drafts without page_id)
-            const newDrafts = allDrafts.filter((d) => !d.props?.page_id);
-            if (newDrafts.length > 0) {
-                const firstDraft = newDrafts[0];
-                if (firstDraft) {
-                    const draftUrl = getWikiUrl(teamName, channelId, wikiId, firstDraft.rootId, true);
-                    history.replace(draftUrl);
-                    return;
-                }
-            }
-
-            // Priority 3: Select first published page if pages exist
-            if (allPages.length > 0) {
-                const firstPage = allPages[0];
-                if (firstPage) {
-                    const pageUrl = getWikiUrl(teamName, channelId, wikiId, firstPage.id, false);
-                    history.replace(pageUrl);
-                }
-            }
-        }
-    }, [pageId, draftId, allDrafts, allPages, channelId, wikiId, location.pathname, history, lastViewedPageId]);
+    // Auto-select page when at wiki root (extracted to hook)
+    useAutoPageSelection({
+        pageId,
+        draftId,
+        wikiId,
+        channelId,
+        allDrafts,
+        allPages,
+        lastViewedPageId,
+        location,
+        history,
+    });
 
     // Check for openRhs query parameter and open RHS if requested
     React.useEffect(() => {
@@ -345,7 +254,7 @@ const WikiView = () => {
         }
     }, [handleEdit, pageId, wikiId, channelId, history, location]);
 
-    const handleToggleComments = () => {
+    const handleToggleComments = React.useCallback(() => {
         if (isWikiRhsOpen) {
             dispatch(closeRightHandSide());
         } else {
@@ -358,9 +267,9 @@ const WikiView = () => {
                 dispatch(setWikiRhsMode('comments'));
             }
         }
-    };
+    }, [isWikiRhsOpen, dispatch, pageId, currentDraft, wikiId]);
 
-    const handlePageSelect = (selectedPageId: string) => {
+    const handlePageSelect = React.useCallback((selectedPageId: string) => {
         if (!wikiId || !channelId) {
             return;
         }
@@ -374,17 +283,17 @@ const WikiView = () => {
         // Check if selected ID is a draft (for URL generation)
         // Only navigate to draft if the ID itself is a draft ID (not just if a draft exists for this page)
         // Published pages should always open in view mode, even if they have unsaved drafts
-        const isDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId && !draft.props?.page_id);
+        const isDraftPage = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId && !draft.props?.page_id);
 
-        const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isDraft);
+        const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isDraftPage);
 
         history.push(url);
 
         // For RHS: new drafts don't have comments, published pages do
-        if (isWikiRhsOpen && selectedPageId && !isDraft) {
+        if (isWikiRhsOpen && selectedPageId && !isDraftPage) {
             dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
         }
-    };
+    }, [wikiId, channelId, dispatch, location.pathname, allDrafts, history, isWikiRhsOpen]);
 
     // Use shared menu handlers hook - it will combine pages and drafts internally
     const menuHandlers = usePageMenuHandlers({
@@ -395,9 +304,9 @@ const WikiView = () => {
         onPageSelect: handlePageSelect,
     });
 
-    const handleOpenPagesPanel = () => {
+    const handleOpenPagesPanel = React.useCallback(() => {
         dispatch(openPagesPanel());
-    };
+    }, [dispatch]);
 
     React.useEffect(() => {
         if (pageId && !currentPage && !isLoading) {
@@ -574,84 +483,19 @@ const WikiView = () => {
                         </div>
                     </div>
 
-                    {/* Menu action modals */}
-                    {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
-                        <DeletePageModal
-                            pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || 'Untitled'}
-                            childCount={menuHandlers.pageToDelete.childCount}
-                            onConfirm={menuHandlers.handleDeleteConfirm}
-                            onCancel={menuHandlers.handleDeleteCancel}
-                        />
-                    )}
-
-                    {menuHandlers.showMoveModal && menuHandlers.pageToMove && (
-                        <MovePageModal
-                            pageId={menuHandlers.pageToMove.pageId}
-                            pageTitle={menuHandlers.pageToMove.pageTitle}
-                            currentWikiId={wikiId || ''}
-                            availableWikis={menuHandlers.availableWikis}
-                            fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
-                            hasChildren={menuHandlers.pageToMove.hasChildren}
-                            onConfirm={menuHandlers.handleMoveConfirm}
-                            onCancel={menuHandlers.handleMoveCancel}
-                        />
-                    )}
-
-                    {menuHandlers.showCreatePageModal && (
-                        <TextInputModal
-                            show={menuHandlers.showCreatePageModal}
-                            title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
-                            placeholder='Enter page title...'
-                            helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
-                            confirmButtonText='Create'
-                            maxLength={255}
-                            ariaLabel='Create Page'
-                            inputTestId='create-page-modal-title-input'
-                            onConfirm={menuHandlers.handleConfirmCreatePage}
-                            onCancel={menuHandlers.handleCancelCreatePage}
-                            onHide={() => menuHandlers.setShowCreatePageModal(false)}
-                        />
-                    )}
-
-                    {showVersionHistory && versionHistoryPageId && (() => {
-                        const versionHistoryPage = allPages.find((p) => p.id === versionHistoryPageId);
-                        if (!versionHistoryPage) {
-                            return null;
-                        }
-                        const pageTitle = (versionHistoryPage.props?.title as string | undefined) || versionHistoryPage.message || 'Untitled';
-                        return (
-                            <PageVersionHistoryModal
-                                page={versionHistoryPage}
-                                pageTitle={pageTitle}
-                                wikiId={wikiId}
-                                onClose={handleCloseVersionHistory}
-                                onVersionRestored={handleCloseVersionHistory}
-                            />
-                        );
-                    })()}
-
-                    {/* Conflict warning modal */}
-                    {conflictModal.show && conflictModal.currentPage && (
-                        <ConflictWarningModal
-                            show={conflictModal.show}
-                            currentPage={conflictModal.currentPage}
-                            draftContent={conflictModal.draftContent}
-                            onViewChanges={conflictModal.onViewChanges}
-                            onCopyContent={conflictModal.onCopyContent}
-                            onOverwrite={conflictModal.onOverwrite}
-                            onCancel={conflictModal.onCancel}
-                        />
-                    )}
-
-                    {/* Confirm overwrite modal */}
-                    {confirmOverwriteModal.show && confirmOverwriteModal.currentPage && (
-                        <ConfirmOverwriteModal
-                            show={confirmOverwriteModal.show}
-                            currentPage={confirmOverwriteModal.currentPage}
-                            onConfirm={confirmOverwriteModal.onConfirm}
-                            onCancel={confirmOverwriteModal.onCancel}
-                        />
-                    )}
+                    {/* All modals extracted to WikiViewModals component */}
+                    <WikiViewModals
+                        wikiId={wikiId || ''}
+                        allPages={allPages}
+                        menuHandlers={menuHandlers}
+                        versionHistory={{
+                            show: showVersionHistory,
+                            pageId: versionHistoryPageId,
+                        }}
+                        onCloseVersionHistory={handleCloseVersionHistory}
+                        conflictModal={conflictModal}
+                        confirmOverwriteModal={confirmOverwriteModal}
+                    />
                 </>
             )}
         </div>

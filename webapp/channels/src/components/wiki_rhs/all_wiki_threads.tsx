@@ -45,35 +45,35 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
         setLoading(true);
 
-        const threadsData: PageThread[] = [];
+        // Filter out draft pages first
+        const publishedPages = pages.filter((page) => !isDraftPageId(page.id));
 
-        // eslint-disable-next-line no-await-in-loop
-        for (const page of pages) {
-            if (isDraftPageId(page.id)) {
-                continue;
-            }
-
-            try {
-                // Use getPageComments instead of getPostThread to get inline comments
-                // eslint-disable-next-line no-await-in-loop
-                const comments = await Client4.getPageComments(wikiId, page.id);
-
-                const inlineComments = comments.filter((post: Post) => {
-                    return pageInlineCommentHasAnchor(post);
-                });
-
-                if (inlineComments.length > 0) {
-                    threadsData.push({
-                        pageId: page.id,
-                        pageTitle: (page.props?.title as string) || 'Untitled',
-                        threadCount: inlineComments.length,
-                        threads: inlineComments as Post[],
+        // Fetch all page comments in parallel for better performance
+        const results = await Promise.all(
+            publishedPages.map(async (page) => {
+                try {
+                    const comments = await Client4.getPageComments(wikiId, page.id);
+                    const inlineComments = comments.filter((post: Post) => {
+                        return pageInlineCommentHasAnchor(post);
                     });
+
+                    if (inlineComments.length > 0) {
+                        return {
+                            pageId: page.id,
+                            pageTitle: (page.props?.title as string) || 'Untitled',
+                            threadCount: inlineComments.length,
+                            threads: inlineComments as Post[],
+                        };
+                    }
+                } catch (error) {
+                    // Skip pages that fail to fetch
                 }
-            } catch (error) {
-                // Skip pages that fail to fetch
-            }
-        }
+                return null;
+            }),
+        );
+
+        // Filter out nulls (pages with no threads or failed fetches)
+        const threadsData = results.filter((result): result is PageThread => result !== null);
 
         setPageThreads(threadsData);
         setLoading(false);

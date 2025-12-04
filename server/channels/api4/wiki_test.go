@@ -1455,6 +1455,154 @@ func TestPageCommentsE2E(t *testing.T) {
 	})
 }
 
+func TestSearchPages(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditPage.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionReadPage.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Search Test Wiki",
+	}
+	createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	t.Run("pages appear in search results by title", func(t *testing.T) {
+		page, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "UniquePageTitleForSearchTest")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		term := "UniquePageTitleForSearchTest"
+		isOr := false
+		searchResults, resp, err := th.Client.SearchPostsWithParams(context.Background(), th.BasicTeam.Id, &model.SearchParameter{
+			Terms:      &term,
+			IsOrSearch: &isOr,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundPage := false
+		for _, post := range searchResults.Posts {
+			if post.Id == page.Id {
+				foundPage = true
+				require.Equal(t, model.PostTypePage, post.Type, "Search result should be a page")
+			}
+		}
+		require.True(t, foundPage, "Page should appear in search results by title")
+	})
+
+	t.Run("pages appear in search results by content", func(t *testing.T) {
+		page, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "Page for content search")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		pageContent := &model.PageContent{
+			PageId: page.Id,
+			Content: model.TipTapDocument{
+				Type: "doc",
+				Content: []map[string]any{
+					{
+						"type": "paragraph",
+						"content": []map[string]any{
+							{
+								"type": "text",
+								"text": "UniqueContentKeywordXYZ123 for search testing",
+							},
+						},
+					},
+				},
+			},
+			SearchText: "UniqueContentKeywordXYZ123 for search testing",
+			CreateAt:   model.GetMillis(),
+			UpdateAt:   model.GetMillis(),
+		}
+		_, err = th.App.Srv().Store().Page().SavePageContent(pageContent)
+		require.NoError(t, err)
+
+		term := "UniqueContentKeywordXYZ123"
+		isOr := false
+		searchResults, resp, err := th.Client.SearchPostsWithParams(context.Background(), th.BasicTeam.Id, &model.SearchParameter{
+			Terms:      &term,
+			IsOrSearch: &isOr,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundPage := false
+		for _, post := range searchResults.Posts {
+			if post.Id == page.Id {
+				foundPage = true
+				require.Equal(t, model.PostTypePage, post.Type, "Search result should be a page")
+			}
+		}
+		require.True(t, foundPage, "Page should appear in search results by content")
+	})
+
+	t.Run("pages in private channels not visible to non-members", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t)
+
+		th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		createdPrivateWiki, resp, err := th.Client.CreateWiki(context.Background(), privateWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		privatePage, resp, err := th.Client.CreatePage(context.Background(), createdPrivateWiki.Id, "", "PrivateChannelPageUniqueTitle")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		term := "PrivateChannelPageUniqueTitle"
+		isOr := false
+		searchResults, resp, err := client2.SearchPostsWithParams(context.Background(), th.BasicTeam.Id, &model.SearchParameter{
+			Terms:      &term,
+			IsOrSearch: &isOr,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundPrivatePage := false
+		for _, post := range searchResults.Posts {
+			if post.Id == privatePage.Id {
+				foundPrivatePage = true
+			}
+		}
+		require.False(t, foundPrivatePage, "Pages in private channels should NOT be visible to non-members via search")
+	})
+
+	t.Run("search with special characters does not cause errors", func(t *testing.T) {
+		specialTerms := []string{
+			"test%percent",
+			"test_underscore",
+			"test'quote",
+			"test\"doublequote",
+		}
+
+		for _, term := range specialTerms {
+			isOr := false
+			_, resp, err := th.Client.SearchPostsWithParams(context.Background(), th.BasicTeam.Id, &model.SearchParameter{
+				Terms:      &term,
+				IsOrSearch: &isOr,
+			})
+			require.NoError(t, err, "Search with special character should not cause error: %s", term)
+			CheckOKStatus(t, resp)
+		}
+	})
+}
+
 func TestMovePageToWiki(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -2857,5 +3005,418 @@ func TestGetPageActiveEditors(t *testing.T) {
 		httpResp, err := th.Client.DoAPIGet(context.Background(), url, "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+}
+
+// TestPageDraftPermissionViolations tests that page draft API operations correctly fail when users lack required permissions.
+// These tests verify that the API layer properly enforces permission checks for draft operations.
+func TestPageDraftPermissionViolations(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("SavePageDraft fails without manage_public_channel_properties permission", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create wiki with permissions
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Remove the permission
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		// Try to save draft - use PUT method with draft_id in URL
+		draftId := model.NewId()
+		url := "/wikis/" + createdWiki.Id + "/drafts/" + draftId
+		payload := map[string]string{
+			"content": `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`,
+			"title":   "Test Draft",
+		}
+		payloadBytes, _ := json.Marshal(payload)
+		httpResp, err := th.Client.DoAPIPut(context.Background(), url, string(payloadBytes))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("SavePageDraft fails for user not in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a private channel and wiki
+		privateChannel := th.CreatePrivateChannel(t)
+		wiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Login as user2 who is not in the private channel
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		// Try to save draft - use PUT method with draft_id in URL
+		draftId := model.NewId()
+		url := "/wikis/" + createdWiki.Id + "/drafts/" + draftId
+		payload := map[string]string{
+			"content": `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`,
+			"title":   "Test Draft",
+		}
+		payloadBytes, _ := json.Marshal(payload)
+		httpResp, err := client2.DoAPIPut(context.Background(), url, string(payloadBytes))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("DeletePageDraft fails for user not in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create a private channel and wiki
+		privateChannel := th.CreatePrivateChannel(t)
+		wiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Save a draft
+		draftId := model.NewId()
+		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, draftId,
+			`{"type":"doc","content":[]}`, "Test Draft", "", nil)
+		require.Nil(t, appErr)
+
+		// Login as user2 who is not in the private channel
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		// Try to delete draft
+		url := "/wikis/" + createdWiki.Id + "/drafts/" + draftId
+		httpResp, err := client2.DoAPIDelete(context.Background(), url)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("PublishPageDraft fails without create_page permission", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create wiki
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Save a draft
+		draftId := model.NewId()
+		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, draftId,
+			`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Draft content"}]}]}`, "Test Draft", "", nil)
+		require.Nil(t, appErr)
+
+		// Remove create_page permission
+		th.RemovePermissionFromRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionCreatePage.Id, model.ChannelUserRoleId)
+
+		// Try to publish draft
+		url := "/wikis/" + createdWiki.Id + "/drafts/" + draftId + "/publish"
+		payload := map[string]string{
+			"title": "Published Page",
+		}
+		payloadBytes, _ := json.Marshal(payload)
+		httpResp, err := th.Client.DoAPIPost(context.Background(), url, string(payloadBytes))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("Guest user cannot save draft in DM/Group channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		// Enable guest accounts (requires license and config)
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
+
+		// Create guest user and client
+		guest, guestClient := th.CreateGuestAndClient(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+
+		// Create a group channel with guest (requires at least 3 users)
+		groupChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, guest.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Create wiki as regular user (who has permission)
+		th.Context.Session().UserId = th.BasicUser.Id
+		wiki := &model.Wiki{
+			ChannelId: groupChannel.Id,
+			Title:     "Group Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Try to save draft as guest - use PUT method with draft_id in URL
+		draftId := model.NewId()
+		url := "/wikis/" + createdWiki.Id + "/drafts/" + draftId
+		payload := map[string]string{
+			"content": `{"type":"doc","content":[]}`,
+			"title":   "Guest Draft",
+		}
+		payloadBytes, _ := json.Marshal(payload)
+		httpResp, err := guestClient.DoAPIPut(context.Background(), url, string(payloadBytes))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
+	})
+}
+
+// TestWikiPermissionViolations tests that wiki API operations correctly fail when users lack required permissions.
+// These tests verify that the API layer properly enforces permission checks before allowing wiki operations.
+func TestWikiPermissionViolations(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("CreateWiki fails without manage_public_channel_properties permission", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Remove the permission that allows creating wikis in public channels
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		_, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("CreateWiki fails without manage_private_channel_properties permission", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a private channel
+		privateChannel := th.CreatePrivateChannel(t)
+
+		// Remove the permission that allows creating wikis in private channels
+		th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePrivateChannelProperties.Id, model.ChannelUserRoleId)
+
+		wiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+
+		_, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("CreateWiki fails for user not in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a private channel that user2 is not a member of
+		privateChannel := th.CreatePrivateChannel(t)
+
+		// Login as user2 who is not in the private channel
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		wiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		_, resp, err := client2.CreateWiki(context.Background(), wiki)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("GetWiki fails for user not in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a private channel and wiki
+		privateChannel := th.CreatePrivateChannel(t)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		wiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Login as user2 who is not in the private channel
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		_, resp, err := client2.GetWiki(context.Background(), createdWiki.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("GetWikisForChannel fails for user not in channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create a private channel
+		privateChannel := th.CreatePrivateChannel(t)
+
+		// Login as user2 who is not in the private channel
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		_, resp, err := client2.GetWikisForChannel(context.Background(), privateChannel.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("UpdateWiki fails without manage_public_channel_properties permission", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create wiki first with permissions
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Remove the permission
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		// Try to update the wiki
+		createdWiki.Title = "Updated Title"
+		_, resp, err := th.Client.UpdateWiki(context.Background(), createdWiki)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DeleteWiki fails without manage_public_channel_properties permission", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Create wiki first with permissions
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Remove the permission
+		th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		// Try to delete the wiki
+		resp, err := th.Client.DeleteWiki(context.Background(), createdWiki.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("CreateWiki fails in archived channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+
+		// Create and archive a channel
+		channel, chanErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Name:        "archived-wiki-channel-api",
+			DisplayName: "Archived Wiki Channel API",
+			Type:        model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, chanErr)
+
+		_, addErr := th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+		require.Nil(t, addErr)
+
+		// Archive the channel
+		err := th.App.DeleteChannel(th.Context, channel, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		wiki := &model.Wiki{
+			ChannelId: channel.Id,
+			Title:     "Test Wiki",
+		}
+
+		_, resp, createErr := th.Client.CreateWiki(context.Background(), wiki)
+		require.Error(t, createErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("Guest user cannot create wiki in DM/Group channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// Enable guest accounts (requires license and config)
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
+
+		// Create guest user and client
+		guest, guestClient := th.CreateGuestAndClient(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+
+		// Create a group channel with guest (requires at least 3 users)
+		groupChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, guest.Id}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		wiki := &model.Wiki{
+			ChannelId: groupChannel.Id,
+			Title:     "Guest Wiki",
+		}
+
+		_, resp, err := guestClient.CreateWiki(context.Background(), wiki)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("MoveWikiToChannel fails for user not in target channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		// Create source wiki
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdWiki, appErr := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Create target channel that user2 is not a member of
+		targetChannel := th.CreatePrivateChannel(t)
+
+		// Login as user2 (who is in BasicChannel but not targetChannel)
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		// Try to move wiki to target channel
+		url := "/wikis/" + createdWiki.Id + "/move"
+		payload := map[string]string{"target_channel_id": targetChannel.Id}
+		payloadBytes, _ := json.Marshal(payload)
+		httpResp, err := client2.DoAPIPost(context.Background(), url, string(payloadBytes))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, model.BuildResponse(httpResp))
 	})
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 // PageOperation represents the type of operation being performed on a page
@@ -136,6 +137,8 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		}
 	}()
 
+	title = strings.TrimSpace(title)
+	title = model.SanitizeUnicode(title)
 	if title == "" {
 		return nil, model.NewAppError("CreatePage", "app.page.create.missing_title.app_error", nil, "title is required for pages", http.StatusBadRequest)
 	}
@@ -146,6 +149,10 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	channel, chanErr := a.GetChannel(rctx, channelID)
 	if chanErr != nil {
 		return nil, chanErr
+	}
+
+	if channel.DeleteAt != 0 {
+		return nil, model.NewAppError("CreatePage", "app.page.create.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
 	if permErr := a.checkPagePermissionInChannel(rctx, userID, channel, PageOperationCreate, "CreatePage"); permErr != nil {
@@ -225,8 +232,9 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 // getPagePost fetches a page post and validates it is of type PostTypePage.
 // This is an internal helper that does NOT check permissions or load content.
 // Use GetPage for external API calls that need permission checks and full content.
+// Note: Uses master DB to avoid read-after-write issues with replica lag in cloud deployments.
 func (a *App) getPagePost(rctx request.CTX, pageID string) (*model.Post, *model.AppError) {
-	post, err := a.GetSinglePost(rctx, pageID, false)
+	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
 		return nil, model.NewAppError("getPagePost", "app.page.get.not_found.app_error",
 			nil, "page not found", http.StatusNotFound).Wrap(err)
@@ -393,8 +401,11 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		return nil, err
 	}
 
-	if title != "" && len(title) > model.MaxPageTitleLength {
-		return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+	if title != "" {
+		title = model.SanitizeUnicode(title)
+		if len(title) > model.MaxPageTitleLength {
+			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+		}
 	}
 
 	updatedPost, storeErr := a.Srv().Store().Page().UpdatePageWithContent(rctx, pageID, title, content, searchText)
@@ -442,7 +453,9 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 		}
 	}()
 
-	post, err := a.GetSinglePost(rctx, pageID, false)
+	// Use master context to avoid reading stale data from replicas in HA mode
+	// This is critical for conflict detection - we need the latest UpdateAt value
+	post, err := a.GetSinglePost(sqlstore.RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
 	}
@@ -456,8 +469,11 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 		return nil, err
 	}
 
-	if title != "" && len(title) > model.MaxPageTitleLength {
-		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+	if title != "" {
+		title = model.SanitizeUnicode(title)
+		if len(title) > model.MaxPageTitleLength {
+			return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
+		}
 	}
 
 	// Check for conflicts (business logic - following MM pattern)

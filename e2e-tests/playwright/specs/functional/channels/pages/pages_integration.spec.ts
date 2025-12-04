@@ -34,7 +34,6 @@ import {
     waitForSearchDebounce,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
-    AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
@@ -564,9 +563,6 @@ test(
         const hierarchyPanel = getHierarchyPanel(page);
         await hierarchyPanel.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
 
-        // Wait for draft to appear in hierarchy
-        await page.waitForTimeout(AUTOSAVE_WAIT);
-
         // # Recover draft (drafts are integrated in tree with data-is-draft attribute)
         const draftNode = hierarchyPanel
             .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
@@ -592,7 +588,6 @@ test(
 
         const hierarchyPanel2 = getHierarchyPanel(page);
         await hierarchyPanel2.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         const draftNode2 = hierarchyPanel2
             .locator('[data-testid="page-tree-node"][data-is-draft="true"]')
@@ -641,7 +636,6 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
 
     // Expand Parent B to verify child is there
     await parentBNode.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     const childUnderParentB = hierarchyPanel.locator('text="Child Page to Move"').first();
     await expect(childUnderParentB).toBeVisible({timeout: WEBSOCKET_WAIT});
@@ -652,7 +646,6 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
 
     // Expand Parent A to check it doesn't contain the child anymore
     await parentANode.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // Check that under Parent A's subtree, the child is not present
     // We need to be more specific: look for the child as a descendant of Parent A's tree node
@@ -685,19 +678,17 @@ test('searches pages with filters and verifies results', {tag: '@pages'}, async 
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
     await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill(searchTerm);
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify both pages appear in filtered tree
     const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
     await expect(treeContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(treeContainer).toContainText('First Page');
+    await expect(treeContainer).toContainText('First Page', {timeout: SHORT_WAIT});
     await expect(treeContainer).toContainText('Second Page');
 
     // # Clear search to verify both pages exist
     await searchInput.clear();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify both pages still visible after clearing search
-    await expect(treeContainer).toContainText('First Page');
+    await expect(treeContainer).toContainText('First Page', {timeout: SHORT_WAIT});
     await expect(treeContainer).toContainText('Second Page');
 });

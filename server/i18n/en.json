@@ -6999,6 +6999,10 @@
     "translation": "Page not found for parent change."
   },
   {
+    "id": "app.page.create.deleted_channel.app_error",
+    "translation": "Cannot create page in an archived channel."
+  },
+  {
     "id": "app.page.create.invalid_content.app_error",
     "translation": "Invalid content for page."
   },

@@ -272,7 +272,6 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     const pageNode = hierarchyPanel.locator(`text="Navigate to Headings"`).first();
     await pageNode.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # Wait for page viewer to be visible (confirms we're in view mode)
     await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
@@ -392,7 +391,6 @@ test(
         const page2Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page2.id}"]`).first();
         await page2Node.click();
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify outline for Page 1 is still expanded in hierarchy
         await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
@@ -400,7 +398,6 @@ test(
         // # Navigate back to Page 1
         await page1Node.click();
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify outline remains expanded
         await verifyOutlineHeadingVisible(page, 'Page 1 Heading', ELEMENT_TIMEOUT);
@@ -422,10 +419,11 @@ test(
         await page.waitForLoadState('networkidle');
         await page1Node.click();
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(SHORT_WAIT);
 
         // * Verify outline remains collapsed after navigation (scoped to Page 1's outline)
-        const stillCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
-        expect(stillCollapsed).toBe(false);
+        await expect(async () => {
+            const stillCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
+            expect(stillCollapsed).toBe(false);
+        }).toPass({timeout: SHORT_WAIT});
     },
 );

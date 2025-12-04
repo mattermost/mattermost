@@ -15,11 +15,10 @@ import {
     typeInEditor,
     clearEditorContent,
     verifyPageContentContains,
-    SHORT_WAIT,
-    EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
+    WEBSOCKET_WAIT,
 } from './test_helpers';
 
 /**
@@ -63,13 +62,12 @@ test(
 
         // # Wait for page to be published
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify the new page appears in user2's hierarchy panel WITHOUT refresh
         const user2PageNode = user2HierarchyPanel
             .locator('[data-testid="page-tree-node"]')
             .filter({hasText: pageTitle});
-        await expect(user2PageNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(user2PageNode).toBeVisible({timeout: WEBSOCKET_WAIT});
 
         // * Verify user2 can click on the page and view it
         await user2PageNode.click();
@@ -138,13 +136,12 @@ test(
         // # Wait for modal to close
         await expect(moveModal).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify the moved page appears in user2's target wiki hierarchy WITHOUT refresh
         const user2PageNode = user2HierarchyPanel
             .locator('[data-testid="page-tree-node"]')
             .filter({hasText: pageTitle});
-        await expect(user2PageNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
+        await expect(user2PageNode).toBeVisible({timeout: WEBSOCKET_WAIT});
 
         // * Verify user2 can click on the page and view it
         await user2PageNode.click();
@@ -198,10 +195,10 @@ test(
         await pageNode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageNode1.click();
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // # User 1 edits and publishes new content
         const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton1).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await editButton1.click();
 
         const editor1 = page1.locator('.ProseMirror').first();
@@ -213,10 +210,9 @@ test(
         const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
         await publishButton1.click();
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify User 2 sees the updated content WITHOUT refreshing the page
-        await expect(user2PageContent).toContainText(updatedContent, {timeout: HIERARCHY_TIMEOUT});
+        await expect(user2PageContent).toContainText(updatedContent, {timeout: WEBSOCKET_WAIT});
         await expect(user2PageContent).not.toContainText(originalContent);
 
         await user2Page.close();
@@ -279,14 +275,14 @@ test(
         const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
         await publishButton1.click();
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify User 2 sees version 2 without refresh
-        await expect(user2PageContent).toContainText(version2, {timeout: HIERARCHY_TIMEOUT});
+        await expect(user2PageContent).toContainText(version2, {timeout: WEBSOCKET_WAIT});
         await expect(user2PageContent).not.toContainText(version1);
 
         // # User 1 makes second edit
         const editButton2 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton2).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await editButton2.click();
 
         const editor2 = page1.locator('.ProseMirror').first();
@@ -299,10 +295,9 @@ test(
         const publishButton2 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
         await publishButton2.click();
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
         // * Verify User 2 sees version 3 without refresh
-        await expect(user2PageContent).toContainText(version3, {timeout: HIERARCHY_TIMEOUT});
+        await expect(user2PageContent).toContainText(version3, {timeout: WEBSOCKET_WAIT});
         await expect(user2PageContent).not.toContainText(version2);
 
         // * Verify page URL hasn't changed (no navigation occurred)
@@ -365,9 +360,9 @@ test(
         await pageANode1.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
         await pageANode1.click();
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
 
         const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton1).toBeVisible({timeout: ELEMENT_TIMEOUT});
         await editButton1.click();
 
         const editor1 = page1.locator('.ProseMirror').first();
@@ -379,16 +374,14 @@ test(
         const publishButton1 = page1.locator('[data-testid="wiki-page-publish-button"]').first();
         await publishButton1.click();
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(AUTOSAVE_WAIT);
 
         // # User 2 navigates back to Page A (using hierarchy panel)
         const pageANode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageATitle});
         await pageANode2.click();
         await user2Page.waitForLoadState('networkidle');
-        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
 
         // * Verify User 2 sees the PUBLISHED version (no draft modal, no old content)
-        await expect(user2PageContent).toContainText(updatedContent, {timeout: HIERARCHY_TIMEOUT});
+        await expect(user2PageContent).toContainText(updatedContent, {timeout: WEBSOCKET_WAIT});
         await expect(user2PageContent).not.toContainText('Page A original content');
 
         // * Verify no draft modal appeared (Confluence approach - seamless navigation)
@@ -516,24 +509,20 @@ test(
             currentPageA.update_at, // base_update_at - prevents conflict warning
         );
 
-        await page1.waitForTimeout(EDITOR_LOAD_WAIT); // Allow WebSocket event to propagate
-
         // * Verify User 3 (who stayed on Page A) receives the update via WebSocket
-        await expect(user3PageContent).toContainText('version 2 (edited)', {timeout: HIERARCHY_TIMEOUT});
+        await expect(user3PageContent).toContainText('version 2 (edited)', {timeout: WEBSOCKET_WAIT});
 
         // # User 1 and User 2 navigate back to Page A
         const pageANode1 = hierarchyPanel1.locator('[data-testid="page-tree-node"]').filter({hasText: pageATitle});
         await pageANode1.click();
         await page1.waitForLoadState('networkidle');
-        await page1.waitForTimeout(SHORT_WAIT);
 
         const pageANode2 = user2HierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageATitle});
         await pageANode2.click();
         await user2Page.waitForLoadState('networkidle');
-        await user2Page.waitForTimeout(SHORT_WAIT);
 
         // * Verify all three users see the SAME updated version (consistent state)
-        await expect(page1Content).toContainText('version 2 (edited)', {timeout: HIERARCHY_TIMEOUT});
+        await expect(page1Content).toContainText('version 2 (edited)', {timeout: WEBSOCKET_WAIT});
         await expect(page1Content).not.toContainText('version 1');
 
         await expect(user2PageContent).toContainText('version 2 (edited)', {timeout: HIERARCHY_TIMEOUT});
@@ -588,7 +577,7 @@ test(
         // # User 2 makes draft changes (not yet published)
         const user2Editor = await getEditorAndWait(user2Page);
         await typeInEditor(user2Page, 'User 2 draft changes - not yet published');
-        await user2Page.waitForTimeout(AUTOSAVE_WAIT); // Wait for draft autosave
+        await user2Page.waitForTimeout(AUTOSAVE_WAIT); // Wait for draft to be saved to server
 
         // * Verify User 2 sees their draft content in the editor
         const user2EditorContent = await user2Editor.textContent();
@@ -622,12 +611,10 @@ test(
             currentPage.update_at, // base_update_at - prevents conflict warning
         );
 
-        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT); // Allow WebSocket event to propagate
-
         // * Verify User 2's draft content is NOT overwritten (draft isolation)
-        const user2EditorAfter = await user2Editor.textContent();
-        expect(user2EditorAfter).toContain('User 2 draft changes');
-        expect(user2EditorAfter).not.toContain('External update by User 1');
+        // Wait briefly for potential WebSocket events, then verify editor still has draft
+        await expect(user2Editor).toContainText('User 2 draft changes', {timeout: WEBSOCKET_WAIT});
+        await expect(user2Editor).not.toContainText('External update by User 1');
 
         // # User 1 views the page (not editing) - should see the published version
         await navigateToPage(page1, pw.url, team.name, channel.id, wiki.id, testPage.id);
@@ -652,7 +639,11 @@ test(
         // # User 3 makes their own draft changes
         await clearEditorContent(user3Page);
         await typeInEditor(user3Page, 'User 3 draft changes on top of published v2');
-        await user3Page.waitForTimeout(AUTOSAVE_WAIT);
+        await user3Page.waitForTimeout(AUTOSAVE_WAIT); // Wait for draft to be saved to server
+
+        // * Verify User 3's draft content is saved
+        const user3EditorContent = await user3Editor.textContent();
+        expect(user3EditorContent).toContain('User 3 draft changes');
 
         // # Another external publish happens (version 3)
         // Get the latest page state (after version 2 was published)
@@ -682,16 +673,12 @@ test(
             currentPageV2.update_at, // base_update_at - prevents conflict warning
         );
 
-        await user3Page.waitForTimeout(EDITOR_LOAD_WAIT);
-
         // * Verify BOTH User 2 and User 3 still have their drafts intact (not overwritten by v3)
-        const user2EditorAfterV3 = await user2Editor.textContent();
-        expect(user2EditorAfterV3).toContain('User 2 draft changes');
-        expect(user2EditorAfterV3).not.toContain('Version 3 published by admin');
+        await expect(user2Editor).toContainText('User 2 draft changes', {timeout: WEBSOCKET_WAIT});
+        await expect(user2Editor).not.toContainText('Version 3 published by admin');
 
-        const user3EditorAfterV3 = await user3Editor.textContent();
-        expect(user3EditorAfterV3).toContain('User 3 draft changes');
-        expect(user3EditorAfterV3).not.toContain('Version 3 published by admin');
+        await expect(user3Editor).toContainText('User 3 draft changes', {timeout: WEBSOCKET_WAIT});
+        await expect(user3Editor).not.toContainText('Version 3 published by admin');
 
         // * Verify a viewer (User 1) sees the latest published version (v3)
         await page1.reload();

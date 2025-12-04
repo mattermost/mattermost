@@ -60,6 +60,8 @@ func (pd *PageDraftContent) IsValid() *AppError {
 }
 
 func (pd *PageDraftContent) PreSave() {
+	pd.Title = SanitizeUnicode(pd.Title)
+
 	if pd.CreateAt == 0 {
 		pd.CreateAt = GetMillis()
 		pd.UpdateAt = pd.CreateAt

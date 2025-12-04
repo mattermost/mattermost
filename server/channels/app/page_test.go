@@ -98,6 +98,15 @@ func TestCreatePageWithContent(t *testing.T) {
 		require.Nil(t, page)
 		require.Equal(t, "app.page.create.parent_different_channel.app_error", err.Id)
 	})
+
+	t.Run("sanitizes unicode in page title", func(t *testing.T) {
+		// Title with BIDI control characters that should be stripped
+		titleWithBIDI := "Test\u202APage\u202BTitle"
+		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, titleWithBIDI, "", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+		require.Equal(t, "TestPageTitle", page.Props["title"], "BIDI characters should be stripped from title")
+	})
 }
 
 func TestGetPage(t *testing.T) {
@@ -177,6 +186,18 @@ func TestUpdatePage(t *testing.T) {
 		page, err := th.App.UpdatePage(sessionCtx, model.NewId(), "New Title", "", "")
 		require.NotNil(t, err)
 		require.Nil(t, page)
+	})
+
+	t.Run("sanitizes unicode in updated page title", func(t *testing.T) {
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Original Title", "", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		// Title with BIDI control characters that should be stripped
+		titleWithBIDI := "Updated\u202ATitle\u202B"
+		updatedPage, err := th.App.UpdatePage(sessionCtx, createdPage.Id, titleWithBIDI, "", "")
+		require.Nil(t, err)
+		require.NotNil(t, updatedPage)
+		require.Equal(t, "UpdatedTitle", updatedPage.Props["title"], "BIDI characters should be stripped from title")
 	})
 }
 

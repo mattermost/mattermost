@@ -167,17 +167,11 @@ const PagesHierarchyPanel = ({
         }
     }, [currentPageId, pages, wikiId, pageMap, selectedPageId, actions]);
 
-    // Combine pages and drafts for tree building
-    // Show published pages even if they have drafts (drafts are indicated with "Unpublished changes" badge)
-    // Only show draft nodes for NEW pages (pages that don't exist yet)
-    const allPages = useMemo(() => {
-        return [...pages, ...draftPosts];
-    }, [pages, draftPosts]);
-
     // Build tree from flat pages (including drafts)
+    // Uses allPagesAndDrafts which combines published pages with draft-only pages
     const tree = useMemo(() => {
-        return buildTree(allPages);
-    }, [allPages]);
+        return buildTree(allPagesAndDrafts);
+    }, [allPagesAndDrafts]);
 
     // Filter tree by search query
     const filteredTree = useMemo(() => {
@@ -325,6 +319,7 @@ const PagesHierarchyPanel = ({
             <TextInputModal
                 show={menuHandlers.showCreatePageModal}
                 title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
+                fieldLabel='Page title'
                 placeholder='Enter page title...'
                 helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
                 confirmButtonText='Create'

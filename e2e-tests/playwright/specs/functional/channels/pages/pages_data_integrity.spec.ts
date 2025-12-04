@@ -37,8 +37,6 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
     await newPageButton.click();
     await fillCreatePageModal(page, 'XSS Test Page');
 
-    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
-
     // # Attempt to inject script tag
     const xssAttempt = '<script>alert("XSS")</script>';
     await getEditorAndWait(page);
@@ -86,8 +84,6 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, xssTitle);
-
-    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
     await getEditorAndWait(page);
     await typeInEditor(page, 'Content here');
@@ -171,8 +167,6 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
     await fillCreatePageModal(page, 'Validation Test Page');
-
-    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
     // # Attempt very long title (>255 characters)
     const longTitle = 'A'.repeat(300);

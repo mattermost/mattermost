@@ -13,10 +13,10 @@ describe('wiki_pages reducer', () => {
         byWiki: {},
         loading: {},
         error: {},
-        pendingPublishes: {},
         lastPagesInvalidated: {},
         lastDraftsInvalidated: {},
         statusField: null,
+        publishedDraftTimestamps: {},
     };
 
     const wikiId = 'wiki123';
@@ -211,6 +211,57 @@ describe('wiki_pages reducer', () => {
             expect(nextState.byWiki[wikiId]).toEqual(['page1', 'page2', realPageId]);
             expect(nextState.byWiki[wikiId].length).toBe(3);
         });
+
+        test('should remove duplicates from byWiki array (HA race condition fix)', () => {
+            // In HA environments, duplicate WebSocket events can cause the same page ID
+            // to be added multiple times due to race conditions. This test ensures
+            // that duplicates are cleaned up when processing RECEIVED_PAGE_IN_WIKI.
+            const stateWithDuplicates = {
+                ...initialState,
+                byWiki: {
+                    [wikiId]: ['page1', 'page2', 'page2', 'page3', 'page1'],
+                },
+            };
+
+            const newPage = {...mockPage, id: 'page4'};
+            const action = {
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                data: {page: newPage, wikiId},
+            };
+
+            const nextState = wikiPagesReducer(stateWithDuplicates, action);
+
+            expect(nextState.byWiki[wikiId]).toEqual(['page1', 'page2', 'page3', 'page4']);
+            expect(nextState.byWiki[wikiId].length).toBe(4);
+        });
+
+        test('should handle duplicate page being added via WebSocket (HA scenario)', () => {
+            // Simulates HA scenario where the same page is received via multiple WebSocket connections
+            const stateWithPage = {
+                ...initialState,
+                byWiki: {
+                    [wikiId]: ['page1', pageId],
+                },
+            };
+
+            // First WebSocket event adds the page
+            const action1 = {
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                data: {page: mockPage, wikiId},
+            };
+            const state1 = wikiPagesReducer(stateWithPage, action1);
+
+            // Second WebSocket event (from another HA node) tries to add the same page
+            const action2 = {
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                data: {page: mockPage, wikiId},
+            };
+            const state2 = wikiPagesReducer(state1, action2);
+
+            // Should still have no duplicates
+            expect(state2.byWiki[wikiId]).toEqual(['page1', pageId]);
+            expect(state2.byWiki[wikiId].length).toBe(2);
+        });
     });
 
     describe('DELETED_PAGE', () => {
@@ -266,80 +317,189 @@ describe('wiki_pages reducer', () => {
         });
     });
 
-    describe('PUBLISH_DRAFT_REQUEST', () => {
-        test('should set pending publish state', () => {
+    describe('PUBLISH_DRAFT_SUCCESS', () => {
+        test('should seed publishedDraftTimestamps with server timestamp', () => {
             const draftId = 'draft123';
+            const publishedAt = 1700000000000;
             const action = {
-                type: WikiTypes.PUBLISH_DRAFT_REQUEST,
-                data: {draftId},
+                type: WikiTypes.PUBLISH_DRAFT_SUCCESS,
+                data: {draftId, pageId: 'page123', optimisticId: 'pending-123', publishedAt},
             };
 
             const nextState = wikiPagesReducer(initialState, action);
 
-            expect(nextState.pendingPublishes[draftId]).toBe(true);
+            expect(nextState.publishedDraftTimestamps[draftId]).toBe(publishedAt);
         });
-    });
 
-    describe('PUBLISH_DRAFT_SUCCESS', () => {
-        test('should clear pending publish state', () => {
-            const draftId = 'draft123';
-            const stateWithPending = {
+        test('should preserve existing timestamps when adding new one', () => {
+            const existingDraftId = 'existing-draft';
+            const existingTimestamp = 1600000000000;
+            const stateWithTimestamp = {
                 ...initialState,
-                pendingPublishes: {
-                    [draftId]: true,
+                publishedDraftTimestamps: {
+                    [existingDraftId]: existingTimestamp,
                 },
             };
 
+            const newDraftId = 'new-draft';
+            const newTimestamp = 1700000000000;
             const action = {
                 type: WikiTypes.PUBLISH_DRAFT_SUCCESS,
-                data: {draftId, pageId: 'page123', optimisticId: 'pending-123'},
+                data: {draftId: newDraftId, pageId: 'page456', publishedAt: newTimestamp},
             };
 
-            const nextState = wikiPagesReducer(stateWithPending, action);
+            const nextState = wikiPagesReducer(stateWithTimestamp, action);
 
-            expect(nextState.pendingPublishes[draftId]).toBeUndefined();
+            expect(nextState.publishedDraftTimestamps[existingDraftId]).toBe(existingTimestamp);
+            expect(nextState.publishedDraftTimestamps[newDraftId]).toBe(newTimestamp);
         });
     });
 
-    describe('PUBLISH_DRAFT_FAILURE', () => {
-        test('should clear pending publish state', () => {
+    describe('DELETED_DRAFT', () => {
+        test('should record timestamp when publishedAt is provided', () => {
             const draftId = 'draft123';
-            const stateWithPending = {
+            const publishedAt = 1700000000000;
+            const action = {
+                type: WikiTypes.DELETED_DRAFT,
+                data: {id: draftId, wikiId: 'wiki123', publishedAt},
+            };
+
+            const nextState = wikiPagesReducer(initialState, action);
+
+            expect(nextState.publishedDraftTimestamps[draftId]).toBe(publishedAt);
+        });
+
+        test('should not update if publishedAt is not provided', () => {
+            const draftId = 'draft123';
+            const action = {
+                type: WikiTypes.DELETED_DRAFT,
+                data: {id: draftId, wikiId: 'wiki123'},
+            };
+
+            const nextState = wikiPagesReducer(initialState, action);
+
+            expect(nextState).toBe(initialState);
+        });
+
+        test('should not update if new timestamp is older than existing', () => {
+            const draftId = 'draft123';
+            const existingTimestamp = 1700000000000;
+            const stateWithTimestamp = {
                 ...initialState,
-                pendingPublishes: {
-                    [draftId]: true,
+                publishedDraftTimestamps: {
+                    [draftId]: existingTimestamp,
+                },
+            };
+
+            const olderTimestamp = 1600000000000;
+            const action = {
+                type: WikiTypes.DELETED_DRAFT,
+                data: {id: draftId, wikiId: 'wiki123', publishedAt: olderTimestamp},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamp, action);
+
+            expect(nextState.publishedDraftTimestamps[draftId]).toBe(existingTimestamp);
+        });
+
+        test('should update if new timestamp is newer than existing', () => {
+            const draftId = 'draft123';
+            const existingTimestamp = 1600000000000;
+            const stateWithTimestamp = {
+                ...initialState,
+                publishedDraftTimestamps: {
+                    [draftId]: existingTimestamp,
+                },
+            };
+
+            const newerTimestamp = 1700000000000;
+            const action = {
+                type: WikiTypes.DELETED_DRAFT,
+                data: {id: draftId, wikiId: 'wiki123', publishedAt: newerTimestamp},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamp, action);
+
+            expect(nextState.publishedDraftTimestamps[draftId]).toBe(newerTimestamp);
+        });
+    });
+
+    describe('CLEANUP_PUBLISHED_DRAFT_TIMESTAMPS', () => {
+        test('should remove entries older than staleThreshold', () => {
+            const oldDraftId = 'old-draft';
+            const newDraftId = 'new-draft';
+            const oldTimestamp = 1600000000000;
+            const newTimestamp = 1700000000000;
+            const staleThreshold = 1650000000000;
+
+            const stateWithTimestamps = {
+                ...initialState,
+                publishedDraftTimestamps: {
+                    [oldDraftId]: oldTimestamp,
+                    [newDraftId]: newTimestamp,
                 },
             };
 
             const action = {
-                type: WikiTypes.PUBLISH_DRAFT_FAILURE,
-                data: {draftId, error: 'Failed to publish'},
+                type: WikiTypes.CLEANUP_PUBLISHED_DRAFT_TIMESTAMPS,
+                data: {staleThreshold},
             };
 
-            const nextState = wikiPagesReducer(stateWithPending, action);
+            const nextState = wikiPagesReducer(stateWithTimestamps, action);
 
-            expect(nextState.pendingPublishes[draftId]).toBeUndefined();
+            expect(nextState.publishedDraftTimestamps[oldDraftId]).toBeUndefined();
+            expect(nextState.publishedDraftTimestamps[newDraftId]).toBe(newTimestamp);
         });
-    });
 
-    describe('PUBLISH_DRAFT_COMPLETED', () => {
-        test('should clear pending publish state', () => {
-            const draftId = 'draft123';
-            const stateWithPending = {
+        test('should keep entries newer than staleThreshold', () => {
+            const draftId1 = 'draft1';
+            const draftId2 = 'draft2';
+            const timestamp1 = 1700000000000;
+            const timestamp2 = 1700000001000;
+            const staleThreshold = 1600000000000;
+
+            const stateWithTimestamps = {
                 ...initialState,
-                pendingPublishes: {
-                    [draftId]: true,
+                publishedDraftTimestamps: {
+                    [draftId1]: timestamp1,
+                    [draftId2]: timestamp2,
                 },
             };
 
             const action = {
-                type: WikiTypes.PUBLISH_DRAFT_COMPLETED,
-                data: {draftId},
+                type: WikiTypes.CLEANUP_PUBLISHED_DRAFT_TIMESTAMPS,
+                data: {staleThreshold},
             };
 
-            const nextState = wikiPagesReducer(stateWithPending, action);
+            const nextState = wikiPagesReducer(stateWithTimestamps, action);
 
-            expect(nextState.pendingPublishes[draftId]).toBeUndefined();
+            expect(nextState.publishedDraftTimestamps[draftId1]).toBe(timestamp1);
+            expect(nextState.publishedDraftTimestamps[draftId2]).toBe(timestamp2);
+        });
+
+        test('should remove all entries when all are stale', () => {
+            const draftId1 = 'draft1';
+            const draftId2 = 'draft2';
+            const timestamp1 = 1600000000000;
+            const timestamp2 = 1600000001000;
+            const staleThreshold = 1700000000000;
+
+            const stateWithTimestamps = {
+                ...initialState,
+                publishedDraftTimestamps: {
+                    [draftId1]: timestamp1,
+                    [draftId2]: timestamp2,
+                },
+            };
+
+            const action = {
+                type: WikiTypes.CLEANUP_PUBLISHED_DRAFT_TIMESTAMPS,
+                data: {staleThreshold},
+            };
+
+            const nextState = wikiPagesReducer(stateWithTimestamps, action);
+
+            expect(Object.keys(nextState.publishedDraftTimestamps)).toHaveLength(0);
         });
     });
 
@@ -357,7 +517,7 @@ describe('wiki_pages reducer', () => {
             expect(stateKeys).toContain('byWiki');
             expect(stateKeys).toContain('loading');
             expect(stateKeys).toContain('error');
-            expect(stateKeys).toContain('pendingPublishes');
+            expect(stateKeys).toContain('publishedDraftTimestamps');
             expect(stateKeys).not.toContain('pageSummaries');
             expect(stateKeys).not.toContain('fullPages');
         });

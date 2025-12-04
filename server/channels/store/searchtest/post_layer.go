@@ -295,6 +295,16 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchWikiPages,
 		Tags: []string{EnginePostgres},
 	},
+	{
+		Name: "Should handle SQL special characters in search terms safely",
+		Fn:   testSearchWithSQLSpecialCharacters,
+		Tags: []string{EngineAll},
+	},
+	{
+		Name: "Should search wiki pages by title stored in props",
+		Fn:   testSearchWikiPagesByTitle,
+		Tags: []string{EnginePostgres},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -2182,5 +2192,126 @@ func testSearchWikiPages(t *testing.T, th *SearchTestHelper) {
 		require.NoError(t, err)
 
 		require.Len(t, results.Posts, 0)
+	})
+}
+
+func testSearchWithSQLSpecialCharacters(t *testing.T, th *SearchTestHelper) {
+	// Create posts with special characters that could cause SQL injection or query issues
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "message with percent% character", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "message with underscore_ character", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p3, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "message with single'quote character", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p4, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "message with backslash\\ character", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	t.Run("Search with percent character should not cause SQL LIKE wildcard issues", func(t *testing.T) {
+		// The % character is a SQL LIKE wildcard - ensure it's escaped
+		params := &model.SearchParams{Terms: "percent%"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+		// Should find the post with "percent%" or no results, but NOT match everything
+		require.LessOrEqual(t, len(results.Posts), 1, "% should not act as wildcard matching multiple posts")
+		if len(results.Posts) == 1 {
+			th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		}
+	})
+
+	t.Run("Search with underscore character should not cause SQL LIKE wildcard issues", func(t *testing.T) {
+		// The _ character is a SQL LIKE single-char wildcard - ensure it's escaped
+		params := &model.SearchParams{Terms: "underscore_"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+		require.LessOrEqual(t, len(results.Posts), 1, "_ should not act as single-char wildcard")
+		if len(results.Posts) == 1 {
+			th.checkPostInSearchResults(t, p2.Id, results.Posts)
+		}
+	})
+
+	t.Run("Search with single quote should not cause SQL injection", func(t *testing.T) {
+		// Single quotes could break SQL strings - ensure they're handled safely
+		params := &model.SearchParams{Terms: "single'quote"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		// Should either succeed or fail gracefully, not panic
+		if err == nil {
+			require.LessOrEqual(t, len(results.Posts), 1)
+			if len(results.Posts) == 1 {
+				th.checkPostInSearchResults(t, p3.Id, results.Posts)
+			}
+		}
+		// If error, that's acceptable - the important thing is no SQL injection
+	})
+
+	t.Run("Search with backslash should be handled safely", func(t *testing.T) {
+		// Backslashes can cause escape sequence issues
+		params := &model.SearchParams{Terms: "backslash\\"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		// Should either succeed or fail gracefully
+		if err == nil {
+			require.LessOrEqual(t, len(results.Posts), 1)
+			if len(results.Posts) == 1 {
+				th.checkPostInSearchResults(t, p4.Id, results.Posts)
+			}
+		}
+	})
+
+	t.Run("Search with SQL injection attempt should be handled safely", func(t *testing.T) {
+		// Classic SQL injection attempt
+		params := &model.SearchParams{Terms: "'; DROP TABLE Posts; --"}
+		_, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		// Should either return empty results or error, but NOT execute the injection
+		if err == nil {
+			// Verify the Posts table still exists by running another search
+			verifyParams := &model.SearchParams{Terms: "message"}
+			verifyResults, verifyErr := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{verifyParams}, th.User.Id, th.Team.Id, 0, 20)
+			require.NoError(t, verifyErr, "Posts table should still exist after injection attempt")
+			require.GreaterOrEqual(t, len(verifyResults.Posts), 1, "Should still be able to find posts")
+		}
+	})
+}
+
+func testSearchWikiPagesByTitle(t *testing.T, th *SearchTestHelper) {
+	// Create a wiki page with title stored in Props
+	wikiPage, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	// Set the title in Props (as wiki pages do)
+	wikiPage.AddProp("title", "UniqueWikiPageTitleSearchTest")
+	_, err = th.Store.Post().Update(th.Context, wikiPage, wikiPage)
+	require.NoError(t, err)
+
+	// Create page content with SearchText for title
+	pageContent := &model.PageContent{
+		PageId: wikiPage.Id,
+		Content: model.TipTapDocument{
+			Type:    "doc",
+			Content: []map[string]any{},
+		},
+		SearchText: "UniqueWikiPageTitleSearchTest",
+		CreateAt:   model.GetMillis(),
+		UpdateAt:   model.GetMillis(),
+	}
+	_, err = th.Store.Page().SavePageContent(pageContent)
+	require.NoError(t, err)
+
+	t.Run("Should find wiki page by title via SearchText in PageContents", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "UniqueWikiPageTitleSearchTest"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("Should find wiki page with partial title match", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "UniqueWikiPage*"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
 	})
 }

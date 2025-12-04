@@ -12,7 +12,6 @@ import {
     enterEditMode,
     waitForEditModeReady,
     clearEditorContent,
-    SHORT_WAIT,
     ELEMENT_TIMEOUT,
 } from './test_helpers';
 
@@ -53,18 +52,17 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
     const publishButton1 = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton1.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # Navigate to Page 2 (navigate AWAY from Page 1)
     const page2Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page2.id}"]`).first();
+    await expect(page2Node).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await page2Node.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # Navigate BACK to Page 1
+    await expect(page1Node).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await page1Node.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # NOW show outline for Page 1
     await showPageOutline(page, page1.id);

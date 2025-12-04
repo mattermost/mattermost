@@ -198,7 +198,6 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
 
     // * Expand first item to verify author is displayed
     await firstItem.click();
-    await page.waitForTimeout(SHORT_WAIT);
     await expect(firstItem).toContainText(user.username, {timeout: ELEMENT_TIMEOUT});
 });
 
@@ -259,8 +258,7 @@ test('restores previous page version from version history', {tag: '@pages'}, asy
 
     // * Verify clicking the page in hierarchy still works (validates page metadata in wiki store)
     await hierarchyPageNode.click();
-    await page.waitForTimeout(SHORT_WAIT);
-    await expect(wikiView).toContainText('Version 2: First edit');
+    await expect(wikiView).toContainText('Version 2: First edit', {timeout: ELEMENT_TIMEOUT});
 
     // # Reopen version history to verify restore created a new version
     await openVersionHistoryModal(page, 'Restore Test Page');

@@ -12,20 +12,20 @@ export type WikiPagesState = {
     byWiki: Record<string, string[]>;
     loading: Record<string, boolean>;
     error: Record<string, string | null>;
-    pendingPublishes: Record<string, boolean>;
     lastPagesInvalidated: Record<string, number>;
     lastDraftsInvalidated: Record<string, number>;
     statusField: SelectPropertyField | null;
+    publishedDraftTimestamps: Record<string, number>;
 };
 
 const initialState: WikiPagesState = {
     byWiki: {},
     loading: {},
     error: {},
-    pendingPublishes: {},
     lastPagesInvalidated: {},
     lastDraftsInvalidated: {},
     statusField: null,
+    publishedDraftTimestamps: {},
 };
 
 export default function wikiPagesReducer(state = initialState, action: AnyAction): WikiPagesState {
@@ -100,6 +100,10 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
             const alreadyExists = currentPageIds.includes(page.id);
             nextPageIds = alreadyExists ? currentPageIds : [...currentPageIds, page.id];
         }
+
+        // Ensure uniqueness - in HA environments, duplicate WebSocket events can cause
+        // the same page ID to be added multiple times due to race conditions
+        nextPageIds = [...new Set(nextPageIds)];
 
         return {
             ...state,
@@ -180,33 +184,44 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
             lastDraftsInvalidated: nextLastDraftsInvalidated,
         };
     }
-    case WikiTypes.PUBLISH_DRAFT_REQUEST: {
-        const {draftId} = action.data;
+    case WikiTypes.PUBLISH_DRAFT_SUCCESS: {
+        const {draftId, publishedAt} = action.data;
         return {
             ...state,
-            pendingPublishes: {
-                ...state.pendingPublishes,
-                [draftId]: true,
+            publishedDraftTimestamps: {
+                ...(state.publishedDraftTimestamps || {}),
+                [draftId]: publishedAt,
             },
         };
     }
-    case WikiTypes.PUBLISH_DRAFT_SUCCESS:
-    case WikiTypes.PUBLISH_DRAFT_FAILURE: {
-        const {draftId} = action.data;
-        const nextPendingPublishes = {...state.pendingPublishes};
-        Reflect.deleteProperty(nextPendingPublishes, draftId);
+    case WikiTypes.DELETED_DRAFT: {
+        const {id, publishedAt} = action.data;
+        if (!publishedAt) {
+            return state;
+        }
+        const existingTimestamp = state.publishedDraftTimestamps?.[id] || 0;
+        if (publishedAt <= existingTimestamp) {
+            return state;
+        }
         return {
             ...state,
-            pendingPublishes: nextPendingPublishes,
+            publishedDraftTimestamps: {
+                ...(state.publishedDraftTimestamps || {}),
+                [id]: publishedAt,
+            },
         };
     }
-    case WikiTypes.PUBLISH_DRAFT_COMPLETED: {
-        const {draftId} = action.data;
-        const nextPendingPublishes = {...state.pendingPublishes};
-        Reflect.deleteProperty(nextPendingPublishes, draftId);
+    case WikiTypes.CLEANUP_PUBLISHED_DRAFT_TIMESTAMPS: {
+        const {staleThreshold} = action.data;
+        const publishedDraftTimestamps: Record<string, number> = {};
+        Object.entries(state.publishedDraftTimestamps || {}).forEach(([draftId, timestamp]) => {
+            if (timestamp > staleThreshold) {
+                publishedDraftTimestamps[draftId] = timestamp;
+            }
+        });
         return {
             ...state,
-            pendingPublishes: nextPendingPublishes,
+            publishedDraftTimestamps,
         };
     }
     case WikiTypes.INVALIDATE_PAGES: {

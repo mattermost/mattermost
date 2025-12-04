@@ -3,7 +3,9 @@
 
 import {createRandomUser} from '@mattermost/playwright-lib';
 
-import {expect, test} from './pages_test_fixture';
+// Use testWithRegularUser for permission tests to properly test the permission system.
+// Regular users are needed because admin users bypass all permission checks.
+import {expect, testWithRegularUser as test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     createPageThroughUI,
@@ -14,7 +16,6 @@ import {
     buildWikiPageUrl,
     waitForPageViewerLoad,
     getEditorAndWait,
-    SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
@@ -44,7 +45,6 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
 
     // # Click to verify creation flow works
     await newPageButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify editor opened
     await getEditorAndWait(page);
@@ -89,21 +89,21 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         );
         await nonMemberPage.waitForLoadState('networkidle');
 
-        // Wait for any redirects to complete
-        await nonMemberPage.waitForTimeout(EDITOR_LOAD_WAIT);
-
         // * Verify access denied (error page, redirect, or permission message)
-        const currentUrl = nonMemberPage.url();
-        const isAccessDenied =
-            currentUrl.includes('error') || currentUrl.includes('unauthorized') || !currentUrl.includes(wiki.id);
+        // Wait for redirect to complete or error message to appear
+        await expect(async () => {
+            const currentUrl = nonMemberPage.url();
+            const isAccessDenied =
+                currentUrl.includes('error') || currentUrl.includes('unauthorized') || !currentUrl.includes(wiki.id);
 
-        if (!isAccessDenied) {
-            // Check for permission error message on page
-            const errorMessage = nonMemberPage.locator('text=/permission|access denied|unauthorized/i').first();
-            await expect(errorMessage).toBeVisible({timeout: ELEMENT_TIMEOUT});
-        } else {
-            expect(isAccessDenied).toBe(true);
-        }
+            if (!isAccessDenied) {
+                // Check for permission error message on page
+                const errorMessage = nonMemberPage.locator('text=/permission|access denied|unauthorized/i').first();
+                await expect(errorMessage).toBeVisible();
+            } else {
+                expect(isAccessDenied).toBe(true);
+            }
+        }).toPass({timeout: EDITOR_LOAD_WAIT});
     } finally {
         // # Cleanup: Delete the private channel
         await adminClient.deleteChannel(privateChannel.id);
@@ -135,7 +135,6 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
 
     // # Click edit to verify it works
     await editButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify editor opened
     await getEditorAndWait(page);
@@ -261,6 +260,8 @@ test.skip(
 
 /**
  * @objective Verify read-only permissions restrict editing
+ *
+ * @precondition License must support guest accounts (Professional or Enterprise)
  */
 test('restricts page actions based on channel permissions', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;

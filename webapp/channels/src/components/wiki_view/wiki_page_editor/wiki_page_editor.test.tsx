@@ -332,7 +332,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             expect(editorContainer).toBeInTheDocument();
         });
 
-        test('should handle content changes from editor', async () => {
+        test('should render ProseMirror editor with initial content', () => {
             const props = {
                 ...baseProps,
                 pageId: 'page-1',
@@ -340,9 +340,13 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             };
             renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
-            // Real TipTapEditor will trigger onContentChange when content changes
-            // This is tested through the editor's own tests
-            expect(document.querySelector('.ProseMirror')).toBeInTheDocument();
+            // Verify the ProseMirror editor is rendered with content
+            const editor = document.querySelector('.ProseMirror');
+            expect(editor).toBeInTheDocument();
+            expect(editor?.textContent).toContain('Test content');
+
+            // Note: Testing content change callbacks requires E2E tests due to JSDOM limitations
+            // with ProseMirror (getClientRects, elementFromPoint not available in JSDOM)
         });
     });
 

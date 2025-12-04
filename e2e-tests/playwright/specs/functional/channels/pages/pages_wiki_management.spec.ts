@@ -24,8 +24,11 @@ import {
     openWikiByTab,
     moveWikiToChannel,
     getHierarchyPanel,
+    getPageViewerContent,
+    getBreadcrumb,
+    verifyBreadcrumbContains,
+    verifyPageContentContains,
     EDITOR_LOAD_WAIT,
-    AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
     WEBSOCKET_WAIT,
@@ -231,6 +234,7 @@ test(
  * Wiki must have pages and hierarchy before rename
  */
 test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    test.slow();
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel ' + pw.random.id());
 
@@ -251,38 +255,21 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await createChildPageThroughContextMenu(page, parentPage.id, 'Child Page', 'Child content');
 
     // * Verify child page is visible with content
-    const childPageContent = page.locator('[data-testid="page-viewer-content"]');
+    const childPageContent = getPageViewerContent(page);
     await expect(childPageContent).toContainText('Child content');
 
     // # Navigate back to channel to rename wiki
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
-    await page.waitForLoadState('networkidle');
+    await navigateToChannelFromWiki(page, channelsPage, team.name, channel.name);
 
     // # Wait for wiki tab to be visible and rename wiki through wiki tab menu
-    const wikiTab = getWikiTab(page, originalWikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-
-    await openWikiTabMenu(page, originalWikiName);
-    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
-
-    const renameModal = page.getByRole('dialog');
-    const titleInput = renameModal.locator('#text-input-modal-input');
-    await titleInput.clear();
-    await titleInput.fill(newWikiName);
-    await renameModal.getByRole('button', {name: /rename/i}).click();
-    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await waitForWikiTab(page, originalWikiName);
+    await renameWikiThroughModal(page, originalWikiName, newWikiName);
 
     // # Click on renamed wiki tab
-    const updatedTab = getWikiTab(page, newWikiName);
-    await updatedTab.click();
-    await page.waitForLoadState('networkidle');
+    await openWikiByTab(page, newWikiName);
 
     // * Verify navigated to wiki
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
-
-    // # Wait for component to mount before checking visibility
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await verifyNavigatedToWiki(page);
 
     // # Wait for wiki view to load
     await waitForWikiViewLoad(page);
@@ -290,9 +277,6 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     // # Wait for auto-selection to complete (URL will include pageId or draftId)
     // Wiki view automatically selects first page/draft when navigating to wiki root
     await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+/, {timeout: HIERARCHY_TIMEOUT});
-
-    // # Wait additional time for pages to fully load after rename
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for pages to load in hierarchy panel
     await waitForPageInHierarchy(page, 'Parent Page', 15000);
@@ -320,10 +304,10 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await expect(childPageContent).toContainText('Child content');
 
     // * Verify breadcrumb navigation exists and shows page hierarchy
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]').first();
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(breadcrumb).toContainText('Parent Page');
-    await expect(breadcrumb).toContainText('Child Page');
+    await verifyBreadcrumbContains(page, 'Parent Page');
+    await verifyBreadcrumbContains(page, 'Child Page');
 
     // # Click on parent in breadcrumb to navigate back
     const parentBreadcrumbLink = breadcrumb.locator('.PageBreadcrumb__link').filter({hasText: 'Parent Page'}).first();
@@ -347,6 +331,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
  * Wiki must have multiple pages in hierarchy
  */
 test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    test.slow();
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, 'Test Channel ' + pw.random.id());
 
@@ -371,38 +356,18 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     await expect(hierarchyPanel.getByRole('button', {name: 'Page C'}).first()).toBeVisible();
 
     // # Navigate to channel and rename wiki
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
-    await page.waitForLoadState('networkidle');
+    await navigateToChannelFromWiki(page, channelsPage, team.name, channel.name);
 
-    // # Wait for wiki tab to be visible
-    const wikiTab = getWikiTab(page, originalWikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-
-    await openWikiTabMenu(page, originalWikiName);
-    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
-
-    const renameModal = page.getByRole('dialog');
-    const titleInput = renameModal.locator('#text-input-modal-input');
-    await titleInput.clear();
-    await titleInput.fill(newWikiName);
-    await renameModal.getByRole('button', {name: /rename/i}).click();
-    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    // # Wait for wiki tab to be visible and rename wiki
+    await waitForWikiTab(page, originalWikiName);
+    await renameWikiThroughModal(page, originalWikiName, newWikiName);
 
     // # Click on renamed wiki
-    const updatedTab = getWikiTab(page, newWikiName);
-    await updatedTab.click();
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/wiki\//);
-
-    // # Wait for component to mount before checking visibility
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+    await openWikiByTab(page, newWikiName);
+    await verifyNavigatedToWiki(page);
 
     // # Wait for wiki view to load
     await waitForWikiViewLoad(page);
-
-    // # Wait additional time for pages to fully load after rename
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // # Wait for pages to load in hierarchy panel with longer timeout
     await waitForPageInHierarchy(page, 'Page A', 15000);
@@ -415,20 +380,15 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     await expect(hierarchyPanel.getByRole('button', {name: 'Page C'}).first()).toBeVisible();
 
     // # Navigate to each page through hierarchy to verify navigation works
-    const pageContent = page.locator('[data-testid="page-viewer-content"]');
-
     // Click the title button specifically to select Page B
     await hierarchyPanel.locator('[data-testid="page-tree-node-title"]', {hasText: 'Page B'}).click();
-    await pageContent.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-    await expect(pageContent).toContainText('Content B');
+    await verifyPageContentContains(page, 'Content B');
 
     await hierarchyPanel.locator('[data-testid="page-tree-node-title"]', {hasText: 'Page C'}).click();
-    await pageContent.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-    await expect(pageContent).toContainText('Content C');
+    await verifyPageContentContains(page, 'Content C');
 
     await hierarchyPanel.locator('[data-testid="page-tree-node-title"]', {hasText: 'Page A'}).click();
-    await pageContent.waitFor({state: 'visible', timeout: HIERARCHY_TIMEOUT});
-    await expect(pageContent).toContainText('Content A');
+    await verifyPageContentContains(page, 'Content A');
 });
 
 /**

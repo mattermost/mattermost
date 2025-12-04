@@ -15,6 +15,7 @@ import './text_input_modal.scss';
 type Props = {
     show?: boolean;
     title: string;
+    fieldLabel?: string;
     placeholder: string;
     helpText?: string;
     confirmButtonText?: string;
@@ -33,6 +34,7 @@ type Props = {
 const TextInputModal = ({
     show = true,
     title,
+    fieldLabel,
     placeholder,
     helpText,
     confirmButtonText = 'Confirm',
@@ -108,7 +110,7 @@ const TextInputModal = ({
                     htmlFor='text-input-modal-input'
                     className='TextInputModal__label'
                 >
-                    {title}
+                    {fieldLabel || title}
                 </label>
                 <input
                     id='text-input-modal-input'

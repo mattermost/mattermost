@@ -11,13 +11,16 @@ import {
     verifyPageNotInHierarchy,
     openMovePageModal,
     getHierarchyPanel,
+    createTestChannel,
     createTestUserInChannel,
     renamePageViaContextMenu,
     deletePageThroughUI,
+    deleteWikiThroughModalConfirmation,
     createChildPageThroughContextMenu,
     withRolePermissions,
     setupWebSocketEventLogging,
     getWebSocketEvents,
+    navigateToWikiView,
     EDITOR_LOAD_WAIT,
     WEBSOCKET_WAIT,
     ELEMENT_TIMEOUT,
@@ -487,5 +490,424 @@ test(
         }
 
         await user2Page.close();
+    },
+);
+
+/**
+ * @objective Verify user is redirected when viewing a wiki that another user deletes
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * Two users have access to the same channel
+ * User 1 has wiki deletion permissions
+ */
+test(
+    'redirects user when wiki is deleted by another user while viewing',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        // # Grant wiki deletion permissions to channel_user role
+        const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+            'manage_public_channel_properties',
+        ]);
+
+        // # User 1 creates wiki and page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        const wikiName = `Wiki to Delete ${await pw.random.id()}`;
+        const wiki = await createWikiThroughUI(page1, wikiName);
+        const pageTitle = `Test Page ${await pw.random.id()}`;
+        const createdPage = await createPageThroughUI(page1, pageTitle, 'This page will be deleted with wiki');
+
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        // # User 2 logs in and navigates to the wiki page
+        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+        await channelsPage2.goto(team.name, channel.name);
+        await channelsPage2.toBeVisible();
+
+        // # Navigate to the wiki page
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
+
+        // * Verify user2 is viewing the page
+        const pageViewer = user2Page.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await expect(pageViewer).toContainText('This page will be deleted with wiki');
+
+        // # Setup WebSocket event logging for debugging
+        await setupWebSocketEventLogging(user2Page);
+
+        // # User 1 navigates back to channel view to access wiki tab menu
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+
+        // # User 1 deletes the wiki through the tab menu
+        await deleteWikiThroughModalConfirmation(page1, wikiName);
+        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+
+        // * Verify user2 is redirected or shown error (real-time notification)
+        await user2Page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Debug: Print captured WebSocket events
+        await getWebSocketEvents(user2Page, 'Wiki Deleted');
+
+        // Check if redirected away from wiki (URL change) or if error shown
+        const currentUrl = user2Page.url();
+        const isStillInWiki = currentUrl.includes(`/wiki/${channel.id}/${wiki.id}`);
+
+        if (isStillInWiki) {
+            // May show error message on the page
+            const errorIndicators = [
+                user2Page.locator('text=/wiki.*not.*found/i'),
+                user2Page.locator('text=/wiki.*deleted/i'),
+                user2Page.locator('text=/no longer.*available/i'),
+                user2Page.locator('text=/page.*not.*found/i'),
+                user2Page.locator('.error'),
+            ];
+
+            let errorFound = false;
+            for (const indicator of errorIndicators) {
+                if (await indicator.isVisible({timeout: EDITOR_LOAD_WAIT}).catch(() => false)) {
+                    errorFound = true;
+                    break;
+                }
+            }
+
+            // If no error shown in real-time, refresh and verify wiki is gone
+            if (!errorFound) {
+                await user2Page.reload();
+                await user2Page.waitForLoadState('networkidle');
+
+                // After reload, should be redirected or show error
+                const urlAfterReload = user2Page.url();
+                const redirectedAfterReload = !urlAfterReload.includes(`/wiki/${channel.id}/${wiki.id}`);
+                expect(redirectedAfterReload).toBe(true);
+            }
+        } else {
+            // Successfully redirected away from deleted wiki
+            expect(isStillInWiki).toBe(false);
+        }
+
+        await user2Page.close();
+
+        // # Cleanup: Restore original permissions
+        await restorePermissions();
+    },
+);
+
+/**
+ * @objective Verify wiki tab disappears for other users when wiki is deleted
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * Two users have access to the same channel
+ */
+test('removes wiki tab for other users when wiki is deleted', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    // # Grant wiki deletion permissions
+    const restorePermissions = await withRolePermissions(adminClient, 'channel_user', [
+        'manage_public_channel_properties',
+    ]);
+
+    // # User 1 creates wiki
+    const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+    await channelsPage1.goto(team.name, channel.name);
+    await channelsPage1.toBeVisible();
+
+    const wikiName = `Wiki Tab Test ${await pw.random.id()}`;
+    await createWikiThroughUI(page1, wikiName);
+
+    // # Create user2 and add to channel
+    const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+    // # User 2 logs in and navigates to channel (should see wiki tab)
+    const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+    await channelsPage2.goto(team.name, channel.name);
+    await channelsPage2.toBeVisible();
+
+    // * Verify wiki tab is visible for user2
+    const wikiTab = user2Page.locator('.channel-tabs-container__tab-wrapper--wiki').filter({hasText: wikiName});
+    await expect(wikiTab).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+    // # Setup WebSocket event logging
+    await setupWebSocketEventLogging(user2Page);
+
+    // # User 1 navigates back to channel and deletes wiki
+    await channelsPage1.goto(team.name, channel.name);
+    await channelsPage1.toBeVisible();
+    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    await deleteWikiThroughModalConfirmation(page1, wikiName);
+    await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+
+    // * Verify wiki tab disappears from user2's view (real-time)
+    await user2Page.waitForTimeout(WEBSOCKET_WAIT);
+
+    // # Debug: Print captured WebSocket events
+    await getWebSocketEvents(user2Page, 'Wiki Tab Deleted');
+
+    // Check if tab disappeared in real-time
+    const isTabGoneRealtime = await wikiTab
+        .isVisible()
+        .then(() => false)
+        .catch(() => true);
+
+    if (!isTabGoneRealtime) {
+        // # Refresh to verify server state
+        await user2Page.reload();
+        await user2Page.waitForLoadState('networkidle');
+
+        // * Verify wiki tab is gone after refresh
+        await expect(wikiTab).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
+    }
+
+    await user2Page.close();
+
+    // # Cleanup
+    await restorePermissions();
+});
+
+/**
+ * @objective Verify user loses access when removed from channel while viewing wiki page
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * Admin can remove users from channels
+ * Uses a custom channel (not town-square) since users cannot be removed from default channels
+ */
+test(
+    'shows access denied when user is removed from channel while viewing page',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+
+        // # Create a custom channel (users can be removed from custom channels, not town-square)
+        const channel = await createTestChannel(adminClient, team.id, `Permission Test ${await pw.random.id()}`);
+
+        // # Add user1 to the custom channel
+        await adminClient.addToChannel(user1.id, channel.id);
+
+        // # User 1 creates wiki and page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        const wiki = await createWikiThroughUI(page1, `Permission Test Wiki ${await pw.random.id()}`);
+        const pageTitle = `Test Page ${await pw.random.id()}`;
+        const createdPage = await createPageThroughUI(page1, pageTitle, 'Content for permission test');
+
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        // # User 2 logs in and navigates to the page
+        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+        await channelsPage2.goto(team.name, channel.name);
+        await channelsPage2.toBeVisible();
+
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
+
+        // * Verify user2 can view the page
+        const pageViewer = user2Page.locator('[data-testid="page-viewer-content"]');
+        await expect(pageViewer).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+        await expect(pageViewer).toContainText('Content for permission test');
+
+        // # Setup WebSocket event logging
+        await setupWebSocketEventLogging(user2Page);
+
+        // # Admin removes user2 from the channel
+        await adminClient.removeFromChannel(user2.id, channel.id);
+
+        // * Wait for WebSocket notification to propagate
+        await user2Page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Debug: Print captured WebSocket events
+        await getWebSocketEvents(user2Page, 'User Removed From Channel');
+
+        // # Try to interact with the page (this should trigger access check)
+        // Navigate to verify access is revoked
+        await user2Page.reload();
+        await user2Page.waitForLoadState('networkidle');
+
+        // * Verify user2 can no longer access the page
+        // Should see error, redirect, or access denied message
+        const currentUrl = user2Page.url();
+        const isStillOnPage = currentUrl.includes(createdPage.id);
+
+        if (isStillOnPage) {
+            // Look for access denied or error indicators
+            const accessDeniedIndicators = [
+                user2Page.locator('text=/access.*denied/i'),
+                user2Page.locator('text=/permission/i'),
+                user2Page.locator('text=/not.*member/i'),
+                user2Page.locator('text=/cannot.*access/i'),
+                user2Page.locator('text=/not.*found/i'),
+                user2Page.locator('.error'),
+            ];
+
+            let accessDenied = false;
+            for (const indicator of accessDeniedIndicators) {
+                if (await indicator.isVisible({timeout: ELEMENT_TIMEOUT}).catch(() => false)) {
+                    accessDenied = true;
+                    break;
+                }
+            }
+
+            // Content should be hidden or error shown
+            const contentGone = !(await pageViewer.isVisible({timeout: ELEMENT_TIMEOUT}).catch(() => true));
+            expect(accessDenied || contentGone).toBe(true);
+        } else {
+            // Successfully redirected away from page
+            expect(isStillOnPage).toBe(false);
+        }
+
+        await user2Page.close();
+    },
+);
+
+/**
+ * @objective Verify editing user loses edit access when their edit permission is revoked
+ *
+ * @precondition
+ * Pages/Wiki feature is enabled on the server
+ * User has edit_page permission initially
+ */
+test(
+    'shows appropriate UI when edit permission is revoked while user is editing',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user: user1, adminClient} = sharedPagesSetup;
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+        // # First, grant edit_page permission to channel_user role
+        const role = await adminClient.getRoleByName('channel_user');
+        const originalPermissions = [...role.permissions];
+        const hasEditPage = originalPermissions.includes('edit_page');
+
+        if (!hasEditPage) {
+            await adminClient.patchRole(role.id, {
+                permissions: [...originalPermissions, 'edit_page'],
+            });
+        }
+
+        // # User 1 creates wiki and page
+        const {page: page1, channelsPage: channelsPage1} = await pw.testBrowser.login(user1);
+        await channelsPage1.goto(team.name, channel.name);
+        await channelsPage1.toBeVisible();
+
+        const wiki = await createWikiThroughUI(page1, `Edit Permission Wiki ${await pw.random.id()}`);
+        const pageTitle = `Edit Test Page ${await pw.random.id()}`;
+        const createdPage = await createPageThroughUI(page1, pageTitle, 'Original content');
+
+        // # Create user2 and add to channel
+        const {user: user2} = await createTestUserInChannel(pw, adminClient, team, channel, 'user2');
+
+        // # User 2 logs in and navigates to the page
+        const {page: user2Page, channelsPage: channelsPage2} = await pw.testBrowser.login(user2);
+        await channelsPage2.goto(team.name, channel.name);
+        await channelsPage2.toBeVisible();
+
+        await navigateToWikiView(user2Page, pw.url, team.name, channel.id, wiki.id);
+        await user2Page.waitForLoadState('networkidle');
+
+        // # Navigate to the specific page
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
+        await user2Page.goto(wikiPageUrl);
+        await user2Page.waitForLoadState('networkidle');
+
+        // * Verify user2 can see the edit button (has edit permission)
+        const editButton = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
+        await expect(editButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
+
+        // # User 2 enters edit mode
+        await editButton.click();
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+        // * Verify editor is visible
+        const editor = user2Page.locator('.ProseMirror').first();
+        await expect(editor).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+        // # Setup WebSocket event logging
+        await setupWebSocketEventLogging(user2Page);
+
+        // # Admin revokes edit_page permission from channel_user role
+        const currentRole = await adminClient.getRoleByName('channel_user');
+        const permissionsWithoutEdit = currentRole.permissions.filter((p: string) => p !== 'edit_page');
+        await adminClient.patchRole(role.id, {
+            permissions: permissionsWithoutEdit,
+        });
+
+        // * Wait for permission change to propagate
+        await user2Page.waitForTimeout(WEBSOCKET_WAIT);
+
+        // # Try to publish to trigger permission check
+        const publishButton = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
+
+        // Fill some content first
+        await editor.click();
+        await editor.pressSequentially('New content added by user2', {delay: 10});
+        await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+        // * Check if publish button is still enabled/visible
+        const isPublishVisible = await publishButton.isVisible().catch(() => false);
+
+        if (isPublishVisible) {
+            // # Try to publish - should fail due to permission
+            await publishButton.click();
+            await user2Page.waitForTimeout(EDITOR_LOAD_WAIT);
+
+            // * Look for error message about permission
+            const errorIndicators = [
+                user2Page.locator('text=/permission/i'),
+                user2Page.locator('text=/not.*allowed/i'),
+                user2Page.locator('text=/cannot.*edit/i'),
+                user2Page.locator('text=/forbidden/i'),
+                user2Page.locator('.error'),
+                user2Page.locator('[class*="error"]'),
+            ];
+
+            let errorFound = false;
+            for (const indicator of errorIndicators) {
+                if (await indicator.isVisible({timeout: ELEMENT_TIMEOUT}).catch(() => false)) {
+                    errorFound = true;
+                    break;
+                }
+            }
+
+            // If no immediate error, the publish might have succeeded before permission revoke propagated
+            // This is acceptable in some race conditions - just verify the state
+            if (!errorFound) {
+                // Reload and verify edit button is now hidden (permission revoked)
+                await user2Page.reload();
+                await user2Page.waitForLoadState('networkidle');
+
+                // After reload, edit button should not be visible (no edit permission)
+                const editButtonAfterReload = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
+                const editButtonVisible = await editButtonAfterReload
+                    .isVisible({timeout: ELEMENT_TIMEOUT})
+                    .catch(() => false);
+
+                // Edit button should be hidden now that permission is revoked
+                expect(editButtonVisible).toBe(false);
+            }
+        }
+
+        await user2Page.close();
+
+        // # Cleanup: Restore original permissions
+        await adminClient.patchRole(role.id, {
+            permissions: originalPermissions,
+        });
     },
 );

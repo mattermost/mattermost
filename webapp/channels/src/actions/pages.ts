@@ -375,7 +375,6 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         const removeDraftAction = removeGlobalItem(draftKey);
 
         dispatch(batchActions([
-            {type: WikiTypes.PUBLISH_DRAFT_REQUEST, data: {draftId}},
             {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: optimisticPage, wikiId}},
             {type: PostActionTypes.RECEIVED_POST, data: optimisticPage},
             removeDraftAction,
@@ -392,11 +391,11 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baselineUpdateAt) as Page;
 
             const actions: AnyAction[] = [
-                {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
+                {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId, publishedAt: data.update_at}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
                 {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId, pendingPageId}},
-                {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
+                {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, publishedAt: data.update_at}},
             ];
 
             // Extract and store page status in Redux
@@ -444,7 +443,6 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             return {data};
         } catch (error) {
             dispatch(batchActions([
-                {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId, wikiId}},
             ]));
@@ -475,8 +473,6 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
             return {error};
-        } finally {
-            dispatch({type: WikiTypes.PUBLISH_DRAFT_COMPLETED, data: {draftId}});
         }
     };
 }
@@ -1011,5 +1007,20 @@ export function getPageVersionHistory(wikiId: string, pageId: string): ActionFun
         } catch (error) {
             return {error};
         }
+    };
+}
+
+const PUBLISHED_DRAFT_RETENTION_MS = 5 * 60 * 1000;
+
+export function cleanupPublishedDraftTimestamps(): ActionFuncAsync {
+    return async (dispatch) => {
+        const staleThreshold = Date.now() - PUBLISHED_DRAFT_RETENTION_MS;
+
+        dispatch({
+            type: WikiTypes.CLEANUP_PUBLISHED_DRAFT_TIMESTAMPS,
+            data: {staleThreshold},
+        });
+
+        return {data: true};
     };
 }

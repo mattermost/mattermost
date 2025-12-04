@@ -16,7 +16,9 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {savePageDraft} from 'actions/page_drafts';
 import {loadChannelDefaultPage, publishPageDraft, loadPage, loadWiki} from 'actions/pages';
+import {openPagesPanel, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {openPageInEditMode} from 'actions/wiki_edit';
+import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
@@ -94,6 +96,9 @@ export function useWikiPageData(
 
     useEffect(() => {
         const loadPageOrDraft = async () => {
+            // Reset loading state when pageId/draftId changes to prevent flash of empty content
+            setLoading(true);
+
             if (!channelId) {
                 setLoading(false);
                 return;
@@ -590,5 +595,171 @@ export function useWikiPageActions(
             onConfirm: handleConfirmOverwrite,
             onCancel: handleCancelConfirmOverwrite,
         },
+    };
+}
+
+type UseFullscreenResult = {
+    isFullscreen: boolean;
+    toggleFullscreen: () => void;
+};
+
+/**
+ * Manages fullscreen state for the wiki view.
+ * Handles toggling, escape key, body class management, and preserves/restores panel state.
+ */
+export function useFullscreen(): UseFullscreenResult {
+    const dispatch = useDispatch();
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const isPanesPanelCollapsed = useSelector((state: GlobalState) => getIsPanesPanelCollapsed(state));
+
+    const panelStateBeforeFullscreenRef = useRef<boolean | null>(null);
+
+    const toggleFullscreen = useCallback(() => {
+        const newFullscreenState = !isFullscreen;
+        setIsFullscreen(newFullscreenState);
+
+        if (newFullscreenState) {
+            panelStateBeforeFullscreenRef.current = isPanesPanelCollapsed;
+            dispatch(closePagesPanel());
+        } else {
+            if (panelStateBeforeFullscreenRef.current === false) {
+                dispatch(openPagesPanel());
+            }
+            panelStateBeforeFullscreenRef.current = null;
+        }
+    }, [isFullscreen, isPanesPanelCollapsed, dispatch]);
+
+    // Escape key handler
+    useEffect(() => {
+        const handleKeydown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeydown);
+        return () => window.removeEventListener('keydown', handleKeydown);
+    }, [isFullscreen, toggleFullscreen]);
+
+    // Body class management
+    useEffect(() => {
+        if (isFullscreen) {
+            document.body.classList.add('fullscreen-mode');
+        } else {
+            document.body.classList.remove('fullscreen-mode');
+        }
+
+        return () => {
+            document.body.classList.remove('fullscreen-mode');
+        };
+    }, [isFullscreen]);
+
+    return {
+        isFullscreen,
+        toggleFullscreen,
+    };
+}
+
+type UseAutoPageSelectionParams = {
+    pageId: string | undefined;
+    draftId: string | undefined;
+    wikiId: string | undefined;
+    channelId: string;
+    allDrafts: PostDraft[];
+    allPages: Post[];
+    lastViewedPageId: string | null;
+    location: Location;
+    history: History;
+};
+
+/**
+ * Handles automatic page/draft selection when at wiki root (no pageId or draftId in URL).
+ * Priority: last viewed page > first new draft > first published page.
+ */
+export function useAutoPageSelection({
+    pageId,
+    draftId,
+    wikiId,
+    channelId,
+    allDrafts,
+    allPages,
+    lastViewedPageId,
+    location,
+    history,
+}: UseAutoPageSelectionParams): void {
+    useEffect(() => {
+        if (pageId || draftId) {
+            return;
+        }
+
+        const teamName = getTeamNameFromPath(location.pathname);
+
+        // Priority 1: Try to restore last viewed page if it exists
+        if (lastViewedPageId) {
+            const lastViewedNewDraft = allDrafts.find((d) => d.rootId === lastViewedPageId && !d.props?.page_id);
+            const lastViewedPage = allPages.find((p) => p.id === lastViewedPageId);
+
+            if (lastViewedNewDraft && wikiId) {
+                const draftUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedNewDraft.rootId, true);
+                history.replace(draftUrl);
+                return;
+            } else if (lastViewedPage && wikiId) {
+                const pageUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedPage.id, false);
+                history.replace(pageUrl);
+                return;
+            }
+        }
+
+        // Priority 2: Select first NEW draft if one exists (drafts without page_id)
+        const newDrafts = allDrafts.filter((d) => !d.props?.page_id);
+        if (newDrafts.length > 0 && wikiId) {
+            const firstDraft = newDrafts[0];
+            if (firstDraft) {
+                const draftUrl = getWikiUrl(teamName, channelId, wikiId, firstDraft.rootId, true);
+                history.replace(draftUrl);
+                return;
+            }
+        }
+
+        // Priority 3: Select first published page if pages exist
+        if (allPages.length > 0 && wikiId) {
+            const firstPage = allPages[0];
+            if (firstPage) {
+                const pageUrl = getWikiUrl(teamName, channelId, wikiId, firstPage.id, false);
+                history.replace(pageUrl);
+            }
+        }
+    }, [pageId, draftId, allDrafts, allPages, channelId, wikiId, location.pathname, history, lastViewedPageId]);
+}
+
+type UseVersionHistoryResult = {
+    showVersionHistory: boolean;
+    versionHistoryPageId: string | null;
+    handleVersionHistory: (pageId: string) => void;
+    handleCloseVersionHistory: () => void;
+};
+
+/**
+ * Manages version history modal state.
+ */
+export function useVersionHistory(): UseVersionHistoryResult {
+    const [showVersionHistory, setShowVersionHistory] = useState(false);
+    const [versionHistoryPageId, setVersionHistoryPageId] = useState<string | null>(null);
+
+    const handleVersionHistory = useCallback((targetPageId: string) => {
+        setVersionHistoryPageId(targetPageId);
+        setShowVersionHistory(true);
+    }, []);
+
+    const handleCloseVersionHistory = useCallback(() => {
+        setShowVersionHistory(false);
+        setVersionHistoryPageId(null);
+    }, []);
+
+    return {
+        showVersionHistory,
+        versionHistoryPageId,
+        handleVersionHistory,
+        handleCloseVersionHistory,
     };
 }

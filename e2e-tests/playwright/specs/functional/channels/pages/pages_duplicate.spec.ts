@@ -10,11 +10,9 @@ import {
     ensurePanelOpen,
     waitForPageInHierarchy,
     waitForDuplicatedPageInHierarchy,
-    getHierarchyPanel,
     duplicatePageThroughUI,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
-    PAGE_LOAD_TIMEOUT,
 } from './test_helpers';
 
 /**
@@ -75,24 +73,14 @@ test('duplicates child page at same level as source', {tag: '@pages'}, async ({p
     // # Ensure hierarchy panel is open
     await ensurePanelOpen(page);
 
-    const hierarchyPanel = getHierarchyPanel(page).first();
-
     // # Wait for child page to appear in hierarchy
     await waitForPageInHierarchy(page, 'Child Page', 15000);
 
     // # Duplicate the child page (immediate action)
     await duplicatePageThroughUI(page, childPage.id);
 
-    // # Wait for duplication to complete
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(AUTOSAVE_WAIT);
-
-    // # Ensure hierarchy panel is open and updated
-    await ensurePanelOpen(page);
-
     // * Verify duplicated page appears as sibling under same parent
-    const duplicateChild = hierarchyPanel.locator('[data-page-id]').filter({hasText: 'Copy of Child Page'}).first();
-    await expect(duplicateChild).toBeVisible({timeout: PAGE_LOAD_TIMEOUT});
+    const duplicateChild = await waitForDuplicatedPageInHierarchy(page, 'Copy of Child Page');
 
     // # Click on duplicated child page
     await duplicateChild.click();
@@ -131,12 +119,8 @@ test('duplicates page content correctly', {tag: '@pages'}, async ({pw, sharedPag
     // # Duplicate the page (immediate action)
     await duplicatePageThroughUI(page, contentPage.id);
 
-    // # Wait for duplication
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
-    // # Click on duplicated page
-    const duplicateNode = page.locator('[data-page-id]').filter({hasText: 'Copy of Content Page'}).first();
+    // # Wait for duplicated page to appear and click on it
+    const duplicateNode = await waitForDuplicatedPageInHierarchy(page, 'Copy of Content Page');
     await duplicateNode.click();
     await page.waitForLoadState('networkidle');
 
@@ -167,20 +151,10 @@ test('duplicates root page at root level', {tag: '@pages'}, async ({pw, sharedPa
     // # Duplicate the first root page
     await duplicatePageThroughUI(page, rootPage1.id);
 
-    // # Wait for duplication
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     // * Verify duplicated page appears at root level
-    const hierarchyPanel = getHierarchyPanel(page).first();
-    hierarchyPanel.locator('[data-page-id]').filter({hasNotText: 'Copy of'});
-    const duplicatePages = hierarchyPanel.locator('[data-page-id]').filter({hasText: 'Copy of Root Page 1'});
-
-    // * All root pages (original + duplicate) should be at the same indentation level
-    await expect(duplicatePages.first()).toBeVisible();
+    const duplicateNode = await waitForDuplicatedPageInHierarchy(page, 'Copy of Root Page 1');
 
     // # Click on duplicated page
-    const duplicateNode = duplicatePages.first();
     await duplicateNode.click();
     await page.waitForLoadState('networkidle');
 

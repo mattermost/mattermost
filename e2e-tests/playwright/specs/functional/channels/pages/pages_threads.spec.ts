@@ -10,7 +10,6 @@ import {
     addInlineCommentInEditMode,
     verifyCommentMarkerVisible,
     clickCommentMarkerAndOpenRHS,
-    EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -71,7 +70,9 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     const threadsLink = page.locator('a[href*="/threads"]').first();
     await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(AUTOSAVE_WAIT);
+
+    // * Wait for Threads view to load
+    await page.waitForLoadState('networkidle');
 
     // * Verify page appears in threads list (if comment was created successfully)
     const bodyText = await page.locator('body').textContent();
@@ -125,7 +126,6 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
         .first();
     await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await commentMarker.click();
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify RHS opens with thread
     // Wait for specific content to appear
@@ -145,10 +145,9 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     const threadsLink = page.locator('a[href*="/threads"]').first();
     await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify page appears in threads list
-    await expect(page.locator('body')).toContainText('Documentation Page');
+    await expect(page.locator('body')).toContainText('Documentation Page', {timeout: AUTOSAVE_WAIT});
 });
 
 /**
@@ -194,15 +193,11 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     await page.waitForSelector(':text("Commented on the page:")', {timeout: HIERARCHY_TIMEOUT});
     await page.waitForSelector(':text("Feature Spec")', {timeout: HIERARCHY_TIMEOUT});
 
-    // # Wait for reply textarea to be ready
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     // # Add reply - Look for textarea within RHS
     const replyTextarea = page.locator('[data-testid="rhs"], .rhs, .sidebar--right').locator('textarea').first();
     await expect(replyTextarea).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await replyTextarea.fill('I think real-time is more important');
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify reply appears in RHS
     await page.waitForSelector(':text("I think real-time is more important")', {timeout: HIERARCHY_TIMEOUT});
@@ -211,16 +206,18 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     const threadsLink = page.locator('a[href*="/threads"]').first();
     await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify thread shows in Threads view with page title
-    await expect(page.locator('body')).toContainText('Feature Spec');
+    await expect(page.locator('body')).toContainText('Feature Spec', {timeout: AUTOSAVE_WAIT});
 });
 
 /**
  * @objective Verify multiple inline comments from same page show correctly in Threads
  */
 test('displays multiple inline comments in Threads panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    // This test creates wiki, page, edits, adds multiple inline comments, and publishes - can take longer under load
+    test.slow();
+
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
@@ -278,8 +275,7 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     const threadsLink = page.locator('a[href*="/threads"]').first();
     await expect(threadsLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await threadsLink.click();
-    await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify thread appears with page title
-    await expect(page.locator('body')).toContainText('API Documentation');
+    await expect(page.locator('body')).toContainText('API Documentation', {timeout: AUTOSAVE_WAIT});
 });

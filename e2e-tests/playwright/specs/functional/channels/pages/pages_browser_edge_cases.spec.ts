@@ -48,10 +48,8 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     await typeInEditor(page, 'Important unsaved content here');
 
     // * Wait for auto-save indicator (if exists)
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     const savingIndicator = page.locator('[data-testid="saving-indicator"], .saving-indicator').first();
-    await expect(savingIndicator).toBeVisible();
+    await expect(savingIndicator).toBeVisible({timeout: EDITOR_LOAD_WAIT});
     // Wait for "Saved" or "Saving..." to appear
     await page.waitForTimeout(AUTOSAVE_WAIT);
 
@@ -60,8 +58,6 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     await newPageButton2.click();
 
     // * Verify warning dialog appears
-    await page.waitForTimeout(SHORT_WAIT);
-
     const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard Changes|Discard Draft/i});
     await expect(warningDialog).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
@@ -120,12 +116,9 @@ test.skip(
         // # Use browser back button
         await page.goBack();
 
-        // * Playwright cannot interact with browser's native beforeunload dialog
-        // Instead, verify that custom dialog appears or navigation is blocked
-        await page.waitForTimeout(SHORT_WAIT);
-
+        // * Verify that custom dialog appears or navigation is blocked
         const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard/i});
-        await expect(warningDialog).toBeVisible();
+        await expect(warningDialog).toBeVisible({timeout: SHORT_WAIT});
 
         await expect(warningDialog).toContainText(/unsaved changes/i);
     },

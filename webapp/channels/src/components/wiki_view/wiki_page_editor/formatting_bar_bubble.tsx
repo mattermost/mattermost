@@ -289,7 +289,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                                 title='Add Comment'
                                 data-testid='inline-comment-submit'
                             >
-                                <i className='icon icon-message-text-outline'/>
+                                <i className='icon icon-message-plus-outline'/>
                             </button>
                         </WithTooltip>
                     </>

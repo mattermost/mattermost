@@ -948,13 +948,6 @@ export function handlePagePublishedEvent(msg) {
     const wikiId = msg.data.wiki_id;
     const sourceWikiId = msg.data.source_wiki_id;
 
-    const state = getState();
-    const pendingPublishes = state.entities.wikiPages?.pendingPublishes || {};
-
-    if (pendingPublishes[draftId]) {
-        return;
-    }
-
     // Check if the current user is actively editing this page
     const currentUrl = window.location.pathname;
     const isDraftBeingEdited = currentUrl.includes(`/drafts/${draftId}`) ||
@@ -971,7 +964,8 @@ export function handlePagePublishedEvent(msg) {
 
     if (!isDraftBeingEdited) {
         // User is not editing this draft, safe to delete
-        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}});
+        // Include publishedAt for HA duplicate prevention
+        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, publishedAt: page.update_at}});
     }
 }
 
@@ -2035,12 +2029,20 @@ function handleUpsertDraftEvent(msg) {
 
         // Check if this is a page draft (has wiki_id field)
         if (draft.wiki_id) {
-            const pageId = draft.draft_id;
+            const draftId = draft.draft_id;
 
             // Check if the page has already been published
             // This prevents race condition where a draft_updated event arrives after the page was published
             const state = doGetState();
-            const existingPage = getPost(state, pageId);
+
+            // Check if this draft was recently published
+            // This prevents stale DRAFT_UPDATED events from re-adding drafts in HA environments
+            const publishedAt = state.entities.wikiPages?.publishedDraftTimestamps?.[draftId];
+            if (publishedAt && draft.update_at <= publishedAt) {
+                return;
+            }
+
+            const existingPage = getPost(state, draftId);
 
             // If page exists and this draft is older than or equal to the published page, skip it
             // This allows newer drafts (from other users editing after publish) to still appear
@@ -2051,8 +2053,8 @@ function handleUpsertDraftEvent(msg) {
                 const isCreate = msg.event === SocketEvents.DRAFT_CREATED;
 
                 const activeEditorAction = isCreate ?
-                    handleActiveEditorDraftCreated(pageId, userId, timestamp) :
-                    handleActiveEditorDraftUpdated(pageId, userId, timestamp);
+                    handleActiveEditorDraftCreated(draftId, userId, timestamp) :
+                    handleActiveEditorDraftUpdated(draftId, userId, timestamp);
 
                 doDispatch(activeEditorAction);
                 return;
@@ -2068,8 +2070,8 @@ function handleUpsertDraftEvent(msg) {
             const isCreate = msg.event === SocketEvents.DRAFT_CREATED;
 
             const activeEditorAction = isCreate ?
-                handleActiveEditorDraftCreated(pageId, userId, timestamp) :
-                handleActiveEditorDraftUpdated(pageId, userId, timestamp);
+                handleActiveEditorDraftCreated(draftId, userId, timestamp) :
+                handleActiveEditorDraftUpdated(draftId, userId, timestamp);
 
             doDispatch(batchActions([
                 setGlobalItem(transformedDraft.key, transformedDraft.value),

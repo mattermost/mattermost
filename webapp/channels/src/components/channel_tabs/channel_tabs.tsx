@@ -260,6 +260,7 @@ function ChannelTabs({
             dialogType: TextInputModal,
             dialogProps: {
                 title: formatMessage({id: 'channel_tabs.create_wiki', defaultMessage: 'Create wiki'}),
+                fieldLabel: formatMessage({id: 'channel_tabs.wiki_name_label', defaultMessage: 'Wiki name'}),
                 confirmButtonText: formatMessage({id: 'channel_tabs.create', defaultMessage: 'Create'}),
                 placeholder: formatMessage({id: 'channel_tabs.wiki_name_placeholder', defaultMessage: 'Enter wiki name'}),
                 onConfirm: async (wikiName: string) => {

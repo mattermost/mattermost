@@ -22,6 +22,7 @@ test('creates wiki and root page through full UI flow', {tag: '@pages'}, async (
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
+
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
 
@@ -129,9 +130,10 @@ test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     await deletePageThroughUI(page, 'Page to Delete');
 
     // * Verify navigated away from deleted page
-    await page.waitForTimeout(SHORT_WAIT);
-    const currentUrl = page.url();
-    expect(currentUrl).not.toMatch(new RegExp(`/pages/${testPage.id}`));
+    await expect(async () => {
+        const currentUrl = page.url();
+        expect(currentUrl).not.toMatch(new RegExp(`/pages/${testPage.id}`));
+    }).toPass({timeout: SHORT_WAIT});
 
     // * Verify page no longer appears in hierarchy panel
     const hierarchyPanel = getHierarchyPanel(page);

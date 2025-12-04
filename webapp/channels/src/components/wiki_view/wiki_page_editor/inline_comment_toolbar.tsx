@@ -72,7 +72,7 @@ const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => 
                     title='Add a comment'
                     data-testid='inline-comment-add-button'
                 >
-                    <i className='icon icon-message-text-outline'/>
+                    <i className='icon icon-message-plus-outline'/>
                 </button>
             </div>
         </BubbleMenu>

@@ -20,14 +20,37 @@ export const getPage = (state: GlobalState, pageId: string): Post | undefined =>
     return state.entities.posts.posts[pageId];
 };
 
+// Helper: Get only wiki pages from posts (pages have page_parent_id defined, even if empty string)
+// This creates a stable reference that only changes when wiki pages change, not all posts
+const getWikiPagesMap = createSelector(
+    'getWikiPagesMap',
+    (state: GlobalState) => state.entities.posts.posts,
+    (state: GlobalState): Record<string, string[]> => state.entities.wikiPages?.byWiki || {},
+    (posts, byWiki) => {
+        // Build a map of only wiki page posts using the byWiki index
+        // This ensures we don't recompute when regular chat posts change
+        const wikiPages: Record<string, Post> = {};
+        Object.values(byWiki).forEach((pageIds) => {
+            pageIds.forEach((pageId) => {
+                const post = posts[pageId];
+                if (post && post.type === PostTypes.PAGE) {
+                    wikiPages[pageId] = post;
+                }
+            });
+        });
+        return wikiPages;
+    },
+);
+
 // Get page ancestors for breadcrumb
+// Optimized to only depend on wiki pages, not all posts
 export const getPageAncestors = createSelector(
     'getPageAncestors',
-    (state: GlobalState) => state.entities.posts.posts,
+    getWikiPagesMap,
     (_state: GlobalState, pageId: string) => pageId,
-    (posts, pageId) => {
+    (wikiPages, pageId) => {
         const ancestors: Post[] = [];
-        let currentPage = posts[pageId];
+        let currentPage = wikiPages[pageId];
         const visited = new Set<string>();
 
         // Walk up the parent chain using page_parent_id
@@ -39,7 +62,7 @@ export const getPageAncestors = createSelector(
                 break;
             }
 
-            const parent = posts[parentId];
+            const parent = wikiPages[parentId];
             if (parent) {
                 ancestors.unshift(parent);
                 visited.add(parentId);

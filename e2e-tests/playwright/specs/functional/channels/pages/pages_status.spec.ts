@@ -564,6 +564,9 @@ test(
  * @objective Verify status selected in draft mode for existing page update persists after update
  */
 test('persists status when updating existing page through draft', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    // This test involves creating wiki, page, editing, changing status, and publishing - can take longer under load
+    test.slow();
+
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 

@@ -10,6 +10,7 @@ import {
     ArrowRightBoldOutlineIcon,
     BookmarkIcon,
     BookmarkOutlineIcon,
+    CheckCircleOutlineIcon,
     ContentCopyIcon,
     DotsHorizontalIcon,
     EmoticonPlusOutlineIcon,
@@ -665,7 +666,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                                 />
                             )
                         }
-                        leadingElement={this.props.isCommentResolved ? <MessageCheckOutlineIcon size={18}/> : <MessageCheckOutlineIcon size={18}/>}
+                        leadingElement={<CheckCircleOutlineIcon size={18}/>}
                         onClick={this.handleResolveCommentMenuItemActivated}
                     />
                 }

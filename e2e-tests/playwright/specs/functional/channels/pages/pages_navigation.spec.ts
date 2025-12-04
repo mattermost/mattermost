@@ -13,7 +13,6 @@ import {
     typeInEditor,
     getHierarchyPanel,
     SHORT_WAIT,
-    EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
     HIERARCHY_TIMEOUT,
@@ -163,8 +162,6 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
     await addChildButton.click();
 
     await fillCreatePageModal(page, 'Child Draft');
-
-    await page.waitForTimeout(EDITOR_LOAD_WAIT); // Wait for editor to load
 
     await getEditorAndWait(page);
     await typeInEditor(page, 'Child content');
@@ -429,14 +426,15 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
     const fullscreenButton = page.locator('[data-testid="wiki-page-fullscreen-button"]');
     await expect(fullscreenButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await fullscreenButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify hierarchy panel is hidden in fullscreen
     await expect(hierarchyPanel).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // * Verify body has fullscreen-mode class
-    const bodyClassList = await page.evaluate(() => document.body.className);
-    expect(bodyClassList).toContain('fullscreen-mode');
+    await expect(async () => {
+        const bodyClassList = await page.evaluate(() => document.body.className);
+        expect(bodyClassList).toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
 
     // * Verify page content is still visible
     await expect(pageContent).toBeVisible();
@@ -446,43 +444,47 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
     const toggleCommentsButton = page.locator('[data-testid="wiki-page-toggle-comments"]');
     await expect(toggleCommentsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await toggleCommentsButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify RHS (comments panel) is visible
     const rhs = page.locator('#sidebar-right, .sidebar-right').first();
     await expect(rhs).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify RHS is positioned correctly in fullscreen
-    const rhsBox = await rhs.boundingBox();
-    expect(rhsBox).not.toBeNull();
-    if (rhsBox) {
-        expect(rhsBox.x).toBeGreaterThan(0);
-    }
+    await expect(async () => {
+        const rhsBox = await rhs.boundingBox();
+        expect(rhsBox).not.toBeNull();
+        if (rhsBox) {
+            expect(rhsBox.x).toBeGreaterThan(0);
+        }
+    }).toPass({timeout: SHORT_WAIT});
 
     // # Exit fullscreen using button
     await fullscreenButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify hierarchy panel is visible again
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify body no longer has fullscreen-mode class
-    const bodyClassListAfter = await page.evaluate(() => document.body.className);
-    expect(bodyClassListAfter).not.toContain('fullscreen-mode');
+    await expect(async () => {
+        const bodyClassListAfter = await page.evaluate(() => document.body.className);
+        expect(bodyClassListAfter).not.toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
 
     // # Test Escape key to exit fullscreen
     await fullscreenButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify in fullscreen mode
-    const bodyClassListFullscreen = await page.evaluate(() => document.body.className);
-    expect(bodyClassListFullscreen).toContain('fullscreen-mode');
+    await expect(async () => {
+        const bodyClassListFullscreen = await page.evaluate(() => document.body.className);
+        expect(bodyClassListFullscreen).toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
 
     // # Press Escape key
     await page.keyboard.press('Escape');
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify exited fullscreen
-    const bodyClassListEscaped = await page.evaluate(() => document.body.className);
-    expect(bodyClassListEscaped).not.toContain('fullscreen-mode');
+    await expect(async () => {
+        const bodyClassListEscaped = await page.evaluate(() => document.body.className);
+        expect(bodyClassListEscaped).not.toContain('fullscreen-mode');
+    }).toPass({timeout: SHORT_WAIT});
 });

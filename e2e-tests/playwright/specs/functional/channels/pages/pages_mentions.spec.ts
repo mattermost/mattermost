@@ -68,9 +68,8 @@ test(
         await selectMentionFromDropdown(authorPage, mentionedUser.username);
 
         // * Verify mention is properly created with data-id attribute
-        await authorPage.waitForTimeout(SHORT_WAIT);
         const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
-        await expect(userMentionInEditor).toBeVisible();
+        await expect(userMentionInEditor).toBeVisible({timeout: SHORT_WAIT});
 
         // # Add remaining text
         await editor.type(', please review this page!');
@@ -144,9 +143,8 @@ test(
         await selectMentionFromDropdown(authorPage, mentionedUser.username);
 
         // * Verify mention is properly created
-        await authorPage.waitForTimeout(SHORT_WAIT);
         const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
-        await expect(userMentionInEditor).toBeVisible();
+        await expect(userMentionInEditor).toBeVisible({timeout: SHORT_WAIT});
 
         await publishPage(authorPage);
 

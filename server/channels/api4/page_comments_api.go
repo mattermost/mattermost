@@ -249,7 +249,7 @@ func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionManageChannelRoles)
 		return
 	}
 
@@ -291,7 +291,7 @@ func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionManageChannelRoles)
 		return
 	}
 

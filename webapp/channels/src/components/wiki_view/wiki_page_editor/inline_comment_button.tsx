@@ -54,7 +54,7 @@ const InlineCommentButton = ({editor, onCreateComment}: Props) => {
                     title='Add comment'
                     data-testid='inline-comment-submit'
                 >
-                    <i className='icon icon-message-text-outline'/>
+                    <i className='icon icon-message-plus-outline'/>
                 </button>
             </div>
         </BubbleMenu>

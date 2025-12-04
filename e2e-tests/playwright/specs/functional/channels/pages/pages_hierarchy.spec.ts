@@ -21,11 +21,8 @@ import {
     getHierarchyPanel,
     deletePageWithOption,
     getEditorAndWait,
-    SHORT_WAIT,
-    EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
-    UI_MICRO_WAIT,
 } from './test_helpers';
 
 /**
@@ -74,14 +71,12 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPage
 
     // # Collapse parent node
     await expandButton.click();
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify child is hidden after collapse
-    await expect(childNode).not.toBeVisible();
+    await expect(childNode).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Expand parent node again
     await expandButton.click();
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify child is visible again after expand
     await expect(childNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -150,19 +145,15 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     const isCollapsed = (await chevronRight.count()) > 0;
     if (isCollapsed) {
         await expandButton.click();
-        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // * Verify Page 2 is now visible as a child of Page 1 in the hierarchy
     const page2AsChild = hierarchyPanel.locator('[data-page-id="' + page2.id + '"]').first();
-    await expect(page2AsChild).toBeVisible();
+    await expect(page2AsChild).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify Page 2 has correct depth (depth=1 indicates child of Page 1 which is at depth=0)
-    await expect(page1Node).toHaveAttribute('data-depth', '0');
-    await expect(page2AsChild).toHaveAttribute('data-depth', '1');
-
-    // # Wait for websocket event to propagate
-    await page.waitForTimeout(500);
+    await expect(page1Node).toHaveAttribute('data-depth', '0', {timeout: ELEMENT_TIMEOUT});
+    await expect(page2AsChild).toHaveAttribute('data-depth', '1', {timeout: ELEMENT_TIMEOUT});
 
     // # Click on Page 2 to navigate to it
     await page2AsChild.click();
@@ -362,31 +353,26 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
     if ((await parentChevronRight.count()) > 0) {
         await parentExpandButton.click();
-        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // Find and expand Existing Child
     const existingChildNode = hierarchyPanel.locator('[data-page-id="' + existingChild.id + '"]').first();
-    await expect(existingChildNode).toBeVisible();
+    await expect(existingChildNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const childExpandButton = existingChildNode.locator('[data-testid="page-tree-node-expand-button"]').first();
     const childChevronRight = existingChildNode.locator('.icon-chevron-right').first();
     if ((await childChevronRight.count()) > 0) {
         await childExpandButton.click();
-        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // * Verify Page to Move is now visible as a child of Existing Child
     const movedPageNode = hierarchyPanel.locator('[data-page-id="' + pageToMove.id + '"]').first();
-    await expect(movedPageNode).toBeVisible();
+    await expect(movedPageNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify correct hierarchy depth: Parent (0) > Existing Child (1) > Page to Move (2)
-    await expect(parentNode).toHaveAttribute('data-depth', '0');
-    await expect(existingChildNode).toHaveAttribute('data-depth', '1');
-    await expect(movedPageNode).toHaveAttribute('data-depth', '2');
-
-    // # Wait for websocket event to propagate
-    await page.waitForTimeout(500);
+    await expect(parentNode).toHaveAttribute('data-depth', '0', {timeout: ELEMENT_TIMEOUT});
+    await expect(existingChildNode).toHaveAttribute('data-depth', '1', {timeout: ELEMENT_TIMEOUT});
+    await expect(movedPageNode).toHaveAttribute('data-depth', '2', {timeout: ELEMENT_TIMEOUT});
 
     // # Click on moved page to navigate to it
     await movedPageNode.click();
@@ -443,8 +429,9 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     const wikiSelect = moveModal.locator('#target-wiki-select');
     await wikiSelect.selectOption(wiki2.id);
 
-    // Wait for pages to load
-    await page.waitForTimeout(SHORT_WAIT);
+    // # Wait for pages list to load after wiki selection
+    const childOption = moveModal.locator(`[data-page-id="${childPage.id}"]`);
+    await expect(childOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Then select Child as parent and confirm
     await confirmMoveToTarget(page, moveModal, `[data-page-id="${childPage.id}"]`);
@@ -461,34 +448,32 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
 
     // Find and expand Parent in Wiki 2
     const parentNode = hierarchyPanel.locator('[data-page-id="' + parentPage.id + '"]').first();
-    await expect(parentNode).toBeVisible();
+    await expect(parentNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const parentExpandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]').first();
     const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
     if ((await parentChevronRight.count()) > 0) {
         await parentExpandButton.click();
-        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // Find and expand Child in Wiki 2
     const childNode = hierarchyPanel.locator('[data-page-id="' + childPage.id + '"]').first();
-    await expect(childNode).toBeVisible();
+    await expect(childNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const childExpandButton = childNode.locator('[data-testid="page-tree-node-expand-button"]').first();
     const childChevronRight = childNode.locator('.icon-chevron-right').first();
     if ((await childChevronRight.count()) > 0) {
         await childExpandButton.click();
-        await page.waitForTimeout(SHORT_WAIT);
     }
 
     // * Verify Page to Move is now visible as a child of Child in Wiki 2
     const movedPageNode = hierarchyPanel.locator('[data-page-id="' + pageToMove.id + '"]').first();
-    await expect(movedPageNode).toBeVisible();
+    await expect(movedPageNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // * Verify correct hierarchy depth: Parent (0) > Child (1) > Page to Move (2)
-    await expect(parentNode).toHaveAttribute('data-depth', '0');
-    await expect(childNode).toHaveAttribute('data-depth', '1');
-    await expect(movedPageNode).toHaveAttribute('data-depth', '2');
+    await expect(parentNode).toHaveAttribute('data-depth', '0', {timeout: ELEMENT_TIMEOUT});
+    await expect(childNode).toHaveAttribute('data-depth', '1', {timeout: ELEMENT_TIMEOUT});
+    await expect(movedPageNode).toHaveAttribute('data-depth', '2', {timeout: ELEMENT_TIMEOUT});
 
     // # Click on moved page to view it and verify breadcrumbs
     await movedPageNode.click();
@@ -775,15 +760,13 @@ test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw,
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButton).toBeVisible();
     await expandButton.click();
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify child is hidden after collapse
-    await expect(childNode).not.toBeVisible();
+    await expect(childNode).not.toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     // # Navigate away to channel view (click channel name or navigate to channel)
     await channelsPage.goto(team.name, channel.name);
     await channelsPage.toBeVisible();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify we're in the channel view (not wiki view)
     const channelHeader = page.locator('#channelHeaderTitle, [data-testid="channel-header-title"]');
@@ -793,7 +776,6 @@ test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw,
     const wikiTab = page.getByRole('tab', {name: wiki.title});
     await expect(wikiTab).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await wikiTab.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify we're back in wiki view
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
@@ -930,7 +912,6 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
 
     // Wait for channel to be fully loaded
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Persist State Wiki ${await pw.random.id()}`);
@@ -957,7 +938,6 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     const expandButton = parent1Node.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButton).toBeVisible();
     await expandButton.click();
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify EXACT nodes we created are visible before refresh
     const published1NodeBefore = hierarchyPanel.locator(
@@ -970,9 +950,9 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     const draft1NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft1.id}"]`);
     const draft2NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft2.id}"]`);
 
-    await expect(published1NodeBefore).toBeVisible();
-    await expect(published2NodeBefore).toBeVisible();
-    await expect(childNodeBefore).toBeVisible();
+    await expect(published1NodeBefore).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(published2NodeBefore).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(childNodeBefore).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(draft1NodeBefore).toBeVisible();
     await expect(draft2NodeBefore).toBeVisible();
 
@@ -1004,7 +984,6 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     const expandButtonAfter = parent1NodeAfter.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButtonAfter).toBeVisible();
     await expandButtonAfter.click();
-    await page.waitForTimeout(UI_MICRO_WAIT * 3);
 
     // * Verify EXACT same nodes are visible after refresh
     const published1NodeAfter = hierarchyPanel.locator(
@@ -1017,9 +996,9 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     const draft1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft1.id}"]`);
     const draft2NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft2.id}"]`);
 
-    await expect(published1NodeAfter).toBeVisible();
-    await expect(published2NodeAfter).toBeVisible();
-    await expect(childNodeAfter).toBeVisible();
+    await expect(published1NodeAfter).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(published2NodeAfter).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(childNodeAfter).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(draft1NodeAfter).toBeVisible();
     await expect(draft2NodeAfter).toBeVisible();
 
@@ -1047,8 +1026,7 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     try {
         // Navigate to town square to ensure we're not on the channel we're about to delete
         await channelsPage.goto(team.name, 'town-square');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(SHORT_WAIT);
+        await channelsPage.toBeVisible();
 
         // Now delete the channel
         await adminClient.deleteChannel(channel.id);
@@ -1084,7 +1062,8 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
     await expect(hierarchyPanel).toBeVisible();
 
     const getPageOrder = async () => {
-        const pageNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]');
+        // Only get published pages (exclude drafts)
+        const pageNodes = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="false"]');
         const count = await pageNodes.count();
         const ids = [];
 
@@ -1109,8 +1088,9 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
         const titleButton = pageNode.locator('[data-testid="page-tree-node-title"]');
         await titleButton.click();
 
-        // Wait for navigation
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
+        // Wait for page content to load
+        const pageContent = page.locator('[data-testid="page-viewer-content"]');
+        await expect(pageContent).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
         // * Verify order is still the same
         const currentOrder = await getPageOrder();

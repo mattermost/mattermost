@@ -216,7 +216,6 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 
     // # Click the page to open it
     await pageLink.click();
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify page viewer is displayed with content
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
@@ -233,7 +232,6 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
     // # Try to enter Edit mode to verify content is valid TipTap JSON
     const editButton = page.getByRole('button', {name: /Edit/i});
     await editButton.click();
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
 
     // * Verify editor loaded successfully (no error state)
     const editor = page.locator('[data-testid="page-editor"]').or(page.locator('.ProseMirror'));

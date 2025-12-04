@@ -38,12 +38,11 @@ test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, 
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
     await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill(searchableTitle);
-    await page.waitForTimeout(SHORT_WAIT); // Debounce
 
     // * Verify filtered tree shows matching page
     const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
     await expect(treeContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    await expect(treeContainer).toContainText(searchableTitle);
+    await expect(treeContainer).toContainText(searchableTitle, {timeout: SHORT_WAIT});
 
     // * Verify non-matching pages are not shown in filtered tree
     const resultsText = await treeContainer.textContent();
@@ -88,20 +87,18 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
     await expect(searchInput).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await searchInput.fill('Engineering');
-    await page.waitForTimeout(SHORT_WAIT); // Debounce
 
     const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
     await expect(treeContainer).toBeVisible({timeout: ELEMENT_TIMEOUT});
     // * Verify page found by title
-    await expect(treeContainer).toContainText('Engineering Documentation');
+    await expect(treeContainer).toContainText('Engineering Documentation', {timeout: SHORT_WAIT});
 
     // # Clear and search by content - should NOT find the page (tree search is title-only)
     await searchInput.clear();
     await searchInput.fill(uniqueContent);
-    await page.waitForTimeout(SHORT_WAIT); // Debounce
 
     // * Verify no pages found (content not searchable in tree panel)
-    await expect(treeContainer).toContainText('No pages found');
+    await expect(treeContainer).toContainText('No pages found', {timeout: SHORT_WAIT});
 });
 
 /**
@@ -131,8 +128,7 @@ test('searches pages by title using global search', {tag: '@pages'}, async ({pw,
     await searchInput.fill(searchableTitle);
     await searchInput.press('Enter');
 
-    // # Wait for search results to appear in RHS
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    // * Verify search results appear in RHS
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify search results contain the page title
@@ -181,8 +177,7 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await searchInput.fill(uniqueContent);
     await searchInput.press('Enter');
 
-    // # Wait for search results to appear in RHS
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
+    // * Verify search results appear in RHS
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify search results contain the page title and content preview
@@ -202,12 +197,9 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await expect(jumpLink).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await jumpLink.click();
 
-    // # Wait for navigation to complete
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
     // * Verify we navigated to the wiki page view
     const wikiView = page.locator('[data-testid="wiki-view"]');
-    await expect(wikiView).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    await expect(wikiView).toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
     // * Verify the page title is displayed in the viewer
     const pageTitleElement = page.locator('[data-testid="page-viewer-title"]');

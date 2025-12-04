@@ -76,8 +76,7 @@ test('handles large content correctly', {tag: '@pages'}, async ({pw, sharedPages
     }, largeContent);
 
     // * Verify editor remains responsive with large content
-    await page.waitForTimeout(SHORT_WAIT);
-    await expect(editor).toContainText('Lorem ipsum');
+    await expect(editor).toContainText('Lorem ipsum', {timeout: SHORT_WAIT});
 
     // # Verify editor remains responsive - add more text at the end
     await editor.click();
@@ -179,6 +178,14 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
+    // DEBUG: Capture console logs to debug user mention suggestion
+    page.on('console', (msg) => {
+        if (msg.text().includes('UserMention')) {
+            // eslint-disable-next-line no-console
+            console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
+        }
+    });
+
     // # Create wiki through UI
     await createWikiThroughUI(page, `Mention Wiki ${await pw.random.id()}`);
 
@@ -204,9 +211,8 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     await userOption.click();
 
     // * Verify mention is properly created with data-id attribute
-    await page.waitForTimeout(SHORT_WAIT);
     const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
-    await expect(userMentionInEditor).toBeVisible();
+    await expect(userMentionInEditor).toBeVisible({timeout: SHORT_WAIT});
 
     const editorContent = await editor.textContent();
     expect(editorContent).toContain(mentionedUser.username);
@@ -238,6 +244,14 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
+    // DEBUG: Capture console logs to debug channel mention suggestion
+    page.on('console', (msg) => {
+        if (msg.text().includes('ChannelMention')) {
+            // eslint-disable-next-line no-console
+            console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
+        }
+    });
+
     // # Create wiki through UI
     await createWikiThroughUI(page, `Channel Mention Wiki ${await pw.random.id()}`);
 
@@ -249,26 +263,23 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     // # Wait for editor to be visible
     const editor = await getEditorAndWait(page);
 
-    // # Type ~ channel mention in editor
+    // # Type ~ channel mention in editor (include partial channel name like user mention test)
     await editor.click();
-    await editor.pressSequentially('Please check ~');
+    const channelNamePrefix = mentionedChannel.name.substring(0, 5);
+    await editor.type(`Please check ~${channelNamePrefix}`);
 
     // * Verify channel mention suggestion dropdown appears
     const mentionDropdown = page.locator('.tiptap-channel-mention-popup, .tiptap-mention-popup').first();
     await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Type part of the channel name to filter
-    await editor.pressSequentially(mentionedChannel.name.substring(0, 5));
-
-    // # Select the mentioned channel from dropdown
-    const channelOption = page.locator(`text="${mentionedChannel.display_name}"`).first();
+    // # Select the mentioned channel from dropdown (use the popup locator to ensure we click in the dropdown)
+    const channelOption = mentionDropdown.locator(`text="${mentionedChannel.display_name}"`).first();
     await expect(channelOption).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await channelOption.click();
 
     // * Verify channel mention is properly created with data-channel-id attribute
-    await page.waitForTimeout(SHORT_WAIT);
     const channelMentionInEditor = editor.locator(`.channel-mention[data-channel-id="${mentionedChannel.id}"]`);
-    await expect(channelMentionInEditor).toBeVisible();
+    await expect(channelMentionInEditor).toBeVisible({timeout: SHORT_WAIT});
 
     const editorContent = await editor.textContent();
     expect(editorContent).toContain(mentionedChannel.name);
@@ -338,9 +349,8 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     await userOption1.click();
 
     // * Verify first mention is properly created with data-id attribute
-    await page.waitForTimeout(SHORT_WAIT);
     const userMentionInEditor1 = editor.locator(`.mention[data-id="${user1.id}"]`);
-    await expect(userMentionInEditor1).toBeVisible();
+    await expect(userMentionInEditor1).toBeVisible({timeout: SHORT_WAIT});
 
     // # Type second mention in editor
     await editor.type(` and reviewed by @${user2.username}`);
@@ -354,9 +364,8 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     await userOption2.click();
 
     // * Verify second mention is properly created with data-id attribute
-    await page.waitForTimeout(SHORT_WAIT);
     const userMentionInEditor2 = editor.locator(`.mention[data-id="${user2.id}"]`);
-    await expect(userMentionInEditor2).toBeVisible();
+    await expect(userMentionInEditor2).toBeVisible({timeout: SHORT_WAIT});
 
     // * Verify both mentions appear in editor text content
     const editorContent = await editor.textContent();
@@ -422,12 +431,9 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
     // Click to select (this is where the bug commonly occurs)
     await userOption.click();
 
-    // # Wait for mention to be inserted
-    await page.waitForTimeout(SHORT_WAIT);
-
     // * Verify mention is properly created
     const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
-    await expect(userMentionInEditor).toBeVisible();
+    await expect(userMentionInEditor).toBeVisible({timeout: SHORT_WAIT});
 
     // * Verify editor content does NOT contain duplicated text
     const editorContent = await editor.textContent();
@@ -468,6 +474,14 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
 
     const {page} = await loginAndNavigateToChannel(pw, user, team.name, channel.name);
 
+    // DEBUG: Capture console logs
+    page.on('console', (msg) => {
+        if (msg.text().includes('Mention')) {
+            // eslint-disable-next-line no-console
+            console.log(`[Browser Console] ${msg.type()}: ${msg.text()}`);
+        }
+    });
+
     // # Create wiki through UI
     await createWikiThroughUI(page, `Multi Mention Bug Wiki ${await pw.random.id()}`);
 
@@ -481,7 +495,7 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
 
     // # Add first mention
     await editor.click();
-    await page.keyboard.type('First mention: @alice');
+    await editor.type('First mention: @alice');
 
     // * Verify first mention dropdown appears
     let mentionDropdown = page.locator('.tiptap-mention-popup').first();
@@ -493,17 +507,16 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     await userOption.click();
 
     // * Verify first mention is inserted
-    await page.waitForTimeout(SHORT_WAIT);
     const firstMention = editor.locator(`.mention[data-id="${user1.id}"]`);
-    await expect(firstMention).toBeVisible();
+    await expect(firstMention).toBeVisible({timeout: SHORT_WAIT});
 
     // # Add some text between mentions
-    await page.keyboard.type(' and ');
+    await editor.type(' and ');
 
-    // # Add second mention (THIS IS WHERE THE BUG OCCURS)
-    await page.keyboard.type('@bob');
+    // # Add second mention
+    await editor.type('@bob');
 
-    // * Verify second mention dropdown appears (BUG: it doesn't appear)
+    // * Verify second mention dropdown appears
     mentionDropdown = page.locator('.tiptap-mention-popup').first();
     await expect(mentionDropdown).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
@@ -513,9 +526,8 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     await userOption.click();
 
     // * Verify second mention is inserted
-    await page.waitForTimeout(SHORT_WAIT);
     const secondMention = editor.locator(`.mention[data-id="${user2.id}"]`);
-    await expect(secondMention).toBeVisible();
+    await expect(secondMention).toBeVisible({timeout: SHORT_WAIT});
 
     // * Verify both mentions are present in final content
     const editorContent = await editor.textContent();
@@ -563,8 +575,7 @@ test(
         // * Verify dropdown is gone
         await expect(firstDropdown).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
-        // # Wait a moment and add some more text
-        await page.waitForTimeout(SHORT_WAIT);
+        // # Add some more text
         await page.keyboard.type(' more text ');
 
         // # Second attempt: Type @ again (THIS IS WHERE THE BUG OCCURS)
@@ -1239,9 +1250,10 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await insertLinkButton.click();
 
     // * Verify link inserted (should keep the selected text "test text" as the link text)
-    await page.waitForTimeout(SHORT_WAIT);
-    const editorContent = await editor.textContent();
-    expect(editorContent).toContain('test text');
+    await expect(async () => {
+        const editorContent = await editor.textContent();
+        expect(editorContent).toContain('test text');
+    }).toPass({timeout: SHORT_WAIT});
 
     // # Publish the page
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();

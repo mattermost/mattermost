@@ -17,7 +17,6 @@ import {
     getAIRewriteButton,
     closeAIRewriteMenu,
     UI_MICRO_WAIT,
-    SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     AUTOSAVE_WAIT,
     ELEMENT_TIMEOUT,
@@ -121,9 +120,6 @@ test('opens AI rewrite menu when button is clicked', {tag: '@pages'}, async ({pw
 
     const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
-
-    // Wait for menu to open
-    await page.waitForTimeout(SHORT_WAIT);
 
     // * Verify rewrite menu appears (check for menu items instead of container visibility)
     const improveButton = page.locator('text=Improve writing');
@@ -293,9 +289,8 @@ test(
         await publishPage(page);
 
         // # Wait for page to be in view mode
-        await page.waitForTimeout(EDITOR_LOAD_WAIT);
         const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-        await expect(pageViewer).toBeVisible();
+        await expect(pageViewer).toBeVisible({timeout: EDITOR_LOAD_WAIT});
 
         // # Select text in view mode
         await selectTextInEditor(page, 'published content');
@@ -356,7 +351,6 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
 
     const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # Click "Fix spelling and grammar" action
     const fixGrammarButton = page.locator('text=Fix spelling and grammar');
@@ -402,9 +396,6 @@ test('performs actual AI rewrite and updates editor content', {tag: '@pages'}, a
     expect(contentLower).toContain('text'); // Core content preserved
 
     // * Verify editor is still functional after AI rewrite
-    // Wait for any UI updates to settle after AI rewrite
-    await page.waitForTimeout(SHORT_WAIT);
-
     // Close the AI rewrite menu
     await closeAIRewriteMenu(page);
 
@@ -483,7 +474,6 @@ test('handles AI rewrite errors gracefully', {tag: '@pages'}, async ({pw, shared
 
     const aiRewriteButton = getAIRewriteButton(page);
     await aiRewriteButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
 
     // # Click "Improve writing" action to trigger the mocked error
     const improveButton = page.locator('text=Improve writing');

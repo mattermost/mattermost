@@ -356,6 +356,10 @@ func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, pa
 	message.Add("page_id", page.Id)
 	message.Add("resolved_at", props["resolved_at"])
 	message.Add("resolved_by", props["resolved_by"])
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           comment.ChannelId,
+		ReliableClusterSend: true,
+	})
 	a.Publish(message)
 }
 
@@ -370,6 +374,10 @@ func (a *App) SendCommentUnresolvedEvent(rctx request.CTX, comment *model.Post, 
 	)
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           comment.ChannelId,
+		ReliableClusterSend: true,
+	})
 	a.Publish(message)
 }
 
@@ -384,5 +392,9 @@ func (a *App) SendCommentDeletedEvent(rctx request.CTX, comment *model.Post, pag
 	)
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           comment.ChannelId,
+		ReliableClusterSend: true,
+	})
 	a.Publish(message)
 }

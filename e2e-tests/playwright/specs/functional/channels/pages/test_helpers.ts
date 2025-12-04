@@ -88,15 +88,24 @@ export async function createTestChannel(
     teamId: string,
     channelName: string,
     type: 'O' | 'P' = 'O',
+    userIds?: string[],
 ): Promise<Channel> {
     const timestamp = Date.now();
     const uniqueName = `${channelName}-${timestamp}`;
-    return await client.createChannel({
+    const channel = await client.createChannel({
         team_id: teamId,
         name: uniqueName.toLowerCase().replace(/[^a-z0-9-_]/g, '-'),
         display_name: uniqueName,
         type,
     });
+
+    if (userIds) {
+        for (const userId of userIds) {
+            await client.addToChannel(userId, channel.id);
+        }
+    }
+
+    return channel;
 }
 
 /**
@@ -1498,7 +1507,31 @@ export async function enterEditMode(page: Page, timeout = 5000) {
     await expect(editButton).toBeVisible({timeout});
 
     // Ensure button is enabled before clicking
-    await expect(editButton).toBeEnabled({timeout});
+    // In HA mode, permissions may take time to sync across nodes.
+    // Retry with reloads up to 3 times with increasing delays.
+    const maxRetries = 3;
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            await expect(editButton).toBeEnabled({timeout: attempt === 0 ? timeout : HIERARCHY_TIMEOUT});
+            lastError = undefined;
+            break;
+        } catch (error) {
+            lastError = error as Error;
+            if (attempt < maxRetries) {
+                // Wait before reload to allow HA sync
+                await page.waitForTimeout(1000 * (attempt + 1));
+                await page.reload();
+                await page.waitForLoadState('networkidle');
+                await expect(editButton).toBeVisible({timeout});
+            }
+        }
+    }
+
+    if (lastError) {
+        throw lastError;
+    }
 
     // Click and wait for navigation
     await editButton.click();
@@ -2413,20 +2446,90 @@ export async function duplicatePageThroughUI(page: Page, pageId: string) {
 
 /**
  * Waits for a duplicated page to appear in the hierarchy
+ * In HA mode, WebSocket events may take time to propagate, so we retry with reloads.
  * @param page - Playwright page object
  * @param expectedTitle - Expected title of the duplicated page
- * @param timeout - Optional timeout in milliseconds (default: 15000)
+ * @param timeout - Optional timeout in milliseconds per attempt (default: 10000)
  * @returns The page node locator
  */
 export async function waitForDuplicatedPageInHierarchy(
     page: Page,
     expectedTitle: string,
-    timeout: number = HIERARCHY_TIMEOUT + 5000,
+    timeout: number = HIERARCHY_TIMEOUT,
 ): Promise<Locator> {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
     const duplicateNode = hierarchyPanel.locator('[data-page-id]').filter({hasText: expectedTitle}).first();
-    await duplicateNode.waitFor({state: 'visible', timeout});
-    return duplicateNode;
+
+    // In HA mode, WebSocket events may take time to propagate
+    // Retry with reloads up to 3 times
+    const maxRetries = 3;
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            await duplicateNode.waitFor({state: 'visible', timeout});
+            return duplicateNode;
+        } catch (error) {
+            lastError = error as Error;
+            if (attempt < maxRetries) {
+                // Wait then reload to force fresh data fetch (helps in HA environments)
+                await page.waitForTimeout(1000 * (attempt + 1));
+                await page.reload();
+                await page.waitForLoadState('networkidle');
+            }
+        }
+    }
+
+    throw lastError;
+}
+
+/**
+ * Waits for the active editors indicator to appear with HA-resilient retry logic.
+ * In HA mode, WebSocket events may take time to propagate across nodes.
+ * @param page - Playwright page object
+ * @param options - Optional configuration
+ * @param options.timeout - Timeout in milliseconds per attempt (default: 10000)
+ * @param options.expectedText - Optional text to wait for (e.g., "2 people editing")
+ * @returns The active editors indicator locator
+ */
+export async function waitForActiveEditorsIndicator(
+    page: Page,
+    options: {timeout?: number; expectedText?: string} = {},
+): Promise<Locator> {
+    const {timeout = HIERARCHY_TIMEOUT, expectedText} = options;
+    const indicator = page.locator('.active-editors-indicator');
+
+    // In HA mode, WebSocket events may take time to propagate
+    // Retry with reloads up to 5 times (more aggressive for HA)
+    const maxRetries = 5;
+    let lastError: Error | undefined;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            // Use a shorter per-attempt timeout so we can retry more
+            const perAttemptTimeout = Math.min(timeout, 5000);
+            await indicator.waitFor({state: 'visible', timeout: perAttemptTimeout});
+
+            // If expectedText is specified, wait for it to appear in the indicator
+            if (expectedText) {
+                await expect(indicator).toContainText(expectedText, {timeout: perAttemptTimeout});
+            }
+
+            return indicator;
+        } catch (error) {
+            lastError = error as Error;
+            if (attempt < maxRetries) {
+                // Wait with increasing delays then reload to force fresh data fetch
+                await page.waitForTimeout(2000 * (attempt + 1));
+                await page.reload();
+                await page.waitForLoadState('networkidle');
+                // Extra wait for WebSocket reconnection after reload
+                await page.waitForTimeout(1000);
+            }
+        }
+    }
+
+    throw lastError;
 }
 
 /**

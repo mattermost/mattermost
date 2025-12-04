@@ -111,6 +111,11 @@ func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftI
 		if jsonErr == nil {
 			message.Add("draft", string(draftJSON))
 		}
+		// Use reliable cluster send for HA mode to ensure active editors sync across nodes
+		message.SetBroadcast(&model.WebsocketBroadcast{
+			ChannelId:           channel.Id,
+			ReliableClusterSend: true,
+		})
 		a.Publish(message)
 	}
 
@@ -200,6 +205,10 @@ func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) 
 	message := model.NewWebSocketEvent(model.WebsocketEventPageDraftDeleted, "", wiki.ChannelId, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId:           wiki.ChannelId,
+		ReliableClusterSend: true,
+	})
 	a.Publish(message)
 
 	return nil
@@ -547,7 +556,8 @@ func (a *App) BroadcastPagePublished(page *model.Post, wikiId, channelId, draftI
 		message.Add("source_wiki_id", sourceWikiId[0])
 	}
 	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId: channelId,
+		ChannelId:           channelId,
+		ReliableClusterSend: true,
 	})
 
 	a.Publish(message)
@@ -559,7 +569,8 @@ func (a *App) broadcastPageDeleted(pageId, wikiId, channelId, userId string) {
 	message.Add("wiki_id", wikiId)
 	message.Add("user_id", userId)
 	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId: channelId,
+		ChannelId:           channelId,
+		ReliableClusterSend: true,
 	})
 
 	a.Publish(message)
@@ -573,7 +584,8 @@ func (a *App) BroadcastPageTitleUpdated(pageId, title, wikiId, channelId string,
 	message.Add("wiki_id", wikiId)
 	message.Add("update_at", updateAt)
 	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId: channelId,
+		ChannelId:           channelId,
+		ReliableClusterSend: true,
 	})
 
 	a.Publish(message)
@@ -591,7 +603,8 @@ func (a *App) BroadcastPageMoved(pageId, oldParentId, newParentId, wikiId, chann
 		message.Add("source_wiki_id", sourceWikiId[0])
 	}
 	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId: channelId,
+		ChannelId:           channelId,
+		ReliableClusterSend: true,
 	})
 
 	a.Publish(message)
@@ -606,7 +619,8 @@ func (a *App) BroadcastWikiUpdated(wiki *model.Wiki) {
 	message.Add("description", wiki.Description)
 	message.Add("update_at", wiki.UpdateAt)
 	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId: wiki.ChannelId,
+		ChannelId:           wiki.ChannelId,
+		ReliableClusterSend: true,
 	})
 
 	a.Publish(message)
