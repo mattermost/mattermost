@@ -33,24 +33,6 @@ func (_m *TemporaryPostStore) Delete(rctx request.CTX, id string) error {
 	return r0
 }
 
-// DeleteExpired provides a mock function with given fields: rctx, expireAt
-func (_m *TemporaryPostStore) DeleteExpired(rctx request.CTX, expireAt int64) error {
-	ret := _m.Called(rctx, expireAt)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteExpired")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(request.CTX, int64) error); ok {
-		r0 = rf(rctx, expireAt)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Get provides a mock function with given fields: rctx, id
 func (_m *TemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
 	ret := _m.Called(rctx, id)
@@ -79,6 +61,41 @@ func (_m *TemporaryPostStore) Get(rctx request.CTX, id string) (*model.Temporary
 	}
 
 	return r0, r1
+}
+
+// GetExpiredPosts provides a mock function with given fields: rctx
+func (_m *TemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetExpiredPosts")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]string, error)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) []string); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// InvalidateTemporaryPost provides a mock function with given fields: id
+func (_m *TemporaryPostStore) InvalidateTemporaryPost(id string) {
+	_m.Called(id)
 }
 
 // Save provides a mock function with given fields: rctx, post

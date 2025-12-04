@@ -17,7 +17,7 @@ func TestTemporaryPostStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("Save", func(t *testing.T) { testTemporaryPostSave(t, rctx, ss) })
 	t.Run("Get", func(t *testing.T) { testTemporaryPostGet(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testTemporaryPostDelete(t, rctx, ss) })
-	t.Run("DeleteExpired", func(t *testing.T) { testTemporaryPostDeleteExpired(t, rctx, ss) })
+	t.Run("GetExpiredPosts", func(t *testing.T) { testTemporaryPostGetExpiredPosts(t, rctx, ss) })
 }
 
 func testTemporaryPostSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -107,8 +107,8 @@ func testTemporaryPostDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testTemporaryPostDeleteExpired(t *testing.T, rctx request.CTX, ss store.Store) {
-	t.Run("should delete expired posts", func(t *testing.T) {
+func testTemporaryPostGetExpiredPosts(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should get expired posts", func(t *testing.T) {
 		now := model.GetMillis()
 		pastTime := now - 3600000 // 1 hour ago
 
@@ -129,21 +129,13 @@ func testTemporaryPostDeleteExpired(t *testing.T, rctx request.CTX, ss store.Sto
 			ExpireAt: now + 3600000, // 1 hour from now
 			Message:  "Valid message",
 		}
-		savedValid, err := ss.TemporaryPost().Save(rctx, validPost)
+		_, err = ss.TemporaryPost().Save(rctx, validPost)
 		require.NoError(t, err)
 
-		// Delete expired posts (using current time as threshold)
-		err = ss.TemporaryPost().DeleteExpired(rctx, now)
+		// Get expired posts
+		expiredPosts, err := ss.TemporaryPost().GetExpiredPosts(rctx)
 		require.NoError(t, err)
-
-		// Verify expired post is deleted
-		retrieved, err := ss.TemporaryPost().Get(rctx, expiredPost.ID)
-		require.Nil(t, retrieved)
-		require.Error(t, err)
-
-		// Verify valid post still exists
-		retrieved, err = ss.TemporaryPost().Get(rctx, savedValid.ID)
-		require.NoError(t, err)
-		require.Equal(t, savedValid.ID, retrieved.ID)
+		require.Equal(t, 1, len(expiredPosts))
+		require.Equal(t, expiredPost.ID, expiredPosts[0])
 	})
 }

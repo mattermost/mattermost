@@ -32,8 +32,8 @@ func CreateTemporaryPost(post *Post, expireAt int64) (*TemporaryPost, *Post, err
 		FileIDs:  post.FileIds,
 	}
 
-	post.Message = ""
 	post.FileIds = []string{}
+	post.Message = ""
 
 	return temporaryPost, post, nil
 }

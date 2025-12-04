@@ -45,6 +45,9 @@ func temporaryPostSliceColumns() []string {
 	}
 }
 
+func (s *SqlTemporaryPostStore) InvalidateTemporaryPost(id string) {
+}
+
 func (s *SqlTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost) (_ *model.TemporaryPost, err error) {
 	if err = post.IsValid(); err != nil {
 		return nil, fmt.Errorf("failed to save TemporaryPost: %w", err)
@@ -79,7 +82,7 @@ func (s *SqlTemporaryPostStore) saveT(tx *sqlxTxWrapper, post *model.TemporaryPo
 			post.ExpireAt,
 			post.Message,
 			model.ArrayToJSON(post.FileIDs),
-		)
+		).SuffixExpr(sq.Expr("ON CONFLICT (PostId) DO UPDATE SET Type = ?, ExpireAt = ?, Message = ?, FileIds = ?", post.Type, post.ExpireAt, post.Message, model.ArrayToJSON(post.FileIDs)))
 
 	_, err := tx.ExecBuilder(query)
 	if err != nil {
@@ -143,15 +146,18 @@ func (s *SqlTemporaryPostStore) Delete(rctx request.CTX, id string) error {
 	return nil
 }
 
-func (s *SqlTemporaryPostStore) DeleteExpired(rctx request.CTX, expireAt int64) error {
+func (s *SqlTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+	now := model.GetMillis()
+
 	query := s.getQueryBuilder().
-		Delete("TemporaryPosts").
-		Where(sq.LtOrEq{"ExpireAt": expireAt})
+		Select("PostId").
+		From("TemporaryPosts").
+		Where(sq.LtOrEq{"ExpireAt": now})
 
-	_, err := s.GetMaster().ExecBuilder(query)
+	ids := []string{}
+	err := s.GetMaster().SelectBuilder(&ids, query)
 	if err != nil {
-		return fmt.Errorf("failed to delete expired TemporaryPosts with expireAt<=%d: %w", expireAt, err)
+		return nil, fmt.Errorf("failed to select expired TemporaryPosts with expireAt<=%d: %w", now, err)
 	}
-
-	return nil
+	return ids, nil
 }
