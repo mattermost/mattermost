@@ -11,6 +11,13 @@ const config = {
     testMatch: [
         '<rootDir>/src/packages/mattermost-redux/src/**/*.test.{js,jsx,ts,tsx}',
     ],
+    collectCoverageFrom: [
+        'src/packages/mattermost-redux/src/**/*.{js,jsx,ts,tsx}',
+    ],
+    coveragePathIgnorePatterns: [
+        '/node_modules/',
+        'src/packages/mattermost-redux/src/selectors/create_selector',
+    ],
     reporters: [
         'default',
         ['jest-junit', {outputDirectory: 'build', outputName: 'test-results-mattermost-redux.xml'}],

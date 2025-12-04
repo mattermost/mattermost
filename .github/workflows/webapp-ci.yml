@@ -90,7 +90,13 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci
+          npm run test-ci -- --coverage
+      - name: ci/upload-coverage-artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: coverage-platform-${{ matrix.package }}
+          path: ./webapp/platform/${{ matrix.package }}/coverage/lcov.info
+          retention-days: 1
 
   test-mattermost-redux:
     runs-on: ubuntu-22.04
@@ -152,7 +158,7 @@ jobs:
 
   upload-coverage:
     runs-on: ubuntu-22.04
-    needs: [test-mattermost-redux, test-channels]
+    needs: [test-platform, test-mattermost-redux, test-channels]
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
     steps:
       - name: ci/checkout-repo
@@ -166,14 +172,45 @@ jobs:
       - name: ci/merge-coverage
         run: |
           sudo apt-get update && sudo apt-get install -y lcov
-          lcov_args=""
-          for file in coverage-artifacts/coverage-*/lcov.info; do
+
+          # Merge channels shard coverage first
+          channels_args=""
+          for file in coverage-artifacts/coverage-channels-shard-*/lcov.info; do
             if [ -f "$file" ]; then
-              lcov_args="$lcov_args -a $file"
+              channels_args="$channels_args -a $file"
             fi
           done
-          if [ -n "$lcov_args" ]; then
-            lcov $lcov_args -o merged-lcov.info
+          if [ -n "$channels_args" ]; then
+            lcov $channels_args -o channels-merged-lcov.info
+            echo "Merged channels coverage from shards"
+          fi
+
+          # Merge platform coverage
+          platform_args=""
+          for file in coverage-artifacts/coverage-platform-*/lcov.info; do
+            if [ -f "$file" ]; then
+              platform_args="$platform_args -a $file"
+            fi
+          done
+          if [ -n "$platform_args" ]; then
+            lcov $platform_args -o platform-merged-lcov.info
+            echo "Merged platform coverage"
+          fi
+
+          # Final merge of all coverage reports
+          final_args=""
+          if [ -f "channels-merged-lcov.info" ]; then
+            final_args="$final_args -a channels-merged-lcov.info"
+          fi
+          if [ -f "platform-merged-lcov.info" ]; then
+            final_args="$final_args -a platform-merged-lcov.info"
+          fi
+          if [ -f "coverage-artifacts/coverage-mattermost-redux/lcov.info" ]; then
+            final_args="$final_args -a coverage-artifacts/coverage-mattermost-redux/lcov.info"
+          fi
+          if [ -n "$final_args" ]; then
+            lcov $final_args -o merged-lcov.info
+            echo "Final merged coverage created"
           fi
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

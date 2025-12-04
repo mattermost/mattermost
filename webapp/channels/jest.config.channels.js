@@ -12,6 +12,14 @@ const config = {
         '/node_modules/',
         '<rootDir>/src/packages/mattermost-redux/',
     ],
+    collectCoverageFrom: [
+        'src/**/*.{js,jsx,ts,tsx}',
+        '!src/packages/mattermost-redux/**',
+    ],
+    coveragePathIgnorePatterns: [
+        '/node_modules/',
+        'src/packages/mattermost-redux/',
+    ],
     reporters: [
         'default',
         ['jest-junit', {outputDirectory: 'build', outputName: 'test-results-channels.xml'}],
