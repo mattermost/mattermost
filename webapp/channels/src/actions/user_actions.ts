@@ -25,7 +25,6 @@ import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
-import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 import store from 'stores/redux_store';
@@ -346,9 +345,6 @@ export async function loadProfilesForGM() {
         await dispatch(UserActions.getProfilesInGroupChannels(channelUsersToLoad));
     }
 
-    if (userIdsForLoadingCustomEmojis.size > 0) {
-        dispatch(loadCustomEmojisForCustomStatusesByUserIds(userIdsForLoadingCustomEmojis));
-    }
     if (newPreferences.length > 0) {
         dispatch(savePreferences(currentUserId, newPreferences));
     }
@@ -403,7 +399,6 @@ export async function loadProfilesForDM() {
     if (profilesToLoad.length > 0) {
         await dispatch(UserActions.getProfilesByIds(profilesToLoad));
     }
-    await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
 export function autocompleteUsersInCurrentTeam(username: string): ThunkActionFunc<Promise<UserAutocomplete>> {

@@ -104,7 +104,6 @@ import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
 } from 'actions/cloud';
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
 import {handleNewPost} from 'actions/post_actions';
@@ -1202,10 +1201,6 @@ export async function handleUserUpdatedEvent(msg) {
     const state = getState();
     const currentUser = getCurrentUser(state);
     const user = msg.data.user;
-    if (user && user.props) {
-        const customStatus = user.props.customStatus ? JSON.parse(user.props.customStatus) : undefined;
-        dispatch(loadCustomEmojisIfNeeded([customStatus?.emoji]));
-    }
 
     if (currentUser.id === user.id) {
         if (user.update_at > currentUser.update_at) {
