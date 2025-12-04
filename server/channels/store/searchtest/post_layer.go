@@ -299,7 +299,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Combined mention terms should not use simple search",
 		Fn:   testCombinedMentionTermsDoNotUseSimpleSearch,
 		Tags: []string{EngineAll},
-	}
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
