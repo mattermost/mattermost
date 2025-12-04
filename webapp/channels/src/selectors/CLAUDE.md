@@ -4,16 +4,53 @@
 - Derive memoized data from Redux state for use in components, hooks, and actions.
 - Keep state computations centralized to avoid duplication and unnecessary renders.
 
-## Patterns
-- Use `reselect`'s `createSelector` for any selector returning new objects/arrays. No bare functions that allocate per call.
-- For selectors requiring parameters, export a factory (`makeGetVisiblePosts`) that builds and memoizes its own selector.
-- Memoize selector instances inside components with `useMemo(() => makeGet..., [])`.
-- Split selectors by domain: generic ones at the root, UI-specific ones under `views/`.
+## Directory Structure
+```
+selectors/
+├── *.ts              # Domain-specific selectors (drafts.ts, rhs.ts, etc.)
+└── views/            # UI state selectors matching views/ reducers
+```
 
-## Naming & Structure
-- `selectors/posts.ts` – canonical example for feed computations.
-- `selectors/views/channel_sidebar.ts` – pattern for per-view selectors.
-- Keep test files next to implementation (`*.test.ts`) to document memoization expectations.
+## Memoization Requirements
+
+### When to Memoize
+Selectors that return **new objects or arrays** must use `createSelector` from reselect:
+
+```typescript
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+
+// GOOD - memoized
+export const getVisibleChannels = createSelector(
+    'getVisibleChannels',
+    (state: GlobalState) => state.entities.channels.channels,
+    (channels) => Object.values(channels).filter(c => c.visible),
+);
+```
+
+### Selector Factories
+When a selector takes arguments, use a `makeGet...` factory for per-instance memoization:
+
+```typescript
+// Factory creates a new memoized selector instance
+export function makeGetChannel() {
+    return createSelector(
+        'getChannel',
+        (state: GlobalState) => state.entities.channels.channels,
+        (state: GlobalState, channelId: string) => channelId,
+        (channels, channelId) => channels[channelId],
+    );
+}
+```
+
+### Using Factories in Components
+
+```typescript
+// Functional component - memoize the selector instance
+function ChannelItem({channelId}: Props) {
+    const getChannel = useMemo(makeGetChannel, []);
+    const channel = useSelector((state) => getChannel(state, channelId));
+}
+```
 
 ## Usage Rules
 - Avoid cross-imports from reducers or store. Selectors should depend only on state shape and other selectors.
@@ -22,7 +59,5 @@
 
 ## References
 - `webapp/STYLE_GUIDE.md → Redux & Data Fetching → Selectors`.
-- Example factories: `views/threads.ts`, `posts.ts`.
-
-
-
+- `drafts.ts`: Memoized selectors with createSelector.
+- `views/modals.ts`: Modal state selectors.

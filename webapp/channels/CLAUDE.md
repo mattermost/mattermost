@@ -11,11 +11,38 @@
 - `npm run test --workspace=channels` / `npm run test:watch --workspace=channels`.
 - `npm run check --workspace=channels` and `npm run fix --workspace=channels` for lint/style fixes.
 
+## Directory Structure (src/)
+
+```
+src/
+├── components/     # React components organized by feature (300+ subdirectories)
+├── actions/        # Redux action creators (sync and async thunks)
+├── selectors/      # Redux selectors for deriving state
+├── reducers/       # Redux reducers for state management
+├── utils/          # Utility functions and helpers
+├── tests/          # Test utilities and helpers
+├── i18n/           # Internationalization files
+├── sass/           # Global SCSS styles and theme variables
+├── types/          # TypeScript type definitions specific to the web app
+├── store/          # Redux store configuration with redux-persist
+├── plugins/        # Plugin integration points
+├── packages/
+│   └── mattermost-redux/  # Core Redux layer (actions, reducers, selectors)
+├── entry.tsx       # Application entry point
+└── root.tsx        # Root React component
+```
+
 ## Key Files
 - `package.json` – workspace-specific scripts, env vars, and browserlist targets.
 - `webpack.config.js` – module federation + alias map; update remotes or exposes here only when necessary.
 - `jest.config.js` – test roots, transformers, moduleNameMapper for workspace aliases.
 - `tsconfig.json` – project references for `src`, `tests`, and embedded packages.
+
+## TypeScript Configuration
+- **Strict Mode**: TypeScript strict mode enabled with `strictNullChecks`
+- **Path Aliases**: Configured for `@mattermost/*` packages and `mattermost-redux/*`
+- **Composite Projects**: Uses TypeScript project references for workspace packages
+- **No Any**: Avoid `any` types; legacy code may have them but new code should be typed
 
 ## Module Federation Notes
 - Use `channels/src/module_registry.ts` to register async chunks; never import plugin remotes synchronously.
@@ -37,4 +64,3 @@
 ## References
 - `webapp/STYLE_GUIDE.md → Automated Style Checking`, `Dependencies & Packages`.
 - `webapp/README.md` for high-level architecture and release info.
-
