@@ -308,7 +308,6 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
 
     // # Go to Mobile Security section
     await systemConsolePage.sidebar.goToItem('Mobile Security');
-    // await systemConsolePage.mobileSecurity.toBeVisible();
 
     // * Verify new Intune toggle is visible
     await expect(systemConsolePage.mobileSecurity.enableIntuneToggleTrue).toBeVisible();
@@ -400,7 +399,7 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
     config.SamlSettings.AssertionConsumerServiceURL = 'https://sp.example.com/login';
     config.SamlSettings.IdpCertificateFile = 'saml-idp.crt';
     config.SamlSettings.PrivateKeyFile = 'saml-idp.crt';
-    // If the backend expects a public certificate filename, set it
+
     if ('PublicCertificateFile' in config.SamlSettings) {
         config.SamlSettings.PublicCertificateFile = 'saml-public-cert.pem';
     }
@@ -415,7 +414,6 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
 
     // # Go to Mobile Security section
     await systemConsolePage.sidebar.goToItem('Mobile Security');
-    // await systemConsolePage.mobileSecurity.toBeVisible();
 
     // * Verify new Intune toggle is visible
     await expect(systemConsolePage.mobileSecurity.enableIntuneToggleTrue).toBeVisible();
