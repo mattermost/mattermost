@@ -40,6 +40,10 @@ export default function FeatureToast({
         return null;
     }
 
+    const handleDismiss = () => {
+        onDismiss();
+    };
+
     return (
         <FloatingPortal id={RootHtmlPortalId}>
             <div
@@ -65,7 +69,7 @@ export default function FeatureToast({
                         >
                             <button
                                 className='btn btn-icon btn-sm'
-                                onClick={onDismiss}
+                                onClick={handleDismiss}
                                 aria-label={formatMessage({id: 'feature_toast.tooltipCloseBtn', defaultMessage: 'Close'})}
                             >
                                 <CloseIcon size={18}/>
@@ -77,7 +81,7 @@ export default function FeatureToast({
                         {showButton && (
                             <button
                                 className='btn btn-primary'
-                                onClick={() => onDismiss()}
+                                onClick={handleDismiss}
                             >
                                 {buttonText}
                             </button>
