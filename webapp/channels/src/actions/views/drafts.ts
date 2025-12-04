@@ -9,7 +9,6 @@ import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-import {PostTypes} from 'mattermost-redux/constants/posts';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
