@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+@use 'utils/variables';
+
 .feature_toast {
-    position: absolute;
-    // Just above the header but below
-    // other modals like the nearby 'help' icon
-    z-index: 16;
-    top: 24px;
-    right: 24px;
+    position: fixed;
+    z-index: variables.$z-index-popover;
+    top: 72px; // Below channel header (56px) + margin
+    right: 60px; // Clear app bar (44px) + margin
     display: flex;
+    align-items: flex-start;
     width: 386px;
     padding: 24px;
     border: var(--border-default);
@@ -24,33 +25,22 @@
 .feature_toast__header_content {
     display: flex;
     width: 100%;
-    align-items: center;
+    align-items: flex-start;
+    gap: 8px;
 
     h3 {
         flex-grow: 1;
         margin: 0;
+        padding-top: 6px; // Align with 32px button
         font-size: 14px;
         font-weight: 600;
         line-height: 20px;
-        vertical-align: middle;
-    }
-
-    button {
-        padding: 0;
-        border: none;
-        background-color: transparent;
-    }
-
-    span:has(svg) {
-        // This was done because of a weird issue where
-        // the parent's line height was affecting
-        // this span, causing it to be 29px tall w/ a 24px svg.
-        line-height: 0;
     }
 }
 
 .feature_toast__icon {
     flex-shrink: 0;
+    margin-top: 4px; // Align with title text
 }
 
 .feature_toast__main_content {
