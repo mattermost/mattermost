@@ -118,6 +118,7 @@ describe('SidebarList', () => {
             readAllMessages: jest.fn(),
             markAllInTeamAsRead: jest.fn(),
             setMarkAllAsReadWithoutConfirm: jest.fn(),
+            openModal: jest.fn(),
         },
     };
 

@@ -11,27 +11,15 @@ import MarkAllAsReadModal from './mark_all_as_read_modal';
 
 describe('components/MarkAllAsReadModal', () => {
     const baseProps = {
-        show: true,
         onConfirm: jest.fn(),
-        onCancel: jest.fn(),
+        onHide: jest.fn(),
     };
 
-    test('should render when show is true', () => {
+    test('should render modal content', () => {
         renderWithContext(<MarkAllAsReadModal {...baseProps}/>);
 
         expect(screen.getByText('Mark all messages as read?')).toBeInTheDocument();
         expect(screen.getByText(/will mark all messages as read/i)).toBeInTheDocument();
-    });
-
-    test('should not render when show is false', () => {
-        renderWithContext(
-            <MarkAllAsReadModal
-                {...baseProps}
-                show={false}
-            />,
-        );
-
-        expect(screen.queryByText('Mark all messages as read?')).not.toBeInTheDocument();
     });
 
     test('should render checkbox with correct label', () => {
@@ -62,19 +50,19 @@ describe('components/MarkAllAsReadModal', () => {
         expect(screen.getByRole('button', {name: 'Mark all read'})).toBeInTheDocument();
     });
 
-    test('should call onCancel when cancel button is clicked', async () => {
-        const onCancel = jest.fn();
+    test('should call onHide when cancel button is clicked', async () => {
+        const onHide = jest.fn();
         renderWithContext(
             <MarkAllAsReadModal
                 {...baseProps}
-                onCancel={onCancel}
+                onHide={onHide}
             />,
         );
 
         const cancelButton = screen.getByRole('button', {name: 'Cancel'});
         await userEvent.click(cancelButton);
 
-        expect(onCancel).toHaveBeenCalledTimes(1);
+        expect(onHide).toHaveBeenCalledTimes(1);
     });
 
     test('should call onConfirm with false when confirm button is clicked without checkbox', async () => {

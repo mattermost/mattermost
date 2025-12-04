@@ -10,16 +10,16 @@ import './mark_all_as_read_modal.scss';
 import {ShortcutSequence, ShortcutKeyVariant} from './shortcut_sequence';
 import {ShortcutKeys} from './with_tooltip';
 
-type Props = {
-    show: boolean;
-    onConfirm: (checked: boolean) => void;
-    onCancel: () => void;
+export type Props = {
+    onConfirm: (dontAskAgain: boolean) => void;
+    onExited?: () => void;
+    onHide?: () => void;
 }
 
 export default function MarkAllAsReadModal({
-    show,
     onConfirm,
-    onCancel,
+    onExited,
+    onHide,
 }: Props) {
     const [checked, setChecked] = useState(false);
 
@@ -30,9 +30,14 @@ export default function MarkAllAsReadModal({
         />
     );
 
-    const handleCancel = () => {
+    const handleClose = () => {
         setChecked(false);
-        onCancel();
+        onHide?.();
+    };
+
+    const handleConfirm = () => {
+        onConfirm(checked);
+        onHide?.();
     };
 
     const message = (
@@ -86,10 +91,9 @@ export default function MarkAllAsReadModal({
 
     return (
         <GenericModal
-            show={show}
             className='mark_all_as_read_modal a11y__modal'
-            onHide={handleCancel}
-            onExited={handleCancel}
+            onHide={handleClose}
+            onExited={onExited}
             ariaLabelledby='markAllReadModalLabel'
         >
             <div className='mark_all_as_read_modal__body'>
@@ -100,13 +104,13 @@ export default function MarkAllAsReadModal({
             <div className='mark_all_as_read_modal__footer'>
                 <button
                     className='btn btn-tertiary'
-                    onClick={handleCancel}
+                    onClick={handleClose}
                 >
                     {cancelButtonText}
                 </button>
                 <button
                     className='btn btn-danger'
-                    onClick={() => onConfirm(checked)}
+                    onClick={handleConfirm}
                 >
                     {confirmButtonText}
                 </button>

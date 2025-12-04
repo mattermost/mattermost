@@ -27,6 +27,7 @@ import {
     clearChannelSelection,
 } from 'actions/views/channel_sidebar';
 import {close, switchToLhsStaticPage} from 'actions/views/lhs';
+import {openModal} from 'actions/views/modals';
 import {getCurrentStaticPageId, getVisibleStaticPages} from 'selectors/lhs';
 import {
     getDisplayedChannels,
@@ -95,6 +96,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             readAllMessages,
             markAllInTeamAsRead,
             setMarkAllAsReadWithoutConfirm,
+            openModal,
         }, dispatch),
     };
 }

@@ -19,13 +19,15 @@ import {General} from 'mattermost-redux/constants';
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
 import MarkAllAsReadModal from 'components/mark_all_as_read_modal';
+import type {Props as MarkAllAsReadModalProps} from 'components/mark_all_as_read_modal';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
-import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
+import {Constants, DraggingStates, DraggingStateTypes, ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
 import {mod} from 'utils/utils';
 
+import type {ModalData} from 'types/actions';
 import type {DraggingState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
 
@@ -69,13 +71,13 @@ type Props = WrappedComponentProps & {
         readAllMessages: (userId: string) => void;
         markAllInTeamAsRead: (userId: string, teamId: string) => void;
         setMarkAllAsReadWithoutConfirm: (userId: string, value: boolean) => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
     };
 };
 
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
-    showMarkAllReadModal: boolean;
 };
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
@@ -101,7 +103,6 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
-            showMarkAllReadModal: false,
         };
         this.scrollbar = React.createRef();
 
@@ -359,8 +360,12 @@ export class SidebarList extends React.PureComponent<Props, State> {
             if (this.props.markAllAsReadWithoutConfirm) {
                 this.markAllAsRead();
             } else {
-                this.setState({
-                    showMarkAllReadModal: true,
+                this.props.actions.openModal<MarkAllAsReadModalProps>({
+                    modalId: ModalIdentifiers.MARK_ALL_AS_READ,
+                    dialogType: MarkAllAsReadModal,
+                    dialogProps: {
+                        onConfirm: this.onMarkAllAsReadConfirm,
+                    },
                 });
             }
         }
@@ -470,15 +475,6 @@ export class SidebarList extends React.PureComponent<Props, State> {
             this.props.currentUserId,
             dontShowAgain,
         );
-        this.setState({
-            showMarkAllReadModal: false,
-        });
-    };
-
-    onMarkAllAsReadCancel = () => {
-        this.setState({
-            showMarkAllReadModal: false,
-        });
     };
 
     render() {
@@ -588,15 +584,6 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         {channelList}
                     </Scrollbars>
                 </div>
-                {
-                    this.props.markAllAsReadShortcutEnabled && (
-                        <MarkAllAsReadModal
-                            show={this.state.showMarkAllReadModal}
-                            onConfirm={this.onMarkAllAsReadConfirm}
-                            onCancel={this.onMarkAllAsReadCancel}
-                        />
-                    )
-                }
             </>
         );
     }
