@@ -98,10 +98,10 @@ export type GlobalState = {
             byWiki: Record<string, string[]>;
             loading: Record<string, boolean>;
             error: Record<string, string | null>;
-            pendingPublishes: Record<string, boolean>;
             lastPagesInvalidated: Record<string, number>;
             lastDraftsInvalidated: Record<string, number>;
             statusField: SelectPropertyField | null;
+            publishedDraftTimestamps: Record<string, number>;
         };
         wikis: {
             byChannel: Record<string, string[]>;

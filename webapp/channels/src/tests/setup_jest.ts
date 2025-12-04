@@ -59,6 +59,11 @@ jest.mock('@mui/styled-engine', () => {
 
 global.ResizeObserver = require('resize-observer-polyfill');
 
+// Polyfill structuredClone for jsdom environment (used by pdfjs-dist)
+if (typeof globalThis.structuredClone === 'undefined') {
+    globalThis.structuredClone = <T>(obj: T): T => JSON.parse(JSON.stringify(obj));
+}
+
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
 // React lifecycle methods.
 function isDependencyWarning(params: string[]) {
@@ -174,3 +179,17 @@ jest.mock('tiptap-extension-resize-image', () => ({
         configure: jest.fn().mockReturnThis(),
     },
 }));
+
+// Mock pdfjs-dist to avoid ReadableStream errors in jsdom test environment
+jest.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
+    getDocument: jest.fn(() => ({
+        promise: Promise.resolve({
+            numPages: 0,
+            getPage: jest.fn(),
+        }),
+    })),
+    GlobalWorkerOptions: {
+        workerSrc: '',
+    },
+}));
+jest.mock('pdfjs-dist/build/pdf.worker.min.mjs', () => ({}));

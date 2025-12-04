@@ -1474,9 +1474,9 @@ func TestSearchPages(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 
 	t.Run("pages appear in search results by title", func(t *testing.T) {
-		page, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "UniquePageTitleForSearchTest")
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
+		// Create page with title - the title is included in SearchText via CreateWikiPage
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "UniquePageTitleForSearchTest", "", th.BasicUser.Id, "UniquePageTitleForSearchTest")
+		require.Nil(t, appErr)
 
 		term := "UniquePageTitleForSearchTest"
 		isOr := false
@@ -1498,32 +1498,9 @@ func TestSearchPages(t *testing.T) {
 	})
 
 	t.Run("pages appear in search results by content", func(t *testing.T) {
-		page, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "Page for content search")
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-
-		pageContent := &model.PageContent{
-			PageId: page.Id,
-			Content: model.TipTapDocument{
-				Type: "doc",
-				Content: []map[string]any{
-					{
-						"type": "paragraph",
-						"content": []map[string]any{
-							{
-								"type": "text",
-								"text": "UniqueContentKeywordXYZ123 for search testing",
-							},
-						},
-					},
-				},
-			},
-			SearchText: "UniqueContentKeywordXYZ123 for search testing",
-			CreateAt:   model.GetMillis(),
-			UpdateAt:   model.GetMillis(),
-		}
-		_, err = th.App.Srv().Store().Page().SavePageContent(pageContent)
-		require.NoError(t, err)
+		// Create page with searchable content directly
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page for content search", "", th.BasicUser.Id, "UniqueContentKeywordXYZ123 for search testing")
+		require.Nil(t, appErr)
 
 		term := "UniqueContentKeywordXYZ123"
 		isOr := false

@@ -65,7 +65,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 byWiki: {},
                 loading: {},
                 error: {},
-                pendingPublishes: {},
+                publishedDraftTimestamps: {},
                 lastPagesInvalidated: {},
                 lastDraftsInvalidated: {},
                 statusField: {

@@ -232,7 +232,7 @@ const state: GlobalState = {
             byWiki: {},
             loading: {},
             error: {},
-            pendingPublishes: {},
+            publishedDraftTimestamps: {},
             lastPagesInvalidated: {},
             lastDraftsInvalidated: {},
             statusField: null,

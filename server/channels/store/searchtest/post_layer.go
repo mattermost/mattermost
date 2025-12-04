@@ -2273,31 +2273,38 @@ func testSearchWithSQLSpecialCharacters(t *testing.T, th *SearchTestHelper) {
 }
 
 func testSearchWikiPagesByTitle(t *testing.T, th *SearchTestHelper) {
-	// Create a wiki page with title stored in Props
+	// Create a wiki page post (Type='page')
+	// Note: Pages are stored in Posts table but have separate CRUD path via PageStore.
+	// For search tests, we create the Post directly and add PageContent separately.
 	wikiPage, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "", "", model.PostTypePage, 0, false)
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	// Set the title in Props (as wiki pages do)
-	wikiPage.AddProp("title", "UniqueWikiPageTitleSearchTest")
-	_, err = th.Store.Post().Update(th.Context, wikiPage, wikiPage)
-	require.NoError(t, err)
-
-	// Create page content with SearchText for title
+	// Create page content with searchable text
+	// SearchText is derived from Content via PreSave() - this is what makes pages searchable
 	pageContent := &model.PageContent{
 		PageId: wikiPage.Id,
 		Content: model.TipTapDocument{
-			Type:    "doc",
-			Content: []map[string]any{},
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": "UniqueWikiPageTitleSearchTest",
+						},
+					},
+				},
+			},
 		},
-		SearchText: "UniqueWikiPageTitleSearchTest",
-		CreateAt:   model.GetMillis(),
-		UpdateAt:   model.GetMillis(),
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
 	}
 	_, err = th.Store.Page().SavePageContent(pageContent)
 	require.NoError(t, err)
 
-	t.Run("Should find wiki page by title via SearchText in PageContents", func(t *testing.T) {
+	t.Run("Should find wiki page by SearchText in PageContents", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "UniqueWikiPageTitleSearchTest"}
 		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 		require.NoError(t, err)

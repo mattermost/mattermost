@@ -78,7 +78,7 @@ describe('pages selectors', () => {
                 },
                 loading: {},
                 error: {},
-                pendingPublishes: {},
+                publishedDraftTimestamps: {},
             },
         },
     } as any;
@@ -146,7 +146,7 @@ describe('pages selectors', () => {
                         byWiki: {[wikiId]: [pageId3]},
                         loading: {},
                         error: {},
-                        pendingPublishes: {},
+                        publishedDraftTimestamps: {},
                     },
                 },
             } as any;
@@ -172,7 +172,7 @@ describe('pages selectors', () => {
                         byWiki: {[wikiId]: [pageId1, pageId2]},
                         loading: {},
                         error: {},
-                        pendingPublishes: {},
+                        publishedDraftTimestamps: {},
                     },
                 },
             } as any;
@@ -206,7 +206,7 @@ describe('pages selectors', () => {
                         byWiki: {[wikiId]: [pageId1, 'regularPost']},
                         loading: {},
                         error: {},
-                        pendingPublishes: {},
+                        publishedDraftTimestamps: {},
                     },
                 },
             } as any;
@@ -235,7 +235,7 @@ describe('pages selectors', () => {
                         byWiki: {[wikiId]: [pageId1, 'missing-page']},
                         loading: {},
                         error: {},
-                        pendingPublishes: {},
+                        publishedDraftTimestamps: {},
                     },
                 },
             } as any;
