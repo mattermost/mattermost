@@ -83,6 +83,38 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, 
 	return r0, r1
 }
 
+// GetBatch provides a mock function with given fields: objectIDs, dstLang
+func (_m *AutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
+	ret := _m.Called(objectIDs, dstLang)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBatch")
+	}
+
+	var r0 map[string]*model.Translation
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func([]string, string) (map[string]*model.Translation, *model.AppError)); ok {
+		return rf(objectIDs, dstLang)
+	}
+	if rf, ok := ret.Get(0).(func([]string, string) map[string]*model.Translation); ok {
+		r0 = rf(objectIDs, dstLang)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, string) *model.AppError); ok {
+		r1 = rf(objectIDs, dstLang)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUserLanguage provides a mock function with given fields: userID, channelID
 func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 	ret := _m.Called(userID, channelID)

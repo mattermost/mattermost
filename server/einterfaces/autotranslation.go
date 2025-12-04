@@ -48,6 +48,14 @@ type AutoTranslationInterface interface {
 	//   - error if a critical failure occurs
 	Translate(ctx context.Context, objectType, objectID, channelID, userID string, content any) (*model.Translation, *model.AppError)
 
+	// GetBatch fetches a batch of translations for a list of object IDs and a destination language.
+	// This is used for efficiently populating translations for list views (e.g., channel history).
+	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
+
+	// GetUserLanguage returns the preferred language for a user in a channel if auto-translation is enabled.
+	// Returns the language code or error.
+	GetUserLanguage(userID, channelID string) (string, *model.AppError)
+
 	// Detect detects the language of the provided content.
 	// The content can be a string, json.RawMessage, map[string]any, or *model.Post.
 	// Returns the ISO language code (e.g., "en", "es", "pt-BR") and an optional confidence score.

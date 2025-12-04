@@ -833,6 +833,12 @@ func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 
 }
 
+func (s *RetryLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+
+}
+
 func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 
 	return s.AutoTranslationStore.GetUserLanguage(userID, channelID)

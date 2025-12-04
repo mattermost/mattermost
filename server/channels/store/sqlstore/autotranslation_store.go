@@ -208,7 +208,7 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "UpdateAt").
-		From("translations").
+		From("Translations").
 		Where(sq.Eq{"ObjectId": objectID, "DstLang": dstLang})
 
 	var translation Translation
@@ -253,6 +253,65 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		result.ObjectJSON = json.RawMessage(translation.Text)
 	} else {
 		result.Text = translation.Text
+	}
+
+	return result, nil
+}
+
+func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
+	if len(objectIDs) == 0 {
+		return make(map[string]*model.Translation), nil
+	}
+
+	query := s.getQueryBuilder().
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "UpdateAt").
+		From("Translations").
+		Where(sq.Eq{"ObjectId": objectIDs, "DstLang": dstLang})
+
+	var translations []Translation
+	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
+		return nil, model.NewAppError("SqlAutoTranslationStore.GetBatch",
+			"store.sql_autotranslation.get_batch.app_error", nil, err.Error(), 500)
+	}
+
+	result := make(map[string]*model.Translation, len(translations))
+	for _, t := range translations {
+		meta, err := t.Meta.ToMap()
+		var translationTypeStr string
+		if err != nil {
+			// Log error but continue with other translations
+			continue
+		}
+
+		if v, ok := meta["type"]; ok {
+			if s, ok := v.(string); ok {
+				translationTypeStr = s
+			}
+		}
+
+		// Default objectType to "post" if not set
+		objectType := t.ObjectType
+		if objectType == "" {
+			objectType = "post"
+		}
+
+		modelT := &model.Translation{
+			ObjectID:   t.ObjectID,
+			ObjectType: objectType,
+			Lang:       t.DstLang,
+			Type:       model.TranslationType(translationTypeStr),
+			Confidence: t.Confidence,
+			State:      model.TranslationStateReady,
+			NormHash:   t.NormHash,
+		}
+
+		if modelT.Type == model.TranslationTypeObject {
+			modelT.ObjectJSON = json.RawMessage(t.Text)
+		} else {
+			modelT.Text = t.Text
+		}
+
+		result[t.ObjectID] = modelT
 	}
 
 	return result, nil

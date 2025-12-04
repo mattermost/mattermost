@@ -123,6 +123,12 @@ type Post struct {
 	Participants []*User       `json:"participants"`
 	IsFollowing  *bool         `json:"is_following,omitempty"` // for root posts in collapsed thread mode indicates if the current user is following this thread
 	Metadata     *PostMetadata `json:"metadata,omitempty"`
+
+	// Transient data for auto-translation
+	Translation           string   `json:"translation,omitempty" db:"-"`
+	TranslationType       string   `json:"translation_type,omitempty" db:"-"`
+	TranslationConfidence *float64 `json:"translation_confidence,omitempty" db:"-"`
+	TranslationState      string   `json:"translation_state,omitempty" db:"-"`
 }
 
 func (o *Post) Auditable() map[string]any {
@@ -339,6 +345,10 @@ func (o *Post) ShallowCopy(dst *Post) error {
 		dst.IsFollowing = NewPointer(*o.IsFollowing)
 	}
 	dst.RemoteId = o.RemoteId
+	dst.Translation = o.Translation
+	dst.TranslationType = o.TranslationType
+	dst.TranslationConfidence = o.TranslationConfidence
+	dst.TranslationState = o.TranslationState
 	return nil
 }
 

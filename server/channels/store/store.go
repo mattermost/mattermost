@@ -1157,6 +1157,7 @@ type AutoTranslationStore interface {
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
 	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
 	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
+	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
 	Save(translation *model.Translation) *model.AppError
 
 	ClearCaches()

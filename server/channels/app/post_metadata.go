@@ -83,6 +83,49 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		}
 	}
 
+	if a.Srv().Channels().AutoTranslation != nil {
+		userID := rctx.Session().UserId
+		channelPostIDs := make(map[string][]string)
+
+		// Group posts by channel
+		for _, post := range list.Posts {
+			channelPostIDs[post.ChannelId] = append(channelPostIDs[post.ChannelId], post.Id)
+		}
+
+		const autoQueueMaxAge = 1 * time.Hour
+
+		for channelID, postIDs := range channelPostIDs {
+			userLang, err := a.Srv().Channels().AutoTranslation.GetUserLanguage(userID, channelID)
+			if err != nil || userLang == "" {
+				continue
+			}
+
+			translations, err := a.Srv().Channels().AutoTranslation.GetBatch(postIDs, userLang)
+			if err != nil {
+				rctx.Logger().Warn("Failed to fetch translations batch", mlog.Err(err))
+				continue
+			}
+
+			for _, postID := range postIDs {
+				post := list.Posts[postID]
+				if t, ok := translations[postID]; ok {
+					post.Translation = t.Text
+					if t.Type == model.TranslationTypeObject {
+						post.Translation = string(t.ObjectJSON)
+					}
+					post.TranslationType = string(t.Type)
+					post.TranslationConfidence = t.Confidence
+					post.TranslationState = string(t.State)
+				} else {
+					// Inference
+					if time.Since(time.UnixMilli(post.CreateAt)) < autoQueueMaxAge {
+						post.TranslationState = string(model.TranslationStateTranslating)
+					}
+				}
+			}
+		}
+	}
+
 	return list
 }
 

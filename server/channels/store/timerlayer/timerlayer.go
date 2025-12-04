@@ -790,6 +790,22 @@ func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 	return result, resultVar1
 }
 
+func (s *TimerLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetBatch", success, elapsed)
+	}
+	return result, resultVar1
+}
+
 func (s *TimerLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 	start := time.Now()
 
