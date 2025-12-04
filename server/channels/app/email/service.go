@@ -9,8 +9,8 @@ import (
 	"path"
 
 	"github.com/pkg/errors"
-	"github.com/throttled/throttled"
-	"github.com/throttled/throttled/store/memstore"
+	"github.com/throttled/throttled/v2"
+	"github.com/throttled/throttled/v2/store/memstore"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -52,9 +52,9 @@ type Service struct {
 	store       store.Store
 
 	templatesContainer        *templates.Container
-	perMinuteEmailRateLimiter *throttled.GCRARateLimiter
-	perHourEmailRateLimiter   *throttled.GCRARateLimiter
-	perDayEmailRateLimiter    *throttled.GCRARateLimiter
+	perMinuteEmailRateLimiter *throttled.GCRARateLimiterCtx
+	perHourEmailRateLimiter   *throttled.GCRARateLimiterCtx
+	perDayEmailRateLimiter    *throttled.GCRARateLimiterCtx
 	EmailBatching             *EmailBatchingJob
 }
 
@@ -142,7 +142,7 @@ func (es *Service) setUpRateLimiters() error {
 }
 
 type ServiceInterface interface {
-	GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter
+	GetPerDayEmailRateLimiter() *throttled.GCRARateLimiterCtx
 	NewEmailTemplateData(locale string) templates.Data
 	SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) error
 	SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) error
@@ -182,10 +182,10 @@ func (es *Service) SetStore(st store.Store) {
 	es.store = st
 }
 
-func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
+func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiterCtx {
 	return es.perDayEmailRateLimiter
 }
 
-func (es *Service) GetPerHourEmailRateLimiter() *throttled.GCRARateLimiter {
+func (es *Service) GetPerHourEmailRateLimiter() *throttled.GCRARateLimiterCtx {
 	return es.perHourEmailRateLimiter
 }
