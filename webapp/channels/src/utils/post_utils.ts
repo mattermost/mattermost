@@ -303,6 +303,7 @@ export function postMessageOnKeyPress(
     sendCodeBlockOnCtrlEnter: boolean,
     now = 0,
     lastChannelSwitchAt = 0,
+    caretPosition = 0,
 ): {allowSending: boolean; ignoreKeyPress?: boolean; withClosedCodeBlock?: boolean; message?: string} {
     if (!event) {
         return {allowSending: false};
@@ -331,7 +332,6 @@ export function postMessageOnKeyPress(
     }
 
     const ctrlOrMetaKeyPressed = event.ctrlKey || event.metaKey;
-    const caretPosition = (event.target as HTMLTextAreaElement).selectionStart;
 
     if (sendMessageOnCtrlEnter) {
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, true, caretPosition);

@@ -500,21 +500,15 @@ describe('PostUtils.postMessageOnKeyPress', () => {
     }];
 
     for (const testCase of emptyCases) {
-        const event = {
-            ...testCase.input.event,
-            target: {
-                selectionStart: testCase.input.message.length,
-            },
-        };
-
         it(testCase.name, () => {
             const output = PostUtils.postMessageOnKeyPress(
-                event as any,
+                testCase.input.event as any,
                 testCase.input.message,
                 testCase.input.sendMessageOnCtrlEnter,
                 testCase.input.sendCodeBlockOnCtrlEnter,
                 0,
                 0,
+                testCase.input.message.length,
             );
 
             expect(output).toEqual(testCase.expected);
@@ -538,20 +532,14 @@ describe('PostUtils.postMessageOnKeyPress', () => {
 
     for (const testCase of noOverrideCases) {
         it(testCase.name, () => {
-            const event = {
-                ...testCase.input.event,
-                target: {
-                    selectionStart: testCase.input.message.length,
-                },
-            };
-
             const output = PostUtils.postMessageOnKeyPress(
-                event as any,
+                testCase.input.event as any,
                 testCase.input.message,
                 testCase.input.sendMessageOnCtrlEnter,
                 testCase.input.sendCodeBlockOnCtrlEnter,
                 0,
                 0,
+                testCase.input.message.length,
             );
 
             expect(output).toEqual(testCase.expected);
@@ -627,20 +615,14 @@ describe('PostUtils.postMessageOnKeyPress', () => {
 
     for (const testCase of sendMessageOnCtrlEnterCases) {
         it(testCase.name, () => {
-            const event = {
-                ...testCase.input.event,
-                target: {
-                    selectionStart: testCase.input.message.length,
-                },
-            };
-
             const output = PostUtils.postMessageOnKeyPress(
-                event as any,
+                testCase.input.event as any,
                 testCase.input.message,
                 testCase.input.sendMessageOnCtrlEnter,
                 testCase.input.sendCodeBlockOnCtrlEnter,
                 0,
                 0,
+                testCase.input.message.length,
             );
 
             expect(output).toEqual(testCase.expected);
@@ -726,35 +708,24 @@ describe('PostUtils.postMessageOnKeyPress', () => {
         expected: {allowSending: true},
     }, {
         name: 'sendCodeBlockOnCtrlEnter: Test for overriding sending of code block on CTRL+ENTER, no ctrlKey|metaKey, with cursor between backticks',
-        input: {event: {keyCode: 13, ctrlKey: false, target: {selectionStart: 5}}, message: '``` message ```', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: true},
+        input: {event: {keyCode: 13, ctrlKey: false}, message: '``` message ```', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: true, cursorPosition: 5},
         expected: {allowSending: false},
     }, {
         name: 'sendCodeBlockOnCtrlEnter: Test for overriding sending of code block on CTRL+ENTER, with ctrlKey, with cursor between backticks',
-        input: {event: {keyCode: 13, ctrlKey: true, target: {selectionStart: 5}}, message: '``` message ```', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: true},
+        input: {event: {keyCode: 13, ctrlKey: true}, message: '``` message ```', sendMessageOnCtrlEnter: true, sendCodeBlockOnCtrlEnter: true, cursorPosition: 5},
         expected: {allowSending: true},
     }];
 
     for (const testCase of sendCodeBlockOnCtrlEnterCases) {
         it(testCase.name, () => {
-            let event;
-            if (testCase.input.event.target) {
-                event = testCase.input.event;
-            } else {
-                event = {
-                    ...testCase.input.event,
-                    target: {
-                        selectionStart: testCase.input.message.length,
-                    },
-                };
-            }
-
             const output = PostUtils.postMessageOnKeyPress(
-                event as any,
+                testCase.input.event as any,
                 testCase.input.message,
                 testCase.input.sendMessageOnCtrlEnter,
                 testCase.input.sendCodeBlockOnCtrlEnter,
                 0,
                 0,
+                testCase.input.cursorPosition ? testCase.input.cursorPosition : testCase.input.message.length,
             );
 
             expect(output).toEqual(testCase.expected);
@@ -794,20 +765,14 @@ describe('PostUtils.postMessageOnKeyPress', () => {
 
     for (const testCase of channelThresholdCases) {
         it(testCase.name, () => {
-            const event = {
-                ...testCase.input.event,
-                target: {
-                    selectionStart: testCase.input.message.length,
-                },
-            };
-
             const output = PostUtils.postMessageOnKeyPress(
-                event as any,
+                testCase.input.event as any,
                 testCase.input.message,
                 testCase.input.sendMessageOnCtrlEnter,
                 testCase.input.sendCodeBlockOnCtrlEnter,
                 testCase.input.now,
                 testCase.input.lastChannelSwitch,
+                testCase.input.message.length,
             );
 
             expect(output).toEqual(testCase.expected);
