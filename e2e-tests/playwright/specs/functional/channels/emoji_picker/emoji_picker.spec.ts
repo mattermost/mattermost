@@ -85,7 +85,7 @@ async function expectPostCreateState(input: Locator, textBeforeCaret: string, te
     await expect(input).toBeFocused();
 
     // * Verify that the text in it is as expected
-    await expect(input).toHaveValue(textBeforeCaret + textAfterCaret)
+    await expect(input).toHaveValue(textBeforeCaret + textAfterCaret);
 
     // * Verify that the keyboard caret is in the correct place
     const selectionStart = await input.evaluate((element: HTMLTextAreaElement) => element.selectionStart);
