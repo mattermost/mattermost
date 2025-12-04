@@ -1189,7 +1189,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({showTeamSelectorModal: false});
     };
 
-    toggleCloseSaveConfirmationModal = () => {
+    closeSaveConfirmationModal = () => {
         this.setState({
             showSaveConfirmationModal: false,
             confirmPassword: '',
@@ -1519,7 +1519,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     // Disable if editing own email and password is empty
                     confirmDisabled={this.isEditingOwnEmail() && !this.state.confirmPassword}
                     onConfirm={this.handleConfirmSave}
-                    onCancel={this.toggleCloseSaveConfirmationModal}
+                    onCancel={this.closeSaveConfirmationModal}
                 />
             </div>
         );
