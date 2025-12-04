@@ -3,15 +3,15 @@
 
 .BurnOnReadConcealedPlaceholder {
     display: flex;
-    align-items: center;
     width: 100%;
     max-width: 695px;
+    align-items: center;
     padding: 8px 12px;
     border: none;
     border-radius: 4px;
+    animation: fadeIn 0.3s ease;
     background: var(--center-channel-color-08, rgba(63, 67, 80, 0.08));
     cursor: pointer;
-    animation: fadeIn 0.3s ease;
     transition: all 0.3s ease;
 
     &:disabled {
@@ -53,8 +53,8 @@
     }
 
     &--error {
-        background: var(--error-text-08, rgba(210, 75, 78, 0.08)) !important;
         animation: fadeIn 0.3s ease;
+        background: var(--error-text-08, rgba(210, 75, 78, 0.08)) !important;
         cursor: default;
 
         &:hover {
