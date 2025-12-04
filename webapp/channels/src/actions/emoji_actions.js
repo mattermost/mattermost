@@ -22,7 +22,7 @@ export function loadRecentlyUsedCustomEmojis() {
 
         const recentEmojiNames = getRecentEmojisNames(state);
 
-        return dispatch(EmojiActions.getCustomEmojisByName(recentEmojiNames));
+        return dispatch(EmojiActions.getCustomEmojisByNameBatched(recentEmojiNames));
     };
 }
 

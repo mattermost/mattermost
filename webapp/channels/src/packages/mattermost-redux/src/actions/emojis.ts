@@ -124,7 +124,7 @@ export function getCustomEmojisInText(text: string): ActionFuncAsync {
             return {data: true};
         }
 
-        return dispatch(getCustomEmojisByName(parseEmojiNamesFromText(text)));
+        return dispatch(getCustomEmojisByNameBatched(parseEmojiNamesFromText(text)));
     };
 }
 

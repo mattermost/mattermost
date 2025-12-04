@@ -13,6 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 import * as Actions from 'actions/emoji_actions';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {Preferences} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
@@ -75,12 +76,14 @@ describe('loadRecentlyUsedCustomEmojis', () => {
 
         await store.dispatch(Actions.loadRecentlyUsedCustomEmojis());
 
-        expect(store.getActions()).toEqual([
-            {
-                type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
-                data: [emoji1, emoji2],
-            },
-        ]);
+        await waitFor(() => {
+            expect(store.getActions()).toEqual([
+                {
+                    type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+                    data: [emoji1, emoji2],
+                },
+            ]);
+        });
     });
 
     test('should not request emojis which are already loaded', async () => {
@@ -108,12 +111,14 @@ describe('loadRecentlyUsedCustomEmojis', () => {
 
         await store.dispatch(Actions.loadRecentlyUsedCustomEmojis());
 
-        expect(store.getActions()).toEqual([
-            {
-                type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
-                data: [emoji1],
-            },
-        ]);
+        await waitFor(() => {
+            expect(store.getActions()).toEqual([
+                {
+                    type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+                    data: [emoji1],
+                },
+            ]);
+        });
     });
 
     test('should not make a request if all recentl emojis are loaded', async () => {
@@ -166,24 +171,26 @@ describe('loadRecentlyUsedCustomEmojis', () => {
 
         await store.dispatch(Actions.loadRecentlyUsedCustomEmojis());
 
-        expect(store.getActions()).toEqual([
-            {
-                type: BATCH,
-                meta: {
-                    batch: true,
+        await waitFor(() => {
+            expect(store.getActions()).toEqual([
+                {
+                    type: BATCH,
+                    meta: {
+                        batch: true,
+                    },
+                    payload: [
+                        {
+                            type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+                            data: [emoji1],
+                        },
+                        {
+                            type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
+                            data: fakeEmojiName,
+                        },
+                    ],
                 },
-                payload: [
-                    {
-                        type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
-                        data: [emoji1],
-                    },
-                    {
-                        type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST,
-                        data: fakeEmojiName,
-                    },
-                ],
-            },
-        ]);
+            ]);
+        });
     });
 
     test('should not request an emoji that we know does not exist', async () => {
@@ -215,12 +222,14 @@ describe('loadRecentlyUsedCustomEmojis', () => {
 
         await store.dispatch(Actions.loadRecentlyUsedCustomEmojis());
 
-        expect(store.getActions()).toEqual([
-            {
-                type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
-                data: [emoji1],
-            },
-        ]);
+        await waitFor(() => {
+            expect(store.getActions()).toEqual([
+                {
+                    type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+                    data: [emoji1],
+                },
+            ]);
+        });
     });
 
     test('should not request a system emoji', async () => {
@@ -248,11 +257,13 @@ describe('loadRecentlyUsedCustomEmojis', () => {
 
         await store.dispatch(Actions.loadRecentlyUsedCustomEmojis());
 
-        expect(store.getActions()).toEqual([
-            {
-                type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
-                data: [emoji1],
-            },
-        ]);
+        await waitFor(() => {
+            expect(store.getActions()).toEqual([
+                {
+                    type: EmojiTypes.RECEIVED_CUSTOM_EMOJIS,
+                    data: [emoji1],
+                },
+            ]);
+        });
     });
 });
