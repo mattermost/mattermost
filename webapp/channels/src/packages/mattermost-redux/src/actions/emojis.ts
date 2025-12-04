@@ -46,33 +46,6 @@ export function getCustomEmoji(emojiId: string) {
     });
 }
 
-export function getCustomEmojiByName(name: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        let data;
-
-        try {
-            data = await Client4.getCustomEmojiByName(name);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-
-            if (error.status_code === 404) {
-                dispatch({type: EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST, data: name});
-            } else {
-                dispatch(logError(error));
-            }
-
-            return {error};
-        }
-
-        dispatch({
-            type: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
-            data,
-        });
-
-        return {data};
-    };
-}
-
 export function getCustomEmojisByName(names: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         const neededNames = filterNeededCustomEmojis(getState(), names);

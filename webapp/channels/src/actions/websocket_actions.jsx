@@ -43,7 +43,6 @@ import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
-    getCustomEmojiForReaction,
     getPosts,
     getPostThread,
     getPostThreads,
@@ -1332,8 +1331,6 @@ function handleHelloEvent(msg) {
 
 function handleReactionAddedEvent(msg) {
     const reaction = JSON.parse(msg.data.reaction);
-
-    dispatch(getCustomEmojiForReaction(reaction.emoji_name));
 
     dispatch({
         type: PostTypes.RECEIVED_REACTION,
