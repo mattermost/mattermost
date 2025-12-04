@@ -588,7 +588,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 
 	// Send initial read receipt counts for burn-on-read posts
 	if post.Type == model.PostTypeBurnOnRead {
-		if err := a.publishPostRevealedEvent(rctx, post, post.UserId, ""); err != nil {
+		if err := a.publishPostRevealedEventToAuthor(rctx, post, ""); err != nil {
 			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	}
@@ -3101,8 +3101,16 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 
 	// Publish websocket event if this is the first time revealing
 	if isFirstReveal {
-		if err := a.publishPostRevealedEvent(rctx, revealedPost, userID, connectionID); err != nil {
+		// Send to post author for recipient count updates
+		if err := a.publishPostRevealedEventToAuthor(rctx, revealedPost, connectionID); err != nil {
 			return nil, err
+		}
+
+		// Send to revealing user for multi-device sync (if not the author)
+		if userID != post.UserId {
+			if err := a.publishPostRevealedEventToUser(rctx, revealedPost, userID, connectionID); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -3229,9 +3237,9 @@ func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentT
 	return nil
 }
 
-// publishPostRevealedEvent publishes a websocket event when a burn-on-read post is revealed.
-// Sends the updated recipients list to the post author for real-time recipient count updates.
-func (a *App) publishPostRevealedEvent(rctx request.CTX, post *model.Post, userID string, connectionID string) *model.AppError {
+// publishPostRevealedEventToAuthor publishes a websocket event to the post author
+// with updated recipients list for real-time recipient count tracking.
+func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, connectionID string) *model.AppError {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
@@ -3259,6 +3267,30 @@ func (a *App) publishPostRevealedEvent(rctx request.CTX, post *model.Post, userI
 		}
 		event.Add("recipients", recipientIDs)
 	}
+
+	a.Publish(event)
+
+	return nil
+}
+
+// publishPostRevealedEventToUser publishes a websocket event to the revealing user
+// for multi-device synchronization of revealed post content.
+func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post, userID string, connectionID string) *model.AppError {
+	event := model.NewWebSocketEvent(
+		model.WebsocketEventPostRevealed,
+		"",
+		"",
+		userID, // Send to revealing user
+		nil,
+		connectionID,
+	)
+
+	postJSON, err := post.ToJSON()
+	if err != nil {
+		return model.NewAppError("RevealPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	event.Add("post", postJSON)
 
 	a.Publish(event)
 

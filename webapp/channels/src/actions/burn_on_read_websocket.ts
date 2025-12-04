@@ -11,8 +11,10 @@ export interface PostRevealedData {
 }
 
 /**
- * Handles the post_revealed websocket event by updating the recipients list in post metadata.
- * Only updates state for the post author to enable real-time recipient count tracking.
+ * Handles the post_revealed websocket event for burn-on-read posts.
+ * Two scenarios:
+ * 1. Post author: Updates recipients list for real-time recipient count tracking
+ * 2. Revealing user: Updates post with revealed content for multi-device sync
  */
 export function handleBurnOnReadPostRevealed(data: PostRevealedData) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -39,12 +41,26 @@ export function handleBurnOnReadPostRevealed(data: PostRevealedData) {
             return {data: false};
         }
 
+        // Case 1: Current user is the post author - update recipients list
         if (existingPost.user_id === currentUserId && data.recipients) {
             dispatch({
                 type: PostTypes.POST_RECIPIENTS_UPDATED,
                 data: {
                     postId: post.id,
                     recipients: data.recipients,
+                },
+            });
+        }
+
+        // Case 2: Current user is a recipient - update with revealed content
+        // This enables multi-device sync when user reveals on one device
+        if (existingPost.user_id !== currentUserId && post.message) {
+            const expireAt = post.metadata?.expire_at || 0;
+            dispatch({
+                type: PostTypes.REVEAL_BURN_ON_READ_SUCCESS,
+                data: {
+                    post,
+                    expireAt,
                 },
             });
         }
