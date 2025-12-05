@@ -5,7 +5,8 @@
     display: flex;
     width: fit-content;
     align-items: center;
-    padding: 16px 0px;
+    padding: 0;
+    padding-top: 16px;
     gap: 4px;
 
     &__badge {

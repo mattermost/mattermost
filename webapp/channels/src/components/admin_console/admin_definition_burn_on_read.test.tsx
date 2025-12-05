@@ -28,7 +28,7 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
 
         // Find Burn-on-Read settings
         const enableSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.EnableBurnOnRead');
-        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
+        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationSeconds');
 
         expect(enableSetting).toBeDefined();
         expect(durationSetting).toBeDefined();
@@ -43,31 +43,31 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
         expect(enableSetting?.help_text).toBeDefined();
     });
 
-    test('BurnOnReadDurationMinutes setting should have correct options', () => {
+    test('BurnOnReadDurationSeconds setting should have correct options', () => {
         const allSettings = getAllSettings();
-        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
+        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationSeconds');
 
         expect(durationSetting?.type).toBe('dropdown');
         expect(durationSetting?.onConfigLoad).toBeDefined();
 
         // Test that onConfigLoad returns default value when no value is provided
         if ('onConfigLoad' in durationSetting! && durationSetting.onConfigLoad) {
-            expect(durationSetting.onConfigLoad(null, {})).toBe('10');
-            expect(durationSetting.onConfigLoad(undefined, {})).toBe('10');
-            expect(durationSetting.onConfigLoad('5', {})).toBe('5');
+            expect(durationSetting.onConfigLoad(null, {})).toBe('600');
+            expect(durationSetting.onConfigLoad(undefined, {})).toBe('600');
+            expect(durationSetting.onConfigLoad('300', {})).toBe('300');
         }
 
-        // Check that all expected duration options are present
+        // Check that all expected duration options are present (in seconds)
         if ('options' in durationSetting!) {
             const options = durationSetting.options;
             const optionValues = options?.map((opt: any) => opt.value);
 
-            expect(optionValues).toContain('1'); // 1 minute
-            expect(optionValues).toContain('5'); // 5 minutes
-            expect(optionValues).toContain('10'); // 10 minutes (default)
-            expect(optionValues).toContain('30'); // 30 minutes
-            expect(optionValues).toContain('60'); // 1 hour
-            expect(optionValues).toContain('480'); // 8 hours
+            expect(optionValues).toContain('60'); // 1 minute
+            expect(optionValues).toContain('300'); // 5 minutes
+            expect(optionValues).toContain('600'); // 10 minutes (default)
+            expect(optionValues).toContain('1800'); // 30 minutes
+            expect(optionValues).toContain('3600'); // 1 hour
+            expect(optionValues).toContain('28800'); // 8 hours
         }
     });
 

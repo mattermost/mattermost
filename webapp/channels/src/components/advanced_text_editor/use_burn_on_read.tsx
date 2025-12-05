@@ -4,6 +4,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
+import {PostTypes} from 'mattermost-redux/constants/posts';
+
 import {
     isBurnOnReadEnabled,
     getBurnOnReadDurationMinutes,
@@ -42,29 +44,13 @@ const useBurnOnRead = (
     const durationMinutes = useSelector(getBurnOnReadDurationMinutes);
     const canSend = useSelector(canUserSendBurnOnRead);
 
-    // Check if BoR is active in draft
-    const hasBurnOnReadSet = isEnabled &&
-        draft.metadata?.burn_on_read?.enabled === true;
+    const hasBurnOnReadSet = isEnabled && draft.type === PostTypes.BURN_ON_READ;
 
-    // Handler to toggle BoR mode
     const handleBurnOnReadApply = useCallback((enabled: boolean) => {
         const updatedDraft = {
             ...draft,
+            type: enabled ? PostTypes.BURN_ON_READ : undefined,
         };
-
-        if (enabled) {
-            updatedDraft.metadata = {
-                ...updatedDraft.metadata,
-                burn_on_read: {
-                    enabled: true,
-                },
-            };
-        } else {
-            // Remove burn_on_read from metadata
-            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
-            const {burn_on_read: _, ...restMetadata} = updatedDraft.metadata || {};
-            updatedDraft.metadata = restMetadata;
-        }
 
         handleDraftChange(updatedDraft, {instant: true});
         focusTextbox();

@@ -9,7 +9,10 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
+import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
+
 import PriorityLabels from 'components/advanced_text_editor/priority_labels';
+import BurnOnReadLabel from 'components/burn_on_read/burn_on_read_label';
 import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
 import ShowMore from 'components/post_view/show_more';
@@ -27,6 +30,8 @@ type Props = {
     fileInfos: PostDraft['fileInfos'];
     message: string;
     priority?: PostPriorityMetadata;
+    burnOnRead?: {enabled: boolean};
+    burnOnReadDurationMinutes?: number;
     status: UserStatus['status'];
     uploadsInProgress: PostDraft['uploadsInProgress'];
     userId: UserProfile['id'];
@@ -44,12 +49,15 @@ function PanelBody({
     fileInfos,
     message,
     priority,
+    burnOnRead,
+    burnOnReadDurationMinutes = 10,
     status,
     uploadsInProgress,
     userId,
     username,
 }: Props) {
     const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
+    const isBorFeatureEnabled = useSelector(isBurnOnReadEnabled);
 
     const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         handleFormattedTextClick(e, currentRelativeTeamUrl);
@@ -85,6 +93,13 @@ function PanelBody({
                                         persistentNotifications={priority.persistent_notifications}
                                         priority={priority.priority}
                                         requestedAck={priority.requested_ack}
+                                    />
+                                )}
+                                {burnOnRead?.enabled && isBorFeatureEnabled && (
+                                    <BurnOnReadLabel
+                                        canRemove={false}
+                                        onRemove={() => {}}
+                                        durationMinutes={burnOnReadDurationMinutes}
                                     />
                                 )}
                             </div>

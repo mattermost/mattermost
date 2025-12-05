@@ -550,9 +550,12 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		if !model.MinimumEnterpriseAdvancedLicense(a.Srv().License()) {
 			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.app_error", nil, "", http.StatusNotImplemented)
 		}
-		// TODO: replace with configuration values
-		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
-		post.AddProp(model.PostPropsReadDurationSeconds, int64(model.DefaultReadDurationSeconds*1000))
+		// Use configured burn-on-read settings (defaults: 7 days max TTL, 10 minutes read duration)
+		maxTTLSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds))
+		readDurationSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadDurationSeconds))
+
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+(maxTTLSeconds*1000))
+		post.AddProp(model.PostPropsReadDurationSeconds, readDurationSeconds*1000)
 	}
 
 	return nil
@@ -586,6 +589,13 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 
 	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
+	}
+
+	// Send initial read receipt counts for burn-on-read posts
+	if post.Type == model.PostTypeBurnOnRead {
+		if err := a.publishPostRevealedEventToAuthor(rctx, post, ""); err != nil {
+			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
+		}
 	}
 
 	if post.Type != model.PostTypeAutoResponder { // don't respond to an auto-responder
@@ -1467,6 +1477,11 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThrea
 			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
 
+		// If the next post is not in the filtered list, return empty to indicate we're at the latest accessible post
+		if nextPostId != "" && postList.Posts[nextPostId] == nil {
+			return ""
+		}
+
 		return nextPostId
 	}
 
@@ -1480,6 +1495,11 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThrea
 		previousPostId, err := a.GetPostIdBeforeTime(lastPost.ChannelId, lastPost.CreateAt, collapsedThreads)
 		if err != nil {
 			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
+		}
+
+		// If the previous post is not in the filtered list, return empty indicate we're at the oldest accessible post
+		if previousPostId != "" && postList.Posts[previousPostId] == nil {
+			return ""
 		}
 
 		return previousPostId
@@ -1586,6 +1606,11 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	post, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), postID, false)
 	if err != nil {
 		return nil, model.NewAppError("DeletePost", "app.post.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if post.Type == model.PostTypeBurnOnRead {
+		// add cache invalidations
+		return nil, a.PermanentDeletePost(rctx, postID, deleteByID)
 	}
 
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
@@ -3077,8 +3102,16 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 
 	// Publish websocket event if this is the first time revealing
 	if isFirstReveal {
-		if err := a.publishPostRevealedEvent(revealedPost, userID, connectionID); err != nil {
+		// Send to post author for recipient count updates
+		if err := a.publishPostRevealedEventToAuthor(rctx, revealedPost, connectionID); err != nil {
 			return nil, err
+		}
+
+		// Send to revealing user for multi-device sync (if not the author)
+		if userID != post.UserId {
+			if err := a.publishPostRevealedEventToUser(rctx, revealedPost, userID, connectionID); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -3145,8 +3178,9 @@ func (a *App) getOrCreateReadReceipt(rctx request.CTX, post *model.Post, userID 
 	}
 
 	// Create new read receipt for first-time reveal
-	// TODO: replace with configuration values
-	readDurationMillis := int64(model.DefaultReadDurationSeconds * 1000)
+	// Use configured burn-on-read duration (defaults to 10 minutes)
+	burnOnReadDurationSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadDurationSeconds))
+	readDurationMillis := burnOnReadDurationSeconds * 1000
 	userExpireAt := min(postExpireAt, currentTime+readDurationMillis)
 
 	receipt = &model.ReadReceipt{
@@ -3204,13 +3238,14 @@ func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentT
 	return nil
 }
 
-// publishPostRevealedEvent publishes a websocket event when a post is first revealed.
-func (a *App) publishPostRevealedEvent(post *model.Post, userID string, connectionID string) *model.AppError {
+// publishPostRevealedEventToAuthor publishes a websocket event to the post author
+// with updated recipients list for real-time recipient count tracking.
+func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, connectionID string) *model.AppError {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
-		post.ChannelId,
-		userID,
+		"",
+		post.UserId, // Send to post author only
 		nil,
 		connectionID,
 	)
@@ -3221,6 +3256,43 @@ func (a *App) publishPostRevealedEvent(post *model.Post, userID string, connecti
 	}
 
 	event.Add("post", postJSON)
+
+	// Fetch and include recipients who have revealed the post
+	recipients, err := a.Srv().Store().ReadReceipt().GetByPost(rctx, post.Id)
+	if err != nil {
+		rctx.Logger().Warn("Failed to fetch recipients for websocket event", mlog.String("post_id", post.Id), mlog.Err(err))
+	} else {
+		recipientIDs := make([]string, len(recipients))
+		for i, recipient := range recipients {
+			recipientIDs[i] = recipient.UserID
+		}
+		event.Add("recipients", recipientIDs)
+	}
+
+	a.Publish(event)
+
+	return nil
+}
+
+// publishPostRevealedEventToUser publishes a websocket event to the revealing user
+// for multi-device synchronization of revealed post content.
+func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post, userID string, connectionID string) *model.AppError {
+	event := model.NewWebSocketEvent(
+		model.WebsocketEventPostRevealed,
+		"",
+		"",
+		userID, // Send to revealing user
+		nil,
+		connectionID,
+	)
+
+	postJSON, err := post.ToJSON()
+	if err != nil {
+		return model.NewAppError("RevealPost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	event.Add("post", postJSON)
+
 	a.Publish(event)
 
 	return nil

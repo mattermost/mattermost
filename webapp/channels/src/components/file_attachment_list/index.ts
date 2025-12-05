@@ -9,6 +9,7 @@ import type {Dispatch} from 'redux';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {
     makeGetFilesForEditHistory,
     makeGetFilesForPost,
@@ -42,23 +43,23 @@ function makeMapStateToProps() {
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const postId = ownProps.post ? ownProps.post.id : '';
 
-        var fileInfos: FileInfo[];
+        let fileInfos: FileInfo[];
 
         if (ownProps.usePostAsSource) {
-            if (ownProps.post.metadata && ownProps.post.metadata.files) {
-                fileInfos = ownProps.post.metadata.files;
-            } else {
-                fileInfos = [];
-            }
+            fileInfos = ownProps.post.metadata?.files || [];
         } else if (ownProps.isEditHistory) {
             fileInfos = getFilesForEditHistory(state, ownProps.post);
+        } else if (ownProps.post.type === PostTypes.BURN_ON_READ && ownProps.post.metadata?.files) {
+            // For burn-on-read posts, file metadata is sent directly in the reveal response
+            // and not stored as separate entities in Redux state, so we use metadata.files
+            fileInfos = ownProps.post.metadata.files;
         } else {
             fileInfos = selectFilesForPost(state, postId);
         }
 
         let fileCount = 0;
-        if (ownProps.post.metadata && ownProps.post.metadata.files) {
-            fileCount = (ownProps.post.metadata.files || []).length;
+        if (ownProps.post.metadata?.files) {
+            fileCount = ownProps.post.metadata.files.length;
         } else if (ownProps.post.file_ids) {
             fileCount = ownProps.post.file_ids.length;
         } else if (ownProps.post.filenames) {

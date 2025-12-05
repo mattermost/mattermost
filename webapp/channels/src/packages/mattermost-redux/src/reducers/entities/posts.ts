@@ -22,6 +22,7 @@ import type {
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
+import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
@@ -186,6 +187,12 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             return state;
         }
 
+        if (state[post.id].type === PostTypeConstants.BURN_ON_READ) {
+            const nextState = {...state};
+            Reflect.deleteProperty(nextState, post.id);
+            return nextState;
+        }
+
         // Mark the post as deleted
         const nextState = {
             ...state,
@@ -286,16 +293,41 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             return state;
         }
 
+        const currentPost = state[post.id];
+        const currentMetadata = currentPost.metadata || {};
+        const newMetadata = post.metadata || {};
+
         return {
             ...state,
             [post.id]: {
-                ...state[post.id],
+                ...currentPost,
                 ...post,
-                props: {
-                    ...state[post.id].props,
-                    ...post.props,
-                    revealed: true,
+                metadata: {
+                    ...currentMetadata,
+                    ...newMetadata,
                     expire_at: expireAt,
+                },
+            },
+        };
+    }
+
+    case PostTypes.POST_RECIPIENTS_UPDATED: {
+        const {postId, recipients} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    recipients,
                 },
             },
         };
@@ -345,68 +377,70 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
     let currentState = nextState;
 
+    const processedPost = post;
+
     // Check if post already exists in state or if nested permalink
-    if (!shouldUpdatePost(post, currentState[post.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
+    if (!shouldUpdatePost(processedPost, currentState[processedPost.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
         return currentState;
     }
 
     // If post is a permalink and not nested (it links directly to the original message),
     // and is missing embedded metadata, then update state with new post metadata
-    if (!nestedPermalinkLevel && isPermalink(post) && currentState[post.id] && !currentState[post.id].metadata && post.metadata) {
-        currentState[post.id] = {...currentState[post.id], ...post.metadata};
+    if (!nestedPermalinkLevel && isPermalink(processedPost) && currentState[processedPost.id] && !currentState[processedPost.id].metadata && processedPost.metadata) {
+        currentState[processedPost.id] = {...currentState[processedPost.id], ...processedPost.metadata};
     }
 
     // Edited posts that don't have 'is_following' specified should maintain 'is_following' state
-    if (post.update_at > 0 && post.is_following == null && currentState[post.id]) {
-        post.is_following = currentState[post.id].is_following;
+    if (processedPost.update_at > 0 && processedPost.is_following == null && currentState[processedPost.id]) {
+        processedPost.is_following = currentState[processedPost.id].is_following;
     }
 
-    if (post.delete_at > 0) {
+    if (processedPost.delete_at > 0) {
         // We've received a deleted post, so mark the post as deleted if we already have it
-        if (currentState[post.id]) {
-            currentState[post.id] = {
-                ...removeUnneededMetadata(post),
+        if (currentState[processedPost.id]) {
+            currentState[processedPost.id] = {
+                ...removeUnneededMetadata(processedPost),
                 state: Posts.POST_DELETED,
                 file_ids: [],
                 has_reactions: false,
             };
         }
-    } else if (post.metadata && post.metadata.embeds) {
-        post.metadata.embeds.forEach((embed) => {
+    } else if (processedPost.metadata && processedPost.metadata.embeds) {
+        processedPost.metadata.embeds.forEach((embed) => {
             if (embed.type === 'permalink') {
                 if (embed.data && 'post_id' in embed.data && embed.data.post) {
                     currentState = handlePostReceived(currentState, embed.data.post, nestedPermalinkLevel ? nestedPermalinkLevel + 1 : 1);
 
                     if (isPermalink(embed.data.post)) {
-                        currentState[post.id] = removeUnneededMetadata(post);
+                        currentState[processedPost.id] = removeUnneededMetadata(processedPost);
                     }
                 }
             }
         });
 
-        currentState[post.id] = post;
+        currentState[processedPost.id] = processedPost;
     } else {
-        currentState[post.id] = removeUnneededMetadata(post);
+        currentState[processedPost.id] = removeUnneededMetadata(processedPost);
     }
 
     // Delete any pending post that existed for this post
-    if (post.pending_post_id && post.id !== post.pending_post_id && currentState[post.pending_post_id]) {
-        Reflect.deleteProperty(currentState, post.pending_post_id);
+    if (processedPost.pending_post_id && processedPost.id !== processedPost.pending_post_id && currentState[processedPost.pending_post_id]) {
+        Reflect.deleteProperty(currentState, processedPost.pending_post_id);
     }
 
-    const rootPost: Post = currentState[post.root_id];
-    if (post.root_id && rootPost) {
+    const rootPost: Post = currentState[processedPost.root_id];
+    if (processedPost.root_id && rootPost) {
         const participants = rootPost.participants || [];
         const nextRootPost = {...rootPost};
-        if (!participants.find((user: UserProfile) => user.id === post.user_id)) {
-            nextRootPost.participants = [...participants, {id: post.user_id}];
+        if (!participants.find((user: UserProfile) => user.id === processedPost.user_id)) {
+            nextRootPost.participants = [...participants, {id: processedPost.user_id}];
         }
 
-        if (post.reply_count) {
-            nextRootPost.reply_count = post.reply_count;
+        if (processedPost.reply_count) {
+            nextRootPost.reply_count = processedPost.reply_count;
         }
 
-        currentState[post.root_id] = nextRootPost;
+        currentState[processedPost.root_id] = nextRootPost;
     }
 
     return currentState;
@@ -773,21 +807,30 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case PostTypes.POST_DELETED: {
         const post = action.data;
 
-        // Deleting a post removes its comments from the order, but does not remove the post itself
-
         const postsForChannel = state[post.channel_id] || [];
         if (postsForChannel.length === 0) {
             return state;
         }
 
         let changed = false;
-
         let nextPostsForChannel = [...postsForChannel];
+
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
+        const shouldRemovePost = (postId: string) => {
+            const isTheDeletedPost = postId === post.id;
+            const isReplyToDeletedPost = prevPosts[postId]?.root_id === post.id;
+
+            if (isBoRPost) {
+                return isTheDeletedPost;
+            }
+
+            return isReplyToDeletedPost;
+        };
+
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
-
-            // Remove any comments for this post
-            const nextOrder = block.order.filter((postId: string) => prevPosts[postId].root_id !== post.id);
+            const nextOrder = block.order.filter((postId) => !shouldRemovePost(postId));
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {
@@ -824,12 +867,18 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
         let changed = false;
 
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
         // Remove the post and its comments from the channel
         let nextPostsForChannel = [...postsForChannel];
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
 
-            const nextOrder = block.order.filter((postId: string) => postId !== post.id && prevPosts[postId].root_id !== post.id);
+            // For BoR posts: only remove the post itself (BoR doesn't support threads)
+            // For regular posts: remove the post and its thread replies
+            const nextOrder = isBoRPost ?
+                block.order.filter((postId: string) => postId !== post.id) :
+                block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {

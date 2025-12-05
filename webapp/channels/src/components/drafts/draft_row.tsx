@@ -15,6 +15,7 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 import {getPost as getPostAction} from 'mattermost-redux/actions/posts';
 import {deleteScheduledPost, updateScheduledPost} from 'mattermost-redux/actions/scheduled_posts';
 import {Permissions} from 'mattermost-redux/constants';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isDeactivatedDirectChannel, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
@@ -25,6 +26,7 @@ import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/thre
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft} from 'actions/views/drafts';
 import {selectPostById} from 'actions/views/rhs';
+import {getBurnOnReadDurationMinutes} from 'selectors/burn_on_read';
 import {getConnectionId} from 'selectors/general';
 import {getChannelURL} from 'selectors/urls';
 
@@ -109,6 +111,7 @@ function DraftRow({
     });
 
     const connectionId = useSelector(getConnectionId);
+    const burnOnReadDurationMinutes = useSelector(getBurnOnReadDurationMinutes);
 
     const isChannelArchived = Boolean(channel?.delete_at);
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, channelId));
@@ -345,6 +348,9 @@ function DraftRow({
         actions = draftActions;
     }
 
+    // Burn-on-read is only shown for channel drafts (not thread replies or scheduled posts)
+    const draftBurnOnReadMetadata = !isScheduledPost && !rootId && (item as PostDraft).type === PostTypes.BURN_ON_READ ? {enabled: true} : undefined;
+
     let title: React.ReactNode;
     if (channel) {
         title = (
@@ -409,6 +415,8 @@ function DraftRow({
                     message={item.message}
                     status={status}
                     priority={rootId ? undefined : item.metadata?.priority}
+                    burnOnRead={draftBurnOnReadMetadata}
+                    burnOnReadDurationMinutes={burnOnReadDurationMinutes}
                     uploadsInProgress={uploadsInProgress}
                     userId={user.id}
                     username={user.username}
