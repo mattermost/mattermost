@@ -1,0 +1,389 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.create-recap-modal {
+    .modal-content {
+        width: 600px;
+        min-height: 560px; // Prevents height shifting between steps (matches channel selector step)
+    }
+
+    .modal-body {
+        min-height: 440px; // Ensures footer stays at bottom (560px modal - 60px header - 60px footer)
+    }
+
+    .create-recap-modal-body {
+        max-height: 500px;
+        padding: 0px 0px;
+        overflow-y: auto;
+    }
+
+    .create-recap-modal-header {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+
+        .create-recap-modal-header-actions {
+            display: flex;
+            align-items: center;
+        }
+    }
+
+    .create-recap-modal-error {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        border: 1px solid rgba(var(--error-text-rgb), 0.24);
+        border-radius: 4px;
+        margin-bottom: 16px;
+        background-color: rgba(var(--error-text-rgb), 0.08);
+        color: var(--error-text);
+        font-size: 14px;
+        gap: 8px;
+
+        .icon {
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+    }
+
+    .create-recap-modal-footer {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+
+        &-left {
+            display: flex;
+            flex: 1;
+            align-items: center;
+            gap: 12px;
+
+            .btn-link {
+                display: flex;
+                align-items: center;
+                padding: 0;
+                border: none;
+                background: transparent;
+                color: var(--button-bg);
+                font-size: 14px;
+                font-weight: 600;
+                gap: 6px;
+
+                &:hover:not(:disabled) {
+                    text-decoration: underline;
+                }
+
+                &:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.4;
+                }
+
+                .icon {
+                    font-size: 16px;
+                }
+            }
+        }
+
+        &-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .btn {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+
+                .icon {
+                    font-size: 16px;
+                }
+            }
+        }
+    }
+
+    // Step One Styles
+    .step-one {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+
+            .form-label {
+                margin-bottom: 0;
+                color: var(--center-channel-color);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            &.name-input-group {
+                margin-bottom: 28px;
+
+                .form-label {
+                    padding-bottom: 8px;
+                }
+            }
+
+            &.type-selection-group {
+                .form-label {
+                    margin-bottom: 12px;
+                }
+            }
+
+            .input-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+
+                .icon {
+                    position: absolute;
+                    left: 16px;
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 16px;
+                }
+
+                .form-control {
+                    height: 40px;
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                    border-radius: 4px;
+
+                    &:focus {
+                        border-color: var(--button-bg);
+                    }
+                }
+            }
+        }
+
+        .recap-type-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+
+            .recap-type-card {
+                position: relative;
+                display: flex;
+                align-items: center;
+                padding: 12px 20px 12px 12px;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 4px;
+                background-color: var(--center-channel-bg);
+                cursor: pointer;
+                gap: 12px;
+                text-align: left;
+                transition: all 0.2s;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                }
+
+                &.selected {
+                    border-color: var(--button-bg);
+                    background-color: rgba(var(--button-bg-rgb), 0.04);
+
+                    .recap-type-card-icon {
+                        background-color: rgba(var(--button-bg-rgb), 0.08);
+
+                        .icon {
+                            color: var(--button-bg);
+                        }
+                    }
+                }
+
+                &.disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+
+                    &:hover {
+                        background-color: var(--center-channel-bg);
+                    }
+                }
+
+                .recap-type-card-icon {
+                    display: flex;
+                    width: 40px;
+                    height: 40px;
+                    flex-shrink: 0;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 20px;
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+                    .icon {
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                        font-size: 24px;
+                    }
+                }
+
+                .recap-type-card-content {
+                    display: flex;
+                    flex: 1;
+                    flex-direction: column;
+                    padding: 1px 0 3px;
+                    gap: 2px;
+
+                    .recap-type-card-title {
+                        color: var(--center-channel-color);
+                        font-size: 14px;
+                        font-weight: 600;
+                        line-height: 20px;
+                    }
+
+                    .recap-type-card-description {
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                        font-size: 12px;
+                        line-height: 16px;
+                    }
+                }
+
+                .selected-icon {
+                    color: var(--button-bg);
+                    font-size: 20px;
+                }
+            }
+        }
+    }
+
+    // Step Two Channel Selector Styles
+    .step-two-channel-selector {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .form-label {
+            margin-bottom: 0;
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .channel-selector-container {
+            display: flex;
+            overflow: hidden;
+            max-height: 400px;
+            flex-direction: column;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 4px;
+        }
+
+        .channel-selector-search {
+            position: relative;
+            padding: 8px 12px 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: var(--center-channel-bg);
+
+
+            .Input {
+                border: none !important;
+            }
+        }
+
+        .channel-selector-list {
+            flex: 1;
+            background-color: var(--center-channel-bg);
+            overflow-y: auto;
+        }
+
+        .channel-group {
+            .channel-group-title {
+                padding: 6px 20px;
+                background-color: var(--center-channel-bg);
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-size: 12px;
+                font-weight: 600;
+                letter-spacing: 0.24px;
+                text-transform: uppercase;
+            }
+        }
+
+        .channel-selector-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 20px 6px 16px;
+            background-color: var(--center-channel-bg);
+            cursor: pointer;
+            gap: 8px;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            .channel-selector-checkbox {
+                padding: 4px;
+
+                input[type='checkbox'] {
+                    width: 12px;
+                    height: 12px;
+                    cursor: pointer;
+                }
+            }
+
+            .channel-selector-channel-info {
+                display: flex;
+                flex: 1;
+                align-items: center;
+                padding: 2px 4px;
+                gap: 8px;
+
+                .icon {
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                    font-size: 16px;
+                }
+
+                .channel-name {
+                    color: var(--center-channel-color);
+                    font-size: 14px;
+                    line-height: 20px;
+                }
+            }
+        }
+
+        .channel-selector-empty {
+            padding: 40px 20px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 14px;
+            text-align: center;
+        }
+    }
+
+    // Step Two Summary Styles
+    .step-two-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .form-label {
+            margin-bottom: 0;
+            color: var(--center-channel-color);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .summary-channels-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .summary-channel-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 16px;
+            margin-left: -16px;
+            gap: 8px;
+
+            .icon {
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-size: 16px;
+            }
+
+            .channel-name {
+                color: var(--center-channel-color);
+                font-size: 14px;
+                line-height: 20px;
+            }
+        }
+    }
+}
+
