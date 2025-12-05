@@ -1,3 +1,8 @@
+# NOTE: This workflow name is referenced by other workflows:
+# - server-ci-artifacts.yml
+# - server-ci-report.yml
+# - sentry.yaml
+# If you rename this workflow, be sure to update those workflows as well.
 name: Server CI
 on:
   push:

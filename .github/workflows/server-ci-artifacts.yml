@@ -3,7 +3,7 @@ name: Server CI Artifacts
 on:
   workflow_run:
     workflows:
-      - "Server CI PR"
+      - "Server CI"
     types:
       - completed
 
@@ -65,7 +65,7 @@ jobs:
           echo "|Download Link|" >> "${GITHUB_STEP_SUMMARY}"
           echo "| --- |" >> "${GITHUB_STEP_SUMMARY}"
           for package in ${PACKAGES_FILE_LIST}
-            do 
+            do
               echo "|[${package}](https://pr-builds.mattermost.com/mattermost/commit/${{ github.event.workflow_run.head_sha }}/${package})|" >> "${GITHUB_STEP_SUMMARY}"
           done
 
@@ -150,7 +150,7 @@ jobs:
           ./wizcli docker scan --image mattermostdevelopment/mattermost-team-edition:${{ needs.build-docker.outputs.TAG }} --policy "$POLICY"
 
   update-failure-final-status:
-    if: failure() || cancelled()
+    if: (failure() || cancelled()) && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:
       - build-docker
@@ -166,7 +166,7 @@ jobs:
           status: failure
 
   update-success-final-status:
-    if: success()
+    if: success() && github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-22.04
     needs:
       - build-docker
