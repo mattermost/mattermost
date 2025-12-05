@@ -5038,7 +5038,7 @@ type Z_SendToastMessageReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError {
+func (g *apiRPCClient) SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError {
 	_args := &Z_SendToastMessageArgs{userID, message, options}
 	_returns := &Z_SendToastMessageReturns{}
 	if err := g.client.Call("Plugin.SendToastMessage", _args, _returns); err != nil {
@@ -5049,7 +5049,7 @@ func (g *apiRPCClient) SendToastMessage(userID string, message string, options m
 
 func (s *apiRPCServer) SendToastMessage(args *Z_SendToastMessageArgs, returns *Z_SendToastMessageReturns) error {
 	if hook, ok := s.impl.(interface {
-		SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError
+		SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError
 	}); ok {
 		returns.A = hook.SendToastMessage(args.A, args.B, args.C)
 	} else {

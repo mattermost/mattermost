@@ -1095,7 +1095,7 @@ func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any
 	api.app.Publish(ev)
 }
 
-func (api *PluginAPI) SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError {
+func (api *PluginAPI) SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError {
 	return api.app.SendToastMessage(userID, message, options)
 }
 

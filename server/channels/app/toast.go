@@ -9,11 +9,12 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// SendToastMessage sends a toast notification to a specific user via WebSocket.
+// SendToastMessage sends a toast notification to a specific user or user session via WebSocket.
 func (a *App) SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError {
 	if userID == "" {
 		return model.NewAppError("SendToastMessage", "app.toast.send_toast_message.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
+
 	if message == "" {
 		return model.NewAppError("SendToastMessage", "app.toast.send_toast_message.message.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -24,7 +25,8 @@ func (a *App) SendToastMessage(userID, message string, options model.SendToastMe
 	}
 
 	broadcast := &model.WebsocketBroadcast{
-		UserId: userID,
+		UserId:       userID,
+		ConnectionId: options.ConnectionID,
 	}
 
 	event := model.NewWebSocketEvent(model.WebsocketEventShowToast, "", "", userID, nil, "")
