@@ -11106,5 +11106,25 @@
   {
     "id": "api.templates.guest_magic_link_body.title",
     "translation": "Logga in till Mattermost"
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Kunde inte hämta översättning."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Kunde inte spara översättningen."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Misslyckades med hämtningen av LLM-tjänster."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Hämtningen av fil-infon misslyckades."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Den här inbjudningslänken har slutat gälla."
   }
 ]
