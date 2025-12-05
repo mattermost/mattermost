@@ -1663,6 +1663,49 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/channels/members/{user_id}/direct/read":
+    put:
+      tags:
+        - channels
+      summary: Mark all direct and group messages as read
+      description: |
+        Mark all direct and group messages as read for a user.
+
+        ##### Permissions
+
+        Must be logged in as user or have `edit_other_users` permission.
+
+        __Minimum server version__: 11.3
+      operationId: MarkAllDirectMessagesRead
+      parameters:
+        - in: path
+          name: user_id
+          description: User ID to mark messages as read for
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Direct messages marked as read successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Value should be "OK" if successful
+                  last_viewed_at_times:
+                    type: object
+                    description: A JSON object mapping channel IDs to the last viewed times
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/users/{user_id}/teams/{team_id}/channels/members":
     get:
       tags:

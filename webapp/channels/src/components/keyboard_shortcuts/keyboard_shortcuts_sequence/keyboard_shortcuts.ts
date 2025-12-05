@@ -253,6 +253,10 @@ export const KEYBOARD_SHORTCUTS = {
             defaultMessage: 'Toggle unread/all channels:\t⌘|Shift|U',
         },
     }),
+    markAllRead: defineMessage({
+        id: 'shortcuts.msgs.mark_all_read',
+        defaultMessage: 'Mark all messages as read:\tShift|Esc',
+    }),
     msgEdit: defineMessage({
         id: 'shortcuts.msgs.edit',
         defaultMessage: 'Edit last message in channel:\tUp',

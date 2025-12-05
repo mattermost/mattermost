@@ -26,6 +26,7 @@ import {isInternetExplorer, isEdge} from 'utils/user_agent';
 const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
 const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
+const MarkAllAsReadToast = makeAsyncComponent('MarkAllAsReadToast', lazy(() => import('components/feature_toast/features/mark_all_as_read_toast')));
 
 const BODY_CLASS_FOR_CHANNEL = ['app__body', 'channel-view'];
 
@@ -82,6 +83,7 @@ export default function ChannelController(props: Props) {
             >
                 <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
+                <MarkAllAsReadToast/>
                 <div className={classNames('container-fluid channel-view-inner')}>
                     {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}
                     <Pluggable pluggableName='Root'/>
