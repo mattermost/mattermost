@@ -11274,5 +11274,85 @@
   {
     "id": "ent.push_proxy.generate.http_request.app_error",
     "translation": "Nie udało się wysłać żądania HTTP do serwera proxy push."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Nie udało się pobrać ładunku dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Nie udało się zebrać treści żądania dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "Brak dostępnego klucza szyfrowania dla uwierzytelniania push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Nie udało się przeanalizować odpowiedzi z punktu końcowego autoryzacji push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Nie udało się zapisać tokenu autoryzacji."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Interfejs proxy push jest zerowy."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Podczas korzystania z PKCE wymagane jest sprawdzenie kodu."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Kod wyzwania musi być zakodowany base64url (przy użyciu znaków A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Kod wyzwania musi mieć długość od 43 do 128 znaków."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Metoda kwestionowania kodu jest wymagana w przypadku korzystania z PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Wsparciem objęta jest tylko metoda weryfikacji kodu \"S256\"."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Parametr zasobu nie może zawierać składnika fragmentu."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Parametr zasobu musi być prawidłowym identyfikatorem URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Parametr zasobu nie może przekraczać 512 znaków."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Parametr zasobu musi być bezwzględnym identyfikatorem URI."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "Podano weryfikator kodu PKCE, ale nie został on użyty podczas autoryzacji."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) jest wymagany dla klientów publicznych."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "Weryfikator kodu PKCE nie jest zgodny z wyzwaniem kodu."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "Weryfikator kodu PKCE jest wymagany w przypadku korzystania z PKCE."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Nazwa klienta nie może zawierać więcej niż 64 znaki."
   }
 ]
