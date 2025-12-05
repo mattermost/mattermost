@@ -29,8 +29,9 @@ func (f *FrontendService) PublishWebSocketEvent(event string, payload map[string
 	f.api.PublishWebSocketEvent(event, payload, broadcast)
 }
 
-// SendToastMessage sends a toast notification to a specific user.
-// The options parameter allows customization of the toast appearance.
+// SendToastMessage sends a toast notification to a specific user or user session.
+// The userID parameter specifies the user to send the toast to (all their sessions).
+// If options.ConnectionID is set, the toast will only be sent to that specific connection.
 //
 // Minimum server version: 11.3
 func (f *FrontendService) SendToastMessage(userID, message string, options model.SendToastMessageOptions) error {

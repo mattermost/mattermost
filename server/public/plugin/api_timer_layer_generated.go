@@ -930,7 +930,7 @@ func (api *apiTimerLayer) OpenInteractiveDialog(dialog model.OpenDialogRequest) 
 	return _returnsA
 }
 
-func (api *apiTimerLayer) SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError {
+func (api *apiTimerLayer) SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.SendToastMessage(userID, message, options)
 	api.recordTime(startTime, "SendToastMessage", _returnsA == nil)
