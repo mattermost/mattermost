@@ -20,8 +20,6 @@ export const OtherToolsTour = 'other_tools_tour';
 export const TutorialTourName = {
     ONBOARDING_TUTORIAL_STEP: 'tutorial_step',
     ONBOARDING_TUTORIAL_STEP_FOR_GUESTS: 'tutorial_step_for_guest',
-    CRT_TUTORIAL_STEP: 'crt_tutorial_step',
-    CRT_THREAD_PANE_STEP: 'crt_thread_pane_step',
     AUTO_TOUR_STATUS: 'auto_tour_status',
 };
 
@@ -40,27 +38,11 @@ export const OnboardingTourStepsForGuestUsers = {
     FINISHED,
 };
 
-export const CrtTutorialSteps = {
-    WELCOME_POPOVER: 0,
-    LIST_POPOVER: 1,
-    UNREAD_POPOVER: 2,
-    FINISHED,
-};
-
-export const CrtTutorialTriggerSteps = {
-    START: 0,
-    STARTED: 1,
-    FINISHED,
-};
-
 export const TTNameMapToATStatusKey = {
     [TutorialTourName.ONBOARDING_TUTORIAL_STEP]: TutorialTourName.ONBOARDING_TUTORIAL_STEP + AutoStatusSuffix,
-    [TutorialTourName.CRT_TUTORIAL_STEP]: 'crt_tutorial_auto_tour_status',
-    [TutorialTourName.CRT_THREAD_PANE_STEP]: TutorialTourName.CRT_THREAD_PANE_STEP + AutoStatusSuffix,
 };
 
 export const TTNameMapToTourSteps = {
     [TutorialTourName.ONBOARDING_TUTORIAL_STEP]: OnboardingTourSteps,
     [TutorialTourName.ONBOARDING_TUTORIAL_STEP_FOR_GUESTS]: OnboardingTourStepsForGuestUsers,
-    [TutorialTourName.CRT_TUTORIAL_STEP]: CrtTutorialSteps,
 };
