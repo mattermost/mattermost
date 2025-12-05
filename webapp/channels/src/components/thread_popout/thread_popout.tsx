@@ -66,8 +66,12 @@ export default function ThreadPopout() {
                 if (posts) {
                     const {data: result} = await dispatch(extractUserIdsAndMentionsFromPosts(Array.from(Object.values(posts.posts))));
                     if (result) {
-                        await dispatch(getProfilesByIds(result.userIdsForProfilePoll));
-                        await dispatch(loadStatusesByIds(result.userIdsForStatusPoll));
+                        if (result.userIdsForProfilePoll.length > 0) {
+                            await dispatch(getProfilesByIds(result.userIdsForProfilePoll));
+                        }
+                        if (result.userIdsForStatusPoll.length > 0) {
+                            await dispatch(loadStatusesByIds(result.userIdsForStatusPoll));
+                        }
                     }
                 }
             }
