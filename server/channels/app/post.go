@@ -1497,11 +1497,6 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, collapsedThrea
 			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
 		}
 
-		// If the previous post is not in the filtered list, return empty indicate we're at the oldest accessible post
-		if previousPostId != "" && postList.Posts[previousPostId] == nil {
-			return ""
-		}
-
 		return previousPostId
 	}
 
