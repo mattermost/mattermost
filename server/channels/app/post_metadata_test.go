@@ -3334,14 +3334,15 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		// Use retrieval sanitization which includes channel mention filtering
+		result, err := th.App.SanitizePostMetadataForUserOnRetrieval(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 		// Should remove the mention since user can't access the team
 		require.Nil(t, result.GetProp(model.PostPropsChannelMentions))
 	})
 
-	t.Run("includes accessible public channel mentions", func(t *testing.T) {
+	t.Run("includes accessible public channel mentions on retrieval", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
@@ -3354,7 +3355,8 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		// Use retrieval sanitization which includes channel mention filtering
+		result, err := th.App.SanitizePostMetadataForUserOnRetrieval(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 
@@ -3365,7 +3367,7 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 		require.Contains(t, mentionsMap, th.BasicChannel.Name)
 	})
 
-	t.Run("uses fresh display name from database", func(t *testing.T) {
+	t.Run("uses fresh display name from database on retrieval", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		// Post has stale data
@@ -3379,7 +3381,8 @@ func TestSanitizeChannelMentionsForUser(t *testing.T) {
 			},
 		})
 
-		result, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		// Use retrieval sanitization which includes channel mention filtering/updating
+		result, err := th.App.SanitizePostMetadataForUserOnRetrieval(th.Context, post, th.BasicUser.Id)
 		require.Nil(t, err)
 		require.NotNil(t, result)
 
