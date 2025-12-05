@@ -132,6 +132,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		p + "CreatorId",
 		p + "SchemeId",
 		p + "GroupConstrained",
+		p + "AutoTranslation",
 		p + "Shared",
 		p + "TotalMsgCountRoot",
 		p + "LastRootPostAt",
@@ -145,6 +146,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		}
 
 		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId) AS PolicyEnforced", p))
+		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
 	}
 
 	return columns
@@ -168,6 +170,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.CreatorId,
 		channel.SchemeId,
 		channel.GroupConstrained,
+		channel.AutoTranslation,
 		channel.Shared,
 		channel.TotalMsgCountRoot,
 		channel.LastRootPostAt,
