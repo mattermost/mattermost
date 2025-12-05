@@ -205,7 +205,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		// BuildHash is not present in tests
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
-		assert.Positive(t, d.Server.TotalMemory)
+		assert.Positive(t, d.Server.TotalMemoryMB)
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)

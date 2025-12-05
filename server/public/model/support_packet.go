@@ -28,7 +28,7 @@ type SupportPacketDiagnostics struct {
 		OS               string `yaml:"os"`
 		Architecture     string `yaml:"architecture"`
 		CPUCores         int    `yaml:"cpu_cores"`
-		TotalMemory      uint64 `yaml:"total_memory"`
+		TotalMemoryMB    uint64 `yaml:"total_memory_mb"`
 		Hostname         string `yaml:"hostname"`
 		Version          string `yaml:"version"`
 		BuildHash        string `yaml:"build_hash"`
