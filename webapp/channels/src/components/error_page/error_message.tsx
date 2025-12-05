@@ -209,6 +209,16 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
                 </p>
             );
             break;
+        case ErrorPageTypes.MAGIC_LINK_ALREADY_LOGGED_IN:
+            errorMessage = (
+                <p>
+                    <FormattedMessage
+                        id='error.magic_link_already_logged_in.message'
+                        defaultMessage='You are already logged in. Log out and try again.'
+                    />
+                </p>
+            );
+            break;
         case ErrorPageTypes.PAGE_NOT_FOUND:
         default:
             errorMessage = (

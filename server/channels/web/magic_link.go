@@ -25,6 +25,11 @@ func loginWithMagicLinkToken(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if c.AppContext.Session() != nil && c.AppContext.Session().UserId != "" {
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?type=magic_link_already_logged_in", http.StatusFound)
+		return
+	}
+
 	tokenString := r.URL.Query().Get("t")
 	if tokenString == "" {
 		c.Err = model.NewAppError("loginWithMagicLinkToken", "api.user.guest_magic_link.missing_token.app_error", nil, "", http.StatusBadRequest)
