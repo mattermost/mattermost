@@ -5,6 +5,11 @@ import {Locator} from '@playwright/test';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+/**
+ * @objective Verify that using the emoji picker adds emojis to the correct place in the post textbox based on the
+ * location of the keyboard caret, that keyboard focus is moved back to the post textbox correctly, and that the
+ * keyboard caret is placed in the correct place.
+ */
 test(
     'Should add emoji to post textbox correctly and handle focus/selection correctly',
     {tag: '@emoji_picker'},
