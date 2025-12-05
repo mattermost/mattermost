@@ -330,7 +330,7 @@ describe('pasteHandler', () => {
                 clipboardData: tc.clipboardData,
             };
 
-            pasteHandler(event, location, '', tc.isNonFormattedPaste ?? false, 0);
+            pasteHandler(event, location, '', tc.isNonFormattedPaste ?? false);
 
             if (tc.isNonFormattedPaste) {
                 expect(execCommandInsertText).not.toHaveBeenCalled();

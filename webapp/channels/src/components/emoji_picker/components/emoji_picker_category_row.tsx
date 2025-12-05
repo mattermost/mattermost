@@ -7,12 +7,16 @@ import {FormattedMessage} from 'react-intl';
 
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
+import {emojiCategories} from '../constants';
+
 interface Props {
     categoryName: EmojiCategory;
     style: CSSProperties;
 }
 
 function EmojiPickerCategoryRow({categoryName, style}: Props) {
+    const category = emojiCategories[categoryName];
+
     return (
         <div
             className='emoji-picker__row'
@@ -23,7 +27,7 @@ function EmojiPickerCategoryRow({categoryName, style}: Props) {
                 className='emoji-picker__category-header'
                 id={`emojipickercat-${categoryName}`}
             >
-                <FormattedMessage id={`emoji_picker.${categoryName}`}/>
+                <FormattedMessage {...category.label}/>
             </div>
         </div>
     );
