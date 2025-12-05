@@ -45,7 +45,7 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods(http.MethodGet)
 
 	// Intune MAM authentication endpoint
-	w.MainRouter.Handle("/oauth/intune", w.APIHandler(loginWithIntune)).Methods(http.MethodPost)
+	w.MainRouter.Handle("/oauth/intune", w.APIHandler(loginByIntune)).Methods(http.MethodPost)
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
 	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
@@ -629,8 +629,8 @@ func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.R
 	}
 }
 
-// loginWithIntune handles authentication using Microsoft Intune MAM with Entra ID tokens
-func loginWithIntune(c *Context, w http.ResponseWriter, r *http.Request) {
+// loginByIntune handles authentication using Microsoft Intune MAM with Entra ID tokens
+func loginByIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 	var req model.IntuneLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request_body", err)
@@ -642,7 +642,7 @@ func loginWithIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("login_with_intune", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord("login_by_intune", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -664,8 +664,6 @@ func loginWithIntune(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.AppContext = c.AppContext.WithSession(session)
-
-	w.Header().Set(model.HeaderToken, session.Token)
 
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
