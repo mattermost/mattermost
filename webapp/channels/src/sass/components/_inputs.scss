@@ -89,6 +89,11 @@ input::-webkit-file-upload-button {
     display: none;
 }
 
+// Hide Microsoft Edge's built-in password reveal button to avoid duplicate eye icons
+input::-ms-reveal {
+    display: none;
+}
+
 ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
     color: inherit;
     opacity: 0.5;
