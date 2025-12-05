@@ -8609,14 +8609,6 @@
     "translation": "Authentication failed. Please try again or contact your system administrator."
   },
   {
-    "id": "ent.intune.login.identity_verification_required.app_error",
-    "translation": "This sign-in method is currently unavailable. Please contact your system administrator."
-  },
-  {
-    "id": "ent.intune.login.ldap_validation_failed.app_error",
-    "translation": "Authentication failed. Please contact your system administrator."
-  },
-  {
     "id": "ent.intune.login.not_configured.app_error",
     "translation": "Microsoft Intune authentication is not configured."
   },

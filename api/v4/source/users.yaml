@@ -161,8 +161,9 @@
         the `oid` (Azure AD object ID) claim as the unique identifier
 
         - **SAML AuthService**: Users must first login via web/desktop to establish their
-        identity. Mobile login validates the existing SAML user via email and optional LDAP
-        verification
+        account with the `oid` (Azure AD object ID) as AuthData. Intune MAM 
+        always uses objectId for SAML users. For Entra ID Domain Services LDAP sync,
+        configure LdapSettings.IdAttribute to `msDS-aadObjectId` to ensure consistency.
 
 
         **Error Handling:**
@@ -172,9 +173,7 @@
 
         - `428 Precondition Required`: SAML user needs to login via web/desktop first
 
-        - `412 Precondition Failed`: SAML without LDAP sync cannot verify user identity
-
-        - `403 Forbidden`: Configuration issues, bot accounts, or failed LDAP validation
+        - `403 Forbidden`: Configuration issues or bot accounts
 
         - `409 Conflict`: User account is deactivated
 
@@ -228,8 +227,7 @@
         "403":
           description: >
             Forbidden - Access denied. Common causes include: Intune MAM not properly
-            configured or enabled, user is a bot account (bots cannot use Intune login),
-            or LDAP validation failed for SAML users.
+            configured or enabled, or user is a bot account (bots cannot use Intune login).
           content:
             application/json:
               schema:
@@ -240,21 +238,13 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
-        "412":
-          description: >
-            Precondition Failed - For SAML users, identity verification requires LDAP
-            synchronization to be enabled. This error occurs when a SAML user is found
-            by email but the AuthData does not match and LDAP sync is not configured, preventing identity verification.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AppError"
         "428":
           description: >
             Precondition Required - SAML user account not found. The user must first
             login via web or desktop application to establish their Mattermost account
-            before using mobile Intune MAM authentication. This ensures proper mapping
-            of SAML attributes and CPA (Compliance Policy Attestation).
+            with objectId as AuthData before using mobile Intune MAM authentication.
+            For Entra ID Domain Services LDAP sync, ensure SamlSettings.IdAttribute references
+            the objectidentifier claim and LdapSettings.IdAttribute is set to 'msDS-aadObjectId'.
           content:
             application/json:
               schema:
