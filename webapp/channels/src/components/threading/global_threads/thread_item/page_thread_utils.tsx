@@ -38,12 +38,12 @@ export function renderPageCommentPreview(
     const anchorText = post.props?.inline_anchor ? (post.props.inline_anchor as {text: string}).text : null;
 
     return (
-        <div style={{height: 'auto', maxHeight: 'none'}}>
+        <>
             <div
                 style={{
                     fontSize: '12px',
                     color: 'rgba(var(--center-channel-color-rgb), 0.64)',
-                    marginBottom: '4px',
+                    marginBottom: '2px',
                 }}
             >
                 <FormattedMessage
@@ -83,26 +83,22 @@ export function renderPageCommentPreview(
                     />
                 </div>
             )}
-        </div>
+        </>
     );
 }
 
 export function renderPagePreview(post: Post, hasReplies: boolean): JSX.Element {
     if (hasReplies) {
         return (
-            <div style={{height: 'auto', maxHeight: 'none'}}>
-                <InlineCommentContext anchorText={(post.props?.title as string) || 'Untitled Page'}/>
-            </div>
+            <InlineCommentContext anchorText={(post.props?.title as string) || 'Untitled Page'}/>
         );
     }
 
     return (
-        <div style={{height: 'auto', maxHeight: 'none'}}>
-            <div>
-                <i className='icon icon-file-document-outline'/>
-                {' '}
-                {(post.props?.title as string) || 'Untitled Page'}
-            </div>
+        <div>
+            <i className='icon icon-file-document-outline'/>
+            {' '}
+            {(post.props?.title as string) || 'Untitled Page'}
         </div>
     );
 }

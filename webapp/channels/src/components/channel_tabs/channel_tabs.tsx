@@ -85,33 +85,24 @@ function BookmarksTab({
                 }}
             >
                 {/* Existing bookmarks */}
-                {bookmarks.length > 0 ? (
-                    bookmarks.map((bookmark) => (
-                        <Menu.Item
-                            key={bookmark.id}
-                            leadingElement={
-                                <BookmarkIcon
-                                    type={bookmark.type}
-                                    emoji={bookmark.emoji}
-                                    imageUrl={bookmark.image_url}
-                                    fileInfo={bookmark.file_id ? fileInfos[bookmark.file_id] : undefined}
-                                    size={16}
-                                />
-                            }
-                            labels={
-                                <span>{bookmark.display_name}</span>
-                            }
-                            onClick={() => handleBookmarkClick(bookmark)}
-                        />
-                    ))
-                ) : (
-                    <div className='channel-bookmarks-menu__empty'>
-                        <FormattedMessage
-                            id='channel_tabs.bookmarks.empty'
-                            defaultMessage='No bookmarks in this channel.'
-                        />
-                    </div>
-                )}
+                {bookmarks.map((bookmark) => (
+                    <Menu.Item
+                        key={bookmark.id}
+                        leadingElement={
+                            <BookmarkIcon
+                                type={bookmark.type}
+                                emoji={bookmark.emoji}
+                                imageUrl={bookmark.image_url}
+                                fileInfo={bookmark.file_id ? fileInfos[bookmark.file_id] : undefined}
+                                size={16}
+                            />
+                        }
+                        labels={
+                            <span>{bookmark.display_name}</span>
+                        }
+                        onClick={() => handleBookmarkClick(bookmark)}
+                    />
+                ))}
 
                 {/* Add options */}
                 {canAdd && bookmarks.length > 0 && <Menu.Separator/>}

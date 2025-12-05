@@ -55,6 +55,8 @@ export type OwnProps = {
     threadId: UserThread['id'];
     style?: React.CSSProperties;
     isFirstThreadInList: boolean;
+    rowIndex?: number;
+    setRowHeight?: (index: number, height: number) => void;
 };
 
 type Props = {
@@ -73,6 +75,9 @@ const markdownPreviewOptions = {
     atMentions: true,
 };
 
+// Height for page threads in the virtualized list
+const PAGE_THREAD_HEIGHT = 160;
+
 function ThreadItem({
     channel,
     currentRelativeTeamUrl,
@@ -85,6 +90,8 @@ function ThreadItem({
     threadId,
     isFirstThreadInList,
     isPostPriorityEnabled,
+    rowIndex,
+    setRowHeight,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
     const {select, goToInChannel, currentTeamId, params} = useThreadRouting();
@@ -118,6 +125,16 @@ function ThreadItem({
             ref.current?.focus();
         }
     }, [isSelected, threadId]);
+
+    // Report increased height for page threads to allow more content
+    useEffect(() => {
+        if (post && setRowHeight && rowIndex !== undefined) {
+            const isPage = isPagePost(post) || isPageComment(post);
+            if (isPage) {
+                setRowHeight(rowIndex, PAGE_THREAD_HEIGHT);
+            }
+        }
+    }, [post, setRowHeight, rowIndex]);
 
     const participantIds = useMemo(() => {
         const ids = (thread?.participants || []).flatMap(({id}) => {
@@ -219,7 +236,7 @@ function ThreadItem({
     return (
         <>
             <div
-                style={{...style, height: 'auto', minHeight: style?.height}}
+                style={style}
                 className={classNames('ThreadItem', {
                     'has-unreads': newReplies,
                     'is-selected': isSelected,

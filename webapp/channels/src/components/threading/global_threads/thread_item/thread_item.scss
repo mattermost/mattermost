@@ -128,30 +128,28 @@
     }
 
     div.preview {
-        min-height: 40px;
-        max-height: none;
+        height: 40px;
         margin: 0 0 10px;
         color: rgba(var(--center-channel-color-rgb), 1);
 
         @include mixins.text-clamp(2, 20);
 
-        .inline-comment-anchor-box {
+        // Pages-specific: ensure content doesn't overflow
+        &:has(.inline-comment-anchor-box) {
             display: block;
-            overflow: visible;
-            height: auto;
-            max-height: none;
-            -webkit-box-orient: unset;
-            -webkit-line-clamp: unset;
-            text-overflow: clip;
-            white-space: normal;
+            overflow: hidden;
+        }
+
+        .inline-comment-anchor-box {
+            padding: 2px 8px;
+            margin: 2px 0 0;
 
             .inline-comment-anchor-text {
-                display: block;
-                overflow: visible;
-                opacity: 1;
-                text-overflow: clip;
-                visibility: visible;
-                white-space: normal;
+                overflow: hidden;
+                font-size: 13px;
+                line-height: 16px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
         }
     }

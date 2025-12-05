@@ -3867,7 +3867,6 @@
   "channel_switch_modal.has_draft": "Has draft",
   "channel_switch_modal.unreadMentions": "{count, number} {count, plural, one {unread notification} other {unread notifications}}",
   "channel_tabs.add_tab_content": "Add content",
-  "channel_tabs.bookmarks.empty": "No bookmarks in this channel.",
   "channel_tabs.create": "Create",
   "channel_tabs.create_wiki": "Create wiki",
   "channel_tabs.files.empty": "No files found in this channel.",
