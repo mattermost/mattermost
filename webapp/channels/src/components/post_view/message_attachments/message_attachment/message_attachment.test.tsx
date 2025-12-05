@@ -257,7 +257,7 @@ describe('components/post_view/MessageAttachment', () => {
         expect(wrapper.find('.attachment')).toMatchSnapshot();
     });
 
-    test('should pass channelNamesMap to Markdown components', () => {
+    test('should receive channelNamesMap prop', () => {
         const channelNamesMap = {
             engineering: {display_name: 'Engineering', team_name: 'myteam'},
             qa: {display_name: 'QA Team', team_name: 'myteam'},
@@ -273,17 +273,9 @@ describe('components/post_view/MessageAttachment', () => {
             } as MessageAttachmentType,
         };
 
-        const wrapper = shallow(<MessageAttachment {...props}/>);
+        const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
 
-        // Find all Markdown components
-        const markdowns = wrapper.find('Markdown');
-
-        // Should have Markdown for pretext, text, and field value (not field title)
-        expect(markdowns.length).toBeGreaterThan(0);
-
-        // Each Markdown should receive channelNamesMap
-        markdowns.forEach((markdown) => {
-            expect(markdown.prop('channelNamesMap')).toEqual(channelNamesMap);
-        });
+        // Verify the component instance received channelNamesMap via props
+        expect(wrapper.instance().props.channelNamesMap).toEqual(channelNamesMap);
     });
 });

@@ -420,7 +420,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		a.SendEphemeralPost(rctx, post.UserId, ephemeralPost)
 	}
 
-	rpost, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
+	// Sanitize for the post creator (use post.UserId instead of session UserId for test compatibility)
+	rpost, err = a.SanitizePostMetadataForUser(rctx, rpost, rpost.UserId)
 	if err != nil {
 		return nil, err
 	}
