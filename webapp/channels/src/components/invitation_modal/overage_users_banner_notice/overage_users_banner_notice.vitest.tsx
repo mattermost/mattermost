@@ -1,0 +1,444 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {General} from 'mattermost-redux/constants';
+
+import {
+    fireEvent,
+    renderWithContext,
+    screen,
+} from 'tests/vitest_react_testing_utils';
+import {LicenseLinks, OverActiveUserLimits, Preferences, SelfHostedProducts, StatTypes} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+import {generateId} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+
+import OverageUsersBannerNotice from './index';
+
+vi.mock('react-redux', async () => {
+    const actual = await vi.importActual('react-redux');
+    return {
+        ...actual,
+        useDispatch: vi.fn().mockReturnValue(() => {}),
+    };
+});
+
+vi.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: vi.fn(),
+}));
+
+const seatsPurchased = 40;
+
+const seatsMinimumFor5PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MIN)) + seatsPurchased + 1;
+
+const seatsMinimumFor10PercentageState = (Math.ceil(seatsPurchased * OverActiveUserLimits.MAX)) + seatsPurchased + 1;
+
+const text5PercentageState = `Your workspace user count has exceeded your licensed seat count by ${seatsMinimumFor5PercentageState - seatsPurchased} seat`;
+const text10PercentageState = `Your workspace user count has exceeded your licensed seat count by ${seatsMinimumFor10PercentageState - seatsPurchased} seat`;
+const notifyText = 'Notify your Customer Success Manager on your next true-up check';
+
+const contactSalesTextLink = 'Contact Sales';
+
+const licenseId = generateId();
+
+describe('components/invitation_modal/overage_users_banner_notice', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            users: {
+                currentUserId: 'current_user',
+                profiles: {
+                    current_user: {
+                        roles: General.SYSTEM_ADMIN_ROLE,
+                        id: 'currentUser',
+                    },
+                },
+            },
+            admin: {
+                analytics: {
+                    [StatTypes.TOTAL_USERS]: 1,
+                },
+            },
+            general: {
+                config: {
+                    CWSURL: 'http://testing',
+                },
+                license: {
+                    IsLicensed: 'true',
+                    IssuedAt: '1517714643650',
+                    StartsAt: '1517714643650',
+                    ExpiresAt: '1620335443650',
+                    SkuShortName: 'Enterprise',
+                    Name: 'LicenseName',
+                    Company: 'Mattermost Inc.',
+                    Users: String(seatsPurchased),
+                    Id: licenseId,
+                },
+            },
+            preferences: {
+                myPreferences: {},
+            },
+            cloud: {},
+            hostedCustomer: {
+                products: {
+                    productsLoaded: true,
+                    products: {
+                        prod_professional: TestHelper.getProductMock({
+                            id: 'prod_professional',
+                            name: 'Professional',
+                            sku: SelfHostedProducts.PROFESSIONAL,
+                            price_per_seat: 7.5,
+                        }),
+                    },
+                },
+            },
+        },
+    };
+
+    let windowSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeAll(() => {
+        windowSpy = vi.spyOn(window, 'open');
+        windowSpy.mockImplementation(() => {});
+    });
+
+    afterAll(() => {
+        windowSpy.mockRestore();
+    });
+
+    it('should not render the banner because we are not on overage state', () => {
+        renderWithContext(<OverageUsersBannerNotice/>);
+
+        expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
+    });
+
+    it('should not render the banner because we are not admins', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.users = {
+            ...store.entities.users,
+            profiles: {
+                ...store.entities.users.profiles,
+                current_user: {
+                    ...store.entities.users.profiles.current_user,
+                    roles: General.SYSTEM_USER_ROLE,
+                },
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
+    });
+
+    it('should not render the banner because it\'s cloud licenese', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.general.license = {
+            ...store.entities.general.license,
+            Cloud: 'true',
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
+    });
+
+    it('should not render the 5% banner because we have dissmised it', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
+            [
+                {
+                    category: Preferences.OVERAGE_USERS_BANNER,
+                    value: 'Overage users banner watched',
+                    name: `error_overage_seats_${licenseId.substring(0, 8)}`,
+                },
+            ],
+        );
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor5PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.queryByText(text5PercentageState)).not.toBeInTheDocument();
+    });
+
+    it('should render the banner because we are over 5% and we don\'t have any preferences', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor5PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
+        expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
+    });
+
+    it('should track if the admin click Contact Sales CTA in a 5% overage state', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor5PercentageState,
+            },
+        };
+
+        store.entities.cloud = {
+            ...store.entities.cloud,
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        fireEvent.click(screen.getByText(contactSalesTextLink));
+        expect(screen.getByRole('link')).toHaveAttribute(
+            'href',
+            LicenseLinks.CONTACT_SALES +
+                '?utm_source=mattermost&utm_medium=in-product&utm_content=overage_users_banner&uid=current_user&sid=&edition=team&server_version=',
+        );
+    });
+
+    it('should render the banner because we are over 5% and we have preferences from one old banner', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
+            [
+                {
+                    category: Preferences.OVERAGE_USERS_BANNER,
+                    value: 'Overage users banner watched',
+                    name: `error_overage_seats_${generateId().substring(0, 8)}`,
+                },
+            ],
+        );
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor5PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.getByText(text5PercentageState)).toBeInTheDocument();
+        expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
+    });
+
+    it('should save the preferences for 5% banner if admin click on close', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor5PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        fireEvent.click(screen.getByRole('button'));
+
+        expect(savePreferences).toHaveBeenCalledTimes(1);
+        expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
+            category: Preferences.OVERAGE_USERS_BANNER,
+            name: `error_overage_seats_${licenseId.substring(0, 8)}`,
+            user_id: store.entities.users.profiles.current_user.id,
+            value: 'Overage users banner watched',
+        }]);
+    });
+
+    it('should render the banner because we are over 10% and we don\'t have preferences', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.getByText(text10PercentageState)).toBeInTheDocument();
+        expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
+    });
+
+    it('should track if the admin click Contact Sales CTA in a 10% overage state', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+            },
+        };
+
+        store.entities.cloud = {
+            ...store.entities.cloud,
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        fireEvent.click(screen.getByText(contactSalesTextLink));
+        expect(screen.getByRole('link')).toHaveAttribute(
+            'href',
+            LicenseLinks.CONTACT_SALES +
+                '?utm_source=mattermost&utm_medium=in-product&utm_content=overage_users_banner&uid=current_user&sid=&edition=team&server_version=',
+        );
+    });
+
+    it('should render the banner because we are over 10%, and we have preference only for the warning state', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
+            [
+                {
+                    category: Preferences.OVERAGE_USERS_BANNER,
+                    value: 'Overage users banner watched',
+                    name: `warn_overage_seats_${licenseId.substring(0, 8)}`,
+                },
+            ],
+        );
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.getByText(text10PercentageState)).toBeInTheDocument();
+        expect(screen.getByText(notifyText, {exact: false})).toBeInTheDocument();
+    });
+
+    it('should not render the banner because we are over 10% and we have preferences', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.preferences.myPreferences = TestHelper.getPreferencesMock(
+            [
+                {
+                    category: Preferences.OVERAGE_USERS_BANNER,
+                    value: 'Overage users banner watched',
+                    name: `error_overage_seats_${licenseId.substring(0, 8)}`,
+                },
+            ],
+        );
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        expect(screen.queryByText(text10PercentageState)).not.toBeInTheDocument();
+        expect(screen.queryByText(notifyText, {exact: false})).not.toBeInTheDocument();
+    });
+
+    it('should save preferences for the banner because we are over 10% and we don\'t have preferences', () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+            },
+        };
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        fireEvent.click(screen.getByRole('button'));
+
+        expect(savePreferences).toHaveBeenCalledTimes(1);
+        expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
+            category: Preferences.OVERAGE_USERS_BANNER,
+            name: `error_overage_seats_${licenseId.substring(0, 8)}`,
+            user_id: store.entities.users.profiles.current_user.id,
+            value: 'Overage users banner watched',
+        }]);
+    });
+
+    it('gov sku sees overage notice but not a call to do true up', async () => {
+        const store: GlobalState = JSON.parse(JSON.stringify(initialState));
+
+        store.entities.admin = {
+            ...store.entities.admin,
+            analytics: {
+                [StatTypes.TOTAL_USERS]: seatsMinimumFor10PercentageState,
+            },
+        };
+
+        store.entities.cloud = {
+            ...store.entities.cloud,
+        };
+        store.entities.general.license.IsGovSku = 'true';
+
+        renderWithContext(
+            <OverageUsersBannerNotice/>,
+            store,
+        );
+
+        screen.getByText(text10PercentageState);
+        expect(screen.queryByText(notifyText)).not.toBeInTheDocument();
+    });
+});

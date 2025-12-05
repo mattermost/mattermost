@@ -1,0 +1,22 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/sidebar/invite_members_button > should match snapshot 1`] = `
+<div>
+  <button
+    aria-label="Invite Members"
+    class="style--none intro-links color--link cursor--pointer"
+    id="inviteMembersButton"
+  >
+    <div
+      aria-label="Invite Users"
+      class="SidebarChannelNavigator__inviteMembersLhsButton"
+    >
+      <i
+        aria-hidden="true"
+        class="icon-plus-box"
+      />
+      Invite Members
+    </div>
+  </button>
+</div>
+`;

@@ -1,0 +1,176 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/ShowMore > should call checkTextOverflow 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should call checkTextOverflow 2`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should call checkTextOverflow 3`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should call checkTextOverflow 4`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should call checkTextOverflow 5`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should call checkTextOverflow 6`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should call checkTextOverflow 7`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should match snapshot 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    >
+      <div>
+        <p>
+          text
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should match snapshot, PostAttachment on collapsed view 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should match snapshot, PostAttachment on expanded view 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should match snapshot, PostMessageView on collapsed view 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should match snapshot, PostMessageView on expanded view 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/ShowMore > should match snapshot, PostMessageView on expanded view with compactDisplay 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 200px;"
+    />
+  </div>
+</div>
+`;

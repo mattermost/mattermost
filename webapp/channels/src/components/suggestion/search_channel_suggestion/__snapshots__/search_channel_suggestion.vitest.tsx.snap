@@ -1,0 +1,224 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/suggestion/search_channel_suggestion > should match snapshot 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <span
+      class="suggestion-list__icon suggestion-list__icon--large"
+    >
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
+    </span>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion > should match snapshot, channel type DM_CHANNEL 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <img
+      alt=""
+      class="Avatar Avatar-sm"
+      loading="lazy"
+      src="/api/v4/users/DN/image?_=0"
+    />
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        @name
+      </span>
+    </div>
+  </li>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion > should match snapshot, channel type GM_CHANNEL 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <span
+      class="suggestion-list__icon suggestion-list__icon--large"
+    >
+      <div
+        class="status status--group"
+      >
+        G
+      </div>
+    </span>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        @name
+      </span>
+    </div>
+  </li>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion > should match snapshot, channel type OPEN_CHANNEL 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <span
+      class="suggestion-list__icon suggestion-list__icon--large"
+    >
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
+    </span>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion > should match snapshot, channel type PRIVATE_CHANNEL 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <span
+      class="suggestion-list__icon suggestion-list__icon--large"
+    >
+      <i
+        class="icon icon--standard icon--no-spacing icon-lock-outline"
+      />
+    </span>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion > should match snapshot, isSelection is false 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <span
+      class="suggestion-list__icon suggestion-list__icon--large"
+    >
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
+    </span>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
+`;
+
+exports[`components/suggestion/search_channel_suggestion > should match snapshot, isSelection is true 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-botTag"
+    aria-labelledby="test-suggestion-name"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <span
+      class="suggestion-list__icon suggestion-list__icon--large"
+    >
+      <i
+        class="icon icon--standard icon--no-spacing icon-globe"
+      />
+    </span>
+    <div
+      class="suggestion-list__ellipsis"
+    >
+      <span
+        class="suggestion-list__main"
+        id="test-suggestion-name"
+      >
+        name
+      </span>
+      ~DN
+    </div>
+  </li>
+</div>
+`;

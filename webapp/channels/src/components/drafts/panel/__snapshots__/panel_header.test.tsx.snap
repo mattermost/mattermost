@@ -90,9 +90,11 @@ exports[`components/drafts/panel/panel_header should show sync icon when draft i
             />
           }
         >
-          <SyncIcon
-            size={18}
-          />
+          <span>
+            <SyncIcon
+              size={18}
+            />
+          </span>
         </WithTooltip>
       </div>
       <div

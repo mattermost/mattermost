@@ -1,0 +1,956 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/user_settings/display/UserSettingsDisplay > should match snapshot, enable gitlab 1`] = `
+<div>
+  <div
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        />
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="tokensTitle"
+          >
+            Personal Access Tokens
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="tokensTitle tokensEdit"
+            class="color--link style--none section-min__edit"
+            id="tokensEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="tokensDesc"
+        >
+          Click 'Edit' to manage your personal access tokens
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay > should match snapshot, enable google 1`] = `
+<div>
+  <div
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        />
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="tokensTitle"
+          >
+            Personal Access Tokens
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="tokensTitle tokensEdit"
+            class="color--link style--none section-min__edit"
+            id="tokensEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="tokensDesc"
+        >
+          Click 'Edit' to manage your personal access tokens
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay > should match snapshot, enable office365 1`] = `
+<div>
+  <div
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        />
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="tokensTitle"
+          >
+            Personal Access Tokens
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="tokensTitle tokensEdit"
+            class="color--link style--none section-min__edit"
+            id="tokensEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="tokensDesc"
+        >
+          Click 'Edit' to manage your personal access tokens
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay > should match snapshot, enable openID 1`] = `
+<div>
+  <div
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        />
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="tokensTitle"
+          >
+            Personal Access Tokens
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="tokensTitle tokensEdit"
+            class="color--link style--none section-min__edit"
+            id="tokensEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="tokensDesc"
+        >
+          Click 'Edit' to manage your personal access tokens
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          Email and Password
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/display/UserSettingsDisplay > should match snapshot, to email 1`] = `
+<div>
+  <div
+    aria-labelledby="securityButton"
+    id="securitySettings"
+    role="tabpanel"
+  >
+    <div
+      class="modal-header"
+    >
+      <button
+        class="close"
+        data-dismiss="modal"
+        id="closeButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+        >
+          ×
+        </span>
+      </button>
+      <h4
+        class="modal-title"
+      >
+        <div
+          class="modal-back"
+        >
+          <i
+            aria-label="Collapse Icon"
+            class="fa fa-angle-left"
+          />
+        </div>
+        Security Settings
+      </h4>
+    </div>
+    <div
+      class="user-settings"
+    >
+      <div
+        class="userSettingDesktopHeader"
+      >
+        <h3
+          class="tab-header"
+        >
+          Security Settings
+        </h3>
+      </div>
+      <div
+        class="divider-dark first"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="passwordTitle"
+          >
+            Password
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="passwordTitle passwordEdit"
+            class="color--link style--none section-min__edit"
+            id="passwordEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="passwordDesc"
+        />
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="tokensTitle"
+          >
+            Personal Access Tokens
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="tokensTitle tokensEdit"
+            class="color--link style--none section-min__edit"
+            id="tokensEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="tokensDesc"
+        >
+          Click 'Edit' to manage your personal access tokens
+        </div>
+      </div>
+      <div
+        class="divider-light"
+      />
+      <div
+        class="section-min"
+      >
+        <div
+          class="section-min__header"
+        >
+          <h4
+            class="section-min__title"
+            id="signinTitle"
+          >
+            Sign-in Method
+          </h4>
+          <button
+            aria-expanded="false"
+            aria-labelledby="signinTitle signinEdit"
+            class="color--link style--none section-min__edit"
+            id="signinEdit"
+          >
+            <i
+              aria-hidden="true"
+              class="icon-pencil-outline"
+              title="Edit Icon"
+            />
+            Edit
+          </button>
+        </div>
+        <div
+          class="section-min__describe"
+          id="signinDesc"
+        >
+          OpenID
+        </div>
+      </div>
+      <div
+        class="divider-dark"
+      />
+      <br />
+      <button
+        class="style--none security-links color--link"
+        id="viewAccessHistory"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Access History Icon"
+        />
+        View Access History
+      </button>
+      <button
+        class="style--none security-links color--link mt-2"
+        id="viewAndLogOutOfActiveSessions"
+      >
+        <i
+          aria-hidden="true"
+          class="icon icon-clock-outline"
+          title="Active Sessions Icon"
+        />
+        View and Log Out of Active Sessions
+      </button>
+    </div>
+  </div>
+</div>
+`;

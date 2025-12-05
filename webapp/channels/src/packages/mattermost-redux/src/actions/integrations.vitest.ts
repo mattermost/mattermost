@@ -1,0 +1,1024 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import nock from 'nock';
+
+import type {DialogSubmission, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+
+import * as Actions from 'mattermost-redux/actions/integrations';
+import * as TeamsActions from 'mattermost-redux/actions/teams';
+import {Client4} from 'mattermost-redux/client';
+
+import TestHelper from '../../test/test_helper';
+import configureStore from '../../test/test_store';
+
+const OK_RESPONSE = {status: 'OK'};
+
+describe('Actions.Integrations', () => {
+    let store = configureStore();
+    beforeAll(() => {
+        TestHelper.initBasic(Client4);
+    });
+
+    beforeEach(() => {
+        store = configureStore();
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    afterAll(() => {
+        TestHelper.tearDown();
+    });
+
+    test('createIncomingHook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/incoming').
+            reply(201, TestHelper.testIncomingHook());
+
+        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                display_name: 'test',
+                description: 'test',
+            } as IncomingWebhook,
+        ));
+
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.incomingHooks;
+        expect(hooks).toBeTruthy();
+        expect(hooks[created.id]).toBeTruthy();
+    });
+
+    test('getIncomingWebhook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/incoming').
+            reply(201, TestHelper.testIncomingHook());
+
+        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                display_name: 'test',
+                description: 'test',
+            } as IncomingWebhook,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            get(`/hooks/incoming/${created.id}`).
+            reply(200, created);
+
+        await store.dispatch(Actions.getIncomingHook(created.id));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.incomingHooks;
+        expect(hooks).toBeTruthy();
+        expect(hooks[created.id]).toBeTruthy();
+    });
+
+    test('getIncomingWebhooks', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/incoming').
+            reply(201, TestHelper.testIncomingHook());
+
+        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                display_name: 'test',
+                description: 'test',
+            } as IncomingWebhook,
+        ));
+
+        /* Test with include_total_count being set to false */
+        nock(Client4.getBaseRoute()).
+            get('/hooks/incoming').
+            query(true).
+            reply(200, [created]);
+
+        const response = await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id));
+        expect(response.data).toBeTruthy();
+        expect(response.data[0].id === created.id).toBeTruthy();
+
+        const state = store.getState();
+        const hooks = state.entities.integrations.incomingHooks;
+        expect(hooks).toBeTruthy();
+        expect(hooks[created.id]).toBeTruthy();
+
+        /* Test with include_total_count being set to true */
+        nock(Client4.getBaseRoute()).
+            get('/hooks/incoming').
+            query(true).
+            reply(200, {incoming_webhooks: [created], total_count: 1});
+
+        const responseWithCount = await store.dispatch(Actions.getIncomingHooks(TestHelper.basicTeam!.id, 0, 10, true));
+        expect(responseWithCount.data.incoming_webhooks).toBeTruthy();
+        expect(responseWithCount.data.incoming_webhooks[0].id === created.id).toBeTruthy();
+        expect(responseWithCount.data.total_count === 1).toBeTruthy();
+    });
+
+    test('removeIncomingHook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/incoming').
+            reply(201, TestHelper.testIncomingHook());
+
+        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                display_name: 'test',
+                description: 'test',
+            } as IncomingWebhook,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            delete(`/hooks/incoming/${created.id}`).
+            reply(200, OK_RESPONSE);
+
+        await store.dispatch(Actions.removeIncomingHook(created.id));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.incomingHooks;
+        expect(!hooks[created.id]).toBeTruthy();
+    });
+
+    test('updateIncomingHook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/incoming').
+            reply(201, TestHelper.testIncomingHook());
+
+        const {data: created} = await store.dispatch(Actions.createIncomingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                display_name: 'test',
+                description: 'test',
+            } as IncomingWebhook,
+        ));
+
+        const updated = {...created};
+        updated.display_name = 'test2';
+
+        nock(Client4.getBaseRoute()).
+            put(`/hooks/incoming/${created.id}`).
+            reply(200, updated);
+        await store.dispatch(Actions.updateIncomingHook(updated));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.incomingHooks;
+        expect(hooks[created.id]).toBeTruthy();
+        expect(hooks[created.id].display_name === updated.display_name).toBeTruthy();
+    });
+
+    test('createOutgoingHook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/outgoing').
+            reply(201, TestHelper.testOutgoingHook());
+
+        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                team_id: TestHelper.basicTeam!.id,
+                display_name: 'test',
+                trigger_words: [TestHelper.generateId()],
+                callback_urls: ['http://localhost/notarealendpoint'],
+            } as OutgoingWebhook,
+        ));
+
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.outgoingHooks;
+        expect(hooks).toBeTruthy();
+        expect(hooks[created.id]).toBeTruthy();
+    });
+
+    test('getOutgoingWebhook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/outgoing').
+            reply(201, TestHelper.testOutgoingHook());
+
+        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                team_id: TestHelper.basicTeam!.id,
+                display_name: 'test',
+                trigger_words: [TestHelper.generateId()],
+                callback_urls: ['http://localhost/notarealendpoint'],
+            } as OutgoingWebhook,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            get(`/hooks/outgoing/${created.id}`).
+            reply(200, TestHelper.testOutgoingHook());
+
+        await store.dispatch(Actions.getOutgoingHook(created.id));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.outgoingHooks;
+        expect(hooks).toBeTruthy();
+        expect(hooks[created.id]).toBeTruthy();
+    });
+
+    test('getOutgoingWebhooks', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/outgoing').
+            reply(201, TestHelper.testOutgoingHook());
+
+        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                team_id: TestHelper.basicTeam!.id,
+                display_name: 'test',
+                trigger_words: [TestHelper.generateId()],
+                callback_urls: ['http://localhost/notarealendpoint'],
+            } as OutgoingWebhook,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            get('/hooks/outgoing').
+            query(true).
+            reply(200, [TestHelper.testOutgoingHook()]);
+
+        await store.dispatch(Actions.getOutgoingHooks(TestHelper.basicChannel!.id));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.outgoingHooks;
+        expect(hooks).toBeTruthy();
+        expect(hooks[created.id]).toBeTruthy();
+    });
+
+    test('removeOutgoingHook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/outgoing').
+            reply(201, TestHelper.testOutgoingHook());
+
+        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                team_id: TestHelper.basicTeam!.id,
+                display_name: 'test',
+                trigger_words: [TestHelper.generateId()],
+                callback_urls: ['http://localhost/notarealendpoint'],
+            } as OutgoingWebhook,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            delete(`/hooks/outgoing/${created.id}`).
+            reply(200, OK_RESPONSE);
+
+        await store.dispatch(Actions.removeOutgoingHook(created.id));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.outgoingHooks;
+        expect(!hooks[created.id]).toBeTruthy();
+    });
+
+    test('updateOutgoingHook', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/outgoing').
+            reply(201, TestHelper.testOutgoingHook());
+
+        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                team_id: TestHelper.basicTeam!.id,
+                display_name: 'test',
+                trigger_words: [TestHelper.generateId()],
+                callback_urls: ['http://localhost/notarealendpoint'],
+            } as OutgoingWebhook,
+        ));
+
+        const updated = {...created};
+        updated.display_name = 'test2';
+        nock(Client4.getBaseRoute()).
+            put(`/hooks/outgoing/${created.id}`).
+            reply(200, updated);
+        await store.dispatch(Actions.updateOutgoingHook(updated));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.outgoingHooks;
+        expect(hooks[created.id]).toBeTruthy();
+        expect(hooks[created.id].display_name === updated.display_name).toBeTruthy();
+    });
+
+    test('regenOutgoingHookToken', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/hooks/outgoing').
+            reply(201, TestHelper.testOutgoingHook());
+
+        const {data: created} = await store.dispatch(Actions.createOutgoingHook(
+            {
+                channel_id: TestHelper.basicChannel!.id,
+                team_id: TestHelper.basicTeam!.id,
+                display_name: 'test',
+                trigger_words: [TestHelper.generateId()],
+                callback_urls: ['http://localhost/notarealendpoint'],
+            } as OutgoingWebhook,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            post(`/hooks/outgoing/${created.id}/regen_token`).
+            reply(200, {...created, token: TestHelper.generateId()});
+        await store.dispatch(Actions.regenOutgoingHookToken(created.id));
+        const state = store.getState();
+
+        const hooks = state.entities.integrations.outgoingHooks;
+        expect(hooks[created.id]).toBeTruthy();
+        expect(hooks[created.id].token !== created.token).toBeTruthy();
+    });
+
+    test('getCommands', async () => {
+        const noTeamCommands = store.getState().entities.integrations.commands;
+        const noSystemCommands = store.getState().entities.integrations.systemCommands;
+        expect(Object.keys({...noTeamCommands, ...noSystemCommands}).length).toEqual(0);
+
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        const teamCommand = TestHelper.testCommand(team.id);
+
+        nock(Client4.getBaseRoute()).
+            post('/commands').
+            reply(201, {...teamCommand, token: TestHelper.generateId(), id: TestHelper.generateId()});
+
+        const {data: created} = await store.dispatch(Actions.addCommand(
+            teamCommand,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            get('/commands').
+            query(true).
+            reply(200, [created, {
+                trigger: 'system-command',
+            }]);
+
+        await store.dispatch(Actions.getCommands(
+            team.id,
+        ));
+        const teamCommands = store.getState().entities.integrations.commands;
+        const executableCommands = store.getState().entities.integrations.executableCommands;
+        expect(Object.keys({...teamCommands, ...executableCommands}).length).toBeTruthy();
+    });
+
+    test('getAutocompleteCommands', async () => {
+        const noTeamCommands = store.getState().entities.integrations.commands;
+        const noSystemCommands = store.getState().entities.integrations.systemCommands;
+        expect(Object.keys({...noTeamCommands, ...noSystemCommands}).length).toEqual(0);
+
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        const teamCommandWithAutocomplete = TestHelper.testCommand(team.id);
+
+        nock(Client4.getBaseRoute()).
+            post('/commands').
+            reply(201, {...teamCommandWithAutocomplete, token: TestHelper.generateId(), id: TestHelper.generateId()});
+
+        const {data: createdWithAutocomplete} = await store.dispatch(Actions.addCommand(
+            teamCommandWithAutocomplete,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            get(`/teams/${team.id}/commands/autocomplete`).
+            query(true).
+            reply(200, [createdWithAutocomplete, {
+                trigger: 'system-command',
+            }]);
+
+        await store.dispatch(Actions.getAutocompleteCommands(
+            team.id,
+        ));
+        const teamCommands = store.getState().entities.integrations.commands;
+        const systemCommands = store.getState().entities.integrations.systemCommands;
+        expect(Object.keys({...teamCommands, ...systemCommands}).length).toEqual(2);
+    });
+
+    test('getCustomTeamCommands', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        nock(Client4.getBaseRoute()).
+            get('/commands').
+            query(true).
+            reply(200, []);
+
+        await store.dispatch(Actions.getCustomTeamCommands(
+            team.id,
+        ));
+        const noCommands = store.getState().entities.integrations.commands;
+        expect(Object.keys(noCommands).length).toEqual(0);
+
+        const command = TestHelper.testCommand(team.id);
+
+        nock(Client4.getBaseRoute()).
+            post('/commands').
+            reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
+
+        const {data: created} = await store.dispatch(Actions.addCommand(
+            command,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            get('/commands').
+            query(true).
+            reply(200, []);
+
+        await store.dispatch(Actions.getCustomTeamCommands(
+            team.id,
+        ));
+        const {commands} = store.getState().entities.integrations;
+        expect(commands[created.id]).toBeTruthy();
+        expect(Object.keys(commands).length).toEqual(1);
+        const actual = commands[created.id];
+        const expected = created;
+        expect(JSON.stringify(actual)).toEqual(JSON.stringify(expected));
+    });
+
+    test('executeCommand', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        const args = {
+            channel_id: TestHelper.basicChannel!.id,
+            team_id: team.id,
+        };
+
+        nock(Client4.getBaseRoute()).
+            post('/commands/execute').
+            reply(200, []);
+
+        await store.dispatch(Actions.executeCommand('/echo message 5', args));
+    });
+
+    test('addCommand', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        const expected = TestHelper.testCommand(team.id);
+
+        nock(Client4.getBaseRoute()).
+            post('/commands').
+            reply(201, {...expected, token: TestHelper.generateId(), id: TestHelper.generateId()});
+
+        const {data: created} = await store.dispatch(Actions.addCommand(expected));
+
+        const {commands} = store.getState().entities.integrations;
+        expect(commands[created.id]).toBeTruthy();
+        const actual = commands[created.id];
+
+        expect(actual.token).toBeTruthy();
+        expect(actual.create_at).toEqual(actual.update_at);
+        expect(actual.delete_at).toEqual(0);
+        expect(actual.creator_id).toBeTruthy();
+        expect(actual.team_id).toEqual(team.id);
+        expect(actual.trigger).toEqual(expected.trigger);
+        expect(actual.method).toEqual(expected.method);
+        expect(actual.username).toEqual(expected.username);
+        expect(actual.icon_url).toEqual(expected.icon_url);
+        expect(actual.auto_complete).toEqual(expected.auto_complete);
+        expect(actual.auto_complete_desc).toEqual(expected.auto_complete_desc);
+        expect(actual.auto_complete_hint).toEqual(expected.auto_complete_hint);
+        expect(actual.display_name).toEqual(expected.display_name);
+        expect(actual.description).toEqual(expected.description);
+        expect(actual.url).toEqual(expected.url);
+    });
+
+    test('regenCommandToken', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        const command = TestHelper.testCommand(team.id);
+
+        nock(Client4.getBaseRoute()).
+            post('/commands').
+            reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
+
+        const {data: created} = await store.dispatch(Actions.addCommand(
+            command,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            put(`/commands/${created.id}/regen_token`).
+            reply(200, {...created, token: TestHelper.generateId()});
+
+        await store.dispatch(Actions.regenCommandToken(
+            created.id,
+        ));
+        const {commands} = store.getState().entities.integrations;
+        expect(commands[created.id]).toBeTruthy();
+        const updated = commands[created.id];
+
+        expect(updated.id).toEqual(created.id);
+        expect(updated.token).not.toEqual(created.token);
+        expect(updated.create_at).toEqual(created.create_at);
+        expect(updated.update_at).toEqual(created.update_at);
+        expect(updated.delete_at).toEqual(created.delete_at);
+        expect(updated.creator_id).toEqual(created.creator_id);
+        expect(updated.team_id).toEqual(created.team_id);
+        expect(updated.trigger).toEqual(created.trigger);
+        expect(updated.method).toEqual(created.method);
+        expect(updated.username).toEqual(created.username);
+        expect(updated.icon_url).toEqual(created.icon_url);
+        expect(updated.auto_complete).toEqual(created.auto_complete);
+        expect(updated.auto_complete_desc).toEqual(created.auto_complete_desc);
+        expect(updated.auto_complete_hint).toEqual(created.auto_complete_hint);
+        expect(updated.display_name).toEqual(created.display_name);
+        expect(updated.description).toEqual(created.description);
+        expect(updated.url).toEqual(created.url);
+    });
+
+    test('editCommand', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        const command = TestHelper.testCommand(team.id);
+
+        nock(Client4.getBaseRoute()).
+            post('/commands').
+            reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
+
+        const {data: created} = await store.dispatch(Actions.addCommand(
+            command,
+        ));
+
+        const expected = Object.assign({}, created);
+        expected.trigger = 'modified';
+        expected.method = 'G';
+        expected.username = 'modified';
+        expected.auto_complete = false;
+
+        nock(Client4.getBaseRoute()).
+            put(`/commands/${expected.id}`).
+            reply(200, {...expected, update_at: 123});
+
+        await store.dispatch(Actions.editCommand(
+            expected,
+        ));
+        const {commands} = store.getState().entities.integrations;
+        expect(commands[created.id]).toBeTruthy();
+        const actual = commands[created.id];
+
+        expect(actual.update_at).not.toEqual(expected.update_at);
+        expected.update_at = actual.update_at;
+        expect(JSON.stringify(actual)).toEqual(JSON.stringify(expected));
+    });
+
+    test('deleteCommand', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/teams').
+            reply(201, TestHelper.fakeTeamWithId());
+
+        const {data: team} = await store.dispatch(TeamsActions.createTeam(
+            TestHelper.fakeTeam(),
+        ));
+
+        const command = TestHelper.testCommand(team.id);
+
+        nock(Client4.getBaseRoute()).
+            post('/commands').
+            reply(201, {...command, token: TestHelper.generateId(), id: TestHelper.generateId()});
+
+        const {data: created} = await store.dispatch(Actions.addCommand(
+            command,
+        ));
+
+        nock(Client4.getBaseRoute()).
+            delete(`/commands/${created.id}`).
+            reply(200, OK_RESPONSE);
+
+        await store.dispatch(Actions.deleteCommand(
+            created.id,
+        ));
+        const {commands} = store.getState().entities.integrations;
+        expect(!commands[created.id]).toBeTruthy();
+    });
+
+    test('addOAuthApp', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/oauth/apps').
+            reply(201, TestHelper.fakeOAuthAppWithId());
+
+        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+
+        const {oauthApps} = store.getState().entities.integrations;
+        expect(oauthApps[created.id]).toBeTruthy();
+    });
+
+    test('getOAuthApp', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/oauth/apps').
+            reply(201, TestHelper.fakeOAuthAppWithId());
+
+        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+
+        nock(Client4.getBaseRoute()).
+            get(`/oauth/apps/${created.id}`).
+            reply(200, created);
+
+        await store.dispatch(Actions.getOAuthApp(created.id));
+        const {oauthApps} = store.getState().entities.integrations;
+        expect(oauthApps[created.id]).toBeTruthy();
+    });
+
+    test('editOAuthApp', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/oauth/apps').
+            reply(201, TestHelper.fakeOAuthAppWithId());
+
+        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+
+        const expected = Object.assign({}, created);
+        expected.name = 'modified';
+        expected.description = 'modified';
+        expected.homepage = 'https://modified.com';
+        expected.icon_url = 'https://modified.com/icon';
+        expected.callback_urls = ['https://modified.com/callback1', 'https://modified.com/callback2'];
+        expected.is_trusted = true;
+
+        const nockReply = Object.assign({}, expected);
+        nockReply.update_at += 1;
+        nock(Client4.getBaseRoute()).
+            put(`/oauth/apps/${created.id}`).reply(200, nockReply);
+
+        await store.dispatch(Actions.editOAuthApp(expected));
+        const {oauthApps} = store.getState().entities.integrations;
+        expect(oauthApps[created.id]).toBeTruthy();
+
+        const actual = oauthApps[created.id];
+
+        expect(actual.update_at).not.toEqual(expected.update_at);
+        const actualWithoutUpdateAt = {...actual};
+        delete actualWithoutUpdateAt.update_at;
+        delete expected.update_at;
+        expect(JSON.stringify(actualWithoutUpdateAt)).toEqual(JSON.stringify(expected));
+    });
+
+    test('getOAuthApps', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/oauth/apps').
+            reply(201, TestHelper.fakeOAuthAppWithId());
+
+        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+
+        const user = TestHelper.basicUser;
+        nock(Client4.getBaseRoute()).
+            get(`/users/${user!.id}/oauth/apps/authorized`).
+            reply(200, [created]);
+
+        await store.dispatch(Actions.getAuthorizedOAuthApps());
+        const {oauthApps} = store.getState().entities.integrations;
+        expect(oauthApps).toBeTruthy();
+    });
+
+    test('deleteOAuthApp', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/oauth/apps').
+            reply(201, TestHelper.fakeOAuthAppWithId());
+
+        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+
+        nock(Client4.getBaseRoute()).
+            delete(`/oauth/apps/${created.id}`).
+            reply(200, OK_RESPONSE);
+
+        await store.dispatch(Actions.deleteOAuthApp(created.id));
+        const {oauthApps} = store.getState().entities.integrations;
+        expect(!oauthApps[created.id]).toBeTruthy();
+    });
+
+    test('regenOAuthAppSecret', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/oauth/apps').
+            reply(201, TestHelper.fakeOAuthAppWithId());
+
+        const {data: created} = await store.dispatch(Actions.addOAuthApp(TestHelper.fakeOAuthApp()));
+
+        nock(Client4.getBaseRoute()).
+            post(`/oauth/apps/${created.id}/regen_secret`).
+            reply(200, {...created, client_secret: TestHelper.generateId()});
+
+        await store.dispatch(Actions.regenOAuthAppSecret(created.id));
+        const {oauthApps} = store.getState().entities.integrations;
+        expect(oauthApps[created.id].client_secret !== created.client_secret).toBeTruthy();
+    });
+
+    test('submitInteractiveDialogError', async () => {
+        nock(Client4.getBaseRoute()).
+            post('/actions/dialogs/submit').
+            reply(200, {errors: {name: 'some error'}});
+
+        const submit: DialogSubmission = {
+            url: 'https://mattermost.com',
+            callback_id: '123',
+            state: '123',
+            channel_id: TestHelper.generateId(),
+            team_id: TestHelper.generateId(),
+            submission: {name: 'value'},
+            cancelled: false,
+            user_id: '',
+        };
+
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+
+        expect(data.errors).toBeTruthy();
+        expect(data.errors.name).toEqual('some error');
+    });
+
+    test('submitInteractiveDialog uses submission data', async () => {
+        const submit: DialogSubmission = {
+            callback_id: 'callback_id',
+            channel_id: 'submission_channel_id',
+            state: 'state',
+            submission: {
+                field1: 'value1',
+            },
+            cancelled: false,
+            team_id: 'submission_team_id',
+            user_id: TestHelper.generateId(),
+        };
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/dialogs/submit', submit).
+            reply(200, OK_RESPONSE);
+
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        expect(data).toEqual(OK_RESPONSE);
+    });
+
+    test('submitInteractiveDialog uses state information', async () => {
+        store = configureStore({
+            entities: {
+                users: {
+                    currentUserId: 'currentUserID',
+                },
+                teams: {
+                    currentTeamId: 'currentTeamID',
+                },
+                channels: {
+                    currentChannelId: 'dialog_channel_id',
+                },
+            },
+        });
+
+        const submit: DialogSubmission = {
+            callback_id: 'callback_id',
+            channel_id: '',
+            state: 'state',
+            submission: {
+                field1: 'value1',
+                field2: 'value2',
+            },
+            cancelled: false,
+            team_id: '',
+            user_id: TestHelper.generateId(),
+        };
+
+        const expectedRequest = {
+            ...submit,
+            channel_id: 'dialog_channel_id',
+            team_id: 'currentTeamID',
+            user_id: 'currentUserID',
+        };
+
+        nock(Client4.getBaseRoute()).
+            post('/actions/dialogs/submit', expectedRequest).
+            reply(200, OK_RESPONSE);
+
+        const {data} = await store.dispatch(Actions.submitInteractiveDialog(submit));
+        expect(data).toEqual(OK_RESPONSE);
+    });
+
+    describe('lookupInteractiveDialog', () => {
+        test('lookupInteractiveDialog with successful response', async () => {
+            const expectedResponse = {
+                items: [
+                    {text: 'Option 1', value: 'value1'},
+                    {text: 'Option 2', value: 'value2'},
+                    {text: 'Option 3', value: 'value3'},
+                ],
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'test query',
+                    selected_field: 'dynamic_field',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(200, expectedResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(expectedResponse);
+            expect(data.items).toHaveLength(3);
+            expect(data.items[0].text).toEqual('Option 1');
+            expect(data.items[0].value).toEqual('value1');
+        });
+
+        test('lookupInteractiveDialog with empty response', async () => {
+            const emptyResponse = {items: []};
+
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'empty query',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(200, emptyResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(emptyResponse);
+            expect(data.items).toHaveLength(0);
+        });
+
+        test('lookupInteractiveDialog with server error', async () => {
+            const errorResponse = {
+                id: 'api.dialog.lookup.app_error',
+                message: 'Dialog lookup failed',
+                detailed_error: 'Invalid lookup parameters',
+                request_id: TestHelper.generateId(),
+                status_code: 400,
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'invalid_callback',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'invalid query',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(400, errorResponse);
+
+            const {error} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(error.status_code).toBe(400);
+            expect(error.message).toBe('Dialog lookup failed');
+        });
+
+        test('lookupInteractiveDialog uses current state information', async () => {
+            store = configureStore({
+                entities: {
+                    users: {
+                        currentUserId: 'currentUserID',
+                    },
+                    teams: {
+                        currentTeamId: 'currentTeamID',
+                    },
+                    channels: {
+                        currentChannelId: 'dialog_channel_id',
+                    },
+                },
+            });
+
+            const expectedResponse = {
+                items: [
+                    {text: 'Option 1', value: 'value1'},
+                ],
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: '',
+                state: 'state',
+                submission: {
+                    query: 'test query',
+                },
+                cancelled: false,
+                team_id: '',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            const expectedRequest = {
+                ...lookup,
+                channel_id: 'dialog_channel_id',
+                team_id: 'currentTeamID',
+                user_id: 'currentUserID',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', expectedRequest).
+                reply(200, expectedResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(expectedResponse);
+        });
+
+        test('lookupInteractiveDialog with network error', async () => {
+            const lookup: DialogSubmission = {
+                callback_id: 'callback_id',
+                channel_id: 'channel_id',
+                state: 'state',
+                submission: {
+                    query: 'network error query',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                replyWithError('Network error');
+
+            const {error} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(error.message).toContain('Network error');
+        });
+
+        test('lookupInteractiveDialog with complex submission data', async () => {
+            const expectedResponse = {
+                items: [
+                    {text: 'Complex Option 1', value: 'complex_value1'},
+                    {text: 'Complex Option 2', value: 'complex_value2'},
+                ],
+            };
+
+            const lookup: DialogSubmission = {
+                callback_id: 'complex_callback',
+                channel_id: 'channel_id',
+                state: 'complex_state',
+                submission: {
+                    query: 'complex query',
+                    selected_field: 'dynamic_select_field',
+                    additional_data: JSON.stringify({
+                        nested_field: 'nested_value',
+                        array_field: ['item1', 'item2'],
+                    }),
+                    boolean_field: 'true',
+                    number_field: '42',
+                },
+                cancelled: false,
+                team_id: 'team_id',
+                user_id: TestHelper.generateId(),
+                url: 'https://example.com/complex_lookup',
+            };
+
+            nock(Client4.getBaseRoute()).
+                post('/actions/dialogs/lookup', lookup).
+                reply(200, expectedResponse);
+
+            const {data} = await store.dispatch(Actions.lookupInteractiveDialog(lookup));
+            expect(data).toEqual(expectedResponse);
+            expect(data.items).toHaveLength(2);
+            expect(data.items[0].text).toEqual('Complex Option 1');
+        });
+    });
+});

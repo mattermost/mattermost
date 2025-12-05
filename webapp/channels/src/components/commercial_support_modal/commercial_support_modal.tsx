@@ -156,9 +156,9 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                     <div className='CommercialSupportModal'>
                         <FormattedMessage
                             id='commercial_support_modal.description'
-                            defaultMessage={'If you\'re experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
+                            defaultMessage={'If you\'re experiencing issues, <a>submit a support ticket</a>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
-                                supportLink: (chunks) => (
+                                a: (chunks) => (
                                     <ExternalLink
                                         href={supportLink}
                                         location='commercialSupportModal'

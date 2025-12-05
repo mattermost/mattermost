@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {forwardRef} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 
-export default function TeamInfoIcon(props: React.HTMLAttributes<HTMLSpanElement>) {
+const TeamInfoIcon = forwardRef<HTMLSpanElement, React.HTMLAttributes<HTMLSpanElement>>((props, ref) => {
     const {formatMessage} = useIntl();
     return (
-        <span {...props}>
+        <span
+            {...props}
+            ref={ref}
+        >
             <svg
                 width='100%'
                 height='100%'
@@ -23,7 +26,11 @@ export default function TeamInfoIcon(props: React.HTMLAttributes<HTMLSpanElement
             </svg>
         </span>
     );
-}
+});
+
+TeamInfoIcon.displayName = 'TeamInfoIcon';
+
+export default TeamInfoIcon;
 
 const style: CSSProperties = {
     fillRule: 'evenodd',

@@ -1,3 +1,5 @@
 node_modules
 dist
 lib
+src/packages/mattermost-redux/test/*.js
+src/packages/mattermost-redux/test/*.d.ts

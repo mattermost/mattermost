@@ -1,0 +1,1355 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ChannelHeader > should match snapshot with last active display 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <span
+                class="header-status__text"
+              >
+                <span
+                  class="last-active__text"
+                >
+                  Last online 
+                  <time
+                    datetime="2021-09-20T14:02:42.846"
+                  >
+                    September 20, 2021
+                  </time>
+                </span>
+              </span>
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should match snapshot with no last active display because it is disabled 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <span
+                class="header-status__text"
+              />
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render active channel files 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs  channel-header__icon--active"
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render active flagged posts 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render active mentions posts 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render active pinned posts 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render archived view 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render correct menu when muted 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Unmute"
+                class="channel-header__mute inactive btn btn-icon btn-xs"
+                id="toggleMute"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-bell-off-outline"
+                />
+              </button>
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render not active channel files 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render properly when custom status is expired 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <span
+                class="header-status__text"
+              >
+                <span
+                  class="last-active__text"
+                >
+                  Last online 
+                  <time
+                    datetime="2021-09-20T14:02:42.846"
+                  >
+                    September 20, 2021
+                  </time>
+                </span>
+              </span>
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render properly when custom status is set 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <span
+                class="header-status__text"
+              >
+                <span
+                  class="last-active__text"
+                >
+                  Last online 
+                  <time
+                    datetime="2021-09-20T14:02:42.846"
+                  >
+                    September 20, 2021
+                  </time>
+                </span>
+                <div
+                  class="custom-emoji__wrapper"
+                />
+              </span>
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  not the bot description
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render properly when empty 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render properly when populated 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render properly when populated with channel props 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  See $MM_CHANNELMENTION0$
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render shared view 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/ChannelHeader > should render the pinned icon with the pinned posts count 1`] = `
+<div>
+  <div
+    aria-label="channel header region"
+    class="channel-header alt a11y__region"
+    data-a11y-sort-order="8"
+    data-channelid="channel_id"
+    id="channel-header"
+    role="banner"
+    tabindex="-1"
+  >
+    <div
+      class="flex-parent"
+    >
+      <div
+        class="flex-child"
+      >
+        <div
+          class="channel-header__info"
+          id="channelHeaderInfo"
+        >
+          <div
+            class="channel-header__title dropdown"
+          >
+            <div
+              class="channel-header__icons"
+            >
+              <button
+                aria-label="Members"
+                class="member-rhs__trigger channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="member_rhs"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-account-outline channel-header__members"
+                />
+                <span
+                  class="icon__text"
+                  id="channelMemberCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Pinned messages"
+                class="channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs"
+                id="channelHeaderPinButton"
+              >
+                <i
+                  aria-hidden="true"
+                  class="icon icon-pin-outline channel-header__pin"
+                />
+                <span
+                  class="icon__text"
+                  id="channelPinnedPostCountText"
+                >
+                  2
+                </span>
+              </button>
+              <button
+                aria-label="Channel files"
+                class="channel-header__icon channel-header__icon--left btn btn-icon btn-xs "
+                id="channelHeaderFilesButton"
+              >
+                <i
+                  class="icon icon-file-text-outline"
+                />
+              </button>
+            </div>
+            <div
+              class="channel-header__description"
+              id="channelHeaderDescription"
+            >
+              <div
+                class="header-description__text"
+              >
+                <p
+                  class="markdown__paragraph-inline"
+                >
+                  header
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button
+        aria-label="View Info"
+        class="channel-header__icon"
+        id="channel-info-btn"
+      >
+        <i
+          class="sc-cUgaVC koKOtJ icon-information-outline"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;

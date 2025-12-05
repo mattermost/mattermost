@@ -1,0 +1,133 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/team/TeamModes > should match snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="team_manage"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Team Management
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Choose between inviting members manually or syncing members automatically from groups.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div>
+          <div
+            class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+          >
+            <label
+              class="line-switch__label"
+            >
+              Anyone can join this team
+            </label>
+            <div
+              class="line-switch__toggle"
+              data-testid="allowAllToggleSwitch"
+            >
+              <button
+                aria-pressed="false"
+                class="btn btn-lg btn-toggle"
+                data-testid="allowAllToggleSwitch-button"
+                id="allowAllToggleSwitch"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="handle"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col-sm-10"
+            >
+              <div
+                class="help-text-small help-text-no-padding help-text-single-line"
+              >
+                This team can be discovered allowing anyone with an account to join this team.
+              </div>
+            </div>
+          </div>
+          <div
+            class="section-separator"
+          >
+            <hr
+              class="separator__hr"
+            />
+          </div>
+        </div>
+        <div>
+          <div
+            class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+          >
+            <label
+              class="line-switch__label"
+            >
+              Only specific email domains can join this team
+            </label>
+            <div
+              class="line-switch__toggle"
+              data-testid="allowedDomainsToggleSwitch"
+            >
+              <button
+                aria-pressed="true"
+                class="btn btn-lg btn-toggle active"
+                data-testid="allowedDomainsToggleSwitch-button"
+                id="allowedDomainsToggleSwitch"
+                tabindex="0"
+                type="button"
+              >
+                <div
+                  class="handle"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="row"
+          >
+            <div
+              class="col-sm-10"
+            >
+              <div
+                class="help-text-small help-text-no-padding help-text-single-line"
+              >
+                Users can only join the team if their email matches one of the specified domains
+              </div>
+            </div>
+          </div>
+          <div
+            class="help-text csvDomains"
+          >
+            Comma Separated Email Domain List
+          </div>
+          <input
+            class="form-control"
+            placeholder="mattermost.com"
+            type="text"
+            value=""
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

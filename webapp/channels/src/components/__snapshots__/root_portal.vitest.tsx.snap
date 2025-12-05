@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/RootPortal > should match snapshot 1`] = `
+<div
+  id="root-portal"
+>
+  <div>
+    <div>
+      Testing Portal
+    </div>
+  </div>
+</div>
+`;

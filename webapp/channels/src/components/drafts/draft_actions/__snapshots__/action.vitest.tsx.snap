@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/drafts/draft_actions/action > should match snapshot 1`] = `
+<div>
+  <div
+    class="DraftAction"
+  >
+    <button
+      aria-labelledby="draft_tooltip_some-id"
+      class="DraftAction__button"
+      id="draft_some-icon_some-id"
+    >
+      <i
+        class="icon some-icon"
+      />
+    </button>
+  </div>
+</div>
+`;

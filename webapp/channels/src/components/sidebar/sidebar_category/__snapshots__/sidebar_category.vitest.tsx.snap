@@ -1,0 +1,510 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/sidebar/sidebar_category > should match snapshot 1`] = `
+<div>
+  <div
+    data-rbd-droppable-context-id="0"
+    data-rbd-droppable-id="sidebar-droppable"
+  >
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="0"
+      data-rbd-draggable-id="category1"
+    >
+      <div
+        class=""
+        data-rbd-droppable-context-id="0"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="custom_category_1"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-0-hidden-text-0"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="0"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              custom_category_1
+            </div>
+          </button>
+          <div
+            class="SidebarMenu MenuWrapper"
+          >
+            <button
+              aria-controls="SidebarChannelMenu-MenuList-category1"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="custom_category_1 category options"
+              class="SidebarMenu_menuButton"
+              id="SidebarCategoryMenu-Button-category1"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category > should match snapshot when collapsed 1`] = `
+<div>
+  <div
+    data-rbd-droppable-context-id="2"
+    data-rbd-droppable-id="sidebar-droppable"
+  >
+    <div
+      class="SidebarChannelGroup a11y__section isCollapsed"
+      data-rbd-draggable-context-id="2"
+      data-rbd-draggable-id="category1"
+    >
+      <div
+        class=""
+        data-rbd-droppable-context-id="2"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="false"
+            aria-label="custom_category_1"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down icon-rotate-minus-90"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-2-hidden-text-9"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="2"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              custom_category_1
+            </div>
+          </button>
+          <div
+            class="SidebarMenu MenuWrapper"
+          >
+            <button
+              aria-controls="SidebarChannelMenu-MenuList-category1"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="custom_category_1 category options"
+              class="SidebarMenu_menuButton"
+              id="SidebarCategoryMenu-Button-category1"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category > should match snapshot when isNewCategory 1`] = `
+<div>
+  <div
+    data-rbd-droppable-context-id="1"
+    data-rbd-droppable-id="sidebar-droppable"
+  >
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="1"
+      data-rbd-draggable-id="category1"
+    >
+      <div
+        class=""
+        data-rbd-droppable-context-id="1"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="custom_category_1"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-1-hidden-text-4"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="1"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              custom_category_1
+            </div>
+          </button>
+          <div
+            class="SidebarCategory_newLabel"
+          >
+            new
+          </div>
+          <div
+            class="SidebarMenu MenuWrapper"
+          >
+            <button
+              aria-controls="SidebarChannelMenu-MenuList-category1"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="custom_category_1 category options"
+              class="SidebarMenu_menuButton"
+              id="SidebarCategoryMenu-Button-category1"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          >
+            <li
+              class="SidebarChannel noFloat newChannelSpacer"
+              data-rbd-draggable-context-id="1"
+              data-rbd-draggable-id="NEW_CHANNEL_SPACER__category1"
+              draggable="false"
+              tabindex="-1"
+            />
+            <div
+              class="SidebarCategory_newDropBox"
+            >
+              <div
+                class="SidebarCategory_newDropBox-content"
+              >
+                <i
+                  class="icon-hand-right"
+                />
+                <span
+                  class="SidebarCategory_newDropBox-label"
+                >
+                  Drag channels here...
+                </span>
+              </div>
+            </div>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category > should match snapshot when sorting is set to by recency 1`] = `
+<div>
+  <div
+    data-rbd-droppable-context-id="5"
+    data-rbd-droppable-id="sidebar-droppable"
+  >
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="5"
+      data-rbd-draggable-id="category1"
+    >
+      <div
+        class=""
+        data-rbd-droppable-context-id="5"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="DIRECT MESSAGES"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-5-hidden-text-21"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="5"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              DIRECT MESSAGES
+            </div>
+          </button>
+          <div
+            class="SidebarMenu MenuWrapper"
+          >
+            <button
+              aria-controls="SidebarCategorySortingMenu-MenuList-category1"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="custom_category_1 category options"
+              class="SidebarMenu_menuButton sortingMenu"
+              id="SidebarCategorySortingMenu-Button-category1"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                />
+              </svg>
+            </button>
+          </div>
+          <button
+            aria-label="Create new direct message"
+            class="SidebarChannelGroupHeader_addButton"
+            id="newDirectMessageButton"
+          >
+            <i
+              class="icon-plus"
+            />
+          </button>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category > should match snapshot when the category is DM and there are no DMs to display 1`] = `
+<div>
+  <div
+    data-rbd-droppable-context-id="3"
+    data-rbd-droppable-id="sidebar-droppable"
+  >
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="3"
+      data-rbd-draggable-id="category1"
+    >
+      <div
+        class=""
+        data-rbd-droppable-context-id="3"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="DIRECT MESSAGES"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down hide-arrow"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-3-hidden-text-13"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="3"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              DIRECT MESSAGES
+            </div>
+          </button>
+          <div
+            class="SidebarMenu MenuWrapper"
+          >
+            <button
+              aria-controls="SidebarCategorySortingMenu-MenuList-category1"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="custom_category_1 category options"
+              class="SidebarMenu_menuButton sortingMenu"
+              id="SidebarCategorySortingMenu-Button-category1"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                />
+              </svg>
+            </button>
+          </div>
+          <button
+            aria-label="Create new direct message"
+            class="SidebarChannelGroupHeader_addButton"
+            id="newDirectMessageButton"
+          >
+            <i
+              class="icon-plus"
+            />
+          </button>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category > should match snapshot when there are no channels to display 1`] = `
+<div>
+  <div
+    data-rbd-droppable-context-id="4"
+    data-rbd-droppable-id="sidebar-droppable"
+  >
+    <div
+      class="SidebarChannelGroup a11y__section"
+      data-rbd-draggable-context-id="4"
+      data-rbd-draggable-id="category1"
+    >
+      <div
+        class=""
+        data-rbd-droppable-context-id="4"
+        data-rbd-droppable-id="category1"
+      >
+        <div
+          class="SidebarChannelGroupHeader"
+        >
+          <button
+            aria-expanded="true"
+            aria-label="custom_category_1"
+            class="SidebarChannelGroupHeader_groupButton"
+          >
+            <i
+              class="icon icon-chevron-down"
+            />
+            <div
+              aria-describedby="rbd-hidden-text-4-hidden-text-17"
+              class="SidebarChannelGroupHeader_text"
+              data-rbd-drag-handle-context-id="4"
+              data-rbd-drag-handle-draggable-id="category1"
+              draggable="false"
+              tabindex="-1"
+            >
+              custom_category_1
+            </div>
+          </button>
+          <div
+            class="SidebarMenu MenuWrapper"
+          >
+            <button
+              aria-controls="SidebarChannelMenu-MenuList-category1"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="custom_category_1 category options"
+              class="SidebarMenu_menuButton"
+              id="SidebarCategoryMenu-Button-category1"
+            >
+              <svg
+                fill="currentColor"
+                height="16"
+                version="1.1"
+                viewBox="0 0 24 24"
+                width="16"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div
+          class="SidebarChannelGroup_content"
+        >
+          <ul
+            class="NavGroupContent"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

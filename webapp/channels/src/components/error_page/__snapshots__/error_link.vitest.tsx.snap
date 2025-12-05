@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/error_page/ErrorLink > should match snapshot 1`] = `
+<div>
+  <a
+    href="https://docs.mattermost.com/deployment/sso-gitlab.html?utm_source=mattermost&utm_medium=in-product&utm_content=error_link&uid=&sid=&edition=team&server_version="
+    location="error_link"
+    rel="noopener noreferrer"
+    target="_blank"
+  >
+    GitLab
+  </a>
+</div>
+`;

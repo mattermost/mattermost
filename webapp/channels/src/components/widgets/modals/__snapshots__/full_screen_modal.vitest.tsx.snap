@@ -1,0 +1,101 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/widgets/modals/FullScreenModal > not showing content 1`] = `<div />`;
+
+exports[`components/widgets/modals/FullScreenModal > showing content 1`] = `
+<div>
+  <div
+    aria-label="test"
+    aria-modal="true"
+    class="FullScreenModal FullScreenModal-appear FullScreenModal-appear-active"
+    role="none"
+    tabindex="-1"
+  >
+    <button
+      aria-label="Close"
+      class="close-x"
+    >
+      <span
+        id="closeIcon"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </button>
+    test
+  </div>
+  <div
+    style="display: none;"
+    tabindex="0"
+  />
+</div>
+`;
+
+exports[`components/widgets/modals/FullScreenModal > with back icon 1`] = `
+<div>
+  <div
+    aria-label="test"
+    aria-modal="true"
+    class="FullScreenModal FullScreenModal-appear FullScreenModal-appear-active"
+    role="none"
+    tabindex="-1"
+  >
+    <button
+      aria-label="Back"
+      class="back"
+    >
+      <span
+        id="backIcon"
+      >
+        <svg
+          aria-label="Back Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+          />
+        </svg>
+      </span>
+    </button>
+    <button
+      aria-label="Close"
+      class="close-x"
+    >
+      <span
+        id="closeIcon"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </button>
+    test
+  </div>
+  <div
+    style="display: none;"
+    tabindex="0"
+  />
+</div>
+`;

@@ -1,0 +1,54 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/common/RadioButtonGroup > should match snapshot 1`] = `
+<div>
+  <div
+    class="radio-list"
+    data-testid=""
+  >
+    <div
+      class="radio"
+    >
+      <label
+        class=""
+      >
+        <input
+          name="test-string"
+          type="radio"
+          value="value1"
+        />
+        key1
+      </label>
+    </div>
+    <div
+      class="radio"
+    >
+      <label
+        class="selected"
+      >
+        <input
+          checked=""
+          name="test-string"
+          type="radio"
+          value="value2"
+        />
+        key2
+      </label>
+    </div>
+    <div
+      class="radio"
+    >
+      <label
+        class=""
+      >
+        <input
+          name="test-string"
+          type="radio"
+          value="value3"
+        />
+        key3
+      </label>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,346 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/InstalledOutgoingWebhook > Should call onDelete function once 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          build
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          build status
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__content_type"
+        >
+          Content-Type: application/x-www-form-urlencoded
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__trigger-words"
+        >
+          Trigger Words: build
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__trigger-when"
+        >
+          Trigger When: 
+          First word matches a trigger word exactly
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            xoxz1z7c3tgi9xhrfudn638q9r
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by some-user on Wednesday, October 18, 2017
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: http://adsfdasd.com
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOutgoingWebhook > Should match snapshot of makeDisplayName 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          build
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          build status
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__content_type"
+        >
+          Content-Type: application/x-www-form-urlencoded
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__trigger-words"
+        >
+          Trigger Words: build
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__trigger-when"
+        >
+          Trigger When: 
+          First word matches a trigger word exactly
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            xoxz1z7c3tgi9xhrfudn638q9r
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by some-user on Wednesday, October 18, 2017
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: http://adsfdasd.com
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOutgoingWebhook > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-list__item"
+  >
+    <div
+      class="item-details"
+    >
+      <div
+        class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+      >
+        <strong
+          class="item-details__name"
+        >
+          build
+        </strong>
+        <div
+          class="item-actions"
+        >
+          <button
+            class="style--none color--link"
+          >
+            Regenerate Token
+          </button>
+           - 
+          <a
+            href="/test/integrations/outgoing_webhooks/edit?id=7h88x419ubbyuxzs7dfwtgkffr"
+          >
+            Edit
+          </a>
+           - 
+          <button
+            class="color--link style--none"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__description"
+        >
+          build status
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__content_type"
+        >
+          Content-Type: application/x-www-form-urlencoded
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__trigger-words"
+        >
+          Trigger Words: build
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__trigger-when"
+        >
+          Trigger When: 
+          First word matches a trigger word exactly
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__token"
+        >
+          Token: 
+          <code>
+            xoxz1z7c3tgi9xhrfudn638q9r
+          </code>
+          <button
+            aria-label="Copy Token"
+            class="btn btn-link icon-content-copy ml-2"
+            data-testid="copyText"
+          />
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__creation"
+        >
+          Created by some-user on Wednesday, October 18, 2017
+        </span>
+      </div>
+      <div
+        class="item-details__row"
+      >
+        <span
+          class="item-details__url word-break--all"
+        >
+          Callback URLs: http://adsfdasd.com
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;

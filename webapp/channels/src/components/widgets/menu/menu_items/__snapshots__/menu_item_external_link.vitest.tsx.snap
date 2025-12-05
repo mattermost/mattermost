@@ -1,0 +1,18 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/MenuItemExternalLink > should match snapshot 1`] = `
+<div>
+  <a
+    href="http://test.com"
+    location="menu_item_external_link"
+    rel="noopener noreferrer"
+    target="_blank"
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      Whatever
+    </span>
+  </a>
+</div>
+`;

@@ -1,0 +1,200 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/bots/Bots > bot owner tokens 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        Bot Accounts
+      </h1>
+    </div>
+    <div
+      class="backstage-filters"
+    >
+      <div
+        class="backstage-filter__search"
+      >
+        <i
+          class="fa fa-search"
+          title="Search Icon"
+        />
+        <input
+          class="form-control"
+          id="searchInput"
+          placeholder="Search Bot Accounts"
+          type="search"
+          value=""
+        />
+      </div>
+    </div>
+    <span
+      class="backstage-list__help"
+    >
+      Use 
+      <a
+        href="https://mattermost.com/pl/default-bot-accounts?utm_source=mattermost&utm_medium=in-product&utm_content=bots&uid=&sid=&edition=team&server_version="
+        location="bots"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Bot Accounts
+      </a>
+       to integrate with Mattermost through plugins or the API. Bot accounts are available to everyone on your server. 
+      Enable bot account creation in the 
+      <a
+        href="/admin_console/integrations/bot_accounts"
+      >
+        System Console
+      </a>
+      .
+    </span>
+    <div
+      class="backstage-list"
+    >
+      <div>
+        <div>
+          <div
+            class="backstage-list__item"
+          >
+            <div
+              class="bot-list-img-container"
+            >
+              <img
+                alt="bot image"
+                class="bot-list-img"
+                src="/api/v4/users/1/image?_=0"
+              />
+            </div>
+            <div
+              class="item-details"
+            >
+              <div
+                class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+              >
+                <strong
+                  class="item-details__name"
+                >
+                  Owned Bot (@ownedbot)
+                </strong>
+                <div
+                  class="item-actions"
+                >
+                  <button
+                    class="style--none color--link"
+                    id="createToken"
+                  >
+                    Create New Token
+                  </button>
+                   - 
+                  <a
+                    href="/DN/integrations/bots/edit?id=1"
+                  >
+                    Edit
+                  </a>
+                   - 
+                  <button
+                    class="style--none color--link"
+                  >
+                    Disable
+                  </button>
+                </div>
+              </div>
+              <div
+                class="bot-details__description"
+              >
+                <span />
+              </div>
+              <div
+                class="light small"
+              >
+                Managed by 
+                botowner
+              </div>
+              <div
+                class="bot-list is-empty"
+              >
+                <div
+                  class="bot-list__item"
+                >
+                  <div
+                    class="item-details__row d-flex justify-content-between"
+                  >
+                    <div
+                      class=""
+                    >
+                      <div
+                        class="whitespace--nowrap overflow--ellipsis"
+                      >
+                        <b>
+                          Token Description: 
+                        </b>
+                        token_description
+                      </div>
+                      <div
+                        class="setting-box__token-id whitespace--nowrap overflow--ellipsis"
+                      >
+                        <b>
+                          Token ID: 
+                        </b>
+                        token_id
+                      </div>
+                    </div>
+                    <div>
+                      <a
+                        href="#"
+                        id="token_id_deactivate"
+                      >
+                        Disable
+                      </a>
+                       - 
+                      <a
+                        href="#"
+                        id="token_id_delete"
+                      >
+                        Delete
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="backstage-footer"
+    >
+      <div
+        class="backstage-footer__cell"
+      >
+        1 - 1 of 1
+        <button
+          aria-label="Previous"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

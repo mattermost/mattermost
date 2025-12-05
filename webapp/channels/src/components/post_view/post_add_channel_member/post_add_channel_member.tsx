@@ -74,7 +74,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
             function andSeparator(key: number) {
                 return (
                     <FormattedMessage
-                        key={key}
+                        key={`and-${key}`}
                         id={'post_body.check_for_out_of_channel_mentions.link.and'}
                         defaultMessage={' and '}
                     />
@@ -82,7 +82,7 @@ export default class PostAddChannelMember extends React.PureComponent<Props, Sta
             }
 
             function commaSeparator(key: number) {
-                return <span key={key}>{', '}</span>;
+                return <span key={`comma-${key}`}>{', '}</span>;
             }
 
             if (this.state.expanded || usernames.length <= 3) {

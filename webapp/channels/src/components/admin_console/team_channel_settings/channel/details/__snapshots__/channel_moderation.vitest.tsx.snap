@@ -1,0 +1,2760 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match fifth Snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledBoth"
+                >
+                  <span>
+                    Channel mentions for members and guests are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=use_channel_mentions"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match first Snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match fourth Snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-guests"
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-members"
+                  type="button"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts"
+                >
+                  Guests and members can not use channel mentions without the ability to create posts.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match second Snapshot 1`] = `
+<div>
+  <table>
+    <tbody>
+      <tr>
+        <td>
+          <div
+            class="as-bs-label"
+            data-testid="admin-channel_settings-channel_moderation-createPosts"
+          >
+            Create Posts
+          </div>
+          <div
+            data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+          >
+            The ability for members and guests to create posts in the channel.
+          </div>
+        </td>
+        <td>
+          <button
+            class="checkbox checked"
+            data-testid="create_post-guests"
+            type="button"
+          >
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
+            >
+              <g
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
+              >
+                <g
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
+                >
+                  <g
+                    transform="translate(245.000000, 698.000000)"
+                  >
+                    <g
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
+                    >
+                      <g
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
+                      >
+                        <g
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
+                        >
+                          <g
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
+                          >
+                            <g
+                              id="data-table/1st/row-checkbox-label-base"
+                            >
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </button>
+        </td>
+        <td>
+          <button
+            class="checkbox checked"
+            data-testid="create_post-members"
+            type="button"
+          >
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
+            >
+              <g
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
+              >
+                <g
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
+                >
+                  <g
+                    transform="translate(245.000000, 698.000000)"
+                  >
+                    <g
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
+                    >
+                      <g
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
+                      >
+                        <g
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
+                        >
+                          <g
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
+                          >
+                            <g
+                              id="data-table/1st/row-checkbox-label-base"
+                            >
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match seventh Snapshot 1`] = `
+<div>
+  <table>
+    <tbody>
+      <tr>
+        <td>
+          <div
+            class="as-bs-label"
+            data-testid="admin-channel_settings-channel_moderation-createPosts"
+          >
+            Create Posts
+          </div>
+          <div
+            data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+          >
+            The ability for members to create posts in the channel.
+          </div>
+        </td>
+        <td>
+          <button
+            class="checkbox checked"
+            data-testid="create_post-members"
+            type="button"
+          >
+            <svg
+              height="18px"
+              viewBox="0 0 18 18"
+              width="18px"
+            >
+              <g
+                fill-rule="evenodd"
+                id="Developer-Export"
+                stroke="none"
+                stroke-width="1"
+              >
+                <g
+                  id="All-Team-Members"
+                  transform="translate(-285.000000, -933.000000)"
+                >
+                  <g
+                    transform="translate(245.000000, 698.000000)"
+                  >
+                    <g
+                      id="Channel-Administrators"
+                      transform="translate(0.000000, 106.000000)"
+                    >
+                      <g
+                        id="data-table/column-1"
+                        transform="translate(11.000000, 86.000000)"
+                      >
+                        <g
+                          id="row-checkbox---Public-Channels"
+                          transform="translate(12.000000, 35.000000)"
+                        >
+                          <g
+                            id="Stacked-Group"
+                            transform="translate(0.000000, 5.000000)"
+                          >
+                            <g
+                              id="data-table/1st/row-checkbox-label-base"
+                            >
+                              <g
+                                id="check-on-copy-11"
+                                transform="translate(14.000000, 0.000000)"
+                              >
+                                <path
+                                  d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                  id="checkbox---checked"
+                                />
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match sixth Snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-guests"
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledGuestsDueToCreatePosts"
+                >
+                  Guests can not use channel mentions without the ability to create posts.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledMember"
+                >
+                  <span>
+                    Channel mentions for members are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=use_channel_mentions"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match sixth Snapshot 2`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > Should match third Snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-members"
+                  type="button"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledMemberDueToCreatePosts"
+                >
+                  Members can not use channel mentions without the ability to create posts.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledGuest"
+                >
+                  <span>
+                    Channel mentions for guests are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=guest_use_channel_mentions"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return 1 error message when create_post members and guests disabled 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPosts-disabledBoth"
+                >
+                  <span>
+                    Create posts for members and guests are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=create_post"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="create_post-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="create_post-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return 1 error messages for use_channel_mention when create_posts is checked and use_channel_mentions is disabled 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledBoth"
+                >
+                  <span>
+                    Channel mentions for members and guests are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=use_channel_mentions"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return 1 error messages for use_channel_mentions 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-guests"
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-members"
+                  type="button"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts"
+                >
+                  Guests and members can not use channel mentions without the ability to create posts.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return 2 error messages for use_channel_mentions 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-guests"
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledGuestsDueToCreatePosts"
+                >
+                  Guests can not use channel mentions without the ability to create posts.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledMember"
+                >
+                  <span>
+                    Channel mentions for members are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=use_channel_mentions"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return 2 error messages for use_channel_mentions 2`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox"
+                  data-testid="create_post-members"
+                  type="button"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledMemberDueToCreatePosts"
+                >
+                  Members can not use channel mentions without the ability to create posts.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions-disabledGuest"
+                >
+                  <span>
+                    Channel mentions for guests are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=guest_use_channel_mentions"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="use_channel_mentions-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return error message when create_post guests disabled 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPosts-disabledGuest"
+                >
+                  <span>
+                    Create posts for guests are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=guest_create_post"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="create_post-guests"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return error message when create_post members disabled 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPosts-disabledMember"
+                >
+                  <span>
+                    Create posts for members are disabled in 
+                    <a
+                      href="../permissions/team_override_scheme/id?rowIdFromQuery=create_post"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      dp Team Scheme
+                    </a>
+                    .
+                  </span>
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox disabled"
+                  data-testid="create_post-members"
+                  disabled=""
+                  type="button"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelModeration > errorMessages function > Should return not error messages for use_channel_mentions 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_moderation"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Advanced Access Control
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Manage the actions available to channel members and guests.
+        </div>
+      </div>
+    </div>
+    <div
+      class="channel-moderation"
+    >
+      <div
+        class="channel-moderation--body"
+      >
+        <table
+          class="channel-moderation--table"
+          id="channel_moderation_table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Permissions
+              </th>
+              <th>
+                Guests
+              </th>
+              <th>
+                Members
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-createPosts"
+                >
+                  Create Posts
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-createPostsDesc"
+                >
+                  The ability for members and guests to create posts in the channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="create_post-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div
+                  class="as-bs-label"
+                  data-testid="admin-channel_settings-channel_moderation-channelMentions"
+                >
+                  Channel Mentions
+                </div>
+                <div
+                  data-testid="admin-channel_settings-channel_moderation-channelMentionsDesc"
+                >
+                  The ability for members and guests to use @all, @here and @channel.
+                </div>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="use_channel_mentions-guests"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+              <td>
+                <button
+                  class="checkbox checked"
+                  data-testid="use_channel_mentions-members"
+                  type="button"
+                >
+                  <svg
+                    height="18px"
+                    viewBox="0 0 18 18"
+                    width="18px"
+                  >
+                    <g
+                      fill-rule="evenodd"
+                      id="Developer-Export"
+                      stroke="none"
+                      stroke-width="1"
+                    >
+                      <g
+                        id="All-Team-Members"
+                        transform="translate(-285.000000, -933.000000)"
+                      >
+                        <g
+                          transform="translate(245.000000, 698.000000)"
+                        >
+                          <g
+                            id="Channel-Administrators"
+                            transform="translate(0.000000, 106.000000)"
+                          >
+                            <g
+                              id="data-table/column-1"
+                              transform="translate(11.000000, 86.000000)"
+                            >
+                              <g
+                                id="row-checkbox---Public-Channels"
+                                transform="translate(12.000000, 35.000000)"
+                              >
+                                <g
+                                  id="Stacked-Group"
+                                  transform="translate(0.000000, 5.000000)"
+                                >
+                                  <g
+                                    id="data-table/1st/row-checkbox-label-base"
+                                  >
+                                    <g
+                                      id="check-on-copy-11"
+                                      transform="translate(14.000000, 0.000000)"
+                                    >
+                                      <path
+                                        d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                        id="checkbox---checked"
+                                      />
+                                    </g>
+                                  </g>
+                                </g>
+                              </g>
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;

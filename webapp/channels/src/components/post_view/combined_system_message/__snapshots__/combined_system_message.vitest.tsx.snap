@@ -1,0 +1,231 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/CombinedSystemMessage > should match snapshot 1`] = `
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="AddedUser1"
+    >
+      @AddedUser1
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
+  <br />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    You were 
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
+  <br />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="AddedUser2"
+    >
+      @AddedUser2
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by you.
+  </p>
+  <br />
+</div>
+`;
+
+exports[`components/post_view/CombinedSystemMessage > should match snapshot when join leave messages are turned off 1`] = `
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    You were 
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
+  <br />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="AddedUser2"
+    >
+      @AddedUser2
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by you.
+  </p>
+  <br />
+</div>
+`;
+
+exports[`components/post_view/CombinedSystemMessage > should match snapshot, "removed from channel" message when join leave messages are turned off 1`] = `
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_1"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none"
+      >
+        <span
+          class="mention-link"
+        >
+          @removed_username_1
+        </span>
+      </button>
+    </span>
+     was 
+    <strong>
+      removed from the channel
+    </strong>
+    .
+  </p>
+  <br />
+</div>
+`;
+
+exports[`components/post_view/CombinedSystemMessage > should render messages in chronological order 1`] = `
+<div>
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_1"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none"
+      >
+        <span
+          class="mention-link"
+        >
+          @removed_username_1
+        </span>
+      </button>
+    </span>
+     was 
+    <strong>
+      removed from the channel
+    </strong>
+    .
+  </p>
+  <br />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_2"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none"
+      >
+        <span
+          class="mention-link"
+        >
+          @removed_username_2
+        </span>
+      </button>
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by Someone.
+  </p>
+  <br />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="removed_username_2"
+    >
+      <button
+        aria-expanded="false"
+        aria-haspopup="dialog"
+        class="style--none"
+      >
+        <span
+          class="mention-link"
+        >
+          @removed_username_2
+        </span>
+      </button>
+    </span>
+     was 
+    <strong>
+      removed from the channel
+    </strong>
+    .
+  </p>
+  <br />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    <span
+      data-mention="User2"
+    >
+      @User2
+    </span>
+     
+    <strong>
+      added to the channel
+    </strong>
+     by 
+    <span
+      data-mention="User1."
+    >
+      @User1.
+    </span>
+  </p>
+  <br />
+  <p
+    class="markdown__paragraph-inline"
+  >
+    Someone 
+    <strong>
+      joined the channel
+    </strong>
+    .
+  </p>
+  <br />
+</div>
+`;

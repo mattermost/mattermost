@@ -1,0 +1,7 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/LeaveTeamModal > should render the leave team model 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;

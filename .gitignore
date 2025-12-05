@@ -160,6 +160,11 @@ docker-compose.override.yaml
 .aider*
 .env
 
+.claude
 **/CLAUDE.local.md
 CLAUDE.md
 .cursorrules
+
+# speckit
+specs/
+.specify

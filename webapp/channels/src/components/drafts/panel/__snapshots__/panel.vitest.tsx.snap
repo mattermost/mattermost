@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/drafts/panel/ > should match snapshot 1`] = `
+<div>
+  <div
+    class="Panel"
+    role="link"
+    tabindex="0"
+  />
+</div>
+`;

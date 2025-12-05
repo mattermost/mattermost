@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/login/Login > should match snapshot 1`] = `
+<div>
+  <div
+    class="login-body"
+  >
+    <div
+      class="login-body-content"
+    >
+      <div
+        class="content-layout-column"
+        tabindex="0"
+      >
+        <div
+          class="content-layout-column-svg"
+        />
+        <h1
+          class="content-layout-column-title"
+        >
+          This server doesn’t have any sign-in methods enabled
+        </h1>
+        <p
+          class="content-layout-column-message"
+        >
+          Please contact your System Administrator to resolve this.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;

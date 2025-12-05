@@ -79,7 +79,7 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 noticesData: data,
             });
             if (data.length) {
-                const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
+                const presentNoticeInfo = data[this.state.presentNoticeIndex];
                 this.props.actions.updateNoticesAsViewed([presentNoticeInfo.id]);
             }
         }

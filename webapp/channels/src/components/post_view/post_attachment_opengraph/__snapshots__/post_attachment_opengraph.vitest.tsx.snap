@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PostAttachmentOpenGraph > should match snapshot 1`] = `<div />`;
+
+exports[`PostAttachmentOpenGraphBody > should match snapshot 1`] = `
+<div>
+  <div
+    class="PostAttachmentOpenGraph__body"
+  >
+    <span
+      class="sitename"
+    >
+      test-sitename
+    </span>
+    <span
+      class="title"
+    >
+      test-title
+    </span>
+    <span
+      class="description"
+    >
+      test-description
+    </span>
+  </div>
+</div>
+`;
+
+exports[`PostAttachmentOpenGraphBody > should match snapshot 2`] = `
+<div>
+  <div
+    class="PostAttachmentOpenGraph__body"
+  >
+    <span
+      class="title"
+    >
+      test_title
+    </span>
+    <span
+      class="description"
+    >
+      test_description
+    </span>
+  </div>
+</div>
+`;
+
+exports[`PostAttachmentOpenGraphImage > should match snapshot 1`] = `
+<div>
+  <div
+    class="PostAttachmentOpenGraph__image large"
+  >
+    <div
+      class="AutoHeight"
+      style="transition-property: height; transition-duration: 250ms; transition-timing-function: ease; width: 100%; height: auto; overflow: visible;"
+    >
+      <div>
+        <button
+          class="preview-toggle style--none"
+        >
+          <svg
+            fill="currentColor"
+            height="18"
+            version="1.1"
+            viewBox="0 0 24 24"
+            width="18"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M7,10L12,15L17,10H7Z"
+            />
+          </svg>
+        </button>
+        <figure>
+          <img
+            alt="test_image"
+            src="/api/v4/image?url=http%3A%2F%2Flocalhost%3A8065%2Fapi%2Fv4%2Fimage%3Furl%3Dhttp%253A%252F%252Fmattermo%E2%80%A6t.com%252Fwp-content%252Fuploads%252F2021%252F09%252FHomepage%25402x.png"
+          />
+        </figure>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`PostAttachmentOpenGraphImage > should not render when used in Permalink 1`] = `<div />`;

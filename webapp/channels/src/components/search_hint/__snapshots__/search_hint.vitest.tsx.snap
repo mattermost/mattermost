@@ -1,0 +1,462 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/SearchHint > should match snapshot, with searchType 1`] = `
+<div>
+  <ul
+    class="search-hint__suggestions-list"
+    role="list"
+  >
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          From:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages from a user
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          In:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages in a channel
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          On:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages on a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          Before:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages before a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          After:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages after a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          —
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Exclude search terms
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          ""
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages with phrases
+      </div>
+    </li>
+  </ul>
+</div>
+`;
+
+exports[`components/SearchHint > should match snapshot, with title 1`] = `
+<div>
+  <h4
+    class="search-hint__title"
+  >
+    Search options
+  </h4>
+  <ul
+    class="search-hint__suggestions-list"
+    role="list"
+  >
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          From:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages from a user
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          In:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages in a channel
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          On:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages on a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          Before:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages before a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          After:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages after a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          —
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Exclude search terms
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          ""
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages with phrases
+      </div>
+    </li>
+  </ul>
+</div>
+`;
+
+exports[`components/SearchHint > should match snapshot, without searchType 1`] = `
+<div>
+  <div
+    class="search-hint__search-type-selector"
+  >
+    <div
+      class="search-hint_text-container"
+    >
+      What are you searching for?
+      <a
+        class="search-hint_learn-search"
+        href="https://mattermost.com/pl/mattermost-academy-search-training?utm_source=mattermost&utm_medium=in-product&utm_content=search_hint&uid=current_user_id&sid=&edition=team&server_version="
+        location="search_hint"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span>
+          Learn about search
+        </span>
+        <i
+          class="icon icon-lightbulb-outline"
+        />
+      </a>
+    </div>
+    <div
+      class="button-container"
+    >
+      <button
+        class=""
+      >
+        <i
+          class="icon icon-message-text-outline"
+        />
+        Messages
+      </button>
+      <button
+        class=""
+      >
+        <i
+          class="icon icon-file-text-outline"
+        />
+        Files
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/SearchHint > should match snapshot, without title 1`] = `
+<div>
+  <ul
+    class="search-hint__suggestions-list"
+    role="list"
+  >
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          From:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages from a user
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          In:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages in a channel
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          On:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages on a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          Before:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages before a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          After:
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages after a date
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          —
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Exclude search terms
+      </div>
+    </li>
+    <li
+      class="search-hint__suggestions-list__option"
+    >
+      <div
+        class="search-hint__suggestion-list__flex-wrap"
+      >
+        <span
+          class="search-hint__suggestion-list__label"
+        >
+          ""
+        </span>
+      </div>
+      <div
+        class="search-hint__suggestion-list__value"
+      >
+        Messages with phrases
+      </div>
+    </li>
+  </ul>
+</div>
+`;

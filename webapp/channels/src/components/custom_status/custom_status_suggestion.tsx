@@ -60,13 +60,22 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
         </div>
     ) : null;
 
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleSuggestionClick(status);
+        }
+    };
+
     return (
-        <button
+        <div
             className='statusSuggestion__row cursor--pointer'
             onMouseEnter={showClearButton}
             onMouseLeave={hideClearButton}
             onClick={() => handleSuggestionClick(status)}
+            onKeyDown={handleKeyDown}
             tabIndex={0}
+            role='button'
         >
             <div className='statusSuggestion__icon'>
                 <RenderEmoji
@@ -91,7 +100,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
                 </span>
             )}
             {show && clearButton}
-        </button>
+        </div>
     );
 };
 

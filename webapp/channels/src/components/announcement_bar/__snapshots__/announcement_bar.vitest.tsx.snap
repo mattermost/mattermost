@@ -1,0 +1,226 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/AnnouncementBar > should match snapshot, admin configured bar 1`] = `
+<div>
+  <div>
+    <div
+      class="announcement-bar announcement-bar-critical"
+      css="[object Object]"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <span>
+          <span>
+            text
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="announcement-bar announcement-bar-critical admin-announcement"
+      css="[object Object]"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <span>
+          <span>
+            text
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, bar not showing 1`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, bar showing 1`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, bar showing, no dismissal 1`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, dismissal 1`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, dismissal 2`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, dismissal 3`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, props change 1`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, props change 2`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, props change 3`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/AnnouncementBar > should match snapshot, props change 4`] = `
+<div>
+  <div
+    class="announcement-bar announcement-bar-critical"
+    css="[object Object]"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <span>
+          text
+        </span>
+      </span>
+    </div>
+  </div>
+</div>
+`;

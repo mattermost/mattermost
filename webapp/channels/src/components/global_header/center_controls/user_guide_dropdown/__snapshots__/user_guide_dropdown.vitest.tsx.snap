@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/channel_header/components/UserGuideDropdown > should match snapshot 1`] = `
+<div>
+  <div
+    class="MenuWrapper userGuideHelp"
+    id="helpMenuPortal"
+  >
+    <button
+      aria-controls="AddChannelDropdown"
+      aria-expanded="false"
+      aria-label="Help"
+      class="HeaderIconButton"
+    >
+      <i
+        class="icon-help-circle-outline"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/channel_header/components/UserGuideDropdown > should match snapshot for false of enableAskCommunityLink 1`] = `
+<div>
+  <div
+    class="MenuWrapper userGuideHelp"
+    id="helpMenuPortal"
+  >
+    <button
+      aria-controls="AddChannelDropdown"
+      aria-expanded="false"
+      aria-label="Help"
+      class="HeaderIconButton"
+    >
+      <i
+        class="icon-help-circle-outline"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/channel_header/components/UserGuideDropdown > should match snapshot when have plugin menu items 1`] = `
+<div>
+  <div
+    class="MenuWrapper userGuideHelp"
+    id="helpMenuPortal"
+  >
+    <button
+      aria-controls="AddChannelDropdown"
+      aria-expanded="false"
+      aria-label="Help"
+      class="HeaderIconButton"
+    >
+      <i
+        class="icon-help-circle-outline"
+      />
+    </button>
+  </div>
+</div>
+`;

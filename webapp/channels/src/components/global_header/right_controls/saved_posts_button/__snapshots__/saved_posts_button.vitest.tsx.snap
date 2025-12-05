@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/global/AtMentionsButton > should match snapshot 1`] = `
+<div>
+  <button
+    aria-controls="searchContainer"
+    aria-expanded="false"
+    aria-label="Saved messages"
+    class="HeaderIconButton"
+  >
+    <i
+      class="icon-bookmark-outline"
+    />
+  </button>
+</div>
+`;

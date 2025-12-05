@@ -1,0 +1,45 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FileThumbnail > should render a normal-sized image 1`] = `
+<div>
+  <div
+    class="post-image normal"
+    style="background-image: url(/api/v4/files/thumbnail_id/thumbnail); background-size: cover;"
+  />
+</div>
+`;
+
+exports[`FileThumbnail > should render a small image 1`] = `
+<div>
+  <div
+    class="post-image small"
+    style="background-image: url(/api/v4/files/thumbnail_id/thumbnail); background-size: cover;"
+  />
+</div>
+`;
+
+exports[`FileThumbnail > should render an icon for a PDF 1`] = `
+<div>
+  <div
+    class="file-icon pdf"
+  />
+</div>
+`;
+
+exports[`FileThumbnail > should render an icon for an SVG when SVG previews are disabled 1`] = `
+<div>
+  <div
+    class="file-icon generic"
+  />
+</div>
+`;
+
+exports[`FileThumbnail > should render an svg when svg previews are enabled 1`] = `
+<div>
+  <img
+    alt="file thumbnail image"
+    class="post-image normal"
+    src="/api/v4/files/thumbnail_id"
+  />
+</div>
+`;

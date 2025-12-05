@@ -1,0 +1,1712 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should expand and collapse correctly, expanded by default, collapsed and then expanded again 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check "
+        data-testid="uniqId-checkbox"
+      />
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-invite_user-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should expand and collapse correctly, expanded by default, collapsed and then expanded again 2`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow "
+      />
+      <div
+        class="permission-check "
+        data-testid="uniqId-checkbox"
+      />
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions "
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-invite_user-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should expand and collapse correctly, expanded by default, collapsed and then expanded again 3`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check "
+        data-testid="uniqId-checkbox"
+      />
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-invite_user-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable with all permissions 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check checked"
+        data-testid="uniqId-checkbox"
+      >
+        <svg
+          height="18px"
+          viewBox="0 0 18 18"
+          width="18px"
+        >
+          <g
+            fill-rule="evenodd"
+            id="Developer-Export"
+            stroke="none"
+            stroke-width="1"
+          >
+            <g
+              id="All-Team-Members"
+              transform="translate(-285.000000, -933.000000)"
+            >
+              <g
+                transform="translate(245.000000, 698.000000)"
+              >
+                <g
+                  id="Channel-Administrators"
+                  transform="translate(0.000000, 106.000000)"
+                >
+                  <g
+                    id="data-table/column-1"
+                    transform="translate(11.000000, 86.000000)"
+                  >
+                    <g
+                      id="row-checkbox---Public-Channels"
+                      transform="translate(12.000000, 35.000000)"
+                    >
+                      <g
+                        id="Stacked-Group"
+                        transform="translate(0.000000, 5.000000)"
+                      >
+                        <g
+                          id="data-table/1st/row-checkbox-label-base"
+                        >
+                          <g
+                            id="check-on-copy-11"
+                            transform="translate(14.000000, 0.000000)"
+                          >
+                            <path
+                              d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                              id="checkbox---checked"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-invite_user-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-add_user_to_team-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable with all permissions and read-only 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row  read-only"
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check checked"
+        data-testid="uniqId-checkbox"
+      >
+        <svg
+          height="18px"
+          viewBox="0 0 18 18"
+          width="18px"
+        >
+          <g
+            fill-rule="evenodd"
+            id="Developer-Export"
+            stroke="none"
+            stroke-width="1"
+          >
+            <g
+              id="All-Team-Members"
+              transform="translate(-285.000000, -933.000000)"
+            >
+              <g
+                transform="translate(245.000000, 698.000000)"
+              >
+                <g
+                  id="Channel-Administrators"
+                  transform="translate(0.000000, 106.000000)"
+                >
+                  <g
+                    id="data-table/column-1"
+                    transform="translate(11.000000, 86.000000)"
+                  >
+                    <g
+                      id="row-checkbox---Public-Channels"
+                      transform="translate(12.000000, 35.000000)"
+                    >
+                      <g
+                        id="Stacked-Group"
+                        transform="translate(0.000000, 5.000000)"
+                      >
+                        <g
+                          id="data-table/1st/row-checkbox-label-base"
+                        >
+                          <g
+                            id="check-on-copy-11"
+                            transform="translate(14.000000, 0.000000)"
+                          >
+                            <path
+                              d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                              id="checkbox---checked"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row read-only"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-invite_user-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row read-only"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-add_user_to_team-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable with all permissions from parentRole 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row  read-only"
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check checked"
+        data-testid="uniqId-checkbox"
+      >
+        <svg
+          height="18px"
+          viewBox="0 0 18 18"
+          width="18px"
+        >
+          <g
+            fill-rule="evenodd"
+            id="Developer-Export"
+            stroke="none"
+            stroke-width="1"
+          >
+            <g
+              id="All-Team-Members"
+              transform="translate(-285.000000, -933.000000)"
+            >
+              <g
+                transform="translate(245.000000, 698.000000)"
+              >
+                <g
+                  id="Channel-Administrators"
+                  transform="translate(0.000000, 106.000000)"
+                >
+                  <g
+                    id="data-table/column-1"
+                    transform="translate(11.000000, 86.000000)"
+                  >
+                    <g
+                      id="row-checkbox---Public-Channels"
+                      transform="translate(12.000000, 35.000000)"
+                    >
+                      <g
+                        id="Stacked-Group"
+                        transform="translate(0.000000, 5.000000)"
+                      >
+                        <g
+                          id="data-table/1st/row-checkbox-label-base"
+                        >
+                          <g
+                            id="check-on-copy-11"
+                            transform="translate(14.000000, 0.000000)"
+                          >
+                            <path
+                              d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                              id="checkbox---checked"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row read-only"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-invite_user-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row read-only"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-add_user_to_team-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable with some permissions 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check intermediate"
+        data-testid="uniqId-checkbox"
+      >
+        <svg
+          height="18px"
+          viewBox="0 0 18 18"
+          width="18px"
+        >
+          <g
+            fill-rule="evenodd"
+            id="Developer-Export"
+            stroke="none"
+            stroke-width="1"
+          >
+            <g
+              id="All-Team-Members"
+              transform="translate(-298.000000, -1273.000000)"
+            >
+              <g
+                transform="translate(245.000000, 698.000000)"
+              >
+                <g
+                  id="Channel-Administrators"
+                  transform="translate(0.000000, 106.000000)"
+                >
+                  <g
+                    id="data-table/column-1"
+                    transform="translate(11.000000, 86.000000)"
+                  >
+                    <g
+                      id="row-checkbox---@all-@channel-Mentions"
+                      transform="translate(0.000000, 375.000000)"
+                    >
+                      <g
+                        id="Stacked-Group"
+                      >
+                        <g
+                          id="data-table/1st/row-checkbox-label-base"
+                          transform="translate(25.000000, 5.000000)"
+                        >
+                          <g
+                            id="check-on-copy-11"
+                            transform="translate(14.000000, 0.000000)"
+                          >
+                            <path
+                              d="M19,3 C20.1,3 21,3.9 21,5 L21,19 C21,20.1 20.1,21 19,21 L5,21 C3.9,21 3,20.1 3,19 L3,5 C3,3.9 3.9,3 5,3 L19,3 Z M7,11 L7,13 L17,13 L17,11 L7,11 Z"
+                              id="checkbox---partial"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-invite_user-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable with some permissions and read-only 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row  read-only"
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check intermediate"
+        data-testid="uniqId-checkbox"
+      >
+        <svg
+          height="18px"
+          viewBox="0 0 18 18"
+          width="18px"
+        >
+          <g
+            fill-rule="evenodd"
+            id="Developer-Export"
+            stroke="none"
+            stroke-width="1"
+          >
+            <g
+              id="All-Team-Members"
+              transform="translate(-298.000000, -1273.000000)"
+            >
+              <g
+                transform="translate(245.000000, 698.000000)"
+              >
+                <g
+                  id="Channel-Administrators"
+                  transform="translate(0.000000, 106.000000)"
+                >
+                  <g
+                    id="data-table/column-1"
+                    transform="translate(11.000000, 86.000000)"
+                  >
+                    <g
+                      id="row-checkbox---@all-@channel-Mentions"
+                      transform="translate(0.000000, 375.000000)"
+                    >
+                      <g
+                        id="Stacked-Group"
+                      >
+                        <g
+                          id="data-table/1st/row-checkbox-label-base"
+                          transform="translate(25.000000, 5.000000)"
+                        >
+                          <g
+                            id="check-on-copy-11"
+                            transform="translate(14.000000, 0.000000)"
+                          >
+                            <path
+                              d="M19,3 C20.1,3 21,3.9 21,5 L21,19 C21,20.1 20.1,21 19,21 L5,21 C3.9,21 3,20.1 3,19 L3,5 C3,3.9 3.9,3 5,3 L19,3 Z M7,11 L7,13 L17,13 L17,11 L7,11 Z"
+                              id="checkbox---partial"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row read-only"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-invite_user-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row read-only"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable with some permissions from parentRole 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check intermediate"
+        data-testid="uniqId-checkbox"
+      >
+        <svg
+          height="18px"
+          viewBox="0 0 18 18"
+          width="18px"
+        >
+          <g
+            fill-rule="evenodd"
+            id="Developer-Export"
+            stroke="none"
+            stroke-width="1"
+          >
+            <g
+              id="All-Team-Members"
+              transform="translate(-298.000000, -1273.000000)"
+            >
+              <g
+                transform="translate(245.000000, 698.000000)"
+              >
+                <g
+                  id="Channel-Administrators"
+                  transform="translate(0.000000, 106.000000)"
+                >
+                  <g
+                    id="data-table/column-1"
+                    transform="translate(11.000000, 86.000000)"
+                  >
+                    <g
+                      id="row-checkbox---@all-@channel-Mentions"
+                      transform="translate(0.000000, 375.000000)"
+                    >
+                      <g
+                        id="Stacked-Group"
+                      >
+                        <g
+                          id="data-table/1st/row-checkbox-label-base"
+                          transform="translate(25.000000, 5.000000)"
+                        >
+                          <g
+                            id="check-on-copy-11"
+                            transform="translate(14.000000, 0.000000)"
+                          >
+                            <path
+                              d="M19,3 C20.1,3 21,3.9 21,5 L21,19 C21,20.1 20.1,21 19,21 L5,21 C3.9,21 3,20.1 3,19 L3,5 C3,3.9 3.9,3 5,3 L19,3 Z M7,11 L7,13 L17,13 L17,11 L7,11 Z"
+                              id="checkbox---partial"
+                            />
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row read-only"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check checked"
+          data-testid="uniqId-invite_user-checkbox"
+        >
+          <svg
+            height="18px"
+            viewBox="0 0 18 18"
+            width="18px"
+          >
+            <g
+              fill-rule="evenodd"
+              id="Developer-Export"
+              stroke="none"
+              stroke-width="1"
+            >
+              <g
+                id="All-Team-Members"
+                transform="translate(-285.000000, -933.000000)"
+              >
+                <g
+                  transform="translate(245.000000, 698.000000)"
+                >
+                  <g
+                    id="Channel-Administrators"
+                    transform="translate(0.000000, 106.000000)"
+                  >
+                    <g
+                      id="data-table/column-1"
+                      transform="translate(11.000000, 86.000000)"
+                    >
+                      <g
+                        id="row-checkbox---Public-Channels"
+                        transform="translate(12.000000, 35.000000)"
+                      >
+                        <g
+                          id="Stacked-Group"
+                          transform="translate(0.000000, 5.000000)"
+                        >
+                          <g
+                            id="data-table/1st/row-checkbox-label-base"
+                          >
+                            <g
+                              id="check-on-copy-11"
+                              transform="translate(14.000000, 0.000000)"
+                            >
+                              <path
+                                d="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 L19,3 Z M10,17 L5,12.1923077 L6.4,10.8461538 L10,14.3076923 L17.6,7 L19,8.34615385 L10,17 L10,17 Z"
+                                id="checkbox---checked"
+                              />
+                            </g>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable without every permission out of the scope 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check "
+        data-testid="uniqId-checkbox"
+      />
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-invite_user-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable without permissions 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check "
+        data-testid="uniqId-checkbox"
+      />
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-invite_user-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot on editable without permissions and read-only 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row  read-only"
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check "
+        data-testid="uniqId-checkbox"
+      />
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row read-only"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-invite_user-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row read-only"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_group > should match snapshot with additional values 1`] = `
+<div>
+  <div
+    class="permission-group"
+  >
+    <div
+      class="permission-group-row "
+      id="uniqId"
+    >
+      <div
+        class="fa fa-caret-right permission-arrow open"
+      />
+      <div
+        class="permission-check "
+        data-testid="uniqId-checkbox"
+      />
+      <span
+        class="permission-name"
+      >
+        name
+      </span>
+      <span
+        class="permission-description"
+      />
+    </div>
+    <div
+      class="permission-group-permissions open"
+    >
+      <div
+        class="permission-row"
+        id="uniqId-invite_user"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-invite_user-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          invite_user
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+      <div
+        class="permission-row"
+        id="uniqId-add_user_to_team"
+      >
+        <div
+          class="permission-check "
+          data-testid="uniqId-add_user_to_team-checkbox"
+        />
+        <span
+          class="permission-name"
+        >
+          add_user_to_team
+        </span>
+        <span
+          class="permission-description"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

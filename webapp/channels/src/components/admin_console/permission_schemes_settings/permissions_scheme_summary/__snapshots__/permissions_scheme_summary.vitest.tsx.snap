@@ -1,0 +1,201 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/permission_schemes_settings/permissions_scheme_summary > should match snapshot on default data 1`] = `
+<div>
+  <div
+    class="permissions-scheme-summary"
+    data-testid="permissions-scheme-summary"
+  >
+    <div />
+    <div
+      class="permissions-scheme-summary--header"
+    >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="actions"
+      >
+        <a
+          class="edit-button"
+          data-testid="Test-edit"
+          href="/admin_console/user_management/permissions/team_override_scheme/id"
+        >
+          Edit
+        </a>
+        -
+        <a
+          class="delete-button"
+          data-testid="Test-delete"
+        >
+          Delete
+        </a>
+      </div>
+    </div>
+    <div
+      class="permissions-scheme-summary--description"
+    >
+      Test description
+    </div>
+    <div
+      class="permissions-scheme-summary--teams"
+    >
+      <span
+        class="team"
+      >
+        Team 1
+      </span>
+      <span
+        class="team"
+      >
+        Team 2
+      </span>
+      <span
+        class="team"
+      >
+        Team 3
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permissions_scheme_summary > should match snapshot on more than eight teams 1`] = `
+<div>
+  <div
+    class="permissions-scheme-summary"
+    data-testid="permissions-scheme-summary"
+  >
+    <div />
+    <div
+      class="permissions-scheme-summary--header"
+    >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="actions"
+      >
+        <a
+          class="edit-button"
+          data-testid="Test-edit"
+          href="/admin_console/user_management/permissions/team_override_scheme/id"
+        >
+          Edit
+        </a>
+        -
+        <a
+          class="delete-button"
+          data-testid="Test-delete"
+        >
+          Delete
+        </a>
+      </div>
+    </div>
+    <div
+      class="permissions-scheme-summary--description"
+    >
+      Test description
+    </div>
+    <div
+      class="permissions-scheme-summary--teams"
+    >
+      <span
+        class="team"
+      >
+        Team 1
+      </span>
+      <span
+        class="team"
+      >
+        Team 2
+      </span>
+      <span
+        class="team"
+      >
+        Team 3
+      </span>
+      <span
+        class="team"
+      >
+        Team 4
+      </span>
+      <span
+        class="team"
+      >
+        Team 5
+      </span>
+      <span
+        class="team"
+      >
+        Team 6
+      </span>
+      <span
+        class="team"
+      >
+        Team 7
+      </span>
+      <span
+        class="team"
+      >
+        Team 8
+      </span>
+      <span
+        class="team"
+      >
+        +2 more
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permissions_scheme_summary > should match snapshot on no teams 1`] = `
+<div>
+  <div
+    class="permissions-scheme-summary"
+    data-testid="permissions-scheme-summary"
+  >
+    <div />
+    <div
+      class="permissions-scheme-summary--header"
+    >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="actions"
+      >
+        <a
+          class="edit-button"
+          data-testid="Test-edit"
+          href="/admin_console/user_management/permissions/team_override_scheme/id"
+        >
+          Edit
+        </a>
+        -
+        <a
+          class="delete-button"
+          data-testid="Test-delete"
+        >
+          Delete
+        </a>
+      </div>
+    </div>
+    <div
+      class="permissions-scheme-summary--description"
+    >
+      Test description
+    </div>
+    <div
+      class="permissions-scheme-summary--teams"
+    />
+  </div>
+</div>
+`;

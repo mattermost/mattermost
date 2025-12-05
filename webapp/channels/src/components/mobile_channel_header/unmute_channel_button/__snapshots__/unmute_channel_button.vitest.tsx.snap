@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ChannelHeaderMobile/UnmuteChannelButton > should match snapshot 1`] = `
+<div>
+  <button
+    class="navbar-toggle icon icon__mute"
+    type="button"
+  >
+    <span
+      class="fa fa-bell-slash-o icon"
+    />
+  </button>
+</div>
+`;

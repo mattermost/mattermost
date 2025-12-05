@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ProductNoticesModal > Match snapshot for single notice 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`ProductNoticesModal > Match snapshot for user notice 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`ProductNoticesModal > Should match snapshot for system admin notice 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`ProductNoticesModal > Should match snapshot when there are no notices 1`] = `<div />`;
