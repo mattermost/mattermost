@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -65,11 +66,15 @@ func (s SqlSystemStore) Update(system *model.System) error {
 }
 
 func (s SqlSystemStore) Get() (model.StringMap, error) {
+	return s.GetWithContext(request.EmptyContext(s.logger))
+}
+
+func (s SqlSystemStore) GetWithContext(rctx request.CTX) (model.StringMap, error) {
 	systems := []model.System{}
 	props := make(model.StringMap)
 
 	query := s.systemSelectQuery
-	if err := s.GetReplica().SelectBuilder(&systems, query); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&systems, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get System list")
 	}
 
@@ -81,9 +86,13 @@ func (s SqlSystemStore) Get() (model.StringMap, error) {
 }
 
 func (s SqlSystemStore) GetByName(name string) (*model.System, error) {
+	return s.GetByNameWithContext(store.RequestContextWithMaster(request.EmptyContext(s.logger)), name)
+}
+
+func (s SqlSystemStore) GetByNameWithContext(rctx request.CTX, name string) (*model.System, error) {
 	var system model.System
 	query := s.systemSelectQuery.Where(sq.Eq{"Name": name})
-	if err := s.GetMaster().GetBuilder(&system, query); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&system, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("System", fmt.Sprintf("name=%s", system.Name))
 		}
