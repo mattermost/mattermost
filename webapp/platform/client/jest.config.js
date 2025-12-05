@@ -8,4 +8,11 @@ module.exports = {
         '^@mattermost/types/(.*)$': '<rootDir>/../types/src/$1',
     },
     setupFiles: ['<rootDir>/setup_jest.ts'],
+    collectCoverageFrom: [
+        'src/**/*.{js,jsx,ts,tsx}',
+    ],
+    coveragePathIgnorePatterns: [
+        '/node_modules/',
+    ],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
 };
