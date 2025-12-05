@@ -13,12 +13,14 @@ import {
     createWikiThroughUI,
     deletePageViaActionsMenu,
     enterEditMode,
+    expandPageTreeNode,
     fillAndSubmitCommentModal,
     fillCreatePageModal,
     getBreadcrumb,
     getEditorAndWait,
     getHierarchyPanel,
     getNewPageButton,
+    getPageTreeNodeByTitle,
     navigateToPage,
     openInlineCommentModal,
     openMovePageModal,
@@ -631,25 +633,29 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
     // * Verify hierarchy panel shows child under Parent B
     const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
-    const parentBNode = hierarchyPanel.locator('text="Parent B"').first();
-    await expect(parentBNode).toBeVisible();
 
-    // Expand Parent B to verify child is there
-    await parentBNode.click();
+    // # Expand Parent B by clicking the expand button (NOT the title, which navigates)
+    await expandPageTreeNode(page, 'Parent B');
 
     const childUnderParentB = hierarchyPanel.locator('text="Child Page to Move"').first();
     await expect(childUnderParentB).toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // * Verify child is NO LONGER under Parent A
-    const parentANode = hierarchyPanel.locator('text="Parent A"').first();
-    await expect(parentANode).toBeVisible();
+    // Parent A should either have no expand button (no children) or if expanded, should not show the child
+    const parentATreeNode = getPageTreeNodeByTitle(page, 'Parent A').first();
+    await expect(parentATreeNode).toBeVisible();
 
-    // Expand Parent A to check it doesn't contain the child anymore
-    await parentANode.click();
+    // Check if Parent A has an expand button (might have no children now)
+    const parentAExpandButton = parentATreeNode.locator('[data-testid="page-tree-node-expand-button"]');
+    const hasExpandButton = await parentAExpandButton.count() > 0;
 
-    // Check that under Parent A's subtree, the child is not present
-    // We need to be more specific: look for the child as a descendant of Parent A's tree node
-    const parentATreeNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-page-id="' + parentA.id + '"]');
+    if (hasExpandButton) {
+        // If Parent A still has expand button, expand it and verify child is not there
+        await parentAExpandButton.click();
+        await page.waitForTimeout(SHORT_WAIT);
+    }
+
+    // Check that the child is not present under Parent A's subtree
     const childUnderParentA = parentATreeNode.locator('text="Child Page to Move"');
     await expect(childUnderParentA).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 });

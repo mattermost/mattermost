@@ -16,6 +16,11 @@ import type {GlobalState} from 'types/store';
 
 import PagesHierarchyPanel from './pages_hierarchy_panel';
 
+// Get published draft timestamps from wiki pages state
+const getPublishedDraftTimestamps = (state: GlobalState): Record<string, number> => {
+    return state.entities.wikiPages?.publishedDraftTimestamps || {};
+};
+
 type OwnProps = {
     wikiId: string;
     channelId: string;
@@ -28,7 +33,18 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const {wikiId} = ownProps;
 
     const pages = getPages(state, wikiId);
-    const drafts = getPageDraftsForWiki(state, wikiId);
+    const allDrafts = getPageDraftsForWiki(state, wikiId);
+    const publishedDraftTimestamps = getPublishedDraftTimestamps(state);
+
+    // Filter out drafts that have been recently published to prevent flicker
+    // When a draft is published, it gets added to publishedDraftTimestamps
+    // This prevents the draft from appearing in the tree momentarily before
+    // being fully removed from storage
+    const drafts = allDrafts.filter((draft) => {
+        const draftId = draft.rootId;
+        return !publishedDraftTimestamps[draftId];
+    });
+
     const loading = getPagesLoading(state, wikiId);
     const expandedNodes = getExpandedNodes(state, wikiId);
     const selectedPageId = getSelectedPageId(state);

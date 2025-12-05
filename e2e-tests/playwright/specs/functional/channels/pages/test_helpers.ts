@@ -3020,6 +3020,23 @@ export function getPageTreeNodeByTitle(page: Page, pageTitle: string): Locator {
 }
 
 /**
+ * Expands a page tree node in the hierarchy panel by clicking its expand button (chevron)
+ * This is different from clicking the title which navigates to the page
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page to expand
+ * @param timeout - Optional timeout in milliseconds (default: WEBSOCKET_WAIT)
+ */
+export async function expandPageTreeNode(page: Page, pageTitle: string, timeout: number = WEBSOCKET_WAIT): Promise<void> {
+    const pageNode = getPageTreeNodeByTitle(page, pageTitle).first();
+    await expect(pageNode).toBeVisible({timeout});
+
+    const expandButton = pageNode.locator('[data-testid="page-tree-node-expand-button"]');
+    await expect(expandButton).toBeVisible({timeout});
+    await expandButton.click();
+    await page.waitForTimeout(SHORT_WAIT);
+}
+
+/**
  * Opens the three-dot menu for a page in the hierarchy panel by page title
  * @param page - Playwright page object
  * @param pageTitle - Title of the page

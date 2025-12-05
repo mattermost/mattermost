@@ -150,16 +150,12 @@ const PagesHierarchyPanel = ({
 
     // Set selected page and expand ancestors when currentPageId changes
     useEffect(() => {
-        if (currentPageId) {
-            // Update selected page if it changed
-            if (currentPageId !== selectedPageId) {
-                actions.setSelectedPage(currentPageId);
-            }
+        if (currentPageId && currentPageId !== selectedPageId) {
+            actions.setSelectedPage(currentPageId);
 
-            // Always expand ancestors to ensure navigation works after wiki operations
-            // This runs even if page is already selected to handle cases like:
-            // - Navigating back to wiki after rename
-            // - Reloading pages after wiki operations
+            // Expand ancestors to show path to current page
+            // Only expand when navigating to a new page, not on every render
+            // This preserves user's manual collapse actions
             const ancestorIds = getAncestorIds(pages, currentPageId, pageMap);
             if (ancestorIds.length > 0) {
                 actions.expandAncestors(wikiId, ancestorIds);

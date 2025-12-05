@@ -362,11 +362,6 @@ function ChannelTabs({
                     const isWikiTab = tab.id === 'wiki';
 
                     if (isBookmarksTab) {
-                        // Only show bookmarks tab if there are actual bookmarks
-                        if (bookmarks.length === 0) {
-                            return null;
-                        }
-
                         return (
                             <BookmarksTab
                                 key={tab.id}

@@ -11,7 +11,7 @@ import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
-import {useEditor, EditorContent, type Editor} from '@tiptap/react';
+import {useEditor, EditorContent, ReactNodeViewRenderer, type Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import React, {useEffect, useState, useMemo, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
@@ -50,6 +50,7 @@ import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
+import MentionNodeView from './mention_node_view';
 import {SlashCommandExtension} from './slash_command_extension';
 import usePageRewrite from './use_page_rewrite';
 
@@ -477,8 +478,19 @@ const TipTapEditor = ({
 
         if (currentUserId && teamId) {
             // User mentions (@username)
+            // Uses AtMention component via NodeView to honor teammate name display preference
             exts.push(
                 Mention.extend({
+                    addOptions() {
+                        return {
+                            ...(this as any).parent?.(),
+                            channelId: channelId || '',
+                        };
+                    },
+                    addNodeView() {
+                        // eslint-disable-next-line new-cap
+                        return ReactNodeViewRenderer(MentionNodeView);
+                    },
                     renderHTML({node, HTMLAttributes}: {node: any; HTMLAttributes: Record<string, any>}) {
                         return [
                             'span',

@@ -2,31 +2,108 @@
 // See LICENSE.txt for license information.
 
 import {Extension} from '@tiptap/core';
+import type {Node as ProseMirrorNode} from '@tiptap/pm/model';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {Decoration, DecorationSet} from '@tiptap/pm/view';
 
+export type InlineAnchor = {
+    text: string;
+    context_before: string;
+    context_after: string;
+    char_offset: number;
+};
+
 export type InlineCommentConfig = {
-    onAddComment?: (anchor: {
-        text: string;
-        context_before: string;
-        context_after: string;
-        node_path: string[];
-        char_offset: number;
-    }) => void;
+    onAddComment?: (anchor: InlineAnchor & {node_path: string[]}) => void;
     onCommentClick?: (commentId: string) => void;
     comments?: Array<{
         id: string;
         props: {
-            inline_anchor?: {
-                text: string;
-                context_before: string;
-                context_after: string;
-                char_offset: number;
-            };
+            inline_anchor?: InlineAnchor;
         };
     }>;
     editable?: boolean;
 };
+
+/**
+ * Finds the position of anchor text in a ProseMirror document.
+ * Uses a multi-strategy approach for resilience against document edits:
+ * 1. Try stored char_offset (fast path - works when document unchanged)
+ * 2. Search using full context pattern (context_before + text + context_after)
+ * 3. Search using partial context (just context_before + text, or text + context_after)
+ * 4. Search for exact text match (last resort)
+ *
+ * @returns Position range {from, to} or null if text cannot be found
+ */
+function findAnchorPosition(
+    doc: ProseMirrorNode,
+    anchor: InlineAnchor,
+): {from: number; to: number} | null {
+    const {text, char_offset: offset, context_before: ctxBefore, context_after: ctxAfter} = anchor;
+
+    if (!text) {
+        return null;
+    }
+
+    const docSize = doc.content.size;
+
+    // Strategy 1: Try stored offset (fast path)
+    if (offset >= 0 && offset + text.length <= docSize) {
+        try {
+            const docText = doc.textBetween(offset, offset + text.length);
+            if (docText === text) {
+                return {from: offset, to: offset + text.length};
+            }
+        } catch {
+            // Continue to fallback strategies
+        }
+    }
+
+    // Get full document text for search strategies
+    let fullText: string;
+    try {
+        fullText = doc.textBetween(0, docSize);
+    } catch {
+        return null;
+    }
+
+    // Strategy 2: Search using full context pattern
+    if (ctxBefore && ctxAfter) {
+        const fullPattern = ctxBefore + text + ctxAfter;
+        const idx = fullText.indexOf(fullPattern);
+        if (idx !== -1) {
+            const from = idx + ctxBefore.length;
+            return {from, to: from + text.length};
+        }
+    }
+
+    // Strategy 3a: Search using context_before + text
+    if (ctxBefore) {
+        const pattern = ctxBefore + text;
+        const idx = fullText.indexOf(pattern);
+        if (idx !== -1) {
+            const from = idx + ctxBefore.length;
+            return {from, to: from + text.length};
+        }
+    }
+
+    // Strategy 3b: Search using text + context_after
+    if (ctxAfter) {
+        const pattern = text + ctxAfter;
+        const idx = fullText.indexOf(pattern);
+        if (idx !== -1) {
+            return {from: idx, to: idx + text.length};
+        }
+    }
+
+    // Strategy 4: Search for exact text (last resort)
+    const idx = fullText.indexOf(text);
+    if (idx !== -1) {
+        return {from: idx, to: idx + text.length};
+    }
+
+    return null;
+}
 
 const InlineCommentExtension = Extension.create<InlineCommentConfig>({
     name: 'inlineComment',
@@ -87,33 +164,21 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                         const doc = state.doc;
 
                         comments.forEach((comment: {id: string; props?: any}) => {
-                            const anchor = comment.props?.inline_anchor;
+                            const anchor = comment.props?.inline_anchor as InlineAnchor | undefined;
 
                             if (!anchor) {
                                 return;
                             }
 
-                            const text = anchor.text;
-                            const offset = anchor.char_offset || 0;
+                            const position = findAnchorPosition(doc, anchor);
 
-                            try {
-                                const from = offset;
-                                const to = offset + text.length;
-
-                                if (from >= 0 && to <= doc.content.size) {
-                                    const docText = doc.textBetween(from, to);
-
-                                    if (docText === text) {
-                                        decorations.push(
-                                            Decoration.inline(from, to, {
-                                                class: 'inline-comment-highlight',
-                                                'data-comment-id': comment.id,
-                                            }),
-                                        );
-                                    }
-                                }
-                            } catch (error) {
-                                // Silently skip comments that fail to create decorations
+                            if (position) {
+                                decorations.push(
+                                    Decoration.inline(position.from, position.to, {
+                                        class: 'inline-comment-highlight',
+                                        'data-comment-id': comment.id,
+                                    }),
+                                );
                             }
                         });
 

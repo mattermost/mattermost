@@ -18,7 +18,6 @@ import ChannelPermissionGate from 'components/permissions_gates/channel_permissi
 import {Constants} from 'utils/constants';
 
 import MenuItemArchiveChannel from '../menu_items/archive_channel';
-import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
 import MenuItemChannelSettings from '../menu_items/channel_settings_menu';
 import MenuItemCloseChannel from '../menu_items/close_channel';
 import MenuItemGroupsMenuItems from '../menu_items/groups';
@@ -42,10 +41,9 @@ interface Props extends Menu.FirstMenuItemProps {
     isFavorite: boolean;
     isLicensedForLDAPGroups: boolean;
     pluginItems: ReactNode[];
-    isChannelBookmarksEnabled: boolean;
 }
 
-const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, isChannelBookmarksEnabled, ...rest}: Props) => {
+const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, isFavorite, isLicensedForLDAPGroups, pluginItems, ...rest}: Props) => {
     const isGroupConstrained = channel?.group_constrained === true;
     const isArchived = channel.delete_at !== 0;
     const isPrivate = channel?.type === Constants.PRIVATE_CHANNEL;
@@ -74,11 +72,6 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                     <MenuItemChannelSettings
                         channel={channel}
                     />
-                    {isChannelBookmarksEnabled && (
-                        <MenuItemChannelBookmarks
-                            channel={channel}
-                        />
-                    )}
                 </>
             )}
             <Menu.Separator/>

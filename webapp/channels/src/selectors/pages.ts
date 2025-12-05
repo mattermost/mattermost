@@ -78,6 +78,7 @@ export const getPageAncestors = createSelector(
 
 // Get all pages for a wiki (for hierarchy panel)
 // Filters out pages marked as deleted (post.state === 'DELETED')
+// Also filters out pending-* optimistic pages to prevent flicker during publish
 export const getPages = createSelector(
     'getPages',
     (state: GlobalState) => state.entities.posts.posts,
@@ -87,6 +88,7 @@ export const getPages = createSelector(
     },
     (posts, pageIds) => {
         return pageIds.
+            filter((id) => !id.startsWith('pending-')).
             map((id) => posts[id]).
             filter((post) => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED');
     },

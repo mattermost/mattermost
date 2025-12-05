@@ -57,8 +57,12 @@ export const test = base.extend<PagesTestFixtures, PagesWorkerFixtures>({
             // Login admin
             const {adminClient, adminUser} = await getAdminClient();
 
-            // Reset server config
-            await adminClient.updateConfig(getOnPremServerConfig() as any);
+            // Reset server config with explicit TeammateNameDisplay setting
+            // to ensure usernames are displayed in tests
+            const config = getOnPremServerConfig() as any;
+            config.TeamSettings.TeammateNameDisplay = 'username';
+            config.TeamSettings.LockTeammateNameDisplay = false;
+            await adminClient.updateConfig(config);
 
             // Create shared team for all pages tests in this worker
             const team = await adminClient.createTeam(await createRandomTeam('pages-team', 'Pages Team'));
@@ -68,13 +72,35 @@ export const test = base.extend<PagesTestFixtures, PagesWorkerFixtures>({
         {scope: 'worker', timeout: 120000},
     ],
 
-    // Test-scoped fixture: provides admin user for each test
+    // Test-scoped fixture: creates a fresh admin user for each test
     // Using admin bypasses all role-based permission checks,
     // avoiding HA cluster sync issues entirely.
+    // Each test gets a dedicated user to avoid relying on shared sysadmin state.
     sharedPagesSetup: async ({pagesWorkerSetup}, use) => {
-        const {team, adminUser, adminClient} = pagesWorkerSetup;
+        const {team, adminClient} = pagesWorkerSetup;
+        const {createRandomUser, makeClient} = await import('@mattermost/playwright-lib');
 
-        await use({team, user: adminUser, adminClient});
+        // Create a new system admin user for this test
+        const randomUser = await createRandomUser('pages-admin');
+        const user = await adminClient.createUser(randomUser, '', '');
+        user.password = randomUser.password;
+
+        // Make the user a system admin
+        await adminClient.updateUserRoles(user.id, 'system_user system_admin');
+
+        // Add user to the team
+        await adminClient.addToTeam(team.id, user.id);
+
+        // Set user preferences (skip tutorial, show username as display name)
+        const {client: userClient} = await makeClient(user);
+        const preferences = [
+            {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
+            {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
+            {user_id: user.id, category: 'display_settings', name: 'name_format', value: 'username'},
+        ];
+        await userClient.savePreferences(user.id, preferences);
+
+        await use({team, user, adminClient});
     },
 });
 
@@ -133,8 +159,12 @@ export const testWithRegularUser = base.extend<PermissionsTestFixtures, Permissi
             // Login admin
             const {adminClient} = await getAdminClient();
 
-            // Reset server config
-            await adminClient.updateConfig(getOnPremServerConfig() as any);
+            // Reset server config with explicit TeammateNameDisplay setting
+            // to ensure usernames are displayed in tests
+            const config = getOnPremServerConfig() as any;
+            config.TeamSettings.TeammateNameDisplay = 'username';
+            config.TeamSettings.LockTeammateNameDisplay = false;
+            await adminClient.updateConfig(config);
 
             // Ensure wiki/page permissions are in channel_user role.
             // We ALWAYS patch the role to trigger cache invalidation across all HA nodes.
