@@ -647,7 +647,7 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
 
     // Check if Parent A has an expand button (might have no children now)
     const parentAExpandButton = parentATreeNode.locator('[data-testid="page-tree-node-expand-button"]');
-    const hasExpandButton = await parentAExpandButton.count() > 0;
+    const hasExpandButton = (await parentAExpandButton.count()) > 0;
 
     if (hasExpandButton) {
         // If Parent A still has expand button, expand it and verify child is not there

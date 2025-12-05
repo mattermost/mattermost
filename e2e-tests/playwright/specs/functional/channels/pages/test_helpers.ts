@@ -3026,7 +3026,11 @@ export function getPageTreeNodeByTitle(page: Page, pageTitle: string): Locator {
  * @param pageTitle - Title of the page to expand
  * @param timeout - Optional timeout in milliseconds (default: WEBSOCKET_WAIT)
  */
-export async function expandPageTreeNode(page: Page, pageTitle: string, timeout: number = WEBSOCKET_WAIT): Promise<void> {
+export async function expandPageTreeNode(
+    page: Page,
+    pageTitle: string,
+    timeout: number = WEBSOCKET_WAIT,
+): Promise<void> {
     const pageNode = getPageTreeNodeByTitle(page, pageTitle).first();
     await expect(pageNode).toBeVisible({timeout});
 
