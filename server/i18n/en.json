@@ -9809,6 +9809,10 @@
     "translation": "Invalid value for Directory."
   },
   {
+    "id": "model.config.is_valid.import.directory_conflict.app_error",
+    "translation": "ImportSettings.Directory cannot be the same as or a subdirectory of PluginSettings.Directory."
+  },
+  {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
   },

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"maps"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -1880,20 +1881,71 @@ func TestConfigImportSettingsIsValid(t *testing.T) {
 	cfg := Config{}
 	cfg.SetDefaults()
 
-	appErr := cfg.ImportSettings.isValid()
+	appErr := cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
 	require.Nil(t, appErr)
 
 	*cfg.ImportSettings.Directory = ""
-	appErr = cfg.ImportSettings.isValid()
+	appErr = cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
 	require.NotNil(t, appErr)
 	require.Equal(t, "model.config.is_valid.import.directory.app_error", appErr.Id)
 
 	cfg.SetDefaults()
 
 	*cfg.ImportSettings.RetentionDays = 0
-	appErr = cfg.ImportSettings.isValid()
+	appErr = cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
 	require.NotNil(t, appErr)
 	require.Equal(t, "model.config.is_valid.import.retention_days_too_low.app_error", appErr.Id)
+
+	// Reset to valid retention days for directory conflict tests
+	cfg.ImportSettings.RetentionDays = nil
+	cfg.SetDefaults()
+
+	// Test: import directory cannot be the same as plugin directory
+	*cfg.ImportSettings.Directory = *cfg.PluginSettings.Directory
+	appErr = cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.import.directory_conflict.app_error", appErr.Id)
+
+	cfg.SetDefaults()
+
+	// Test: import directory cannot be a subdirectory of plugin directory
+	*cfg.ImportSettings.Directory = "./plugins/imports"
+	*cfg.PluginSettings.Directory = "./plugins"
+	appErr = cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.import.directory_conflict.app_error", appErr.Id)
+
+	cfg.SetDefaults()
+
+	// Test: plugin directory cannot be a subdirectory of import directory
+	*cfg.ImportSettings.Directory = "./data"
+	*cfg.PluginSettings.Directory = "./data/plugins"
+	appErr = cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.import.directory_conflict.app_error", appErr.Id)
+
+	cfg.SetDefaults()
+
+	// Test: completely separate directories (should be valid)
+	*cfg.ImportSettings.Directory = "./import"
+	*cfg.PluginSettings.Directory = "./plugins"
+	appErr = cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
+	require.Nil(t, appErr)
+
+	// Test: symlink scenario - import symlink points to subdirectory of plugins
+	tmpDir := t.TempDir()
+	pluginDir := filepath.Join(tmpDir, "plugins")
+	importDir := filepath.Join(tmpDir, "import")
+	pluginSubDir := filepath.Join(pluginDir, "subdir")
+
+	require.NoError(t, os.MkdirAll(pluginSubDir, 0755))
+	require.NoError(t, os.Symlink(pluginSubDir, importDir))
+
+	*cfg.ImportSettings.Directory = importDir
+	*cfg.PluginSettings.Directory = pluginDir
+	appErr = cfg.ImportSettings.isValid(*cfg.PluginSettings.Directory)
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.import.directory_conflict.app_error", appErr.Id)
 }
 
 func TestConfigExportSettingsDefaults(t *testing.T) {
