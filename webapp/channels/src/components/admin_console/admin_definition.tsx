@@ -1946,7 +1946,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'longtext',
                             key: 'LogSettings.AdvancedLoggingJSON',
                             label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
-                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.log.AdvancedLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses. This setting cannot be modified through the System Console. To change it, edit the configuration file directly or use mmctl in local mode, both of which require direct access to the server.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             help_text_markdown: false,
                             help_text_values: {
                                 link: (msg: string) => (
@@ -1959,7 +1959,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
+                            isDisabled: () => true,
                             validate: (value) => {
                                 const valid = new ValidationResult(true, '');
                                 if (!value) {
@@ -5873,7 +5873,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'longtext',
                             key: 'ExperimentalAuditSettings.AdvancedLoggingJSON',
                             label: defineMessage({id: 'admin.log.AdvancedLoggingJSONTitle', defaultMessage: 'Advanced Logging:'}),
-                            help_text: defineMessage({id: 'admin.log.AdvancedAuditLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.log.AdvancedAuditLoggingJSONDescription', defaultMessage: 'The JSON configuration for Advanced Audit Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses. This setting cannot be modified through the System Console. To change it, edit the configuration file directly or use mmctl in local mode, both of which require direct access to the server.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             help_text_markdown: false,
                             help_text_values: {
                                 link: (msg: string) => (
@@ -5886,7 +5886,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isDisabled: () => true,
                             validate: (value) => {
                                 const valid = new ValidationResult(true, '');
                                 if (!value) {

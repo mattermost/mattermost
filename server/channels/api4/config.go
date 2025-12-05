@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -162,6 +163,10 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow import directory to be changed through the API
 	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
 
+	// Do not allow advanced logging file targets to be changed through the API
+	cfg.LogSettings.AdvancedLoggingJSON = appCfg.LogSettings.AdvancedLoggingJSON
+	cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = appCfg.ExperimentalAuditSettings.AdvancedLoggingJSON
+
 	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
 	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
@@ -311,6 +316,16 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow import directory to be changed through the API
 	if cfg.ImportSettings.Directory != nil && *cfg.ImportSettings.Directory != *appCfg.ImportSettings.Directory {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ImportSettings.Directory"}, "", http.StatusForbidden)
+		return
+	}
+
+	// Do not allow advanced logging file targets to be changed through the API
+	if cfg.LogSettings.AdvancedLoggingJSON != nil && !bytes.Equal(cfg.LogSettings.AdvancedLoggingJSON, appCfg.LogSettings.AdvancedLoggingJSON) {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "LogSettings.AdvancedLoggingJSON"}, "", http.StatusForbidden)
+		return
+	}
+	if cfg.ExperimentalAuditSettings.AdvancedLoggingJSON != nil && !bytes.Equal(cfg.ExperimentalAuditSettings.AdvancedLoggingJSON, appCfg.ExperimentalAuditSettings.AdvancedLoggingJSON) {
+		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ExperimentalAuditSettings.AdvancedLoggingJSON"}, "", http.StatusForbidden)
 		return
 	}
 
