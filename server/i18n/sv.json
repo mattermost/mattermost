@@ -11066,5 +11066,45 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Tidsgränsen för avisering av autotranslation är ogiltig. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Ogiltiga klient-uppgifter."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Kanal hittades inte"
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Ogiltig inbjudningslänk."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Ogiltigt kanal-ID."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Ogiltigt tidsfält."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Kanal hittades inte."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Medlem hittades inte."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Tomt svar från AI."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Begärde du inte det här e-mailet?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Logga in till Mattermost"
   }
 ]
