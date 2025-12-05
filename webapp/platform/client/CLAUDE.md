@@ -1,49 +1,33 @@
-# CLAUDE: `platform/client/` (`@mattermost/client`)
+# CLAUDE: `platform/client/`
 
-## Purpose
-- Implements the Client4 HTTP layer and WebSocket client used by all Mattermost web apps and plugins.
-- Source of truth for API endpoint definitions and low-level networking helpers.
+## Context
+- Package: `@mattermost/client`
+- Role: Singleton HTTP/WS client. Source of truth for API.
 
-## Structure
-- `src/client4.ts` – REST endpoints, auth handling, retries.
-- `src/websocket.ts` – WebSocket manager for real-time events.
-- `src/helpers.ts` / `errors.ts` – shared logic for response parsing and error types.
+## Rules
+- **Usage**: Redux Actions ONLY. No components.
+- **Returns**: `Promise<ClientResponse<T>>` where `ClientResponse = { response, headers, data: T }`.
+- **Errors**: Throw `ClientError`. Do not swallow.
 
-## Client4 Usage
-Singleton HTTP client for all Mattermost API requests. Methods return `Promise<ClientResponse<T>>`:
-
-```typescript
-interface ClientResponse<T> {
-    response: Response;  // Fetch Response object
-    headers: Headers;    // Response headers
-    data: T;            // Parsed response data
-}
-```
-
-### Usage Rules
-1. **Actions Only**: `Client4` should only be called from Redux actions, never directly in components.
-2. **Error Handling**: Always handle errors appropriately.
-
-## Adding New Endpoints
-Add new API methods to `client4.ts`. Keep signatures Promise-based.
+## Template: Adding Endpoint
+Update `client4.ts`:
 
 ```typescript
-getSomething = (id: string) => {
-    return this.doFetch<SomethingType>(
-        `${this.getSomethingRoute(id)}`,
-        {method: 'get'},
+getThing = (id: string) => {
+    return this.doFetch<ThingType>(
+        `${this.getThingRoute(id)}`,
+        {method: 'get'}
+    );
+};
+
+createThing = (data: CreateRequest) => {
+    return this.doFetch<ThingType>(
+        `${this.getThingsRoute()}`,
+        {method: 'post', body: JSON.stringify(data)}
     );
 };
 ```
 
-## Error Handling
-- Throw `ClientError` (see `errors.ts`) with enough context.
-- Include `forceLogoutIfNecessary` logic upstream in calling actions; do not couple that here.
-
-## WebSocket Client
-`websocket.ts` provides real-time event handling, connection management, and automatic reconnection. Accessed via `WebSocketClient` wrapper in web app.
-
-## Guidelines
-- Follow `webapp/STYLE_GUIDE.md → Networking`.
-- Each new server API must be added here first, including TypeScript types and tests.
-- Never reference React or browser globals—this package must run in Node.
+## WebSocket
+- **File**: `src/websocket.ts`.
+- **Role**: Connection management, Reconnect logic, Event dispatch.
