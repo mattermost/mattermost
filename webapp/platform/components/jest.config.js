@@ -24,7 +24,7 @@ const config = {
         '/.rollup.cache/',
         '/dist/',
     ],
-    coverageReporters: ['lcov', 'text-summary'],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
 };
 
 module.exports = config;

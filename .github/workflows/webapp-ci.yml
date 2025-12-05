@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   check-lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: webapp
@@ -31,7 +31,8 @@ jobs:
           npm run check
 
   check-i18n:
-    runs-on: ubuntu-22.04
+    needs: check-lint
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: webapp
@@ -54,7 +55,8 @@ jobs:
           rm -rf tmp
 
   check-types:
-    runs-on: ubuntu-22.04
+    needs: check-lint
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: webapp
@@ -68,20 +70,16 @@ jobs:
           npm run check-types
 
   test-platform:
-    runs-on: ubuntu-22.04
+    needs: check-lint
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       checks: write
       pull-requests: write
-    strategy:
-      fail-fast: false
-      matrix:
-        package: [client, components]
-        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    name: test (platform/${{ matrix.package }} run ${{ matrix.run }})
+    name: test (platform)
     defaults:
       run:
-        working-directory: webapp/platform/${{ matrix.package }}
+        working-directory: webapp
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -91,26 +89,24 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test-ci -- --coverage
+          npm run test-ci --workspace=platform/client --workspace=platform/components -- --coverage
       - name: ci/upload-coverage-artifact
-        if: matrix.run == 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: coverage-platform-${{ matrix.package }}
-          path: ./webapp/platform/${{ matrix.package }}/coverage/lcov.info
+          name: coverage-platform
+          path: |
+            ./webapp/platform/client/coverage
+            ./webapp/platform/components/coverage
           retention-days: 1
 
   test-mattermost-redux:
-    runs-on: ubuntu-22.04
+    needs: check-lint
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       checks: write
       pull-requests: write
-    strategy:
-      fail-fast: false
-      matrix:
-        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    name: test (mattermost-redux run ${{ matrix.run }})
+    name: test (mattermost-redux)
     defaults:
       run:
         working-directory: webapp/channels
@@ -123,17 +119,17 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test:jest:mattermost-redux
+          npm run test-ci -- --config jest.config.mattermost-redux.js
       - name: ci/upload-coverage-artifact
-        if: matrix.run == 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-mattermost-redux
-          path: ./webapp/channels/coverage/lcov.info
+          path: ./webapp/channels/coverage
           retention-days: 1
 
   test-channels:
-    runs-on: ubuntu-22.04
+    needs: check-lint
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       checks: write
@@ -142,8 +138,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
-        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    name: test (channels shard ${{ matrix.shard }}/4 run ${{ matrix.run }})
+    name: test (channels shard ${{ matrix.shard }}/4)
     defaults:
       run:
         working-directory: webapp/channels
@@ -156,80 +151,73 @@ jobs:
         env:
           NODE_OPTIONS: --max_old_space_size=5120
         run: |
-          npm run test:jest:channels:shard${{ matrix.shard }}
+          npm run test-ci -- --config jest.config.channels.js --coverageDirectory=coverage/shard-${{ matrix.shard }} --shard=${{ matrix.shard }}/4
       - name: ci/upload-coverage-artifact
-        if: matrix.run == 1
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage-channels-shard-${{ matrix.shard }}
-          path: ./webapp/channels/coverage/lcov.info
+          path: ./webapp/channels/coverage/shard-${{ matrix.shard }}
           retention-days: 1
 
   upload-coverage:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: [test-platform, test-mattermost-redux, test-channels]
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
+    defaults:
+      run:
+        working-directory: webapp/channels
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: ci/setup
+        uses: ./.github/actions/webapp-setup
       - name: ci/download-coverage-artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           pattern: coverage-*
-          path: coverage-artifacts
+          path: webapp/channels/coverage-artifacts
           merge-multiple: false
       - name: ci/merge-coverage
         run: |
-          sudo apt-get update && sudo apt-get install -y lcov
+          # Collect all coverage JSON files into coverage directory for nyc
+          mkdir -p coverage
 
-          # Merge channels shard coverage first
-          channels_args=""
-          for file in coverage-artifacts/coverage-channels-shard-*/lcov.info; do
-            if [ -f "$file" ]; then
-              channels_args="$channels_args -a $file"
+          # Copy channels shard coverage
+          for shard in 1 2 3 4; do
+            if [ -f "coverage-artifacts/coverage-channels-shard-${shard}/coverage-final.json" ]; then
+              cp "coverage-artifacts/coverage-channels-shard-${shard}/coverage-final.json" "coverage/channels-shard-${shard}.json"
+              echo "Copied channels shard ${shard} coverage"
             fi
           done
-          if [ -n "$channels_args" ]; then
-            lcov $channels_args -o channels-merged-lcov.info
-            echo "Merged channels coverage from shards"
-          fi
 
-          # Merge platform coverage
-          platform_args=""
-          for file in coverage-artifacts/coverage-platform-*/lcov.info; do
-            if [ -f "$file" ]; then
-              platform_args="$platform_args -a $file"
+          # Copy platform coverage
+          for pkg in client components; do
+            if [ -f "coverage-artifacts/coverage-platform/platform/${pkg}/coverage/coverage-final.json" ]; then
+              cp "coverage-artifacts/coverage-platform/platform/${pkg}/coverage/coverage-final.json" "coverage/platform-${pkg}.json"
+              echo "Copied platform/${pkg} coverage"
             fi
           done
-          if [ -n "$platform_args" ]; then
-            lcov $platform_args -o platform-merged-lcov.info
-            echo "Merged platform coverage"
+
+          # Copy mattermost-redux coverage
+          if [ -f "coverage-artifacts/coverage-mattermost-redux/coverage/coverage-final.json" ]; then
+            cp "coverage-artifacts/coverage-mattermost-redux/coverage/coverage-final.json" "coverage/mattermost-redux.json"
+            echo "Copied mattermost-redux coverage"
           fi
 
-          # Final merge of all coverage reports
-          final_args=""
-          if [ -f "channels-merged-lcov.info" ]; then
-            final_args="$final_args -a channels-merged-lcov.info"
-          fi
-          if [ -f "platform-merged-lcov.info" ]; then
-            final_args="$final_args -a platform-merged-lcov.info"
-          fi
-          if [ -f "coverage-artifacts/coverage-mattermost-redux/lcov.info" ]; then
-            final_args="$final_args -a coverage-artifacts/coverage-mattermost-redux/lcov.info"
-          fi
-          if [ -n "$final_args" ]; then
-            lcov $final_args -o merged-lcov.info
-            echo "Final merged coverage created"
-          fi
+          # Merge all coverage using nyc
+          npx nyc merge coverage .nyc_output/merged-coverage.json
+          npx nyc report --reporter=text-summary --reporter=lcov --temp-dir .nyc_output --report-dir coverage/merged
+          echo "Coverage merged successfully"
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
-          files: ./merged-lcov.info
+          files: ./webapp/channels/coverage/merged/lcov.info
 
   build:
-    runs-on: ubuntu-22.04
+    needs: check-lint
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: webapp

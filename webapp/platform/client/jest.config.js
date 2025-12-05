@@ -14,5 +14,5 @@ module.exports = {
     coveragePathIgnorePatterns: [
         '/node_modules/',
     ],
-    coverageReporters: ['lcov', 'text-summary'],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
 };
