@@ -7,15 +7,15 @@ $app-bar-icon-size: 24px;
 $app-bar-width: 44px;
 
 .app-bar {
-    // Do not show App Bar if on mobile
-    @media (max-width: 768px) {
-        display: none;
-    }
-
     position: relative;
     display: flex;
     min-height: 0;
     flex-flow: column;
+
+    // Do not show App Bar if on mobile
+    @media (max-width: 768px) {
+        display: none;
+    }
 
     &__top {
         position: relative;
