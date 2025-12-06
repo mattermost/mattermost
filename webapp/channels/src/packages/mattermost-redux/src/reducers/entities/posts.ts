@@ -160,7 +160,8 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
-        return handlePostReceived({...state}, action.data);
+        const result = handlePostReceived({...state}, action.data);
+        return result;
     }
 
     case PostTypes.RECEIVED_POSTS: {
@@ -384,9 +385,24 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
             }
         });
 
-        currentState[post.id] = post;
+        // Preserve existing message content if incoming post has no content
+        // This handles cases where GetWikiPages returns pages without content for performance
+        const existingPost = currentState[post.id];
+        if (existingPost && existingPost.message && existingPost.message.trim() !== '' &&
+            (!post.message || post.message.trim() === '')) {
+            currentState[post.id] = {...post, message: existingPost.message};
+        } else {
+            currentState[post.id] = post;
+        }
     } else {
-        currentState[post.id] = removeUnneededMetadata(post);
+        // Preserve existing message content if incoming post has no content
+        const existingPost = currentState[post.id];
+        if (existingPost && existingPost.message && existingPost.message.trim() !== '' &&
+            (!post.message || post.message.trim() === '')) {
+            currentState[post.id] = {...removeUnneededMetadata(post), message: existingPost.message};
+        } else {
+            currentState[post.id] = removeUnneededMetadata(post);
+        }
     }
 
     // Delete any pending post that existed for this post
@@ -1053,9 +1069,20 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
         const postsForThread = state[action.rootId] || [];
         const nextPostsForThread = [...postsForThread];
 
+        // Check if this is a page comment thread (inline comment with empty root_id)
+        const rootPost = prevPosts[action.rootId];
+        const isPageCommentThread = rootPost && rootPost.type === 'page_comment' && rootPost.root_id === '';
+
         for (const post of newPosts) {
-            if (post.root_id !== action.rootId) {
-                // Only store comments
+            if (isPageCommentThread) {
+                // For page comment threads: only include replies, NOT the root inline comment itself
+                const isReply = post.root_id === action.rootId;
+
+                if (!isReply) {
+                    continue;
+                }
+            } else if (post.root_id !== action.rootId) {
+                // Original logic for regular threads: only store comments
                 continue;
             }
 

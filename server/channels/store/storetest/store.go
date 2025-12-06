@@ -71,6 +71,8 @@ type Store struct {
 	AttributesStore                 mocks.AttributesStore
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
+	WikiStore                       mocks.WikiStore
+	PageStore                       mocks.PageStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -167,6 +169,12 @@ func (s *Store) AutoTranslation() store.AutoTranslationStore {
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
+func (s *Store) Wiki() store.WikiStore {
+	return &s.WikiStore
+}
+func (s *Store) Page() store.PageStore {
+	return &s.PageStore
+}
 
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
@@ -220,5 +228,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.AttributesStore,
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
+		&s.WikiStore,
+		&s.PageStore,
 	)
 }

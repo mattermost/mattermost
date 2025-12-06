@@ -19,6 +19,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {SelectPropertyField} from './properties';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
     FilesRequestsStatuses, GeneralRequestsStatuses,
@@ -93,6 +94,25 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
+        wikiPages: {
+            byWiki: Record<string, string[]>;
+            loading: Record<string, boolean>;
+            error: Record<string, string | null>;
+            lastPagesInvalidated: Record<string, number>;
+            lastDraftsInvalidated: Record<string, number>;
+            statusField: SelectPropertyField | null;
+            publishedDraftTimestamps: Record<string, number>;
+        };
+        wikis: {
+            byChannel: Record<string, string[]>;
+            byId: Record<string, any>;
+        };
+        activeEditors: {
+            byPageId: Record<string, Record<string, {
+                userId: string;
+                lastActivity: number;
+            }>>;
+        };
     };
     errors: any[];
     requests: {

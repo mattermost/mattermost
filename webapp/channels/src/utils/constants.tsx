@@ -62,6 +62,15 @@ export const PreviousViewedTypes = {
     THREADS: 'threads',
 };
 
+export const PageDisplayTypes = {
+    PAGE_DRAFT: 'page_draft' as const,
+};
+
+export const PageConstants = {
+    PAGE_FETCH_LIMIT: 100,
+    INLINE_COMMENT_CONTEXT_LENGTH: 50,
+};
+
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,
@@ -266,6 +275,10 @@ export const ActionTypes = keyMirror({
     CLOSE_LHS: null,
     SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
+
+    TOGGLE_PAGES_PANEL: null,
+    OPEN_PAGES_PANEL: null,
+    CLOSE_PAGES_PANEL: null,
 
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
     SET_SHOW_PREVIEW_ON_CREATE_POST: null,
@@ -472,6 +485,10 @@ export const ModalIdentifiers = {
     EXPORT_ERROR_MODAL: 'export_error_modal',
     CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
     CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
+    CREATE_WIKI: 'create_wiki',
+    WIKI_RENAME: 'wiki_rename',
+    WIKI_DELETE: 'wiki_delete',
+    WIKI_MOVE: 'wiki_move',
     CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
     SCHEDULED_POST_CUSTOM_TIME_MODAL: 'scheduled_post_custom_time',
     SECURE_CONNECTION_DELETE: 'secure_connection_delete',
@@ -485,6 +502,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
+    TEXT_INPUT_MODAL: 'text_input_modal',
 };
 
 export const UserStatuses = {
@@ -693,6 +711,16 @@ export const SocketEvents = {
     DRAFT_CREATED: 'draft_created',
     DRAFT_UPDATED: 'draft_updated',
     DRAFT_DELETED: 'draft_deleted',
+    PAGE_PUBLISHED: 'page_published',
+    PAGE_DELETED: 'page_deleted',
+    PAGE_TITLE_UPDATED: 'page_title_updated',
+    PAGE_MOVED: 'page_moved',
+    WIKI_UPDATED: 'wiki_updated',
+    PAGE_DRAFT_DELETED: 'page_draft_deleted',
+    PAGE_EDITOR_STOPPED: 'page_editor_stopped',
+    PAGE_COMMENT_RESOLVED: 'page_comment_resolved',
+    PAGE_COMMENT_UNRESOLVED: 'page_comment_unresolved',
+    PAGE_COMMENT_DELETED: 'page_comment_deleted',
     SCHEDULED_POST_CREATED: 'scheduled_post_created',
     SCHEDULED_POST_UPDATED: 'scheduled_post_updated',
     SCHEDULED_POST_DELETED: 'scheduled_post_deleted',
@@ -878,6 +906,7 @@ export const StoragePrefixes = {
     COMMENT_DRAFT: 'comment_draft_',
     EDIT_DRAFT: 'edit_draft_',
     DRAFT: 'draft_',
+    PAGE_DRAFT: 'page_draft_',
     LOGOUT: '__logout__',
     LOGIN: '__login__',
     ANNOUNCEMENT: '__announcement__',
@@ -1059,6 +1088,14 @@ export const RHSStates = {
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
     EDIT_HISTORY: 'edit-history',
+    WIKI: 'wiki',
+};
+
+export const WikiRhsTypes = {
+    SET_MODE: 'WIKI_RHS_SET_MODE',
+    SET_WIKI_ID: 'WIKI_RHS_SET_WIKI_ID',
+    SET_FOCUSED_INLINE_COMMENT_ID: 'WIKI_RHS_SET_FOCUSED_INLINE_COMMENT_ID',
+    SET_ACTIVE_TAB: 'WIKI_RHS_SET_ACTIVE_TAB',
 };
 
 export const UploadStatuses = {
@@ -1298,6 +1335,11 @@ export const PermissionsScope = {
     [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_CHANNEL_ACCESS_RULES]: 'channel_scope',
+    [Permissions.CREATE_PAGE]: 'channel_scope',
+    [Permissions.READ_PAGE]: 'channel_scope',
+    [Permissions.EDIT_PAGE]: 'channel_scope',
+    [Permissions.DELETE_OWN_PAGE]: 'channel_scope',
+    [Permissions.DELETE_PAGE]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1357,6 +1399,10 @@ export const DefaultRolePermissions = {
         Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
         Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+        Permissions.READ_PAGE,
+        Permissions.CREATE_PAGE,
+        Permissions.EDIT_PAGE,
+        Permissions.DELETE_OWN_PAGE,
     ],
     channel_admin: [
         Permissions.MANAGE_CHANNEL_ROLES,
@@ -1380,6 +1426,11 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
         Permissions.MANAGE_CHANNEL_ACCESS_RULES,
+        Permissions.READ_PAGE,
+        Permissions.CREATE_PAGE,
+        Permissions.EDIT_PAGE,
+        Permissions.DELETE_OWN_PAGE,
+        Permissions.DELETE_PAGE,
     ],
     team_admin: [
         Permissions.EDIT_OTHERS_POSTS,
@@ -1419,6 +1470,11 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
         Permissions.MANAGE_CHANNEL_ACCESS_RULES,
+        Permissions.READ_PAGE,
+        Permissions.CREATE_PAGE,
+        Permissions.EDIT_PAGE,
+        Permissions.DELETE_OWN_PAGE,
+        Permissions.DELETE_PAGE,
     ],
     guests: [
         Permissions.EDIT_POST,
@@ -1428,6 +1484,7 @@ export const DefaultRolePermissions = {
         Permissions.READ_CHANNEL,
         Permissions.UPLOAD_FILE,
         Permissions.CREATE_POST,
+        Permissions.READ_PAGE,
     ],
 };
 
@@ -1449,6 +1506,11 @@ export const ModeratedPermissions = [
     Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
     Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
     Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+    Permissions.CREATE_PAGE,
+    Permissions.READ_PAGE,
+    Permissions.EDIT_PAGE,
+    Permissions.DELETE_OWN_PAGE,
+    Permissions.DELETE_PAGE,
 ];
 
 export const Locations = {

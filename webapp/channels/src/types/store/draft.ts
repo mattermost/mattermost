@@ -7,7 +7,7 @@ import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
 export type DraftInfo = {
     id: string;
-    type: 'channel' | 'thread';
+    type: 'channel' | 'thread' | 'page';
 }
 
 export type PostDraft = {
@@ -19,6 +19,7 @@ export type PostDraft = {
     props?: any;
     caretPosition?: number;
     channelId: string;
+    wikiId?: string;
     rootId: string;
     createAt: number;
     updateAt: number;

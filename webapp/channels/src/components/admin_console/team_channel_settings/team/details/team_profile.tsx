@@ -50,9 +50,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
         return null;//
     }
 
-    const archiveBtn = isArchived ?
-        defineMessage({id: 'admin.team_settings.team_details.unarchiveTeam', defaultMessage: 'Unarchive Team'}) :
-        defineMessage({id: 'admin.team_settings.team_details.archiveTeam', defaultMessage: 'Archive Team'});
+    const archiveBtn = isArchived ? defineMessage({id: 'admin.team_settings.team_details.unarchiveTeam', defaultMessage: 'Unarchive Team'}) : defineMessage({id: 'admin.team_settings.team_details.archiveTeam', defaultMessage: 'Archive Team'});
 
     const toggleArchive = () => {
         setOverrideRestoreDisabled(true);

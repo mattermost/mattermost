@@ -15,6 +15,7 @@ describe('components/channel_view', () => {
         location: {} as Props['location'],
         match: {
             url: '/team/channel/channelId',
+            path: '/team/channel/:channelId',
             params: {},
         } as Props['match'],
         enableOnboardingFlow: true,
@@ -60,9 +61,9 @@ describe('components/channel_view', () => {
         const wrapper = shallow(<ChannelView {...baseProps}/>);
         expect(wrapper.state('focusedPostId')).toEqual(undefined);
 
-        wrapper.setProps({channelId: 'newChannelId', match: {url: '/team/channel/channelId/postId', params: {postid: 'postid'}}});
+        wrapper.setProps({channelId: 'newChannelId', match: {url: '/team/channel/channelId/postId', path: '/team/channel/:channelId/:postid', params: {postid: 'postid'}}});
         expect(wrapper.state('focusedPostId')).toEqual('postid');
-        wrapper.setProps({channelId: 'newChannelId', match: {url: '/team/channel/channelId/postId1', params: {postid: 'postid1'}}});
+        wrapper.setProps({channelId: 'newChannelId', match: {url: '/team/channel/channelId/postId1', path: '/team/channel/:channelId/:postid', params: {postid: 'postid1'}}});
         expect(wrapper.state('focusedPostId')).toEqual('postid1');
     });
 
@@ -77,5 +78,35 @@ describe('components/channel_view', () => {
         const instance = wrapper.instance() as ChannelView;
         wrapper.setProps({channelId: 'newChannelId'});
         expect(instance.props.fetchIsRestrictedDM).toHaveBeenCalledTimes(1);
+    });
+
+    it('should have activeTab state defaulting to messages', () => {
+        const wrapper = shallow(<ChannelView {...baseProps}/>);
+        expect(wrapper.state('activeTab')).toEqual('messages');
+    });
+
+    it('should reset activeTab to messages on channel change', () => {
+        const wrapper = shallow(<ChannelView {...baseProps}/>);
+
+        // Change to a different tab
+        wrapper.setState({activeTab: 'files'});
+        expect(wrapper.state('activeTab')).toEqual('files');
+
+        // Change channel - should reset to messages
+        wrapper.setProps({channelId: 'newChannelId'});
+        expect(wrapper.state('activeTab')).toEqual('messages');
+    });
+
+    it('should update activeTab when onTabChange is called', () => {
+        const wrapper = shallow(<ChannelView {...baseProps}/>);
+        const instance = wrapper.instance() as ChannelView;
+
+        expect(wrapper.state('activeTab')).toEqual('messages');
+
+        instance.onTabChange('files');
+        expect(wrapper.state('activeTab')).toEqual('files');
+
+        instance.onTabChange('wiki-123');
+        expect(wrapper.state('activeTab')).toEqual('wiki-123');
     });
 });

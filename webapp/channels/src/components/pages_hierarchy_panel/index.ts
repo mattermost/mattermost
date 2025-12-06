@@ -1,0 +1,87 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
+import {loadPages, createPage, updatePage, deletePage, movePage, movePageToWiki, duplicatePage} from 'actions/pages';
+import {toggleNodeExpanded, setSelectedPage, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
+import {getPageDraftsForWiki} from 'selectors/page_drafts';
+import {getPages, getPagesLoading} from 'selectors/pages';
+import {getExpandedNodes, getSelectedPageId, getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
+
+import type {GlobalState} from 'types/store';
+
+import PagesHierarchyPanel from './pages_hierarchy_panel';
+
+// Get published draft timestamps from wiki pages state
+const getPublishedDraftTimestamps = (state: GlobalState): Record<string, number> => {
+    return state.entities.wikiPages?.publishedDraftTimestamps || {};
+};
+
+type OwnProps = {
+    wikiId: string;
+    channelId: string;
+    currentPageId?: string;
+    onPageSelect: (pageId: string) => void;
+    onVersionHistory?: (pageId: string) => void;
+};
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
+    const {wikiId} = ownProps;
+
+    const pages = getPages(state, wikiId);
+    const allDrafts = getPageDraftsForWiki(state, wikiId);
+    const publishedDraftTimestamps = getPublishedDraftTimestamps(state);
+
+    // Filter out drafts that have been recently published to prevent flicker
+    // When a draft is published, it gets added to publishedDraftTimestamps
+    // This prevents the draft from appearing in the tree momentarily before
+    // being fully removed from storage
+    const drafts = allDrafts.filter((draft) => {
+        const draftId = draft.rootId;
+        return !publishedDraftTimestamps[draftId];
+    });
+
+    const loading = getPagesLoading(state, wikiId);
+    const expandedNodes = getExpandedNodes(state, wikiId);
+    const selectedPageId = getSelectedPageId(state);
+    const isPanelCollapsed = getIsPanesPanelCollapsed(state);
+
+    return {
+        pages,
+        drafts,
+        loading,
+        expandedNodes,
+        selectedPageId,
+        isPanelCollapsed,
+    };
+}
+
+function mapDispatchToProps(dispatch: Dispatch) {
+    return {
+        actions: bindActionCreators(
+            {
+                loadPages,
+                loadPageDraftsForWiki,
+                removePageDraft,
+                toggleNodeExpanded,
+                setSelectedPage,
+                expandAncestors,
+                createPage,
+                updatePage,
+                deletePage,
+                movePage,
+                movePageToWiki,
+                duplicatePage,
+                closePagesPanel,
+            },
+            dispatch,
+        ),
+    };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default connect(mapStateToProps, mapDispatchToProps)(PagesHierarchyPanel as any);

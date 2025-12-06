@@ -8,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import PostComponent from 'components/post';
 
 import {Locations} from 'utils/constants';
+import {isPagePost} from 'utils/page_utils';
 
 type Props = {
     a11yIndex: number;
@@ -20,11 +21,19 @@ type Props = {
 }
 
 export default function PostSearchResultsItem(props: Props) {
+    const isPage = isPagePost(props.post);
+
     return (
         <div
             className='search-item__container'
             data-testid='search-item-container'
         >
+            {isPage && (
+                <div className='search-item__page-indicator'>
+                    <i className='icon-file-document-outline'/>
+                    <span>{'Wiki Page'}</span>
+                </div>
+            )}
             <PostComponent
                 post={props.post}
                 matches={props.matches}

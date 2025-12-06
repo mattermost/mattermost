@@ -4,6 +4,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -20,7 +21,7 @@ import GMConversionMessage from 'components/post_view/gm_conversion_message/gm_c
 import PostAddChannelMember from 'components/post_view/post_add_channel_member';
 
 import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
-import {getSiteURL} from 'utils/url';
+import {getSiteURL, getWikiUrl} from 'utils/url';
 
 export function renderUsername(value: unknown): ReactNode {
     const verifiedValue = ensureString(value);
@@ -373,6 +374,148 @@ function renderMeMessage(post: Post): ReactNode {
     return renderFormattedText(message);
 }
 
+function renderWikiAddedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+    const wikiTitle = ensureString(post.props.wiki_title);
+    const wikiId = ensureString(post.props.wiki_id);
+    const username = renderUsername(post.props.username);
+
+    const wikiUrl = getWikiUrl(currentTeamName, channel.id, wikiId);
+    const wikiLink = <Link to={wikiUrl}>{wikiTitle}</Link>;
+
+    return (
+        <FormattedMessage
+            id='api.wiki.wiki_added'
+            defaultMessage='{username} added a new doc tab: {wikiLink}'
+            values={{
+                wikiLink,
+                username,
+            }}
+        />
+    );
+}
+
+function renderWikiDeletedMessage(post: Post): ReactNode {
+    const wikiTitle = ensureString(post.props.wiki_title);
+    const username = renderUsername(post.props.username);
+
+    return (
+        <FormattedMessage
+            id='api.wiki.wiki_deleted'
+            defaultMessage='{username} deleted the doc tab: {wikiTitle}'
+            values={{
+                wikiTitle,
+                username,
+            }}
+        />
+    );
+}
+
+function renderPageAddedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+    const pageTitle = ensureString(post.props.page_title);
+    const pageId = ensureString(post.props.page_id);
+    const wikiTitle = ensureString(post.props.wiki_title);
+    const wikiId = ensureString(post.props.wiki_id);
+    const username = renderUsername(post.props.username);
+
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
+    const pageLink = <a href={pageUrl}>{pageTitle}</a>;
+
+    return (
+        <FormattedMessage
+            id='api.page.page_added'
+            defaultMessage='{username} created a new page {pageLink} in the {wikiTitle} doc tab'
+            values={{
+                pageLink,
+                wikiTitle,
+                username,
+            }}
+        />
+    );
+}
+
+function renderPageMentionMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+    const pageTitle = ensureString(post.props.page_title);
+    const pageId = ensureString(post.props.page_id);
+    const wikiId = ensureString(post.props.wiki_id);
+    const username = renderUsername(post.props.username);
+
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
+    const pageLink = <a href={pageUrl}>{pageTitle}</a>;
+
+    return (
+        <FormattedMessage
+            id='api.page.page_mention'
+            defaultMessage='{username} was mentioned in page {pageLink}.'
+            values={{
+                pageLink,
+                username,
+            }}
+        />
+    );
+}
+
+function renderPageUpdatedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+    const pageTitle = ensureString(post.props.page_title);
+    const pageId = ensureString(post.props.page_id);
+    const wikiTitle = ensureString(post.props.wiki_title);
+    const wikiId = ensureString(post.props.wiki_id);
+    const updaterIds = post.props.updater_ids;
+
+    const pageUrl = `${getSiteURL()}${getWikiUrl(currentTeamName, channel.id, wikiId, pageId)}`;
+    const pageLink = <a href={pageUrl}>{pageTitle}</a>;
+
+    let usersText: ReactNode = '';
+    if (Array.isArray(updaterIds) && updaterIds.length > 0) {
+        const usernames = updaterIds.map((id) => renderUsername(post.props[`username_${id}`] || id));
+
+        if (usernames.length === 1) {
+            usersText = usernames[0];
+        } else if (usernames.length === 2) {
+            usersText = (
+                <FormattedMessage
+                    id='api.page.page_updated.two_users'
+                    defaultMessage='{user1} and {user2}'
+                    values={{
+                        user1: usernames[0],
+                        user2: usernames[1],
+                    }}
+                />
+            );
+        } else {
+            const lastUser = usernames[usernames.length - 1];
+            const otherUsers = usernames.slice(0, -1).reduce((acc: ReactNode[], user, idx) => {
+                if (idx > 0) {
+                    acc.push(', ');
+                }
+                acc.push(user);
+                return acc;
+            }, []);
+            usersText = (
+                <FormattedMessage
+                    id='api.page.page_updated.multiple_users'
+                    defaultMessage='{users} and {lastUser}'
+                    values={{
+                        users: otherUsers,
+                        lastUser,
+                    }}
+                />
+            );
+        }
+    }
+
+    return (
+        <FormattedMessage
+            id='api.page.page_updated'
+            defaultMessage='{users} made updates to the page {pageLink} in the {wikiTitle} doc tab'
+            values={{
+                users: usersText,
+                pageLink,
+                wikiTitle,
+            }}
+        />
+    );
+}
+
 const systemMessageRenderers = {
     [Posts.POST_TYPES.JOIN_CHANNEL]: renderJoinChannelMessage,
     [Posts.POST_TYPES.LEAVE_CHANNEL]: renderLeaveChannelMessage,
@@ -445,6 +588,16 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         }
 
         return null;
+    } else if (post.type === Posts.POST_TYPES.WIKI_ADDED) {
+        return renderWikiAddedMessage(post, currentTeamName, channel);
+    } else if (post.type === Posts.POST_TYPES.WIKI_DELETED) {
+        return renderWikiDeletedMessage(post);
+    } else if (post.type === Posts.POST_TYPES.PAGE_ADDED) {
+        return renderPageAddedMessage(post, currentTeamName, channel);
+    } else if (post.type === Posts.POST_TYPES.PAGE_MENTION) {
+        return renderPageMentionMessage(post, currentTeamName, channel);
+    } else if (post.type === Posts.POST_TYPES.PAGE_UPDATED) {
+        return renderPageUpdatedMessage(post, currentTeamName, channel);
     } else if (systemMessageRenderers[post.type]) {
         return systemMessageRenderers[post.type](post);
     } else if (post.type === Posts.POST_TYPES.GUEST_JOIN_CHANNEL) {

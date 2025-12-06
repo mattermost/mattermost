@@ -1564,6 +1564,28 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// LinkPageToFirstWiki links a page to the first wiki in the given channel.
+	// If no wiki exists, an error is returned.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	LinkPageToFirstWiki(pageID, channelID string) *model.AppError
+
+	// GetFirstWikiForChannel retrieves the ID of the first wiki in the given channel.
+	// If no wiki exists, an error is returned.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	GetFirstWikiForChannel(channelID string) (string, *model.AppError)
+
+	// CreateWikiPage creates a new wiki page with the given title and content on behalf of the specified user.
+	// The userID parameter specifies which user is creating the page (for permission checks and attribution).
+	// Returns the created page post.
+	//
+	// @tag Wiki
+	// Minimum server version: 10.10
+	CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError)
 }
 
 var handshake = plugin.HandshakeConfig{

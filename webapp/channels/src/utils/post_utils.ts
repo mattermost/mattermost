@@ -227,10 +227,18 @@ export function shouldFocusMainTextbox(e: React.KeyboardEvent | KeyboardEvent, a
         return false;
     }
 
-    // Do not focus if we're currently focused on a textarea or input
+    // Do not focus if we're currently focused on a textarea, input, or contenteditable element
     const keepFocusTags = ['TEXTAREA', 'INPUT'];
     if (!activeElement || keepFocusTags.includes(activeElement.tagName)) {
         return false;
+    }
+
+    // Do not focus if the active element is contenteditable (e.g., TipTap editor)
+    if (activeElement instanceof HTMLElement) {
+        // Use isContentEditable when available, fallback to checking attribute directly
+        if (activeElement.isContentEditable || activeElement.contentEditable === 'true') {
+            return false;
+        }
     }
 
     // Focus if it is an attempted paste
@@ -869,4 +877,12 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
         priority?.priority === PostPriority.URGENT &&
         priority?.persistent_notifications
     );
+}
+
+export function canEditPage(state: GlobalState, page: Post, channel: Channel): boolean {
+    if (!page || !channel) {
+        return false;
+    }
+
+    return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_PAGE);
 }

@@ -16,6 +16,7 @@ import {getAssociatedGroupsForReferenceByMention} from 'mattermost-redux/selecto
 import {
     getLatestInteractablePostId,
     getLatestPostToEdit,
+    getPost,
 } from 'mattermost-redux/selectors/entities/posts';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -27,8 +28,10 @@ import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
+import {submitPageComment} from 'actions/views/create_page_comment';
 
 import EmojiMap from 'utils/emoji_map';
+import {isPagePost} from 'utils/page_utils';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
@@ -45,6 +48,11 @@ export function submitPost(
 ): ActionFuncAsync<CreatePostReturnType> {
     return async (dispatch, getState) => {
         const state = getState();
+
+        const rootPost = rootId ? getPost(state, rootId) : null;
+        if (isPagePost(rootPost)) {
+            return dispatch(submitPageComment(rootId, draft, afterSubmit));
+        }
 
         const userId = getCurrentUserId(state);
 

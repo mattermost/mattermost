@@ -69,6 +69,7 @@ func genStore() *mocks.Store {
 	mock.On("Attributes").Return(&mocks.AttributesStore{})
 	mock.On("AutoTranslation").Return(&mocks.AutoTranslationStore{})
 	mock.On("ContentFlagging").Return(&mocks.ContentFlaggingStore{})
+	mock.On("Wiki").Return(&mocks.WikiStore{})
 	return mock
 }
 

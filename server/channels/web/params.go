@@ -115,6 +115,13 @@ type Params struct {
 	ChannelBookmarkId string
 	BookmarksSince    int64
 
+	// Wikis
+	WikiId          string
+	PageId          string
+	DraftId         string
+	ParentCommentId string
+	CommentId       string
+
 	// Cloud
 	InvoiceId string
 
@@ -190,6 +197,11 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExcludeHome, _ = strconv.ParseBool(query.Get("exclude_home"))
 	params.ExcludeRemote, _ = strconv.ParseBool(query.Get("exclude_remote"))
 	params.ChannelBookmarkId = props["bookmark_id"]
+	params.WikiId = props["wiki_id"]
+	params.PageId = props["page_id"]
+	params.DraftId = props["draft_id"]
+	params.ParentCommentId = props["parent_comment_id"]
+	params.CommentId = props["comment_id"]
 	params.FieldId = props["field_id"]
 	params.Scope = query.Get("scope")
 

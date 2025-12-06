@@ -28,6 +28,15 @@ import (
 var quotedStringsRegex = regexp.MustCompile(`("[^"]*")`)
 var wildCardRegex = regexp.MustCompile(`\*($| )`)
 
+const (
+	// regularPostsFilter excludes page content posts from regular channel feeds.
+	// Page content posts (page, page_comment, page_mention) are stored as Posts but
+	// displayed in the wiki UI, not the channel feed.
+	// System notification posts (system_wiki_added, system_page_added, etc.) ARE
+	// displayed in the channel feed to notify users about wiki/page activity.
+	regularPostsFilter = "(Type NOT IN ('page', 'page_comment', 'page_mention') OR Type IS NULL)"
+)
+
 type SqlPostStore struct {
 	*SqlStore
 	metrics           einterfaces.MetricsInterface
@@ -43,6 +52,39 @@ type postWithExtra struct {
 }
 
 func (s *SqlPostStore) ClearCaches() {
+}
+
+// PageSystemPostTypes returns the list of system notification post types for pages/wiki.
+// This excludes PostTypePage itself, which represents the actual page content.
+// Use this for search queries that should include pages but exclude page system notifications.
+func PageSystemPostTypes() []string {
+	return []string{
+		model.PostTypePageComment,
+		model.PostTypePageMention,
+		model.PostTypePageAdded,
+		model.PostTypePageUpdated,
+		model.PostTypeWikiAdded,
+		model.PostTypeWikiDeleted,
+	}
+}
+
+// PagePostTypes returns the list of post types related to pages/wiki functionality.
+// Use this for filtering or cleanup queries that need to target page-related posts.
+func PagePostTypes() []string {
+	return append([]string{model.PostTypePage}, PageSystemPostTypes()...)
+}
+
+// addRegularPostsFilter adds the page exclusion filter to a query builder.
+// Use this for any query that should operate only on messages, not pages.
+// tableAlias should be the alias used for the Posts table in the query (e.g., "p" or "Posts").
+func (s *SqlPostStore) addRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuilder {
+	if tableAlias == "" {
+		tableAlias = "Posts"
+	}
+	return qb.Where(sq.Or{
+		sq.NotEq{tableAlias + ".Type": PagePostTypes()},
+		sq.Eq{tableAlias + ".Type": nil},
+	})
 }
 
 func postSliceColumnsWithTypes() []struct {
@@ -63,6 +105,7 @@ func postSliceColumnsWithTypes() []struct {
 		{"ChannelId", reflect.String},
 		{"RootId", reflect.String},
 		{"OriginalId", reflect.String},
+		{"PageParentId", reflect.String},
 		{"Message", reflect.String},
 		{"Type", reflect.String},
 		{"Props", reflect.Map},
@@ -86,6 +129,7 @@ func postToSlice(post *model.Post) []any {
 		post.ChannelId,
 		post.RootId,
 		post.OriginalId,
+		post.PageParentId,
 		post.Message,
 		post.Type,
 		model.StringInterfaceToJSON(post.Props),
@@ -368,6 +412,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 			ChannelId=:ChannelId,
 			RootId=:RootId,
 			OriginalId=:OriginalId,
+			PageParentId=:PageParentId,
 			Message=:Message,
 			Type=:Type,
 			Props=:Props,
@@ -1248,14 +1293,16 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 	var posts []*postWithExtra
 	offset := options.PerPage * options.Page
 
-	postFetchQuery, args, _ := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
-		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.Eq{"Posts.RootId": ""})
+	query = s.addRegularPostsFilter(query, "Posts")
+	postFetchQuery, args, _ := query.
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()
@@ -1332,14 +1379,16 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 	)
 	var posts []*postWithExtra
 
-	postFetchQuery, args, err := s.getQueryBuilder().
+	query := s.getQueryBuilder().
 		Select(columns...).
 		From("Posts").
 		LeftJoin("Threads ON Threads.PostId = Posts.Id").
 		LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", options.UserId).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
-		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.Eq{"Posts.RootId": ""})
+	query = s.addRegularPostsFilter(query, "Posts")
+	postFetchQuery, args, err := query.
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000).
 		ToSql()
@@ -1831,14 +1880,14 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	posts := []*model.Post{}
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = fmt.Sprintf("SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND %s ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		if !includeDeleted {
-			fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = fmt.Sprintf("SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 AND %s ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		}
 	} else {
-		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = fmt.Sprintf("SELECT * FROM Posts WHERE Posts.ChannelId = ? AND %s ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		if !includeDeleted {
-			fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = fmt.Sprintf("SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 AND %s ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?", regularPostsFilter)
 		}
 	}
 
@@ -1907,6 +1956,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 			sq.Eq{"p.ChannelId": channelId},
 		}).
 		OrderBy("p.CreateAt")
+	query = s.addRegularPostsFilter(query, "p")
 
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"p.DeleteAt": 0})
@@ -1964,6 +2014,7 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
             ON `+onStatement+`
         WHERE
             q2.ChannelId = ? `+deleteAtQueryCondition+`
+            AND `+regularPostsFilter+`
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
@@ -2143,7 +2194,8 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
-		OrderByClause("q2.CreateAt DESC").
+		Where(sq.NotEq{"q2.Type": PageSystemPostTypes()})
+	baseQuery = baseQuery.OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
 	var err error
@@ -2220,8 +2272,29 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			textSearchCfg = "simple"
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
-		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
+		// Build search clause that searches both regular posts and pages
+		// For regular posts: search Message field
+		// For pages: search PageContents.SearchText field
+		regularPostsClause := fmt.Sprintf("(q2.Type != '%s' AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", model.PostTypePage, textSearchCfg, searchType, textSearchCfg)
+
+		pageSearchSubquery := s.getSubQueryBuilder().
+			Select("PageId").
+			From("PageContents").
+			Where("DeleteAt = 0").
+			Where(fmt.Sprintf("to_tsvector('%s', SearchText) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg), tsQueryClause)
+
+		var pageSearchClause string
+		var pageSearchArgs []any
+		pageSearchClause, pageSearchArgs, err = pageSearchSubquery.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to build page search subquery")
+		}
+
+		pagesClause := fmt.Sprintf("(q2.Type = '%s' AND q2.Id IN (%s))", model.PostTypePage, pageSearchClause)
+
+		// Combine args: one for regular posts, then page search args
+		combinedArgs := append([]any{tsQueryClause}, pageSearchArgs...)
+		baseQuery = baseQuery.Where(fmt.Sprintf("(%s OR %s)", regularPostsClause, pagesClause), combinedArgs...)
 	}
 
 	inQuery := s.getSubQueryBuilder().Select("Id").
@@ -2629,6 +2702,8 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyB
 		Select("Posts.Id").
 		From("Posts")
 
+	builder = s.addRegularPostsFilter(builder, "Posts")
+
 	if retentionPolicyBatchConfigs.PreservePinnedPosts {
 		builder = builder.Where(sq.Or{
 			sq.Eq{"Posts.IsPinned": false},
@@ -2655,9 +2730,9 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyB
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, error) {
 	var query string
 	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? LIMIT ?))"
+		query = fmt.Sprintf("DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < ? AND %s LIMIT ?))", regularPostsFilter)
 	} else {
-		query = "DELETE from Posts WHERE CreateAt < ? LIMIT ?"
+		query = fmt.Sprintf("DELETE from Posts WHERE CreateAt < ? AND %s LIMIT ?", regularPostsFilter)
 	}
 
 	sqlResult, err := s.GetMaster().Exec(query, endTime, limit)
@@ -2837,6 +2912,8 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		GroupBy("p.Id, u2.Username").
 		OrderBy("p.Id").
 		Limit(uint64(limit))
+
+	query = s.addRegularPostsFilter(query, "p")
 
 	if !includeArchivedChannels {
 		query = query.Where(
