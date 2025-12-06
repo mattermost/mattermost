@@ -1480,7 +1480,74 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 		}
 	}
 
-	return fileInfoSearchResults, a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true})
+	if appErr := a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId); appErr != nil {
+		return nil, appErr
+	}
+
+	return fileInfoSearchResults, nil
+}
+
+func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.FileInfoList, userID string) *model.AppError {
+	if fileList == nil || fileList.FileInfos == nil || len(fileList.FileInfos) == 0 {
+		return nil
+	}
+
+	channelIDsMap := make(map[string]bool)
+	channelIDs := []string{}
+	for _, fileInfo := range fileList.FileInfos {
+		if fileInfo.ChannelId != "" && !channelIDsMap[fileInfo.ChannelId] {
+			channelIDsMap[fileInfo.ChannelId] = true
+			channelIDs = append(channelIDs, fileInfo.ChannelId)
+		}
+	}
+
+	channels := make(map[string]*model.Channel)
+	if len(channelIDs) > 0 {
+		channelList, err := a.GetChannels(rctx, channelIDs)
+		if err != nil {
+			fileList.FileInfos = make(map[string]*model.FileInfo)
+			fileList.Order = []string{}
+			return nil
+		}
+		for _, channel := range channelList {
+			channels[channel.Id] = channel
+		}
+	}
+
+	channelReadPermission := make(map[string]bool)
+	filteredFiles := make(map[string]*model.FileInfo)
+	filteredOrder := []string{}
+
+	for _, fileID := range fileList.Order {
+		fileInfo, ok := fileList.FileInfos[fileID]
+		if !ok {
+			continue
+		}
+
+		allowed, ok := channelReadPermission[fileInfo.ChannelId]
+		if !ok {
+			allowed = false
+			channel, ok := channels[fileInfo.ChannelId]
+			if ok {
+				allowed = a.HasPermissionToReadChannel(rctx, userID, channel)
+			}
+			channelReadPermission[fileInfo.ChannelId] = allowed
+		}
+
+		if allowed {
+			filteredFiles[fileID] = fileInfo
+			filteredOrder = append(filteredOrder, fileID)
+		}
+	}
+
+	fileList.FileInfos = filteredFiles
+	fileList.Order = filteredOrder
+
+	return nil
 }
 
 func (a *App) ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error {
