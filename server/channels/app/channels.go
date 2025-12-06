@@ -66,6 +66,7 @@ type Channels struct {
 	Notification     einterfaces.NotificationInterface
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
+	Intune           einterfaces.IntuneInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -133,6 +134,10 @@ func NewChannels(s *Server) (*Channels, error) {
 				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
 			}
 		})
+	}
+
+	if intuneInterface != nil {
+		ch.Intune = intuneInterface(New(ServerConnector(ch)))
 	}
 
 	if pushProxyInterface != nil {
