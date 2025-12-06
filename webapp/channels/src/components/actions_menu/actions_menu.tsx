@@ -12,6 +12,7 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import ViewTranslationModal from 'components/view_translation_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
@@ -45,6 +46,7 @@ export type Props = {
     post: Post;
     teamId: string;
     canOpenMarketplace: boolean;
+    isChannelAutotranslated?: boolean;
 
     /**
      * Components for overriding provided by plugins
@@ -296,6 +298,32 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         const {formatMessage} = this.props.intl;
 
+        const canViewTranslation = this.props.isChannelAutotranslated &&
+            this.props.post.translation_state === 'ready' &&
+            this.props.post.translation;
+
+        let viewTranslation = null;
+        if (canViewTranslation) {
+            viewTranslation = (
+                <Menu.ItemAction
+                    id={`view_translation_${this.props.post.id}`}
+                    key={`view_translation_${this.props.post.id}`}
+                    text={formatMessage({id: 'post_info.view_translation', defaultMessage: 'View Translation'})}
+                    icon={<ActionsMenuIcon name='icon-globe'/>}
+                    onClick={() => {
+                        this.closeDropdown();
+                        requestAnimationFrame(() => {
+                            this.props.actions.openModal({
+                                modalId: ModalIdentifiers.VIEW_TRANSLATION,
+                                dialogType: ViewTranslationModal,
+                                dialogProps: {postId: this.props.post.id},
+                            });
+                        });
+                    }}
+                />
+            );
+        }
+
         let marketPlace = null;
         if (this.props.canOpenMarketplace) {
             marketPlace = (
@@ -317,7 +345,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         const hasPluggables = Boolean(this.props.pluginMenuItemComponents?.length);
         const hasPluginItems = Boolean(pluginItems?.length);
 
-        const hasPluginMenuItems = hasPluginItems || hasApps || hasPluggables;
+        const hasPluginMenuItems = hasPluginItems || hasApps || hasPluggables || canViewTranslation;
         if (!this.props.canOpenMarketplace && !hasPluginMenuItems) {
             return null;
         }
@@ -338,6 +366,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                 pluginItems,
                 appBindings,
                 pluggable,
+                viewTranslation,
                 marketPlace,
             ];
 

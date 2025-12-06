@@ -19,8 +19,9 @@ import type {
 import type {OptsSignalExt} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Post} from '@mattermost/types/posts';
 
-import {ChannelTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {MarkUnread} from 'mattermost-redux/constants/channels';
@@ -30,6 +31,7 @@ import {
     getMyChannelMember as getMyChannelMemberSelector,
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getAllPosts} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
@@ -37,6 +39,7 @@ import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+import {postRemoved} from './posts';
 import {savePreferences} from './preferences';
 import {loadRolesIfNeeded} from './roles';
 import {getMissingProfilesByIds} from './users';
@@ -260,6 +263,97 @@ export function patchChannel(channelId: string, patch: Partial<Channel>): Action
         onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
         params: [channelId, patch],
     });
+}
+
+export function deletePostsForChannel(channelId: string): ActionFunc {
+    return (dispatch, getState) => {
+        const state = getState();
+        const allPosts = getAllPosts(state);
+        const postsToRemove: Post[] = [];
+
+        // Find all posts in this channel
+        for (const post of Object.values(allPosts)) {
+            if (post.channel_id === channelId) {
+                postsToRemove.push(post);
+            }
+        }
+
+        // Dispatch POST_REMOVED for each post
+        const actions: AnyAction[] = [];
+        for (const post of postsToRemove) {
+            actions.push(postRemoved(post));
+        }
+
+        // Also clear postsInChannel for this channel
+        actions.push({
+            type: PostTypes.RESET_POSTS_IN_CHANNEL,
+            channelId,
+        });
+
+        if (actions.length > 0) {
+            dispatch(batchActions(actions));
+        }
+
+        return {data: true};
+    };
+}
+
+export function setChannelAutotranslation(channelId: string, enabled: boolean): ActionFuncAsync<Channel> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const channel = getChannelSelector(state, channelId);
+        const wasEnabled = channel?.autotranslation;
+
+        let response;
+        try {
+            response = await Client4.setChannelAutotranslation(channelId, enabled);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNEL,
+            data: response.data,
+        });
+
+        // If autotranslation was disabled, delete posts for this channel
+        if (wasEnabled && !enabled) {
+            dispatch(deletePostsForChannel(channelId));
+        }
+
+        return {data: response.data};
+    };
+}
+
+export function setMyChannelAutotranslation(channelId: string, enabled: boolean): ActionFuncAsync<ChannelMembership> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const myChannelMember = getMyChannelMemberSelector(state, channelId);
+        const wasEnabled = myChannelMember?.autotranslation;
+
+        let response;
+        try {
+            response = await Client4.setMyChannelAutotranslation(channelId, enabled);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
+            data: response.data,
+        });
+
+        // If autotranslation changed, delete posts for this channel
+        if (wasEnabled !== enabled) {
+            dispatch(deletePostsForChannel(channelId));
+        }
+
+        return {data: response.data};
+    };
 }
 
 export function updateChannelPrivacy(channelId: string, privacy: string): ActionFuncAsync<Channel> {
