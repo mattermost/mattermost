@@ -4476,7 +4476,7 @@ func TestLoginCookies(t *testing.T) {
 
 		r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
 			http.MethodPost,
-			th.Client.APIURL+"/users/login/cws",
+			"/users/login/cws",
 			form.Encode(),
 			map[string]string{
 				"Content-Type": "application/x-www-form-urlencoded",
