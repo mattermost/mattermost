@@ -61,18 +61,20 @@
  *      - will be used for parallel testing where each part could run separately against its own test server
  */
 
-const os = require('os');
+import os from 'os';
 
-const chalk = require('chalk');
-const cypress = require('cypress');
-const argv = require('yargs').argv;
+import chalk from 'chalk';
+import cypress from 'cypress';
+import dotenv from 'dotenv';
 
-const {getSortedTestFiles} = require('./utils/file');
-const {getTestFilesIdentifier} = require('./utils/even_distribution');
-const {writeJsonToFile} = require('./utils/report');
-const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('./utils/constants');
+import {initializeYargs} from './utils/args.js';
+import {getSortedTestFiles} from './utils/file.js';
+import {getTestFilesIdentifier} from './utils/even_distribution.js';
+import {writeJsonToFile} from './utils/report.js';
+import {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} from './utils/constants.js';
 
-require('dotenv').config();
+dotenv.config({quiet: true});
+const argv = await initializeYargs();
 
 async function runTests() {
     const {
@@ -88,7 +90,7 @@ async function runTests() {
     const stressTestCount = argv.stressTestCount > 1 ? argv.stressTestCount : 1;
     const testPasses = {};
 
-    const sortedFilesObject = getSortedTestFiles(platform, browser, headless);
+    const sortedFilesObject = getSortedTestFiles(platform, browser, headless, argv);
     const sortedFiles = sortedFilesObject.sortedFiles.flatMap((el) => Array(stressTestCount).fill(el));
     const numberOfTestFiles = sortedFiles.length;
 
