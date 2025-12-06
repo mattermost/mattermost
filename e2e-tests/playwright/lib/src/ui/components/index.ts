@@ -44,6 +44,7 @@ import DeletePostConfirmationDialog from './channels/delete_post_confirmation_di
 import RestorePostConfirmationDialog from './channels/restore_post_confirmation_dialog';
 import SystemConsoleFeatureDiscovery from './system_console/sections/system_users/feature_discovery';
 import SystemConsoleMobileSecurity from './system_console/sections/system_users/mobile_security';
+import SystemConsoleNotifications from './system_console/sections/site_configuration/notifications';
 import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
@@ -91,6 +92,7 @@ const components = {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleNotifications,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
@@ -143,6 +145,7 @@ export {
     SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
     SystemConsoleMobileSecurity,
+    SystemConsoleNotifications,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
