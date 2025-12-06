@@ -288,44 +288,128 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
 });
 
 /**
- * @objective Verify inline comment position preservation after edits
+ * @objective Verify inline comment position preservation after inserting text before comment
+ *
+ * @precondition
+ * Tests that when text is inserted BEFORE the commented text, the highlight
+ * still correctly points to the original commented text (not shifted text)
  */
-test('preserves inline comment position after nearby text edits', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+test(
+    'preserves inline comment position after inserting text before comment',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
 
-    // # Create wiki and page through UI
-    await createWikiAndPage(
-        page,
-        `Edit Preserve Wiki ${await pw.random.id()}`,
-        'Editable Page',
-        'The quick brown fox jumps over the lazy dog',
-    );
+        // Use distinctive text that won't be confused with added prefix
+        const originalText = 'The quick brown fox jumps over the lazy dog';
+        const commentText = 'This is interesting';
 
-    // # Add inline comment
-    await enterEditMode(page);
-    await addInlineCommentInEditMode(page, 'This is interesting');
-    await publishPage(page);
+        // # Create wiki and page through UI
+        await createWikiAndPage(page, `Edit Preserve Wiki ${await pw.random.id()}`, 'Editable Page', originalText);
 
-    // * Verify comment marker exists
-    const commentMarker = await verifyCommentMarkerVisible(page);
+        // # Add inline comment on the original text
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, commentText);
+        await publishPage(page);
 
-    // # Edit page - add text before the commented section
-    await enterEditMode(page);
-    const editor = getEditor(page);
-    await editor.click();
-    await page.keyboard.press('Home');
-    await page.keyboard.type('Prefix: ');
+        // * Verify comment marker exists
+        const commentMarker = await verifyCommentMarkerVisible(page);
 
-    await publishPage(page);
+        // # Edit page - add text BEFORE the commented section
+        await enterEditMode(page);
+        const editor = getEditor(page);
+        await editor.click();
+        await page.keyboard.press('Home');
+        await page.keyboard.type('Prefix: ');
 
-    // * Verify marker still exists after edit
-    await expect(commentMarker).toBeVisible();
-});
+        await publishPage(page);
+
+        // * Verify marker still exists after edit
+        await expect(commentMarker).toBeVisible();
+
+        // * Verify the highlight is on the CORRECT text by clicking marker and checking RHS
+        // The RHS should show the original anchor text, not "Prefix" or shifted text
+        const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
+
+        // * Verify the anchor text in RHS matches what was originally commented on
+        // The anchor box should contain the original text, not "Prefix:" or other shifted content
+        await verifyWikiRHSContent(page, rhs, [originalText, commentText]);
+
+        // * Additionally verify the highlighted text in editor matches original
+        // Get the text content of the highlight span
+        const highlightedText = await page.locator('.inline-comment-highlight').first().textContent();
+        expect(highlightedText).toContain('The quick brown fox');
+    },
+);
+
+/**
+ * @objective Verify inline comment position preservation after deleting text before comment
+ *
+ * @precondition
+ * Tests that when text is deleted BEFORE the commented text, the highlight
+ * still correctly points to the original commented text (not shifted text)
+ */
+test(
+    'preserves inline comment position after deleting text before comment',
+    {tag: '@pages'},
+    async ({pw, sharedPagesSetup}) => {
+        const {team, user, adminClient} = sharedPagesSetup;
+        const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // Use text with a prefix that will be deleted
+        const prefixText = 'DELETE THIS: ';
+        const commentedText = 'The quick brown fox jumps over the lazy dog';
+        const fullText = prefixText + commentedText;
+        const commentText = 'This is interesting';
+
+        // # Create wiki and page through UI with prefix text
+        await createWikiAndPage(page, `Delete Edit Wiki ${await pw.random.id()}`, 'Editable Page', fullText);
+
+        // # Add inline comment on the text AFTER the prefix (the part we want to keep)
+        await enterEditMode(page);
+        await addInlineCommentInEditMode(page, commentText, commentedText);
+        await publishPage(page);
+
+        // * Verify comment marker exists
+        const commentMarker = await verifyCommentMarkerVisible(page);
+
+        // # Edit page - delete the prefix text BEFORE the commented section
+        await enterEditMode(page);
+        const editor = getEditor(page);
+        await editor.click();
+        await page.keyboard.press('Home');
+
+        // Select and delete the prefix text
+        for (let i = 0; i < prefixText.length; i++) {
+            await page.keyboard.press('Shift+ArrowRight');
+        }
+        await page.keyboard.press('Delete');
+
+        await publishPage(page);
+
+        // * Verify marker still exists after edit
+        await expect(commentMarker).toBeVisible();
+
+        // * Verify the highlight is on the CORRECT text by clicking marker and checking RHS
+        const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
+
+        // * Verify the anchor text in RHS matches what was originally commented on
+        await verifyWikiRHSContent(page, rhs, [commentedText, commentText]);
+
+        // * Additionally verify the highlighted text in editor matches original
+        const highlightedText = await page.locator('.inline-comment-highlight').first().textContent();
+        expect(highlightedText).toContain('The quick brown fox');
+    },
+);
 
 /**
  * @objective Verify inline comment deletion

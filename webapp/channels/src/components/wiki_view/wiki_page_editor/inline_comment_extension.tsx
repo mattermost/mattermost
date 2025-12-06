@@ -26,12 +26,82 @@ export type InlineCommentConfig = {
 };
 
 /**
+ * Searches for a text pattern in the document and returns its ProseMirror position range.
+ * This properly handles the mapping between plain text indices and document positions.
+ *
+ * @param doc - ProseMirror document node
+ * @param searchText - The text to find
+ * @param startCharIndex - Optional hint for where to start searching (plain text index)
+ * @returns Position range {from, to} or null if not found
+ */
+function findTextInDocument(
+    doc: ProseMirrorNode,
+    searchText: string,
+    startCharIndex?: number,
+): {from: number; to: number} | null {
+    if (!searchText) {
+        return null;
+    }
+
+    let charCount = 0;
+    let result: {from: number; to: number} | null = null;
+
+    // Walk through document content
+    doc.descendants((node, pos) => {
+        if (result) {
+            return false; // Already found, stop walking
+        }
+
+        if (node.isText && node.text) {
+            const nodeText = node.text;
+            const textLen = nodeText.length;
+
+            // Check if the search text could start in this node
+            // If we have a hint, skip nodes that are clearly before the expected position
+            if (startCharIndex !== undefined && charCount + textLen <= startCharIndex) {
+                charCount += textLen;
+                return true; // Continue to next node
+            }
+
+            // Look for the search text starting in this node
+            const searchStart = startCharIndex === undefined ? 0 : Math.max(0, startCharIndex - charCount);
+            const idx = nodeText.indexOf(searchText, searchStart);
+
+            if (idx !== -1) {
+                // Found it! Calculate document positions
+                const from = pos + idx;
+                const to = from + searchText.length;
+
+                // Verify by checking the text at these positions
+                try {
+                    const foundText = doc.textBetween(from, to);
+                    if (foundText === searchText) {
+                        result = {from, to};
+                        return false; // Stop walking
+                    }
+                } catch {
+                    // Position out of range, continue searching
+                }
+            }
+
+            charCount += textLen;
+        }
+        return true; // Continue walking
+    });
+
+    // If not found with hint, try without hint (full search)
+    if (!result && startCharIndex !== undefined) {
+        return findTextInDocument(doc, searchText);
+    }
+
+    return result;
+}
+
+/**
  * Finds the position of anchor text in a ProseMirror document.
  * Uses a multi-strategy approach for resilience against document edits:
  * 1. Try stored char_offset (fast path - works when document unchanged)
- * 2. Search using full context pattern (context_before + text + context_after)
- * 3. Search using partial context (just context_before + text, or text + context_after)
- * 4. Search for exact text match (last resort)
+ * 2. Search for exact text match using proper document position mapping
  *
  * @returns Position range {from, to} or null if text cannot be found
  */
@@ -39,7 +109,7 @@ function findAnchorPosition(
     doc: ProseMirrorNode,
     anchor: InlineAnchor,
 ): {from: number; to: number} | null {
-    const {text, char_offset: offset, context_before: ctxBefore, context_after: ctxAfter} = anchor;
+    const {text, char_offset: offset} = anchor;
 
     if (!text) {
         return null;
@@ -59,47 +129,11 @@ function findAnchorPosition(
         }
     }
 
-    // Get full document text for search strategies
-    let fullText: string;
-    try {
-        fullText = doc.textBetween(0, docSize);
-    } catch {
-        return null;
-    }
-
-    // Strategy 2: Search using full context pattern
-    if (ctxBefore && ctxAfter) {
-        const fullPattern = ctxBefore + text + ctxAfter;
-        const idx = fullText.indexOf(fullPattern);
-        if (idx !== -1) {
-            const from = idx + ctxBefore.length;
-            return {from, to: from + text.length};
-        }
-    }
-
-    // Strategy 3a: Search using context_before + text
-    if (ctxBefore) {
-        const pattern = ctxBefore + text;
-        const idx = fullText.indexOf(pattern);
-        if (idx !== -1) {
-            const from = idx + ctxBefore.length;
-            return {from, to: from + text.length};
-        }
-    }
-
-    // Strategy 3b: Search using text + context_after
-    if (ctxAfter) {
-        const pattern = text + ctxAfter;
-        const idx = fullText.indexOf(pattern);
-        if (idx !== -1) {
-            return {from: idx, to: idx + text.length};
-        }
-    }
-
-    // Strategy 4: Search for exact text (last resort)
-    const idx = fullText.indexOf(text);
-    if (idx !== -1) {
-        return {from: idx, to: idx + text.length};
+    // Strategy 2: Search for exact text using proper document traversal
+    // This handles the case where text was inserted/deleted before the anchor
+    const result = findTextInDocument(doc, text);
+    if (result) {
+        return result;
     }
 
     return null;

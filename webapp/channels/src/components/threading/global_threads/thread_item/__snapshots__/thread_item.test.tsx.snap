@@ -10,12 +10,6 @@ exports[`components/threading/global_threads/thread_item should report total num
     onClick={[Function]}
     onKeyDown={[Function]}
     role="link"
-    style={
-      Object {
-        "height": "auto",
-        "minHeight": undefined,
-      }
-    }
     tabIndex={0}
   >
     <div
@@ -167,12 +161,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
     onClick={[Function]}
     onKeyDown={[Function]}
     role="link"
-    style={
-      Object {
-        "height": "auto",
-        "minHeight": undefined,
-      }
-    }
     tabIndex={0}
   >
     <div
@@ -333,12 +321,6 @@ exports[`components/threading/global_threads/thread_item should report unread me
     onClick={[Function]}
     onKeyDown={[Function]}
     role="link"
-    style={
-      Object {
-        "height": "auto",
-        "minHeight": undefined,
-      }
-    }
     tabIndex={0}
   >
     <div
