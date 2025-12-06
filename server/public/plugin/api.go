@@ -860,6 +860,14 @@ type API interface {
 	// Minimum server version: 5.6
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
+	// SendToastMessage sends a toast notification to a specific user or user session.
+	// The userID parameter specifies the user to send the toast to (all their sessions).
+	// If options.ConnectionID is set, the toast will only be sent to that specific connection.
+	//
+	// @tag Frontend
+	// Minimum server version: 11.3
+	SendToastMessage(userID, message string, options model.SendToastMessageOptions) *model.AppError
+
 	// Plugin Section
 
 	// GetPlugins will return a list of plugin manifests for currently active plugins.

@@ -729,6 +729,7 @@ func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPR
 
 func init() {
 	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedID
+	hookNameToId["FileWillBeDownloaded"] = FileWillBeDownloadedID
 }
 
 type Z_FileWillBeUploadedArgs struct {

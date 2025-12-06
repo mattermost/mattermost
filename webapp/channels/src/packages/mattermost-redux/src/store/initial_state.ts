@@ -148,6 +148,7 @@ const state: GlobalState = {
             files: {},
             filesFromSearch: {},
             fileIdsByPostId: {},
+            rejectedFiles: new Set(),
         },
         emojis: {
             customEmoji: {},
