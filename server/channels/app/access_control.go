@@ -347,7 +347,7 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 	}
 
 	// Check if user has channel admin permission for the specific channel
-	if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules) {
+	if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules); !ok {
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
@@ -392,7 +392,7 @@ func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX,
 	// For read-only operations, allow access to system policies if they're applied to the specific channel
 	if opts.isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && opts.channelID != "" {
 		// Check if user has access to the channel
-		if !a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel) {
+		if ok, _ := a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel); !ok {
 			return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+opts.channelID, http.StatusForbidden)
 		}
 

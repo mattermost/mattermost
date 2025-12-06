@@ -142,7 +142,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
@@ -316,7 +316,7 @@ NextPart:
 		if c.Err != nil {
 			return nil
 		}
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return nil
 		}
@@ -429,7 +429,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	if c.Err != nil {
 		return nil
 	}
-	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile); !ok {
 		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
@@ -570,8 +570,8 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "file", fileInfo)
 
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !isContentReviewer {
-		perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 		if fileInfo.CreatorId == model.BookmarkFileOwner {
 			if !perm {
 				c.SetPermissionError(model.PermissionReadChannelContent)
@@ -594,6 +594,10 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	web.WriteFileResponse(fileInfo.Name, fileInfo.MimeType, fileInfo.Size, time.Unix(0, fileInfo.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
 }
 
 func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -615,7 +619,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -640,6 +644,13 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer fileReader.Close()
 
 	web.WriteFileResponse(info.Name, ThumbnailImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedThumbnailWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_file_thumbnail")
+		auditRec.AddMeta("file_id", c.Params.FileId)
+	}
 }
 
 func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -669,7 +680,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -683,6 +694,10 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	if info.PostId == "" && info.CreatorId != model.BookmarkFileOwner {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
+	}
+
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
 	resp := make(map[string]string)
@@ -715,7 +730,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -740,6 +755,13 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer fileReader.Close()
 
 	web.WriteFileResponse(info.Name, PreviewImageType, 0, time.Unix(0, info.UpdateAt*int64(1000*1000)), *c.App.Config().ServiceSettings.WebserverMode, fileReader, forceDownload, w, r)
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedFilePreviewWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_file_preview")
+		auditRec.AddMeta("file_id", c.Params.FileId)
+	}
 }
 
 func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -760,7 +782,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	perm := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
 			c.SetPermissionError(model.PermissionReadChannelContent)
@@ -774,6 +796,13 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	if err := json.NewEncoder(w).Encode(info); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedFileInfoWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_file_info")
+		auditRec.AddMeta("file_id", c.Params.FileId)
 	}
 }
 

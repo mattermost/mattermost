@@ -151,11 +151,15 @@ const (
 
 // Files
 const (
-	AuditEventGetFile                   = "getFile"                   // get or download file
-	AuditEventGetFileLink               = "getFileLink"               // generate link for file sharing
-	AuditEventUploadFileMultipart       = "uploadFileMultipart"       // upload file using multipart form data
-	AuditEventUploadFileMultipartLegacy = "uploadFileMultipartLegacy" // upload file using legacy multipart method
-	AuditEventUploadFileSimple          = "uploadFileSimple"          // upload file using simple direct upload method
+	AuditEventGetFile                                 = "getFile"                                 // get or download file
+	AuditEventGetFileLink                             = "getFileLink"                             // generate link for file sharing
+	AuditEventUploadFileMultipart                     = "uploadFileMultipart"                     // upload file using multipart form data
+	AuditEventUploadFileMultipartLegacy               = "uploadFileMultipartLegacy"               // upload file using legacy multipart method
+	AuditEventUploadFileSimple                        = "uploadFileSimple"                        // upload file using simple direct upload method
+	AuditEventViewedFilePreviewWithoutMembership      = "viewedFilePreviewWithoutMembership"      // view file preview without membership
+	AuditEventViewedFileInfoWithoutMembership         = "viewedFileInfoWithoutMembership"         // view file info without membership
+	AuditEventViewedThumbnailWithoutMembership        = "viewedThumbnailWithoutMembership"        // view thumbnail without membership
+	AuditEventViewedChannelBookmarksWithoutMembership = "viewedChannelBookmarksWithoutMembership" // view channel bookmarks without membership
 )
 
 // Groups
@@ -244,15 +248,17 @@ const (
 
 // Posts
 const (
-	AuditEventCreatePost         = "createPost"         // create post
-	AuditEventDeletePost         = "deletePost"         // delete post
-	AuditEventLocalDeletePost    = "localDeletePost"    // delete post locally
-	AuditEventMoveThread         = "moveThread"         // move thread and replies to different channel
-	AuditEventPatchPost          = "patchPost"          // update post meta properties
-	AuditEventRestorePostVersion = "restorePostVersion" // restore post to previous version
-	AuditEventSaveIsPinnedPost   = "saveIsPinnedPost"   // pin or unpin post
-	AuditEventSearchPosts        = "searchPosts"        // search for posts
-	AuditEventUpdatePost         = "updatePost"         // update post content
+	AuditEventCreatePost                         = "createPost"                         // create post
+	AuditEventDeletePost                         = "deletePost"                         // delete post
+	AuditEventLocalDeletePost                    = "localDeletePost"                    // delete post locally
+	AuditEventMoveThread                         = "moveThread"                         // move thread and replies to different channel
+	AuditEventPatchPost                          = "patchPost"                          // update post meta properties
+	AuditEventRestorePostVersion                 = "restorePostVersion"                 // restore post to previous version
+	AuditEventSaveIsPinnedPost                   = "saveIsPinnedPost"                   // pin or unpin post
+	AuditEventSearchPosts                        = "searchPosts"                        // search for posts
+	AuditEventUpdatePost                         = "updatePost"                         // update post content
+	AuditEventViewedPostWithoutMembership        = "viewedPostWithoutMembership"        // view post without membership
+	AuditEventViewedPinnedPostsWithoutMembership = "viewedPinnedPostsWithoutMembership" // view pinned posts without membership
 )
 
 // Preferences
