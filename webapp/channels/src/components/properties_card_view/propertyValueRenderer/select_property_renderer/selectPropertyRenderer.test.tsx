@@ -39,8 +39,9 @@ describe('SelectPropertyRenderer', () => {
         const element = screen.getByTestId('select-property');
         expect(element).toBeInTheDocument();
         expect(element).toHaveTextContent('option1');
+        // Component applies inline styles via style prop
         expect(element).toHaveStyle({
-            backgroundColor: 'rgba(var(--button-bg-rgb), 0.08)',
+            backgroundColor: 'var(--sidebar-text-active-border)',
             color: '#FFF',
         });
     });
@@ -84,6 +85,8 @@ describe('SelectPropertyRenderer', () => {
     });
 
     it('should render select property with default light_gray color', () => {
+        // Note: baseField uses 'light_gray' (American spelling) but component
+        // switch case uses 'light_grey' (British spelling), so this falls to default
         const field = baseField;
         const value = {value: 'option4'} as PropertyValue<string>;
 

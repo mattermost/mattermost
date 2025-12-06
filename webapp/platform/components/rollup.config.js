@@ -4,18 +4,23 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import scss from 'rollup-plugin-scss';
+import sassModern from './rollup-plugin-sass-modern.mjs';
 
 import packagejson from './package.json';
 
-const externals = [
+const externalPackages = [
     ...Object.keys(packagejson.dependencies || {}),
     ...Object.keys(packagejson.peerDependencies || {}),
-    'lodash/throttle',
+    'lodash',
     'react',
     'mattermost-redux',
     'reselect',
 ];
+
+// Function to check if an import should be external (handles subpath imports)
+const isExternal = (id) => {
+    return externalPackages.some((pkg) => id === pkg || id.startsWith(`${pkg}/`));
+};
 
 export default [
     {
@@ -29,9 +34,9 @@ export default [
             },
         ],
         plugins: [
-            scss({
+            sassModern({
                 fileName: 'index.esm.css',
-                outputToFilesystem: true,
+                sourceMap: true,
             }),
             resolve({
                 browser: true,
@@ -42,7 +47,7 @@ export default [
                 outputToFilesystem: true,
             }),
         ],
-        external: externals,
+        external: isExternal,
         watch: {
             clearScreen: false,
         },

@@ -133,7 +133,7 @@ jobs:
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -164,7 +164,7 @@ jobs:
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -246,7 +246,7 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -333,7 +333,7 @@ jobs:
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/setup-node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -412,7 +412,7 @@ jobs:
             e2e-tests/${{ inputs.TEST }}/results/
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         id: setup_node
         with:
           node-version-file: ".nvmrc"
