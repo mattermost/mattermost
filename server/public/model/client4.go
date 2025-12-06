@@ -3414,11 +3414,11 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 }
 
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
-func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	values := url.Values{}
 	values.Set("since", strconv.FormatInt(time, 10))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), "")
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3469,12 +3469,12 @@ func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThr
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
-func (c *Client4) GetPostsAroundLastUnread(ctx context.Context, userId, channelId string, limitBefore, limitAfter int, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsAroundLastUnread(ctx context.Context, userId, channelId string, limitBefore, limitAfter int, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	values := url.Values{}
 	values.Set("limit_before", strconv.Itoa(limitBefore))
 	values.Set("limit_after", strconv.Itoa(limitAfter))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
-	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.channelRoute(channelId)+"/posts/unread?"+values.Encode(), "")
+	r, err := c.DoAPIGet(ctx, c.userRoute(userId)+c.channelRoute(channelId)+"/posts/unread?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
