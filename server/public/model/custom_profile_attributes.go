@@ -16,12 +16,14 @@ const CustomProfileAttributesPropertyGroupName = "custom_profile_attributes"
 
 const (
 	// Attributes keys
-	CustomProfileAttributesPropertyAttrsSortOrder  = "sort_order"
-	CustomProfileAttributesPropertyAttrsValueType  = "value_type"
-	CustomProfileAttributesPropertyAttrsVisibility = "visibility"
-	CustomProfileAttributesPropertyAttrsLDAP       = "ldap"
-	CustomProfileAttributesPropertyAttrsSAML       = "saml"
-	CustomProfileAttributesPropertyAttrsManaged    = "managed"
+	CustomProfileAttributesPropertyAttrsSortOrder      = "sort_order"
+	CustomProfileAttributesPropertyAttrsValueType      = "value_type"
+	CustomProfileAttributesPropertyAttrsVisibility     = "visibility"
+	CustomProfileAttributesPropertyAttrsLDAP           = "ldap"
+	CustomProfileAttributesPropertyAttrsSAML           = "saml"
+	CustomProfileAttributesPropertyAttrsManaged        = "managed"
+	CustomProfileAttributesPropertyAttrsProtected      = "protected"
+	CustomProfileAttributesPropertyAttrsSourcePluginID = "source_plugin_id"
 
 	// Value Types
 	CustomProfileAttributesValueTypeEmail = "email"
@@ -112,13 +114,15 @@ type CPAField struct {
 }
 
 type CPAAttrs struct {
-	Visibility string                                                `json:"visibility"`
-	SortOrder  float64                                               `json:"sort_order"`
-	Options    PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
-	ValueType  string                                                `json:"value_type"`
-	LDAP       string                                                `json:"ldap"`
-	SAML       string                                                `json:"saml"`
-	Managed    string                                                `json:"managed"`
+	Visibility     string                                                `json:"visibility"`
+	SortOrder      float64                                               `json:"sort_order"`
+	Options        PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
+	ValueType      string                                                `json:"value_type"`
+	LDAP           string                                                `json:"ldap"`
+	SAML           string                                                `json:"saml"`
+	Managed        string                                                `json:"managed"`
+	Protected      bool                                                  `json:"protected"`
+	SourcePluginID string                                                `json:"source_plugin_id"`
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -127,6 +131,11 @@ func (c *CPAField) IsSynced() bool {
 
 func (c *CPAField) IsAdminManaged() bool {
 	return c.Attrs.Managed == "admin"
+}
+
+// IsProtected returns whether the field is protected from modifications
+func (c *CPAField) IsProtected() bool {
+	return c.Attrs.Protected
 }
 
 // SetDefaults sets default values for CPAField attributes
@@ -166,13 +175,15 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 
 	pf.Attrs = StringInterface{
-		CustomProfileAttributesPropertyAttrsVisibility: c.Attrs.Visibility,
-		CustomProfileAttributesPropertyAttrsSortOrder:  c.Attrs.SortOrder,
-		CustomProfileAttributesPropertyAttrsValueType:  c.Attrs.ValueType,
-		PropertyFieldAttributeOptions:                  c.Attrs.Options,
-		CustomProfileAttributesPropertyAttrsLDAP:       c.Attrs.LDAP,
-		CustomProfileAttributesPropertyAttrsSAML:       c.Attrs.SAML,
-		CustomProfileAttributesPropertyAttrsManaged:    c.Attrs.Managed,
+		CustomProfileAttributesPropertyAttrsVisibility:     c.Attrs.Visibility,
+		CustomProfileAttributesPropertyAttrsSortOrder:      c.Attrs.SortOrder,
+		CustomProfileAttributesPropertyAttrsValueType:      c.Attrs.ValueType,
+		PropertyFieldAttributeOptions:                      c.Attrs.Options,
+		CustomProfileAttributesPropertyAttrsLDAP:           c.Attrs.LDAP,
+		CustomProfileAttributesPropertyAttrsSAML:           c.Attrs.SAML,
+		CustomProfileAttributesPropertyAttrsManaged:        c.Attrs.Managed,
+		CustomProfileAttributesPropertyAttrsProtected:      c.Attrs.Protected,
+		CustomProfileAttributesPropertyAttrsSourcePluginID: c.Attrs.SourcePluginID,
 	}
 
 	return &pf
@@ -262,6 +273,37 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 	}
 
 	return nil
+}
+
+// EnsureNoSourcePluginID validates that source_plugin_id is not set
+func (c *CPAField) EnsureNoSourcePluginID() *AppError {
+	if c.Attrs.SourcePluginID != "" {
+		return NewAppError("EnsureNoSourcePluginID",
+			"app.custom_profile_attributes.source_plugin_id_not_allowed.app_error",
+			nil,
+			"source_plugin_id can only be set via Plugin API",
+			http.StatusBadRequest)
+	}
+	return nil
+}
+
+func (c *CPAField) CanModifyField(callerPluginID string) bool {
+	return CanModifyPropertyField(&c.PropertyField, callerPluginID)
+}
+
+// CanModifyPropertyField checks if the given plugin can modify a PropertyField
+func CanModifyPropertyField(field *PropertyField, callerPluginID string) bool {
+	if field.Attrs == nil {
+		return true
+	}
+
+	if protected, ok := field.Attrs[CustomProfileAttributesPropertyAttrsProtected].(bool); !ok || !protected {
+		return true
+	}
+
+	// Field is protected - only the source plugin can modify
+	sourcePluginID, _ := field.Attrs[CustomProfileAttributesPropertyAttrsSourcePluginID].(string)
+	return sourcePluginID != "" && sourcePluginID == callerPluginID
 }
 
 func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {

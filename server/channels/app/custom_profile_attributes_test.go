@@ -1078,3 +1078,180 @@ func TestDeleteCPAValues(t *testing.T) {
 		require.Len(t, values, 3)
 	})
 }
+
+func TestValidatePluginFieldUpdate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaGroupID, cErr := th.App.CpaGroupID()
+	require.NoError(t, cErr)
+
+	t.Run("allows source plugin to update protected field", func(t *testing.T) {
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Source plugin should be allowed to update
+		appErr := th.App.ValidatePluginFieldUpdate(cpaGroupID, createdField.ID, "plugin1")
+		require.Nil(t, appErr)
+	})
+
+	t.Run("denies different plugin from updating protected field", func(t *testing.T) {
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Different plugin should be denied
+		appErr := th.App.ValidatePluginFieldUpdate(cpaGroupID, createdField.ID, "plugin2")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.field_is_protected.app_error", appErr.Id)
+	})
+
+	t.Run("allows any plugin to update non-protected field", func(t *testing.T) {
+		regularField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(regularField)
+		require.NoError(t, err)
+
+		// Any plugin should be allowed to update non-protected field
+		appErr := th.App.ValidatePluginFieldUpdate(cpaGroupID, createdField.ID, "plugin2")
+		require.Nil(t, appErr)
+	})
+}
+
+func TestValidatePluginFieldDelete(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaGroupID, cErr := th.App.CpaGroupID()
+	require.NoError(t, cErr)
+
+	t.Run("allows source plugin to delete protected field", func(t *testing.T) {
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Source plugin should be allowed to delete
+		appErr := th.App.ValidatePluginFieldDelete(cpaGroupID, createdField.ID, "plugin1")
+		require.Nil(t, appErr)
+	})
+
+	t.Run("denies different plugin from deleting protected field", func(t *testing.T) {
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Different plugin should be denied
+		appErr := th.App.ValidatePluginFieldDelete(cpaGroupID, createdField.ID, "plugin2")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.field_is_protected.app_error", appErr.Id)
+	})
+}
+
+func TestValidatePluginValueUpdate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaGroupID, cErr := th.App.CpaGroupID()
+	require.NoError(t, cErr)
+
+	t.Run("allows source plugin to update values for protected field", func(t *testing.T) {
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Source plugin should be allowed to update values
+		appErr := th.App.ValidatePluginValueUpdate(cpaGroupID, createdField.ID, "plugin1")
+		require.Nil(t, appErr)
+	})
+
+	t.Run("denies different plugin from updating values for protected field", func(t *testing.T) {
+		protectedField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsProtected:      true,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		require.NoError(t, err)
+
+		// Different plugin should be denied
+		appErr := th.App.ValidatePluginValueUpdate(cpaGroupID, createdField.ID, "plugin2")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.field_is_protected.app_error", appErr.Id)
+	})
+
+	t.Run("allows any plugin to update values for non-protected field", func(t *testing.T) {
+		regularField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(regularField)
+		require.NoError(t, err)
+
+		// Any plugin should be allowed to update values for non-protected field
+		appErr := th.App.ValidatePluginValueUpdate(cpaGroupID, createdField.ID, "plugin2")
+		require.Nil(t, appErr)
+	})
+}
