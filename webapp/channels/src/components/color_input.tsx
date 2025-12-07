@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {ChromePicker} from 'react-color';
-import type {ColorResult} from 'react-color';
+import React, {useCallback, useRef, useState, useEffect} from 'react';
+import {HexColorPicker} from 'react-colorful';
 import tinycolor from 'tinycolor2';
 
 type Props = {
@@ -13,172 +12,130 @@ type Props = {
     isDisabled?: boolean;
 }
 
-type State = {
-    focused: boolean;
-    isOpened: boolean;
-    value: string;
-}
+export default function ColorInput({id, onChange, value, isDisabled}: Props) {
+    const [localValue, setLocalValue] = useState(value);
+    const [focused, setFocused] = useState(false);
+    const [isOpened, setIsOpened] = useState(false);
+    const colorInputRef = useRef<HTMLInputElement>(null);
+    const colorPickerRef = useRef<HTMLDivElement>(null);
 
-export default class ColorInput extends React.PureComponent<Props, State> {
-    private colorPicker: React.RefObject<HTMLDivElement>;
-    private colorInput: React.RefObject<HTMLInputElement>;
+    // Sync local value with prop when not focused
+    useEffect(() => {
+        if (!focused && value !== localValue) {
+            setLocalValue(value);
+        }
+    }, [value, focused, localValue]);
 
-    public constructor(props: Props) {
-        super(props);
-        this.colorPicker = React.createRef();
-        this.colorInput = React.createRef();
-
-        this.state = {
-            focused: false,
-            isOpened: false,
-            value: props.value,
-        };
-    }
-
-    static getDerivedStateFromProps(props: Props, state: State) {
-        if (!state.focused && props.value !== state.value) {
-            return {
-                value: props.value,
-            };
+    // Handle clicks outside the picker to close it
+    useEffect(() => {
+        if (!isOpened) {
+            return undefined;
         }
 
-        return null;
-    }
-
-    public componentDidUpdate(prevProps: Props, prevState: State) {
-        const {isOpened: prevIsOpened} = prevState;
-        const {isOpened} = this.state;
-
-        if (isOpened !== prevIsOpened) {
-            if (isOpened) {
-                document.addEventListener('click', this.checkClick, {capture: true});
-            } else {
-                document.removeEventListener('click', this.checkClick);
+        const handleClickOutside = (e: MouseEvent) => {
+            if (colorPickerRef.current && !colorPickerRef.current.contains(e.target as Element)) {
+                setIsOpened(false);
             }
+        };
+
+        document.addEventListener('click', handleClickOutside, {capture: true});
+        return () => document.removeEventListener('click', handleClickOutside, {capture: true});
+    }, [isOpened]);
+
+    const togglePicker = useCallback(() => {
+        if (!isOpened && colorInputRef.current) {
+            colorInputRef.current.focus();
         }
-    }
+        setIsOpened((prev) => !prev);
+    }, [isOpened]);
 
-    private checkClick = (e: MouseEvent): void => {
-        if (!this.colorPicker.current || !this.colorPicker.current.contains(e.target as Element)) {
-            this.setState({isOpened: false});
-        }
-    };
+    const handleColorPickerChange = useCallback((newColor: string) => {
+        setLocalValue(newColor);
+        onChange(newColor);
+    }, [onChange]);
 
-    private togglePicker = () => {
-        if (!this.state.isOpened && this.colorInput.current) {
-            this.colorInput.current.focus();
-        }
-        this.setState({isOpened: !this.state.isOpened});
-    };
-
-    public handleColorChange = (newColorData: ColorResult) => {
-        this.setState({focused: false});
-        this.props.onChange(newColorData.hex);
-    };
-
-    private onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
-
-        const color = tinycolor(value);
+    const handleTextChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value;
+        const color = tinycolor(newValue);
         const normalizedColor = '#' + color.toHex();
 
         if (color.isValid()) {
-            this.props.onChange(normalizedColor);
+            onChange(normalizedColor);
         }
 
-        this.setState({value});
-    };
+        setLocalValue(newValue);
+    }, [onChange]);
 
-    private onFocus = (event: React.FocusEvent<HTMLInputElement>): void => {
-        this.setState({
-            focused: true,
-        });
+    const handleFocus = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
+        setFocused(true);
+        event.target?.setSelectionRange(1, event.target.value.length);
+    }, []);
 
-        if (event.target) {
-            event.target.setSelectionRange(1, event.target.value.length);
-        }
-    };
-
-    private onBlur = () => {
-        const value = this.state.value;
-
-        const color = tinycolor(value);
+    const handleBlur = useCallback(() => {
+        const color = tinycolor(localValue);
         const normalizedColor = '#' + color.toHex();
 
         if (color.isValid()) {
-            this.props.onChange(normalizedColor);
-
-            this.setState({
-                value: normalizedColor,
-            });
+            onChange(normalizedColor);
+            setLocalValue(normalizedColor);
         } else {
-            this.setState({
-                value: this.props.value,
-            });
+            setLocalValue(value);
         }
 
-        this.setState({
-            focused: false,
-        });
-    };
+        setFocused(false);
+    }, [localValue, onChange, value]);
 
-    private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        // open picker on enter or space
+    const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter' || event.key === ' ') {
-            this.togglePicker();
+            togglePicker();
         }
-    };
+    }, [togglePicker]);
 
-    public render() {
-        const {id} = this.props;
-        const {isOpened, value} = this.state;
+    // Ensure valid hex for color picker
+    const color = tinycolor(localValue);
+    const pickerColor = color.isValid() ? '#' + color.toHex() : '#000000';
 
-        return (
-            <div className='color-input input-group'>
-                <input
-                    id={`${id}-inputColorValue`}
-                    ref={this.colorInput}
-                    className='form-control'
-                    type='text'
-                    value={value}
-                    onChange={this.onChange}
-                    onBlur={this.onBlur}
-                    onFocus={this.onFocus}
-                    onKeyDown={this.onKeyDown}
-                    maxLength={7}
-                    disabled={this.props.isDisabled}
-                    data-testid='color-inputColorValue'
-
-                />
-                {!this.props.isDisabled &&
-                    <span
-                        id={`${id}-squareColorIcon`}
-                        className='input-group-addon color-pad'
-                        onClick={this.togglePicker}
-                    >
-                        <i
-                            id={`${id}-squareColorIconValue`}
-                            className='color-icon'
-                            style={{
-                                backgroundColor: value,
-                            }}
-                        />
-                    </span>
-                }
-                {isOpened && (
-                    <div
-                        ref={this.colorPicker}
-                        className='color-popover'
-                        id={`${id}-ChromePickerModal`}
-                    >
-                        <ChromePicker
-                            color={value}
-                            onChange={this.handleColorChange}
-                            disableAlpha={true}
-                        />
-                    </div>
-                )}
-            </div>
-        );
-    }
+    return (
+        <div className='color-input input-group'>
+            <input
+                id={`${id}-inputColorValue`}
+                ref={colorInputRef}
+                className='form-control'
+                type='text'
+                value={localValue}
+                onChange={handleTextChange}
+                onBlur={handleBlur}
+                onFocus={handleFocus}
+                onKeyDown={handleKeyDown}
+                maxLength={7}
+                disabled={isDisabled}
+                data-testid='color-inputColorValue'
+            />
+            {!isDisabled && (
+                <span
+                    id={`${id}-squareColorIcon`}
+                    className='input-group-addon color-pad'
+                    onClick={togglePicker}
+                >
+                    <i
+                        id={`${id}-squareColorIconValue`}
+                        className='color-icon'
+                        style={{backgroundColor: localValue}}
+                    />
+                </span>
+            )}
+            {isOpened && (
+                <div
+                    ref={colorPickerRef}
+                    className='color-popover'
+                    id={`${id}-ChromePickerModal`}
+                >
+                    <HexColorPicker
+                        color={pickerColor}
+                        onChange={handleColorPickerChange}
+                    />
+                </div>
+            )}
+        </div>
+    );
 }

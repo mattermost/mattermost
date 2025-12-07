@@ -14,7 +14,7 @@
     "./dist/*": "./dist/*"
   },
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly --declaration --outDir dist",
+    "build": "vite build && tsc -b --emitDeclarationOnly",
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
     "check-types": "tsc -b",
     "run": "vite build --watch",

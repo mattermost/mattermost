@@ -172,7 +172,17 @@ export default defineConfig(({mode}): UserConfig => {
                     return null;
                 },
             },
-            react(),
+            react({
+                // Use @swc/plugin-styled-components for displayName generation
+                // This ensures class names include component names (e.g., SearchInputContainer-sc-abc123)
+                // which is needed for CSS selectors like [class*="SearchInputContainer"]
+                plugins: [
+                    ['@swc/plugin-styled-components', {
+                        displayName: true,
+                        ssr: false,
+                    }],
+                ],
+            }),
 
             // TypeScript error checking with overlay (T028)
             isDev && checker({
@@ -450,9 +460,10 @@ export default defineConfig(({mode}): UserConfig => {
             format: 'es',
         },
 
-        // JSON handling
+        // JSON handling - DO NOT use stringify: true as it breaks i18n JSON imports
+        // Translation files need to be imported as objects, not strings
         json: {
-            stringify: true,
+            stringify: false,
         },
 
         // Note: Vite 8 uses Oxc instead of esbuild. No configuration needed.
