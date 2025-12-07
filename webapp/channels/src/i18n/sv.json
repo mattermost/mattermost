@@ -1909,6 +1909,7 @@
   "admin.permissions.loadingMoreSchemes": "LAddar...",
   "admin.permissions.permission.assign_system_admin_role.description": "Tilldela systemadministratörsroll",
   "admin.permissions.permission.assign_system_admin_role.name": "Tilldela systemadministratörsroll",
+  "admin.permissions.permission.bypass_incoming_webhook_channel_lock.name": "Koppla förbi kanal-lås",
   "admin.permissions.permission.convert_private_channel_to_public.description": "Konvertera privata kanaler till publika",
   "admin.permissions.permission.convert_private_channel_to_public.name": "Konvertera till publik",
   "admin.permissions.permission.convert_public_channel_to_private.description": "Konvertera publika kanaler till privata",
