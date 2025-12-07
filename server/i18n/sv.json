@@ -11182,5 +11182,17 @@
   {
     "id": "app.post.rewrite.agent_call_failed",
     "translation": "Påkallningen av AI-agenten misslyckades."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för klienten."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för omdirigeringen."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Ogiltigt pekar-ID."
   }
 ]
