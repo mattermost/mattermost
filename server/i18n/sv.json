@@ -11181,7 +11181,7 @@
   },
   {
     "id": "app.post.rewrite.agent_call_failed",
-    "translation": "Påkallningen av AI-agenten misslyckades."
+    "translation": "Misslyckat anrop till AI-agenten."
   },
   {
     "id": "model.dcr.is_valid.client_uri_format.app_error",
@@ -11193,6 +11193,10 @@
   },
   {
     "id": "model.post.query_params.invalid_cursor_id",
-    "translation": "Ogiltigt pekar-ID."
+    "translation": "Ogiltigt cursor-id."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Misslyckades att skapa frågan."
   }
 ]
