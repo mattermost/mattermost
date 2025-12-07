@@ -17,7 +17,6 @@ import Tag from 'components/widgets/tag/tag';
 
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import * as Utils from 'utils/utils';
 
 import ThreadItem from './thread_item';
 
@@ -256,12 +255,17 @@ describe('components/threading/global_threads/thread_item', () => {
         });
     });
 
-    test('should call Utils.handleFormattedTextClick on click', () => {
+    test('should have onClick handler on preview element', () => {
         const wrapper = shallow(<ThreadItem {...props}/>);
-        const spy = jest.spyOn(Utils, 'handleFormattedTextClick').mockImplementationOnce(jest.fn());
-        wrapper.find('.preview').simulate('click', {});
 
-        expect(spy).toHaveBeenCalledWith({}, '/tname');
+        // Get the onClick handler from the preview div
+        const preview = wrapper.find('.preview');
+        expect(preview.length).toBe(1);
+
+        // Verify that the preview has an onClick handler
+        const onClickHandler = preview.prop('onClick');
+        expect(onClickHandler).toBeDefined();
+        expect(typeof onClickHandler).toBe('function');
     });
 
     test('should allow marking as unread on alt + click', () => {

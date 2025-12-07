@@ -1,12 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import store from 'stores/redux_store';
-
 import {makeInitialState} from 'packages/mattermost-redux/test/test_store';
 import EmojiMap from 'utils/emoji_map';
 import * as Markdown from 'utils/markdown';
 import * as TextFormatting from 'utils/text_formatting';
+
+// Mock the redux store module
+jest.mock('stores/redux_store', () => ({
+    __esModule: true,
+    default: {
+        getState: jest.fn(() => ({
+            entities: {
+                general: {
+                    config: {
+                        EnableLatex: 'false',
+                        EnableInlineLatex: 'false',
+                        CustomUrlSchemes: '',
+                    },
+                },
+            },
+        })),
+        dispatch: jest.fn(),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+    },
+}));
+
+// Import after mock to get the mocked version
+import store from 'stores/redux_store';
 
 const emojiMap = new EmojiMap(new Map());
 
@@ -402,7 +424,7 @@ describe('Markdown.Links', () => {
 
     describe('autolinkedUrlSchemes', () => {
         test('only some types of links are rendered when there are custom URL schemes defined', () => {
-            jest.spyOn(store, 'getState').mockReturnValue(makeInitialState({
+            (store.getState as jest.Mock).mockReturnValue(makeInitialState({
                 entities: {
                     general: {
                         config: {
@@ -436,7 +458,7 @@ describe('Markdown.Links', () => {
         });
 
         test('matching links are rendered when schemes are provided', () => {
-            jest.spyOn(store, 'getState').mockReturnValue(makeInitialState({
+            (store.getState as jest.Mock).mockReturnValue(makeInitialState({
                 entities: {
                     general: {
                         config: {
@@ -470,7 +492,7 @@ describe('Markdown.Links', () => {
         });
 
         test('explicit links are not affected by this setting', () => {
-            jest.spyOn(store, 'getState').mockReturnValue(makeInitialState({
+            (store.getState as jest.Mock).mockReturnValue(makeInitialState({
                 entities: {
                     general: {
                         config: {

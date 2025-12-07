@@ -8,9 +8,32 @@
     "no-only-tests"
   ],
   "settings": {
-    "import/resolver": "webpack"
+    "import/resolver": {
+      "vite": {
+        "viteConfig": {
+          "configFile": "./vite.config.ts"
+        }
+      },
+      "node": {
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".json"]
+      }
+    },
+    "import/internal-regex": "^(@mattermost/|actions|client|components|hooks|i18n|images|packages|plugins|reducers|sass|selectors|sounds|store|stores|types|utils|module_registry|mattermost-redux|tests)(/|$)"
   },
   "rules": {
+    "import/order": [
+      "warn",
+      {
+        "newlines-between": "ignore",
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          ["sibling", "parent", "index", "object", "type"]
+        ],
+        "warnOnUnassignedImports": false
+      }
+    ],
     "react/prop-types": [
       2,
       {

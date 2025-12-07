@@ -4,8 +4,7 @@
 import type {JSX} from 'react';
 import React from 'react';
 import {useSelector} from 'react-redux';
-import type {SingleValueProps} from 'react-select';
-import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
+import type {SingleValueProps, MultiValueProps} from 'react-select';
 
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';

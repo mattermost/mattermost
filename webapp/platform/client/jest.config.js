@@ -8,4 +8,25 @@ module.exports = {
         '^@mattermost/types/(.*)$': '<rootDir>/../types/src/$1',
     },
     setupFiles: ['<rootDir>/setup_jest.ts'],
+    transform: {
+        '^.+\\.(js|jsx|ts|tsx|mjs)$': ['@swc/jest', {
+            jsc: {
+                parser: {
+                    syntax: 'typescript',
+                    tsx: true,
+                },
+                transform: {
+                    react: {
+                        runtime: 'automatic',
+                    },
+                },
+            },
+            module: {
+                type: 'commonjs',
+                noInterop: false,
+                strict: false,
+                strictMode: false,
+            },
+        }],
+    },
 };

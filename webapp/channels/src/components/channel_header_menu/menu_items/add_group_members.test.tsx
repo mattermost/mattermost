@@ -4,8 +4,6 @@
 import React from 'react';
 import {useDispatch} from 'react-redux';
 
-import * as modalActions from 'actions/views/modals';
-
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 import MoreDirectChannels from 'components/more_direct_channels';
 
@@ -14,9 +12,17 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import AddGroupMembers from './add_group_members';
 
+const mockOpenModal = jest.fn();
+jest.mock('actions/views/modals', () => ({
+    openModal: (...args: unknown[]) => {
+        mockOpenModal(...args);
+        return {type: 'MOCK_OPEN_MODAL'};
+    },
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
     beforeEach(() => {
-        jest.spyOn(modalActions, 'openModal');
+        mockOpenModal.mockClear();
 
         // Mock useDispatch to return our custom dispatch function
         jest.spyOn(require('react-redux'), 'useDispatch');
@@ -47,8 +53,8 @@ describe('components/ChannelHeaderMenu/MenuItems/AddGroupMembers', () => {
         fireEvent.click(menuItem); // Simulate click on the menu item
 
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
-        expect(modalActions.openModal).toHaveBeenCalledWith({
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
             dialogType: MoreDirectChannels,
             dialogProps: {

@@ -1320,7 +1320,7 @@ describe('Actions.Posts', () => {
         ));
 
         nock(Client4.getEmojisRoute()).
-            get(`/name/${created.name}`).
+            get(`/name/${created!.name}`).
             reply(200, created);
 
         const missingEmojiName = ':notrealemoji:';
@@ -1334,7 +1334,7 @@ describe('Actions.Posts', () => {
         const state = getState();
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
         expect(state.entities.emojis.nonExistentEmoji.has(missingEmojiName)).toBeTruthy();
     });
 

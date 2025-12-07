@@ -16,13 +16,14 @@ jest.mock('utils/utils', () => {
     };
 });
 
-jest.mock('utils/post_utils', () => {
-    const original = jest.requireActual('utils/post_utils');
-    return {
-        ...original,
-        isSystemMessage: jest.fn(() => true),
-    };
-});
+jest.mock('utils/post_utils', () => ({
+    isSystemMessage: jest.fn(() => true),
+    fromAutoResponder: jest.fn(() => false),
+    isFromWebhook: jest.fn(() => false),
+    isFromBot: jest.fn(() => false),
+    isPostOwner: jest.fn(() => false),
+    isComment: jest.fn(() => false),
+}));
 
 describe('components/actions_menu/ActionsMenu on mobile view', () => {
     test('should match snapshot', () => {

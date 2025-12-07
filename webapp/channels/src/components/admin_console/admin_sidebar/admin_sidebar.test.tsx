@@ -15,13 +15,10 @@ import {samplePlugin1} from 'tests/helpers/admin_console_plugin_index_sample_plu
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {generateIndex} from 'utils/admin_console_index';
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-    return {
-        ...original,
-        isMobile: jest.fn(() => true),
-    };
-});
+jest.mock('utils/utils', () => ({
+    isMobile: jest.fn(() => true),
+    localizeMessage: jest.fn((id: string, defaultMessage: string) => defaultMessage),
+}));
 
 jest.mock('utils/admin_console_index');
 

@@ -16,6 +16,27 @@ const config = {
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
     setupFilesAfterEnv: ['<rootDir>/setup_jest.ts'],
+    transform: {
+        '^.+\\.(js|jsx|ts|tsx|mjs)$': ['@swc/jest', {
+            jsc: {
+                parser: {
+                    syntax: 'typescript',
+                    tsx: true,
+                },
+                transform: {
+                    react: {
+                        runtime: 'automatic',
+                    },
+                },
+            },
+            module: {
+                type: 'commonjs',
+                noInterop: false,
+                strict: false,
+                strictMode: false,
+            },
+        }],
+    },
 };
 
 module.exports = config;

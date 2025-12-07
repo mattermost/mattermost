@@ -12,6 +12,11 @@ import * as UserAgent from 'utils/user_agent';
 
 import CommandProvider, {commandsGroup, CommandSuggestion} from './command_provider';
 
+jest.mock('utils/user_agent', () => ({
+    ...jest.requireActual('utils/user_agent'),
+    isMobile: jest.fn(),
+}));
+
 describe('CommandSuggestion', () => {
     const suggestion: AutocompleteSuggestion = {
         Suggestion: '/invite',
@@ -124,7 +129,7 @@ describe('CommandProvider', () => {
 });
 
 test('should forward pretext to handleWebapp unaltered (case-preserving)', () => {
-    const uaSpy = jest.spyOn(UserAgent, 'isMobile').mockReturnValue(false);
+    (UserAgent.isMobile as jest.Mock).mockReturnValue(false);
 
     const provider = new CommandProvider({
         teamId: 'current_team',
@@ -143,7 +148,6 @@ test('should forward pretext to handleWebapp unaltered (case-preserving)', () =>
     expect(webappSpy.mock.calls[0][0]).toBe(pretext);
 
     webappSpy.mockRestore();
-    uaSpy.mockRestore();
 });
 
 test('handleWebapp calls backend with command lowercased but args preserved', async () => {

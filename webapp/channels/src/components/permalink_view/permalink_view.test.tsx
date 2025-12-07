@@ -11,8 +11,6 @@ import {CollapsedThreads} from '@mattermost/types/config';
 
 import {getPostThread} from 'mattermost-redux/actions/posts';
 import {Client4} from 'mattermost-redux/client';
-import {Preferences} from 'mattermost-redux/constants';
-import * as Channels from 'mattermost-redux/selectors/entities/channels';
 
 import {focusPost} from 'components/permalink_view/actions';
 import PermalinkView from 'components/permalink_view/permalink_view';
@@ -28,6 +26,15 @@ import {ErrorPageTypes} from 'utils/constants';
 jest.mock('actions/channel_actions', () => ({
     loadChannelsForCurrentUser: jest.fn(() => {
         return {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'};
+    }),
+}));
+
+jest.mock('actions/user_actions', () => ({
+    loadNewDMIfNeeded: jest.fn(() => (dispatch: any) => {
+        return dispatch({type: 'MOCK_LOAD_NEW_DM_IF_NEEDED'});
+    }),
+    loadNewGMIfNeeded: jest.fn(() => (dispatch: any) => {
+        return dispatch({type: 'MOCK_LOAD_NEW_GM_IF_NEEDED'});
     }),
 }));
 
@@ -187,6 +194,11 @@ describe('components/PermalinkView', () => {
                     },
                 },
             },
+            views: {
+                channelSidebar: {
+                    unreadFilterEnabled: false,
+                },
+            },
         };
 
         describe('focusPost', () => {
@@ -257,6 +269,9 @@ describe('components/PermalinkView', () => {
                             },
                         },
                     },
+                    views: {
+                        ...initialState.views,
+                    },
                 };
 
                 const testStore = mockStore(modifiedState);
@@ -267,13 +282,7 @@ describe('components/PermalinkView', () => {
                 expect(testStore.getActions()).toEqual([
                     {type: 'MOCK_GET_POST_THREAD', data: {posts: {dmpostid1: {id: postId, message: 'some message', channel_id: 'dmchannelid'}}, order: [postId]}},
                     {type: 'MOCK_GET_MISSING_PROFILES', userIds: ['dmchannel']},
-                    {
-                        type: 'RECEIVED_PREFERENCES',
-                        data: [
-                            {user_id: 'current_user_id', category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'dmchannel', value: 'true'},
-                            {user_id: 'current_user_id', category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: 'dmchannelid', value: '0'},
-                        ],
-                    },
+                    {type: 'MOCK_LOAD_NEW_DM_IF_NEEDED'},
                     {type: 'MOCK_SELECT_CHANNEL', args: ['dmchannelid']},
                     {type: 'RECEIVED_FOCUSED_POST', channelId: 'dmchannelid', data: postId},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
@@ -299,6 +308,9 @@ describe('components/PermalinkView', () => {
                             },
                         },
                     },
+                    views: {
+                        ...initialState.views,
+                    },
                 };
 
                 const testStore = await mockStore(modifiedState);
@@ -307,6 +319,7 @@ describe('components/PermalinkView', () => {
                 expect(getPostThread).toHaveBeenCalledWith(postId);
                 expect(testStore.getActions()).toEqual([
                     {type: 'MOCK_GET_POST_THREAD', data: {posts: {gmpostid1: {id: postId, message: 'some message', channel_id: 'gmchannelid'}}, order: [postId]}},
+                    {type: 'MOCK_LOAD_NEW_GM_IF_NEEDED'},
                     {type: 'MOCK_SELECT_CHANNEL', args: ['gmchannelid']},
                     {type: 'RECEIVED_FOCUSED_POST', channelId: 'gmchannelid', data: postId},
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
@@ -354,10 +367,15 @@ describe('components/PermalinkView', () => {
                                 CollapsedThreads: CollapsedThreads.DEFAULT_ON,
                             },
                         },
+                        channels: {
+                            ...initialState.entities.channels,
+                            currentChannelId: 'channelid1',
+                        },
+                    },
+                    views: {
+                        ...initialState.views,
                     },
                 };
-
-                jest.spyOn<typeof Channels, keyof typeof Channels>(Channels, 'getCurrentChannel').mockReturnValue({id: 'channelid1', name: 'channel1', type: 'O', team_id: 'current_team_id'});
 
                 const testStore = await mockStore(newState);
                 await testStore.dispatch(focusPost(postId, '#', initialState.entities.users.currentUserId, {skipRedirectReplyPermalink: true}));

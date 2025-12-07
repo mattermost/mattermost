@@ -53,7 +53,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
             }));
         }
         const actions = {
-            getData: jest.fn().mockResolvedValue(Promise.resolve(testTeams)),
+            getData: jest.fn().mockResolvedValue(testTeams),
             searchTeams: jest.fn().mockResolvedValue(testTeams),
         };
 

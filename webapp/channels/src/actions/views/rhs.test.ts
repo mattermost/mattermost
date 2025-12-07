@@ -63,8 +63,10 @@ const previousSelectedPost = {
     root_id: 'root123',
 } as Post;
 
-const UserSelectors = require('mattermost-redux/selectors/entities/users');
-UserSelectors.getCurrentUserMentionKeys = jest.fn(() => [{key: '@here'}, {key: '@mattermost'}, {key: '@channel'}, {key: '@all'}]);
+jest.mock('mattermost-redux/selectors/entities/users', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/users'),
+    getCurrentUserMentionKeys: jest.fn(() => [{key: '@here'}, {key: '@mattermost'}, {key: '@channel'}, {key: '@all'}]),
+}));
 
 // Mock Date.now() to return a constant value.
 const POST_CREATED_TIME = Date.now();

@@ -20,42 +20,26 @@ import mockStore from 'tests/test_store';
 
 import type {GlobalState} from 'types/store';
 
-jest.mock('mattermost-redux/actions/users', () => {
-    const original = jest.requireActual('mattermost-redux/actions/users');
-    return {
-        ...original,
-        searchProfiles: (...args: any[]) => ({type: 'MOCK_SEARCH_PROFILES', args}),
-        getProfilesInTeam: (...args: any[]) => ({type: 'MOCK_GET_PROFILES_IN_TEAM', args}),
-        getProfilesInChannel: (...args: any[]) => ({type: 'MOCK_GET_PROFILES_IN_CHANNEL', args, data: [{id: 'user_1'}]}),
-        getProfilesInGroupChannels: (...args: any[]) => ({type: 'MOCK_GET_PROFILES_IN_GROUP_CHANNELS', args}),
-        getStatusesByIds: (...args: any[]) => ({type: 'MOCK_GET_STATUSES_BY_ID', args}),
-    };
-});
+jest.mock('mattermost-redux/actions/users', () => ({
+    searchProfiles: (...args: any[]) => ({type: 'MOCK_SEARCH_PROFILES', args}),
+    getProfilesInTeam: (...args: any[]) => ({type: 'MOCK_GET_PROFILES_IN_TEAM', args}),
+    getProfilesInChannel: (...args: any[]) => ({type: 'MOCK_GET_PROFILES_IN_CHANNEL', args, data: [{id: 'user_1'}]}),
+    getProfilesInGroupChannels: (...args: any[]) => ({type: 'MOCK_GET_PROFILES_IN_GROUP_CHANNELS', args}),
+    getStatusesByIds: (...args: any[]) => ({type: 'MOCK_GET_STATUSES_BY_ID', args}),
+}));
 
-jest.mock('mattermost-redux/actions/teams', () => {
-    const original = jest.requireActual('mattermost-redux/actions/teams');
-    return {
-        ...original,
-        getTeamMembersByIds: (...args: any[]) => ({type: 'MOCK_GET_TEAM_MEMBERS_BY_IDS', args}),
-    };
-});
+jest.mock('mattermost-redux/actions/teams', () => ({
+    getTeamMembersByIds: (...args: any[]) => ({type: 'MOCK_GET_TEAM_MEMBERS_BY_IDS', args}),
+}));
 
-jest.mock('mattermost-redux/actions/channels', () => {
-    const original = jest.requireActual('mattermost-redux/actions/channels');
-    return {
-        ...original,
-        getChannelMembersByIds: (...args: any[]) => ({type: 'MOCK_GET_CHANNEL_MEMBERS_BY_IDS', args}),
-    };
-});
+jest.mock('mattermost-redux/actions/channels', () => ({
+    getChannelMembersByIds: (...args: any[]) => ({type: 'MOCK_GET_CHANNEL_MEMBERS_BY_IDS', args}),
+}));
 
-jest.mock('mattermost-redux/actions/preferences', () => {
-    const original = jest.requireActual('mattermost-redux/actions/preferences');
-    return {
-        ...original,
-        deletePreferences: (...args: any[]) => ({type: 'MOCK_DELETE_PREFERENCES', args}),
-        savePreferences: (...args: any[]) => ({type: 'MOCK_SAVE_PREFERENCES', args}),
-    };
-});
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    deletePreferences: (...args: any[]) => ({type: 'MOCK_DELETE_PREFERENCES', args}),
+    savePreferences: (...args: any[]) => ({type: 'MOCK_SAVE_PREFERENCES', args}),
+}));
 
 jest.mock('stores/redux_store', () => {
     return {

@@ -4,8 +4,6 @@
 import React from 'react';
 import {useDispatch} from 'react-redux';
 
-import * as modalActions from 'actions/views/modals';
-
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ChannelGroupsManageModal from 'components/channel_groups_manage_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
@@ -16,9 +14,17 @@ import {TestHelper} from 'utils/test_helper';
 
 import Groups from './groups';
 
+const mockOpenModal = jest.fn();
+jest.mock('actions/views/modals', () => ({
+    openModal: (...args: unknown[]) => {
+        mockOpenModal(...args);
+        return {type: 'MOCK_OPEN_MODAL'};
+    },
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/Groups', () => {
     beforeEach(() => {
-        jest.spyOn(modalActions, 'openModal');
+        mockOpenModal.mockClear();
 
         // Mock useDispatch to return our custom dispatch function
         jest.spyOn(require('react-redux'), 'useDispatch');
@@ -41,8 +47,8 @@ describe('components/ChannelHeaderMenu/MenuItems/Groups', () => {
 
         fireEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
-        expect(modalActions.openModal).toHaveBeenCalledWith({
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.ADD_GROUPS_TO_CHANNEL,
             dialogType: AddGroupsToChannelModal,
         });
@@ -60,8 +66,8 @@ describe('components/ChannelHeaderMenu/MenuItems/Groups', () => {
 
         fireEvent.click(menuItemMG); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
-        expect(modalActions.openModal).toHaveBeenCalledWith({
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.MANAGE_CHANNEL_GROUPS,
             dialogType: ChannelGroupsManageModal,
             dialogProps: {channelID: channel.id},

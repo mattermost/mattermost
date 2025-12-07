@@ -5,15 +5,20 @@ import {mount, shallow} from 'enzyme';
 import React from 'react';
 
 import ShowStartTrialModal from 'components/announcement_bar/show_start_trial_modal/show_start_trial_modal';
-import * as getTotalUsersHook from 'components/common/hooks/useGetTotalUsersNoBots';
 
 let mockState: any;
 const mockDispatch = jest.fn();
+let mockTotalUsers = 0;
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
     useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
     useDispatch: () => mockDispatch,
+}));
+
+jest.mock('components/common/hooks/useGetTotalUsersNoBots', () => ({
+    __esModule: true,
+    default: jest.fn(() => mockTotalUsers),
 }));
 
 describe('components/sidebar/show_start_trial_modal', () => {
@@ -77,8 +82,7 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should NOT dispatch the modal when there are less than 10 users', () => {
-        const lessThan10Users = 9;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => lessThan10Users);
+        mockTotalUsers = 9;
 
         const isAdminUser = {
             currentUserId: 'current_user_id',
@@ -104,16 +108,14 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should NOT dispatch the modal when the env has less than 6 hours of creation', () => {
+        mockTotalUsers = 11;
+
         const isAdminUser = {
             currentUserId: 'current_user_id',
             profiles: {
                 current_user_id: {roles: 'system_admin system_user'},
             },
         };
-
-        const moreThan10Users = 11;
-
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
 
         const lessThan6Hours = {
             config: {
@@ -132,6 +134,8 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should NOT dispatch the modal when the env has previous license', () => {
+        mockTotalUsers = 11;
+
         const isAdminUser = {
             currentUserId: 'current_user_id',
             profiles: {
@@ -145,9 +149,6 @@ describe('components/sidebar/show_start_trial_modal', () => {
             },
         };
 
-        const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
-
         mockState = {...mockState, entities: {...mockState.entities, users: isAdminUser, admin: moreThan10UsersAndPrevLicensed}};
 
         mount(
@@ -157,15 +158,14 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should NOT dispatch the modal when the env is currently licensed', () => {
+        mockTotalUsers = 11;
+
         const isAdminUser = {
             currentUserId: 'current_user_id',
             profiles: {
                 current_user_id: {roles: 'system_admin system_user'},
             },
         };
-
-        const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
 
         const moreThan6HoursAndLicensed = {
             config: {
@@ -187,15 +187,14 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should NOT dispatch the modal when the modal has been already dismissed', () => {
+        mockTotalUsers = 11;
+
         const isAdminUser = {
             currentUserId: 'current_user_id',
             profiles: {
                 current_user_id: {roles: 'system_admin system_user'},
             },
         };
-
-        const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
 
         const moreThan6Hours = {
             config: {
@@ -231,15 +230,14 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should NOT dispatch the modal when user is not an admin', () => {
+        mockTotalUsers = 11;
+
         const isAdminUser = {
             currentUserId: 'current_user_id',
             profiles: {
                 current_user_id: {roles: 'system_user'},
             },
         };
-
-        const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
 
         const notPreviouslyLicensed = {
             prevTrialLicense: {
@@ -267,15 +265,14 @@ describe('components/sidebar/show_start_trial_modal', () => {
     });
 
     test('should dispatch the modal when there are more than 10 users', () => {
+        mockTotalUsers = 11;
+
         const isAdminUser = {
             currentUserId: 'current_user_id',
             profiles: {
                 current_user_id: {roles: 'system_admin system_user'},
             },
         };
-
-        const moreThan10Users = 11;
-        jest.spyOn(getTotalUsersHook, 'default').mockImplementation(() => moreThan10Users);
 
         const notPreviouslyLicensed = {
             prevTrialLicense: {

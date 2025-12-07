@@ -7,6 +7,11 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {screen, userEvent, renderWithContext} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
+// Mock global_actions to break circular dependency
+jest.mock('actions/global_actions', () => ({
+    showMobileSubMenuModal: jest.fn(),
+}));
+
 import SubMenuItem, {SubMenuItem as SubMenuItemClass} from './submenu_item';
 
 jest.mock('../is_mobile_view_hack', () => ({

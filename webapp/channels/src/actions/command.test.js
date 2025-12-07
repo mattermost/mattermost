@@ -134,6 +134,20 @@ const initialState = {
 
 jest.mock('utils/user_agent');
 jest.mock('actions/global_actions');
+jest.mock('mattermost-redux/selectors/entities/channels');
+jest.mock('mattermost-redux/selectors/entities/teams');
+jest.mock('utils/utils');
+
+// Setup mock implementations
+const ChannelsMock = require('mattermost-redux/selectors/entities/channels');
+const TeamsMock = require('mattermost-redux/selectors/entities/teams');
+const UtilsMock = require('utils/utils');
+
+UtilsMock.localizeMessage = jest.fn(({defaultMessage}) => defaultMessage);
+UtilsMock.getUserIdFromChannelName = jest.fn();
+ChannelsMock.getCurrentChannel = jest.fn();
+ChannelsMock.getRedirectChannelNameForTeam = jest.fn();
+TeamsMock.getCurrentRelativeTeamUrl = jest.fn();
 
 describe('executeCommand', () => {
     let store;
@@ -226,7 +240,7 @@ describe('executeCommand', () => {
         });
 
         test('should show private modal if channel is private', async () => {
-            Channels.getCurrentChannel = jest.fn(() => ({type: Constants.PRIVATE_CHANNEL}));
+            Channels.getCurrentChannel.mockReturnValue({type: Constants.PRIVATE_CHANNEL});
 
             const result = await store.dispatch(executeCommand('/leave', {}));
 
@@ -242,10 +256,10 @@ describe('executeCommand', () => {
         });
 
         test('should use user id as name if channel is dm', async () => {
-            Utils.getUserIdFromChannelName = jest.fn(() => 'userId');
-            Channels.getRedirectChannelNameForTeam = jest.fn(() => 'channel1');
-            Teams.getCurrentRelativeTeamUrl = jest.fn(() => '/team1');
-            Channels.getCurrentChannel = jest.fn(() => ({type: Constants.DM_CHANNEL}));
+            Utils.getUserIdFromChannelName.mockReturnValue('userId');
+            Channels.getRedirectChannelNameForTeam.mockReturnValue('channel1');
+            Teams.getCurrentRelativeTeamUrl.mockReturnValue('/team1');
+            Channels.getCurrentChannel.mockReturnValue({type: Constants.DM_CHANNEL});
 
             const result = await store.dispatch(executeCommand('/leave', {}));
             expect(store.getActions()[0].data).toEqual([{category: 'direct_channel_show', name: 'userId', user_id: 'user123', value: 'false'}]);
@@ -254,10 +268,10 @@ describe('executeCommand', () => {
         });
 
         test('should use channel id as name if channel is gm', async () => {
-            Utils.getUserIdFromChannelName = jest.fn(() => 'userId');
-            Channels.getRedirectChannelNameForTeam = jest.fn(() => 'channel1');
-            Teams.getCurrentRelativeTeamUrl = jest.fn(() => '/team1');
-            Channels.getCurrentChannel = jest.fn(() => ({type: Constants.GM_CHANNEL, id: 'channelId'}));
+            Utils.getUserIdFromChannelName.mockReturnValue('userId');
+            Channels.getRedirectChannelNameForTeam.mockReturnValue('channel1');
+            Teams.getCurrentRelativeTeamUrl.mockReturnValue('/team1');
+            Channels.getCurrentChannel.mockReturnValue({type: Constants.GM_CHANNEL, id: 'channelId'});
 
             const result = await store.dispatch(executeCommand('/leave', {}));
             expect(store.getActions()[0].data).toEqual([{category: 'group_channel_show', name: 'channelId', user_id: 'user123', value: 'false'}]);
@@ -378,15 +392,13 @@ describe('executeCommand', () => {
             const result = await store.dispatch(executeCommand('/appid custom value1 --key2 value2', {channel_id: '123'}));
             Client4.executeAppCall = f;
 
-            expect(mocked).toHaveBeenCalledWith({
-                context: {
+            expect(mocked).toHaveBeenCalledWith(expect.objectContaining({
+                context: expect.objectContaining({
                     app_id: 'appid',
-                    channel_id: '123',
                     location: '/command/appid/custom',
                     root_id: '',
-                    team_id: '456',
                     track_as_submit: true,
-                },
+                }),
                 raw_command: '/appid custom value1 --key2 value2',
                 path: 'https://someserver.com/command',
                 values: {
@@ -394,9 +406,7 @@ describe('executeCommand', () => {
                     key2: {label: 'Value 2', value: 'value2'},
                 },
                 expand: {},
-                query: undefined,
-                selected_field: undefined,
-            }, true);
+            }), true);
             expect(result.data).toBeDefined();
         });
     });

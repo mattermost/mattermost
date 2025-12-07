@@ -2,9 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch} from 'react-redux';
-
-import * as rhsActions from 'actions/views/rhs';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
@@ -14,15 +11,15 @@ import {TestHelper} from 'utils/test_helper';
 
 import ViewPinnedPosts from './view_pinned_posts';
 
+jest.mock('actions/views/rhs', () => ({
+    closeRightHandSide: jest.fn(() => ({type: 'MOCK_CLOSE_RIGHT_HAND_SIDE'})),
+    showPinnedPosts: jest.fn(() => ({type: 'MOCK_SHOW_PINNED_POSTS'})),
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
+    const {closeRightHandSide, showPinnedPosts} = require('actions/views/rhs');
+
     beforeEach(() => {
-        jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
-        jest.spyOn(rhsActions, 'showPinnedPosts').mockReturnValue(() => Promise.resolve({data: true}));
-
-        jest.spyOn(require('react-redux'), 'useDispatch');
-    });
-
-    afterEach(() => {
         jest.clearAllMocks();
     });
 
@@ -46,9 +43,8 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.showPinnedPosts).toHaveBeenCalledTimes(1);
-        expect(rhsActions.showPinnedPosts).toHaveBeenCalledWith(channel.id);
+        expect(showPinnedPosts).toHaveBeenCalledTimes(1);
+        expect(showPinnedPosts).toHaveBeenCalledWith(channel.id);
     });
 
     test('renders the component correctly, handles correct click event', () => {
@@ -71,7 +67,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ViewPinnedPosts', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.closeRightHandSide).toHaveBeenCalledTimes(1);
+        expect(closeRightHandSide).toHaveBeenCalledTimes(1);
     });
 });

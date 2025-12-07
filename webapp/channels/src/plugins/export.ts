@@ -1,6 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as Luxon from 'luxon';
+import PropTypes from 'prop-types';
+import * as React from 'react';
+import * as ReactBootstrap from 'react-bootstrap';
+import * as ReactDOM from 'react-dom';
+import * as ReactIntl from 'react-intl';
+import * as ReactRedux from 'react-redux';
+import * as ReactRouterDom from 'react-router-dom';
+// eslint-disable-next-line no-restricted-imports
+import * as Redux from 'redux';
+import {getHistory} from 'utils/browser_history';
+import {ModalIdentifiers} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
+import messageHtmlToComponent from 'utils/message_html_to_component';
+import * as NotificationSounds from 'utils/notification_sounds';
+import {formatText} from 'utils/text_formatting';
+import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
+import {imageURLForUser} from 'utils/utils';
+
 import {notifyMe} from 'actions/notification_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide, selectPostById} from 'actions/views/rhs';
@@ -17,15 +36,6 @@ import Timestamp from 'components/timestamp';
 import UserSettingsModal from 'components/user_settings/modal';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
-
-import {getHistory} from 'utils/browser_history';
-import {ModalIdentifiers} from 'utils/constants';
-import DesktopApp from 'utils/desktop_api';
-import messageHtmlToComponent from 'utils/message_html_to_component';
-import * as NotificationSounds from 'utils/notification_sounds';
-import {formatText} from 'utils/text_formatting';
-import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
-import {imageURLForUser} from 'utils/utils';
 
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
 import Textbox from './textbox';
@@ -93,15 +103,15 @@ interface WindowWithLibraries {
 declare let window: WindowWithLibraries;
 
 // Common libraries exposed on window for plugins to use as Webpack externals.
-window.React = require('react');
-window.ReactDOM = require('react-dom');
-window.ReactIntl = require('react-intl');
-window.Redux = require('redux');
-window.ReactRedux = require('react-redux');
-window.ReactBootstrap = require('react-bootstrap');
-window.ReactRouterDom = require('react-router-dom');
-window.PropTypes = require('prop-types');
-window.Luxon = require('luxon');
+window.React = React;
+window.ReactDOM = ReactDOM;
+window.ReactIntl = ReactIntl;
+window.Redux = Redux;
+window.ReactRedux = ReactRedux;
+window.ReactBootstrap = ReactBootstrap;
+window.ReactRouterDom = ReactRouterDom;
+window.PropTypes = PropTypes;
+window.Luxon = Luxon;
 
 // Functions exposed on window for plugins to use.
 window.PostUtils = {

@@ -4,8 +4,6 @@
 import React from 'react';
 import {useDispatch} from 'react-redux';
 
-import * as modalActions from 'actions/views/modals';
-
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 
@@ -15,9 +13,17 @@ import {TestHelper} from 'utils/test_helper';
 
 import UnarchiveChannel from './unarchive_channel';
 
+const mockOpenModal = jest.fn();
+jest.mock('actions/views/modals', () => ({
+    openModal: (...args: unknown[]) => {
+        mockOpenModal(...args);
+        return {type: 'MOCK_OPEN_MODAL'};
+    },
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
     beforeEach(() => {
-        jest.spyOn(modalActions, 'openModal');
+        mockOpenModal.mockClear();
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
@@ -39,8 +45,8 @@ describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
 
         fireEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
-        expect(modalActions.openModal).toHaveBeenCalledWith({
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.UNARCHIVE_CHANNEL,
             dialogType: UnarchiveChannelModal,
             dialogProps: {channel},

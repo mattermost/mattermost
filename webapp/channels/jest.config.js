@@ -20,7 +20,10 @@ const config = {
     },
     moduleNameMapper: {
         '^@mattermost/(components)$': '<rootDir>/../platform/$1/src',
+        '^@mattermost/(components)/src/(.*)$': '<rootDir>/../platform/$1/src/$2',
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
+        '^@mattermost/(client)/lib/(.*)$': '<rootDir>/../platform/$1/src/$2',
+        '^@mattermost/(client)/(.*)$': '<rootDir>/../platform/$1/src/$2',
         '^@mattermost/(types)/(.*)$': '<rootDir>/../platform/$1/src/$2',
         '^mattermost-redux/test/(.*)$':
             '<rootDir>/src/packages/mattermost-redux/test/$1',
@@ -40,12 +43,34 @@ const config = {
         'node_modules/(?!react-native|react-router|pdfjs-dist|p-queue|p-timeout|@mattermost/compass-icons|cidr-regex|ip-regex|serialize-error)',
     ],
     transform: {
-        '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
+        '^.+\\.(js|jsx|ts|tsx|mjs)$': ['@swc/jest', {
+            jsc: {
+                parser: {
+                    syntax: 'typescript',
+                    tsx: true,
+                    decorators: false,
+                },
+                transform: {
+                    react: {
+                        runtime: 'automatic',
+                    },
+                },
+            },
+            module: {
+                type: 'commonjs',
+                // Allow jest.spyOn to work with ES modules
+                noInterop: false,
+                // Use loose mode for better mocking compatibility
+                strict: false,
+                strictMode: false,
+            },
+        }],
     },
-    setupFiles: ['jest-canvas-mock'],
+    setupFiles: ['jest-canvas-mock', '<rootDir>/src/tests/setup_store.ts'],
     setupFilesAfterEnv: ['<rootDir>/src/tests/setup_jest.ts'],
     testEnvironment: 'jsdom',
     testTimeout: 60000,
+    workerIdleMemoryLimit: '1024MB',
     testEnvironmentOptions: {
         url: 'http://localhost:8065',
     },

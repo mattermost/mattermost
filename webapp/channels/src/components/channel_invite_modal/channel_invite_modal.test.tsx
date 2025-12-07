@@ -48,13 +48,13 @@ jest.mock('components/common/hooks/useAccessControlAttributes', () => {
     };
 });
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-    return {
-        ...original,
-        sortUsersAndGroups: jest.fn(),
-    };
-});
+jest.mock('utils/utils', () => ({
+    sortUsersAndGroups: jest.fn(),
+    localizeMessage: jest.fn((id: string, defaultMessage: string) => defaultMessage),
+    imageURLForUser: jest.fn(() => ''),
+    getDisplayName: jest.fn((user: any) => user?.username || ''),
+    getUserIdFromChannelName: jest.fn(() => ''),
+}));
 
 // Mock Client4 for ABAC tests
 jest.mock('mattermost-redux/client', () => ({

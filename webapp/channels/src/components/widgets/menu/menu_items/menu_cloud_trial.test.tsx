@@ -10,6 +10,9 @@ import {CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {limitThresholds} from 'utils/limits';
 
+// Mock the trial benefits modal to break circular dependency
+jest.mock('components/trial_benefits_modal/trial_benefits_modal', () => () => null);
+
 import MenuCloudTrial from './menu_cloud_trial';
 
 const usage = {

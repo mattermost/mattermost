@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {getName} from 'country-list';
-import crypto from 'crypto';
 import cssVars from 'css-vars-ponyfill';
 import type {Locale} from 'date-fns';
 import isNil from 'lodash/isNil';
@@ -1638,7 +1637,10 @@ export function getBlankAddressWithCountry(country?: string): Address {
 }
 
 export function generateSlug(): string {
-    return crypto.randomBytes(16).toString('hex');
+    // Use Web Crypto API (works in all modern browsers)
+    const bytes = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 export function sortUsersAndGroups(a: UserProfile | Group, b: UserProfile | Group) {
     let aSortString = '';

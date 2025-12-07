@@ -3,7 +3,8 @@
 exports[`NotificationPermissionBar should render the NotificationPermissionNeverGrantedBar when permission is never granted yet 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar"
+    class="announcement-bar"
+    css="[object Object]"
   >
     <div
       class="announcement-bar__text"
@@ -33,7 +34,8 @@ exports[`NotificationPermissionBar should render the NotificationPermissionNever
 exports[`NotificationPermissionBar should render the NotificationUnsupportedBar if notifications are not supported 1`] = `
 <div>
   <div
-    class="_StyledDiv-BZhus eMNHXM announcement-bar"
+    class="announcement-bar"
+    css="[object Object]"
   >
     <div
       class="announcement-bar__text"

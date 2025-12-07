@@ -6,7 +6,6 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 
 import {Permissions} from 'mattermost-redux/constants';
-import * as teams from 'mattermost-redux/selectors/entities/teams';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -52,8 +51,6 @@ describe('components/post_view/AddMembersButton', () => {
             },
         },
     };
-
-    jest.spyOn(teams, 'getCurrentTeamId').mockReturnValue('team-id');
 
     test('should match snapshot, less than limit', () => {
         const props = {

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import crypto from 'crypto';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -67,7 +66,11 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     };
 
     const openExternalLoginURL = async () => {
-        const desktopToken = `${DesktopApp.isDev() ? 'dev-' : ''}${crypto.randomBytes(32).toString('hex')}`.slice(0, 64);
+        // Generate random bytes using Web Crypto API (browser-compatible)
+        const randomBytes = new Uint8Array(32);
+        globalThis.crypto.getRandomValues(randomBytes);
+        const randomHex = Array.from(randomBytes, (b) => b.toString(16).padStart(2, '0')).join('');
+        const desktopToken = `${DesktopApp.isDev() ? 'dev-' : ''}${randomHex}`.slice(0, 64);
         sessionStorage.setItem(DESKTOP_AUTH_PREFIX, desktopToken);
         const parsedURL = new URL(href);
 

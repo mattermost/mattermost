@@ -5,13 +5,22 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 
 import type {GlobalState} from 'types/store';
 
-import * as Timestamp from './timestamp';
-
 import {mapStateToProps} from './index';
 
-const supportsHourCycleOg = Timestamp.supportsHourCycle;
-Object.defineProperty(Timestamp, 'supportsHourCycle', {get: () => supportsHourCycleOg});
-const supportsHourCycleSpy = jest.spyOn(Timestamp, 'supportsHourCycle', 'get');
+// Mock the supportsHourCycle export with a controllable getter
+let mockSupportsHourCycle = true;
+
+jest.mock('./timestamp', () => {
+    const actual = jest.requireActual('./timestamp');
+    return {
+        __esModule: true,
+        ...actual,
+        default: actual.default,
+        get supportsHourCycle() {
+            return mockSupportsHourCycle;
+        },
+    };
+});
 
 describe('mapStateToProps', () => {
     const currentUserId = 'user-id';
@@ -137,7 +146,7 @@ describe('mapStateToProps', () => {
                     },
                 },
             });
-            supportsHourCycleSpy.mockReturnValueOnce(false);
+            mockSupportsHourCycle = false;
 
             const props = mapStateToProps(testState, {});
             expect(props.hour12).toBe(false);
@@ -158,7 +167,7 @@ describe('mapStateToProps', () => {
                     },
                 },
             });
-            supportsHourCycleSpy.mockReturnValueOnce(false);
+            mockSupportsHourCycle = false;
 
             const props = mapStateToProps(testState, {});
             expect(props.hour12).toBe(true);
@@ -179,7 +188,7 @@ describe('mapStateToProps', () => {
                     },
                 },
             });
-            supportsHourCycleSpy.mockReturnValueOnce(false);
+            mockSupportsHourCycle = false;
 
             const props = mapStateToProps(testState, {hour12: false});
             expect(props.hour12).toBe(false);

@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+jest.mock('utils/utils', () => ({
+    handleFormattedTextClick: jest.fn(),
+    imageURLForUser: jest.fn(() => ''),
+}));
+
 import type {ComponentProps} from 'react';
 import React from 'react';
 import {Provider} from 'react-redux';
@@ -10,11 +15,12 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-import * as utils from 'utils/utils';
 
 import type {PostDraft} from 'types/store/draft';
 
 import PanelBody from './panel_body';
+
+const {handleFormattedTextClick} = jest.requireMock('utils/utils');
 
 describe('components/drafts/panel/panel_body', () => {
     const baseProps: ComponentProps<typeof PanelBody> = {
@@ -126,7 +132,6 @@ describe('components/drafts/panel/panel_body', () => {
     });
 
     it('should have called handleFormattedTextClick', () => {
-        const handleClickSpy = jest.spyOn(utils, 'handleFormattedTextClick');
         const store = mockStore(initialState);
 
         const wrapper = mountWithIntl(
@@ -138,7 +143,7 @@ describe('components/drafts/panel/panel_body', () => {
         );
 
         wrapper.find('div.post__content').simulate('click');
-        expect(handleClickSpy).toHaveBeenCalledTimes(1);
+        expect(handleFormattedTextClick).toHaveBeenCalledTimes(1);
         expect(wrapper).toMatchSnapshot();
     });
 });

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+
+    <title>Mattermost</title>
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Mattermost">
+    <meta name="format-detection" content="telephone=no">
+
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-24x24.png" sizes="24x24">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-64x64.png" sizes="64x64">
+    <link rel="icon" type="image/png" href="/static/images/favicon/favicon-default-96x96.png" sizes="96x96">
+
+    <!-- Initialize publicPath for subpath support -->
+    <script id="publicPathInWindowScript">
+        window.publicPath = '/static/';
+        window.basename = '';
+    </script>
+
+    <!-- Dynamic syntax highlighting CSS placeholder -->
+    <link rel="stylesheet" class="code_theme">
+
+    <!-- Initial loading screen CSS -->
+    <link id="initialLoadingScreenCSS" rel="stylesheet" href="/src/components/initial_loading_screen/initial_loading_screen.css">
+</head>
+<body class="font--open_sans enable-animations">
+    <!-- Initial Loading Screen -->
+    <div id="initialPageLoadingScreen" class="LoadingScreen LoadingScreen--darkMode">
+        <div class="LoadingScreen__background">
+            <svg viewBox="0 0 1366 728" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+                <g style="transform: translate(676px, -200px)">
+                    <g style="transform-origin: 450px 267.5px; transform: rotate(45deg);">
+                        <use href="#pill" />
+                    </g>
+                </g>
+                <g style="transform: translate(125px, 0px)">
+                    <g style="transform-origin: 450px 267.5px; transform: rotate(-135deg);">
+                        <use href="#pill" />
+                    </g>
+                </g>
+                <g style="transform: translate(700px, 330px)">
+                    <g style="transform-origin: 450px 267.5px; transform: rotate(-135deg);">
+                        <use href="#pill" />
+                    </g>
+                </g>
+                <g style="transform: translate(-280px, 190px)">
+                    <g style="transform-origin: 450px 267.5px; transform: rotate(45deg);">
+                        <use href="#pill" />
+                    </g>
+                </g>
+                <defs>
+                    <mask id="stippleMask">
+                        <image width="900" height="535" />
+                    </mask>
+                    <g id="pill" class="Pill">
+                        <rect class="Pill__stipple" x="0" y="0" width="900" height="535" mask="url(#stippleMask)" />
+                        <path class="Pill__shape" d="M600 40H0V490H600C724.264 490 825 389.264 825 265C825 140.736 724.264 40 600 40Z" fill="url(#pillGradient)" />
+                    </g>
+                    <linearGradient id="pillGradient">
+                        <stop class="Pill__gradient" offset="20%" stop-opacity="1" />
+                        <stop class="Pill__gradientHighlight" offset="95%" stop-opacity="1" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+        <div id="initialPageLoadingAnimation" class="LoadingAnimation LoadingAnimation--darkMode LoadingAnimation--spinning LoadingAnimation--loading">
+            <svg width="104" height="104" viewBox="0 0 104 104" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="LoadingAnimation__spinner-gradient" x1="0%" y1="72px" x2="0%" y2="32px" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" class="LoadingAnimation__spinner-gradient-color" stop-opacity="1" />
+                        <stop offset="1" class="LoadingAnimation__spinner-gradient-color" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <g class="LoadingAnimation__spinner-container">
+                    <g class="LoadingAnimation__spinner">
+                        <circle r="25" cx="52" cy="52" fill="currentColor" />
+                    </g>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Application Root -->
+    <div id="root"></div>
+    <div id="root-portal"></div>
+
+    <!-- No Script Warning -->
+    <noscript style="background-color: #ffffff; width: 100vw; position: absolute; z-index: 101; font-size: 14px; height: 40px; display: flex; justify-content: center; flex-wrap: nowrap; align-items: center; font-family: sans-serif;">
+        To use Mattermost, please enable JavaScript.
+    </noscript>
+
+    <!-- Vite Entry Point -->
+    <script type="module" src="/src/entry.tsx"></script>
+</body>
+</html>

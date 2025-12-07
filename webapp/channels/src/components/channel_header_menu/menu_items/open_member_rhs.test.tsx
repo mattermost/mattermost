@@ -3,9 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
-
-import * as rhsActions from 'actions/views/rhs';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
@@ -15,15 +12,14 @@ import {TestHelper} from 'utils/test_helper';
 
 import OpenMembersRHS from './open_members_rhs';
 
+jest.mock('actions/views/rhs', () => ({
+    showChannelMembers: jest.fn(() => ({type: 'MOCK_SHOW_CHANNEL_MEMBERS'})),
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/OpenMembersRHS', () => {
+    const {showChannelMembers} = require('actions/views/rhs');
+
     beforeEach(() => {
-        // jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
-        jest.spyOn(rhsActions, 'showChannelMembers').mockReturnValue(() => Promise.resolve({data: true}));
-
-        jest.spyOn(require('react-redux'), 'useDispatch');
-    });
-
-    afterEach(() => {
         jest.clearAllMocks();
     });
 
@@ -56,9 +52,8 @@ describe('components/ChannelHeaderMenu/MenuItems/OpenMembersRHS', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.showChannelMembers).toHaveBeenCalledTimes(1);
-        expect(rhsActions.showChannelMembers).toHaveBeenCalledWith(channel.id, false);
+        expect(showChannelMembers).toHaveBeenCalledTimes(1);
+        expect(showChannelMembers).toHaveBeenCalledWith(channel.id, false);
     });
 
     test('renders the component correctly, handles correct click event, rhs open', () => {
@@ -92,6 +87,6 @@ describe('components/ChannelHeaderMenu/MenuItems/OpenMembersRHS', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu
-        expect(rhsActions.showChannelMembers).not.toHaveBeenCalled();
+        expect(showChannelMembers).not.toHaveBeenCalled();
     });
 });

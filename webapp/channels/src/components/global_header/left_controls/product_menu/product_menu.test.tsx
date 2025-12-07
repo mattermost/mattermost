@@ -7,7 +7,6 @@ import * as reactRedux from 'react-redux';
 
 import mockStore from 'tests/test_store';
 import {TopLevelProducts} from 'utils/constants';
-import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
 import ProductBranding from './product_branding';
@@ -16,8 +15,15 @@ import ProductMenu, {ProductMenuButton, ProductMenuContainer} from './product_me
 import ProductMenuItem from './product_menu_item';
 import ProductMenuList from './product_menu_list';
 
-const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
-spyProduct.mockReturnValue(null);
+// Mock the products utils module
+jest.mock('utils/products', () => ({
+    useCurrentProductId: jest.fn().mockReturnValue(null),
+    useProducts: jest.fn().mockReturnValue([]),
+    isChannels: (productId: string | null) => productId === null,
+}));
+
+// eslint-disable-next-line import/first
+import * as productUtils from 'utils/products';
 
 describe('components/global/product_switcher', () => {
     const useDispatchMock = jest.spyOn(reactRedux, 'useDispatch');
@@ -28,8 +34,7 @@ describe('components/global/product_switcher', () => {
             TestHelper.makeProduct(TopLevelProducts.BOARDS),
             TestHelper.makeProduct(TopLevelProducts.PLAYBOOKS),
         ];
-        const spyProducts = jest.spyOn(productUtils, 'useProducts');
-        spyProducts.mockReturnValue(products);
+        (productUtils.useProducts as jest.Mock).mockReturnValue(products);
         useDispatchMock.mockClear();
         useSelectorMock.mockClear();
     });

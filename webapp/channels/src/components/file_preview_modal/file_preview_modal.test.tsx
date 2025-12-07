@@ -4,14 +4,63 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
-
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
-import * as Utils from 'utils/utils';
+
+// Mock utils/utils at the module level
+jest.mock('utils/utils', () => ({
+
+    // We can't use requireActual here due to circular dependencies
+    // So we'll just provide the functions we need
+    generateId: jest.fn(() => 'mock_id'),
+    loadImage: jest.fn(),
+    fillRecord: jest.fn((value: any, length: number) => {
+        return Array(length).fill(value);
+    }),
+    getFileType: jest.fn((extension: string) => {
+        // Check if it's a proxied image URL
+        if (extension?.includes('/api/v4/image?url=')) {
+            return 'image';
+        }
+
+        // Extract extension from URL if needed
+        let ext = extension;
+        if (extension?.includes('.')) {
+            const parts = extension.split('?')[0].split('.');
+            ext = parts[parts.length - 1];
+        }
+
+        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
+        const videoExts = ['mp4', 'mov', 'avi', 'wmv'];
+        const audioExts = ['mp3', 'wav', 'm4a', 'wma'];
+        const codeExts = ['js', 'ts', 'jsx', 'tsx', 'py', 'java'];
+
+        if (imageExts.includes(ext?.toLowerCase())) {
+            return 'image';
+        }
+        if (videoExts.includes(ext?.toLowerCase())) {
+            return 'video';
+        }
+        if (audioExts.includes(ext?.toLowerCase())) {
+            return 'audio';
+        }
+        if (codeExts.includes(ext?.toLowerCase())) {
+            return 'code';
+        }
+        return 'other';
+    }),
+}));
+
+// Import after mocking
+import FilePreviewModal from 'components/file_preview_modal/file_preview_modal';
 import {generateId} from 'utils/utils';
+import * as Utils from 'utils/utils';
 
 describe('components/FilePreviewModal', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     const baseProps = {
         fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', extension: 'jpg'})],
         startIndex: 0,
@@ -170,8 +219,9 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should handle external image URLs correctly', () => {
-        // Create a mock for Utils.loadImage
-        const loadImageSpy = jest.spyOn(Utils, 'loadImage').mockImplementation((url, onLoad) => {
+        // Mock the loadImage implementation for this test
+        const loadImageMock = Utils.loadImage as jest.Mock;
+        loadImageMock.mockImplementation((url, onLoad) => {
             // Create a mock ProgressEvent
             const mockProgressEvent = new ProgressEvent('progress');
 
@@ -199,8 +249,8 @@ describe('components/FilePreviewModal', () => {
         // Call loadImage with the external image URL
         wrapper.instance().loadImage(0);
 
-        // Verify that Utils.loadImage was called with the correct URL
-        expect(loadImageSpy).toHaveBeenCalledWith(
+        // Verify that loadImage was called with the correct URL
+        expect(loadImageMock).toHaveBeenCalledWith(
             externalImageUrl,
             expect.any(Function),
             expect.any(Function),
@@ -208,9 +258,6 @@ describe('components/FilePreviewModal', () => {
 
         // Verify that handleImageLoaded was called
         expect(handleImageLoadedSpy).toHaveBeenCalled();
-
-        // Restore the original loadImage function
-        loadImageSpy.mockRestore();
     });
 
     test('should have called loadImage', () => {

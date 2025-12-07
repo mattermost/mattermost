@@ -5,10 +5,6 @@ import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {Team} from '@mattermost/types/teams';
-
-import * as teams from 'mattermost-redux/selectors/entities/teams';
-
 import * as channelActions from 'actions/views/channel';
 
 import {renderWithContext} from 'tests/react_testing_utils';
@@ -23,13 +19,6 @@ jest.mock('actions/views/channel', () => ({
 
 jest.mock('utils/browser_history', () => ({
     getHistory: jest.fn(),
-}));
-
-// Mock the roles selector which is a dependency for other selectors
-jest.mock('mattermost-redux/selectors/entities/roles', () => ({
-    haveITeamPermission: jest.fn().mockReturnValue(true),
-    haveIChannelPermission: jest.fn().mockReturnValue(true),
-    getRoles: jest.fn().mockReturnValue({}),
 }));
 
 // Create a mock channel for testing
@@ -50,11 +39,6 @@ describe('ChannelSettingsArchiveTab', () => {
     const {getHistory} = require('utils/browser_history');
     beforeEach(() => {
         jest.clearAllMocks();
-
-        jest.spyOn(teams, 'getCurrentTeam').mockReturnValue({
-            id: 'team1',
-            name: 'team-name',
-        } as Team);
 
         const historyPush = jest.fn();
         (getHistory as jest.Mock).mockReturnValue({push: historyPush});

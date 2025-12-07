@@ -11,7 +11,7 @@ exports[`FileAttachment should match snapshot when file is deleted 1`] = `
       href="#"
     >
       <div
-        class="file-icon pdf"
+        class="file-icon generic"
       />
     </a>
     <div
@@ -36,7 +36,7 @@ exports[`FileAttachment should match snapshot when file is deleted 1`] = `
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -47,7 +47,7 @@ exports[`FileAttachment should match snapshot when file is deleted 1`] = `
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.pdf"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -73,7 +73,7 @@ exports[`FileAttachment should match snapshot with thumbnail disabled 1`] = `
       href="#"
     >
       <div
-        class="file-icon pdf"
+        class="file-icon generic"
       />
     </a>
     <div
@@ -98,7 +98,7 @@ exports[`FileAttachment should match snapshot with thumbnail disabled 1`] = `
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -109,7 +109,7 @@ exports[`FileAttachment should match snapshot with thumbnail disabled 1`] = `
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.pdf"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -161,7 +161,7 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -172,7 +172,7 @@ exports[`FileAttachment should match snapshot, after change from file to image 1
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.png"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -198,7 +198,7 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
       href="#"
     >
       <div
-        class="file-icon pdf"
+        class="file-icon generic"
       />
     </a>
     <div
@@ -223,7 +223,7 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -234,7 +234,7 @@ exports[`FileAttachment should match snapshot, regular file 1`] = `
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.pdf"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -285,7 +285,7 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -296,7 +296,7 @@ exports[`FileAttachment should match snapshot, regular image 1`] = `
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.png"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -347,7 +347,7 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -358,7 +358,7 @@ exports[`FileAttachment should match snapshot, small image 1`] = `
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.png"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -384,7 +384,7 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
       href="#"
     >
       <div
-        class="file-icon generic"
+        class="file-icon image"
       />
     </a>
     <div
@@ -409,7 +409,7 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -420,7 +420,7 @@ exports[`FileAttachment should match snapshot, svg image 1`] = `
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.svg"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -471,7 +471,7 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -482,7 +482,7 @@ exports[`FileAttachment should match snapshot, when file is not loaded 1`] = `
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.pdf"
-          href="/api/v4/files/noLoad?download=1"
+          href="noLoad"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"
@@ -562,7 +562,7 @@ exports[`FileAttachment should match snapshot, without compact display and witho
       href="#"
     >
       <div
-        class="file-icon pdf"
+        class="file-icon generic"
       />
     </a>
     <div
@@ -587,7 +587,7 @@ exports[`FileAttachment should match snapshot, without compact display and witho
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -607,7 +607,7 @@ exports[`FileAttachment should not render menu items when disable actions is set
       href="#"
     >
       <div
-        class="file-icon pdf"
+        class="file-icon generic"
       />
     </a>
     <div
@@ -632,7 +632,7 @@ exports[`FileAttachment should not render menu items when disable actions is set
           <span
             class="post-image__size"
           >
-            100B
+            100 B
           </span>
         </div>
       </div>
@@ -643,7 +643,7 @@ exports[`FileAttachment should not render menu items when disable actions is set
           aria-label="download"
           class="btn btn-icon btn-sm"
           download="test.pdf"
-          href="/api/v4/files/thumbnail_id?download=1"
+          href="thumbnail_id"
           location="filename_overlay"
           rel="noopener noreferrer"
           target="_blank"

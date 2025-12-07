@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {buildQueryString} from '@mattermost/client/lib/helpers';
+import {buildQueryString} from '@mattermost/client/helpers';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {Client4} from 'mattermost-redux/client';

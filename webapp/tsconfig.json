@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "jsx": "react-jsx",
+    "useUnknownInCatchVariables": false,
+    "moduleDetection": "force",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["vite/client"],
+    "paths": {
+      "mattermost-redux/*": ["./channels/src/packages/mattermost-redux/src/*"],
+      "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"]
+    },
+    "composite": true
+  },
+  "include": [],
+  "references": [
+    { "path": "./channels" },
+    { "path": "./platform/client" },
+    { "path": "./platform/components" },
+    { "path": "./platform/types" }
+  ]
+}

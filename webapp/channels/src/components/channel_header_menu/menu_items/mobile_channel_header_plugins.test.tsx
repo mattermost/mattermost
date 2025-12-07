@@ -3,13 +3,8 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
-import {useDispatch} from 'react-redux';
 
 import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-
-import * as appsActions from 'actions/apps';
-import * as channelActions from 'actions/views/channel';
-import * as modalActions from 'actions/views/modals';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
@@ -18,21 +13,62 @@ import {TestHelper} from 'utils/test_helper';
 
 import MobileChannelHeaderPlugins from './mobile_channel_header_plugins';
 
+const mockOpenModal = jest.fn();
+const mockLeaveChannel = jest.fn();
+const mockHandleBindingClick = jest.fn();
+const mockOpenAppsModal = jest.fn();
+const mockPostEphemeralCallResponseForChannel = jest.fn();
+const mockDispatch = jest.fn().mockImplementation((action) => {
+    if (typeof action === 'function') {
+        return action(mockDispatch);
+    }
+    return action;
+});
+
+jest.mock('actions/views/modals', () => ({
+    openModal: (...args: unknown[]) => {
+        mockOpenModal(...args);
+        return {type: 'MOCK_OPEN_MODAL'};
+    },
+}));
+
+jest.mock('actions/views/channel', () => ({
+    leaveChannel: (...args: unknown[]) => {
+        mockLeaveChannel(...args);
+        return {type: 'MOCK_LEAVE_CHANNEL'};
+    },
+}));
+
+jest.mock('actions/apps', () => ({
+    handleBindingClick: (...args: unknown[]) => {
+        mockHandleBindingClick(...args);
+
+        // Return a thunk that resolves to the mock return value or a default
+        return () => Promise.resolve(mockHandleBindingClick.mock.results[mockHandleBindingClick.mock.calls.length - 1]?.value?.() || {data: {type: 'ok'}});
+    },
+    openAppsModal: (...args: unknown[]) => {
+        mockOpenAppsModal(...args);
+        return {type: 'MOCK_OPEN_APPS_MODAL'};
+    },
+    postEphemeralCallResponseForChannel: (...args: unknown[]) => {
+        mockPostEphemeralCallResponseForChannel(...args);
+        return {type: 'MOCK_POST_EPHEMERAL_CALL_RESPONSE'};
+    },
+}));
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useDispatch: () => mockDispatch,
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, with no extended components', () => {
-    jest.mock('actions/apps', () => ({
-        ...jest.requireActual('actions/apps'),
-        handleBindingClick: jest.fn(),
-    }));
     beforeEach(() => {
-        jest.spyOn(modalActions, 'openModal');
-        jest.spyOn(channelActions, 'leaveChannel');
-
-        // jest.spyOn(appsActions, 'handleBindingClick');
-        jest.spyOn(appsActions, 'openAppsModal');
-        jest.spyOn(appsActions, 'postEphemeralCallResponseForChannel');
-
-        // Mock useDispatch to return our custom dispatch function
-        jest.spyOn(require('react-redux'), 'useDispatch');
+        mockOpenModal.mockClear();
+        mockLeaveChannel.mockClear();
+        mockHandleBindingClick.mockClear();
+        mockOpenAppsModal.mockClear();
+        mockPostEphemeralCallResponseForChannel.mockClear();
+        mockDispatch.mockClear();
     });
 
     afterEach(() => {
@@ -184,14 +220,12 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
     });
 
     test('Processes handleBinding, returns AppCallResponseTypes.OK', async () => {
-        jest.spyOn(appsActions, 'handleBindingClick').mockReturnValueOnce(() => {
-            return Promise.resolve({
-                data: {
-                    type: AppCallResponseTypes.OK,
-                    text: 'hello',
-                },
-            });
-        });
+        mockHandleBindingClick.mockReturnValueOnce(() => Promise.resolve({
+            data: {
+                type: AppCallResponseTypes.OK,
+                text: 'hello',
+            },
+        }));
 
         renderWithContext(
             <WithTestMenuContext>
@@ -207,25 +241,22 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
 
         fireEvent.click(menuItem);
         await waitFor(() => {
-            expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-            expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
-            expect(appsActions.postEphemeralCallResponseForChannel).toHaveBeenCalledTimes(1);
+            expect(mockHandleBindingClick).toHaveBeenCalledTimes(1);
+            expect(mockPostEphemeralCallResponseForChannel).toHaveBeenCalledTimes(1);
         });
     });
 
     test('Processes handleBinding, returns AppCallResponseTypes.Form', async () => {
-        jest.spyOn(appsActions, 'handleBindingClick').mockReturnValueOnce(() => {
-            return Promise.resolve({
-                data: {
-                    type: AppCallResponseTypes.FORM,
-                    form: {
-                        submit: {
-                            path: '/call/path',
-                        },
+        mockHandleBindingClick.mockReturnValueOnce(() => Promise.resolve({
+            data: {
+                type: AppCallResponseTypes.FORM,
+                form: {
+                    submit: {
+                        path: '/call/path',
                     },
                 },
-            });
-        });
+            },
+        }));
 
         renderWithContext(
             <WithTestMenuContext>
@@ -241,21 +272,18 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
 
         fireEvent.click(menuItem);
         await waitFor(() => {
-            // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-            expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
-            expect(appsActions.openAppsModal).toHaveBeenCalledTimes(1);
+            expect(mockHandleBindingClick).toHaveBeenCalledTimes(1);
+            expect(mockOpenAppsModal).toHaveBeenCalledTimes(1);
         });
     });
 
     test('Processes handleBinding, returns Error', async () => {
-        jest.spyOn(appsActions, 'handleBindingClick').mockReturnValueOnce(() => {
-            return Promise.resolve({
-                error: {
-                    type: AppCallResponseTypes.ERROR,
-                    text: 'Error returned from method',
-                },
-            });
-        });
+        mockHandleBindingClick.mockReturnValueOnce(() => Promise.resolve({
+            error: {
+                type: AppCallResponseTypes.ERROR,
+                text: 'Error returned from method',
+            },
+        }));
 
         renderWithContext(
             <WithTestMenuContext>
@@ -271,9 +299,8 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
 
         fireEvent.click(menuItem);
         await waitFor(() => {
-            // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-            expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
-            expect(appsActions.postEphemeralCallResponseForChannel).toHaveBeenCalledTimes(1);
+            expect(mockHandleBindingClick).toHaveBeenCalledTimes(1);
+            expect(mockPostEphemeralCallResponseForChannel).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -310,13 +337,11 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
     });
 
     test('renders the component correctly, with one extended appbinding, isDropDown false', async () => {
-        jest.spyOn(appsActions, 'handleBindingClick').mockReturnValueOnce(() => {
-            return Promise.resolve({
-                data: {
-                    type: AppCallResponseTypes.OK,
-                },
-            });
-        });
+        mockHandleBindingClick.mockReturnValueOnce(() => Promise.resolve({
+            data: {
+                type: AppCallResponseTypes.OK,
+            },
+        }));
 
         renderWithContext(
             <WithTestMenuContext>
@@ -330,7 +355,7 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         expect(button).toBeInTheDocument();
         fireEvent.click(button);
         await waitFor(() => {
-            expect(appsActions.handleBindingClick).toHaveBeenCalledTimes(1);
+            expect(mockHandleBindingClick).toHaveBeenCalledTimes(1);
         });
     });
 

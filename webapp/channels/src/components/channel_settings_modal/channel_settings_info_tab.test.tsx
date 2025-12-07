@@ -65,15 +65,6 @@ jest.mock('actions/views/textbox', () => ({
     setShowPreviewOnChannelSettingsPurposeModal: jest.fn(),
 }));
 
-// Mock the isChannelAdmin function
-jest.mock('mattermost-redux/utils/user_utils', () => {
-    const original = jest.requireActual('mattermost-redux/utils/user_utils');
-    return {
-        ...original,
-        isChannelAdmin: jest.fn().mockReturnValue(false),
-    };
-});
-
 // Mock the ShowFormat component to make it easier to test
 jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () => (
     jest.fn().mockImplementation((props) => (
@@ -86,29 +77,6 @@ jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () 
         </button>
     ))
 ));
-
-// Create a mock channel member
-const mockChannelMember = TestHelper.getChannelMembershipMock({
-    roles: 'channel_user system_admin',
-});
-
-// Mock the current user
-const mockUser = TestHelper.getUserMock({
-    id: 'user_id',
-    roles: 'system_admin',
-});
-
-jest.mock('mattermost-redux/selectors/entities/channels', () => ({
-    ...jest.requireActual('mattermost-redux/selectors/entities/channels') as typeof import('mattermost-redux/selectors/entities/channels'),
-    getChannelMember: jest.fn(() => mockChannelMember),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/common', () => {
-    return {
-        ...jest.requireActual('mattermost-redux/selectors/entities/common') as typeof import('mattermost-redux/selectors/entities/users'),
-        getCurrentUser: () => mockUser,
-    };
-});
 
 // Create a mock channel for testing
 const mockChannel = TestHelper.getChannelMock({

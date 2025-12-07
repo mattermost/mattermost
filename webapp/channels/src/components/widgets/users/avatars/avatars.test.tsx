@@ -12,17 +12,12 @@ import Avatars from './avatars';
 
 import Avatar from '../avatar';
 
-jest.mock('mattermost-redux/actions/users', () => {
-    return {
-        ...jest.requireActual('mattermost-redux/actions/users'),
-        getMissingProfilesByIds: jest.fn((ids) => {
-            return {
-                type: 'MOCK_GET_MISSING_PROFILES_BY_IDS',
-                data: ids,
-            };
-        }),
-    };
-});
+jest.mock('mattermost-redux/actions/users', () => ({
+    getMissingProfilesByIds: jest.fn((ids) => ({
+        type: 'MOCK_GET_MISSING_PROFILES_BY_IDS',
+        data: ids,
+    })),
+}));
 
 describe('components/widgets/users/Avatars', () => {
     const state = {

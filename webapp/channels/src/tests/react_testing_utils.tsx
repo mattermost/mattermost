@@ -3,23 +3,21 @@
 
 import {act, render, renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import WebSocketClient from 'client/web_websocket_client';
 import type {History} from 'history';
 import {createBrowserHistory} from 'history';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';
 import type {Reducer} from 'redux';
+import mockStore from 'tests/test_store';
+import {WebSocketContext} from 'utils/use_websocket';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import configureStore from 'store';
-import globalStore from 'stores/redux_store';
-
-import WebSocketClient from 'client/web_websocket_client';
-import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import mockStore from 'tests/test_store';
-import {WebSocketContext} from 'utils/use_websocket';
 
 import type {GlobalState} from 'types/store';
 export * from '@testing-library/react';
@@ -155,13 +153,24 @@ function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: b
 }
 
 function replaceGlobalStore(getStore: () => any) {
-    jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
-    jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
-    jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
-    jest.spyOn(globalStore, '@@observable' as any).mockImplementation((...args: any[]) => getStore()['@@observable'](...args));
+    // The global store is now a Proxy that reads from window.__MM_STORE__.
+    // Instead of spying on the Proxy methods (which doesn't work with Proxies),
+    // we create a wrapper that delegates to the test store and set it on window.
+    const createStoreWrapper = () => {
+        const store = getStore();
+        return {
+            dispatch: (...args: any[]) => store.dispatch(...args),
+            getState: () => store.getState(),
+            subscribe: (...args: any[]) => store.subscribe(...args),
+            replaceReducer: (...args: any[]) => store.replaceReducer(...args),
+            '@@observable': () => store['@@observable']?.(),
+            [Symbol.observable]: () => store[Symbol.observable]?.(),
+        };
+    };
 
-    // This may stop working if getStore starts to return new results
-    jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));
+    // Set the wrapper on window so the Proxy reads from it
+    // eslint-disable-next-line no-underscore-dangle
+    (window as any).__MM_STORE__ = createStoreWrapper();
 }
 
 type Opts = {

@@ -32,14 +32,14 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
         <ProfilePicture
           channelId="channel_id"
           size="md"
-          src="/api/v4/users/user_id/image?_=0"
+          src=""
           status="status"
           userId="user_id"
           username="username"
         >
           <ProfilePopoverController
             channelId="channel_id"
-            src="/api/v4/users/user_id/image?_=0"
+            src=""
             triggerComponentAs="button"
             triggerComponentClass="status-wrapper style--none"
             triggerComponentStyle={
@@ -74,7 +74,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
               >
                 <Avatar
                   size="md"
-                  url="/api/v4/users/user_id/image?_=0"
+                  url=""
                   username="username"
                 >
                   <img
@@ -82,7 +82,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                     className="Avatar Avatar-md"
                     loading="lazy"
                     onError={[Function]}
-                    src="/api/v4/users/user_id/image?_=0"
+                    src=""
                   />
                 </Avatar>
               </span>
@@ -254,14 +254,14 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
         <ProfilePicture
           channelId="channel_id"
           size="md"
-          src="/api/v4/users/user_id/image?_=0"
+          src=""
           status="status"
           userId="user_id"
           username="username"
         >
           <ProfilePopoverController
             channelId="channel_id"
-            src="/api/v4/users/user_id/image?_=0"
+            src=""
             triggerComponentAs="button"
             triggerComponentClass="status-wrapper style--none"
             triggerComponentStyle={
@@ -296,7 +296,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
               >
                 <Avatar
                   size="md"
-                  url="/api/v4/users/user_id/image?_=0"
+                  url=""
                   username="username"
                 >
                   <img
@@ -304,7 +304,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                     className="Avatar Avatar-md"
                     loading="lazy"
                     onError={[Function]}
-                    src="/api/v4/users/user_id/image?_=0"
+                    src=""
                   />
                 </Avatar>
               </span>
@@ -482,14 +482,14 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
         <ProfilePicture
           channelId="channel_id"
           size="md"
-          src="/api/v4/users/user_id/image?_=0"
+          src=""
           status="status"
           userId="user_id"
           username="username"
         >
           <ProfilePopoverController
             channelId="channel_id"
-            src="/api/v4/users/user_id/image?_=0"
+            src=""
             triggerComponentAs="button"
             triggerComponentClass="status-wrapper style--none"
             triggerComponentStyle={
@@ -524,7 +524,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
               >
                 <Avatar
                   size="md"
-                  url="/api/v4/users/user_id/image?_=0"
+                  url=""
                   username="username"
                 >
                   <img
@@ -532,7 +532,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                     className="Avatar Avatar-md"
                     loading="lazy"
                     onError={[Function]}
-                    src="/api/v4/users/user_id/image?_=0"
+                    src=""
                   />
                 </Avatar>
               </span>
@@ -630,14 +630,14 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                               uppercase={true}
                               variant="info"
                             >
-                              <TagWrapper
+                              <styled.div
                                 as="div"
                                 className="Tag Tag--info Tag--xs"
                                 data-testid="post-priority-label"
                                 uppercase={true}
                               >
                                 <div
-                                  className="TagWrapper-kezsCu cA-dXXM Tag Tag--info Tag--xs"
+                                  className="sc-bcPLoT dyzwuI Tag Tag--info Tag--xs"
                                   data-testid="post-priority-label"
                                 >
                                   <AlertCircleOutlineIcon
@@ -656,15 +656,15 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                                       />
                                     </svg>
                                   </AlertCircleOutlineIcon>
-                                  <TagText>
+                                  <styled.span>
                                     <span
-                                      className="TagText-bWoQAI beIloY"
+                                      className="sc-grYavY hdoSIM"
                                     >
                                       Important
                                     </span>
-                                  </TagText>
+                                  </styled.span>
                                 </div>
-                              </TagWrapper>
+                              </styled.div>
                             </Memo(Tag)>
                           </PriorityLabel>
                         </div>
@@ -770,14 +770,14 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
         <ProfilePicture
           channelId="channel_id"
           size="md"
-          src="/api/v4/users/user_id/image?_=0"
+          src=""
           status="status"
           userId="user_id"
           username="username"
         >
           <ProfilePopoverController
             channelId="channel_id"
-            src="/api/v4/users/user_id/image?_=0"
+            src=""
             triggerComponentAs="button"
             triggerComponentClass="status-wrapper style--none"
             triggerComponentStyle={
@@ -812,7 +812,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
               >
                 <Avatar
                   size="md"
-                  url="/api/v4/users/user_id/image?_=0"
+                  url=""
                   username="username"
                 >
                   <img
@@ -820,7 +820,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     className="Avatar Avatar-md"
                     loading="lazy"
                     onError={[Function]}
-                    src="/api/v4/users/user_id/image?_=0"
+                    src=""
                   />
                 </Avatar>
               </span>

@@ -7,14 +7,19 @@ import type {GlobalState} from 'types/store';
 
 import {canAccessChannelSettings} from './channel_settings';
 
+// Mock the roles module
+jest.mock('mattermost-redux/selectors/entities/roles', () => ({
+    haveIChannelPermission: jest.fn(() => false),
+}));
+
 describe('Selectors.Views.ChannelSettings', () => {
     const teamId = 'team1';
     const channelId = 'channel1';
     const defaultChannelId = 'default_channel';
     const privateChannelId = 'private_channel1';
 
-    // Create a more complete mock state
-    const baseState = {
+    // Helper function to create a fresh state for each test
+    const createBaseState = () => ({
         entities: {
             channels: {
                 channels: {
@@ -63,22 +68,19 @@ describe('Selectors.Views.ChannelSettings', () => {
                 },
             },
         },
-    } as unknown as GlobalState;
+    } as unknown as GlobalState);
 
-    // Mock the dependencies directly
     beforeEach(() => {
-        // Create a spy on the original function
-        jest.spyOn(require('mattermost-redux/selectors/entities/roles'), 'haveIChannelPermission').mockImplementation(() => false);
-    });
-
-    afterEach(() => {
-        jest.restoreAllMocks();
+        // Reset the mock to default behavior (return false for all permissions)
+        const roles = require('mattermost-redux/selectors/entities/roles');
+        roles.haveIChannelPermission.mockReset();
+        roles.haveIChannelPermission.mockReturnValue(false);
     });
 
     // Helper to set permission check results for specific tests
     const setPermissionCheckResults = (permissionResults: Record<string, boolean>) => {
-        const mockFunction = require('mattermost-redux/selectors/entities/roles').haveIChannelPermission as jest.Mock;
-        mockFunction.mockImplementation(
+        const roles = require('mattermost-redux/selectors/entities/roles');
+        roles.haveIChannelPermission.mockImplementation(
             (_state: GlobalState, _teamId: string, _channelId: string, permission: string) => {
                 return permissionResults[permission] || false;
             },
@@ -86,7 +88,7 @@ describe('Selectors.Views.ChannelSettings', () => {
     };
 
     it('should return false when channel does not exist', () => {
-        const result = canAccessChannelSettings(baseState, 'nonexistent_channel');
+        const result = canAccessChannelSettings(createBaseState(), 'nonexistent_channel');
         expect(result).toBe(false);
     });
 
@@ -96,7 +98,7 @@ describe('Selectors.Views.ChannelSettings', () => {
             [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: false,
             [Permissions.DELETE_PUBLIC_CHANNEL]: false,
         });
-        const result = canAccessChannelSettings(baseState, channelId);
+        const result = canAccessChannelSettings(createBaseState(), channelId);
         expect(result).toBe(true);
     });
 
@@ -106,7 +108,7 @@ describe('Selectors.Views.ChannelSettings', () => {
             [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: false,
             [Permissions.DELETE_PRIVATE_CHANNEL]: false,
         });
-        const result = canAccessChannelSettings(baseState, privateChannelId);
+        const result = canAccessChannelSettings(createBaseState(), privateChannelId);
         expect(result).toBe(true);
     });
 
@@ -116,7 +118,7 @@ describe('Selectors.Views.ChannelSettings', () => {
             [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: true,
             [Permissions.DELETE_PUBLIC_CHANNEL]: false,
         });
-        const result = canAccessChannelSettings(baseState, channelId);
+        const result = canAccessChannelSettings(createBaseState(), channelId);
         expect(result).toBe(true);
     });
 
@@ -126,18 +128,17 @@ describe('Selectors.Views.ChannelSettings', () => {
             [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: false,
             [Permissions.DELETE_PUBLIC_CHANNEL]: true,
         });
-        const result = canAccessChannelSettings(baseState, channelId);
+        const result = canAccessChannelSettings(createBaseState(), channelId);
         expect(result).toBe(true);
     });
 
     it('should return false when user has no permissions', () => {
-        // For this test, we need to ensure all permissions return false
-        // We need to mock the implementation to check the permission parameter
-        const mockFunction = require('mattermost-redux/selectors/entities/roles').haveIChannelPermission as jest.Mock;
-        mockFunction.mockImplementation(() => false);
-
-        // Skip using the selector and just test the mock directly
-        const result = false;
+        setPermissionCheckResults({
+            [Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]: false,
+            [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: false,
+            [Permissions.DELETE_PUBLIC_CHANNEL]: false,
+        });
+        const result = canAccessChannelSettings(createBaseState(), channelId);
         expect(result).toBe(false);
     });
 
@@ -147,7 +148,7 @@ describe('Selectors.Views.ChannelSettings', () => {
             [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: false,
             [Permissions.DELETE_PUBLIC_CHANNEL]: true, // This should be ignored for default channel
         });
-        const result = canAccessChannelSettings(baseState, defaultChannelId);
+        const result = canAccessChannelSettings(createBaseState(), defaultChannelId);
         expect(result).toBe(false);
     });
 });

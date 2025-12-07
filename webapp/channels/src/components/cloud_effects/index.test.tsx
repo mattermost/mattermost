@@ -7,13 +7,20 @@ import {Provider} from 'react-redux';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import * as useShowAdminLimitReachedHook from 'components/common/hooks/useShowAdminLimitReached';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
 import CloudEffectsWrapper from './';
+
+// Mock the hook
+jest.mock('components/common/hooks/useShowAdminLimitReached', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+import useShowAdminLimitReached from 'components/common/hooks/useShowAdminLimitReached';
+const mockUseShowAdminLimitReached = useShowAdminLimitReached as jest.MockedFunction<typeof useShowAdminLimitReached>;
 
 function nonCloudLicense(state: DeepPartial<GlobalState>): GlobalState {
     const newState = JSON.parse(JSON.stringify(state));
@@ -76,6 +83,10 @@ function nonAdminUser(state: DeepPartial<GlobalState>) {
 }
 
 describe('CloudEffectsWrapper', () => {
+    beforeEach(() => {
+        mockUseShowAdminLimitReached.mockClear();
+    });
+
     it('short circuits if not cloud', () => {
         const initialState = adminUser(nonCloudLicense({}));
         const store = mockStore(initialState);
@@ -84,8 +95,7 @@ describe('CloudEffectsWrapper', () => {
                 <CloudEffectsWrapper/>
             </Provider>,
         );
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
-        expect(spy).not.toHaveBeenCalled();
+        expect(mockUseShowAdminLimitReached).not.toHaveBeenCalled();
     });
 
     it('short circuits if user not logged in', () => {
@@ -96,8 +106,7 @@ describe('CloudEffectsWrapper', () => {
                 <CloudEffectsWrapper/>
             </Provider>,
         );
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
-        expect(spy).not.toHaveBeenCalled();
+        expect(mockUseShowAdminLimitReached).not.toHaveBeenCalled();
     });
 
     it('short circuits if user is not admin', () => {
@@ -108,19 +117,17 @@ describe('CloudEffectsWrapper', () => {
                 <CloudEffectsWrapper/>
             </Provider>,
         );
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
-        expect(spy).not.toHaveBeenCalled();
+        expect(mockUseShowAdminLimitReached).not.toHaveBeenCalled();
     });
 
     it('calls effects if user is admin of a cloud instance', () => {
         const initialState = adminUser(cloudLicense({}));
         const store = mockStore(initialState);
-        const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default').mockImplementation(jest.fn());
         mountWithIntl(
             <Provider store={store}>
                 <CloudEffectsWrapper/>
             </Provider>,
         );
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(mockUseShowAdminLimitReached).toHaveBeenCalledTimes(1);
     });
 });

@@ -17,6 +17,16 @@ import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
 
+// Polyfill setImmediate/clearImmediate for jsdom (used by some libraries)
+if (typeof globalThis.setImmediate === 'undefined') {
+    (globalThis as any).setImmediate = (fn: (...args: unknown[]) => void, ...args: unknown[]) =>
+        setTimeout(fn, 0, ...args);
+}
+if (typeof globalThis.clearImmediate === 'undefined') {
+    (globalThis as any).clearImmediate = (id: ReturnType<typeof setTimeout>) =>
+        clearTimeout(id);
+}
+
 module.exports = async () => {
     // eslint-disable-next-line no-process-env
     process.env.TZ = 'UTC';

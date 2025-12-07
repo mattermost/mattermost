@@ -17,7 +17,7 @@ const LatexInline = ({content, enableInlineLatex}: Props) => {
 
     useEffect(() => {
         import('katex').then((katexModule) => {
-            setKatex(katexModule.default);
+            setKatex(katexModule.default as unknown as Katex);
         });
     }, []);
 

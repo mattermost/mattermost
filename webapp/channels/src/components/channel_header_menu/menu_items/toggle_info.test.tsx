@@ -2,9 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch} from 'react-redux';
-
-import * as rhsActions from 'actions/views/rhs';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
@@ -14,15 +11,15 @@ import {TestHelper} from 'utils/test_helper';
 
 import ToggleInfo from './toggle_info';
 
+jest.mock('actions/views/rhs', () => ({
+    closeRightHandSide: jest.fn(() => ({type: 'MOCK_CLOSE_RIGHT_HAND_SIDE'})),
+    showChannelInfo: jest.fn(() => ({type: 'MOCK_SHOW_CHANNEL_INFO'})),
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
+    const {closeRightHandSide, showChannelInfo} = require('actions/views/rhs');
+
     beforeEach(() => {
-        jest.spyOn(rhsActions, 'closeRightHandSide').mockImplementation(() => () => ({data: true}));
-        jest.spyOn(rhsActions, 'showChannelInfo');
-
-        jest.spyOn(require('react-redux'), 'useDispatch');
-    });
-
-    afterEach(() => {
         jest.clearAllMocks();
     });
 
@@ -46,9 +43,8 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        // expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.showChannelInfo).toHaveBeenCalledTimes(1);
-        expect(rhsActions.showChannelInfo).toHaveBeenCalledWith(channel.id);
+        expect(showChannelInfo).toHaveBeenCalledTimes(1);
+        expect(showChannelInfo).toHaveBeenCalledWith(channel.id);
     });
 
     test('renders the component correctly, handles correct click event, rhs open', () => {
@@ -73,7 +69,6 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleInfo', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(rhsActions.closeRightHandSide).toHaveBeenCalledTimes(1);
+        expect(closeRightHandSide).toHaveBeenCalledTimes(1);
     });
 });

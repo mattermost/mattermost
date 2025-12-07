@@ -48,6 +48,11 @@ e2e-tests/playwright/.eslintcache
 # ignore temporary added configuration for pgloader
 server/tests/temp.load
 
+# Vite build tooling
+.build-cache/
+.vite/
+*.local
+
 # Enterprise & products imports files
 imports/imports.go
 
@@ -163,3 +168,7 @@ docker-compose.override.yaml
 **/CLAUDE.local.md
 CLAUDE.md
 .cursorrules
+
+.claude
+.specify
+specs

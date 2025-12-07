@@ -14,13 +14,17 @@ import Provider from '../provider';
 import SuggestionList from '../suggestion_list';
 
 jest.mock('utils/utils', () => ({
-    ...jest.requireActual('utils/utils'),
     getSuggestionBoxAlgn() {
         return {
             pixelsToMoveX: 0,
             pixelsToMoveY: 0,
         };
     },
+    localizeMessage: jest.fn((id: string, defaultMessage: string) => defaultMessage),
+    imageURLForUser: jest.fn(() => ''),
+    getPxToSubstract: jest.fn(() => 0),
+    setCaretPosition: jest.fn(),
+    getCaretPosition: jest.fn(() => 0),
 }));
 
 function TestWrapper(props: React.ComponentPropsWithoutRef<typeof SuggestionBox>) {

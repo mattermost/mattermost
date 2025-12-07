@@ -7,12 +7,19 @@ import React from 'react';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
 
-import * as commonSelectors from 'mattermost-redux/selectors/entities/common';
-import * as usersSelectors from 'mattermost-redux/selectors/entities/users';
-
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ScheduledPostActions from './scheduled_post_actions';
+
+jest.mock('mattermost-redux/selectors/entities/users', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/users'),
+    isCurrentUserSystemAdmin: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/selectors/entities/common', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/common'),
+    getMyChannelMemberships: jest.fn(),
+}));
 
 const initialState = {
     entities: {
@@ -77,33 +84,22 @@ const defaultProps = {
     onCopyText: jest.fn(),
 };
 
+const {isCurrentUserSystemAdmin} = jest.requireMock('mattermost-redux/selectors/entities/users');
+const {getMyChannelMemberships} = jest.requireMock('mattermost-redux/selectors/entities/common');
+
 describe('ScheduledPostActions Component', () => {
-    let isCurrentUserSystemAdminMock: jest.SpyInstance;
-    let getMyChannelMembershipsnMock: jest.SpyInstance;
-
     beforeEach(() => {
         jest.clearAllMocks();
-    });
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-
-        isCurrentUserSystemAdminMock = jest.spyOn(usersSelectors, 'isCurrentUserSystemAdmin');
-        getMyChannelMembershipsnMock = jest.spyOn(commonSelectors, 'getMyChannelMemberships');
 
         // Set default return values
-        isCurrentUserSystemAdminMock.mockReturnValue(false);
-        getMyChannelMembershipsnMock.mockReturnValue({
+        isCurrentUserSystemAdmin.mockReturnValue(false);
+        getMyChannelMemberships.mockReturnValue({
             channel_id: {
                 channel_id: 'channel_id',
                 user_id: 'user_id',
                 roles: 'channel_user',
             },
         });
-    });
-
-    afterEach(() => {
-        jest.restoreAllMocks();
     });
 
     function renderComponent(props = defaultProps, state = initialState) {
@@ -116,7 +112,7 @@ describe('ScheduledPostActions Component', () => {
         );
     }
     it('should render all action buttons when user is an ADMIN', () => {
-        isCurrentUserSystemAdminMock.mockReturnValue(true);
+        isCurrentUserSystemAdmin.mockReturnValue(true);
 
         renderComponent();
 
@@ -132,7 +128,7 @@ describe('ScheduledPostActions Component', () => {
     });
 
     it('should render appropriate action buttons when user is NOT an admin but IS member of the channel', () => {
-        isCurrentUserSystemAdminMock.mockReturnValue(false);
+        isCurrentUserSystemAdmin.mockReturnValue(false);
 
         renderComponent();
 
@@ -148,10 +144,10 @@ describe('ScheduledPostActions Component', () => {
     });
 
     it('should only render delete and copy text button when regular user is NOT member of the channel', () => {
-        isCurrentUserSystemAdminMock.mockReturnValue(false);
+        isCurrentUserSystemAdmin.mockReturnValue(false);
 
         // Regular User is not a member of the channel
-        getMyChannelMembershipsnMock.mockReturnValue({});
+        getMyChannelMemberships.mockReturnValue({});
 
         renderComponent();
 
@@ -169,8 +165,8 @@ describe('ScheduledPostActions Component', () => {
     });
 
     it('should render all action buttons when user is not member of the channel but is an admin', () => {
-        isCurrentUserSystemAdminMock.mockReturnValue(true);
-        getMyChannelMembershipsnMock.mockReturnValue({});
+        isCurrentUserSystemAdmin.mockReturnValue(true);
+        getMyChannelMemberships.mockReturnValue({});
 
         renderComponent();
 
@@ -218,7 +214,7 @@ describe('ScheduledPostActions Component', () => {
             } as Channel,
         };
 
-        isCurrentUserSystemAdminMock.mockReturnValue(true);
+        isCurrentUserSystemAdmin.mockReturnValue(true);
 
         renderComponent(archivedChannelProps);
 

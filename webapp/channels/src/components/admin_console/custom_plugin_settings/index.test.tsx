@@ -7,6 +7,16 @@ import type {match} from 'react-router-dom';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {PluginSettings} from '@mattermost/types/config';
 
+// Mock admin console selectors to break circular dependency
+jest.mock('selectors/admin_console', () => ({
+    getAdminDefinition: jest.fn(() => ({})),
+    getConsoleAccess: jest.fn(() => ({read: {}, write: {}})),
+    getAdminConsoleCustomComponents: (state: any, pluginId: string) =>
+        state.plugins?.adminConsoleCustomComponents?.[pluginId] || {},
+    getAdminConsoleCustomSections: (state: any, pluginId: string) =>
+        state.plugins?.adminConsoleCustomSections?.[pluginId] || {},
+}));
+
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 
 import {screen, renderWithContext} from 'tests/react_testing_utils';

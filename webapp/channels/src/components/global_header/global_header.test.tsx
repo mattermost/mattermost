@@ -6,15 +6,20 @@ import React from 'react';
 import * as redux from 'react-redux';
 
 import GlobalHeader from 'components/global_header/global_header';
+import {useCurrentProductId} from 'utils/products';
 
-import * as productUtils from 'utils/products';
+jest.mock('utils/products', () => ({
+    useCurrentProductId: jest.fn(),
+}));
 
 describe('components/global/global_header', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
     test('should be disabled when global header is disabled', () => {
         const spy = jest.spyOn(redux, 'useSelector');
         spy.mockReturnValue(false);
-        const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
-        spyProduct.mockReturnValue(null);
+        (useCurrentProductId as jest.Mock).mockReturnValue(null);
 
         const wrapper = shallow(
             <GlobalHeader/>,
@@ -27,8 +32,7 @@ describe('components/global/global_header', () => {
     test('should be enabled when global header is enabled', () => {
         const spy = jest.spyOn(redux, 'useSelector');
         spy.mockReturnValue(true);
-        const spyProduct = jest.spyOn(productUtils, 'useCurrentProductId');
-        spyProduct.mockReturnValue(null);
+        (useCurrentProductId as jest.Mock).mockReturnValue(null);
 
         const wrapper = shallow(
             <GlobalHeader/>,

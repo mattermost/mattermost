@@ -4,9 +4,25 @@
 import React from 'react';
 
 import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
-import * as utilsNotifications from 'utils/notifications';
 
 import NotificationPermissionBar from './index';
+
+jest.mock('utils/notifications', () => ({
+    isNotificationAPISupported: jest.fn(),
+    getNotificationPermission: jest.fn(),
+    requestNotificationPermission: jest.fn(),
+    NotificationPermissionNeverGranted: 'default',
+    NotificationPermissionGranted: 'granted',
+    NotificationPermissionDenied: 'denied',
+}));
+
+const {
+    isNotificationAPISupported,
+    getNotificationPermission,
+    requestNotificationPermission,
+    NotificationPermissionNeverGranted,
+    NotificationPermissionGranted,
+} = jest.requireMock('utils/notifications');
 
 describe('NotificationPermissionBar', () => {
     const initialState = {
@@ -21,8 +37,8 @@ describe('NotificationPermissionBar', () => {
         },
     };
 
-    afterEach(() => {
-        jest.restoreAllMocks();
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
     test('should not render anything if user is not logged in', () => {
@@ -32,7 +48,7 @@ describe('NotificationPermissionBar', () => {
     });
 
     test('should render the NotificationUnsupportedBar if notifications are not supported', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
+        isNotificationAPISupported.mockReturnValue(false);
 
         const {container} = renderWithContext(<NotificationPermissionBar/>, initialState);
 
@@ -43,8 +59,8 @@ describe('NotificationPermissionBar', () => {
     });
 
     test('should render the NotificationPermissionNeverGrantedBar when permission is never granted yet', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
+        isNotificationAPISupported.mockReturnValue(true);
+        getNotificationPermission.mockReturnValue(NotificationPermissionNeverGranted);
 
         const {container} = renderWithContext(<NotificationPermissionBar/>, initialState);
 
@@ -55,9 +71,9 @@ describe('NotificationPermissionBar', () => {
     });
 
     test('should call requestNotificationPermission and hide the bar when the button is clicked in NotificationPermissionNeverGrantedBar', async () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
-        jest.spyOn(utilsNotifications, 'requestNotificationPermission').mockResolvedValue(utilsNotifications.NotificationPermissionGranted);
+        isNotificationAPISupported.mockReturnValue(true);
+        getNotificationPermission.mockReturnValue(NotificationPermissionNeverGranted);
+        requestNotificationPermission.mockResolvedValue(NotificationPermissionGranted);
 
         renderWithContext(<NotificationPermissionBar/>, initialState);
 
@@ -65,13 +81,13 @@ describe('NotificationPermissionBar', () => {
 
         await userEvent.click(screen.getByText('Manage notification preferences'));
 
-        expect(utilsNotifications.requestNotificationPermission).toHaveBeenCalled();
+        expect(requestNotificationPermission).toHaveBeenCalled();
         expect(screen.queryByText('We need your permission to show browser notifications.')).not.toBeInTheDocument();
     });
 
     test('should not render anything if permission is denied', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue('denied');
+        isNotificationAPISupported.mockReturnValue(true);
+        getNotificationPermission.mockReturnValue('denied');
 
         const {container} = renderWithContext(<NotificationPermissionBar/>, initialState);
 
@@ -79,8 +95,8 @@ describe('NotificationPermissionBar', () => {
     });
 
     test('should not render anything if permission is granted', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue('granted');
+        isNotificationAPISupported.mockReturnValue(true);
+        getNotificationPermission.mockReturnValue('granted');
 
         const {container} = renderWithContext(<NotificationPermissionBar/>, initialState);
 
@@ -88,8 +104,8 @@ describe('NotificationPermissionBar', () => {
     });
 
     test('should not render anything in cloud preview environment', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
+        isNotificationAPISupported.mockReturnValue(true);
+        getNotificationPermission.mockReturnValue(NotificationPermissionNeverGranted);
 
         const stateWithCloudPreview = {
             ...initialState,

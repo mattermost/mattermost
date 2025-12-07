@@ -20,10 +20,20 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     unfavoriteChannel: jest.fn(),
 }));
 
+jest.mock('mattermost-redux/selectors/entities/channels', () => ({
+    isCurrentChannelFavorite: jest.fn(),
+    getCurrentChannel: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useDispatch: jest.fn(),
+}));
+
 describe('ChannelHeaderTitleFavorite Component', () => {
-    let isCurrentChannelFavoriteMock: jest.SpyInstance;
-    let getCurrentChannelMock: jest.SpyInstance;
-    let dispatchMock: jest.Mock;
+    const isCurrentChannelFavoriteMock = channelsSelectors.isCurrentChannelFavorite as jest.Mock;
+    const getCurrentChannelMock = channelsSelectors.getCurrentChannel as jest.Mock;
+    const dispatchMock = jest.fn();
 
     const ADD_TO_FAVORITES_REGEX = /add to favorites/i;
     const REMOVE_FROM_FAVORITES_REGEX = /remove from favorites/i;
@@ -48,14 +58,12 @@ describe('ChannelHeaderTitleFavorite Component', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        isCurrentChannelFavoriteMock.mockClear();
+        getCurrentChannelMock.mockClear();
+        dispatchMock.mockClear();
 
-        // Spy on selectors
-        isCurrentChannelFavoriteMock = jest.spyOn(channelsSelectors, 'isCurrentChannelFavorite');
-        getCurrentChannelMock = jest.spyOn(channelsSelectors, 'getCurrentChannel');
-
-        // Mock useDispatch to capture dispatch calls
-        dispatchMock = jest.fn();
-        jest.spyOn(require('react-redux'), 'useDispatch').mockReturnValue(dispatchMock);
+        // Mock useDispatch to return dispatchMock
+        (require('react-redux').useDispatch as jest.Mock).mockReturnValue(dispatchMock);
     });
 
     afterEach(() => {
@@ -173,9 +181,8 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(icon).toHaveClass('icon-star-outline');
 
         // Reset mocks to simulate favorite state
-        jest.clearAllMocks();
-        isCurrentChannelFavoriteMock = jest.spyOn(channelsSelectors, 'isCurrentChannelFavorite');
-        getCurrentChannelMock = jest.spyOn(channelsSelectors, 'getCurrentChannel');
+        isCurrentChannelFavoriteMock.mockClear();
+        getCurrentChannelMock.mockClear();
 
         isCurrentChannelFavoriteMock.mockReturnValue(true);
         getCurrentChannelMock.mockReturnValue(activeChannel);
@@ -198,8 +205,10 @@ describe('ChannelHeaderTitleFavorite Component', () => {
             data: activeChannel.id,
         });
 
-        // Spy on document.dispatchEvent
-        const dispatchEventSpy = jest.spyOn(document, 'dispatchEvent');
+        // Mock document.dispatchEvent
+        const dispatchEventSpy = jest.fn();
+        const originalDispatchEvent = document.dispatchEvent;
+        document.dispatchEvent = dispatchEventSpy;
 
         renderComponent();
 
@@ -234,6 +243,6 @@ describe('ChannelHeaderTitleFavorite Component', () => {
         expect(event.detail.keyboardOnly).toBe(false);
 
         // Cleanup
-        dispatchEventSpy.mockRestore();
+        document.dispatchEvent = originalDispatchEvent;
     });
 });

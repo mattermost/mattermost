@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch} from 'react-redux';
 
-import * as modalActions from 'actions/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import DeleteChannelModal from 'components/delete_channel_modal';
@@ -15,6 +13,15 @@ import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import ArchiveChannel from './archive_channel';
+
+// Mock the modal actions module
+const mockOpenModal = jest.fn();
+jest.mock('actions/views/modals', () => ({
+    openModal: (...args: unknown[]) => {
+        mockOpenModal(...args);
+        return {type: 'MOCK_OPEN_MODAL'};
+    },
+}));
 
 describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
     const initialState = {
@@ -59,15 +66,9 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
     LocalStorageStore.setPenultimateChannelName('current_user_id', 'team-id', 'current_channel_id');
 
     const channel = TestHelper.getChannelMock({header: 'Test Header'});
+
     beforeEach(() => {
-        jest.spyOn(modalActions, 'openModal');
-
-        // Mock useDispatch to return our custom dispatch function
-        jest.spyOn(require('react-redux'), 'useDispatch');
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
+        mockOpenModal.mockClear();
     });
 
     test('renders the component correctly', () => {
@@ -76,7 +77,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         );
 
         const menuItem = screen.getByText('Archive Channel');
-        expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
+        expect(menuItem).toBeInTheDocument();
     });
 
     test('dispatches openModal action on click with default channel', () => {
@@ -87,12 +88,11 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
         );
 
         const menuItem = screen.getByText('Archive Channel');
-        expect(menuItem).toBeInTheDocument(); // Check if text "Add Members" renders
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        expect(menuItem).toBeInTheDocument();
+        fireEvent.click(menuItem);
 
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
-        expect(modalActions.openModal).toHaveBeenCalledWith({
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.DELETE_CHANNEL,
             dialogType: DeleteChannelModal,
             dialogProps: {

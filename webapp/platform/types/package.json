@@ -12,7 +12,16 @@
     "lib"
   ],
   "exports": {
-    "./*": "./lib/*.js"
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    },
+    "./*": {
+      "types": "./lib/*.d.ts",
+      "import": "./lib/*.js",
+      "require": "./lib/*.js"
+    }
   },
   "typesVersions": {
     ">=3.1": {

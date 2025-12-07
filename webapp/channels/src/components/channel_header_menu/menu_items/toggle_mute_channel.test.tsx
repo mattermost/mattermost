@@ -14,13 +14,23 @@ import {TestHelper} from 'utils/test_helper';
 
 import ToggleMuteChannel from './toggle_mute_channel';
 
+jest.mock('mattermost-redux/actions/channels');
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useDispatch: jest.fn(),
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
     const channel = TestHelper.getChannelMock();
     const user = TestHelper.getUserMock();
+    const mockDispatch = jest.fn();
+    const mockUpdateChannelNotifyProps = jest.fn(() => Promise.resolve({data: true}));
 
     beforeEach(() => {
-        jest.spyOn(channelActions, 'updateChannelNotifyProps').mockReturnValue(() => Promise.resolve({data: true}));
-        jest.spyOn(require('react-redux'), 'useDispatch');
+        (channelActions.updateChannelNotifyProps as jest.Mock).mockImplementation(mockUpdateChannelNotifyProps);
+        (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+        mockDispatch.mockClear();
+        mockUpdateChannelNotifyProps.mockClear();
     });
 
     afterEach(() => {
@@ -42,9 +52,9 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+        expect(mockDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledWith(
             user.id,
             channel.id,
             {mark_unread: NotificationLevels.MENTION},
@@ -66,9 +76,9 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+        expect(mockDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledWith(
             user.id,
             channel.id,
             {mark_unread: NotificationLevels.ALL},
@@ -91,9 +101,9 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+        expect(mockDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledWith(
             user.id,
             channel.id,
             {mark_unread: NotificationLevels.MENTION},
@@ -115,9 +125,9 @@ describe('components/ChannelHeaderMenu/MenuItems/ToggleMuteChannel', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledTimes(1);
-        expect(channelActions.updateChannelNotifyProps).toHaveBeenCalledWith(
+        expect(mockDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledTimes(1);
+        expect(mockUpdateChannelNotifyProps).toHaveBeenCalledWith(
             user.id,
             channel.id,
             {mark_unread: NotificationLevels.ALL},

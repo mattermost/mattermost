@@ -116,6 +116,7 @@ describe('components/Root', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+
         // Reset the reloadPage mock after each test
         (BrowserUtils.reloadPage as jest.Mock).mockClear();
     });

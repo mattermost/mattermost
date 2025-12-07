@@ -233,9 +233,10 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
                         placeholder={focused ? '' : formatAsString(intl.formatMessage, placeholder)}
                         components={{
                             IndicatorsContainer,
-                            Option: Option as React.ComponentType<OptionProps<T, false, GroupBase<T>>>,
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            Option: Option as any,
                             Control,
-                        }}
+                        } as any}
                         className={classNames('Input', className, {Input__focus: showLegend})}
                         classNamePrefix={dropdownClassNamePrefix}
                         onChange={onValueChange}

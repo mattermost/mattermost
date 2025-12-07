@@ -46,7 +46,7 @@ describe('Actions.Emojis', () => {
 
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
     });
 
     it('getCustomEmojis', async () => {
@@ -75,7 +75,7 @@ describe('Actions.Emojis', () => {
 
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
     });
 
     it('deleteCustomEmoji', async () => {
@@ -93,15 +93,15 @@ describe('Actions.Emojis', () => {
         ));
 
         nock(Client4.getBaseRoute()).
-            delete(`/emoji/${created.id}`).
+            delete(`/emoji/${created!.id}`).
             reply(200, OK_RESPONSE);
 
-        await store.dispatch(Actions.deleteCustomEmoji(created.id));
+        await store.dispatch(Actions.deleteCustomEmoji(created!.id));
 
         const state = store.getState();
 
         const emojis = state.entities.emojis.customEmoji;
-        expect(!emojis[created.id]).toBeTruthy();
+        expect(!emojis[created!.id]).toBeTruthy();
     });
 
     it('loadProfilesForCustomEmojis', async () => {
@@ -158,13 +158,13 @@ describe('Actions.Emojis', () => {
             post('/emoji/search').
             reply(200, [created]);
 
-        await store.dispatch(Actions.searchCustomEmojis(created.name, {prefix_only: true}));
+        await store.dispatch(Actions.searchCustomEmojis(created!.name, {prefix_only: true}));
 
         const state = store.getState();
 
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
     });
 
     it('autocompleteCustomEmojis', async () => {
@@ -187,13 +187,13 @@ describe('Actions.Emojis', () => {
             query(true).
             reply(200, [created]);
 
-        await store.dispatch(Actions.autocompleteCustomEmojis(created.name));
+        await store.dispatch(Actions.autocompleteCustomEmojis(created!.name));
 
         const state = store.getState();
 
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
     });
 
     it('getCustomEmoji', async () => {
@@ -212,16 +212,16 @@ describe('Actions.Emojis', () => {
         ));
 
         nock(Client4.getBaseRoute()).
-            get(`/emoji/${created.id}`).
+            get(`/emoji/${created!.id}`).
             reply(200, created);
 
-        await store.dispatch(Actions.getCustomEmoji(created.id));
+        await store.dispatch(Actions.getCustomEmoji(created!.id));
 
         const state = store.getState();
 
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
     });
 
     it('getCustomEmojiByName', async () => {
@@ -240,16 +240,16 @@ describe('Actions.Emojis', () => {
         ));
 
         nock(Client4.getBaseRoute()).
-            get(`/emoji/name/${created.name}`).
+            get(`/emoji/name/${created!.name}`).
             reply(200, created);
 
-        await store.dispatch(Actions.getCustomEmojiByName(created.name));
+        await store.dispatch(Actions.getCustomEmojiByName(created!.name));
 
         let state = store.getState();
 
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
 
         const missingName = TestHelper.generateId();
 
@@ -352,13 +352,13 @@ describe('Actions.Emojis', () => {
         const missingName = TestHelper.generateId();
 
         nock(Client4.getBaseRoute()).
-            post('/emoji/names', [created.name, missingName]).
+            post('/emoji/names', [created!.name, missingName]).
             reply(200, [created]);
 
-        await store.dispatch(Actions.getCustomEmojisInText(`some text :${created.name}: :${missingName}:`));
+        await store.dispatch(Actions.getCustomEmojisInText(`some text :${created!.name}: :${missingName}:`));
 
         const state = store.getState();
-        expect(state.entities.emojis.customEmoji[created.id]).toBeTruthy();
+        expect(state.entities.emojis.customEmoji[created!.id]).toBeTruthy();
         expect(state.entities.emojis.nonExistentEmoji.has(missingName)).toBeTruthy();
     });
 });

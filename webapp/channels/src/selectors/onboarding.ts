@@ -7,7 +7,8 @@ import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/
 
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
+// Import constants directly to avoid circular dependency with onboarding_tasks_manager
+import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks/constants';
 
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
 
