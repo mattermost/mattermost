@@ -172,7 +172,7 @@
   "add_oauth_app.icon.help": "(Optioneel) Geef de URL van de afbeelding op voor jouw OAuth 2.0-toepassing. Gebruik HTTP of HTTPS in de URL.",
   "add_oauth_app.name.help": "Geef de weergavenaam op van jouw OAuth 2.0-toepassing. Je kan maximaal 64 tekens gebruiken.",
   "add_oauth_app.nameRequired": "Naam van de OAuth 2.0 applicatie is verplicht.",
-  "add_oauth_app.public.help": "Als dit ingesteld is, is de OAuth 2.0 toepassing een publieke client (geen clientgeheim). Openbare clients moeten PKCE gebruiken voor autorisatie. Indien niet ingeschakeld dan is de applicatie een vertrouwelijke client met een clientgeheim.",
+  "add_oauth_app.public.help": "Als dit actief is, is de OAuth 2.0 toepassing een publieke client (geen clientgeheim). Openbare clients moeten PKCE gebruiken voor autorisatie. Indien niet ingeschakeld dan is de applicatie een vertrouwelijke client met een clientgeheim. Deze instelling kan niet worden gewijzigd nadat de toepassing is gemaakt.",
   "add_oauth_app.trusted.help": "Als dit ingeschakeld is, wordt de OAuth 2.0-toepassing geacht te worden vertrouwd door de Mattermost-server en is het niet nodig dat de gebruiker de machtiging accepteert. Als dit uitgeschakeld is, wordt er een venster geopend waarin de gebruiker gevraagd wordt de machtiging te accepteren of te weigeren.",
   "add_oauth_app.url": "<b>URL(s)</b>: {url}",
   "add_outgoing_oauth_connection.add": "Toevoegen",
