@@ -11,8 +11,8 @@ import * as GlobalActions from 'actions/global_actions';
 
 import testConfigureStore from 'packages/mattermost-redux/test/test_store';
 import {act, renderWithContext, waitFor} from 'tests/react_testing_utils';
-import {StoragePrefixes} from 'utils/constants';
 import * as BrowserUtils from 'utils/browser_utils';
+import {StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
 import {handleLoginLogoutSignal, redirectToOnboardingOrDefaultTeam} from './actions';
@@ -116,6 +116,7 @@ describe('components/Root', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+
         // Reset the reloadPage mock after each test
         (BrowserUtils.reloadPage as jest.Mock).mockClear();
     });
