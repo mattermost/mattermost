@@ -507,7 +507,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               <span>
                 Last reply 
                 <Memo(SemanticTime)
-                  key=".$.1"
+                  key="1/.1"
                   value={2019-04-01T23:31:44.000Z}
                 >
                   <time
@@ -1021,7 +1021,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               <span>
                 Last reply 
                 <Memo(SemanticTime)
-                  key=".$.1"
+                  key="1/.1"
                   value={2019-04-01T23:31:44.000Z}
                 >
                   <time
