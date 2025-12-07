@@ -11198,5 +11198,9 @@
   {
     "id": "store.sql_autotranslation.query_build_error",
     "translation": "Misslyckades att skapa frågan."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Ogiltig sorteringsriktning."
   }
 ]
