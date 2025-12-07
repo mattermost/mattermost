@@ -98,7 +98,11 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getFlaggedPostIds(state as GlobalState)).toEqual(['post1', 'post2', 'post3']);
+            expect(Selectors.getFlaggedPostIds(state as GlobalState)).toEqual([
+                'post1',
+                'post2',
+                'post3',
+            ]);
         });
 
         it('returns empty array when no flagged posts', () => {
@@ -115,7 +119,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getFlaggedPostIds(state as GlobalState)).toEqual([]);
+            expect(Selectors.getFlaggedPostIds(state as GlobalState)).toEqual(
+                [],
+            );
         });
     });
 
@@ -134,7 +140,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getFlaggedPostsPage(state as GlobalState)).toEqual(2);
+            expect(Selectors.getFlaggedPostsPage(state as GlobalState)).toEqual(
+                2,
+            );
         });
     });
 
@@ -153,7 +161,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getIsFlaggedPostsEnd(state as GlobalState)).toEqual(true);
+            expect(
+                Selectors.getIsFlaggedPostsEnd(state as GlobalState),
+            ).toEqual(true);
         });
 
         it('returns false when isEnd is false', () => {
@@ -170,7 +180,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getIsFlaggedPostsEnd(state as GlobalState)).toEqual(false);
+            expect(
+                Selectors.getIsFlaggedPostsEnd(state as GlobalState),
+            ).toEqual(false);
         });
     });
 
@@ -189,7 +201,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getIsFlaggedPostsLoading(state as GlobalState)).toEqual(true);
+            expect(
+                Selectors.getIsFlaggedPostsLoading(state as GlobalState),
+            ).toEqual(true);
         });
 
         it('returns false when isLoading is false', () => {
@@ -206,7 +220,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getIsFlaggedPostsLoading(state as GlobalState)).toEqual(false);
+            expect(
+                Selectors.getIsFlaggedPostsLoading(state as GlobalState),
+            ).toEqual(false);
         });
     });
 
@@ -225,7 +241,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getIsFlaggedPostsLoadingMore(state as GlobalState)).toEqual(true);
+            expect(
+                Selectors.getIsFlaggedPostsLoadingMore(state as GlobalState),
+            ).toEqual(true);
         });
 
         it('returns false when isLoadingMore is false', () => {
@@ -242,7 +260,9 @@ describe('selectors.entities.flaggedPosts', () => {
                 },
             });
 
-            expect(Selectors.getIsFlaggedPostsLoadingMore(state as GlobalState)).toEqual(false);
+            expect(
+                Selectors.getIsFlaggedPostsLoadingMore(state as GlobalState),
+            ).toEqual(false);
         });
     });
 

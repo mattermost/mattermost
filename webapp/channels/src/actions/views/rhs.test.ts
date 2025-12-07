@@ -12,6 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
+import * as FlaggedPostsActions from 'mattermost-redux/actions/flagged_posts';
 import * as SearchActions from 'mattermost-redux/actions/search';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
@@ -82,8 +83,6 @@ jest.mock('mattermost-redux/actions/search', () => ({
     getFlaggedPosts: jest.fn(),
     getPinnedPosts: jest.fn(),
 }));
-
-import * as FlaggedPostsActions from 'mattermost-redux/actions/flagged_posts';
 
 jest.mock('mattermost-redux/actions/flagged_posts', () => ({
     fetchFlaggedPosts: jest.fn(),
