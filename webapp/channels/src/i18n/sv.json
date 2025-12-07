@@ -1786,6 +1786,7 @@
   "admin.notices.enableAdminNoticesTitle": "Aktivera administratörsnotiser: ",
   "admin.notices.enableEndUserNoticesDescription": "När aktiverad kommer alla användare få notiser om tillgängliga klientuppdateringar och relevanta användarfunktioner för att förbättra användarupplevelsen. <link>Läs mer om notiser</link> i dokumentationen.",
   "admin.notices.enableEndUserNoticesTitle": "Aktivera slutanvändarnotiser: ",
+  "admin.oauth.dcrTitle": "Aktivera OAuth 2.0 dynamisk klient-registrering: ",
   "admin.oauth.gitlab": "GitLab",
   "admin.oauth.google": "Google Apps",
   "admin.oauth.off": "Tillåt inte inloggning med en OAuth 2.0 provider",
