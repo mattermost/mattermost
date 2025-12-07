@@ -260,7 +260,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
     # shellcheck disable=SC2016
     echo '
   webhook-interactions:
-    image: mattermostdevelopment/mirrored-node:${NODE_VERSION_REQUIRED}
+    image: node:${NODE_VERSION_REQUIRED}
     command: sh -c "npm install --global --legacy-peer-deps && exec node webhook_serve.js"
     healthcheck:
       test: ["CMD", "curl", "-s", "-o/dev/null", "127.0.0.1:3000"]
