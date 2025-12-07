@@ -11166,5 +11166,21 @@
   {
     "id": "ent.push_proxy.generate.save_system.app_error",
     "translation": "Sparningen av auth-token misslyckades."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Ingen behörighet att flytta kommandot"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Tjänstleverantör för OAuth är avstängd."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Ogiltig länk-typ för inbjudningen."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Påkallningen av AI-agenten misslyckades."
   }
 ]
