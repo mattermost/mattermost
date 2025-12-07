@@ -11158,5 +11158,13 @@
   {
     "id": "store.sql_autotranslation.get_user_language.app_error",
     "translation": "Kunde inte hämta användarens språk."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Hämtningen av agenterna misslyckades."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Sparningen av auth-token misslyckades."
   }
 ]
