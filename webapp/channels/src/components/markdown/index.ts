@@ -25,9 +25,17 @@ function makeGetChannelNamesMap() {
         'makeGetChannelNamesMap',
         getChannelNameToDisplayNameMap,
         (_: GlobalState, props: OwnProps) => props && props.channelNamesMap,
-        (channelNamesMap, channelMentions) => {
+        (state: GlobalState, props: OwnProps) => (props.postId ? getPost(state, props.postId)?.props?.channel_mentions : undefined),
+        (channelNamesMap, propsChannelMentions, postChannelMentions) => {
+            // Use channel_mentions from post.props as source of truth (most up-to-date)
+            // This ensures selector re-runs when post.props.channel_mentions changes
+            const channelMentions = postChannelMentions || propsChannelMentions;
+
             if (channelMentions) {
-                return Object.assign({}, channelMentions, channelNamesMap);
+                // Server data (channelMentions) takes precedence over Redux data (channelNamesMap)
+                // Server data is sanitized, has fresh display names, and correct permissions
+                var returnMap = Object.assign({}, channelNamesMap, channelMentions);
+                return returnMap;
             }
 
             return channelNamesMap;

@@ -508,11 +508,12 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		// This is a transient hint from the client, not persisted data
 		post.DelProp(model.PostPropsCurrentTeamId)
 
-		// Populate channel_mentions for PUBLIC channels only
-		// Private channels are excluded to prevent information disclosure
-		// This matches autocomplete behavior and keeps the implementation secure
+		// Populate channel_mentions for channels the POST CREATOR has access to
+		// This includes public channels and private channels where creator is a member
+		// Prevents information disclosure while supporting private channel mentions for members
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelTypeOpen {
+			// Check if post creator has permission to read this channel
+			if a.HasPermissionToReadChannel(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
