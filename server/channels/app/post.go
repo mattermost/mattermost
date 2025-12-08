@@ -1478,11 +1478,6 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList, collapsedThrea
 			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
 
-		// If the next post is not in the filtered list, return empty to indicate we're at the latest accessible post
-		if nextPostId != "" && postList.Posts[nextPostId] == nil {
-			return ""
-		}
-
 		return nextPostId
 	}
 
