@@ -4,8 +4,10 @@
 package fileutils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/v8"
 )
@@ -114,4 +116,36 @@ func FindDirRelBinary(dir string) (string, bool) {
 		return "./", false
 	}
 	return found, true
+}
+
+// CheckDirectoryConflict checks if either directory is a subdirectory of the other.
+// Returns true if there is a conflict (one is a subdirectory of the other or they are the same).
+// Returns an error if the directory paths cannot be resolved.
+// If a directory does not exist, the absolute path is used without symlink resolution.
+func CheckDirectoryConflict(dir1, dir2 string) (bool, error) {
+	absDir1, err := filepath.Abs(dir1)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve absolute path for %q: %w", dir1, err)
+	}
+	absDir2, err := filepath.Abs(dir2)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve absolute path for %q: %w", dir2, err)
+	}
+
+	if resolved, err := filepath.EvalSymlinks(absDir1); err == nil {
+		absDir1 = resolved
+	} else if !os.IsNotExist(err) {
+		return false, fmt.Errorf("failed to evaluate symlinks for %q: %w", dir1, err)
+	}
+
+	if resolved, err := filepath.EvalSymlinks(absDir2); err == nil {
+		absDir2 = resolved
+	} else if !os.IsNotExist(err) {
+		return false, fmt.Errorf("failed to evaluate symlinks for %q: %w", dir2, err)
+	}
+
+	absDir1 += string(filepath.Separator)
+	absDir2 += string(filepath.Separator)
+
+	return strings.HasPrefix(absDir1, absDir2) || strings.HasPrefix(absDir2, absDir1), nil
 }

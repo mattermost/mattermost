@@ -129,3 +129,149 @@ func TestFindFile(t *testing.T) {
 		}
 	})
 }
+
+func TestCheckDirectoryConflict(t *testing.T) {
+	t.Run("separate directories", func(t *testing.T) {
+		tmpDir1, err := os.MkdirTemp("", "dir1")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir1)
+
+		tmpDir2, err := os.MkdirTemp("", "dir2")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir2)
+
+		conflict, err := CheckDirectoryConflict(tmpDir1, tmpDir2)
+		require.NoError(t, err)
+		assert.False(t, conflict)
+	})
+
+	t.Run("same directory", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "samedir")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		conflict, err := CheckDirectoryConflict(tmpDir, tmpDir)
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+
+	t.Run("first is subdirectory of second", func(t *testing.T) {
+		tmpDir1, err := os.MkdirTemp("", "parent")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir1)
+
+		tmpDir2 := filepath.Join(tmpDir1, "child")
+		err = os.MkdirAll(tmpDir2, 0700)
+		require.NoError(t, err)
+
+		conflict, err := CheckDirectoryConflict(tmpDir2, tmpDir1)
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+
+	t.Run("second is subdirectory of first", func(t *testing.T) {
+		tmpDir1, err := os.MkdirTemp("", "parent")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir1)
+
+		tmpDir2 := filepath.Join(tmpDir1, "child")
+		err = os.MkdirAll(tmpDir2, 0700)
+		require.NoError(t, err)
+
+		conflict, err := CheckDirectoryConflict(tmpDir1, tmpDir2)
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+
+	t.Run("deeply nested subdirectory", func(t *testing.T) {
+		tmpDir1, err := os.MkdirTemp("", "parent")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir1)
+
+		tmpDir2 := filepath.Join(tmpDir1, "a", "b", "c")
+		err = os.MkdirAll(tmpDir2, 0700)
+		require.NoError(t, err)
+
+		conflict, err := CheckDirectoryConflict(tmpDir1, tmpDir2)
+		require.NoError(t, err)
+		assert.True(t, conflict)
+
+		conflict, err = CheckDirectoryConflict(tmpDir2, tmpDir1)
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+
+	t.Run("symlinked directory", func(t *testing.T) {
+		tmpDir1, err := os.MkdirTemp("", "real")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir1)
+
+		tmpDir2, err := os.MkdirTemp("", "symlinks")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir2)
+
+		symlink := filepath.Join(tmpDir2, "link")
+		err = os.Symlink(tmpDir1, symlink)
+		require.NoError(t, err)
+
+		conflict, err := CheckDirectoryConflict(tmpDir1, symlink)
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+
+	t.Run("relative paths", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "parent")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir)
+
+		subDir := filepath.Join(tmpDir, "subdir")
+		err = os.MkdirAll(subDir, 0700)
+		require.NoError(t, err)
+
+		err = os.Chdir(tmpDir)
+		require.NoError(t, err)
+
+		conflict, err := CheckDirectoryConflict(".", ".")
+		require.NoError(t, err)
+		assert.True(t, conflict)
+
+		conflict, err = CheckDirectoryConflict(".", "./subdir")
+		require.NoError(t, err)
+		assert.True(t, conflict)
+
+		conflict, err = CheckDirectoryConflict("./subdir", ".")
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+
+	t.Run("similar prefix but not subdirectory", func(t *testing.T) {
+		tmpDir1, err := os.MkdirTemp("", "dir")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir1)
+
+		tmpDir2, err := os.MkdirTemp("", "dir")
+		require.NoError(t, err)
+		defer os.RemoveAll(tmpDir2)
+
+		conflict, err := CheckDirectoryConflict(tmpDir1, tmpDir2)
+		require.NoError(t, err)
+		assert.False(t, conflict)
+	})
+
+	t.Run("non-existent directories are handled", func(t *testing.T) {
+		// Both directories non-existent but separate - no error, no conflict
+		conflict, err := CheckDirectoryConflict("/nonexistent/path1", "/nonexistent/path2")
+		require.NoError(t, err)
+		assert.False(t, conflict)
+
+		// Both directories non-existent, one nested in the other
+		conflict, err = CheckDirectoryConflict("/nonexistent/parent", "/nonexistent/parent/child")
+		require.NoError(t, err)
+		assert.True(t, conflict)
+
+		// Same non-existent directory
+		conflict, err = CheckDirectoryConflict("/nonexistent/same", "/nonexistent/same")
+		require.NoError(t, err)
+		assert.True(t, conflict)
+	})
+}
