@@ -42,17 +42,6 @@ type Props = {
 const UserList = ({
     actionUserProps,
     isDisabled,
-
-    /**
-     * 'actionProps' had a default value of an empty object without an explicit type in the class component.
-     *
-     * Test still pass without assigning it a default value, but alternatively, I can give it
-     * an empty object as the default and populate the object's properties with each types
-     * default value e.g. all booleans will be false, and the function properties will have an empty
-     * noop function.
-     *
-     * Delete after PR review.
-     */
     actionProps,
     users: usersFromProps = [],
     extraInfo = {},
@@ -60,15 +49,6 @@ const UserList = ({
     rowComponentType = UserListRow,
 }: Props) => {
     const containerRef = useRef(null);
-
-    // This method wasn't used anywhere in the class component and is
-    // a candidate to be deleted during the PR review.
-
-    // const scrollToTop = () => {
-    //     if (containerRef.current) {
-    //         containerRef.current.scrollTop = 0;
-    //     }
-    // };
 
     const users = usersFromProps;
     const RowComponentType = rowComponentType;
