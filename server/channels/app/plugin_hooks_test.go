@@ -1501,7 +1501,7 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			mainHelper.Parallel(t)
 
 			th := Setup(t, StartMetrics).InitBasic(t)
-		
+
 			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
 			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
 			defer tearDown()
@@ -1635,7 +1635,7 @@ func TestHookEmailNotificationWillBeSent(t *testing.T) {
 			mainHelper.Parallel(t)
 
 			th := Setup(t, StartMetrics).InitBasic(t)
-		
+
 			// Create a test user for email notifications
 			user := th.CreateUser(t)
 			th.LinkUserToTeam(t, user, th.BasicTeam)
@@ -2080,7 +2080,7 @@ func TestHookServeMetrics(t *testing.T) {
 	t.Run("should call plugin ServeMetrics hook", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics)
-	
+
 		// Configure metrics
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
@@ -2125,7 +2125,7 @@ func TestHookServeMetrics(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(serverMetrics))
+			_, _ = w.Write([]byte(serverMetrics))
 		})
 
 		// Register the metrics handler
@@ -2158,7 +2158,7 @@ func TestHookServeMetrics(t *testing.T) {
 	t.Run("should handle multiple plugins providing metrics", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics)
-	
+
 		// Configure metrics
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
@@ -2226,7 +2226,7 @@ func TestHookServeMetrics(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(serverMetrics))
+			_, _ = w.Write([]byte(serverMetrics))
 		})
 
 		// Register the metrics handler
@@ -2260,7 +2260,7 @@ func TestHookServeMetrics(t *testing.T) {
 	t.Run("should handle plugin not implementing ServeMetrics", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics)
-	
+
 		// Configure metrics
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
@@ -2294,7 +2294,7 @@ func TestHookServeMetrics(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(serverMetrics))
+			_, _ = w.Write([]byte(serverMetrics))
 		})
 
 		// Register the metrics handler

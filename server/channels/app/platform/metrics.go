@@ -281,7 +281,9 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 				w.Header().Set("Content-Type", contentType)
 			}
 			w.WriteHeader(rec.Code)
-			w.Write(buf.Bytes())
+			if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+				mlog.Error("Failed to write to HandleMetrics's response writer", mlog.Err(writeErr))
+			}
 		})
 
 		ps.metrics.router.Handle(route, wrappedHandler)
