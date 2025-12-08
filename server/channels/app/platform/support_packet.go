@@ -95,6 +95,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Server */
 	d.Server.OS = runtime.GOOS
 	d.Server.Architecture = runtime.GOARCH
+	// Note: These values represent the host machine's resources, not any
+	// container limits (e.g., Docker or Kubernetes) that may be in effect.
 	d.Server.CPUCores = runtime.NumCPU()
 	totalMemoryBytes, err := getTotalMemory()
 	if err != nil {
