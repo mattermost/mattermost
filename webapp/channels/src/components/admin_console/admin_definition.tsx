@@ -5664,7 +5664,8 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 schema: {
                     id: 'ExperimentalAuditSettings',
-                    name: 'Audit logging (Beta)',
+                    isBeta: true,
+                    name: defineMessage({id: 'admin.auditlogging.title', defaultMessage: 'Audit Logging'}),
                     settings: [
                         {
                             type: 'banner',
