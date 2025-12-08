@@ -150,6 +150,9 @@ const UserPropertyValues = ({
         );
     }
 
+    const isProtected = Boolean(field.attrs?.protected);
+    const isDisabled = field.delete_at !== 0 || isProtected;
+
     return (
         <>
             <CreatableSelect<Option, true, GroupBase<Option>>
@@ -158,7 +161,7 @@ const UserPropertyValues = ({
                 isClearable={true}
                 isMulti={true}
                 menuIsOpen={false}
-                isDisabled={field.delete_at !== 0}
+                isDisabled={isDisabled}
                 onChange={(newValues) => {
                     setFieldOptions(newValues.map(({id, value}) => ({id, name: value})));
                 }}

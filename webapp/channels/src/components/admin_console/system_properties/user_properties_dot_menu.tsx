@@ -152,6 +152,8 @@ const DotMenu = ({
         updateField({...field, attrs: newAttrs});
     };
 
+    const isProtected = Boolean(field.attrs?.protected);
+
     let selectedVisibilityLabel;
 
     if (field.attrs.visibility === 'always') {
@@ -213,6 +215,7 @@ const DotMenu = ({
                     </>
                 )}
                 forceOpenOnLeft={false}
+                disabled={isProtected}
             >
                 <Menu.Item
                     id={`${menuId}_visibility-always`}
@@ -277,6 +280,7 @@ const DotMenu = ({
                 role='menuitemcheckbox'
                 aria-checked={field.attrs.managed !== 'admin'}
                 onClick={handleEditableByUsersToggle}
+                disabled={isProtected}
                 leadingElement={<PencilOutlineIcon size={18}/>}
                 labels={(
                     <FormattedMessage
@@ -287,7 +291,7 @@ const DotMenu = ({
                 trailingElements={(
                     <Toggle
                         size='btn-sm'
-                        disabled={false}
+                        disabled={isProtected}
                         onToggle={handleEditableByUsersToggle}
                         toggled={field.attrs.managed !== 'admin'}
                         toggleClassName='btn-toggle-primary'
@@ -301,6 +305,7 @@ const DotMenu = ({
                     id={`${menuId}_link_ad-ldap`}
                     leadingElement={<SyncIcon size={18}/>}
                     onClick={() => promptEditLdapLink()}
+                    disabled={isProtected}
                     labels={field.attrs.ldap ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.ad_ldap.edit_link.label'
@@ -318,6 +323,7 @@ const DotMenu = ({
                     id={`${menuId}_link_saml`}
                     leadingElement={<SyncIcon size={18}/>}
                     onClick={() => promptEditSamlLink()}
+                    disabled={isProtected}
                     labels={field.attrs.saml ? (
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.saml.edit_link.label'
@@ -337,6 +343,7 @@ const DotMenu = ({
                     id={`${menuId}_duplicate`}
                     onClick={handleDuplicate}
                     leadingElement={<ContentCopyIcon size={18}/>}
+                    disabled={isProtected}
                     labels={(
                         <FormattedMessage
                             id='admin.system_properties.user_properties.dotmenu.duplicate.label'
