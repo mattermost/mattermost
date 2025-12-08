@@ -275,6 +275,7 @@ $(if mme2e_is_token_in_list "webhook-interactions" "$ENABLED_DOCKER_SERVICES"; t
   fi)
 
 $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
+    # shellcheck disable=SC2016
     echo '
   playwright:
     image: mcr.microsoft.com/playwright:v1.56.0-noble
