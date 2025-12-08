@@ -9,14 +9,13 @@ import {useHistory} from 'react-router-dom';
 import {LinkVariantIcon, PaperclipIcon, FileMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
-import {Client4} from 'mattermost-redux/client';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
-import {loadChannelWikis} from 'actions/pages';
+import {loadChannelWikis, createWiki} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
 import {getChannelWikis} from 'selectors/pages';
 
@@ -255,13 +254,10 @@ function ChannelTabs({
                 confirmButtonText: formatMessage({id: 'channel_tabs.create', defaultMessage: 'Create'}),
                 placeholder: formatMessage({id: 'channel_tabs.wiki_name_placeholder', defaultMessage: 'Enter wiki name'}),
                 onConfirm: async (wikiName: string) => {
-                    const wiki = await Client4.createWiki({
-                        channel_id: channelId,
-                        title: wikiName.trim(),
-                    });
+                    const result = await dispatch(createWiki(channelId, wikiName.trim()));
                     dispatch(closeModal(ModalIdentifiers.TEXT_INPUT_MODAL));
-                    if (wiki.id) {
-                        history.push(getWikiUrl(teamName, channelId, wiki.id));
+                    if (result.data?.id) {
+                        history.push(getWikiUrl(teamName, channelId, result.data.id));
                     }
                 },
                 onCancel: () => {

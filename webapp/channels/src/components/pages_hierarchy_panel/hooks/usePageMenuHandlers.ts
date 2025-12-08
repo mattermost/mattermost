@@ -8,12 +8,11 @@ import {useHistory, useLocation} from 'react-router-dom';
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
 
-import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {removePageDraft} from 'actions/page_drafts';
-import {createPage, deletePage, duplicatePage, movePageToWiki} from 'actions/pages';
+import {createPage, deletePage, duplicatePage, loadChannelWikis, loadPages, movePageToWiki} from 'actions/pages';
 import {expandAncestors} from 'actions/views/pages_hierarchy';
 import {openPageInEditMode} from 'actions/wiki_edit';
 
@@ -183,14 +182,14 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         const hasChildren = childCount > 0;
 
         try {
-            const wikis = await Client4.getChannelWikis(channelId);
-            setAvailableWikis(wikis || []);
+            const result = await dispatch(loadChannelWikis(channelId));
+            setAvailableWikis((result as ActionResult<Wiki[]>).data || []);
             setPageToMove({pageId, pageTitle: String(pageTitle), hasChildren});
             setShowMoveModal(true);
         } catch (error) {
             // Error handled
         }
-    }, [allPages, channelId, getDescendantCount]);
+    }, [allPages, channelId, dispatch, getDescendantCount]);
 
     const handleMoveConfirm = useCallback(async (targetWikiId: string, parentPageId?: string) => {
         if (!pageToMove) {
@@ -313,17 +312,18 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
     const fetchPagesForWiki = useCallback(async (targetWikiId: string): Promise<Post[]> => {
         try {
-            const wikis = await Client4.getChannelWikis(channelId);
+            const wikisResult = await dispatch(loadChannelWikis(channelId));
+            const wikis = (wikisResult as ActionResult<Wiki[]>).data;
             const targetWiki = wikis?.find((w) => w.id === targetWikiId);
             if (targetWiki) {
-                const pages = await Client4.getPages(targetWikiId);
-                return pages || [];
+                const pagesResult = await dispatch(loadPages(targetWikiId));
+                return (pagesResult as ActionResult<Post[]>).data || [];
             }
             return [];
         } catch (error) {
             return [];
         }
-    }, [channelId]);
+    }, [channelId, dispatch]);
 
     return {
 

@@ -3,13 +3,14 @@
 
 import React, {useEffect, useState, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
 import type {Post} from '@mattermost/types/posts';
 
-import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {getPageComments} from 'actions/pages';
 import {getPages} from 'selectors/pages';
 
 import LoadingScreen from 'components/loading_screen';
@@ -33,6 +34,7 @@ type Props = {
 };
 
 const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
+    const dispatch = useDispatch();
     const [loading, setLoading] = useState(true);
     const [pageThreads, setPageThreads] = useState<PageThread[]>([]);
     const pages = useSelector((state: GlobalState) => getPages(state, wikiId));
@@ -52,7 +54,8 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
         const results = await Promise.all(
             publishedPages.map(async (page) => {
                 try {
-                    const comments = await Client4.getPageComments(wikiId, page.id);
+                    const result = await dispatch(getPageComments(wikiId, page.id));
+                    const comments = (result as ActionResult<Post[]>).data || [];
                     const inlineComments = comments.filter((post: Post) => {
                         return pageInlineCommentHasAnchor(post);
                     });
@@ -77,7 +80,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
         setPageThreads(threadsData);
         setLoading(false);
-    }, [pages, wikiId]);
+    }, [dispatch, pages, wikiId]);
 
     useEffect(() => {
         fetchAllThreads();

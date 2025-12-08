@@ -133,6 +133,29 @@ export function loadChannelWikis(channelId: string): ActionFuncAsync {
     };
 }
 
+// Create a new wiki
+export function createWiki(channelId: string, title: string): ActionFuncAsync<Wiki> {
+    return async (dispatch, getState) => {
+        try {
+            const wiki = await Client4.createWiki({
+                channel_id: channelId,
+                title,
+            });
+
+            dispatch({
+                type: WikiTypes.RECEIVED_WIKI,
+                data: wiki,
+            });
+
+            return {data: wiki};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
 // Load single wiki and cache in Redux
 export function loadWiki(wikiId: string): ActionFuncAsync<Wiki> {
     return async (dispatch, getState) => {
@@ -856,10 +879,18 @@ export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsy
     };
 }
 
-export function createPageComment(wikiId: string, pageId: string, message: string): ActionFuncAsync<Post> {
+type InlineAnchor = {
+    text: string;
+    context_before: string;
+    context_after: string;
+    node_path: string[];
+    char_offset: number;
+};
+
+export function createPageComment(wikiId: string, pageId: string, message: string, inlineAnchor?: InlineAnchor): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         try {
-            const comment = await Client4.createPageComment(wikiId, pageId, message);
+            const comment = await Client4.createPageComment(wikiId, pageId, message, inlineAnchor);
 
             const state = getState();
             const crtEnabled = isCollapsedThreadsEnabled(state);

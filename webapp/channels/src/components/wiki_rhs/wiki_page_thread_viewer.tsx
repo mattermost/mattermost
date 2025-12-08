@@ -11,9 +11,9 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {receivedPosts} from 'mattermost-redux/actions/posts';
-import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {getPageComments} from 'actions/pages';
 import {isPageCommentResolved} from 'selectors/wiki_posts';
 
 import FileUploadOverlay from 'components/file_upload_overlay';
@@ -127,24 +127,8 @@ const WikiPageThreadViewer = (props: Props) => {
             } else {
                 // For list view, fetch all page comments
                 try {
-                    const comments = await Client4.getPageComments(props.wikiId, props.rootPostId);
-
-                    // Update Redux store with fetched comments
-                    const postsById: {[id: string]: Post} = {};
-                    const order: string[] = [];
-                    comments.forEach((post) => {
-                        postsById[post.id] = post;
-                        order.push(post.id);
-                    });
-
-                    dispatch(receivedPosts({
-                        posts: postsById,
-                        order,
-                        next_post_id: '',
-                        prev_post_id: '',
-                        first_inaccessible_post_time: 0,
-                    }));
-
+                    const result = await dispatch(getPageComments(props.wikiId, props.rootPostId));
+                    const comments = (result as ActionResult<Post[]>).data || [];
                     setPageComments(comments);
                 } catch (error) {
                     setPageComments([]);

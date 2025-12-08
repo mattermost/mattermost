@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import {useState, useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
-import {receivedNewPost} from 'mattermost-redux/actions/posts';
-import {Client4} from 'mattermost-redux/client';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import {createPageComment} from 'actions/pages';
 
 type CommentAnchor = {
     text: string;
@@ -17,7 +17,6 @@ type CommentAnchor = {
 
 export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCreated?: (commentId: string) => void) => {
     const dispatch = useDispatch();
-    const crtEnabled = useSelector(isCollapsedThreadsEnabled);
     const [showCommentModal, setShowCommentModal] = useState(false);
     const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
 
@@ -31,21 +30,20 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
             return;
         }
 
-        const payload = {
+        const inlineAnchor = {
             text: commentAnchor.text,
             context_before: commentAnchor.context_before,
             context_after: commentAnchor.context_after,
             char_offset: commentAnchor.char_offset,
-            node_path: [],
+            node_path: [] as string[],
         };
 
         try {
-            const result = await Client4.createPageComment(wikiId, pageId, message, payload);
+            const result = await dispatch(createPageComment(wikiId, pageId, message, inlineAnchor));
+            const comment = (result as ActionResult).data;
 
-            dispatch(receivedNewPost(result, crtEnabled));
-
-            if (onCommentCreated && result.id) {
-                onCommentCreated(result.id);
+            if (onCommentCreated && comment?.id) {
+                onCommentCreated(comment.id);
             }
         } catch (error) {
             // eslint-disable-next-line no-console
@@ -54,7 +52,7 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
 
         setShowCommentModal(false);
         setCommentAnchor(null);
-    }, [dispatch, crtEnabled, commentAnchor, pageId, wikiId, onCommentCreated]);
+    }, [dispatch, commentAnchor, pageId, wikiId, onCommentCreated]);
 
     const handleCloseModal = useCallback(() => {
         setShowCommentModal(false);
