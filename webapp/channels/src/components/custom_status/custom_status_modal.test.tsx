@@ -33,19 +33,12 @@ describe('CustomStatusModal', () => {
         },
     };
 
-    // The emoji picker renders emoji categories without passing a defaultMessage, and we don't pass translation strings
-    // into the provider by default, so we need to pass something for this string to silence errors from FormatJS.
-    const renderOptions = {
-        intlMessages: jest.requireActual('i18n/en.json'),
-    };
-
     test('should render suggested statuses until the user starts typing', async () => {
         renderWithContext(
             <CustomStatusModal
                 {...baseProps}
             />,
             initialState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
@@ -65,7 +58,6 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             initialState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
@@ -102,7 +94,6 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             testState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
@@ -140,7 +131,6 @@ describe('CustomStatusModal', () => {
                 {...baseProps}
             />,
             testState,
-            renderOptions,
         );
 
         expect(screen.getByText('SUGGESTIONS')).toBeInTheDocument();
