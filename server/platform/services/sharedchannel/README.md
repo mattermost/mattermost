@@ -45,7 +45,92 @@ Shared channels enable two Mattermost instances to synchronize specific channels
 - **Push-based sync** - Each server pushes changes to remotes
 - **Cursor-based tracking** - Timestamps track sync progress
 
+```mermaid
+graph TB
+    subgraph "Server A"
+        A1[User/App Layer]
+        A2[Shared Channel Service]
+        A3[Remote Cluster Service]
+        A4[API Endpoints]
+        A5[Database]
+        A1 --> A2
+        A2 --> A3
+        A2 --> A5
+        A3 --> A4
+    end
+
+    subgraph "Server B"
+        B1[User/App Layer]
+        B2[Shared Channel Service]
+        B3[Remote Cluster Service]
+        B4[API Endpoints]
+        B5[Database]
+        B1 --> B2
+        B2 --> B3
+        B2 --> B5
+        B3 --> B4
+    end
+
+    A4 -->|"HTTP/HTTPS<br/>Token Auth"| B4
+    B4 -->|"HTTP/HTTPS<br/>Token Auth"| A4
+
+    A3 -.->|"Heartbeat<br/>(60s)"| B4
+    B3 -.->|"Heartbeat<br/>(60s)"| A4
+```
+
 ### Key Data Structures
+
+```mermaid
+erDiagram
+    RemoteCluster ||--o{ SharedChannel : "connects to"
+    RemoteCluster ||--o{ SharedChannelRemote : "has"
+    SharedChannel ||--o{ SharedChannelRemote : "shared with"
+    Channel ||--|| SharedChannel : "is"
+    RemoteCluster ||--o{ User : "has synthetic"
+
+    RemoteCluster {
+        string RemoteId PK
+        string Name
+        string SiteURL
+        string Token
+        string RemoteToken
+        int64 LastPingAt
+        int64 LastGlobalUserSyncAt
+    }
+
+    SharedChannel {
+        string ChannelId PK
+        string TeamId
+        bool Home
+        bool ReadOnly
+        string RemoteId FK
+        string ShareName
+    }
+
+    SharedChannelRemote {
+        string Id PK
+        string ChannelId FK
+        string RemoteId FK
+        bool IsInviteAccepted
+        bool IsInviteConfirmed
+        int64 LastPostCreateAt
+        int64 LastPostUpdateAt
+    }
+
+    Channel {
+        string Id PK
+        string TeamId
+        string Name
+        string Type
+    }
+
+    User {
+        string Id PK
+        string Username
+        string Email
+        string RemoteId FK
+    }
+```
 
 **RemoteCluster** (`server/public/model/remote_cluster.go:56`)
 - Connection between two Mattermost instances
@@ -64,6 +149,38 @@ Shared channels enable two Mattermost instances to synchronize specific channels
 ### Flow Outline
 
 #### 1. Remote Cluster Connection Setup
+
+```mermaid
+sequenceDiagram
+    participant UA as User A
+    participant SA as Server A
+    participant UB as User B
+    participant SB as Server B
+
+    Note over UA,SB: Phase 1: Generate Invitation
+    UA->>SA: POST /api/v4/remotecluster<br/>{name, display_name, password}
+    SA->>SA: Generate RemoteId, Token
+    SA->>SA: Encrypt invitation (PBKDF2 + AES-GCM)
+    SA->>UA: Return encrypted invite code
+
+    Note over UA,SB: Phase 2: Accept Invitation
+    UA->>UB: Share invite code + password<br/>(out of band)
+    UB->>SB: POST /api/v4/remotecluster/accept_invite<br/>{invite, password}
+    SB->>SB: Decrypt invitation
+    SB->>SB: Create RemoteCluster record
+    SB->>SA: POST /api/v4/remotecluster/confirm_invite<br/>X-MM-RemoteCluster-Token: [token]<br/>{remote_id, site_url, token}
+    SA->>SA: Update RemoteCluster with SiteURL
+    SA->>SB: 200 OK
+    SB->>UB: Connection established
+
+    Note over UA,SB: Phase 3: Continuous Heartbeat
+    loop Every 60 seconds
+        SA->>SB: POST /api/v4/remotecluster/ping<br/>{sent_at}
+        SB->>SA: {sent_at, recv_at}
+        SB->>SA: POST /api/v4/remotecluster/ping<br/>{sent_at}
+        SA->>SB: {sent_at, recv_at}
+    end
+```
 
 **Step 1: Create Invitation (Server A)**
 - API: `POST /api/v4/remotecluster`
@@ -91,6 +208,38 @@ Shared channels enable two Mattermost instances to synchronize specific channels
 
 #### 2. Channel Sharing
 
+```mermaid
+sequenceDiagram
+    participant UA as User A
+    participant SA as Server A
+    participant SB as Server B
+    participant UB as User B
+
+    Note over UA,SB: Invite Remote to Channel
+    UA->>SA: Invite Remote B to Channel
+    SA->>SA: Create SharedChannel (Home=true)
+    SA->>SA: Create SharedChannelRemote
+    SA->>SB: POST /api/v4/remotecluster/msg<br/>Topic: sharedchannel_invite<br/>{channel_id, name, type, ...}
+    SB->>SB: Validate invitation
+    SB->>SB: Create local channel
+    SB->>SB: Create SharedChannel (Home=false)
+    SB->>SB: Create SharedChannelRemote<br/>(IsInviteAccepted=true)
+    SB->>SA: 200 OK
+    SA->>SA: Update SharedChannelRemote<br/>(IsInviteConfirmed=true)
+    SA->>UA: Ephemeral: Remote added to channel
+
+    Note over UA,SB: Initial Sync
+    SA->>SA: Queue sync task for channel
+    SA->>SA: Collect users, posts, reactions
+    SA->>SB: POST /api/v4/remotecluster/msg<br/>Topic: sharedchannel_sync<br/>{users, posts, reactions, ...}
+    SB->>SB: Process sync message
+    SB->>SB: Create synthetic users
+    SB->>SB: Create posts
+    SB->>SB: Add reactions
+    SB->>SA: 200 OK {timestamps}
+    SA->>SA: Update sync cursors
+```
+
 **Step 1: Share Channel (Server A)**
 - Internal: `InviteRemoteToChannel()`
 - Creates SharedChannel record (`Home=true`)
@@ -111,6 +260,54 @@ Shared channels enable two Mattermost instances to synchronize specific channels
 
 #### 3. Content Synchronization
 
+```mermaid
+sequenceDiagram
+    participant UA as User A
+    participant SA as Server A
+    participant SB as Server B
+    participant UB as User B
+
+    Note over UA,SB: User A posts message
+    UA->>SA: Create Post
+    SA->>SA: Save post to database
+    SA->>UA: WebSocket: posted event
+    SA->>SA: Queue sync task (2s delay)
+
+    Note over UA,SB: Sync Task Processing
+    SA->>SA: Collect data:<br/>- Users (updated profiles)<br/>- Posts (new/edited)<br/>- Reactions<br/>- Attachments
+    SA->>SA: Filter & batch (100 posts max)
+
+    alt Has file attachments
+        SA->>SB: POST /api/v4/remotecluster/msg<br/>Topic: sharedchannel_upload<br/>{upload_session}
+        SB->>SA: 200 OK {session_id}
+        SA->>SB: POST /api/v4/remotecluster/upload/{id}<br/>multipart file data
+        SB->>SB: Save file to filestore
+    end
+
+    SA->>SB: POST /api/v4/remotecluster/msg<br/>Topic: sharedchannel_sync<br/>Headers: X-MM-RemoteCluster-Id, Token<br/>{SyncMsg}
+
+    Note over SB: Process Sync Message
+    SB->>SB: Validate auth token
+    SB->>SB: Process users (create synthetic)
+    SB->>SB: Process posts (transform mentions)
+    SB->>SB: Process reactions
+    SB->>SB: Process acknowledgements
+    SB->>SB: Update user statuses
+    SB->>UB: WebSocket: posted event
+    SB->>SA: 200 OK {timestamps, syncd_users}
+    SA->>SA: Update sync cursors:<br/>LastPostCreateAt, LastPostUpdateAt
+
+    Note over UA,SB: Bidirectional Sync
+    UB->>SB: Create Post (reply)
+    SB->>SB: Save post
+    SB->>UB: WebSocket: posted event
+    SB->>SB: Queue sync task
+    SB->>SA: POST /api/v4/remotecluster/msg<br/>Topic: sharedchannel_sync
+    SA->>SA: Process sync message
+    SA->>UA: WebSocket: posted event
+    SA->>SB: 200 OK {timestamps}
+```
+
 **Sync Architecture:**
 - **Event-driven**: Channel changes trigger sync tasks
 - **Batched**: Groups changes for efficiency (100 posts/batch)
@@ -124,6 +321,23 @@ Triggered by:
 - Channel metadata changed
 - User status changed
 - Membership changed
+
+```mermaid
+graph LR
+    A[Channel Event] -->|NotifyChannelChanged| B[Task Queue]
+    B -->|2s min delay| C{Remote Online?}
+    C -->|Yes| D[Collect Data]
+    C -->|No| E[Skip, retry later]
+    D --> F[Batch Data<br/>100 posts max]
+    F --> G[Send to Remote]
+    G -->|Success| H[Update Cursors]
+    G -->|Failure| I{Retry Count < 3?}
+    I -->|Yes| B
+    I -->|No| J[Log Error & Drop]
+    H --> K{More Data?}
+    K -->|Yes| B
+    K -->|No| L[Done]
+```
 
 **Data Collection:**
 - Users: 25 per batch (profiles updated since last sync)
@@ -205,6 +419,40 @@ Triggered by:
 5. Updates `LastGlobalUserSyncAt` cursor
 
 ### Authentication & Security
+
+```mermaid
+sequenceDiagram
+    participant SA as Server A
+    participant SB as Server B
+
+    Note over SA,SB: Token Setup During Connection
+    SA->>SA: Generate Token_A<br/>(for incoming auth)
+    SB->>SB: Generate Token_B<br/>(for incoming auth)
+    SA->>SB: Invitation contains Token_A
+    SB->>SA: Confirmation contains Token_B
+    SA->>SA: Store RemoteToken = Token_B
+    SB->>SB: Store RemoteToken = Token_A
+
+    Note over SA,SB: Server A sends message to Server B
+    SA->>SB: POST /api/v4/remotecluster/msg<br/>X-MM-RemoteCluster-Id: RemoteId_B<br/>X-MM-RemoteCluster-Token: Token_B
+    SB->>SB: Validate RemoteId_B exists
+    SB->>SB: Validate Token matches stored Token_B
+    alt Valid Token
+        SB->>SA: 200 OK + Response Data
+    else Invalid Token
+        SB->>SA: 401 Unauthorized
+    end
+
+    Note over SA,SB: Server B sends message to Server A
+    SB->>SA: POST /api/v4/remotecluster/msg<br/>X-MM-RemoteCluster-Id: RemoteId_A<br/>X-MM-RemoteCluster-Token: Token_A
+    SA->>SA: Validate RemoteId_A exists
+    SA->>SA: Validate Token matches stored Token_A
+    alt Valid Token
+        SA->>SB: 200 OK + Response Data
+    else Invalid Token
+        SA->>SB: 401 Unauthorized
+    end
+```
 
 **Token-Based Authentication:**
 - Each server has `Token` (for incoming requests)
