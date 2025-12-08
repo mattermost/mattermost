@@ -30,7 +30,6 @@
     "color-hash": "2.0.1",
     "core-js": "3.26.0",
     "country-list": "2.2.0",
-    "crypto-browserify": "3.12.0",
     "css-vars-ponyfill": "2.4.8",
     "date-fns": "2.29.3",
     "emoji-regex": "10.2.1",
@@ -85,7 +84,6 @@
     "shallow-equals": "1.0.0",
     "simplebar-react": "3.3.2",
     "smooth-scroll-into-view-if-needed": "2.0.2",
-    "stream-browserify": "3.0.0",
     "styled-components": "5.3.7",
     "timezones.json": "1.7.1",
     "tinycolor2": "1.6.0",
@@ -158,6 +156,7 @@
     "stylelint-config-recommended-scss": "14.1.0",
     "stylelint-order": "6.0.4",
     "stylelint-scss": "6.8.1",
+    "vite-plugin-static-copy": "3.1.4",
     "yargs": "17.7.2"
   },
   "overrides": {

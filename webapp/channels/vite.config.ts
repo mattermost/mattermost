@@ -7,6 +7,7 @@ import react from '@vitejs/plugin-react-swc';
 import {visualizer} from 'rollup-plugin-visualizer';
 import {defineConfig, type UserConfig} from 'vite';
 import checker from 'vite-plugin-checker';
+import {viteStaticCopy} from 'vite-plugin-static-copy';
 
 // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/naming-convention
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -19,6 +20,8 @@ export default defineConfig(({mode}): UserConfig => {
     const isDev = mode === 'development';
     // eslint-disable-next-line no-process-env
     const siteURL = process.env.MM_SERVICESETTINGS_SITEURL || 'http://localhost:8065';
+    // WebSocket target needs ws:// protocol
+    const wsURL = siteURL.replace(/^http/, 'ws');
 
     // Determine public path based on environment
     let publicPath = '/static/';
@@ -33,7 +36,9 @@ export default defineConfig(({mode}): UserConfig => {
 
     return {
         root: __dirname,
-        base: publicPath,
+
+        // Use '/' for dev server (direct access), '/static/' for production (Go server)
+        base: isDev ? '/' : publicPath,
         mode,
 
         plugins: [
@@ -43,6 +48,49 @@ export default defineConfig(({mode}): UserConfig => {
             {
                 name: 'vite-plugin-patch-require-shim',
                 enforce: 'post' as const,
+
+                // DEV MODE: Transform pre-bundled deps to fix require shim
+                // The Rolldown runtime's __require throws in browser - we patch it to return
+                // the module from a registry that we populate with dynamic imports
+                transform(code: string, id: string) {
+                    if (!isDev) {
+                        return null;
+                    }
+
+                    // Patch the Rolldown runtime chunk that contains the require shim
+                    if (id.includes('.vite/deps/chunk-') && code.includes("doesn't expose the `require` function")) {
+                        // Original: throw Error("Calling `require` for \"" + x + "\" in an...
+                        // Replace with: return from registry or empty object
+                        const patched = code.replace(
+                            'throw Error("Calling `require` for \\"" + x + "\\"',
+                            'return (globalThis.__cjs_modules__ && globalThis.__cjs_modules__[x]) || {}; void Error("',
+                        );
+                        return {code: patched, map: null};
+                    }
+
+                    // Patch @mattermost/components to set up the CJS registry before any require calls
+                    if (id.includes('.vite/deps/@mattermost_components')) {
+                        // Inject registry setup and React imports at the top
+                        // IMPORTANT: Use default imports to get CJS-compatible objects with internals
+                        const setupCode = `
+// CJS module registry for dev mode
+if (!globalThis.__cjs_modules__) {
+    globalThis.__cjs_modules__ = {};
+}
+// Import React modules (default exports have CJS structure with internals)
+import __React from 'react';
+import __ReactDOM from 'react-dom';
+import __ReactIs from 'react-is';
+globalThis.__cjs_modules__['react'] = __React;
+globalThis.__cjs_modules__['react-dom'] = __ReactDOM;
+globalThis.__cjs_modules__['react-is'] = __ReactIs;
+`;
+                        return {code: setupCode + code, map: null};
+                    }
+
+                    return null;
+                },
+
                 generateBundle(_options: any, bundle: Record<string, any>) {
                     // Find the entry chunk to inject __cjs_modules__ setup
                     let entryChunk: { code: string; fileName: string } | null = null;
@@ -197,6 +245,30 @@ export default defineConfig(({mode}): UserConfig => {
                 enableBuild: false,
             }),
 
+            // Static asset copying (replaces manual copy in build-vite.mjs)
+            // These assets need to preserve their original filenames for runtime loading
+            viteStaticCopy({
+                targets: [
+                    // Emoji images - loaded dynamically via getEmojiImageUrl()
+                    {src: 'src/images/emoji/*', dest: 'emoji'},
+
+                    // Static images used by server-side rendering and emails
+                    {src: 'src/images/img_trans.gif', dest: 'images'},
+                    {src: 'src/images/logo-email.png', dest: 'images'},
+                    {src: 'src/images/favicon/*', dest: 'images/favicon'},
+                    {src: 'src/images/appIcons.png', dest: 'images'},
+                    {src: 'src/images/browser-icons/*', dest: 'images/browser-icons'},
+                    {src: 'src/images/cloud/*', dest: 'images/cloud'},
+                    {src: 'src/images/welcome_illustration_new.png', dest: 'images'},
+
+                    // Initial loading screen CSS (loaded before JS bundle)
+                    {src: 'src/components/initial_loading_screen/initial_loading_screen.css', dest: 'css'},
+
+                    // Note: Fonts are NOT copied here - they are processed by Vite's
+                    // built-in asset handling via CSS url() references in _typography.scss
+                ],
+            }),
+
             // T040: Bundle analysis (only in production with VITE_BUNDLE_ANALYZER=true)
             // eslint-disable-next-line no-process-env
             !isDev && process.env.VITE_BUNDLE_ANALYZER === 'true' && visualizer({
@@ -213,15 +285,12 @@ export default defineConfig(({mode}): UserConfig => {
             dedupe: ['react', 'react-dom', 'react-is', 'styled-components'],
             alias: {
 
-                // Handle webpack ~ prefix for node_modules imports (used in SCSS)
-                '~': path.resolve(__dirname, 'node_modules'),
-
-                // Font alias for SCSS url() references
+                // Font alias for SCSS url('~fonts/...') references in _typography.scss
+                // Note: General '~' prefix for node_modules is handled by SCSS importers config below
                 '~fonts': path.resolve(__dirname, 'src/fonts'),
 
                 // Workspace package aliases (resolve to source for proper bundling)
-                // Note: @mattermost/client/lib imports need special handling
-                '@mattermost/client/lib': path.resolve(__dirname, '..', 'platform', 'client', 'src'),
+                // Subpath imports like '@mattermost/client/helpers' are prefix-matched automatically
                 '@mattermost/client': path.resolve(__dirname, '..', 'platform', 'client', 'src'),
                 '@mattermost/types': path.resolve(__dirname, '..', 'platform', 'types', 'src'),
 
@@ -255,8 +324,10 @@ export default defineConfig(({mode}): UserConfig => {
                 stores: path.resolve(__dirname, 'src/stores'),
                 types: path.resolve(__dirname, 'src/types'),
                 utils: path.resolve(__dirname, 'src/utils'),
-                tests: path.resolve(__dirname, 'src/tests'),
                 module_registry: path.resolve(__dirname, 'src/module_registry'),
+
+                // Note: 'tests' alias not needed - test files aren't part of production build
+                // Jest resolves via moduleDirectories: ['src', 'node_modules']
             },
             extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
         },
@@ -280,28 +351,6 @@ export default defineConfig(({mode}): UserConfig => {
 
                     // Silence deprecation warnings for legacy code
                     silenceDeprecations: ['legacy-js-api', 'import'],
-
-                    // Handle webpack ~ prefix for node_modules imports
-                    importers: [{
-                        findFileUrl(url: string) {
-                            if (url.startsWith('~')) {
-                                const modulePath = url.slice(1);
-
-                                // Try channels node_modules first, then webapp node_modules
-                                const localPath = path.resolve(__dirname, 'node_modules', modulePath);
-                                const parentPath = path.resolve(__dirname, '..', 'node_modules', modulePath);
-                                // eslint-disable-next-line global-require, @typescript-eslint/no-require-imports
-                                const fs = require('fs');
-                                if (fs.existsSync(localPath)) {
-                                    return new URL(`file://${localPath}`);
-                                }
-                                if (fs.existsSync(parentPath)) {
-                                    return new URL(`file://${parentPath}`);
-                                }
-                            }
-                            return null;
-                        },
-                    }],
                 } as any,
             },
         },
@@ -349,12 +398,21 @@ export default defineConfig(({mode}): UserConfig => {
                 port: 9006,
             },
             proxy: {
-                '/api': {
-                    target: siteURL,
+                // WebSocket endpoint (must be before /api to match first)
+                '/api/v4/websocket': {
+                    target: wsURL,
                     changeOrigin: true,
                     secure: false,
                     ws: true,
                 },
+                // API requests (HTTP)
+                '/api': {
+                    target: siteURL,
+                    changeOrigin: true,
+                    secure: false,
+                },
+
+                // Plugins
                 '/plugins': {
                     target: siteURL,
                     changeOrigin: true,
@@ -365,18 +423,36 @@ export default defineConfig(({mode}): UserConfig => {
                     changeOrigin: true,
                     secure: false,
                 },
+
+                // OAuth and SSO callbacks (handled by Go server)
+                '/oauth': {
+                    target: siteURL,
+                    changeOrigin: true,
+                    secure: false,
+                },
+                '/login/sso': {
+                    target: siteURL,
+                    changeOrigin: true,
+                    secure: false,
+                },
+                '/signup_user_complete': {
+                    target: siteURL,
+                    changeOrigin: true,
+                    secure: false,
+                },
             },
             watch: {
                 usePolling: false,
             },
 
             // T025: Pre-warm frequently accessed components for faster initial loads
+            // Note: Exclude test files (*.test.tsx) since test utilities aren't available in dev
             warmup: {
                 clientFiles: [
                     './src/components/app.tsx',
-                    './src/components/channel_layout/**/*.tsx',
-                    './src/components/sidebar/**/*.tsx',
-                    './src/components/post_view/**/*.tsx',
+                    './src/components/channel_layout/**/!(*test).tsx',
+                    './src/components/sidebar/**/!(*test).tsx',
+                    './src/components/post_view/**/!(*test).tsx',
                     './src/stores/redux_store.tsx',
                     './src/sass/styles.scss',
                 ],
@@ -430,17 +506,14 @@ export default defineConfig(({mode}): UserConfig => {
 
                 // Monaco Editor (heavy dependency)
                 'monaco-editor',
-            ],
-            exclude: [
 
-                // Exclude workspace packages that should be linked rather than bundled
-                '@mattermost/client',
-                '@mattermost/types',
+                // Workspace package with CJS interop issues (__require calls in dist)
                 '@mattermost/components',
             ],
-
-            // T027: Hold until full dependency crawl is complete to prevent reload thrashing
-            holdUntilCrawlEnd: true,
+            exclude: [
+                '@mattermost/client',
+                '@mattermost/types',
+            ],
 
             // Force optimization even for large dependencies
             force: false,
@@ -451,8 +524,9 @@ export default defineConfig(({mode}): UserConfig => {
             'process.env': JSON.stringify(isDev ? {PUBLIC_PATH: publicPath} : {NODE_ENV: 'production'}),
             global: 'globalThis',
 
-            // For remote_entry.js compatibility
-            REMOTE_CONTAINERS: JSON.stringify({}),
+            // In dev mode, WebSocket connects directly to Go server (Vite proxy has known WS issues)
+            // Note: Only provide base URL - the path /api/v4/websocket is appended by websocket_actions.jsx
+            'import.meta.env.VITE_WEBSOCKET_URL': isDev ? JSON.stringify(wsURL) : 'undefined',
         },
 
         // Worker configuration for Monaco editor
@@ -465,9 +539,5 @@ export default defineConfig(({mode}): UserConfig => {
         json: {
             stringify: false,
         },
-
-        // Note: Vite 8 uses Oxc instead of esbuild. No configuration needed.
-        // The "crypto" externalization warning is expected - Node.js crypto
-        // doesn't work in browsers, and Vite handles this automatically.
     };
 });

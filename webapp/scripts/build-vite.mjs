@@ -25,9 +25,13 @@ const verbose = process.argv.includes('--verbose') || process.env.CI === 'true';
 const PREFIX = chalk.cyan('[channels]');
 const log = (msg = '') => console.log(msg ? `${PREFIX} ${msg}` : '');
 const logError = (msg) => console.error(`${PREFIX} ${msg}`);
+const timestamp = () => new Date().toLocaleTimeString('en-US', {hour12: false});
 
 async function buildAll() {
     const startTime = Date.now();
+
+    log(chalk.inverse.bold(`Build started at ${timestamp()}`));
+    log();
 
     if (!skipPackages) {
         console.log(chalk.inverse.bold('Building subpackages...') + '\n');
@@ -132,46 +136,8 @@ async function buildAll() {
         return 1;
     }
 
-    // Copy static assets that webpack would normally handle
-    log();
-    log(chalk.inverse.bold('Copying static assets...'));
-    log();
-
-    try {
-        const staticAssets = [
-            {from: 'src/images/emoji', to: 'emoji'},
-            {from: 'src/images/img_trans.gif', to: 'images/img_trans.gif'},
-            {from: 'src/images/logo-email.png', to: 'images/logo-email.png'},
-            {from: 'src/images/favicon', to: 'images/favicon'},
-            {from: 'src/images/appIcons.png', to: 'images/appIcons.png'},
-            {from: 'src/images/browser-icons', to: 'images/browser-icons'},
-            {from: 'src/images/cloud', to: 'images/cloud'},
-            {from: 'src/images/welcome_illustration_new.png', to: 'images/welcome_illustration_new.png'},
-            {from: 'src/components/initial_loading_screen/initial_loading_screen.css', to: 'css/initial_loading_screen.css'},
-            {from: 'src/fonts', to: 'assets/fonts'},
-        ];
-
-        for (const asset of staticAssets) {
-            const fromPath = path.resolve(channelsDir, asset.from);
-            const toPath = path.resolve(distDir, asset.to);
-
-            if (fs.existsSync(fromPath)) {
-                const toDir = path.dirname(toPath);
-                if (!fs.existsSync(toDir)) {
-                    fs.mkdirSync(toDir, {recursive: true});
-                }
-
-                if (fs.statSync(fromPath).isDirectory()) {
-                    fs.cpSync(fromPath, toPath, {recursive: true});
-                } else {
-                    fs.copyFileSync(fromPath, toPath);
-                }
-                log(`✓ Copied ${asset.from}`);
-            }
-        }
-    } catch (error) {
-        log(chalk.yellow('Warning: Some static assets could not be copied:') + ' ' + error.message);
-    }
+    // Static assets are now copied by vite-plugin-static-copy during the Vite build
+    // See viteStaticCopy configuration in vite.config.ts
 
     const buildTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
@@ -204,7 +170,7 @@ async function buildAll() {
     }
 
     log();
-    log(chalk.inverse.bold.green(`✓ built in ${buildTime}s`));
+    log(chalk.inverse.bold.green(`✓ built in ${buildTime}s at ${timestamp()}`));
     log(`Output: ${distDir}`);
 
     return 0;
