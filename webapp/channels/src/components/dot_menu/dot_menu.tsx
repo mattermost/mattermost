@@ -680,8 +680,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleMoveThreadMenuItemActivated}
                     />
                 }
-                {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}
-                {!isSystemMessage && !isBurnOnReadPost &&
+                {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && (!isBurnOnReadPost || this.props.post.user_id === this.props.userId) && <Menu.Separator/>}
+                {!isSystemMessage && (!isBurnOnReadPost || this.props.post.user_id === this.props.userId) &&
                     <Menu.Item
                         id={`permalink_${this.props.post.id}`}
                         data-testid={`permalink_${this.props.post.id}`}
