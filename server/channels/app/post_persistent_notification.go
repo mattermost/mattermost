@@ -172,6 +172,18 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 		}
 		profileMap := channelProfileMap[channel.Id]
 
+		// Ensure the sender is always in the profile map: for example, system admins can post
+		// without being a member.
+		if _, ok := profileMap[post.UserId]; !ok {
+			var sender *model.User
+			sender, err = a.Srv().Store().User().Get(context.Background(), post.UserId)
+			if err != nil {
+				return errors.Wrapf(err, "failed to get profile for sender user %s for post %s", post.UserId, post.Id)
+			}
+
+			profileMap[post.UserId] = sender
+		}
+
 		mentions := &MentionResults{}
 		// In DMs, only the "other" user can be mentioned
 		if channel.Type == model.ChannelTypeDirect {
