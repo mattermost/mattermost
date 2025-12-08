@@ -200,6 +200,7 @@ const PageTreeNode = ({
                     isDraft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
                     pageLink={pageLink}
                     buttonClassName='PageTreeNode__menuButton'
+                    buttonLabel='Page menu'
                     buttonTestId='page-tree-node-menu-button'
                 />
             )}
