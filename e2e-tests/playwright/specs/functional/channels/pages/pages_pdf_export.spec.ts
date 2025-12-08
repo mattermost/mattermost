@@ -8,6 +8,7 @@ import {
     createTestChannel,
     createWikiThroughUI,
     openPageContextMenu,
+    getPageActionsMenuLocator,
 } from './test_helpers';
 
 /**
@@ -96,7 +97,7 @@ test('triggers print dialog when Export to PDF is clicked', {tag: '@pages'}, asy
     expect(printCalled).toBe(true);
 
     // * Verify context menu closed after clicking
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page);
     await expect(contextMenu).not.toBeVisible();
 });
 
@@ -119,8 +120,8 @@ test('positions PDF export option after Duplicate page', {tag: '@pages'}, async 
     await openPageContextMenu(page, testPage.id!);
 
     // * Verify menu items appear in correct order
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    const menuItems = contextMenu.locator('button[class*="PageContextMenu__item"]');
+    const contextMenu2 = getPageActionsMenuLocator(page);
+    const menuItems = contextMenu2.locator('li[role="menuitem"]');
 
     // Get all menu item labels
     const labels = await menuItems.evaluateAll((items) => items.map((item) => item.textContent?.trim() || ''));

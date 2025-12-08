@@ -80,7 +80,7 @@ export function openPageInEditMode(
 
         const additionalProps: Record<string, any> = {
             page_id: pageId,
-            original_page_update_at: page.update_at,
+            original_page_edit_at: page.edit_at,
         };
         if (pageParentId) {
             additionalProps.page_parent_id = pageParentId;

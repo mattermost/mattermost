@@ -387,6 +387,11 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     const pageTitle = page.locator('[data-testid="page-viewer-title"]');
     await expect(pageTitle).toContainText(newTitle);
 
+    // * Verify hierarchy panel shows new title before navigating
+    // This ensures Redux state is fully updated before we navigate away
+    const hierarchyPanelBeforeNav = getHierarchyPanel(page);
+    await expect(hierarchyPanelBeforeNav).toContainText(newTitle, {timeout: ELEMENT_TIMEOUT});
+
     // # Navigate to child page
     const childPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
     await page.goto(childPageUrl);
@@ -457,6 +462,10 @@ test(
 
         // * Verify hierarchy panel shows structure
         await verifyHierarchyContains(page, 'Deep Link Parent');
+        // Expand parent to see child in hierarchy
+        await expandPageTreeNode(page, 'Deep Link Parent');
+        // Wait for expand animation and children to render
+        await page.waitForTimeout(1000);
         await verifyHierarchyContains(page, 'Deep Link Child');
     },
 );

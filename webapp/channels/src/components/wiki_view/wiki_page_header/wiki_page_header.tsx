@@ -69,7 +69,8 @@ const WikiPageHeader = ({
         if (isDraft || !pageId || !wikiId) {
             return false;
         }
-        return hasUnpublishedChanges(state, wikiId, pageId);
+        const pageContent = getPost(state, pageId)?.message || '';
+        return hasUnpublishedChanges(state, wikiId, pageId, pageContent);
     });
 
     const handleBookmarkInChannel = useCallback(() => {

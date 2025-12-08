@@ -1839,16 +1839,16 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
-	baseUpdateAt := createdPage.UpdateAt
+	baseEditAt := createdPage.EditAt
 
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-	updatedPage, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search text", baseUpdateAt, false)
+	updatedPage, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search text", baseEditAt, false)
 
 	require.Nil(t, err)
 	require.NotNil(t, updatedPage)
 	require.Equal(t, "Updated Title", updatedPage.Props["title"])
 	require.Equal(t, newContent, updatedPage.Message)
-	require.Greater(t, updatedPage.UpdateAt, baseUpdateAt)
+	require.Greater(t, updatedPage.EditAt, baseEditAt)
 
 	pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(updatedPage.Id)
 	require.NoError(t, contentErr)
@@ -1868,22 +1868,31 @@ func TestUpdatePageWithOptimisticLocking_Conflict(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
-	baseUpdateAt := createdPage.UpdateAt
+	// First update to establish a non-zero EditAt (newly created pages have EditAt=0)
+	firstUpdateContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update content"}]}]}`
+	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "First Update Title", firstUpdateContent, "first update search", 0, false)
+	require.Nil(t, err)
+	require.NotNil(t, firstUpdate)
+	require.Greater(t, firstUpdate.EditAt, int64(0), "After first update, EditAt should be non-zero")
+
+	// Both users start editing with the same baseline EditAt
+	baseEditAt := firstUpdate.EditAt
 
 	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
-	updated1, err1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 1 Title", content1, "user 1 search", baseUpdateAt, false)
+	updated1, err1 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 1 Title", content1, "user 1 search", baseEditAt, false)
 	require.Nil(t, err1)
 	require.NotNil(t, updated1)
-	require.Greater(t, updated1.UpdateAt, baseUpdateAt)
+	require.Greater(t, updated1.EditAt, baseEditAt)
 
+	// User 2 tries to update with the stale baseline - should get conflict
 	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
-	_, err2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 2 Title", content2, "user 2 search", baseUpdateAt, false)
+	_, err2 := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "User 2 Title", content2, "user 2 search", baseEditAt, false)
 
 	require.NotNil(t, err2)
 	require.Equal(t, "app.page.update.conflict.app_error", err2.Id)
 	require.Equal(t, 409, err2.StatusCode)
 	require.Contains(t, err2.DetailedError, "modified_by=")
-	require.Contains(t, err2.DetailedError, "modified_at=")
+	require.Contains(t, err2.DetailedError, "edit_at=")
 }
 
 func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
@@ -1897,13 +1906,13 @@ func TestUpdatePageWithOptimisticLocking_DeletedPage(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
-	baseUpdateAt := createdPage.UpdateAt
+	baseEditAt := createdPage.EditAt
 
 	_, deleteErr := th.App.DeletePost(th.Context, createdPage.Id, th.BasicUser.Id)
 	require.Nil(t, deleteErr)
 
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
-	_, updateErr := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search", baseUpdateAt, false)
+	_, updateErr := th.App.UpdatePageWithOptimisticLocking(sessionCtx, createdPage.Id, "Updated Title", newContent, "updated search", baseEditAt, false)
 
 	require.NotNil(t, updateErr)
 	require.Equal(t, 404, updateErr.StatusCode)
@@ -1931,20 +1940,30 @@ func TestUpdatePageWithOptimisticLocking_ErrorDetailsIncludeModifier(t *testing.
 	require.Nil(t, err)
 	require.NotNil(t, createdPage)
 
-	baseUpdateAt := createdPage.UpdateAt
+	// First update to establish a non-zero EditAt (newly created pages have EditAt=0)
+	firstUpdateContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update content"}]}]}`
+	firstUpdate, err := th.App.UpdatePageWithOptimisticLocking(user1Session, createdPage.Id, "First Update Title", firstUpdateContent, "first update search", 0, false)
+	require.Nil(t, err)
+	require.NotNil(t, firstUpdate)
+	require.Greater(t, firstUpdate.EditAt, int64(0), "After first update, EditAt should be non-zero")
 
+	// Both users start editing with the same baseline EditAt
+	baseEditAt := firstUpdate.EditAt
+
+	// User 2 edits and publishes first
 	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
-	updated2, err2 := th.App.UpdatePageWithOptimisticLocking(user2Session, createdPage.Id, "User 2 Title", content2, "user 2 search", baseUpdateAt, false)
+	updated2, err2 := th.App.UpdatePageWithOptimisticLocking(user2Session, createdPage.Id, "User 2 Title", content2, "user 2 search", baseEditAt, false)
 	require.Nil(t, err2)
 	require.NotNil(t, updated2)
 
+	// User 1 tries to update with the stale baseline - should get conflict with User 2's info
 	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
-	_, err1 := th.App.UpdatePageWithOptimisticLocking(user1Session, createdPage.Id, "User 1 Title", content1, "user 1 search", baseUpdateAt, false)
+	_, err1 := th.App.UpdatePageWithOptimisticLocking(user1Session, createdPage.Id, "User 1 Title", content1, "user 1 search", baseEditAt, false)
 
 	require.NotNil(t, err1)
 	require.Equal(t, 409, err1.StatusCode)
 	require.Contains(t, err1.DetailedError, user2.Id, "Error should include ID of user who made the conflicting change")
-	require.Contains(t, err1.DetailedError, "modified_at=")
+	require.Contains(t, err1.DetailedError, "edit_at=")
 }
 
 func TestConvertPlainTextToTipTapJSON(t *testing.T) {

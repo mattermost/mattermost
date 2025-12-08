@@ -8,12 +8,12 @@ import type {PageDraft as ServerPageDraft} from '@mattermost/types/drafts';
 import {WikiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {setGlobalDraftSource, getDrafts} from 'actions/views/drafts';
+import {makePageDraftKey, makePageDraftPrefix} from 'selectors/page_drafts';
 import {getGlobalItem} from 'selectors/storage';
-
-import {StoragePrefixes} from 'utils/constants';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -24,12 +24,8 @@ type PageDraft = {
     timestamp: Date;
 };
 
-function makePageDraftKey(wikiId: string, draftId: string): string {
-    return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
-}
-
-export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, draftId: string): PageDraft {
-    const key = makePageDraftKey(wikiId, draftId);
+export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, draftId: string, userId: string): PageDraft {
+    const key = makePageDraftKey(wikiId, draftId, userId);
 
     return {
         key,
@@ -64,7 +60,8 @@ export function savePageDraft(
 ): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
-        const key = makePageDraftKey(wikiId, draftId);
+        const currentUserId = getCurrentUserId(state);
+        const key = makePageDraftKey(wikiId, draftId, currentUserId);
 
         const timestamp = new Date().getTime();
         const existingDraft = getGlobalItem<Partial<PostDraft>>(state, key, {});
@@ -95,7 +92,7 @@ export function savePageDraft(
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
                 const serverDraft = await Client4.savePageDraft(wikiId, draftId, message, title, pageId, additionalProps);
-                const transformedDraft = transformPageServerDraft(serverDraft, wikiId, draftId);
+                const transformedDraft = transformPageServerDraft(serverDraft, wikiId, draftId, currentUserId);
 
                 dispatch(batchActions([
                     setGlobalItem(key, transformedDraft.value),
@@ -113,7 +110,8 @@ export function savePageDraft(
 export function loadPageDraft(wikiId: string, draftId: string): ActionFuncAsync<PostDraft | null> {
     return async (_dispatch, getState) => {
         const state = getState();
-        const key = makePageDraftKey(wikiId, draftId);
+        const currentUserId = getCurrentUserId(state);
+        const key = makePageDraftKey(wikiId, draftId, currentUserId);
         const storedDraft = state.storage.storage[key];
 
         if (storedDraft && storedDraft.value) {
@@ -127,22 +125,24 @@ export function loadPageDraft(wikiId: string, draftId: string): ActionFuncAsync<
 export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft[]> {
     return async (dispatch, getState) => {
         const state = getState();
+        const currentUserId = getCurrentUserId(state);
 
         let serverDrafts: PageDraft[] = [];
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
                 const serverDraftsRaw = await Client4.getPageDraftsForWiki(wikiId);
-                serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.draft_id));
+                serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.draft_id, currentUserId));
             } catch (error) {
                 // Handle error silently
             }
         }
 
-        const prefix = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
+        const prefix = makePageDraftPrefix(wikiId);
         const localDrafts: PageDraft[] = [];
 
         Object.keys(state.storage.storage).forEach((key) => {
-            if (key.startsWith(prefix)) {
+            // Only include drafts for the current user
+            if (key.startsWith(prefix) && key.endsWith(`_${currentUserId}`)) {
                 const storedDraft = state.storage.storage[key];
                 if (storedDraft && storedDraft.value) {
                     const draft = storedDraft.value as PostDraft;
@@ -179,7 +179,8 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
 export function removePageDraft(wikiId: string, draftId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
-        const key = makePageDraftKey(wikiId, draftId);
+        const currentUserId = getCurrentUserId(state);
+        const key = makePageDraftKey(wikiId, draftId, currentUserId);
 
         // Delete from server first (if sync is enabled)
         if (syncedDraftsAreAllowedAndEnabled(state)) {
@@ -194,7 +195,7 @@ export function removePageDraft(wikiId: string, draftId: string): ActionFuncAsyn
         // Remove from local storage and notify Redux
         dispatch(batchActions([
             removeGlobalItem(key),
-            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
+            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, userId: currentUserId}},
         ]));
 
         return {data: true};

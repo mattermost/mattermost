@@ -442,10 +442,10 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 }
 
 // UpdatePageWithOptimisticLocking updates a page with first-one-wins concurrency control
-// baseUpdateAt is the UpdateAt timestamp the client last saw when they started editing
-// Returns 409 Conflict if the page was modified by someone else
+// baseEditAt is the EditAt timestamp the client last saw when they started editing
+// Returns 409 Conflict if the page content was modified by someone else
 // Returns 404 Not Found if the page was deleted
-func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, content, searchText string, baseUpdateAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -454,7 +454,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 	}()
 
 	// Use master context to avoid reading stale data from replicas in HA mode
-	// This is critical for conflict detection - we need the latest UpdateAt value
+	// This is critical for conflict detection - we need the latest EditAt value
 	post, err := a.GetSinglePost(sqlstore.RequestContextWithMaster(rctx), pageID, false)
 	if err != nil {
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
@@ -477,12 +477,15 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 	}
 
 	// Check for conflicts (business logic - following MM pattern)
-	if !force && baseUpdateAt != 0 && post.UpdateAt != baseUpdateAt {
+	// Uses EditAt instead of UpdateAt to only detect content changes, not metadata/hierarchy changes
+	// Note: baseEditAt=0 means "page was never edited" (fresh page), post.EditAt > 0 means "someone edited"
+	// So we need to compare directly: if they don't match, there's a conflict
+	if !force && post.EditAt != baseEditAt {
 		modifiedBy := post.UserId
 		if lastModifiedBy, ok := post.Props["last_modified_by"].(string); ok && lastModifiedBy != "" {
 			modifiedBy = lastModifiedBy
 		}
-		modifiedAt := post.UpdateAt
+		modifiedAt := post.EditAt
 
 		if a.Metrics() != nil {
 			a.Metrics().IncrementWikiEditConflict()
@@ -490,7 +493,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.conflict.app_error",
 			map[string]any{"ModifiedBy": modifiedBy, "ModifiedAt": modifiedAt},
-			fmt.Sprintf("page was modified by another user, modified_by=%s, modified_at=%d", modifiedBy, modifiedAt), http.StatusConflict)
+			fmt.Sprintf("page was modified by another user, modified_by=%s, edit_at=%d", modifiedBy, modifiedAt), http.StatusConflict)
 	}
 
 	if title != "" {

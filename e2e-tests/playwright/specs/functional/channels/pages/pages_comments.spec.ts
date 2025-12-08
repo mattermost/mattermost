@@ -33,6 +33,7 @@ import {
     getThreadItemAndVerify,
     getEditor,
     waitForFormattingBar,
+    pressModifierKey,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
 } from './test_helpers';
@@ -318,19 +319,20 @@ test(
         await publishPage(page);
 
         // * Verify comment marker exists
-        const commentMarker = await verifyCommentMarkerVisible(page);
+        await verifyCommentMarkerVisible(page);
 
         // # Edit page - add text BEFORE the commented section
         await enterEditMode(page);
         const editor = getEditor(page);
         await editor.click();
-        await page.keyboard.press('Home');
+        // Use Ctrl/Meta+Home to reliably go to document start
+        await pressModifierKey(page, 'Home');
         await page.keyboard.type('Prefix: ');
 
         await publishPage(page);
 
-        // * Verify marker still exists after edit
-        await expect(commentMarker).toBeVisible();
+        // * Verify marker still exists after edit (re-fetch since DOM was refreshed)
+        const commentMarker = await verifyCommentMarkerVisible(page);
 
         // * Verify the highlight is on the CORRECT text by clicking marker and checking RHS
         // The RHS should show the original anchor text, not "Prefix" or shifted text
@@ -380,13 +382,14 @@ test(
         await publishPage(page);
 
         // * Verify comment marker exists
-        const commentMarker = await verifyCommentMarkerVisible(page);
+        await verifyCommentMarkerVisible(page);
 
         // # Edit page - delete the prefix text BEFORE the commented section
         await enterEditMode(page);
         const editor = getEditor(page);
         await editor.click();
-        await page.keyboard.press('Home');
+        // Use Ctrl/Meta+Home to reliably go to document start
+        await pressModifierKey(page, 'Home');
 
         // Select and delete the prefix text
         for (let i = 0; i < prefixText.length; i++) {
@@ -396,8 +399,8 @@ test(
 
         await publishPage(page);
 
-        // * Verify marker still exists after edit
-        await expect(commentMarker).toBeVisible();
+        // * Verify marker still exists after edit (re-fetch since DOM was refreshed)
+        const commentMarker = await verifyCommentMarkerVisible(page);
 
         // * Verify the highlight is on the CORRECT text by clicking marker and checking RHS
         const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);

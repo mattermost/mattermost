@@ -7,10 +7,7 @@ import {
     createPageThroughUI,
     createChildPageThroughContextMenu,
     createTestChannel,
-    fillCreatePageModal,
     buildWikiPageUrl,
-    getEditorAndWait,
-    typeInEditor,
     getHierarchyPanel,
     SHORT_WAIT,
     AUTOSAVE_WAIT,
@@ -154,18 +151,7 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // # Create child page draft via context menu
-    const parentNode = page.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
-    const menuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
-    await menuButton.click();
-
-    const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
-    await addChildButton.click();
-
-    await fillCreatePageModal(page, 'Child Draft');
-
-    await getEditorAndWait(page);
-    await typeInEditor(page, 'Child content');
-
+    await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Draft', 'Child content');
     await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify breadcrumb shows parent → draft

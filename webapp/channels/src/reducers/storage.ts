@@ -9,6 +9,8 @@ import type {MigrationManifest, PersistedState} from 'redux-persist';
 import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {General} from 'mattermost-redux/constants';
 
+import {makePageDraftKey} from 'selectors/page_drafts';
+
 import {StoragePrefixes, StorageTypes} from 'utils/constants';
 import {getDraftInfoFromKey} from 'utils/storage_utils';
 
@@ -83,11 +85,11 @@ function storage(state: Record<string, any> = {}, action: MMAction) {
     }
 
     case WikiTypes.DELETED_DRAFT: {
-        const {id, wikiId} = action.data;
-        if (!id || !wikiId) {
+        const {id, wikiId, userId} = action.data;
+        if (!id || !wikiId || !userId) {
             return state;
         }
-        const draftKey = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${id}`;
+        const draftKey = makePageDraftKey(wikiId, id, userId);
         const nextState = {...state};
         Reflect.deleteProperty(nextState, draftKey);
         return nextState;

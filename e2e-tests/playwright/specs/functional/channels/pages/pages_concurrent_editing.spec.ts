@@ -883,10 +883,14 @@ test('stays in edit mode when Cancel clicked in conflict modal', {tag: '@pages'}
     await page1.waitForTimeout(AUTOSAVE_WAIT);
 
     // # User 2 makes different changes
-    const user2Changes = 'Original content to be edited - User 2 changes to preserve';
+    const user2Changes = 'User 2 changes to preserve';
     const editor2 = await getEditorAndWait(user2Page);
     await editor2.click();
-    await editor2.fill(user2Changes);
+    // Use pressSequentially instead of fill() to ensure TipTap detects the change
+    await editor2.clear();
+    await editor2.pressSequentially(user2Changes);
+    // Wait for autosave to complete (500ms debounce + buffer)
+    await user2Page.waitForTimeout(AUTOSAVE_WAIT);
 
     const publishButton2 = user2Page.locator('[data-testid="wiki-page-publish-button"]').first();
     await publishButton2.click();

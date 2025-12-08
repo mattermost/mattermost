@@ -31,7 +31,7 @@ type UseWikiPageDataResult = {
 
 /**
  * Extracts and builds additionalProps from a draft's props, preserving important metadata
- * that must persist across autosaves (page_parent_id, page_status, original_page_update_at).
+ * that must persist across autosaves (page_parent_id, page_status, original_page_edit_at).
  */
 function extractDraftAdditionalProps(draft: PostDraft): Record<string, any> | undefined {
     const additionalProps: Record<string, any> = {};
@@ -42,8 +42,8 @@ function extractDraftAdditionalProps(draft: PostDraft): Record<string, any> | un
     if (draft.props?.page_status) {
         additionalProps.page_status = draft.props.page_status;
     }
-    if (draft.props?.original_page_update_at) {
-        additionalProps.original_page_update_at = draft.props.original_page_update_at;
+    if (draft.props?.original_page_edit_at) {
+        additionalProps.original_page_edit_at = draft.props.original_page_edit_at;
     }
 
     return Object.keys(additionalProps).length > 0 ? additionalProps : undefined;
@@ -319,7 +319,7 @@ export function useWikiPageActions(
             latestStatusRef.current = null;
             previousDraftRef.current = null;
         }
-    }, [currentDraft?.rootId, channelId, wikiId, dispatch]); // Include channelId, wikiId and dispatch for flush save
+    }, [currentDraft?.rootId, currentDraft?.props?.title, channelId, wikiId, dispatch]); // Include title to update refs when draft title changes
 
     const handleEdit = useCallback(async () => {
         if (!pageId || !wikiId || !currentPage) {
@@ -427,16 +427,6 @@ export function useWikiPageActions(
         }
 
         try {
-            // Cancel any pending autosave
-            if (autosaveTimeoutRef.current) {
-                clearTimeout(autosaveTimeoutRef.current);
-            }
-
-            // COMMENTED OUT: No longer need to save draft before publishing since we pass content directly
-            // This also eliminates potential race condition where savePageDraft could resurrect a deleted draft
-            // if the publish completes first (ON CONFLICT ... DO UPDATE SET DeleteAt = 0 in Upsert)
-            // await dispatch(savePageDraft(channelId, wikiId, draftRootId, content, title, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
-
             const result = await dispatch(publishPageDraft(
                 wikiId,
                 draftRootId,
@@ -450,12 +440,39 @@ export function useWikiPageActions(
             if (result.error) {
                 // Check if it's a conflict error
                 if (result.error.id === 'api.page.publish_draft.conflict') {
+                    // Cancel pending autosave and immediately save the user's content
+                    // This ensures the draft has the latest changes when the user clicks Cancel
+                    if (autosaveTimeoutRef.current) {
+                        clearTimeout(autosaveTimeoutRef.current);
+                        autosaveTimeoutRef.current = null;
+                    }
+                    const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
+                    const additionalProps = extractDraftAdditionalProps(currentDraft);
+
+                    // Await the save to ensure Redux is updated before showing the modal
+                    await dispatch(savePageDraft(
+                        channelId,
+                        wikiId,
+                        draftRootId,
+                        content,
+                        title,
+                        pageIdFromDraft,
+                        additionalProps,
+                    ));
+
                     conflictContentRef.current = content;
                     setConflictPageData(result.error.data.currentPage);
                     setShowConflictModal(true);
                     return;
                 }
                 return;
+            }
+
+            // Cancel any pending autosave only after successful publish
+            // This prevents race condition where savePageDraft could resurrect a deleted draft
+            // if the publish completes first (ON CONFLICT ... DO UPDATE SET DeleteAt = 0 in Upsert)
+            if (autosaveTimeoutRef.current) {
+                clearTimeout(autosaveTimeoutRef.current);
             }
 
             if (result.data) {
@@ -484,15 +501,19 @@ export function useWikiPageActions(
 
         const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
-        const originalPageUpdateAt = currentDraft.props?.original_page_update_at;
+        const originalPageEditAt = currentDraft.props?.original_page_edit_at;
         const title = latestTitleRef.current || currentDraft.props?.title || '';
         const content = latestContentRef.current || currentDraft.message || '';
 
-        const propsToSave = {
-            ...(pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : {}),
-            ...(originalPageUpdateAt ? {original_page_update_at: originalPageUpdateAt} : {}),
+        const propsToSave: Record<string, unknown> = {
             page_status: newStatus,
         };
+        if (pageParentIdFromDraft) {
+            propsToSave.page_parent_id = pageParentIdFromDraft;
+        }
+        if (originalPageEditAt !== undefined) {
+            propsToSave.original_page_edit_at = originalPageEditAt;
+        }
 
         dispatch(savePageDraft(
             channelId,

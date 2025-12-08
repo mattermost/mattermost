@@ -21,6 +21,7 @@ import {
     enterEditMode,
     waitForEditModeReady,
     selectAllText,
+    openHierarchyNodeActionsMenu,
     SHORT_WAIT,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
@@ -82,14 +83,12 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     const outlineInTree = await getPageOutlineInHierarchy(page, 'Feature Spec');
     await expect(outlineInTree).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
-    // # Open context menu via right-click
+    // # Open context menu via page actions menu button
     const hierarchyPanel = getHierarchyPanel(page);
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: 'Feature Spec'}).first();
-    await pageNode.click({button: 'right'});
+    let contextMenu = await openHierarchyNodeActionsMenu(page, pageNode);
 
     // * Verify context menu shows "Show outline" when outline is hidden
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await contextMenu.waitFor({state: 'visible', timeout: WEBSOCKET_WAIT});
     const showOutlineButton = contextMenu.locator('[data-testid="page-context-menu-show-outline"]');
     await expect(showOutlineButton).toHaveText('Show outline');
 
@@ -102,9 +101,8 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     expect(outlineText).toContain('Overview');
     expect(outlineText).toContain('Requirements');
 
-    // # Open context menu again via right-click
-    await pageNode.click({button: 'right'});
-    await contextMenu.waitFor({state: 'visible', timeout: WEBSOCKET_WAIT});
+    // # Open context menu again via page actions menu
+    contextMenu = await openHierarchyNodeActionsMenu(page, pageNode);
 
     // * Verify context menu now shows "Hide outline" when outline is visible
     const hideOutlineButton = contextMenu.locator('[data-testid="page-context-menu-show-outline"]');
@@ -117,11 +115,11 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     await expect(outlineInTree).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Open context menu one more time to verify it changed back
-    await pageNode.click({button: 'right'});
-    await contextMenu.waitFor({state: 'visible', timeout: WEBSOCKET_WAIT});
+    contextMenu = await openHierarchyNodeActionsMenu(page, pageNode);
 
     // * Verify context menu shows "Show outline" again
-    await expect(showOutlineButton).toHaveText('Show outline');
+    const showOutlineButton2 = contextMenu.locator('[data-testid="page-context-menu-show-outline"]');
+    await expect(showOutlineButton2).toHaveText('Show outline');
 });
 
 /**

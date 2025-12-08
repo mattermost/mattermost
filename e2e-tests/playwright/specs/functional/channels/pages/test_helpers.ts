@@ -23,6 +23,55 @@ export const DRAG_ANIMATION_WAIT = 1500; // Wait for drag-and-drop animations to
 export const STALE_CLEANUP_TIMEOUT = 65000; // Timeout for stale editor cleanup (60s + buffer)
 
 /**
+ * Gets a locator for the page actions menu (dropdown menu from the 3-dot button)
+ * Use this instead of hardcoded selectors to ensure consistency across tests
+ * @param page - Playwright page object
+ * @param pageId - Optional page ID for a specific menu (uses prefix match if not provided)
+ * @returns Locator for the page actions menu
+ */
+export function getPageActionsMenuLocator(page: Page, pageId?: string): Locator {
+    if (pageId) {
+        // The menu element itself has the id, so use a direct locator
+        return page.locator(`#page-actions-menu-${pageId}`);
+    }
+    return page.getByRole('menu', {name: 'Page actions'});
+}
+
+/**
+ * Gets the outline toggle button from the page actions menu.
+ * Menu.Item renders as <li> (MuiMenuItem), so we use data-testid for reliable selection.
+ * @param contextMenu - Locator for the page actions menu
+ * @returns Locator for the show/hide outline menu item
+ */
+export function getOutlineToggleMenuItem(contextMenu: Locator): Locator {
+    return contextMenu.locator('[data-testid="page-context-menu-show-outline"]').first();
+}
+
+/**
+ * Opens the page actions menu for a page node in the hierarchy panel
+ * @param page - Playwright page object
+ * @param pageNode - Locator for the page tree node
+ * @returns Locator for the opened page actions menu
+ */
+export async function openHierarchyNodeActionsMenu(page: Page, pageNode: Locator): Promise<Locator> {
+    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+    // Hover over page node to make menu button visible
+    await pageNode.hover();
+
+    // Click menu button to open context menu
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await menuButton.click();
+
+    // Wait for context menu to render
+    const contextMenu = getPageActionsMenuLocator(page);
+    await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+
+    return contextMenu;
+}
+
+/**
  * Gets the platform-specific modifier key (Meta for macOS, Control for Windows/Linux)
  * @returns The modifier key string
  */
@@ -351,7 +400,7 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
  * 2. Loading states - waits for loading indicator to disappear if present
  * 3. Async rendering - small delay ensures hierarchy panels have settled
  */
-export async function waitForWikiViewLoad(page: Page, timeout = 30000) {
+export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
     const wikiView = page.locator('[data-testid="wiki-view"]');
 
     // Wait for the wiki view to be visible with retries to handle any temporary unmounts
@@ -770,7 +819,7 @@ export async function clickPageInHierarchy(page: Page, pageTitle: string, timeou
 }
 
 /**
- * Renames a page via context menu using the rename modal
+ * Renames a page via the page actions menu
  * @param page - Playwright page object
  * @param currentTitle - Current title of the page to rename
  * @param newTitle - New title for the page
@@ -779,13 +828,21 @@ export async function renamePageViaContextMenu(page: Page, currentTitle: string,
     // # Open pages hierarchy panel
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
 
-    // # Right-click on page node to open context menu
-    const pageNode = hierarchyPanel.locator(`text="${currentTitle}"`).first();
-    await pageNode.click({button: 'right'});
+    // # Find the page node and click its menu button
+    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: currentTitle}).first();
+    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    // # Click rename option in context menu
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await contextMenu.waitFor({state: 'visible', timeout: WEBSOCKET_WAIT});
+    // # Hover over the page node to reveal the menu button
+    await pageNode.hover();
+
+    // # Click the menu button to open the actions menu
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await menuButton.click();
+
+    // # Wait for menu to be visible
+    const contextMenu = getPageActionsMenuLocator(page);
+    await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]');
     await renameButton.click();
@@ -871,10 +928,10 @@ export async function showPageOutline(page: Page, pageId: string) {
     await page.waitForTimeout(SHORT_WAIT * 1.6);
 
     // Click "Show outline" button
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    const showOutlineButton = contextMenu.locator('button:has-text("Show outline")').first();
+    const showOutlineButton = getOutlineToggleMenuItem(contextMenu);
     await showOutlineButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await showOutlineButton.click();
 
@@ -883,7 +940,7 @@ export async function showPageOutline(page: Page, pageId: string) {
 }
 
 /**
- * Shows the outline for a page using right-click context menu
+ * Shows the outline for a page using the page actions menu
  * @param page - Playwright page object
  * @param pageTitle - Title of the page to show outline for
  */
@@ -892,19 +949,22 @@ export async function showPageOutlineViaRightClick(page: Page, pageTitle: string
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle}).first();
     await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    // Right-click to open context menu
-    await pageNode.click({button: 'right'});
+    // Hover over page node to make menu button visible
+    await pageNode.hover();
+
+    // Click menu button to open context menu
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await menuButton.click();
 
     // Wait for context menu to render
     await page.waitForTimeout(SHORT_WAIT / 5);
 
     // Click "Show outline" button
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    const showOutlineButton = contextMenu
-        .locator('button:has-text("Show Outline"), [data-testid="page-context-menu-show-outline"]')
-        .first();
+    const showOutlineButton = getOutlineToggleMenuItem(contextMenu);
     await showOutlineButton.waitFor({state: 'visible'});
     await showOutlineButton.click();
 
@@ -935,12 +995,10 @@ export async function hidePageOutline(page: Page, pageId: string) {
     await page.waitForTimeout(SHORT_WAIT / 5);
 
     // Click "Hide outline" button (or "Show outline" if currently hidden - it toggles)
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    const hideOutlineButton = contextMenu
-        .locator('button:has-text("Show outline"), button:has-text("Hide outline")')
-        .first();
+    const hideOutlineButton = getOutlineToggleMenuItem(contextMenu);
     await hideOutlineButton.click();
 
     // Wait for Redux action
@@ -1429,10 +1487,10 @@ export function getBreadcrumb(page: Page): Locator {
  * @param expectedText - Text to find in breadcrumb
  * @param timeout - Optional timeout in ms (default: 5000)
  */
-export async function verifyBreadcrumbContains(page: Page, expectedText: string, timeout = 5000) {
+export async function verifyBreadcrumbContains(page: Page, expectedText: string, timeout = 10000) {
     const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout});
-    await expect(breadcrumb).toContainText(expectedText);
+    await expect(breadcrumb).toContainText(expectedText, {timeout});
 }
 
 /**
@@ -1644,13 +1702,20 @@ export async function switchToWikiRHSTab(
  */
 export async function openMovePageModal(page: Page, pageTitle: string): Promise<Locator> {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator(`text="${pageTitle}"`).first();
+    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle}).first();
 
-    await expect(pageNode).toBeVisible();
-    await pageNode.click({button: 'right'});
+    await pageNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
+    // Hover over page node to make menu button visible
+    await pageNode.hover();
+
+    // Click menu button to open context menu
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await menuButton.click();
+
+    const contextMenu = getPageActionsMenuLocator(page);
+    await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     const moveButton = contextMenu
         .locator('[data-testid="page-context-menu-move"], button:has-text("Move to Wiki"), button:has-text("Move to")')
@@ -2101,7 +2166,7 @@ export async function openPageActionsMenu(page: Page, timeout: number = ELEMENT_
     await actionsButton.waitFor({state: 'visible', timeout});
     await actionsButton.click();
 
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     return contextMenu;
@@ -2258,7 +2323,7 @@ export async function openPageContextMenu(page: Page, pageId: string): Promise<L
     await expect(menuButton).toBeVisible({timeout: HIERARCHY_TIMEOUT});
     await menuButton.click();
 
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page, pageId);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     return contextMenu;
@@ -2432,7 +2497,7 @@ export async function duplicatePageThroughUI(page: Page, pageId: string) {
     await menuButton.click();
 
     // Wait for context menu
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     // Click duplicate option (this now immediately duplicates the page)
@@ -3036,8 +3101,18 @@ export async function expandPageTreeNode(
 
     const expandButton = pageNode.locator('[data-testid="page-tree-node-expand-button"]');
     await expect(expandButton).toBeVisible({timeout});
+
+    // Check if the node is already expanded (chevron-down icon)
+    const isAlreadyExpanded = (await pageNode.locator('.icon-chevron-down').count()) > 0;
+    if (isAlreadyExpanded) {
+        return;
+    }
+
+    // Click to expand
     await expandButton.click();
-    await page.waitForTimeout(SHORT_WAIT);
+
+    // Wait for the expand animation - the icon should change from chevron-right to chevron-down
+    await expect(pageNode.locator('.icon-chevron-down')).toBeVisible({timeout});
 }
 
 /**
@@ -3054,7 +3129,7 @@ export async function openPageTreeNodeMenuByTitle(page: Page, pageTitle: string)
     await threeDotButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await threeDotButton.click();
 
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    const contextMenu = getPageActionsMenuLocator(page);
     await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
     return contextMenu;

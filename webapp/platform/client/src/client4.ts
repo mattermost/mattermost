@@ -2229,8 +2229,8 @@ export default class Client4 {
         );
     };
 
-    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, content?: string, pageStatus?: string, force?: boolean, baseUpdateAt?: number) => {
-        const requestBody = {page_parent_id: pageParentId, title, search_text: searchText, content, page_status: pageStatus, force, base_update_at: baseUpdateAt};
+    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, content?: string, pageStatus?: string, force?: boolean, baseEditAt?: number) => {
+        const requestBody = {page_parent_id: pageParentId, title, search_text: searchText, content, page_status: pageStatus, force, base_edit_at: baseEditAt};
         return this.doFetch<Post>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}/publish`,
             {method: 'post', body: JSON.stringify(requestBody)},

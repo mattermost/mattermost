@@ -11,6 +11,7 @@ import {
     verifyEditorElement,
     selectAllText,
     getEditorAndWait,
+    pressModifierKey,
     SHORT_WAIT,
     ELEMENT_TIMEOUT,
     WEBSOCKET_WAIT,
@@ -569,10 +570,8 @@ test('shows placeholder when cursor at beginning of empty line', {tag: '@pages'}
     // * Verify placeholder attribute is still present (empty line should show placeholder)
     await expect(editorElement).toHaveAttribute('data-placeholder', "Type '/' to insert objects or start writing...");
 
-    // # Move cursor back to first line
-    await page.keyboard.press('Home');
-    await page.keyboard.press('ArrowUp');
-    await page.keyboard.press('ArrowUp');
+    // # Move cursor to document start
+    await pressModifierKey(page, 'Home');
 
     // * Verify we're on first line with content (placeholder shouldn't be visible on this line)
     const firstParagraph = editorElement.locator('p').first();

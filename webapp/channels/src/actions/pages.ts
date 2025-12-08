@@ -19,10 +19,10 @@ import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'matte
 import {loadPageDraftsForWiki} from 'actions/page_drafts';
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {clearOutlineCache} from 'actions/views/pages_hierarchy';
-import {getPageDraft, getUserDraftKeysForPage} from 'selectors/page_drafts';
+import {getPageDraft, getUserDraftKeysForPage, makePageDraftKey} from 'selectors/page_drafts';
 
 import {getHistory} from 'utils/browser_history';
-import {PageConstants, StoragePrefixes} from 'utils/constants';
+import {PageConstants} from 'utils/constants';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -299,7 +299,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
         const draft = getPageDraft(state, wikiId, draftId);
-        const draftKey = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
+        const draftKey = makePageDraftKey(wikiId, draftId, currentUserId);
 
         if (!draft) {
             return {error: {message: 'Draft not found'}};
@@ -307,16 +307,16 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
 
         // Check for conflicts (only if not forcing and editing existing page)
         const pageId = draft.props?.page_id as string | undefined;
-        const baselineUpdateAt = draft.props?.original_page_update_at as number | undefined;
+        const baselineEditAt = draft.props?.original_page_edit_at as number | undefined;
 
-        if (!force && pageId && baselineUpdateAt) {
+        if (!force && pageId && baselineEditAt !== undefined) {
             try {
                 const currentPage = await Client4.getPage(wikiId, pageId) as Page;
 
                 // Compare as numbers to avoid type mismatch issues
-                const currentUpdateAt = Number(currentPage.update_at);
-                const baselineNum = Number(baselineUpdateAt);
-                const isConflict = currentUpdateAt !== baselineNum;
+                const currentEditAt = Number(currentPage.edit_at);
+                const baselineNum = Number(baselineEditAt);
+                const isConflict = currentEditAt !== baselineNum;
 
                 if (isConflict) {
                     return {
@@ -326,7 +326,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                             status_code: 409,
                             data: {
                                 currentPage,
-                                baselineUpdateAt,
+                                baselineEditAt,
                             },
                         },
                     };
@@ -388,14 +388,14 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         const finalPageStatus = pageStatus || (draft.props?.page_status as string | undefined);
 
         try {
-            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baselineUpdateAt) as Page;
+            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus, force, baselineEditAt) as Page;
 
             const actions: AnyAction[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId, publishedAt: data.update_at}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
                 {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId, pendingPageId}},
-                {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, publishedAt: data.update_at}},
+                {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, userId: currentUserId, publishedAt: data.update_at}},
             ];
 
             // Extract and store page status in Redux
@@ -461,7 +461,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                             status_code: 409,
                             data: {
                                 currentPage,
-                                baselineUpdateAt,
+                                baselineEditAt,
                             },
                         },
                     };
@@ -637,6 +637,7 @@ export function movePage(pageId: string, newParentId: string): ActionFuncAsync {
 function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
+        const currentUserId = state.entities.users.currentUserId;
         const draft = getPageDraft(state, wikiId, draftId);
 
         if (!draft) {
@@ -652,7 +653,7 @@ function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiI
             updateAt: Date.now(),
         };
 
-        const draftKey = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
+        const draftKey = makePageDraftKey(wikiId, draftId, currentUserId);
         dispatch(setGlobalItem(draftKey, updatedDraft));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {

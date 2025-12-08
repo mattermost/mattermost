@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -16,7 +16,7 @@ import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
-import PageContextMenu from './page_context_menu';
+import PageActionsMenu from './page_actions_menu';
 import type {FlatNode} from './utils/tree_flattener';
 
 import './page_tree_node.scss';
@@ -59,12 +59,7 @@ const PageTreeNode = ({
     dragHandleProps,
 }: Props) => {
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
-    const isOutlineVisible = useSelector((state: GlobalState) =>
-        state.views.pagesHierarchy.outlineExpandedNodes[node.id] || false,
-    );
 
-    const [showMenu, setShowMenu] = useState(false);
-    const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
     const [isTitleTruncated, setIsTitleTruncated] = useState(false);
     const titleButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -100,19 +95,13 @@ const PageTreeNode = ({
         };
     }, [node.title]);
 
-    const handleContextMenu = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setMenuPosition({x: e.clientX, y: e.clientY});
-        setShowMenu(true);
-    }, []);
-
-    const handleMenuButtonClick = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setMenuPosition({x: rect.left, y: rect.bottom});
-        setShowMenu(true);
-    }, []);
+    const handleCreateChild = useCallback(() => onCreateChild?.(node.id), [onCreateChild, node.id]);
+    const handleRename = useCallback(() => onRename?.(node.id), [onRename, node.id]);
+    const handleDuplicate = useCallback(() => onDuplicate?.(node.id), [onDuplicate, node.id]);
+    const handleMove = useCallback(() => onMove?.(node.id), [onMove, node.id]);
+    const handleBookmarkInChannel = useCallback(() => onBookmarkInChannel?.(node.id), [onBookmarkInChannel, node.id]);
+    const handleDelete = useCallback(() => onDelete?.(node.id), [onDelete, node.id]);
+    const handleVersionHistory = useCallback(() => onVersionHistory?.(node.id), [onVersionHistory, node.id]);
 
     return (
         <div
@@ -122,7 +111,6 @@ const PageTreeNode = ({
             data-page-id={node.id}
             data-depth={node.depth}
             data-is-draft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
-            onContextMenu={handleContextMenu}
         >
             {/* Drag handle - separate from selection */}
             {!isLoading && (
@@ -197,36 +185,22 @@ const PageTreeNode = ({
                 </span>
             )}
 
-            {/* Context menu button - shows on hover */}
-            {!isLoading && (
-                <button
-                    className='PageTreeNode__menuButton'
-                    aria-label='Page menu'
-                    title='Page menu'
-                    onClick={handleMenuButtonClick}
-                    data-testid='page-tree-node-menu-button'
-                >
-                    <i className='icon-dots-horizontal'/>
-                </button>
-            )}
-
             {/* Context menu */}
-            {showMenu && (
-                <PageContextMenu
+            {!isLoading && (
+                <PageActionsMenu
                     pageId={node.id}
                     wikiId={wikiId}
-                    position={menuPosition}
-                    onClose={() => setShowMenu(false)}
-                    onCreateChild={() => onCreateChild?.(node.id)}
-                    onRename={() => onRename?.(node.id)}
-                    onDuplicate={() => onDuplicate?.(node.id)}
-                    onMove={() => onMove?.(node.id)}
-                    onBookmarkInChannel={() => onBookmarkInChannel?.(node.id)}
-                    onDelete={() => onDelete?.(node.id)}
-                    onVersionHistory={() => onVersionHistory?.(node.id)}
+                    onCreateChild={handleCreateChild}
+                    onRename={handleRename}
+                    onDuplicate={handleDuplicate}
+                    onMove={handleMove}
+                    onBookmarkInChannel={handleBookmarkInChannel}
+                    onDelete={handleDelete}
+                    onVersionHistory={handleVersionHistory}
                     isDraft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
                     pageLink={pageLink}
-                    isOutlineVisible={isOutlineVisible}
+                    buttonClassName='PageTreeNode__menuButton'
+                    buttonTestId='page-tree-node-menu-button'
                 />
             )}
         </div>

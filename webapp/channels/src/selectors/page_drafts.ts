@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getGlobalItem} from 'selectors/storage';
 
@@ -10,12 +11,25 @@ import {StoragePrefixes} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
-function makePageDraftKey(wikiId: string, pageId: string): string {
-    return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${pageId}`;
+/**
+ * Creates a storage key for a page draft.
+ * Each user has their own draft for a page, so userId is required to prevent
+ * websocket events from overwriting another user's local draft.
+ */
+export function makePageDraftKey(wikiId: string, pageId: string, userId: string): string {
+    return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${pageId}_${userId}`;
+}
+
+/**
+ * Creates a prefix for searching all drafts in a wiki (regardless of user).
+ */
+export function makePageDraftPrefix(wikiId: string): string {
+    return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
 }
 
 export function getPageDraft(state: GlobalState, wikiId: string, pageId: string): PostDraft | null {
-    const key = makePageDraftKey(wikiId, pageId);
+    const userId = getCurrentUserId(state);
+    const key = makePageDraftKey(wikiId, pageId, userId);
     return getGlobalItem<PostDraft | null>(state, key, null);
 }
 
@@ -35,12 +49,14 @@ export const getPageDraftsForWiki = createSelector(
     'getPageDraftsForWiki',
     (state: GlobalState) => state.storage.storage,
     (_state: GlobalState, wikiId: string) => wikiId,
-    (storage, wikiId) => {
-        const prefix = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
+    (state: GlobalState) => getCurrentUserId(state),
+    (storage, wikiId, currentUserId) => {
+        const prefix = makePageDraftPrefix(wikiId);
         const drafts: PostDraft[] = [];
 
         Object.keys(storage).forEach((key) => {
-            if (key.startsWith(prefix)) {
+            // Only include drafts for the current user
+            if (key.startsWith(prefix) && key.endsWith(`_${currentUserId}`)) {
                 const storedDraft = storage[key];
                 if (storedDraft && storedDraft.value) {
                     drafts.push(storedDraft.value as PostDraft);
@@ -53,11 +69,13 @@ export const getPageDraftsForWiki = createSelector(
 );
 
 export function getUserDraftKeysForPage(state: GlobalState, wikiId: string, pageId: string): string[] {
-    const prefix = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
+    const currentUserId = getCurrentUserId(state);
+    const prefix = makePageDraftPrefix(wikiId);
     const keys: string[] = [];
 
     Object.keys(state.storage.storage).forEach((key) => {
-        if (key.startsWith(prefix)) {
+        // Only include keys for the current user
+        if (key.startsWith(prefix) && key.endsWith(`_${currentUserId}`)) {
             const draft = state.storage.storage[key];
             if (draft && typeof draft === 'object' && 'rootId' in draft && draft.rootId === pageId) {
                 keys.push(key);
@@ -73,6 +91,6 @@ export function getFirstPageDraftForWiki(state: GlobalState, wikiId: string): Po
     return drafts.length > 0 ? drafts[0] : null;
 }
 
-export function hasUnpublishedChanges(state: GlobalState, wikiId: string, pageId: string): boolean {
-    return hasPageDraft(state, wikiId, pageId);
+export function hasUnpublishedChanges(state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean {
+    return hasUnsavedChanges(state, wikiId, pageId, publishedContent);
 }

@@ -161,7 +161,7 @@ const WikiPageEditor = ({
                             </span>
                         </div>
                     )}
-                    {wikiId && pageId && (
+                    {wikiId && pageId && isExistingPage && (
                         <ActiveEditorsIndicator
                             wikiId={wikiId}
                             pageId={pageId}

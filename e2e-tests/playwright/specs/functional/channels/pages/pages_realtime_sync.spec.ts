@@ -473,7 +473,7 @@ test(
         await page1.waitForLoadState('networkidle');
 
         // Publish a new version of Page A via API (simulates another user/session publishing edits)
-        // Step 1: Get current page to retrieve update_at timestamp
+        // Step 1: Get current page to retrieve edit_at timestamp
         const currentPageA = await adminClient.getPost(pageA.id);
 
         // Step 2: Create a draft for editing the existing page
@@ -496,7 +496,7 @@ test(
             pageA.id, // pageId - indicates this is editing an existing page
         );
 
-        // Step 3: Publish the draft with base_update_at to avoid conflict detection
+        // Step 3: Publish the draft with base_edit_at to avoid conflict detection
         await adminClient.publishPageDraft(
             wiki.id,
             draftId,
@@ -506,7 +506,7 @@ test(
             newContent,
             undefined, // pageStatus
             undefined, // force
-            currentPageA.update_at, // base_update_at - prevents conflict warning
+            currentPageA.edit_at, // base_edit_at - prevents conflict warning
         );
 
         // * Verify User 3 (who stayed on Page A) receives the update via WebSocket
@@ -584,7 +584,7 @@ test(
         expect(user2EditorContent).toContain('User 2 draft changes');
 
         // # Meanwhile, User 1 publishes an update to the same page via API
-        // First get current page to retrieve update_at timestamp
+        // First get current page to retrieve edit_at timestamp
         const currentPage = await adminClient.getPost(testPage.id);
 
         const draftId = `draft-${Date.now()}`;
@@ -608,7 +608,7 @@ test(
             externalUpdateContent,
             undefined, // pageStatus
             undefined, // force
-            currentPage.update_at, // base_update_at - prevents conflict warning
+            currentPage.edit_at, // base_edit_at - prevents conflict warning
         );
 
         // * Verify User 2's draft content is NOT overwritten (draft isolation)

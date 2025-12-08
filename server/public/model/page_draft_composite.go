@@ -77,15 +77,15 @@ func (pd *PageDraft) IsContentEmpty() bool {
 // PublishPageDraftOptions contains options for publishing a page draft.
 // This consolidates the many parameters into a structured options object.
 type PublishPageDraftOptions struct {
-	WikiId       string `json:"wiki_id"`
-	DraftId      string `json:"draft_id"`
-	ParentId     string `json:"page_parent_id,omitempty"`
-	Title        string `json:"title"`
-	SearchText   string `json:"search_text,omitempty"`
-	Content      string `json:"content,omitempty"`
-	PageStatus   string `json:"page_status,omitempty"`
-	BaseUpdateAt int64  `json:"base_update_at,omitempty"`
-	Force        bool   `json:"force,omitempty"`
+	WikiId     string `json:"wiki_id"`
+	DraftId    string `json:"draft_id"`
+	ParentId   string `json:"page_parent_id,omitempty"`
+	Title      string `json:"title"`
+	SearchText string `json:"search_text,omitempty"`
+	Content    string `json:"content,omitempty"`
+	PageStatus string `json:"page_status,omitempty"`
+	BaseEditAt int64  `json:"base_edit_at,omitempty"`
+	Force      bool   `json:"force,omitempty"`
 }
 
 // IsValid validates the PublishPageDraftOptions struct.

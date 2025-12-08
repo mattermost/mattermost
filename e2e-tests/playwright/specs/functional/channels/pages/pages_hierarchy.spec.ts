@@ -21,8 +21,8 @@ import {
     getHierarchyPanel,
     deletePageWithOption,
     getEditorAndWait,
+    openHierarchyNodeActionsMenu,
     ELEMENT_TIMEOUT,
-    WEBSOCKET_WAIT,
 } from './test_helpers';
 
 /**
@@ -100,16 +100,14 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     const page1 = await createPageThroughUI(page, 'Page 1', 'Content 1');
     const page2 = await createPageThroughUI(page, 'Page 2', 'Content 2');
 
-    // # Right-click Page 2 to move it
+    // # Open Page 2's actions menu to move it
     const hierarchyPanel = getHierarchyPanel(page);
-    const page2Node = hierarchyPanel.locator('text="Page 2"').first();
+    const page2Node = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: 'Page 2'}).first();
 
     await expect(page2Node).toBeVisible();
-    await page2Node.click({button: 'right'});
+    const contextMenu = await openHierarchyNodeActionsMenu(page, page2Node);
 
     // # Select "Move" from context menu
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
     const moveButton = contextMenu
         .locator('[data-testid="page-context-menu-move"], button:has-text("Move To")')
         .first();
@@ -315,17 +313,18 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     // # Create another root page to move
     const pageToMove = await createPageThroughUI(page, 'Page to Move', 'Content to move');
 
-    // # Right-click the page to move
+    // # Open actions menu for the page to move
     const hierarchyPanel = getHierarchyPanel(page);
-    const pageToMoveNode = hierarchyPanel.locator('text="Page to Move"').first();
+    const pageToMoveNode = hierarchyPanel
+        .locator('[data-testid="page-tree-node"]')
+        .filter({hasText: 'Page to Move'})
+        .first();
 
     await expect(pageToMoveNode).toBeVisible();
-    await pageToMoveNode.click({button: 'right'});
+    const contextMenu2 = await openHierarchyNodeActionsMenu(page, pageToMoveNode);
 
     // # Select "Move" from context menu
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
-    const moveButton = contextMenu
+    const moveButton = contextMenu2
         .locator('[data-testid="page-context-menu-move"], button:has-text("Move To")')
         .first();
     await expect(moveButton).toBeVisible();

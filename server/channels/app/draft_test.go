@@ -487,10 +487,10 @@ func TestPublishPageDraft(t *testing.T) {
 		require.Nil(t, err)
 
 		updatedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:       createdWiki.Id,
-			DraftId:      draftId,
-			Title:        newTitle,
-			BaseUpdateAt: originalPage.UpdateAt,
+			WikiId:     createdWiki.Id,
+			DraftId:    draftId,
+			Title:      newTitle,
+			BaseEditAt: originalPage.EditAt,
 		})
 		require.Nil(t, appErr)
 		assert.NotNil(t, updatedPage)
@@ -528,10 +528,10 @@ func TestPublishPageDraft(t *testing.T) {
 		}
 
 		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:       createdWiki.Id,
-			DraftId:      draftId,
-			Title:        title,
-			BaseUpdateAt: originalPage.UpdateAt,
+			WikiId:     createdWiki.Id,
+			DraftId:    draftId,
+			Title:      title,
+			BaseEditAt: originalPage.EditAt,
 		})
 		require.Nil(t, appErr)
 		assert.Equal(t, originalPage.Id, publishedPage.Id)

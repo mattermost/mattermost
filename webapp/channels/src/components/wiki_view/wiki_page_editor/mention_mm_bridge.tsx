@@ -74,14 +74,16 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
     return {
         items: async ({query}: {query: string}): Promise<Item[]> => {
             return new Promise((resolve) => {
-                let callbackCount = 0;
-                let pendingTimeout: NodeJS.Timeout | null = null;
+                // Resolve immediately with first callback results
+                // TipTap will call onUpdate when more results come in
+                let resolved = false;
 
-                provider.handlePretextChanged(`@${query}`, (results: any) => {
-                    callbackCount++;
-
+                const handled = provider.handlePretextChanged(`@${query}`, (results: any) => {
                     if (!results || !results.groups) {
-                        resolve([]);
+                        if (!resolved) {
+                            resolved = true;
+                            resolve([]);
+                        }
                         return;
                     }
 
@@ -90,27 +92,19 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                         return group.items || [];
                     });
 
-                    // Check if this looks like the "final" callback by checking for nonMembers group
-                    const hasNonMembers = results.groups.some((g: any) => g.key === 'nonMembers');
-                    const isFirstCallback = callbackCount === 1;
-
-                    // Clear any pending timeout
-                    if (pendingTimeout) {
-                        clearTimeout(pendingTimeout);
-                        pendingTimeout = null;
+                    // Always resolve immediately with whatever we have
+                    // This prevents TipTap from closing the popup while waiting
+                    if (!resolved) {
+                        resolved = true;
+                        resolve(allItems);
                     }
-
-                    // If this is the first callback and has no nonMembers, wait for second callback
-                    if (isFirstCallback && !hasNonMembers && allItems.length > 0) {
-                        pendingTimeout = setTimeout(() => {
-                            resolve(allItems);
-                        }, 150);
-                        return;
-                    }
-
-                    // This is either the second callback or has nonMembers (final result)
-                    resolve(allItems);
                 });
+
+                // If handlePretextChanged returns false, resolve immediately with empty array
+                if (!handled && !resolved) {
+                    resolved = true;
+                    resolve([]);
+                }
             });
         },
 
@@ -121,6 +115,7 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
             let currentItems: any[] = [];
             let currentSelectedIndex = 0;
             let commandFunction: ((attrs: any) => void) | null = null;
+            let selectionMade = false;
 
             const scrollSelectedIntoView = (index: number) => {
                 setTimeout(() => {
@@ -193,6 +188,7 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                                             selectItem={(index: number) => {
                                                 const item = componentItems[index];
                                                 if (commandFunction) {
+                                                    selectionMade = true;
                                                     commandFunction({id: item.id || item.username, label: item.username});
                                                 }
                                                 closePopup();
@@ -227,11 +223,18 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                 },
 
                 onUpdate: (mentionProps: any) => {
+                    // Reset startTime on each update to prevent premature closure
+                    // when typing additional characters
+                    startTime = Date.now();
+
                     if (mentionProps.items) {
                         currentItems = mentionProps.items;
                     }
                     if (mentionProps.selectedIndex !== undefined) {
                         currentSelectedIndex = mentionProps.selectedIndex;
+                    }
+                    if (mentionProps.command) {
+                        commandFunction = mentionProps.command;
                     }
 
                     if (component && component.updateProps) {
@@ -278,6 +281,7 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                     if (event.key === 'Enter' || event.key === 'Tab') {
                         const item = currentItems[currentSelectedIndex];
                         if (item && commandFunction) {
+                            selectionMade = true;
                             const commandData = {id: item.id || item.username, label: item.username};
                             commandFunction(commandData);
                             closePopup();
@@ -292,11 +296,12 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                     const elapsedTime = Date.now() - startTime;
 
                     // Prevent immediate closure due to race conditions
-                    if (elapsedTime < MIN_DISPLAY_TIME && popup && component) {
+                    if (elapsedTime < MIN_DISPLAY_TIME && popup && component && !selectionMade) {
                         return;
                     }
 
                     closePopup();
+                    selectionMade = false;
                 },
             };
         },

@@ -965,7 +965,9 @@ export function handlePagePublishedEvent(msg) {
     if (!isDraftBeingEdited) {
         // User is not editing this draft, safe to delete
         // Include publishedAt for HA duplicate prevention
-        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, publishedAt: page.update_at}});
+        // Delete the current user's draft for this page (each user has their own draft key)
+        const currentUserId = getCurrentUserId(getState());
+        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, userId: currentUserId, publishedAt: page.update_at}});
     }
 }
 
@@ -2037,31 +2039,18 @@ function handleUpsertDraftEvent(msg) {
 
             // Check if this draft was recently published
             // This prevents stale DRAFT_UPDATED events from re-adding drafts in HA environments
+            // IMPORTANT: If the draft exists in publishedDraftTimestamps, it means it was published.
+            // We should ignore ALL incoming draft events for this ID, regardless of timestamps,
+            // because the draft should no longer exist - it has been converted to a page.
             const publishedAt = state.entities.wikiPages?.publishedDraftTimestamps?.[draftId];
-            if (publishedAt && draft.update_at <= publishedAt) {
-                return;
-            }
-
-            const existingPage = getPost(state, draftId);
-
-            // If page exists and this draft is older than or equal to the published page, skip it
-            // This allows newer drafts (from other users editing after publish) to still appear
-            if (existingPage && draft.update_at <= existingPage.update_at) {
-                // Still update active editors for collaborative editing indicators
-                const userId = draft.user_id;
-                const timestamp = draft.update_at;
-                const isCreate = msg.event === SocketEvents.DRAFT_CREATED;
-
-                const activeEditorAction = isCreate ?
-                    handleActiveEditorDraftCreated(draftId, userId, timestamp) :
-                    handleActiveEditorDraftUpdated(draftId, userId, timestamp);
-
-                doDispatch(activeEditorAction);
+            if (publishedAt) {
+                // Draft was published - ignore any incoming draft events for this ID
+                // This handles HA race conditions where draft events arrive after publish
                 return;
             }
 
             // Handle page draft
-            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.draft_id);
+            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.draft_id, draft.user_id);
             transformedDraft.value.show = true;
 
             // Update active editors for this page

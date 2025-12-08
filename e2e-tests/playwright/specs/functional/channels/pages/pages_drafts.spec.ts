@@ -5,6 +5,7 @@ import {expect, test} from './pages_test_fixture';
 import {
     createWikiThroughUI,
     createPageThroughUI,
+    createChildPageThroughContextMenu,
     createTestChannel,
     ensurePanelOpen,
     getNewPageButton,
@@ -19,6 +20,7 @@ import {
     clickPageInHierarchy,
     enterEditMode,
     verifyPageContentContains,
+    openHierarchyNodeActionsMenu,
     AUTOSAVE_WAIT,
     EDITOR_LOAD_WAIT,
     ELEMENT_TIMEOUT,
@@ -490,21 +492,8 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
     const parentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
     await parentNode.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    // # Create child draft via right-click context menu
-    await parentNode.click({button: 'right'});
-
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: WEBSOCKET_WAIT});
-    const createSubpageButton = contextMenu.locator('button:has-text("New subpage")');
-    await createSubpageButton.click();
-    await fillCreatePageModal(page, 'Child Draft Node');
-
-    // # Wait for editor to load
-    await page.waitForTimeout(EDITOR_LOAD_WAIT);
-
-    // # Add some content and wait for auto-save and hierarchy refresh
-    await getEditorAndWait(page);
-    await typeInEditor(page, 'Child content');
+    // # Create child draft via page actions menu
+    await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Draft Node', 'Child content');
     await page.waitForTimeout(AUTOSAVE_WAIT);
 
     // * Verify parent node now has expand button (showing it has the child)
@@ -778,11 +767,8 @@ test(
             .filter({hasText: 'Parent Draft'});
         await expect(parentDraftNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-        // # Create child draft under parent draft via right-click context menu
-        await parentDraftNode.click({button: 'right'});
-
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        await contextMenu.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+        // # Create child draft under parent draft via page actions menu
+        const contextMenu = await openHierarchyNodeActionsMenu(page, parentDraftNode);
 
         const createSubpageButton = contextMenu.locator('[data-testid="page-context-menu-new-child"]').first();
         await createSubpageButton.click();

@@ -482,7 +482,7 @@ func TestPublishPageDraft_OptimisticLocking_Success(t *testing.T) {
 		Content: validContent,
 	})
 	require.Nil(t, appErr)
-	baseUpdateAt := createdPage.UpdateAt
+	baseEditAt := createdPage.EditAt
 
 	newContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated content"}]}]}`
 	newDraftId := model.NewId()
@@ -490,17 +490,17 @@ func TestPublishPageDraft_OptimisticLocking_Success(t *testing.T) {
 	require.Nil(t, appErr)
 
 	updatedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
-		WikiId:       wiki.Id,
-		DraftId:      newDraftId,
-		Title:        "Updated Title",
-		Content:      newContent,
-		BaseUpdateAt: baseUpdateAt,
+		WikiId:     wiki.Id,
+		DraftId:    newDraftId,
+		Title:      "Updated Title",
+		Content:    newContent,
+		BaseEditAt: baseEditAt,
 	})
 
 	require.Nil(t, appErr)
 	require.NotNil(t, updatedPage)
 	require.Equal(t, "Updated Title", updatedPage.Props["title"])
-	require.Greater(t, updatedPage.UpdateAt, baseUpdateAt)
+	require.Greater(t, updatedPage.EditAt, baseEditAt)
 }
 
 func TestPublishPageDraft_OptimisticLocking_Returns409(t *testing.T) {
@@ -537,7 +537,25 @@ func TestPublishPageDraft_OptimisticLocking_Returns409(t *testing.T) {
 		Content: validContent,
 	})
 	require.Nil(t, appErr)
-	baseUpdateAt := createdPage.UpdateAt
+
+	// First update to establish a non-zero EditAt (newly published pages have EditAt=0)
+	firstUpdateContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update content"}]}]}`
+	firstDraftId := model.NewId()
+	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, firstDraftId, firstUpdateContent, "First Update Title", createdPage.Id, nil)
+	require.Nil(t, appErr)
+
+	firstUpdate, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
+		WikiId:     wiki.Id,
+		DraftId:    firstDraftId,
+		Title:      "First Update Title",
+		Content:    firstUpdateContent,
+		BaseEditAt: 0, // No conflict check for first edit
+	})
+	require.Nil(t, appErr)
+	require.Greater(t, firstUpdate.EditAt, int64(0), "After first update, EditAt should be non-zero")
+
+	// Both users start editing with the same baseline EditAt
+	baseEditAt := firstUpdate.EditAt
 
 	content1 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 1 content"}]}]}`
 	draft1Id := model.NewId()
@@ -545,36 +563,37 @@ func TestPublishPageDraft_OptimisticLocking_Returns409(t *testing.T) {
 	require.Nil(t, appErr)
 
 	updated1, appErr1 := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
-		WikiId:       wiki.Id,
-		DraftId:      draft1Id,
-		Title:        "User 1 Title",
-		Content:      content1,
-		BaseUpdateAt: baseUpdateAt,
+		WikiId:     wiki.Id,
+		DraftId:    draft1Id,
+		Title:      "User 1 Title",
+		Content:    content1,
+		BaseEditAt: baseEditAt,
 	})
 	require.Nil(t, appErr1)
-	require.Greater(t, updated1.UpdateAt, baseUpdateAt)
+	require.Greater(t, updated1.EditAt, baseEditAt)
 
+	// User 2 tries to publish with the stale baseline - should get conflict
 	content2 := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User 2 content"}]}]}`
 	draft2Id := model.NewId()
 	_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, wiki.Id, draft2Id, content2, "User 2 Title", createdPage.Id, nil)
 	require.Nil(t, appErr)
 
 	_, appErr2 := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
-		WikiId:       wiki.Id,
-		DraftId:      draft2Id,
-		Title:        "User 2 Title",
-		Content:      content2,
-		BaseUpdateAt: baseUpdateAt,
+		WikiId:     wiki.Id,
+		DraftId:    draft2Id,
+		Title:      "User 2 Title",
+		Content:    content2,
+		BaseEditAt: baseEditAt,
 	})
 
 	require.NotNil(t, appErr2)
 	require.Equal(t, "app.page.update.conflict.app_error", appErr2.Id)
 	require.Equal(t, 409, appErr2.StatusCode)
 	require.Contains(t, appErr2.DetailedError, "modified_by=")
-	require.Contains(t, appErr2.DetailedError, "modified_at=")
+	require.Contains(t, appErr2.DetailedError, "edit_at=")
 }
 
-func TestPublishPageDraft_WrongBaseUpdateAtReturns409(t *testing.T) {
+func TestPublishPageDraft_WrongBaseEditAtReturns409(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
@@ -592,7 +611,7 @@ func TestPublishPageDraft_WrongBaseUpdateAtReturns409(t *testing.T) {
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
 		Title:       "Test Wiki",
-		Description: "Test wiki for wrong baseUpdateAt",
+		Description: "Test wiki for wrong baseEditAt",
 	}
 	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -615,11 +634,11 @@ func TestPublishPageDraft_WrongBaseUpdateAtReturns409(t *testing.T) {
 	require.Nil(t, appErr)
 
 	_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, model.PublishPageDraftOptions{
-		WikiId:       wiki.Id,
-		DraftId:      newDraftId,
-		Title:        "Updated Title",
-		Content:      newContent,
-		BaseUpdateAt: 1,
+		WikiId:     wiki.Id,
+		DraftId:    newDraftId,
+		Title:      "Updated Title",
+		Content:    newContent,
+		BaseEditAt: 1,
 	})
 
 	require.NotNil(t, appErr)

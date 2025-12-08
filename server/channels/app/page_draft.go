@@ -469,7 +469,7 @@ func (a *App) applyDraftPageStatus(rctx request.CTX, page *model.Post, draft *mo
 	}
 }
 
-func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, title, content, searchText string, baseUpdateAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, title, content, searchText string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
 	rctx.Logger().Debug("Updating existing page from draft",
 		mlog.String("page_id", pageId),
 		mlog.String("wiki_id", wikiId),
@@ -485,7 +485,7 @@ func (a *App) updatePageFromDraft(rctx request.CTX, pageId, wikiId, parentId, ti
 		return nil, circErr
 	}
 
-	updatedPost, err := a.UpdatePageWithOptimisticLocking(rctx, pageId, title, content, searchText, baseUpdateAt, force)
+	updatedPost, err := a.UpdatePageWithOptimisticLocking(rctx, pageId, title, content, searchText, baseEditAt, force)
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +515,7 @@ func (a *App) createPageFromDraft(rctx request.CTX, wikiId, parentId, title, con
 	return createdPost, nil
 }
 
-func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId, parentId, title, searchText, message, userId string, baseUpdateAt int64, force bool) (*model.Post, *model.AppError) {
+func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId, parentId, title, searchText, message, userId string, baseEditAt int64, force bool) (*model.Post, *model.AppError) {
 	content, err := a.resolveDraftContent(draft, message)
 	if err != nil {
 		return nil, err
@@ -525,7 +525,7 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 
 	var page *model.Post
 	if isUpdate && pageId != "" {
-		page, err = a.updatePageFromDraft(rctx, pageId, wikiId, parentId, title, content, searchText, baseUpdateAt, force)
+		page, err = a.updatePageFromDraft(rctx, pageId, wikiId, parentId, title, content, searchText, baseEditAt, force)
 	} else {
 		page, err = a.createPageFromDraft(rctx, wikiId, parentId, title, content, searchText, userId)
 	}
@@ -645,7 +645,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 		draft.Props["page_status"] = opts.PageStatus
 	}
 
-	savedPost, err := a.applyDraftToPage(rctx, draft, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseUpdateAt, opts.Force)
+	savedPost, err := a.applyDraftToPage(rctx, draft, opts.WikiId, opts.ParentId, opts.Title, opts.SearchText, opts.Content, userId, opts.BaseEditAt, opts.Force)
 	if err != nil {
 		return nil, err
 	}
