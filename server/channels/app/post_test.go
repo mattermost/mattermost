@@ -3176,7 +3176,7 @@ func TestFillInPostProps(t *testing.T) {
 		mentions := post.GetProp(model.PostPropsChannelMentions)
 		require.NotNil(t, mentions)
 
-		mentionsMap, ok := mentions.(map[string]interface{})
+		mentionsMap, ok := mentions.(map[string]any)
 		require.True(t, ok)
 		require.Contains(t, mentionsMap, channel.Name)
 	})
