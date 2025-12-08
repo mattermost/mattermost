@@ -461,6 +461,14 @@ func (ps *PlatformService) ShutdownMetrics() error {
 	return nil
 }
 
+// GetMetricsRouter returns the metrics router. This is primarily used for testing.
+func (ps *PlatformService) GetMetricsRouter() http.Handler {
+	if ps.metrics != nil {
+		return ps.metrics.router
+	}
+	return nil
+}
+
 func (ps *PlatformService) ShutdownConfig() error {
 	ps.RemoveConfigListener(ps.configListenerId)
 
