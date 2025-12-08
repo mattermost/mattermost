@@ -207,6 +207,11 @@ export default class PostList extends React.PureComponent<Props, State> {
         if (this.props.channelId !== prevProps.channelId) {
             this.postsOnLoad(this.props.channelId);
         }
+
+        if (this.props.focusedPostId !== prevProps.focusedPostId) {
+            this.postsOnLoad(this.props.channelId);
+        }
+
         if (this.props.postListIds != null && prevProps.postListIds == null) {
             markAndMeasureChannelSwitchEnd(true);
         }

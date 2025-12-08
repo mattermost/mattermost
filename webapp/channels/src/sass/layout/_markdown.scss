@@ -50,6 +50,30 @@ h6.markdown__heading {
     }
 }
 
+.inline-entity-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid var(--center-channel-color-12);
+    border-radius: 50%;
+    background: var(--center-channel-color-08);
+    color: var(--center-channel-color-64);
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--center-channel-color-16);
+        color: var(--center-channel-color-72);
+    }
+
+    &__label {
+        display: none;
+    }
+}
+
 #post-list,
 #rhsContainer,
 .textbox-preview-area {
