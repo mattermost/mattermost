@@ -19,6 +19,8 @@ import DateTimePickerModal from 'components/date_time_picker_modal/date_time_pic
 
 import {scheduledPosts} from 'utils/constants';
 
+const SCHEDULED_POST_CUSTOM_TIME_INTERVAL = 15; // minutes
+
 type Props = {
     channelId: string;
     onExited: () => void;
@@ -77,7 +79,7 @@ export default function ScheduledPostCustomTimeModal({channelId, onExited, onCon
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 
-    const timePickerInterval = useSelector(testingEnabled) ? 1 : undefined;
+    const timePickerInterval = useSelector(testingEnabled) ? 1 : SCHEDULED_POST_CUSTOM_TIME_INTERVAL;
 
     return (
         <DateTimePickerModal
