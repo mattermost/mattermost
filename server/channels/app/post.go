@@ -593,7 +593,8 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 
 	// Send initial read receipt counts for burn-on-read posts
 	if post.Type == model.PostTypeBurnOnRead {
-		if err := a.publishPostRevealedEventToAuthor(rctx, post, ""); err != nil {
+		// No revealing user yet (post just created), send empty string
+		if err := a.publishPostRevealedEventToAuthor(rctx, post, "", ""); err != nil {
 			rctx.Logger().Error("Failed to publish initial burn-on-read read receipt event", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	}
@@ -3098,15 +3099,14 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 	// Publish websocket event if this is the first time revealing
 	if isFirstReveal {
 		// Send to post author for recipient count updates
-		if err := a.publishPostRevealedEventToAuthor(rctx, revealedPost, connectionID); err != nil {
+		if err := a.publishPostRevealedEventToAuthor(rctx, revealedPost, userID, connectionID); err != nil {
 			return nil, err
 		}
 
-		// Send to revealing user for multi-device sync (if not the author)
-		if userID != post.UserId {
-			if err := a.publishPostRevealedEventToUser(rctx, revealedPost, userID, connectionID); err != nil {
-				return nil, err
-			}
+		// Send to revealing user for multi-device sync
+		// Note: API layer already ensures userID != post.UserId (api4/post.go:1483-1486)
+		if err := a.publishPostRevealedEventToUser(rctx, revealedPost, userID, connectionID); err != nil {
+			return nil, err
 		}
 	}
 
@@ -3235,7 +3235,7 @@ func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentT
 
 // publishPostRevealedEventToAuthor publishes a websocket event to the post author
 // with updated recipients list for real-time recipient count tracking.
-func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, connectionID string) *model.AppError {
+func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, revealingUserID string, connectionID string) *model.AppError {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
@@ -3252,16 +3252,13 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 
 	event.Add("post", postJSON)
 
-	// Fetch and include recipients who have revealed the post
-	recipients, err := a.Srv().Store().ReadReceipt().GetByPost(rctx, post.Id)
-	if err != nil {
-		rctx.Logger().Warn("Failed to fetch recipients for websocket event", mlog.String("post_id", post.Id), mlog.Err(err))
+	// Only include the revealing user ID (not all recipients) for better performance
+	// Frontend will add this user to its existing recipient list
+	// If revealingUserID is empty (e.g., initial post creation), send empty array
+	if revealingUserID != "" {
+		event.Add("recipients", []string{revealingUserID})
 	} else {
-		recipientIDs := make([]string, len(recipients))
-		for i, recipient := range recipients {
-			recipientIDs[i] = recipient.UserID
-		}
-		event.Add("recipients", recipientIDs)
+		event.Add("recipients", []string{})
 	}
 
 	a.Publish(event)

@@ -2368,20 +2368,6 @@ func (a *App) GetChannelGuestCount(rctx request.CTX, channelID string) (int64, *
 }
 
 func (a *App) GetChannelPinnedPostCount(rctx request.CTX, channelID string) (int64, *model.AppError) {
-	if model.SafeDereference(a.Config().ServiceSettings.EnableBurnOnRead) {
-		postList, err := a.Srv().Store().Channel().GetPinnedPosts(channelID)
-		if err != nil {
-			return 0, model.NewAppError("GetChannelPinnedPostCount", "app.channel.get_pinnedpost_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-
-		var appErr *model.AppError
-		postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, rctx.Session().UserId)
-		if appErr != nil {
-			return 0, model.NewAppError("GetChannelPinnedPostCount", "app.channel.get_pinnedpost_count.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		}
-
-		return int64(len(postList.Posts)), nil
-	}
 	count, err := a.Srv().Store().Channel().GetPinnedPostCount(channelID, true)
 	if err != nil {
 		return 0, model.NewAppError("GetChannelPinnedPostCount", "app.channel.get_pinnedpost_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

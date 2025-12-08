@@ -41,7 +41,7 @@ class BurnOnReadExpirationScheduler {
      * Initialize the scheduler with Redux dispatch (idempotent - safe to call multiple times)
      */
     public initialize(dispatch: DispatchFunc): void {
-        // SSR guard
+        // Browser environment guard to skip in non-browser environments (Node.js tests, build process)
         if (typeof document === 'undefined') {
             return;
         }
@@ -105,7 +105,7 @@ class BurnOnReadExpirationScheduler {
      * Hybrid strategy: setTimeout for short delays, polling for long delays
      */
     private recomputeSchedule(): void {
-        // SSR guard
+        // Browser environment guard: Skip in non-browser environments (Node.js tests, build process)
         if (typeof window === 'undefined') {
             return;
         }
