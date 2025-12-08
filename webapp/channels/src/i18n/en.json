@@ -384,6 +384,7 @@
   "admin.audit_logging_experimental.file_max_size.title": "Max File Size (MB)",
   "admin.audit_logging_experimental.file_name.help_text": "The name of the file to write to.",
   "admin.audit_logging_experimental.file_name.title": "File Name",
+  "admin.auditlogging.title": "Audit Logging",
   "admin.audits.reload": "Reload User Activity Logs",
   "admin.authentication.email": "Email Authentication",
   "admin.authentication.gitlab": "GitLab",
