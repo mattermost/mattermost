@@ -93,6 +93,7 @@ func (s *ScheduledPost) ToPost() (*Post, error) {
 		FileIds:   s.FileIds,
 		RootId:    s.RootId,
 		Metadata:  s.Metadata,
+		Type:      s.Type,
 	}
 
 	for key, value := range s.GetProps() {
@@ -154,6 +155,7 @@ func (s *ScheduledPost) RestoreNonUpdatableFields(originalScheduledPost *Schedul
 	s.UserId = originalScheduledPost.UserId
 	s.ChannelId = originalScheduledPost.ChannelId
 	s.RootId = originalScheduledPost.RootId
+	s.Type = originalScheduledPost.Type
 }
 
 func (s *ScheduledPost) SanitizeInput() {
