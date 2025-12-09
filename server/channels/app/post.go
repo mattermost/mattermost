@@ -550,7 +550,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		if !model.MinimumEnterpriseAdvancedLicense(a.Srv().License()) {
 			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.app_error", nil, "", http.StatusNotImplemented)
 		}
-		// Use configured burn-on-read settings (defaults: 7 days max TTL, 10 minutes read duration)
+		// Apply burn-on-read expiration settings from configuration
 		maxTTLSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds))
 		readDurationSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadDurationSeconds))
 
