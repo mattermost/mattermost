@@ -2633,6 +2633,14 @@
     "translation": "An error occurred while parsing the payload."
   },
   {
+    "id": "api.plugin.install.check_directory.app_error",
+    "translation": "An error occurred while checking the plugin directory configuration."
+  },
+  {
+    "id": "api.plugin.install.directory_conflict.app_error",
+    "translation": "Cannot install plugin: PluginSettings.Directory conflicts with ImportSettings.Directory."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -4045,6 +4053,14 @@
   {
     "id": "api.upgrade_to_enterprise_status.signature.app_error",
     "translation": "Mattermost was unable to upgrade to Enterprise Edition. The digital signature of the downloaded binary file could not be verified."
+  },
+  {
+    "id": "api.upload.create.check_directory.app_error",
+    "translation": "An error occurred while checking the import directory configuration."
+  },
+  {
+    "id": "api.upload.create.directory_conflict.app_error",
+    "translation": "Cannot create import upload: ImportSettings.Directory conflicts with PluginSettings.Directory."
   },
   {
     "id": "api.upload.create.upload_channel_not_shared_with_remote.app_error",

@@ -41,6 +41,7 @@ func TestPlugin(t *testing.T) {
 		states := map[string]*model.PluginState{}
 		err = json.Unmarshal(statesJson, &states)
 		require.NoError(t, err)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
 			*cfg.PluginSettings.EnableUploads = true
@@ -282,6 +283,100 @@ func TestPlugin(t *testing.T) {
 		resp, err = client.RemovePlugin(context.Background(), "bad.id")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+}
+
+func TestPluginInstallDirectoryConflict(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
+
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := os.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
+	require.NoError(t, err)
+
+	t.Run("plugin directory is subdirectory of import directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent paths to test conflict detection without filesystem dependencies
+		importDir := "/nonexistent/conflict-test/data"
+		pluginDir := "/nonexistent/conflict-test/data/plugins"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ImportSettings.Directory = importDir
+			*cfg.PluginSettings.Directory = pluginDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("import directory is subdirectory of plugin directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent paths to test conflict detection without filesystem dependencies
+		pluginDir := "/nonexistent/conflict-test/plugins"
+		importDir := "/nonexistent/conflict-test/plugins/imports"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = pluginDir
+			*cfg.ImportSettings.Directory = importDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("same directory", func(t *testing.T) {
+		originalPluginDir := *th.App.Config().PluginSettings.Directory
+		originalImportDir := *th.App.Config().ImportSettings.Directory
+
+		// Use non-existent path to test conflict detection without filesystem dependencies
+		sharedDir := "/nonexistent/conflict-test/shared"
+
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = originalPluginDir
+			*cfg.ImportSettings.Directory = originalImportDir
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Directory = sharedDir
+			*cfg.ImportSettings.Directory = sharedDir
+		})
+
+		_, resp, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.plugin.install.directory_conflict.app_error")
+	})
+
+	t.Run("separate directories should succeed", func(t *testing.T) {
+		manifest, _, err := th.SystemAdminClient.UploadPlugin(context.Background(), bytes.NewReader(tarData))
+		require.NoError(t, err)
+		assert.Equal(t, "testplugin", manifest.Id)
+
+		_, err = th.SystemAdminClient.RemovePlugin(context.Background(), manifest.Id)
+		require.NoError(t, err)
 	})
 }
 

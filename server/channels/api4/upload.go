@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
 
 func (api *API) InitUpload() {
@@ -53,6 +54,15 @@ func createUpload(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		if c.App.Srv().License().IsCloud() {
 			c.Err = model.NewAppError("createUpload", "api.file.cloud_upload.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		conflict, err := fileutils.CheckDirectoryConflict(*c.App.Config().ImportSettings.Directory, *c.App.Config().PluginSettings.Directory)
+		if err != nil {
+			c.Err = model.NewAppError("createUpload", "api.upload.create.check_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return
+		}
+		if conflict {
+			c.Err = model.NewAppError("createUpload", "api.upload.create.directory_conflict.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	} else {
