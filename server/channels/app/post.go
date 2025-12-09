@@ -420,18 +420,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		// This avoids unnecessary overhead for disabled channels
 		enabled, err := a.Srv().Channels().AutoTranslation.IsChannelEnabled(rpost.ChannelId)
 		if err == nil && enabled {
-			ctx := model.WithAutoTranslationPath(rctx.Context(), model.AutoTranslationPathCreate)
-			// We pass the post directly - extraction and detection happen in Translate or the worker
-			translation, _ := a.Srv().Channels().AutoTranslation.Translate(ctx, "post", rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
-			if translation != nil {
-				rpost.Translation = translation.Text
-				if translation.Type == model.TranslationTypeObject {
-					rpost.Translation = string(translation.ObjectJSON)
-				}
-				rpost.TranslationType = string(translation.Type)
-				rpost.TranslationConfidence = translation.Confidence
-				rpost.TranslationState = string(translation.State)
-			}
+			_, _ = a.Srv().Channels().AutoTranslation.Translate(rctx.Context(), "post", rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 		} else if err != nil {
 			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
 		}

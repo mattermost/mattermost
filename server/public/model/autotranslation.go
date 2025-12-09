@@ -21,10 +21,10 @@ const (
 type TranslationState string
 
 const (
-	TranslationStateReady       TranslationState = "ready"
-	TranslationStateSkipped     TranslationState = "skipped"
-	TranslationStateTranslating TranslationState = "translating"
-	TranslationStateUnavailable TranslationState = "unavailable"
+	TranslationStateReady       TranslationState = "ready"       // Translation completed successfully
+	TranslationStateSkipped     TranslationState = "skipped"     // Translation not needed (srcLang == dstLang or only masked content)
+	TranslationStateProcessing  TranslationState = "processing"  // Translation in progress
+	TranslationStateUnavailable TranslationState = "unavailable" // Translation failed or not configured
 )
 
 // Translation represents a single translation result
@@ -81,9 +81,6 @@ func (t *Translation) IsValid() *AppError {
 	if t == nil {
 		return NewAppError("Translation.IsValid", "model.translation.is_valid.nil.app_error", nil, "", 400)
 	}
-	if t.Provider == "" {
-		return NewAppError("Translation.IsValid", "model.translation.is_valid.provider.app_error", nil, "provider is empty", 400)
-	}
 	if t.ObjectID == "" || !IsValidId(t.ObjectID) {
 		return NewAppError("Translation.IsValid", "model.translation.is_valid.object_id.app_error", nil, "invalid object id", 400)
 	}
@@ -93,21 +90,31 @@ func (t *Translation) IsValid() *AppError {
 	if t.Lang == "" {
 		return NewAppError("Translation.IsValid", "model.translation.is_valid.lang.app_error", nil, "lang is empty", 400)
 	}
-	if t.Type == "" {
-		return NewAppError("Translation.IsValid", "model.translation.is_valid.type.app_error", nil, "type is empty", 400)
+
+	// Text and provider are required only for ready state
+	if t.State == TranslationStateReady {
+		if t.Provider == "" {
+			return NewAppError("Translation.IsValid", "model.translation.is_valid.provider.app_error", nil, "provider is empty for ready state", 400)
+		}
+		if t.Type == "" {
+			return NewAppError("Translation.IsValid", "model.translation.is_valid.type.app_error", nil, "type is empty", 400)
+		}
+		if t.Type != TranslationTypeString && t.Type != TranslationTypeObject {
+			return NewAppError("Translation.IsValid", "model.translation.is_valid.type_invalid.app_error", nil, "invalid type", 400)
+		}
+		if t.Type == TranslationTypeString && t.Text == "" {
+			return NewAppError("Translation.IsValid", "model.translation.is_valid.text.app_error", nil, "text is empty", 400)
+		}
+		if t.Type == TranslationTypeObject && len(t.ObjectJSON) == 0 {
+			return NewAppError("Translation.IsValid", "model.translation.is_valid.object_json.app_error", nil, "object json is empty", 400)
+		}
 	}
-	if t.Type != TranslationTypeString && t.Type != TranslationTypeObject {
-		return NewAppError("Translation.IsValid", "model.translation.is_valid.type_invalid.app_error", nil, "invalid type", 400)
+
+	// Provider required for unavailable state (to indicate why it failed)
+	if t.State == TranslationStateUnavailable && t.Provider == "" {
+		return NewAppError("Translation.IsValid", "model.translation.is_valid.provider.app_error", nil, "provider is empty for unavailable state", 400)
 	}
-	if t.Type == TranslationTypeString && t.Text == "" {
-		return NewAppError("Translation.IsValid", "model.translation.is_valid.text.app_error", nil, "text is empty", 400)
-	}
-	if t.Type == TranslationTypeObject && len(t.ObjectJSON) == 0 {
-		return NewAppError("Translation.IsValid", "model.translation.is_valid.object_json.app_error", nil, "object json is empty", 400)
-	}
-	if t.NormHash == "" {
-		return NewAppError("Translation.IsValid", "model.translation.is_valid.norm_hash.app_error", nil, "norm hash is empty", 400)
-	}
+
 	return nil
 }
 

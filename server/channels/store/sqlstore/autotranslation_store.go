@@ -28,6 +28,7 @@ type Translation struct {
 	Text       string
 	Confidence *float64
 	Meta       TranslationMeta
+	State      string
 	UpdateAt   int64
 }
 
@@ -207,7 +208,7 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 
 func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "UpdateAt").
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
 		Where(sq.Eq{"ObjectId": objectID, "DstLang": dstLang})
 
@@ -245,7 +246,7 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		Lang:       translation.DstLang,
 		Type:       model.TranslationType(translationTypeStr),
 		Confidence: translation.Confidence,
-		State:      model.TranslationStateReady,
+		State:      model.TranslationState(translation.State),
 		NormHash:   translation.NormHash,
 	}
 
@@ -264,7 +265,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 	}
 
 	query := s.getQueryBuilder().
-		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "UpdateAt").
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
 		From("Translations").
 		Where(sq.Eq{"ObjectId": objectIDs, "DstLang": dstLang})
 
@@ -276,8 +277,9 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 
 	result := make(map[string]*model.Translation, len(translations))
 	for _, t := range translations {
-		meta, err := t.Meta.ToMap()
 		var translationTypeStr string
+
+		meta, err := t.Meta.ToMap()
 		if err != nil {
 			// Log error but continue with other translations
 			continue
@@ -301,7 +303,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 			Lang:       t.DstLang,
 			Type:       model.TranslationType(translationTypeStr),
 			Confidence: t.Confidence,
-			State:      model.TranslationStateReady,
+			State:      model.TranslationState(t.State),
 			NormHash:   t.NormHash,
 		}
 
@@ -336,9 +338,17 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	}
 
 	objectID := translation.ObjectID
-	metaMap := map[string]any{
-		"type": string(translation.Type),
+
+	// Preserve existing Meta fields and add/override "type"
+	metaMap := make(map[string]any)
+	if translation.Meta != nil {
+		// Copy existing Meta fields (e.g., "src_lang", "error", etc.)
+		for k, v := range translation.Meta {
+			metaMap[k] = v
+		}
 	}
+	// Always set "type" field
+	metaMap["type"] = string(translation.Type)
 
 	metaBytes, err := json.Marshal(metaMap)
 	if err != nil {
@@ -352,8 +362,8 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 
 	query := s.getQueryBuilder().
 		Insert("Translations").
-		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "UpdateAt").
-		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), now).
+		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
+		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), string(translation.State), now).
 		Suffix(`ON CONFLICT (ObjectId, dstLang)
 				DO UPDATE SET
 					ObjectType = EXCLUDED.ObjectType,
@@ -362,8 +372,10 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 					Text = EXCLUDED.Text,
 					Confidence = EXCLUDED.Confidence,
 					Meta = EXCLUDED.Meta,
+					State = EXCLUDED.State,
 					UpdateAt = EXCLUDED.UpdateAt
-					WHERE Translations.NormHash IS DISTINCT FROM EXCLUDED.NormHash`)
+					WHERE Translations.NormHash IS DISTINCT FROM EXCLUDED.NormHash
+					   OR Translations.State != EXCLUDED.State`)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return model.NewAppError("SqlAutoTranslationStore.Save",

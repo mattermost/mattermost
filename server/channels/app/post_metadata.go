@@ -83,50 +83,73 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		}
 	}
 
-	if a.Srv().Channels().AutoTranslation != nil {
-		userID := rctx.Session().UserId
-		channelPostIDs := make(map[string][]string)
+	a.populatePostListTranslations(rctx, list)
 
-		// Group posts by channel
-		for _, post := range list.Posts {
-			channelPostIDs[post.ChannelId] = append(channelPostIDs[post.ChannelId], post.Id)
+	return list
+}
+
+// populatePostListTranslations fetches and populates translation metadata for posts that don't already have it.
+// Posts from WebSocket broadcasts (post_created) already have translations populated.
+// This function handles API requests (GetPostsForChannel, etc.) by fetching only the user's language.
+func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostList) {
+	if a.Srv().Channels().AutoTranslation == nil {
+		return
+	}
+
+	userID := rctx.Session().UserId
+
+	// Check which posts need translation data populated
+	postsNeedingTranslations := make(map[string][]string) // channelID -> postIDs
+
+	for _, post := range list.Posts {
+		// Skip if translations already populated (e.g., from CreatePost)
+		if post.Metadata != nil && len(post.Metadata.Translations) > 0 {
+			continue
 		}
 
-		const autoQueueMaxAge = 1 * time.Hour
+		postsNeedingTranslations[post.ChannelId] = append(postsNeedingTranslations[post.ChannelId], post.Id)
+	}
 
-		for channelID, postIDs := range channelPostIDs {
-			userLang, err := a.Srv().Channels().AutoTranslation.GetUserLanguage(userID, channelID)
-			if err != nil || userLang == "" {
-				continue
+	if len(postsNeedingTranslations) == 0 {
+		return // All posts already have translations
+	}
+
+	// For API requests, fetch only the user's language translation
+	for channelID, postIDs := range postsNeedingTranslations {
+		userLang, err := a.Srv().Channels().AutoTranslation.GetUserLanguage(userID, channelID)
+		if err != nil || userLang == "" {
+			continue
+		}
+
+		translationsMap, err := a.Srv().Channels().AutoTranslation.GetBatch(postIDs, userLang)
+		if err != nil {
+			rctx.Logger().Warn("Failed to fetch translations batch", mlog.Err(err))
+			continue
+		}
+
+		// Populate each post's metadata
+		for postID, t := range translationsMap {
+			post := list.Posts[postID]
+			if post.Metadata == nil {
+				post.Metadata = &model.PostMetadata{}
 			}
 
-			translations, err := a.Srv().Channels().AutoTranslation.GetBatch(postIDs, userLang)
-			if err != nil {
-				rctx.Logger().Warn("Failed to fetch translations batch", mlog.Err(err))
-				continue
+			text := t.Text
+			if t.Type == model.TranslationTypeObject {
+				text = string(t.ObjectJSON)
 			}
 
-			for _, postID := range postIDs {
-				post := list.Posts[postID]
-				if t, ok := translations[postID]; ok {
-					post.Translation = t.Text
-					if t.Type == model.TranslationTypeObject {
-						post.Translation = string(t.ObjectJSON)
-					}
-					post.TranslationType = string(t.Type)
-					post.TranslationConfidence = t.Confidence
-					post.TranslationState = string(t.State)
-				} else {
-					// Inference
-					if time.Since(time.UnixMilli(post.CreateAt)) < autoQueueMaxAge {
-						post.TranslationState = string(model.TranslationStateTranslating)
-					}
-				}
+			post.Metadata.Translations = []*model.PostTranslation{
+				{
+					Lang:       t.Lang,
+					Text:       text,
+					Type:       string(t.Type),
+					Confidence: t.Confidence,
+					State:      string(t.State),
+				},
 			}
 		}
 	}
-
-	return list
 }
 
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,

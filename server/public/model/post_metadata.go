@@ -7,6 +7,15 @@ import (
 	"maps"
 )
 
+// PostTranslation represents a translation of a post in a specific language
+type PostTranslation struct {
+	Lang       string   `json:"lang"`
+	Text       string   `json:"text"`
+	Type       string   `json:"type"`
+	Confidence *float64 `json:"confidence,omitempty"`
+	State      string   `json:"state"`
+}
+
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -32,6 +41,9 @@ type PostMetadata struct {
 
 	// Acknowledgements holds acknowledgements made by users to the post
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
+
+	// Translations holds translation data for configured target languages
+	Translations []*PostTranslation `json:"translations,omitempty"`
 }
 
 func (p *PostMetadata) Auditable() map[string]any {
@@ -51,6 +63,7 @@ func (p *PostMetadata) Auditable() map[string]any {
 		"reactions":        p.Reactions,
 		"priority":         p.Priority,
 		"acknowledgements": p.Acknowledgements,
+		"translations":     p.Translations,
 	}
 }
 
@@ -85,6 +98,9 @@ func (p *PostMetadata) Copy() *PostMetadata {
 	acknowledgementsCopy := make([]*PostAcknowledgement, len(p.Acknowledgements))
 	copy(acknowledgementsCopy, p.Acknowledgements)
 
+	translationsCopy := make([]*PostTranslation, len(p.Translations))
+	copy(translationsCopy, p.Translations)
+
 	var postPriorityCopy *PostPriority
 	if p.Priority != nil {
 		postPriorityCopy = &PostPriority{
@@ -104,5 +120,6 @@ func (p *PostMetadata) Copy() *PostMetadata {
 		Reactions:        reactionsCopy,
 		Priority:         postPriorityCopy,
 		Acknowledgements: acknowledgementsCopy,
+		Translations:     translationsCopy,
 	}
 }

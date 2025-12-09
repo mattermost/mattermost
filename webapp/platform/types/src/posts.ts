@@ -62,6 +62,14 @@ export type PostPriorityMetadata = {
     persistent_notifications?: boolean;
 }
 
+export type PostTranslation = {
+    lang: string;
+    text: string;
+    type: string;
+    confidence?: number;
+    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+};
+
 export type PostMetadata = {
     embeds: PostEmbed[];
     emojis: CustomEmoji[];
@@ -70,6 +78,7 @@ export type PostMetadata = {
     reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
+    translations?: PostTranslation[];
 };
 
 export type Post = {
