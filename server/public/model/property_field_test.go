@@ -599,3 +599,125 @@ func TestPluginPropertyOption(t *testing.T) {
 		assert.Equal(t, "low", newOptions[1].GetValue("priority"))
 	})
 }
+
+func TestPropertyField_EnsureOptionIDs(t *testing.T) {
+	t.Run("generates IDs for multiselect options without IDs", func(t *testing.T) {
+		pf := &PropertyField{
+			Type: PropertyFieldTypeMultiselect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1"},
+					map[string]any{"name": "Option 2"},
+					map[string]any{"name": "Option 3"},
+				},
+			},
+		}
+
+		pf.EnsureOptionIDs()
+
+		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
+		require.Len(t, options, 3)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			assert.NotEmpty(t, optMap["id"], "Option %d should have an ID", i)
+			assert.Len(t, optMap["id"].(string), 26, "Option %d ID should be 26 characters", i)
+		}
+	})
+
+	t.Run("generates IDs for select options without IDs", func(t *testing.T) {
+		pf := &PropertyField{
+			Type: PropertyFieldTypeSelect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option A"},
+					map[string]any{"name": "Option B"},
+				},
+			},
+		}
+
+		pf.EnsureOptionIDs()
+
+		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
+		require.Len(t, options, 2)
+
+		for i, opt := range options {
+			optMap := opt.(map[string]any)
+			assert.NotEmpty(t, optMap["id"], "Option %d should have an ID", i)
+		}
+	})
+
+	t.Run("preserves existing IDs", func(t *testing.T) {
+		existingID1 := "existing_id_1"
+		existingID2 := "existing_id_2"
+
+		pf := &PropertyField{
+			Type: PropertyFieldTypeMultiselect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": existingID1, "name": "Option 1"},
+					map[string]any{"id": existingID2, "name": "Option 2"},
+				},
+			},
+		}
+
+		pf.EnsureOptionIDs()
+
+		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
+		assert.Equal(t, existingID1, options[0].(map[string]any)["id"])
+		assert.Equal(t, existingID2, options[1].(map[string]any)["id"])
+	})
+
+	t.Run("mixes existing and new IDs", func(t *testing.T) {
+		existingID := "existing_id"
+
+		pf := &PropertyField{
+			Type: PropertyFieldTypeMultiselect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": existingID, "name": "Option 1"},
+					map[string]any{"name": "Option 2"},
+					map[string]any{"name": "Option 3"},
+				},
+			},
+		}
+
+		pf.EnsureOptionIDs()
+
+		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
+
+		// First option should keep existing ID
+		assert.Equal(t, existingID, options[0].(map[string]any)["id"])
+
+		// Other options should have generated IDs
+		assert.NotEmpty(t, options[1].(map[string]any)["id"])
+		assert.NotEmpty(t, options[2].(map[string]any)["id"])
+		assert.NotEqual(t, existingID, options[1].(map[string]any)["id"])
+		assert.NotEqual(t, existingID, options[2].(map[string]any)["id"])
+	})
+
+	t.Run("handles option with non-string ID field", func(t *testing.T) {
+		pf := &PropertyField{
+			Type: PropertyFieldTypeMultiselect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "id": 12345},
+					map[string]any{"name": "Option 2", "id": nil},
+				},
+			},
+		}
+
+		pf.EnsureOptionIDs()
+
+		options := pf.Attrs[PropertyFieldAttributeOptions].([]any)
+
+		// Non-string IDs should be replaced with valid IDs
+		id1 := options[0].(map[string]any)["id"]
+		assert.IsType(t, "", id1)
+		assert.Len(t, id1.(string), 26)
+
+		id2 := options[1].(map[string]any)["id"]
+		assert.IsType(t, "", id2)
+		assert.Len(t, id2.(string), 26)
+	})
+}
