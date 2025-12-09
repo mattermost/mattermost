@@ -14,7 +14,7 @@ export const SEARCH_RESULTS = 'searchResults';
 export const SMILEY_EMOTION = 'smileys-emotion';
 export const CUSTOM = 'custom';
 
-const emojiCategories = {
+export const emojiCategories = {
     recent: {
         name: 'recent',
         label: defineMessage({
