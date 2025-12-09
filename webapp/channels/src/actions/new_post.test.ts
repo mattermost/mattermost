@@ -5,7 +5,6 @@ import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {ChannelTypes} from 'mattermost-redux/action_types';
-import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
 import * as NewPostActions from 'actions/new_post';
@@ -14,10 +13,40 @@ import mockStore from 'tests/test_store';
 import {Constants} from 'utils/constants';
 
 jest.mock('mattermost-redux/actions/channels', () => ({
-    ...jest.requireActual('mattermost-redux/actions/channels'),
     markChannelAsReadOnServer: (...args: any[]) => ({type: 'MOCK_MARK_CHANNEL_AS_READ_ON_SERVER', args}),
     markChannelAsViewedOnServer: (...args: any[]) => ({type: 'MOCK_MARK_CHANNEL_AS_VIEWED_ON_SERVER', args}),
+    actionsToMarkChannelAsRead: jest.fn((getState: any, channelId: string) => [
+        {type: 'DECREMENT_UNREAD_MSG_COUNT', data: {channelId}},
+        {type: 'DECREMENT_UNREAD_MENTION_COUNT', data: {channelId}},
+        {type: 'RECEIVED_LAST_VIEWED_AT', data: {channel_id: channelId}},
+    ]),
+    actionsToMarkChannelAsUnread: jest.fn((getState: any, teamId: string, channelId: string) => [
+        {type: 'INCREMENT_UNREAD_MSG_COUNT', data: {channelId}},
+        {type: 'INCREMENT_TOTAL_MSG_COUNT', data: {channelId}},
+    ]),
 }));
+
+jest.mock('mattermost-redux/actions/posts', () => ({
+    receivedNewPost: jest.fn((post: any, crtEnabled: boolean) => ({type: 'RECEIVED_NEW_POST', data: post, features: {crtEnabled}})),
+    getPostThread: jest.fn(() => ({type: 'GET_POST_THREAD'})),
+}));
+
+jest.mock('actions/notification_actions', () => ({
+    sendDesktopNotification: jest.fn(() => ({type: 'SEND_DESKTOP_NOTIFICATION', data: {status: 'success', reason: '', data: {}}})),
+}));
+
+jest.mock('actions/views/threads', () => ({
+    updateThreadLastOpened: jest.fn(() => ({type: 'UPDATE_THREAD_LAST_OPENED'})),
+}));
+
+jest.mock('client/web_websocket_client', () => ({
+    __esModule: true,
+    default: {
+        acknowledgePostedNotification: jest.fn(),
+    },
+}));
+
+const {receivedNewPost} = jest.requireMock('mattermost-redux/actions/posts');
 
 const POST_CREATED_TIME = Date.now();
 
@@ -119,6 +148,10 @@ describe('actions/new_post', () => {
                     receivedNewPost(newPost, false),
                 ],
                 type: 'BATCHING_REDUCER.BATCH',
+            },
+            {
+                type: 'SEND_DESKTOP_NOTIFICATION',
+                data: {status: 'success', reason: '', data: {}},
             },
         ]);
     });

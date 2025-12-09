@@ -2,20 +2,26 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import * as redux from 'react-redux';
 
 import type {Subscription, Product} from '@mattermost/types/cloud';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile, UsersState} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import * as cloudActions from 'actions/cloud';
-
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Constants, CloudProducts} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 
 import Limits from './limits';
+
+jest.mock('actions/cloud', () => ({
+    getCloudLimits: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useDispatch: jest.fn(() => jest.fn()),
+}));
 
 const freeLimits = {
     messages: {
@@ -118,9 +124,6 @@ describe('Limits', () => {
     });
 
     test('renders nothing if on enterprise', () => {
-        const mockGetLimits = jest.fn();
-        jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
-        jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
         const state = setupState({isEnterprise: true});
 
         renderWithContext(<Limits/>, state);
@@ -128,9 +131,6 @@ describe('Limits', () => {
     });
 
     test('renders elements if not on enterprise', () => {
-        const mockGetLimits = jest.fn();
-        jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
-        jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
         const state = setupState(defaultOptions);
 
         renderWithContext(<Limits/>, state);

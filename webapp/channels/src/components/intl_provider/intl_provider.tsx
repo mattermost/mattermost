@@ -17,7 +17,7 @@ type Props = {
     locale: IntlConfig['locale'];
     translations?: IntlConfig['messages'];
     actions: {
-        loadTranslations: (locale: string, url: string) => void;
+        loadTranslations: (locale: string, url: string | Record<string, string>) => void;
     };
 };
 

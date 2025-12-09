@@ -16,7 +16,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -25,7 +25,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"
@@ -112,7 +112,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -124,7 +124,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"
@@ -211,7 +211,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -223,7 +223,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"
@@ -310,7 +310,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -322,7 +322,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"
@@ -409,7 +409,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -421,7 +421,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"
@@ -508,7 +508,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -520,7 +520,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"
@@ -607,7 +607,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -619,7 +619,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"
@@ -706,7 +706,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
         />
       }
     >
-      <IconContainer
+      <styled.button
         className="action-icon dots-icon"
         id="filesFilterButton"
         type="button"
@@ -718,7 +718,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
           color="currentColor"
           size={18}
         />
-      </IconContainer>
+      </styled.button>
     </WithTooltip>
     <Menu
       ariaLabel="file menu"

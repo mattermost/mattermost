@@ -11,7 +11,7 @@ import type {ClientConfig} from '@mattermost/types/config';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
+import {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
 import Input from 'components/widgets/inputs/input/input';
@@ -29,6 +29,7 @@ const mockHistoryPush = jest.fn();
 let mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 let mockConfig: Partial<ClientConfig>;
 let mockDispatch = jest.fn();
+let mockCWSAvailability = CSWAvailabilityCheckTypes.Available;
 
 const intlProviderProps = {
     defaultLocale: 'en',
@@ -83,6 +84,12 @@ jest.mock('actions/team_actions', () => ({
 
 jest.mock('actions/storage');
 
+jest.mock('components/common/hooks/useCWSAvailabilityCheck', () => ({
+    ...jest.requireActual('components/common/hooks/useCWSAvailabilityCheck') as typeof import('components/common/hooks/useCWSAvailabilityCheck'),
+    __esModule: true,
+    default: jest.fn(() => mockCWSAvailability),
+}));
+
 const actImmediate = (wrapper: ReactWrapper) =>
     act(
         () =>
@@ -99,6 +106,7 @@ describe('components/signup/Signup', () => {
         mockLocation = {pathname: '', search: '', hash: ''};
 
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
+        mockCWSAvailability = CSWAvailabilityCheckTypes.Available;
 
         mockState = {
             entities: {
@@ -173,6 +181,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should match snapshot for all signup options enabled with isLicensed enabled', () => {
+        mockCWSAvailability = CSWAvailabilityCheckTypes.Unavailable;
         const wrapper = shallow(
             <Signup/>,
         );
@@ -182,6 +191,7 @@ describe('components/signup/Signup', () => {
 
     it('should match snapshot for all signup options enabled with isLicensed disabled', () => {
         mockLicense = {IsLicensed: 'false', Cloud: 'false'};
+        mockCWSAvailability = CSWAvailabilityCheckTypes.Unavailable;
 
         const wrapper = shallow(
             <Signup/>,
@@ -362,7 +372,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should show newsletter check box opt-in for self-hosted non airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
+        mockCWSAvailability = CSWAvailabilityCheckTypes.Available;
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
         const {container: signupContainer} = renderWithContext(
@@ -377,7 +387,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Unavailable);
+        mockCWSAvailability = CSWAvailabilityCheckTypes.Unavailable;
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
         const {container: signupContainer} = renderWithContext(
@@ -389,7 +399,7 @@ describe('components/signup/Signup', () => {
     });
 
     it('should show newsletter related opt-in or text for cloud', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
+        mockCWSAvailability = CSWAvailabilityCheckTypes.Available;
         mockLicense = {IsLicensed: 'true', Cloud: 'true'};
 
         const {container: signupContainer} = renderWithContext(

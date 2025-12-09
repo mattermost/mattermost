@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "ESNext",
     "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -14,19 +14,20 @@
     "strict": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "es2020",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "noEmit": true,
     "experimentalDecorators": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "baseUrl": "./src",
     "useUnknownInCatchVariables": false,
     "composite": true,
-    "types": ["@testing-library/jest-dom"],
+    "types": ["@testing-library/jest-dom", "vite/client"],
     "paths": {
         "mattermost-redux/*": ["packages/mattermost-redux/src/*"],
         "@mui/styled-engine": ["./node_modules/@mui/styled-engine-sc"],
+        "@mattermost/components/src/*": ["../../platform/components/src/*"]
     },
     "plugins": [{
         "name": "typescript-eslint-language-service"
@@ -34,7 +35,8 @@
   },
   "include": [
     "./src/**/*",
-    "./src/**/*.json"
+    "./src/**/*.json",
+    "./vite.config.ts"
   ],
   "references": [
     {"path": "../platform/client"},

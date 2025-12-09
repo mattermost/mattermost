@@ -14,14 +14,11 @@ import mockStore from 'tests/test_store';
 
 type UserProfileValue = Value & UserProfile;
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-    return {
-        ...original,
-        localizeMessage: jest.fn(),
-        sortUsersAndGroups: jest.fn(),
-    };
-});
+jest.mock('utils/utils', () => ({
+    localizeMessage: jest.fn((id: string, defaultMessage: string) => defaultMessage),
+    sortUsersAndGroups: jest.fn(),
+    imageURLForUser: jest.fn(() => ''),
+}));
 
 function createUsers(count: number): UserProfileValue[] {
     const users: UserProfileValue[] = [];

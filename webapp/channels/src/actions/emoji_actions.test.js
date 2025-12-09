@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as PreferenceActions from 'mattermost-redux/actions/preferences';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import * as EmojiActions from 'actions/emoji_actions';
 import {getRecentEmojisData, getEmojiMap} from 'selectors/emojis';
@@ -23,13 +23,17 @@ jest.mock('selectors/emojis', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/preferences', () => ({
-    savePreferences: (...args) => ({type: 'RECEIVED_PREFERENCES', args}),
+    savePreferences: jest.fn((...args) => ({type: 'RECEIVED_PREFERENCES', args})),
 }));
 
 describe('Actions.Emojis', () => {
     let store;
     beforeEach(async () => {
         store = await mockStore(initialState);
+        savePreferences.mockClear();
+        savePreferences.mockImplementation((...args) => ({type: 'RECEIVED_PREFERENCES', args}));
+        getRecentEmojisData.mockClear();
+        getEmojiMap.mockClear();
     });
 
     test('Emoji alias is stored in recent emojis', async () => {
@@ -107,12 +111,23 @@ describe('Actions.Emojis', () => {
             return new Map([['smile', {short_name: 'smile'}]]);
         });
 
-        const savePreferencesSpy = jest.spyOn(PreferenceActions, 'savePreferences').mockImplementation(() => {
-            return {date: true};
-        });
+        const expectedActions = [{
+            type: 'RECEIVED_PREFERENCES',
+            args: [
+                'current_user_id',
+                [
+                    {
+                        category: 'recent_emojis',
+                        name: 'current_user_id',
+                        user_id: 'current_user_id',
+                        value: '[]',
+                    },
+                ],
+            ],
+        }];
 
         await store.dispatch(EmojiActions.addRecentEmoji('gamgamstyle'));
-        expect(savePreferencesSpy).not.toHaveBeenCalled();
+        expect(store.getActions()).toEqual(expectedActions);
     });
 
     test('Emoji already present in recent should be bumped on the top', async () => {

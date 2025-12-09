@@ -7,7 +7,7 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import * as preferencesActions from 'mattermost-redux/actions/preferences';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
@@ -16,6 +16,10 @@ import {getPluginPreferenceKey} from 'utils/plugins/preferences';
 import type {GlobalState} from 'types/store';
 
 import PluginSetting from './plugin_setting';
+
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: jest.fn(() => ({type: 'MOCK_ACTION'})),
+}));
 
 type Props = ComponentProps<typeof PluginSetting>;
 
@@ -71,6 +75,10 @@ function CustomSettingThrows() {
 }
 
 describe('plugin setting', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('default is properly set', () => {
         const props = getBaseProps();
         props.section.settings[0].default = '1';
@@ -110,7 +118,6 @@ describe('plugin setting', () => {
     });
 
     it('onSubmit gets called', async () => {
-        const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
         props.section.settings.push({
@@ -134,7 +141,7 @@ describe('plugin setting', () => {
         await userEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).toHaveBeenCalledWith({[SETTING_1_NAME]: '1', [SETTING_2_NAME]: '3'});
         expect(props.updateSection).toHaveBeenCalledWith('');
-        expect(mockSavePreferences).toHaveBeenCalledWith('', [
+        expect(savePreferences).toHaveBeenCalledWith('', [
             {
                 user_id: '',
                 category: getPluginPreferenceKey(PLUGIN_ID),
@@ -150,18 +157,16 @@ describe('plugin setting', () => {
         ]);
     });
     it('does not update anything if nothing has changed', () => {
-        const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
         renderWithContext(<PluginSetting {...props}/>);
         fireEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
-        expect(mockSavePreferences).not.toHaveBeenCalled();
+        expect(savePreferences).not.toHaveBeenCalled();
     });
 
     it('does not consider anything changed after moving back and forth between sections', () => {
-        const mockSavePreferences = jest.spyOn(preferencesActions, 'savePreferences');
         const props = getBaseProps();
         props.activeSection = SECTION_TITLE;
         const {rerender} = renderWithContext(<PluginSetting {...props}/>);
@@ -174,7 +179,7 @@ describe('plugin setting', () => {
         fireEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
-        expect(mockSavePreferences).not.toHaveBeenCalled();
+        expect(savePreferences).not.toHaveBeenCalled();
 
         fireEvent.click(screen.getByText(OPTION_1_TEXT));
         props.activeSection = 'other section';
@@ -184,7 +189,7 @@ describe('plugin setting', () => {
         fireEvent.click(screen.getByText(SAVE_TEXT));
         expect(props.section.onSubmit).not.toHaveBeenCalled();
         expect(props.updateSection).toHaveBeenCalledWith('');
-        expect(mockSavePreferences).not.toHaveBeenCalled();
+        expect(savePreferences).not.toHaveBeenCalled();
     });
 
     it('custom setting component', () => {

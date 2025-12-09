@@ -34,7 +34,7 @@ export default function configureStore(preloadedState?: DeepPartial<GlobalState>
     const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
     const store = configureServiceStore({
         appReducers: reducers,
-        preloadedState,
+        preloadedState: preloadedState as Partial<GlobalState>,
     });
 
     localForage.ready().then(() => {

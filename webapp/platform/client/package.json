@@ -13,12 +13,26 @@
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    },
+    "./*": {
+      "types": "./lib/*.d.ts",
+      "import": "./lib/*.js",
+      "require": "./lib/*.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mattermost/mattermost.git",
     "directory": "webapp/platform/client"
   },
   "devDependencies": {
+    "@swc/core": "1.15.3",
+    "@swc/jest": "0.2.39",
     "@types/jest": "30.0.0",
     "@types/node-fetch": "2.6.13",
     "jest": "30.1.3",

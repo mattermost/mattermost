@@ -1,20 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+jest.mock('utils/utils', () => ({
+    copyToClipboard: jest.fn(),
+    getFileType: jest.fn(() => 'code'),
+}));
+
+jest.mock('mattermost-redux/actions/files', () => ({
+    getFilePublicLink: jest.fn(() => ({type: 'GET_FILE_PUBLIC_LINK'})),
+}));
+
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import * as fileActions from 'mattermost-redux/actions/files';
-
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
-import * as Utils from 'utils/utils';
 
 import FilePreviewModalMainActions from './file_preview_modal_main_actions';
+
+const {copyToClipboard} = jest.requireMock('utils/utils');
+const {getFilePublicLink} = jest.requireMock('mattermost-redux/actions/files');
 
 describe('components/file_preview_modal/file_preview_modal_main_actions/FilePreviewModalMainActions', () => {
     let defaultProps: ComponentProps<typeof FilePreviewModalMainActions>;
     beforeEach(() => {
+        jest.clearAllMocks();
         defaultProps = {
             fileInfo: TestHelper.getFileInfoMock({}),
             enablePublicLink: false,
@@ -82,7 +92,6 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
     });
 
     test('should call public link callback', async () => {
-        const spy = jest.spyOn(Utils, 'copyToClipboard');
         const props = {
             ...defaultProps,
             enablePublicLink: true,
@@ -91,23 +100,21 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
             <FilePreviewModalMainActions {...props}/>,
         );
 
-        expect(spy).toHaveBeenCalledTimes(0);
+        expect(copyToClipboard).toHaveBeenCalledTimes(0);
 
         await userEvent.click(screen.getByLabelText('Get a public link'));
 
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(copyToClipboard).toHaveBeenCalledTimes(1);
     });
 
     test('should not get public api when public links is disabled', async () => {
-        const spy = jest.spyOn(fileActions, 'getFilePublicLink');
         renderWithContext(
             <FilePreviewModalMainActions {...defaultProps}/>,
         );
-        expect(spy).toHaveBeenCalledTimes(0);
+        expect(getFilePublicLink).toHaveBeenCalledTimes(0);
     });
 
     test('should get public api when public links is enabled', async () => {
-        const spy = jest.spyOn(fileActions, 'getFilePublicLink');
         const props = {
             ...defaultProps,
             enablePublicLink: true,
@@ -115,11 +122,10 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(getFilePublicLink).toHaveBeenCalledTimes(1);
     });
 
     test('should copy the content to clipboard', async () => {
-        const spy = jest.spyOn(Utils, 'copyToClipboard');
         const props = {
             ...defaultProps,
             canCopyContent: true,
@@ -127,8 +133,8 @@ describe('components/file_preview_modal/file_preview_modal_main_actions/FilePrev
         renderWithContext(
             <FilePreviewModalMainActions {...props}/>,
         );
-        expect(spy).toHaveBeenCalledTimes(0);
+        expect(copyToClipboard).toHaveBeenCalledTimes(0);
         await userEvent.click(screen.getByLabelText('Copy code'));
-        expect(spy).toHaveBeenCalledTimes(1);
+        expect(copyToClipboard).toHaveBeenCalledTimes(1);
     });
 });

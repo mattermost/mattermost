@@ -31,8 +31,8 @@ export default function configureStore<S extends GlobalState>({
     preloadedState,
 }: {
     appReducers: Record<string, Reducer>;
-    getAppReducers: () => Record<string, Reducer>;
-    preloadedState: Partial<S>;
+    getAppReducers?: () => Record<string, Reducer>;
+    preloadedState?: Partial<S>;
 }): Store {
     const baseState = {
         ...initialState,

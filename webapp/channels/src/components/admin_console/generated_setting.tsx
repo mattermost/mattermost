@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import crypto from 'crypto';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -37,10 +36,18 @@ export default class GeneratedSetting extends React.PureComponent<Props> {
     private regenerate = (e: React.MouseEvent) => {
         e.preventDefault();
 
+        // Generate random bytes using Web Crypto API (browser-compatible)
+        const randomBytes = new Uint8Array(256);
+        globalThis.crypto.getRandomValues(randomBytes);
+
+        // Convert to base64 using browser's btoa
+        const binaryString = String.fromCharCode(...randomBytes);
+        const base64Value = btoa(binaryString);
+
         // Pure base64 implementation can contain characters that are not URL safe without additional
         // encoding. Adopt a URL/Filename safer alphabet as noted in https://datatracker.ietf.org/doc/html/rfc4648#section-5
         // where: 62 - (minus) , 63 _ (underscore)
-        const value = crypto.randomBytes(256).toString('base64').substring(0, 32);
+        const value = base64Value.substring(0, 32);
         this.props.onChange(this.props.id, value.replaceAll('+', '-').replaceAll('/', '_'));
     };
 

@@ -4,8 +4,6 @@
 import React from 'react';
 import {useDispatch} from 'react-redux';
 
-import * as modalActions from 'actions/views/modals';
-
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
@@ -15,9 +13,17 @@ import {TestHelper} from 'utils/test_helper';
 
 import EditConversationHeader from './edit_conversation_header';
 
+const mockOpenModal = jest.fn();
+jest.mock('actions/views/modals', () => ({
+    openModal: (...args: unknown[]) => {
+        mockOpenModal(...args);
+        return {type: 'MOCK_OPEN_MODAL'};
+    },
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => {
     beforeEach(() => {
-        jest.spyOn(modalActions, 'openModal');
+        mockOpenModal.mockClear();
 
         // Mock useDispatch to return our custom dispatch function
         jest.spyOn(require('react-redux'), 'useDispatch');
@@ -40,8 +46,8 @@ describe('components/ChannelHeaderMenu/MenuItems/EditConversationHeader', () => 
 
         fireEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
-        expect(modalActions.openModal).toHaveBeenCalledWith({
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
             dialogType: EditChannelHeaderModal,
             dialogProps: {channel},

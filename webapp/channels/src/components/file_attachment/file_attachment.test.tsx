@@ -12,25 +12,69 @@ import {TestHelper} from 'utils/test_helper';
 
 import FileAttachment from './file_attachment';
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-    return {
-        ...original,
-        loadImage: jest.fn((id: string, callback: () => void) => {
-            if (id !== 'noLoad') {
-                callback();
-            }
-        }),
-    };
-});
+jest.mock('utils/utils', () => ({
+    loadImage: jest.fn((id: string, callback: () => void) => {
+        if (id !== 'noLoad') {
+            callback();
+        }
+    }),
+    localizeMessage: jest.fn((msg: {id: string; defaultMessage: string} | string, defaultMsg?: string) => {
+        if (typeof msg === 'string') {
+            return defaultMsg || msg;
+        }
+        return msg.defaultMessage || msg.id;
+    }),
+    imageURLForUser: jest.fn(() => ''),
+    getFileType: jest.fn((extension: string) => {
+        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'];
+        const videoExts = ['mp4', 'mov', 'avi', 'wmv'];
+        const audioExts = ['mp3', 'wav', 'm4a', 'wma'];
 
-jest.mock('mattermost-redux/utils/file_utils', () => {
-    const original = jest.requireActual('mattermost-redux/utils/file_utils');
-    return {
-        ...original,
-        getFileThumbnailUrl: (fileId: string) => fileId,
-    };
-});
+        if (imageExts.includes(extension.toLowerCase())) {
+            return 'image';
+        }
+        if (videoExts.includes(extension.toLowerCase())) {
+            return 'video';
+        }
+        if (audioExts.includes(extension.toLowerCase())) {
+            return 'audio';
+        }
+        return 'other';
+    }),
+    fileSizeToString: jest.fn((bytes: number) => {
+        if (bytes < 1024) {
+            return `${bytes} B`;
+        }
+        if (bytes < 1024 * 1024) {
+            return `${(bytes / 1024).toFixed(1)} KB`;
+        }
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }),
+    getIconClassName: jest.fn((fileType: string) => {
+        const typeMap: Record<string, string> = {
+            image: 'image',
+            video: 'video',
+            audio: 'audio',
+            pdf: 'pdf',
+            code: 'code',
+            word: 'word',
+            excel: 'excel',
+            powerpoint: 'powerpoint',
+            zip: 'zip',
+        };
+        return typeMap[fileType?.toLowerCase()] || 'generic';
+    }),
+    isGIFImage: jest.fn((extension: string) => {
+        return extension?.toLowerCase() === 'gif';
+    }),
+}));
+
+jest.mock('mattermost-redux/utils/file_utils', () => ({
+    getFileThumbnailUrl: (fileId: string) => fileId,
+    getFileUrl: (fileId: string) => fileId,
+    getFileDownloadUrl: (fileId: string) => fileId,
+    getFilePreviewUrl: (fileId: string) => fileId,
+}));
 
 describe('FileAttachment', () => {
     const baseFileInfo = {

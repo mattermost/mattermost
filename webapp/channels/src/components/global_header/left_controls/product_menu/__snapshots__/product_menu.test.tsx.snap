@@ -7,10 +7,10 @@ exports[`components/global/product_switcher should have an active button state w
     className=""
     open={true}
   >
-    <ProductMenuContainer
+    <styled.nav
       onClick={[Function]}
     >
-      <ProductMenuButton
+      <styled.button
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
@@ -26,8 +26,8 @@ exports[`components/global/product_switcher should have an active button state w
           size={20}
         />
         <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
+      </styled.button>
+    </styled.nav>
     <Menu
       ariaLabel="switcherOpen"
       className="product-switcher-menu"
@@ -81,10 +81,10 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
     className=""
     open={true}
   >
-    <ProductMenuContainer
+    <styled.nav
       onClick={[Function]}
     >
-      <ProductMenuButton
+      <styled.button
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
@@ -100,8 +100,8 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
           size={20}
         />
         <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
+      </styled.button>
+    </styled.nav>
     <Menu
       ariaLabel="switcherOpen"
       className="product-switcher-menu"
@@ -155,10 +155,10 @@ exports[`components/global/product_switcher should match snapshot for Entry lice
     className=""
     open={true}
   >
-    <ProductMenuContainer
+    <styled.nav
       onClick={[Function]}
     >
-      <ProductMenuButton
+      <styled.button
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
@@ -174,8 +174,8 @@ exports[`components/global/product_switcher should match snapshot for Entry lice
           size={20}
         />
         <ProductBrandingFreeEdition />
-      </ProductMenuButton>
-    </ProductMenuContainer>
+      </styled.button>
+    </styled.nav>
     <Menu
       ariaLabel="switcherOpen"
       className="product-switcher-menu"
@@ -229,10 +229,10 @@ exports[`components/global/product_switcher should match snapshot with product s
     className=""
     open={true}
   >
-    <ProductMenuContainer
+    <styled.nav
       onClick={[Function]}
     >
-      <ProductMenuButton
+      <styled.button
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
@@ -248,8 +248,8 @@ exports[`components/global/product_switcher should match snapshot with product s
           size={20}
         />
         <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
+      </styled.button>
+    </styled.nav>
     <Menu
       ariaLabel="switcherOpen"
       className="product-switcher-menu"
@@ -303,10 +303,10 @@ exports[`components/global/product_switcher should match snapshot without licens
     className=""
     open={true}
   >
-    <ProductMenuContainer
+    <styled.nav
       onClick={[Function]}
     >
-      <ProductMenuButton
+      <styled.button
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
@@ -322,8 +322,8 @@ exports[`components/global/product_switcher should match snapshot without licens
           size={20}
         />
         <ProductBrandingFreeEdition />
-      </ProductMenuButton>
-    </ProductMenuContainer>
+      </styled.button>
+    </styled.nav>
     <Menu
       ariaLabel="switcherOpen"
       className="product-switcher-menu"
@@ -377,10 +377,10 @@ exports[`components/global/product_switcher should render once when there are no
     className=""
     open={true}
   >
-    <ProductMenuContainer
+    <styled.nav
       onClick={[Function]}
     >
-      <ProductMenuButton
+      <styled.button
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
@@ -396,8 +396,8 @@ exports[`components/global/product_switcher should render once when there are no
           size={20}
         />
         <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
+      </styled.button>
+    </styled.nav>
     <Menu
       ariaLabel="switcherOpen"
       className="product-switcher-menu"
@@ -451,10 +451,10 @@ exports[`components/global/product_switcher should render the correct amount of 
     className=""
     open={true}
   >
-    <ProductMenuContainer
+    <styled.nav
       onClick={[Function]}
     >
-      <ProductMenuButton
+      <styled.button
         aria-controls="product-switcher-menu"
         aria-expanded={true}
         aria-label="Product switch menu"
@@ -470,8 +470,8 @@ exports[`components/global/product_switcher should render the correct amount of 
           size={20}
         />
         <ProductBranding />
-      </ProductMenuButton>
-    </ProductMenuContainer>
+      </styled.button>
+    </styled.nav>
     <Menu
       ariaLabel="switcherOpen"
       className="product-switcher-menu"

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ProductBranding should show correct icon glyph when we are on Boards 1`] = `
-<ProductBrandingContainer
+<styled.span
   tabIndex={-1}
 >
   <ProductBoardsIcon
@@ -12,14 +12,14 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
   >
     Boards
   </h1>
-  <ProductBrandingHeading>
+  <styled.span>
     Boards
-  </ProductBrandingHeading>
-</ProductBrandingContainer>
+  </styled.span>
+</styled.span>
 `;
 
 exports[`components/ProductBranding should show correct icon glyph when we are on Channels 1`] = `
-<ProductBrandingContainer
+<styled.span
   tabIndex={-1}
 >
   <ProductChannelsIcon
@@ -30,14 +30,14 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
   >
     Channels
   </h1>
-  <ProductBrandingHeading>
+  <styled.span>
     Channels
-  </ProductBrandingHeading>
-</ProductBrandingContainer>
+  </styled.span>
+</styled.span>
 `;
 
 exports[`components/ProductBranding should show correct icon glyph when we are on Playbooks 1`] = `
-<ProductBrandingContainer
+<styled.span
   tabIndex={-1}
 >
   <ProductPlaybooksIcon
@@ -48,8 +48,8 @@ exports[`components/ProductBranding should show correct icon glyph when we are o
   >
     Playbooks
   </h1>
-  <ProductBrandingHeading>
+  <styled.span>
     Playbooks
-  </ProductBrandingHeading>
-</ProductBrandingContainer>
+  </styled.span>
+</styled.span>
 `;

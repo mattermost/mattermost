@@ -783,6 +783,6 @@ describe('Actions.Teams', () => {
             throw new Error(JSON.stringify(paginatedRequest.error));
         }
 
-        expect(response.data.teams.length === 2).toBeTruthy();
+        expect((response.data as any).teams.length === 2).toBeTruthy();
     });
 });

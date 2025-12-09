@@ -2,10 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch} from 'react-redux';
-
-import * as channelActions from 'actions/views/channel';
-import * as modalActions from 'actions/views/modals';
 
 import LeaveChannelModal from 'components/leave_channel_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
@@ -16,13 +12,33 @@ import {TestHelper} from 'utils/test_helper';
 
 import LeaveChannel from './leave_channel';
 
+const mockOpenModal = jest.fn();
+jest.mock('actions/views/modals', () => ({
+    openModal: (...args: unknown[]) => {
+        mockOpenModal(...args);
+        return {type: 'MOCK_OPEN_MODAL'};
+    },
+}));
+
+const mockLeaveChannel = jest.fn();
+jest.mock('actions/views/channel', () => ({
+    leaveChannel: (...args: unknown[]) => {
+        mockLeaveChannel(...args);
+        return {type: 'MOCK_LEAVE_CHANNEL'};
+    },
+}));
+
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+    ...jest.requireActual('react-redux'),
+    useDispatch: () => mockDispatch,
+}));
+
 describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
     beforeEach(() => {
-        jest.spyOn(modalActions, 'openModal');
-        jest.spyOn(channelActions, 'leaveChannel');
-
-        // Mock useDispatch to return our custom dispatch function
-        jest.spyOn(require('react-redux'), 'useDispatch');
+        mockOpenModal.mockClear();
+        mockLeaveChannel.mockClear();
+        mockDispatch.mockClear();
     });
 
     afterEach(() => {
@@ -42,9 +58,9 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.leaveChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.leaveChannel).toHaveBeenCalledWith(channel.id);
+        expect(mockDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(mockLeaveChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(mockLeaveChannel).toHaveBeenCalledWith(channel.id);
     });
 
     test('renders the component correctly, handle click event for manage groups', () => {
@@ -60,9 +76,9 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         expect(menuItemMG).toBeInTheDocument();
 
         fireEvent.click(menuItemMG); // Simulate click on the menu item
-        expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(modalActions.openModal).toHaveBeenCalledTimes(1);
-        expect(modalActions.openModal).toHaveBeenCalledWith({
+        expect(mockDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        expect(mockOpenModal).toHaveBeenCalledWith({
             modalId: ModalIdentifiers.LEAVE_PRIVATE_CHANNEL_MODAL,
             dialogType: LeaveChannelModal,
             dialogProps: {

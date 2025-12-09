@@ -21,6 +21,7 @@ import {checkIsFirstAdmin, getCurrentUser, isCurrentUserSystemAdmin} from 'matte
 
 import {redirectUserToDefaultTeam, emitUserLoggedOutEvent} from 'actions/global_actions';
 
+import {reloadPage} from 'utils/browser_utils';
 import {ActionTypes, StoragePrefixes} from 'utils/constants';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
@@ -165,7 +166,7 @@ export function handleLoginLogoutSignal(e: StorageEvent): ThunkActionFunc<void> 
 
             // detected login from a different tab
             function reloadOnFocus() {
-                location.reload();
+                reloadPage();
             }
             window.addEventListener('focus', reloadOnFocus);
         }

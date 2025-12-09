@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as i18nSelectors from 'selectors/i18n';
+jest.mock('selectors/i18n', () => ({
+    getTranslations: jest.fn().mockReturnValue({
+        test_key: 'expected value',
+    }),
+    getCurrentLocale: jest.fn().mockReturnValue('en'),
+}));
 
 import {getIntl} from './i18n';
 
 describe('i18n', () => {
-    jest.spyOn(i18nSelectors, 'getTranslations').mockReturnValue({
-        test_key: 'expected value',
-    });
-    jest.spyOn(i18nSelectors, 'getCurrentLocale').mockReturnValue('en');
-
     it('getIntl.formatMessage should resolve translated string', () => {
         const intl = getIntl();
         const fm = intl.formatMessage; // avoid triggering mmjstool

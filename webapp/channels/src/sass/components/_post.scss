@@ -2243,26 +2243,24 @@
                 font-weight: normal;
             }
 
-            &:hover {
-                &-icon > svg {
-                    fill: rgba(var(--center-channel-color-rgb), 0.8);
-                }
+            &:hover &-icon > svg {
+                fill: rgba(var(--center-channel-color-rgb), 0.8);
+            }
 
-                &-text {
-                    color: rgba(var(--center-channel-color-rgb), 0.8);
-                }
+            &:hover &-text {
+                color: rgba(var(--center-channel-color-rgb), 0.8);
             }
 
             &:active {
                 background: rgba(var(--button-bg-rgb), 0.08);
+            }
 
-                &-icon > svg {
-                    fill: var(--button-bg);
-                }
+            &:active &-icon > svg {
+                fill: var(--button-bg);
+            }
 
-                &-text {
-                    color: var(--button-bg);
-                }
+            &:active &-text {
+                color: var(--button-bg);
             }
         }
     }

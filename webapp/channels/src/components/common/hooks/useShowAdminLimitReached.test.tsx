@@ -4,8 +4,6 @@
 import React from 'react';
 import type {ReactPortal} from 'react';
 
-import * as useGetLimitsHook from 'components/common/hooks/useGetLimits';
-import * as useGetUsageHook from 'components/common/hooks/useGetUsage';
 import ModalController from 'components/modal_controller';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -13,6 +11,22 @@ import {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import useShowAdminLimitReached from './useShowAdminLimitReached';
+
+jest.mock('components/common/hooks/useGetLimits', () => ({
+    __esModule: true,
+    default: jest.fn(() => [{}, true]),
+}));
+
+jest.mock('components/common/hooks/useGetUsage', () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+        messages: {historyLoaded: true},
+        files: {totalStorageLoaded: true},
+        teams: {teamsLoaded: true},
+        boards: {cardsLoaded: true},
+        integrations: {enabledLoaded: true},
+    })),
+}));
 
 function TestComponent() {
     useShowAdminLimitReached();
@@ -97,8 +111,33 @@ jest.mock('react-dom', () => ({
 }));
 
 describe('useShowAdminLimitReached', () => {
+    beforeEach(() => {
+        const useGetLimits = require('components/common/hooks/useGetLimits').default;
+        const useGetUsage = require('components/common/hooks/useGetUsage').default;
+
+        // Reset to default implementations
+        useGetLimits.mockImplementation(() => [{}, true]);
+        useGetUsage.mockImplementation(() => ({
+            messages: {historyLoaded: true},
+            files: {totalStorageLoaded: true},
+            teams: {teamsLoaded: true},
+            boards: {cardsLoaded: true},
+            integrations: {enabledLoaded: true},
+        }));
+    });
+
     it('opens cloud usage modal if admin has just logged in on a cloud instance, the instance has exceeded its message history limit, and the admin has not been shown the modal on log in before.', () => {
+        const useGetLimits = require('components/common/hooks/useGetLimits').default;
+        const useGetUsage = require('components/common/hooks/useGetUsage').default;
         const state = JSON.parse(JSON.stringify(openModalState));
+
+        // Mock the hooks to return the values from state
+        useGetLimits.mockReturnValue([
+            state.entities.cloud.limits.limits,
+            state.entities.cloud.limits.limitsLoaded,
+        ]);
+        useGetUsage.mockReturnValue(state.entities.usage);
+
         renderWithContext(
             <>
                 <div id='root-portal'/>
@@ -190,12 +229,13 @@ describe('useShowAdminLimitReached', () => {
     });
 
     it('does not open cloud usage modal if limits are not yet loaded', () => {
+        const useGetLimits = require('components/common/hooks/useGetLimits').default;
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.cloud.limits.limitsLoaded = false;
-        jest.spyOn(useGetLimitsHook, 'default').mockImplementation(() => ([
+        useGetLimits.mockReturnValue([
             state.entities.cloud.limits.limits,
             false,
-        ]));
+        ]);
         renderWithContext(
             <>
                 <div id='root-portal'/>
@@ -208,12 +248,13 @@ describe('useShowAdminLimitReached', () => {
     });
 
     it('does not open cloud usage modal if usage is not yet loaded', () => {
+        const useGetUsage = require('components/common/hooks/useGetUsage').default;
         const state = JSON.parse(JSON.stringify(openModalState));
         state.entities.usage.messages = {
             history: 0,
             historyLoaded: false,
         };
-        jest.spyOn(useGetUsageHook, 'default').mockImplementation(() => state.entities.usage);
+        useGetUsage.mockReturnValue(state.entities.usage);
         renderWithContext(
             <>
                 <div id='root-portal'/>

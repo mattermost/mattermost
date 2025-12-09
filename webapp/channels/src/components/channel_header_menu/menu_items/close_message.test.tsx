@@ -5,11 +5,19 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
-import * as preferences from 'mattermost-redux/actions/preferences';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
-import * as channelActions from 'actions/views/channel';
+import {leaveDirectChannel} from 'actions/views/channel';
 
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
+
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: jest.fn(() => ({type: 'MOCK_SAVE_PREFERENCES'})),
+}));
+
+jest.mock('actions/views/channel', () => ({
+    leaveDirectChannel: jest.fn(() => ({type: 'MOCK_LEAVE_DIRECT_CHANNEL'})),
+}));
 
 import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import {Constants} from 'utils/constants';
@@ -72,11 +80,6 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
     });
 
     beforeEach(() => {
-        jest.spyOn(channelActions, 'leaveDirectChannel');
-        jest.spyOn(preferences, 'savePreferences');
-    });
-
-    afterEach(() => {
         jest.clearAllMocks();
     });
 
@@ -94,11 +97,11 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(channelActions.leaveDirectChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.leaveDirectChannel).toHaveBeenCalledWith(groupChannel.name);
+        expect(leaveDirectChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(leaveDirectChannel).toHaveBeenCalledWith(groupChannel.name);
 
-        expect(preferences.savePreferences).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(preferences.savePreferences).toHaveBeenCalledWith(
+        expect(savePreferences).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(savePreferences).toHaveBeenCalledWith(
             'current_user_id',
             [{user_id: 'current_user_id', category: Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: groupChannel.id, value: 'false'}],
         );
@@ -118,11 +121,11 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         expect(menuItem).toBeInTheDocument();
 
         fireEvent.click(menuItem); // Simulate click on the menu item
-        expect(channelActions.leaveDirectChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(channelActions.leaveDirectChannel).toHaveBeenCalledWith(directChannel.name);
+        expect(leaveDirectChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(leaveDirectChannel).toHaveBeenCalledWith(directChannel.name);
 
-        expect(preferences.savePreferences).toHaveBeenCalledTimes(1); // Ensure dispatch was called
-        expect(preferences.savePreferences).toHaveBeenCalledWith(
+        expect(savePreferences).toHaveBeenCalledTimes(1); // Ensure dispatch was called
+        expect(savePreferences).toHaveBeenCalledWith(
             'current_user_id',
             [{user_id: 'current_user_id', category: Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: directChannel.teammate_id, value: 'false'}],
         );

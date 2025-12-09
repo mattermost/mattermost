@@ -36,6 +36,11 @@ jest.mock('utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 
+jest.mock('actions/views/login', () => ({
+    getUserLoginType: jest.fn(),
+    login: jest.fn(),
+}));
+
 describe('components/login/Login', () => {
     const baseState = {
         entities: {
@@ -110,6 +115,8 @@ describe('components/login/Login', () => {
 
     beforeEach(() => {
         LocalStorageStore.setWasLoggedIn(false);
+        (loginActions.getUserLoginType as jest.Mock).mockClear();
+        (loginActions.login as jest.Mock).mockClear();
     });
 
     afterEach(() => {
@@ -269,6 +276,10 @@ describe('components/login/Login', () => {
     it('should handle discard session expiry notification on sign in attempt', async () => {
         LocalStorageStore.setWasLoggedIn(true);
 
+        (loginActions.login as jest.Mock).mockReturnValue(async () => ({
+            data: true,
+        }));
+
         const state = mergeObjects(baseState, {
             entities: {
                 general: {
@@ -318,10 +329,9 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'Gitlab Icon GitLab 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        // In jsdom 25+, style is a CSSStyleDeclaration and colors are normalized to rgb
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should focus username field when there is an error', async () => {
@@ -374,10 +384,9 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'OpenID Icon OpenID 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        // In jsdom 25+, style is a CSSStyleDeclaration and colors are normalized to rgb
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should redirect on login', async () => {
@@ -472,13 +481,12 @@ describe('components/login/Login', () => {
             });
 
             // Mock the getUserLoginType to return 'magic_link'
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+            (loginActions.getUserLoginType as jest.Mock).mockReturnValue(async () => ({
                 data: {
                     auth_service: 'guest_magic_link',
                     is_deactivated: false,
                 },
             }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
             renderWithContext(
                 <Login/>,
@@ -509,13 +517,12 @@ describe('components/login/Login', () => {
             });
 
             // Mock the getUserLoginType to return empty string (requires password)
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+            (loginActions.getUserLoginType as jest.Mock).mockReturnValue(async () => ({
                 data: {
                     auth_service: '',
                     is_deactivated: false,
                 },
             }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
             renderWithContext(
                 <Login/>,
@@ -532,7 +539,7 @@ describe('components/login/Login', () => {
 
             // Password field should now be visible
             expect(await screen.findByLabelText('Password')).toBeVisible();
-            expect(mockGetUserLoginType).toHaveBeenCalledWith('user@example.com');
+            expect(loginActions.getUserLoginType).toHaveBeenCalledWith('user@example.com');
         });
 
         it('should show error when getUserLoginType fails', async () => {
@@ -548,12 +555,11 @@ describe('components/login/Login', () => {
             });
 
             // Mock the getUserLoginType to return an error
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+            (loginActions.getUserLoginType as jest.Mock).mockReturnValue(async () => ({
                 error: {
                     message: 'Network error',
                 },
             }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
             renderWithContext(
                 <Login/>,
@@ -582,13 +588,12 @@ describe('components/login/Login', () => {
             });
 
             // Mock the getUserLoginType to return empty string (requires password)
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+            (loginActions.getUserLoginType as jest.Mock).mockReturnValue(async () => ({
                 data: {
                     auth_service: '',
                     is_deactivated: false,
                 },
             }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
             renderWithContext(
                 <Login/>,
@@ -621,18 +626,16 @@ describe('components/login/Login', () => {
                 },
             });
 
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+            (loginActions.getUserLoginType as jest.Mock).mockReturnValue(async () => ({
                 data: {
                     auth_service: '',
                     is_deactivated: false,
                 },
             }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
-            const mockLogin = jest.fn().mockReturnValue(async () => ({
+            (loginActions.login as jest.Mock).mockReturnValue(async () => ({
                 data: true,
             }));
-            jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
 
             renderWithContext(
                 <Login/>,
@@ -652,7 +655,7 @@ describe('components/login/Login', () => {
             // Second submit - triggers actual login
             await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
-            expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
+            expect(loginActions.login).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
         });
 
         it('should not show forgot password link when EnableGuestMagicLink is true and password not required', async () => {
@@ -690,13 +693,12 @@ describe('components/login/Login', () => {
                 },
             });
 
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+            (loginActions.getUserLoginType as jest.Mock).mockReturnValue(async () => ({
                 data: {
                     auth_service: '',
                     is_deactivated: false,
                 },
             }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
             renderWithContext(
                 <Login/>,
@@ -726,13 +728,12 @@ describe('components/login/Login', () => {
             });
 
             // Mock the getUserLoginType to return empty string (requires password)
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+            (loginActions.getUserLoginType as jest.Mock).mockReturnValue(async () => ({
                 data: {
                     auth_service: '',
                     is_deactivated: false,
                 },
             }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
             renderWithContext(
                 <Login/>,

@@ -77,8 +77,13 @@ exports[`components/AnnouncementBar should match snapshot, admin configured bar 
 `;
 
 exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -97,12 +102,17 @@ exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] =
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, bar showing 1`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -121,12 +131,17 @@ exports[`components/AnnouncementBar should match snapshot, bar showing 1`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, bar showing, no dismissal 1`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -145,12 +160,17 @@ exports[`components/AnnouncementBar should match snapshot, bar showing, no dismi
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, dismissal 1`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -169,12 +189,17 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 1`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, dismissal 2`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -193,12 +218,17 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 2`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, dismissal 3`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -217,12 +247,17 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 3`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 1`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -241,12 +276,17 @@ exports[`components/AnnouncementBar should match snapshot, props change 1`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 2`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -265,12 +305,17 @@ exports[`components/AnnouncementBar should match snapshot, props change 2`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 3`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -289,12 +334,17 @@ exports[`components/AnnouncementBar should match snapshot, props change 3`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;
 
 exports[`components/AnnouncementBar should match snapshot, props change 4`] = `
-<_StyledDiv
+<div
   className="announcement-bar announcement-bar-critical"
+  css={
+    Object {
+      "gridArea": "announcement",
+    }
+  }
   style={
     Object {
       "backgroundColor": "",
@@ -313,5 +363,5 @@ exports[`components/AnnouncementBar should match snapshot, props change 4`] = `
       />
     </span>
   </div>
-</_StyledDiv>
+</div>
 `;

@@ -6,7 +6,6 @@ import React from 'react';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import * as GlobalActions from 'actions/global_actions';
 import BrowserStore from 'stores/browser_store';
 
 import LoggedIn from 'components/logged_in/logged_in';
@@ -17,6 +16,11 @@ import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 jest.mock('actions/websocket_actions.jsx', () => ({
     initialize: jest.fn(),
     close: jest.fn(),
+}));
+
+jest.mock('actions/global_actions', () => ({
+    emitBrowserFocus: jest.fn(),
+    emitUserLoggedOutEvent: jest.fn(),
 }));
 
 BrowserStore.signalLogin = jest.fn();
@@ -178,10 +182,9 @@ describe('components/logged_in/LoggedIn', () => {
     });
 
     it('should set state to unfocused if it starts in the background', () => {
-        document.hasFocus = jest.fn(() => false);
+        const {emitBrowserFocus} = require('actions/global_actions');
 
-        const obj = Object.assign(GlobalActions);
-        obj.emitBrowserFocus = jest.fn();
+        document.hasFocus = jest.fn(() => false);
 
         const props = {
             ...baseProps,
@@ -190,7 +193,8 @@ describe('components/logged_in/LoggedIn', () => {
         };
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        expect(obj.emitBrowserFocus).toHaveBeenCalledTimes(1);
+        expect(emitBrowserFocus).toHaveBeenCalledTimes(1);
+        expect(emitBrowserFocus).toHaveBeenCalledWith(false);
     });
 
     it('should not make viewChannel call on unload', () => {

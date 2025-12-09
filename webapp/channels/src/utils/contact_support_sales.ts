@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Buffer} from 'buffer';
-
 import {LicenseLinks} from './constants';
 
 const baseZendeskFormURL = 'https://support.mattermost.com/hc/en-us/requests/new';
@@ -63,7 +61,7 @@ export const getCloudSupportLink = (email: string, subject: string, description:
 };
 
 const encodeString = (s: string) => {
-    return Buffer.from(s).toString('base64');
+    return btoa(s);
 };
 
 export const buildMMURL = (baseURL: string, firstName: string, lastName: string, companyName: string, businessEmail: string, source: string, medium: string) => {

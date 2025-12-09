@@ -297,7 +297,7 @@ describe('Actions.Admin', () => {
 
         const reports = state.entities.admin.complianceReports;
         expect(reports).toBeTruthy();
-        expect(reports[created.id]).toBeTruthy();
+        expect(reports[created!.id]).toBeTruthy();
     });
 
     it('getComplianceReport', async () => {
@@ -328,16 +328,16 @@ describe('Actions.Admin', () => {
         const {data: report} = await store.dispatch(Actions.createComplianceReport(job));
 
         nock(Client4.getBaseRoute()).
-            get(`/compliance/reports/${report.id}`).
+            get(`/compliance/reports/${report!.id}`).
             reply(200, report);
 
-        await store.dispatch(Actions.getComplianceReport(report.id));
+        await store.dispatch(Actions.getComplianceReport(report!.id));
 
         const state = store.getState();
 
         const reports = state.entities.admin.complianceReports;
         expect(reports).toBeTruthy();
-        expect(reports[report.id]).toBeTruthy();
+        expect(reports[report!.id]).toBeTruthy();
     });
 
     it('getComplianceReports', async () => {
@@ -378,7 +378,7 @@ describe('Actions.Admin', () => {
 
         const reports = state.entities.admin.complianceReports;
         expect(reports).toBeTruthy();
-        expect(reports[report.id]).toBeTruthy();
+        expect(reports[report!.id]).toBeTruthy();
     });
 
     it('uploadBrandImage', async () => {
@@ -1166,7 +1166,7 @@ describe('Actions.Admin', () => {
 
         const response = await store.dispatch(Actions.searchDataRetentionCustomPolicyTeams('id1', 'test', {}));
 
-        expect(response.data.length === 1).toBeTruthy();
+        expect((response.data as unknown as any[])!.length === 1).toBeTruthy();
     });
 
     it('searchDataRetentionCustomPolicyChannels', async () => {
@@ -1176,7 +1176,7 @@ describe('Actions.Admin', () => {
 
         const response = await store.dispatch(Actions.searchDataRetentionCustomPolicyChannels('id1', 'test', {}));
 
-        expect(response.data.length === 1).toBeTruthy();
+        expect((response.data as unknown as any[])!.length === 1).toBeTruthy();
     });
 
     it('createDataRetentionCustomPolicy', async () => {

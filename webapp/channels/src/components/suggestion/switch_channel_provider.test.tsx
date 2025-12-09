@@ -25,20 +25,17 @@ const latestPost = TestHelper.getPostMock({
     create_at: Date.now(),
 });
 
-jest.mock('mattermost-redux/client', () => {
-    const original = jest.requireActual('mattermost-redux/client');
-
-    return {
-        ...original,
-        Client4: {
-            ...original.Client4,
-            autocompleteUsers: jest.fn().mockResolvedValue([]),
-        },
-    };
-});
+jest.mock('mattermost-redux/client', () => ({
+    Client4: {
+        autocompleteUsers: jest.fn().mockResolvedValue([]),
+        getProfilesByIds: jest.fn().mockResolvedValue([]),
+        getProfilesInTeam: jest.fn().mockResolvedValue([]),
+        getTeamMembers: jest.fn().mockResolvedValue([]),
+        searchUsers: jest.fn().mockResolvedValue([]),
+    },
+}));
 
 jest.mock('mattermost-redux/actions/channels', () => ({
-    ...jest.requireActual('mattermost-redux/actions/channels'),
     searchAllChannels: () => jest.fn().mockResolvedValue(Promise.resolve({
         data: [{
             id: 'channel_other_user1',

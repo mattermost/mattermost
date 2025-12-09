@@ -22,7 +22,7 @@ const LatexBlock = ({
 
     useEffect(() => {
         import('katex').then((katex) => {
-            setKatex(katex.default);
+            setKatex(katex.default as unknown as Katex);
         });
     }, []);
 

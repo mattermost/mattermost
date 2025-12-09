@@ -6,7 +6,15 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getMyChannelMemberships: jest.fn(() => {}),
 }));
 
-jest.mock('stores/redux_store');
+jest.mock('stores/redux_store', () => ({
+    __esModule: true,
+    default: {
+        getState: jest.fn(() => ({})),
+        dispatch: jest.fn(),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+    },
+}));
 
 import ChannelMentionProvider from './channel_mention_provider';
 

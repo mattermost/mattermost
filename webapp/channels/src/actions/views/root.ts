@@ -40,7 +40,7 @@ export function unregisterPluginTranslationsSource(pluginId: string) {
     Reflect.deleteProperty(pluginTranslationSources, pluginId);
 }
 
-export function loadTranslations(locale: string, url: string): ActionFuncAsync {
+export function loadTranslations(locale: string, url: string | Record<string, string>): ActionFuncAsync {
     return async (dispatch) => {
         const translations = {...en};
         Object.values(pluginTranslationSources).forEach((pluginFunc) => {
@@ -50,7 +50,10 @@ export function loadTranslations(locale: string, url: string): ActionFuncAsync {
         // Need to go to the server for languages other than English
         if (locale !== 'en') {
             try {
-                const serverTranslations = await Client4.getTranslations(url);
+                // With Vite, translations may be imported directly as objects instead of URLs
+                // Check if url is already a translations object (from static import)
+                const serverTranslations = typeof url === 'object' &&
+                    url !== null ? url : await Client4.getTranslations(url);
                 Object.assign(translations, serverTranslations);
             } catch (error) {
                 console.error(error); //eslint-disable-line no-console

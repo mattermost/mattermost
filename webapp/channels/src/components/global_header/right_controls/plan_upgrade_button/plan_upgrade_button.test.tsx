@@ -5,18 +5,22 @@ import {mount} from 'enzyme';
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import * as cloudActions from 'mattermost-redux/actions/cloud';
-
 import mockStore from 'tests/test_store';
 import {CloudProducts} from 'utils/constants';
 
 import PlanUpgradeButton from './index';
+
+jest.mock('mattermost-redux/actions/cloud', () => ({
+    getCloudSubscription: jest.fn(() => ({type: 'MOCK_GET_CLOUD_SUBSCRIPTION'})),
+    getCloudProducts: jest.fn(() => ({type: 'MOCK_GET_CLOUD_PRODUCTS'})),
+}));
 
 describe('components/global/PlanUpgradeButton', () => {
     const useDispatchMock = jest.spyOn(reactRedux, 'useDispatch');
 
     beforeEach(() => {
         useDispatchMock.mockClear();
+        jest.clearAllMocks();
     });
     const initialState = {
         entities: {
@@ -50,12 +54,11 @@ describe('components/global/PlanUpgradeButton', () => {
         },
     };
     it('should show Upgrade button in global header for admin users, cloud free subscription', () => {
+        const {getCloudSubscription, getCloudProducts} = require('mattermost-redux/actions/cloud');
+
         const state = {
             ...initialState,
         };
-
-        const cloudSubscriptionSpy = jest.spyOn(cloudActions, 'getCloudSubscription');
-        const cloudProductsSpy = jest.spyOn(cloudActions, 'getCloudProducts');
 
         const store = mockStore(state);
 
@@ -68,8 +71,8 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(cloudSubscriptionSpy).toHaveBeenCalledTimes(1);
-        expect(cloudProductsSpy).toHaveBeenCalledTimes(1);
+        expect(getCloudSubscription).toHaveBeenCalledTimes(1);
+        expect(getCloudProducts).toHaveBeenCalledTimes(1);
         expect(wrapper.find('#UpgradeButton').exists()).toEqual(true);
     });
 
@@ -246,15 +249,14 @@ describe('components/global/PlanUpgradeButton', () => {
     });
 
     it('should NOT show Upgrade button in global header for self hosted non trial and licensed', () => {
+        const {getCloudSubscription, getCloudProducts} = require('mattermost-redux/actions/cloud');
+
         const state = JSON.parse(JSON.stringify(initialState));
 
         state.entities.general.license = {
             IsLicensed: 'true',
             Cloud: 'false',
         };
-
-        const cloudSubscriptionSpy = jest.spyOn(cloudActions, 'getCloudSubscription');
-        const cloudProductsSpy = jest.spyOn(cloudActions, 'getCloudProducts');
 
         const store = mockStore(state);
 
@@ -267,8 +269,8 @@ describe('components/global/PlanUpgradeButton', () => {
             </reactRedux.Provider>,
         );
 
-        expect(cloudSubscriptionSpy).toHaveBeenCalledTimes(0); // no calls to cloud endpoints for non cloud
-        expect(cloudProductsSpy).toHaveBeenCalledTimes(0);
+        expect(getCloudSubscription).toHaveBeenCalledTimes(0); // no calls to cloud endpoints for non cloud
+        expect(getCloudProducts).toHaveBeenCalledTimes(0);
         expect(wrapper.find('#UpgradeButton').exists()).toEqual(false);
     });
 });

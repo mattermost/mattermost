@@ -3,21 +3,42 @@
 
 import React from 'react';
 
-import * as useDesktopAppNotificationPermission from 'components/common/hooks/use_desktop_notification_permission';
 import type {DesktopNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import * as utilsNotifications from 'utils/notifications';
+import {
+    NotificationPermissionNeverGranted,
+    NotificationPermissionGranted,
+    NotificationPermissionDenied,
+    isNotificationAPISupported, getNotificationPermission} from 'utils/notifications';
 
 import NotificationPermissionTitleTag from './index';
 
+jest.mock('utils/notifications', () => ({
+    ...jest.requireActual('utils/notifications'),
+    isNotificationAPISupported: jest.fn(),
+    getNotificationPermission: jest.fn(),
+}));
+
+jest.mock('components/common/hooks/use_desktop_notification_permission', () => ({
+    ...jest.requireActual('components/common/hooks/use_desktop_notification_permission'),
+    useDesktopAppNotificationPermission: jest.fn(),
+}));
+
+import {useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
+
 describe('NotificationPermissionTitleTag', () => {
-    afterEach(() => {
-        jest.restoreAllMocks();
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Provide default mock implementations
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(true);
+        (getNotificationPermission as jest.Mock).mockReturnValue(NotificationPermissionGranted);
+        (useDesktopAppNotificationPermission as jest.Mock).mockReturnValue([undefined, jest.fn()]);
     });
 
     test('should render "Not supported" tag when notifications are not supported', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(false);
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(false);
 
         renderWithContext(<NotificationPermissionTitleTag/>);
 
@@ -25,8 +46,8 @@ describe('NotificationPermissionTitleTag', () => {
     });
 
     test('should render "Permission required" tag when permission is never granted yet', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionNeverGranted);
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(true);
+        (getNotificationPermission as jest.Mock).mockReturnValue(NotificationPermissionNeverGranted);
 
         renderWithContext(<NotificationPermissionTitleTag/>);
 
@@ -34,8 +55,8 @@ describe('NotificationPermissionTitleTag', () => {
     });
 
     test('should render "Permission required" tag when permission is denied', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionDenied);
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(true);
+        (getNotificationPermission as jest.Mock).mockReturnValue(NotificationPermissionDenied);
 
         renderWithContext(<NotificationPermissionTitleTag/>);
 
@@ -43,8 +64,8 @@ describe('NotificationPermissionTitleTag', () => {
     });
 
     test('should render nothing when permission is granted', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(utilsNotifications, 'getNotificationPermission').mockReturnValue(utilsNotifications.NotificationPermissionGranted);
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(true);
+        (getNotificationPermission as jest.Mock).mockReturnValue(NotificationPermissionGranted);
 
         const {container} = renderWithContext(<NotificationPermissionTitleTag/>);
 
@@ -52,8 +73,8 @@ describe('NotificationPermissionTitleTag', () => {
     });
 
     test('should render "Permission required" tag when desktop permission is denied', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionDenied as DesktopNotificationPermission, jest.fn()]);
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(true);
+        (useDesktopAppNotificationPermission as jest.Mock).mockReturnValue([NotificationPermissionDenied as DesktopNotificationPermission, jest.fn()]);
 
         renderWithContext(<NotificationPermissionTitleTag/>);
 
@@ -61,8 +82,8 @@ describe('NotificationPermissionTitleTag', () => {
     });
 
     test('should render nothing when desktop permission is granted', () => {
-        jest.spyOn(utilsNotifications, 'isNotificationAPISupported').mockReturnValue(true);
-        jest.spyOn(useDesktopAppNotificationPermission, 'useDesktopAppNotificationPermission').mockReturnValue([utilsNotifications.NotificationPermissionGranted as DesktopNotificationPermission, jest.fn()]);
+        (isNotificationAPISupported as jest.Mock).mockReturnValue(true);
+        (useDesktopAppNotificationPermission as jest.Mock).mockReturnValue([NotificationPermissionGranted as DesktopNotificationPermission, jest.fn()]);
 
         const {container} = renderWithContext(<NotificationPermissionTitleTag/>);
 

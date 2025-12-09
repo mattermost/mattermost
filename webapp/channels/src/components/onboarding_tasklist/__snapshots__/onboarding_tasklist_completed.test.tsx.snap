@@ -7,7 +7,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
     in={true}
     timeout={150}
   >
-    <CompletedWrapper>
+    <styled.div>
       <img
         alt="completed tasks image"
         src=""
@@ -83,7 +83,7 @@ exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should
           />
         </span>
       </div>
-    </CompletedWrapper>
+    </styled.div>
   </CSSTransition>
 </Fragment>
 `;

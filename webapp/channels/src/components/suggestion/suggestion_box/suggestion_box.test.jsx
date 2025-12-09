@@ -9,8 +9,6 @@ import CommandProvider from 'components/suggestion/command_provider/command_prov
 import SuggestionBox from 'components/suggestion/suggestion_box/suggestion_box';
 import SuggestionList from 'components/suggestion/suggestion_list';
 
-import * as Utils from 'utils/utils';
-
 jest.mock('mattermost-redux/client', () => {
     const actual = jest.requireActual('mattermost-redux/client');
 
@@ -211,10 +209,14 @@ describe('components/SuggestionBox', () => {
         );
         const instance = wrapper.instance();
 
-        Utils.getSuggestionBoxAlgn = jest.fn().mockReturnValue({pixelsToMoveX: 0, pixelsToMoveY: 35});
-
+        // When getSuggestionBoxAlgn is called with null textbox, it returns default values
         instance.nonDebouncedPretextChanged('/');
-        expect(wrapper.state('suggestionBoxAlgn')).toEqual({pixelsToMoveX: 0, pixelsToMoveY: 35});
+
+        // Since shallow rendering doesn't provide a real textbox ref, getSuggestionBoxAlgn
+        // returns the default {pixelsToMoveX: 0, pixelsToMoveY: 0}
+        const alignAfterFirstCall = wrapper.state('suggestionBoxAlgn');
+        expect(alignAfterFirstCall).toHaveProperty('pixelsToMoveX', 0);
+        expect(alignAfterFirstCall).toHaveProperty('pixelsToMoveY', 0);
 
         instance.setState({suggestionBoxAlgn: {}});
 

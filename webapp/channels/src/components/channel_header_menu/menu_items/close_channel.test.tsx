@@ -3,17 +3,21 @@
 
 import React from 'react';
 
-import * as channelActions from 'actions/views/channel';
-
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import CloseChannel from './close_channel';
 
+jest.mock('actions/views/channel', () => ({
+    goToLastViewedChannel: jest.fn(),
+}));
+
+const channelActions = require('actions/views/channel');
+
 describe('components/ChannelHeaderMenu/MenuItems/CloseChannel', () => {
     beforeEach(() => {
-        jest.spyOn(channelActions, 'goToLastViewedChannel');
+        channelActions.goToLastViewedChannel.mockClear();
     });
 
     afterEach(() => {

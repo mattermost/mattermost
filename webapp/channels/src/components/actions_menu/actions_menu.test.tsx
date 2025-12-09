@@ -13,13 +13,10 @@ import type {PostDropdownMenuAction} from 'types/store/plugins';
 import ActionsMenu from './actions_menu';
 import type {Props} from './actions_menu';
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-    return {
-        ...original,
-        isMobile: jest.fn(() => false),
-    };
-});
+jest.mock('utils/utils', () => ({
+    isMobile: jest.fn(() => false),
+    localizeMessage: jest.fn((id: string, defaultMessage: string) => defaultMessage),
+}));
 
 const dropdownComponents: PostDropdownMenuAction[] = [
     {

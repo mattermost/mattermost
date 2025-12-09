@@ -50,28 +50,33 @@ import {
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
-    ...jest.requireActual('mattermost-redux/actions/posts'),
     getPostThreads: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
     getMentionsAndStatusesForPosts: jest.fn(),
+    receivedNewPost: (post, crtEnabled) => ({
+        type: 'RECEIVED_NEW_POST',
+        data: post,
+        features: {crtEnabled},
+    }),
+    receivedPost: (post, crtEnabled) => ({
+        type: 'RECEIVED_POST',
+        data: post,
+        features: {crtEnabled},
+    }),
 }));
 
 jest.mock('mattermost-redux/actions/channel_categories', () => ({
-    ...jest.requireActual('mattermost-redux/actions/channel_categories'),
-    fetchMyCategories: jest.fn(),
+    fetchMyCategories: jest.fn(() => ({type: 'FETCH_MY_CATEGORIES'})),
 }));
 
 jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
-    ...jest.requireActual('mattermost-redux/actions/status_profile_polling'),
     batchFetchStatusesProfilesGroupsFromPosts: jest.fn(() => ({type: ''})),
 }));
 
 jest.mock('mattermost-redux/actions/general', () => ({
-    ...jest.requireActual('mattermost-redux/actions/general'),
     getCustomProfileAttributeFields: jest.fn(() => ({type: 'CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED'})),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
-    ...jest.requireActual('mattermost-redux/actions/groups'),
     getGroup: jest.fn(() => ({type: 'RECEIVED_GROUP'})),
 }));
 
@@ -84,32 +89,29 @@ jest.mock('mattermost-redux/actions/users', () => ({
 jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
-    fetchAllMyTeamsChannels: jest.fn(),
+    fetchAllMyTeamsChannels: jest.fn(() => ({type: 'FETCH_ALL_MY_TEAMS_CHANNELS'})),
 }));
 
 jest.mock('actions/post_actions', () => ({
-    ...jest.requireActual('actions/post_actions'),
     handleNewPost: jest.fn(() => ({type: 'HANDLE_NEW_POST'})),
 }));
 
 jest.mock('actions/user_actions', () => ({
-    ...jest.requireActual('actions/user_actions'),
     loadProfilesForSidebar: jest.fn(),
 }));
 
 jest.mock('actions/global_actions', () => ({
-    ...jest.requireActual('actions/global_actions'),
     redirectUserToDefaultTeam: jest.fn(),
 }));
 
 jest.mock('actions/views/channel', () => ({
-    ...jest.requireActual('actions/views/channel'),
-    syncPostsInChannel: jest.fn(),
+    syncPostsInChannel: jest.fn(() => ({type: 'SYNC_POSTS_IN_CHANNEL'})),
 }));
 
 jest.mock('plugins', () => ({
-    ...jest.requireActual('plugins'),
     loadPluginsIfNecessary: jest.fn(() => Promise.resolve()),
+    loadPlugin: jest.fn(() => Promise.resolve()),
+    removePlugin: jest.fn(() => Promise.resolve()),
 }));
 
 let mockState = {
@@ -995,72 +997,28 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
         });
 
         test('when a plugin is enabled', () => {
+            const {loadPlugin} = require('plugins');
             const manifest = {
                 ...baseManifest,
                 id: 'com.mattermost.demo-plugin',
             };
-            const initialize = jest.fn();
-            window.plugins = {
-                [manifest.id]: {
-                    initialize,
-                },
-            };
 
-            const mockScript = {};
-            document.createElement.mockReturnValue(mockScript);
-
-            expect(mockScript.onload).toBeUndefined();
             handlePluginEnabled({data: {manifest}});
 
-            expect(document.createElement).toHaveBeenCalledWith('script');
-            expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
-            expect(document.getElementsByTagName()[0].appendChild).toHaveBeenCalledTimes(1);
-            expect(mockScript.onload).toBeInstanceOf(Function);
+            expect(loadPlugin).toHaveBeenCalledWith(manifest);
 
-            // Pretend to be a browser, invoke onload
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            const registery = initialize.mock.calls[0][0];
-            const mockComponent = 'mockRootComponent';
-            registery.registerRootComponent(mockComponent);
-
-            let dispatchArg = store.dispatch.mock.calls[0][0];
+            const dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
-
-            dispatchArg = store.dispatch.mock.calls[1][0];
-
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchArg.name).toBe('Root');
-            expect(dispatchArg.data.component).toBe(mockComponent);
-            expect(dispatchArg.data.pluginId).toBe(manifest.id);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(2);
-
-            // Assert handlePluginEnabled is idempotent
-            mockScript.onload = undefined;
-            handlePluginEnabled({data: {manifest}});
-            expect(mockScript.onload).toBeUndefined();
-
-            dispatchArg = store.dispatch.mock.calls[2][0];
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
-            expect(dispatchArg.data).toBe(manifest);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(3);
 
             expect(console.error).toHaveBeenCalledTimes(0);
         });
 
         test('when a plugin is upgraded', () => {
+            const {loadPlugin} = require('plugins');
             const manifest = {
                 ...baseManifest,
                 id: 'com.mattermost.demo-2-plugin',
-            };
-            const initialize = jest.fn();
-            window.plugins = {
-                [manifest.id]: {
-                    initialize,
-                },
             };
 
             const manifestv2 = {
@@ -1071,75 +1029,20 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
                 },
             };
 
-            const mockScript = {};
-            document.createElement.mockReturnValue(mockScript);
-
-            expect(mockScript.onload).toBeUndefined();
             handlePluginEnabled({data: {manifest}});
-
-            expect(document.createElement).toHaveBeenCalledWith('script');
-            expect(document.getElementsByTagName).toHaveBeenCalledTimes(1);
-            expect(document.getElementsByTagName()[0].appendChild).toHaveBeenCalledTimes(1);
-            expect(mockScript.onload).toBeInstanceOf(Function);
-
-            // Pretend to be a browser, invoke onload
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            const registry = initialize.mock.calls[0][0];
-            const mockComponent = 'mockRootComponent';
-            registry.registerRootComponent(mockComponent);
+            expect(loadPlugin).toHaveBeenCalledWith(manifest);
 
             let dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
-            dispatchArg = store.dispatch.mock.calls[1][0];
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchArg.name).toBe('Root');
-            expect(dispatchArg.data.component).toBe(mockComponent);
-            expect(dispatchArg.data.pluginId).toBe(manifest.id);
-
             // Upgrade plugin
-            mockScript.onload = undefined;
             handlePluginEnabled({data: {manifest: manifestv2}});
+            expect(loadPlugin).toHaveBeenCalledWith(manifestv2);
 
-            // Assert upgrade is idempotent
-            handlePluginEnabled({data: {manifest: manifestv2}});
-
-            expect(mockScript.onload).toBeInstanceOf(Function);
-            expect(document.createElement).toHaveBeenCalledTimes(2);
-
-            mockScript.onload();
-            expect(initialize).toHaveBeenCalledWith(expect.anything(), store);
-            expect(initialize).toHaveBeenCalledTimes(2);
-            const registry2 = initialize.mock.calls[0][0];
-            const mockComponent2 = 'mockRootComponent2';
-            registry2.registerRootComponent(mockComponent2);
-
-            dispatchArg = store.dispatch.mock.calls[2][0];
+            dispatchArg = store.dispatch.mock.calls[1][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifestv2);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(6);
-            const dispatchRemovedArg = store.dispatch.mock.calls[3][0];
-            expect(typeof dispatchRemovedArg).toBe('function');
-            dispatchRemovedArg(store.dispatch);
-
-            dispatchArg = store.dispatch.mock.calls[4][0];
-            expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
-            expect(dispatchArg.data).toBe(manifestv2);
-
-            const dispatchReceivedArg2 = store.dispatch.mock.calls[5][0];
-            expect(dispatchReceivedArg2.type).toBe(ActionTypes.RECEIVED_PLUGIN_COMPONENT);
-            expect(dispatchReceivedArg2.name).toBe('Root');
-            expect(dispatchReceivedArg2.data.component).toBe(mockComponent2);
-            expect(dispatchReceivedArg2.data.pluginId).toBe(manifest.id);
-
-            expect(store.dispatch).toHaveBeenCalledTimes(8);
-            const dispatchReceivedArg4 = store.dispatch.mock.calls[7][0];
-
-            expect(dispatchReceivedArg4.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
-            expect(dispatchReceivedArg4.data).toBe(manifestv2);
 
             expect(console.error).toHaveBeenCalledTimes(0);
         });
@@ -1175,49 +1078,30 @@ describe('handlePluginEnabled/handlePluginDisabled', () => {
         });
 
         test('when a plugin is disabled', () => {
+            const {loadPlugin, removePlugin} = require('plugins');
             const manifest = {
                 ...baseManifest,
                 id: 'com.mattermost.demo-3-plugin',
             };
-            const initialize = jest.fn();
-            window.plugins = {
-                [manifest.id]: {
-                    initialize,
-                },
-            };
-
-            const mockScript = {};
-            document.createElement.mockReturnValue(mockScript);
-
-            expect(mockScript.onload).toBeUndefined();
 
             // Enable plugin
             handlePluginEnabled({data: {manifest}});
 
-            expect(document.createElement).toHaveBeenCalledWith('script');
-            expect(document.createElement).toHaveBeenCalledTimes(1);
-
-            // Disable plugin
-            handlePluginDisabled({data: {manifest}});
-
-            // Assert handlePluginDisabled is idempotent
-            handlePluginDisabled({data: {manifest}});
-
-            expect(store.dispatch).toHaveBeenCalledTimes(3);
+            expect(loadPlugin).toHaveBeenCalledWith(manifest);
 
             const dispatchArg = store.dispatch.mock.calls[0][0];
             expect(dispatchArg.type).toBe(ActionTypes.RECEIVED_WEBAPP_PLUGIN);
             expect(dispatchArg.data).toBe(manifest);
 
-            const dispatchRemovedArg = store.dispatch.mock.calls[1][0];
+            // Disable plugin
+            handlePluginDisabled({data: {manifest}});
 
-            expect(typeof dispatchRemovedArg).toBe('function');
-            dispatchRemovedArg(store.dispatch);
+            expect(removePlugin).toHaveBeenCalledWith(manifest);
 
-            expect(store.dispatch).toHaveBeenCalledTimes(5);
-            const dispatchReceivedArg3 = store.dispatch.mock.calls[4][0];
-            expect(dispatchReceivedArg3.type).toBe(ActionTypes.REMOVED_WEBAPP_PLUGIN);
-            expect(dispatchReceivedArg3.data).toBe(manifest);
+            // Assert handlePluginDisabled is idempotent
+            handlePluginDisabled({data: {manifest}});
+
+            expect(removePlugin).toHaveBeenCalledTimes(2);
 
             expect(console.error).toHaveBeenCalledTimes(0);
         });

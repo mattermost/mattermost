@@ -6,10 +6,20 @@ import {MarkUnread} from 'mattermost-redux/constants/channels';
 import testConfigureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses} from 'utils/constants';
-import * as NotificationSounds from 'utils/notification_sounds';
-import * as utils from 'utils/notifications';
 
 import {sendDesktopNotification, isDesktopSoundEnabled, getDesktopNotificationSound} from './notification_actions';
+
+const mockShowNotification = jest.fn();
+jest.mock('utils/notifications', () => ({
+    ...jest.requireActual('utils/notifications'),
+    showNotification: (...args) => mockShowNotification(...args),
+}));
+
+const mockDing = jest.fn();
+jest.mock('utils/notification_sounds', () => ({
+    ...jest.requireActual('utils/notification_sounds'),
+    ding: (...args) => mockDing(...args),
+}));
 
 describe('notification_actions', () => {
     describe('sendDesktopNotification', () => {
@@ -18,12 +28,12 @@ describe('notification_actions', () => {
         let crt;
         let msgProps;
         let post;
-        let spy;
         let userSettings;
 
         beforeEach(() => {
-            spy = jest.spyOn(utils, 'showNotification').mockReturnValue(async () => ({status: 'success'}));
-            NotificationSounds.ding = jest.fn();
+            mockShowNotification.mockClear();
+            mockShowNotification.mockReturnValue(async () => ({status: 'success'}));
+            mockDing.mockClear();
 
             crt = {
                 user_id: 'current_user_id',
@@ -202,7 +212,7 @@ describe('notification_actions', () => {
             window.focus = jest.fn();
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).toHaveBeenCalledWith({
+                expect(mockShowNotification).toHaveBeenCalledWith({
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
@@ -210,7 +220,7 @@ describe('notification_actions', () => {
                     onClick: expect.any(Function),
                 });
 
-                spy.mock.calls[0][0].onClick();
+                mockShowNotification.mock.calls[0][0].onClick();
 
                 expect(getHistory().push).toHaveBeenCalledWith('/team/channels/utopia');
                 expect(window.focus).toHaveBeenCalled();
@@ -223,7 +233,7 @@ describe('notification_actions', () => {
             baseState.views.browser.focused = true;
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -233,7 +243,7 @@ describe('notification_actions', () => {
             baseState.entities.channels.currentChannelId = 'another_channel_id';
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).toHaveBeenCalled();
+                expect(mockShowNotification).toHaveBeenCalled();
             });
         });
 
@@ -242,7 +252,7 @@ describe('notification_actions', () => {
             const store = testConfigureStore(baseState);
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -252,7 +262,7 @@ describe('notification_actions', () => {
             const store = testConfigureStore(baseState);
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -262,7 +272,7 @@ describe('notification_actions', () => {
             const store = testConfigureStore(baseState);
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -272,7 +282,7 @@ describe('notification_actions', () => {
 
             const store = testConfigureStore(baseState);
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).toHaveBeenCalled();
+                expect(mockShowNotification).toHaveBeenCalled();
             });
         });
 
@@ -283,7 +293,7 @@ describe('notification_actions', () => {
             const store = testConfigureStore(baseState);
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).toHaveBeenCalled();
+                expect(mockShowNotification).toHaveBeenCalled();
             });
         });
 
@@ -293,7 +303,7 @@ describe('notification_actions', () => {
             post.user_id = 'current_user_id';
 
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -301,7 +311,7 @@ describe('notification_actions', () => {
             const store = testConfigureStore(baseState);
             post.type = 'system_message';
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -310,7 +320,7 @@ describe('notification_actions', () => {
             post.type = 'system_add_to_channel';
             post.props.addedUserId = 'current_user_id';
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).toHaveBeenCalled();
+                expect(mockShowNotification).toHaveBeenCalled();
             });
         });
 
@@ -319,7 +329,7 @@ describe('notification_actions', () => {
             post.type = 'system_add_to_channel';
             post.props.addedUserId = 'not_current_user_id';
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -327,7 +337,7 @@ describe('notification_actions', () => {
             const store = testConfigureStore(baseState);
             post.channel_id = 'muted_channel_id';
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -349,7 +359,7 @@ describe('notification_actions', () => {
             };
             return store.dispatch(sendDesktopNotification(newPost, newMsgProps)).then((result) => {
                 expect(result).toEqual({data: {status: 'success'}});
-                expect(spy).toHaveBeenCalledWith({
+                expect(mockShowNotification).toHaveBeenCalledWith({
                     body: '@username: Where is Jessica Hyde?',
                     requireInteraction: false,
                     silent: false,
@@ -366,7 +376,7 @@ describe('notification_actions', () => {
             baseState.entities.users.statuses.current_user_id = status;
             const store = testConfigureStore(baseState);
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).not.toHaveBeenCalled();
+                expect(mockShowNotification).not.toHaveBeenCalled();
             });
         });
 
@@ -378,26 +388,24 @@ describe('notification_actions', () => {
             baseState.entities.users.statuses.current_user_id = status;
             const store = testConfigureStore(baseState);
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(spy).toHaveBeenCalled();
+                expect(mockShowNotification).toHaveBeenCalled();
             });
         });
 
         test('should default sound when no sound is specified', () => {
-            const dingSpy = jest.spyOn(NotificationSounds, 'ding');
             baseState.entities.users.profiles.current_user_id.notify_props.desktop_sound = 'true';
             const store = testConfigureStore(baseState);
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(dingSpy).toHaveBeenCalledWith('Bing');
+                expect(mockDing).toHaveBeenCalledWith('Bing');
             });
         });
 
         test('should use specified sound when specified', () => {
-            const dingSpy = jest.spyOn(NotificationSounds, 'ding');
             baseState.entities.users.profiles.current_user_id.notify_props.desktop_sound = 'true';
             baseState.entities.users.profiles.current_user_id.notify_props.desktop_notification_sound = 'Crackle';
             const store = testConfigureStore(baseState);
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                expect(dingSpy).toHaveBeenCalledWith('Crackle');
+                expect(mockDing).toHaveBeenCalledWith('Crackle');
             });
         });
 
@@ -409,7 +417,7 @@ describe('notification_actions', () => {
             test('should notify user on replies regardless of them being followed', () => {
                 const store = testConfigureStore(baseState);
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).toHaveBeenCalled();
+                    expect(mockShowNotification).toHaveBeenCalled();
                 });
             });
         });
@@ -426,7 +434,7 @@ describe('notification_actions', () => {
 
                 const store = testConfigureStore(baseState);
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).not.toHaveBeenCalled();
+                    expect(mockShowNotification).not.toHaveBeenCalled();
                 });
             });
 
@@ -437,7 +445,7 @@ describe('notification_actions', () => {
 
                 const store = testConfigureStore(baseState);
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).not.toHaveBeenCalled();
+                    expect(mockShowNotification).not.toHaveBeenCalled();
                 });
             });
 
@@ -450,14 +458,14 @@ describe('notification_actions', () => {
 
                 const store = testConfigureStore(baseState);
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).toHaveBeenCalledWith({
+                    expect(mockShowNotification).toHaveBeenCalledWith({
                         body: '@username: Where is Jessica Hyde?',
                         requireInteraction: false,
                         silent: false,
                         title: 'Reply in Utopia',
                         onClick: expect.any(Function),
                     });
-                    spy.mock.calls[0][0].onClick();
+                    mockShowNotification.mock.calls[0][0].onClick();
 
                     expect(getHistory().push).toHaveBeenCalledWith('/team/pl/post_id');
                     expect(window.focus).toHaveBeenCalled();
@@ -475,7 +483,7 @@ describe('notification_actions', () => {
                 msgProps.team_id = '';
 
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).toHaveBeenCalled();
+                    expect(mockShowNotification).toHaveBeenCalled();
                 });
             });
             test('should not notify for any message when channel setting is DEFAULT and user setting is NONE', async () => {
@@ -487,7 +495,7 @@ describe('notification_actions', () => {
                 msgProps.team_id = '';
 
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).not.toHaveBeenCalled();
+                    expect(mockShowNotification).not.toHaveBeenCalled();
                 });
             });
             test('should notify when channel setting MENTION and there is a explicit mention', async () => {
@@ -498,7 +506,7 @@ describe('notification_actions', () => {
                 msgProps.team_id = '';
 
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).toHaveBeenCalled();
+                    expect(mockShowNotification).toHaveBeenCalled();
                 });
             });
             test('should notify when channel setting MENTION and there is a keyword mention', async () => {
@@ -509,7 +517,7 @@ describe('notification_actions', () => {
                 msgProps.team_id = '';
 
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).toHaveBeenCalled();
+                    expect(mockShowNotification).toHaveBeenCalled();
                 });
             });
             test('should notify when channel setting MENTION and there is the first name', async () => {
@@ -520,7 +528,7 @@ describe('notification_actions', () => {
                 msgProps.team_id = '';
 
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).toHaveBeenCalled();
+                    expect(mockShowNotification).toHaveBeenCalled();
                 });
             });
             test('should notify when channel setting MENTION and there is a channel mention', async () => {
@@ -531,7 +539,7 @@ describe('notification_actions', () => {
                 msgProps.team_id = '';
 
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).toHaveBeenCalled();
+                    expect(mockShowNotification).toHaveBeenCalled();
                 });
             });
             test('should not notify when channel setting MENTION and there is no explicit mention', async () => {
@@ -541,7 +549,7 @@ describe('notification_actions', () => {
                 msgProps.team_id = '';
 
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
-                    expect(spy).not.toHaveBeenCalled();
+                    expect(mockShowNotification).not.toHaveBeenCalled();
                 });
             });
         });

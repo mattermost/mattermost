@@ -17,24 +17,27 @@ import FileUpload, {type FileUpload as FileUploadClass} from './file_upload';
 
 const generatedIdRegex = /[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}/;
 
-jest.mock('utils/file_utils', () => {
-    const original = jest.requireActual('utils/file_utils');
-    return {
-        ...original,
-        canDownloadFiles: jest.fn(() => true),
-    };
-});
+jest.mock('utils/file_utils', () => ({
+    canDownloadFiles: jest.fn(() => true),
+    canUploadFiles: jest.fn(() => true),
+}));
 
-jest.mock('utils/utils', () => {
-    const original = jest.requireActual('utils/utils');
-    return {
-        ...original,
-        clearFileInput: jest.fn(),
-        sortFilesByName: jest.fn((files) => {
-            return files.sort((a: File, b: File) => a.name.localeCompare(b.name, 'en', {numeric: true}));
-        }),
-    };
-});
+jest.mock('utils/utils', () => ({
+    clearFileInput: jest.fn(),
+    generateId: jest.fn(() => 'generated_id_12345678-1234-1234-1234-123456789012'),
+    sortFilesByName: jest.fn((files) => {
+        return files.sort((a: File, b: File) => a.name.localeCompare(b.name, 'en', {numeric: true}));
+    }),
+    localizeMessage: jest.fn((id: string, defaultMessage: string) => defaultMessage),
+    imageURLForUser: jest.fn(() => ''),
+}));
+
+jest.mock('utils/limits', () => ({
+    FileSizes: {
+        Gigabyte: 1073741824,
+        Megabyte: 1048576,
+    },
+}));
 
 const RealDate = Date;
 const RealFile = File;
@@ -219,13 +222,13 @@ describe('components/FileUpload', () => {
         );
 
         const instance = wrapper.instance() as FileUploadClass;
-        jest.spyOn(instance, 'containsEventTarget').mockReturnValue(true);
-        const spy = jest.spyOn(instance, 'checkPluginHooksAndUploadFiles');
+        instance.containsEventTarget = jest.fn().mockReturnValue(true);
+        instance.checkPluginHooksAndUploadFiles = jest.fn(instance.checkPluginHooksAndUploadFiles);
 
         document.dispatchEvent(event);
         expect(event.preventDefault).toHaveBeenCalled();
-        expect(spy).toHaveBeenCalledWith([expect.objectContaining({name: expectedFileName})]);
-        expect(spy.mock.calls[0][0][0]).toBeInstanceOf(Blob); // first call, first arg, first item in array
+        expect(instance.checkPluginHooksAndUploadFiles).toHaveBeenCalledWith([expect.objectContaining({name: expectedFileName})]);
+        expect((instance.checkPluginHooksAndUploadFiles as jest.Mock).mock.calls[0][0][0]).toBeInstanceOf(Blob); // first call, first arg, first item in array
         expect(baseProps.onFileUploadChange).toHaveBeenCalled();
     });
 
@@ -245,11 +248,11 @@ describe('components/FileUpload', () => {
             />,
         );
         const instance = wrapper.instance() as FileUploadClass;
-        const spy = jest.spyOn(instance, 'containsEventTarget').mockReturnValue(true);
+        instance.containsEventTarget = jest.fn().mockReturnValue(true);
 
         document.dispatchEvent(event);
 
-        expect(spy).toHaveBeenCalled();
+        expect(instance.containsEventTarget).toHaveBeenCalled();
         expect(event.preventDefault).not.toHaveBeenCalled();
     });
 

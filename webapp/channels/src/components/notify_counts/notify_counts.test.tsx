@@ -4,17 +4,25 @@
 import {mount} from 'enzyme';
 import React from 'react';
 
-import * as ChannelSelectors from 'mattermost-redux/selectors/entities/channels';
-
 import {mockStore} from 'tests/test_store';
 
 import NotifyCounts from './';
 
-describe('components/notify_counts', () => {
-    const getUnreadStatusInCurrentTeam = jest.spyOn(ChannelSelectors, 'getUnreadStatusInCurrentTeam');
+const mockGetUnreadStatusInCurrentTeam = jest.fn();
 
+jest.mock('mattermost-redux/selectors/entities/channels', () => ({
+    getUnreadStatusInCurrentTeam: (...args: any[]) => mockGetUnreadStatusInCurrentTeam(...args),
+    basicUnreadMeta: jest.fn((status) => {
+        if (typeof status === 'number') {
+            return {unreadMentionCount: status, isUnread: true};
+        }
+        return {unreadMentionCount: 0, isUnread: Boolean(status)};
+    }),
+}));
+
+describe('components/notify_counts', () => {
     test('should show unread mention count', () => {
-        getUnreadStatusInCurrentTeam.mockReturnValue(22);
+        mockGetUnreadStatusInCurrentTeam.mockReturnValue(22);
 
         const {mountOptions} = mockStore();
         const wrapper = mount(<NotifyCounts/>, mountOptions);
@@ -23,7 +31,7 @@ describe('components/notify_counts', () => {
     });
 
     test('should show unread messages', () => {
-        getUnreadStatusInCurrentTeam.mockReturnValue(true);
+        mockGetUnreadStatusInCurrentTeam.mockReturnValue(true);
 
         const {mountOptions} = mockStore();
         const wrapper = mount(<NotifyCounts/>, mountOptions);
@@ -32,7 +40,7 @@ describe('components/notify_counts', () => {
     });
 
     test('should show not show unread indicator', () => {
-        getUnreadStatusInCurrentTeam.mockReturnValue(false);
+        mockGetUnreadStatusInCurrentTeam.mockReturnValue(false);
 
         const {mountOptions} = mockStore();
         const wrapper = mount(<NotifyCounts/>, mountOptions);
