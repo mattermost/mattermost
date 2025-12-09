@@ -5,7 +5,7 @@ import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {useFocusTrap} from '@mattermost/components/src/hooks/useFocusTrap';
+import {useFocusTrap} from '@mattermost/components';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
