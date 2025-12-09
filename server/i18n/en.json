@@ -2657,10 +2657,6 @@
     "translation": "Unable to verify plugin signature."
   },
   {
-    "id": "api.post.burn_post.disabled.app_error",
-    "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
-  },
-  {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "You do not have permission to burn this post. You must be a member of the channel."
   },
@@ -2765,8 +2761,12 @@
     "translation": "Unable to get the pending post."
   },
   {
-    "id": "api.post.fill_in_post_props.burn_on_read.app_error",
-    "translation": "An error occurred while processing burn-on-read post properties."
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Burn-on-read posts are not enabled. Please enable the feature flag and service setting."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Burn-on-read posts require an Enterprise Advanced license."
   },
   {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",

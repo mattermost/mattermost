@@ -5492,6 +5492,11 @@ func TestRestorePostVersion(t *testing.T) {
 }
 
 func TestRevealPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
 	th := SetupEnterprise(t).InitBasic(t)
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
@@ -5501,7 +5506,7 @@ func TestRevealPost(t *testing.T) {
 	enableFeature := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.BurnOnRead = true
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
 		})
 	}
 
@@ -5539,24 +5544,23 @@ func TestRevealPost(t *testing.T) {
 		return user2, client2
 	}
 
-	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	t.Run("feature not enabled, should still allow reveal", func(t *testing.T) {
+		enableFeature()
+		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BurnOnRead = false
 		})
 
-		post := createBurnOnReadPost(th.Client, th.BasicChannel)
-
-		revealedPost, resp, err := client.RevealPost(context.Background(), post.Id)
-		require.Error(t, err)
-		if client == th.LocalClient {
-			CheckNotFoundStatus(t, resp)
-		} else {
-			CheckNotImplementedStatus(t, resp)
-			CheckErrorID(t, err, "api.post.reveal_post.disabled.app_error")
-		}
-		require.Nil(t, revealedPost)
-	}, "feature not enabled via feature flag")
+		revealedPost, resp, err := th.Client.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, revealedPost)
+		require.Equal(t, post.Id, revealedPost.Id)
+		require.Equal(t, "burn on read message", revealedPost.Message)
+		require.NotNil(t, revealedPost.Metadata)
+		require.NotZero(t, revealedPost.Metadata.ExpireAt)
+	})
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
 		enableFeature()
@@ -5706,6 +5710,11 @@ func TestRevealPost(t *testing.T) {
 }
 
 func TestCreateBurnOnReadPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
 	th := SetupEnterprise(t).InitBasic(t)
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
@@ -5715,7 +5724,7 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 	enableFeature := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.BurnOnRead = true
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
 		})
 	}
 
@@ -5823,6 +5832,11 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 }
 
 func TestBurnPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
 	th := SetupEnterprise(t).InitBasic(t)
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
@@ -5832,7 +5846,7 @@ func TestBurnPost(t *testing.T) {
 	enableFeature := func() {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.BurnOnRead = true
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
 		})
 	}
 
@@ -5870,23 +5884,21 @@ func TestBurnPost(t *testing.T) {
 		return user2, client2
 	}
 
-	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	t.Run("feature not enabled, burn post allowed", func(t *testing.T) {
+		enableFeature()
+		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.BurnOnRead = false
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(false)
 		})
 
-		post := createBurnOnReadPost(th.Client, th.BasicChannel)
-
-		resp, err := client.BurnPost(context.Background(), post.Id)
-		require.Error(t, err)
-		if client == th.LocalClient {
-			CheckNotFoundStatus(t, resp)
-		} else {
-			CheckNotImplementedStatus(t, resp)
-			CheckErrorID(t, err, "api.post.burn_post.disabled.app_error")
-		}
-	}, "feature not enabled via feature flag")
+		_, resp, err := th.Client.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		resp, err = th.Client.BurnPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
 		enableFeature()

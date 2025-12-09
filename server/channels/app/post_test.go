@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"testing"
@@ -28,7 +29,7 @@ import (
 func enableBoRFeature(th *TestHelper) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.BurnOnRead = true
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
 	})
 }
 
@@ -1327,6 +1328,10 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("Should remove post file IDs for burn on read posts", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+		t.Cleanup(func() {
+			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+		})
 		th := Setup(t).InitBasic(t)
 		enableBoRFeature(th)
 
@@ -4403,6 +4408,11 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 }
 
 func TestRevealPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -4611,6 +4621,11 @@ func TestRevealPost(t *testing.T) {
 }
 
 func TestBurnPost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -4618,7 +4633,7 @@ func TestBurnPost(t *testing.T) {
 	// so we set these to enable the feature to create a burn on read post
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.BurnOnRead = true
+		cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
 	})
 
 	th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)  // author of the post
