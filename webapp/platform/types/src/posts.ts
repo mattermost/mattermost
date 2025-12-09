@@ -63,11 +63,11 @@ export type PostPriorityMetadata = {
 }
 
 export type PostTranslation = {
-    lang: string;
     text: string;
     type: string;
     confidence?: number;
     state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+    source_lang?: string;
 };
 
 export type PostMetadata = {
@@ -78,7 +78,7 @@ export type PostMetadata = {
     reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
-    translations?: PostTranslation[];
+    translations?: Record<string, PostTranslation>;
 };
 
 export type Post = {

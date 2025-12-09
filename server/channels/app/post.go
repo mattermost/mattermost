@@ -384,6 +384,17 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// so we just return the one that was passed with post
 	rpost = a.PreparePostForClient(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true})
 
+	// Initialize translations for the post before sending WebSocket events
+	// This ensures translation metadata is included in the 'posted' event
+	if a.Srv().Channels().AutoTranslation != nil {
+		enabled, err := a.Srv().Channels().AutoTranslation.IsChannelEnabled(rpost.ChannelId)
+		if err == nil && enabled {
+			_, _ = a.Srv().Channels().AutoTranslation.Translate(rctx.Context(), "post", rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+		} else if err != nil {
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
+		}
+	}
+
 	a.applyPostWillBeConsumedHook(&rpost)
 
 	if rpost.RootId != "" {
@@ -413,17 +424,6 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	if err := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
 		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
-	}
-
-	if a.Srv().Channels().AutoTranslation != nil {
-		// Verify if auto-translation is enabled for this channel before calling Translate
-		// This avoids unnecessary overhead for disabled channels
-		enabled, err := a.Srv().Channels().AutoTranslation.IsChannelEnabled(rpost.ChannelId)
-		if err == nil && enabled {
-			_, _ = a.Srv().Channels().AutoTranslation.Translate(rctx.Context(), "post", rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
-		} else if err != nil {
-			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
-		}
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
