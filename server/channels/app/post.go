@@ -513,7 +513,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 		}
 
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelTypeOpen {
+			if mentioned.Type == model.ChannelTypeOpen && a.HasPermissionToReadChannel(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					c.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
