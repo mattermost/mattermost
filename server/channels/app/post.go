@@ -547,8 +547,12 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 	}
 
 	if post.Type == model.PostTypeBurnOnRead {
-		if !model.MinimumEnterpriseAdvancedLicense(a.Srv().License()) || !a.Config().FeatureFlags.BurnOnRead || !model.SafeDereference(a.Config().ServiceSettings.EnableBurnOnRead) {
-			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.app_error", nil, "", http.StatusNotImplemented)
+		if !model.MinimumEnterpriseAdvancedLicense(a.Srv().License()) {
+			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.license.app_error", nil, "", http.StatusNotImplemented)
+		}
+
+		if !a.Config().FeatureFlags.BurnOnRead || !model.SafeDereference(a.Config().ServiceSettings.EnableBurnOnRead) {
+			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.config.app_error", nil, "", http.StatusNotImplemented)
 		}
 
 		// Apply burn-on-read expiration settings from configuration
@@ -1020,6 +1024,9 @@ func (a *App) processBroadcastHookForBurnOnRead(rctx request.CTX, postJSON strin
 	if appErr != nil {
 		return appErr
 	}
+
+	tmpPost = a.PreparePostForClient(rctx, tmpPost, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
+
 	revealedPostJSON, err := tmpPost.ToJSON()
 	if err != nil {
 		return model.NewAppError("processBroadcastHookForBurnOnRead", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

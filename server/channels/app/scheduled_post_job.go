@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -189,11 +190,10 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, err
 	}
 
-	createPostFlags := model.CreatePostFlags{
+	_, appErr = a.CreatePost(rctx.WithContext(context.WithValue(rctx.Context(), model.PostContextKeyIsScheduledPost, true)), post, channel, model.CreatePostFlags{
 		TriggerWebhooks: true,
 		SetOnline:       false,
-	}
-	_, appErr = a.CreatePost(rctx, post, channel, createPostFlags)
+	})
 	if appErr != nil {
 		rctx.Logger().Error(
 			"App.processScheduledPostBatch: failed to post scheduled post",

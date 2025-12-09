@@ -1515,11 +1515,6 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	if !c.App.Config().FeatureFlags.BurnOnRead {
-		c.Err = model.NewAppError("burnPost", "api.post.burn_post.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	userId := c.AppContext.Session().UserId
 	postId := c.Params.PostId
 
