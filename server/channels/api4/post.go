@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -131,13 +132,17 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// For burn-on-read posts, the author should see the revealed content in the API response
 	// to avoid relying on websocket events which may fail due to connection issues
 	if rp.Type == model.PostTypeBurnOnRead && rp.UserId == c.AppContext.Session().UserId {
-		revealedPost, appErr := c.App.GetSinglePost(c.AppContext, rp.Id, false)
+		// Force read from master DB to avoid replication delay issues in DB cluster environments.
+		// Without this, the replica might not have the post yet, causing "not found" errors.
+		masterCtx := sqlstore.RequestContextWithMaster(c.AppContext)
+		revealedPost, appErr := c.App.GetSinglePost(masterCtx, rp.Id, false)
 		if appErr != nil {
 			c.Err = appErr
 			return
 		}
-		// PreparePostForClient will reveal the post for the author
-		rp = c.App.PreparePostForClient(c.AppContext, revealedPost, &model.PreparePostForClientOpts{
+		// GetSinglePost calls RevealBurnOnReadPostsForUser which reveals the post for the author,
+		// then PreparePostForClient adds metadata (reactions, files, embeds).
+		rp = c.App.PreparePostForClient(masterCtx, revealedPost, &model.PreparePostForClientOpts{
 			IsNewPost: true,
 		})
 	}

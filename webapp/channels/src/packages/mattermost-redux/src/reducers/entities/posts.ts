@@ -320,6 +320,11 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
         const currentPost = state[postId];
         const currentMetadata = currentPost.metadata || {};
+        const currentRecipients = currentMetadata.recipients || [];
+
+        // Merge new recipients with existing ones (don't replace).
+        // Server sends incremental updates (only the revealing user), so we must merge.
+        const mergedRecipients = [...new Set([...currentRecipients, ...recipients])];
 
         return {
             ...state,
@@ -327,7 +332,7 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
                 ...currentPost,
                 metadata: {
                     ...currentMetadata,
-                    recipients,
+                    recipients: mergedRecipients,
                 },
             },
         };
