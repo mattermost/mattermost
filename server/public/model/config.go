@@ -347,6 +347,7 @@ type ServiceSettings struct {
 	MaximumLoginAttempts                *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
+	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -415,24 +416,27 @@ type ServiceSettings struct {
 	EnableAPIUserDeletion                             *bool
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
-	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	EnableEmailInvitations                            *bool `access:"authentication_signup"`
-	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
-	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
-	EnableSVGs                                        *bool `access:"site_posts"`
-	EnableLatex                                       *bool `access:"site_posts"`
-	EnableInlineLatex                                 *bool `access:"site_posts"`
-	PostPriority                                      *bool `access:"site_posts"`
-	AllowPersistentNotifications                      *bool `access:"site_posts"`
-	AllowPersistentNotificationsForGuests             *bool `access:"site_posts"`
-	PersistentNotificationIntervalMinutes             *int  `access:"site_posts"`
-	PersistentNotificationMaxCount                    *int  `access:"site_posts"`
-	PersistentNotificationMaxRecipients               *int  `access:"site_posts"`
+	ExperimentalEnableHardenedMode                    *bool   `access:"experimental_features"`
+	ExperimentalStrictCSRFEnforcement                 *bool   `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	EnableEmailInvitations                            *bool   `access:"authentication_signup"`
+	DisableBotsWhenOwnerIsDeactivated                 *bool   `access:"integrations_bot_accounts"`
+	EnableBotAccountCreation                          *bool   `access:"integrations_bot_accounts"`
+	EnableSVGs                                        *bool   `access:"site_posts"`
+	EnableLatex                                       *bool   `access:"site_posts"`
+	EnableInlineLatex                                 *bool   `access:"site_posts"`
+	PostPriority                                      *bool   `access:"site_posts"`
+	AllowPersistentNotifications                      *bool   `access:"site_posts"`
+	AllowPersistentNotificationsForGuests             *bool   `access:"site_posts"`
+	PersistentNotificationIntervalMinutes             *int    `access:"site_posts"`
+	PersistentNotificationMaxCount                    *int    `access:"site_posts"`
+	PersistentNotificationMaxRecipients               *int    `access:"site_posts"`
+	EnableBurnOnRead                                  *bool   `access:"site_posts"`
+	BurnOnReadDurationMinutes                         *string `access:"site_posts"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
 	EnableAWSMetering                                 *bool   // telemetry: none
+	AWSMeteringTimeoutSeconds                         *int    `access:"write_restrictable,cloud_restrictable"`         // telemetry: none
 	SplitKey                                          *string `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	FeatureFlagSyncIntervalSeconds                    *int    `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
 	DebugSplit                                        *bool   `access:"experimental_feature_flags,write_restrictable"` // telemetry: none
@@ -545,6 +549,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOAuthServiceProvider == nil {
 		s.EnableOAuthServiceProvider = NewPointer(true)
+	}
+
+	if s.EnableDynamicClientRegistration == nil {
+		s.EnableDynamicClientRegistration = NewPointer(false)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -897,6 +905,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.EnableAWSMetering = NewPointer(false)
 	}
 
+	if s.AWSMeteringTimeoutSeconds == nil {
+		s.AWSMeteringTimeoutSeconds = NewPointer(30)
+	}
+
 	if s.SplitKey == nil {
 		s.SplitKey = NewPointer("")
 	}
@@ -963,6 +975,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.RefreshPostStatsRunTime == nil {
 		s.RefreshPostStatsRunTime = NewPointer("00:00")
+	}
+
+	if s.EnableBurnOnRead == nil {
+		s.EnableBurnOnRead = NewPointer(false)
+	}
+
+	if s.BurnOnReadDurationMinutes == nil {
+		s.BurnOnReadDurationMinutes = NewPointer("10")
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {
@@ -1474,7 +1494,7 @@ func (s *LogSettings) isValid() *AppError {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	err = cfg.IsValid()
+	err = cfg.IsValid(mlog.MlvlAll)
 	if err != nil {
 		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -1590,7 +1610,7 @@ func (s *ExperimentalAuditSettings) isValid() *AppError {
 		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	err = cfg.IsValid()
+	err = cfg.IsValid(mlog.MLvlAuditAll)
 	if err != nil {
 		return NewAppError("ExperimentalAuditSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -3421,7 +3441,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 // Sanitize cleans up the plugin settings by removing any sensitive information.
 // It does so by checking if the setting is marked as secret in the plugin manifest.
 // If it is, the setting is replaced with a fake value.
-// If a plugin is no longer installed, all settings of it's are sanitized.
+// If a plugin is no longer installed, no stored settings for that plugin are returned.
 // If the list of manifests in nil, i.e. plugins are disabled, all settings are sanitized.
 func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 	manifestMap := make(map[string]*Manifest, len(pluginManifests))
@@ -3437,6 +3457,10 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 			if manifest == nil {
 				// Don't return plugin settings for plugins that are not installed
 				delete(s.Plugins, id)
+				break
+			}
+			if manifest.SettingsSchema == nil {
+				// If the plugin doesn't define any settings, none of them can be secrets.
 				break
 			}
 
@@ -3652,6 +3676,7 @@ type GuestAccountsSettings struct {
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
+	EnableGuestMagicLink             *bool   `access:"authentication_guest_access"`
 }
 
 func (s *GuestAccountsSettings) SetDefaults() {
@@ -3673,6 +3698,10 @@ func (s *GuestAccountsSettings) SetDefaults() {
 
 	if s.RestrictCreationToDomains == nil {
 		s.RestrictCreationToDomains = NewPointer("")
+	}
+
+	if s.EnableGuestMagicLink == nil {
+		s.EnableGuestMagicLink = NewPointer(false)
 	}
 }
 

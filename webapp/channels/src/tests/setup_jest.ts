@@ -7,15 +7,16 @@ import * as util from 'node:util';
 
 import Adapter from '@cfaester/enzyme-adapter-react-18';
 import {configure} from 'enzyme';
+import nodeFetch from 'node-fetch';
 
 import '@testing-library/jest-dom';
-import 'isomorphic-fetch';
 
 import './performance_mock';
 import './redux-persist_mock';
 import './react-intl_mock';
 import './react-router-dom_mock';
 import './react-tippy_mock';
+import './react_virtualized_auto_sizer_mock';
 
 module.exports = async () => {
     // eslint-disable-next-line no-process-env
@@ -34,6 +35,10 @@ Object.defineProperty(window, 'location', {
         search: '',
     },
 });
+
+// The current version of jsdom that's used by jest-environment-jsdom 29 doesn't support fetch, so we have to
+// use node-fetch despite some mismatched parameters.
+globalThis.fetch = nodeFetch as unknown as typeof fetch;
 
 const supportedCommands = ['copy', 'insertText'];
 

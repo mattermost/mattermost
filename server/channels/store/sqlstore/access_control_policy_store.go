@@ -19,6 +19,7 @@ import (
 )
 
 const MaxPerPage = 1000
+const DefaultPerPage = 10
 
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
@@ -381,6 +382,85 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 	return existingPolicy, nil
 }
 
+func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	// Group by active status for batch updates
+	activeTrue := []string{}
+	activeFalse := []string{}
+	ids := make([]any, 0, len(list))
+	for _, entry := range list {
+		ids = append(ids, entry.ID)
+		if entry.Active {
+			activeTrue = append(activeTrue, entry.ID)
+			continue
+		}
+		activeFalse = append(activeFalse, entry.ID)
+	}
+
+	// Update active=true policies
+	if len(activeTrue) > 0 {
+		query, args, qbErr := s.getQueryBuilder().
+			Update("AccessControlPolicies").
+			Set("Active", true).
+			Where(sq.Eq{"ID": activeTrue}).
+			ToSql()
+
+		if qbErr != nil {
+			return nil, errors.Wrap(qbErr, "failed to build active=true update query")
+		}
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update active=true policies")
+		}
+	}
+
+	// Update active=false policies
+	if len(activeFalse) > 0 {
+		query, args, qbErr := s.getQueryBuilder().
+			Update("AccessControlPolicies").
+			Set("Active", false).
+			Where(sq.Eq{"ID": activeFalse}).
+			ToSql()
+
+		if qbErr != nil {
+			return nil, errors.Wrap(qbErr, "failed to build active=false update query")
+		}
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update active=false policies")
+		}
+	}
+
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder.Where(sq.Eq{"ID": ids})
+
+	err = tx.SelectBuilder(&p, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies with ids=%v", ids)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return policies, nil
+}
+
 func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.AccessControlPolicy, error) {
 	p := storeAccessControlPolicy{}
 	query := s.selectQueryBuilder.Where(sq.Eq{"ID": id})
@@ -482,7 +562,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
@@ -519,19 +599,11 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	var query sq.SelectBuilder
 	if opts.IncludeChildren && opts.ParentID == "" {
 		columns := accessControlPolicySliceColumns("p")
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
+		childIDs := `COALESCE((SELECT JSON_AGG(c.ID)
      FROM AccessControlPolicies c
-	 WHERE c.Type != 'parent' 
+	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
-			columns = append(columns, childIDs)
-		} else {
-			childIDs := `COALESCE((SELECT JSON_ARRAYAGG(c.ID) 
-     FROM AccessControlPolicies c
-     WHERE c.Type != 'parent' 
-     AND JSON_SEARCH(c.Data->'$.imports', 'one', p.ID) IS NOT NULL), JSON_ARRAY()) AS ChildIDs`
-			columns = append(columns, childIDs)
-		}
+		columns = append(columns, childIDs)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
 	} else {
 		query = s.selectQueryBuilder
@@ -552,15 +624,9 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	if opts.ParentID != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
-			query = query.Where(condition)
-			count = count.Where(condition)
-		} else {
-			condition := sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID))
-			query = query.Where(condition)
-			count = count.Where(condition)
-		}
+		condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
+		query = query.Where(condition)
+		count = count.Where(condition)
 	}
 
 	if opts.Active {
@@ -582,12 +648,13 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
 
 	query = query.Limit(limit)
+	query = query.OrderBy("Id ASC")
 
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {

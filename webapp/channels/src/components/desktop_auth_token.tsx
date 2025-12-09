@@ -5,12 +5,16 @@ import classNames from 'classnames';
 import crypto from 'crypto';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useLocation} from 'react-router-dom';
 
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+
+import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {loginWithDesktopToken} from 'actions/views/login';
 
 import DesktopApp from 'utils/desktop_api';
+import {isDesktopApp} from 'utils/user_agent';
 
 import './desktop_auth_token.scss';
 
@@ -38,6 +42,8 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
 
     const serverToken = query.get('server_token');
     const receivedClientToken = query.get('client_token');
+    const redirectTo = query.get('redirect_to');
+    const currentUser = useSelector(getCurrentUser);
     const storedClientToken = sessionStorage.getItem(DESKTOP_AUTH_PREFIX);
     const [status, setStatus] = useState(serverToken ? DesktopAuthStatus.LoggedIn : DesktopAuthStatus.None);
     const [showBottomMessage, setShowBottomMessage] = useState<boolean>();
@@ -83,6 +89,16 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     };
 
     useEffect(() => {
+        if (currentUser) {
+            if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
+                history.push(redirectTo);
+                return;
+            }
+            redirectUserToDefaultTeam();
+        }
+    }, []);
+
+    useEffect(() => {
         setShowBottomMessage(false);
 
         const timeout = setTimeout(() => {
@@ -98,7 +114,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
         if (serverToken) {
             if (storedClientToken) {
                 tryDesktopLogin();
-            } else {
+            } else if (!isDesktopApp()) {
                 forwardToDesktopApp();
             }
             return;
