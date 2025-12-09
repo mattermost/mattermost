@@ -35,6 +35,11 @@ jest.mock('components/thread_popout', () => ({
     __esModule: true,
     default: () => <div data-testid='thread-popout'>{'Thread Popout'}</div>,
 }));
+
+jest.mock('components/rhs_popout', () => ({
+    __esModule: true,
+    default: () => <div data-testid='rhs-popout'>{'RHS Popout'}</div>,
+}));
 jest.mock('utils/popouts/use_browser_popout', () => ({
     __esModule: true,
     useBrowserPopout: jest.fn(),
@@ -127,6 +132,16 @@ describe('PopoutController', () => {
         );
 
         expect(screen.getByTestId('thread-popout')).toBeInTheDocument();
+    });
+
+    it('should render rhs popout for rhs route', () => {
+        renderWithContext(
+            <MemoryRouter initialEntries={['/_popout/rhs/test-team/channel-identifier']}>
+                <PopoutController {...baseRouteProps}/>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('rhs-popout')).toBeInTheDocument();
     });
 
     it('should maintain body classes on re-render', () => {
