@@ -27,7 +27,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
           "listen": [Function],
           "location": Object {
             "hash": "",
-            "pathname": "undefinedundefined",
+            "pathname": "/",
             "search": "",
             "state": undefined,
           },
