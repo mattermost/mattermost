@@ -10,7 +10,7 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 
 import {useTeamByName} from 'components/common/hooks/use_team';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import RhsPopout from './rhs_popout';
@@ -46,6 +46,11 @@ jest.mock('components/common/hooks/use_team', () => ({
 jest.mock('components/unreads_status_handler', () => ({
     __esModule: true,
     default: () => <div data-testid='unreads-status-handler'>{'UnreadsStatusHandler'}</div>,
+}));
+
+jest.mock('components/rhs_plugin_popout', () => ({
+    __esModule: true,
+    default: () => <div data-testid='rhs-plugin-popout'>{'RHS Plugin Popout'}</div>,
 }));
 
 const mockDispatch = jest.fn();
@@ -117,6 +122,19 @@ describe('RhsPopout', () => {
         expect(container.querySelector('.main-wrapper.rhs-popout')).toBeInTheDocument();
         expect(container.querySelector('.sidebar--right')).toBeInTheDocument();
         expect(container.querySelector('.sidebar-right__body')).toBeInTheDocument();
+    });
+
+    it('should render RhsPluginPopout for plugin route', () => {
+        renderWithContext(
+            <MemoryRouter initialEntries={['/_popout/rhs/team1/channel1/plugin/test-plugin']}>
+                <Route
+                    path='/_popout/rhs/:team/:identifier'
+                    component={RhsPopout}
+                />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('rhs-plugin-popout')).toBeInTheDocument();
     });
 });
 

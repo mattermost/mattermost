@@ -16,6 +16,7 @@ import ModalController from 'components/modal_controller';
 import RhsPopout from 'components/rhs_popout';
 import ThreadPopout from 'components/thread_popout';
 
+import Pluggable from 'plugins/pluggable';
 import {TEAM_NAME_PATH_PATTERN, ID_PATH_PATTERN, IDENTIFIER_PATH_PATTERN} from 'utils/path';
 import {useBrowserPopout} from 'utils/popouts/use_browser_popout';
 
@@ -39,6 +40,7 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     return (
         <LoggedIn {...routeProps}>
             <ModalController/>
+            <Pluggable pluggableName='Root'/>
             <Switch>
                 <Route
                     path={`/_popout/thread/:team(${TEAM_NAME_PATH_PATTERN})/:postId(${ID_PATH_PATTERN})`}

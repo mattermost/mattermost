@@ -50,6 +50,13 @@ jest.mock('components/logged_in', () => ({
     default: ({children}: {children: React.ReactNode}) => <div data-testid='logged-in'>{children}</div>,
 }));
 
+jest.mock('plugins/pluggable', () => ({
+    __esModule: true,
+    default: ({pluggableName}: {pluggableName: string}) => (
+        <div data-testid={`pluggable-${pluggableName}`}>{`Pluggable: ${pluggableName}`}</div>
+    ),
+}));
+
 const mockGetMe = getMe as jest.MockedFunction<typeof getMe>;
 const mockLoadStatusesByIds = loadStatusesByIds as jest.MockedFunction<typeof loadStatusesByIds>;
 
@@ -191,5 +198,14 @@ describe('PopoutController', () => {
 
         expect(mockLoadStatusesByIds).toHaveBeenCalledTimes(1);
         expect(mockLoadStatusesByIds).toHaveBeenCalledWith([currentUserId]);
+    });
+
+    it('should render Pluggable for Root', () => {
+        renderWithContext(
+            <PopoutController {...baseRouteProps}/>,
+        );
+
+        expect(screen.getByTestId('pluggable-Root')).toBeInTheDocument();
+        expect(screen.getByText('Pluggable: Root')).toBeInTheDocument();
     });
 });

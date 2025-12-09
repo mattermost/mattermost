@@ -3,13 +3,14 @@
 
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {useParams} from 'react-router-dom';
+import {Route, Switch, useParams, useRouteMatch} from 'react-router-dom';
 
 import {fetchChannelsAndMembers, getChannelMembers, selectChannel} from 'mattermost-redux/actions/channels';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 
 import {useTeamByName} from 'components/common/hooks/use_team';
+import RhsPluginPopout from 'components/rhs_plugin_popout';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import type {GlobalState} from 'types/store';
@@ -17,6 +18,8 @@ import type {GlobalState} from 'types/store';
 import './rhs_popout.scss';
 
 export default function RhsPopout() {
+    const match = useRouteMatch();
+
     const dispatch = useDispatch();
     const {team: teamName, identifier: channelIdentifier} = useParams<{team: string; pluginId: string; identifier: string}>();
 
@@ -45,7 +48,14 @@ export default function RhsPopout() {
             <UnreadsStatusHandler/>
             <div className='main-wrapper rhs-popout'>
                 <div className='sidebar--right'>
-                    <div className='sidebar-right__body'/>
+                    <div className='sidebar-right__body'>
+                        <Switch>
+                            <Route
+                                path={`${match.path}/plugin/:pluginId`}
+                                component={RhsPluginPopout}
+                            />
+                        </Switch>
+                    </div>
                 </div>
             </div>
         </>
