@@ -547,9 +547,10 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 	}
 
 	if post.Type == model.PostTypeBurnOnRead {
-		if !model.MinimumEnterpriseAdvancedLicense(a.Srv().License()) {
+		if !model.MinimumEnterpriseAdvancedLicense(a.Srv().License()) || !a.Config().FeatureFlags.BurnOnRead || !model.SafeDereference(a.Config().ServiceSettings.EnableBurnOnRead) {
 			return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.burn_on_read.app_error", nil, "", http.StatusNotImplemented)
 		}
+
 		// Apply burn-on-read expiration settings from configuration
 		maxTTLSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds))
 		readDurationSeconds := int64(model.SafeDereference(a.Config().ServiceSettings.BurnOnReadDurationSeconds))
