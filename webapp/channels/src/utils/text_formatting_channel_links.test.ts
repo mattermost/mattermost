@@ -81,7 +81,6 @@ describe('TextFormatting.ChannelLinks', () => {
                 '<p>(<a class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a>)</p>',
             );
         });
-    });
 
         test('should link ~town-square with team context from post props', () => {
             expect(
