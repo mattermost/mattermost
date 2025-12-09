@@ -1573,7 +1573,7 @@ type ExperimentalAuditSettings struct {
 	FileMaxBackups      *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileCompress        *bool           `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	FileMaxQueueSize    *int            `access:"experimental_features,write_restrictable,cloud_restrictable"`
-	AdvancedLoggingJSON json.RawMessage `access:"experimental_features"`
+	AdvancedLoggingJSON json.RawMessage `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	Certificate         *string         `access:"experimental_features"` // telemetry: none
 }
 

@@ -191,6 +191,66 @@ func (s *MmctlE2ETestSuite) TestConfigSetCmd() {
 			cfg.ImportSettings.Directory = &originalDir
 		})
 	})
+
+	s.Run("LogSettings.AdvancedLoggingJSON cannot be set via API but can via local mode", func() {
+		printer.Clean()
+		originalJSON := s.th.App.Config().LogSettings.AdvancedLoggingJSON
+
+		testJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`
+		args := []string{"LogSettings.AdvancedLoggingJSON", testJSON}
+		err := configSetCmdF(s.th.SystemAdminClient, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "not allowed due to security reasons")
+		s.Require().Len(printer.GetLines(), 0)
+
+		// Verify value didn't change
+		s.Require().Equal(originalJSON, s.th.App.Config().LogSettings.AdvancedLoggingJSON)
+
+		printer.Clean()
+		localJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"./test.log"},"MaxQueueSize":1000}}`
+		args = []string{"LogSettings.AdvancedLoggingJSON", localJSON}
+		err = configSetCmdF(s.th.LocalClient, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		config, ok := printer.GetLines()[0].(*model.Config)
+		s.Require().True(ok)
+		s.Require().Equal(localJSON, string(config.LogSettings.AdvancedLoggingJSON))
+
+		// Reset to original
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LogSettings.AdvancedLoggingJSON = originalJSON
+		})
+	})
+
+	s.Run("ExperimentalAuditSettings.AdvancedLoggingJSON cannot be set via API but can via local mode", func() {
+		printer.Clean()
+		originalJSON := s.th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON
+
+		testJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`
+		args := []string{"ExperimentalAuditSettings.AdvancedLoggingJSON", testJSON}
+		err := configSetCmdF(s.th.SystemAdminClient, &cobra.Command{}, args)
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), "not allowed due to security reasons")
+		s.Require().Len(printer.GetLines(), 0)
+
+		// Verify value didn't change
+		s.Require().Equal(originalJSON, s.th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON)
+
+		printer.Clean()
+		localJSON := `{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"./test-audit.log"},"MaxQueueSize":1000}}`
+		args = []string{"ExperimentalAuditSettings.AdvancedLoggingJSON", localJSON}
+		err = configSetCmdF(s.th.LocalClient, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		config, ok := printer.GetLines()[0].(*model.Config)
+		s.Require().True(ok)
+		s.Require().Equal(localJSON, string(config.ExperimentalAuditSettings.AdvancedLoggingJSON))
+
+		// Reset to original
+		s.th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = originalJSON
+		})
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestConfigEditCmd() {

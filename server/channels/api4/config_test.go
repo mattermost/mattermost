@@ -342,6 +342,64 @@ func TestUpdateConfig(t *testing.T) {
 		})
 	})
 
+	t.Run("Should not be able to modify AdvancedLoggingJSON", func(t *testing.T) {
+		t.Run("sysadmin LogSettings", func(t *testing.T) {
+			oldJSON := th.App.Config().LogSettings.AdvancedLoggingJSON
+			cfg2 := th.App.Config().Clone()
+			cfg2.LogSettings.AdvancedLoggingJSON = []byte(`{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`)
+
+			cfg2, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldJSON, cfg2.LogSettings.AdvancedLoggingJSON)
+			assert.Equal(t, oldJSON, th.App.Config().LogSettings.AdvancedLoggingJSON)
+		})
+
+		t.Run("sysadmin ExperimentalAuditSettings", func(t *testing.T) {
+			oldJSON := th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON
+			cfg2 := th.App.Config().Clone()
+			cfg2.ExperimentalAuditSettings.AdvancedLoggingJSON = []byte(`{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`)
+
+			cfg2, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, oldJSON, cfg2.ExperimentalAuditSettings.AdvancedLoggingJSON)
+			assert.Equal(t, oldJSON, th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON)
+		})
+
+		t.Run("local mode LogSettings", func(t *testing.T) {
+			oldJSON := th.App.Config().LogSettings.AdvancedLoggingJSON
+			cfg2 := th.App.Config().Clone()
+			newJSON := []byte(`{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"./test.log"},"MaxQueueSize":1000}}`)
+			cfg2.LogSettings.AdvancedLoggingJSON = newJSON
+
+			cfg2, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, newJSON, cfg2.LogSettings.AdvancedLoggingJSON)
+			assert.Equal(t, newJSON, th.App.Config().LogSettings.AdvancedLoggingJSON)
+
+			// Reset
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = oldJSON
+			})
+		})
+
+		t.Run("local mode ExperimentalAuditSettings", func(t *testing.T) {
+			oldJSON := th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON
+			cfg2 := th.App.Config().Clone()
+			newJSON := []byte(`{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"./test-audit.log"},"MaxQueueSize":1000}}`)
+			cfg2.ExperimentalAuditSettings.AdvancedLoggingJSON = newJSON
+
+			cfg2, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.Equal(t, newJSON, cfg2.ExperimentalAuditSettings.AdvancedLoggingJSON)
+			assert.Equal(t, newJSON, th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON)
+
+			// Reset
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = oldJSON
+			})
+		})
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		siteURL := cfg.ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
@@ -877,6 +935,54 @@ func TestPatchConfig(t *testing.T) {
 			if client == th.LocalClient {
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.ImportSettings.Directory = oldDirectory
+				})
+			}
+		})
+
+		t.Run("not allowing to change LogSettings.AdvancedLoggingJSON via api, unless local mode", func(t *testing.T) {
+			oldJSON := th.App.Config().LogSettings.AdvancedLoggingJSON
+			config := model.Config{LogSettings: model.LogSettings{
+				AdvancedLoggingJSON: []byte(`{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`),
+			}}
+
+			updatedConfig, resp, err := client.PatchConfig(context.Background(), &config)
+			if client == th.LocalClient {
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				assert.Equal(t, config.LogSettings.AdvancedLoggingJSON, updatedConfig.LogSettings.AdvancedLoggingJSON)
+			} else {
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+			}
+
+			// Reset for local mode
+			if client == th.LocalClient {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.LogSettings.AdvancedLoggingJSON = oldJSON
+				})
+			}
+		})
+
+		t.Run("not allowing to change ExperimentalAuditSettings.AdvancedLoggingJSON via api, unless local mode", func(t *testing.T) {
+			oldJSON := th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON
+			config := model.Config{ExperimentalAuditSettings: model.ExperimentalAuditSettings{
+				AdvancedLoggingJSON: []byte(`{"file":{"Type":"file","Format":"json","Levels":[{"ID":5,"Name":"debug"}],"Options":{"filename":"/etc/passwd"},"MaxQueueSize":1000}}`),
+			}}
+
+			updatedConfig, resp, err := client.PatchConfig(context.Background(), &config)
+			if client == th.LocalClient {
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				assert.Equal(t, config.ExperimentalAuditSettings.AdvancedLoggingJSON, updatedConfig.ExperimentalAuditSettings.AdvancedLoggingJSON)
+			} else {
+				require.Error(t, err)
+				CheckForbiddenStatus(t, resp)
+			}
+
+			// Reset for local mode
+			if client == th.LocalClient {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = oldJSON
 				})
 			}
 		})

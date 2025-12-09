@@ -1693,7 +1693,7 @@
   "admin.licenseSettings.teamEdition.teamEditionRightPanel.upgradedRestart": "You have upgraded your binary to mattermost enterprise, please restart the server to start using the new binary. You can do it right here:",
   "admin.lockTeammateNameDisplay": "Lock Teammate Name Display for all users: ",
   "admin.lockTeammateNameDisplayHelpText": "When true, disables users' ability to change settings under <strong>Settings > Display > Teammate Name Display</strong>.",
-  "admin.log.AdvancedLoggingJSONDescription": "The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses.",
+  "admin.log.AdvancedLoggingJSONDescription": "The JSON configuration for Advanced Logging. Please see <link>documentation</link> to learn more about Advanced Logging and the JSON format it uses. This setting cannot be modified through the System Console. To change it, edit the configuration file directly or use mmctl in local mode, both of which require direct access to the server.",
   "admin.log.AdvancedLoggingJSONPlaceholder": "Enter your JSON configuration",
   "admin.log.AdvancedLoggingJSONTitle": "Advanced Logging:",
   "admin.log.consoleDescription": "Typically set to false in production. Developers may set this field to true to output log messages to console based on the console level option.  If true, server writes messages to the standard output stream (stdout). Changing this setting requires a server restart before taking effect.",

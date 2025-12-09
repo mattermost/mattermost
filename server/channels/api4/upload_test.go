@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -107,6 +108,12 @@ func TestCreateUpload(t *testing.T) {
 		})
 
 		t.Run("success", func(t *testing.T) {
+			// Ensure both directories exist to pass the conflict check
+			pluginDir := *th.App.Config().PluginSettings.Directory
+			importDir := *th.App.Config().ImportSettings.Directory
+			require.NoError(t, os.MkdirAll(pluginDir, 0700))
+			require.NoError(t, os.MkdirAll(importDir, 0700))
+
 			us := &model.UploadSession{
 				Filename: info.Name(),
 				FileSize: info.Size(),
@@ -115,6 +122,95 @@ func TestCreateUpload(t *testing.T) {
 			u, _, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
 			require.NoError(t, err)
 			require.NotEmpty(t, u)
+		})
+
+		t.Run("directory conflict - import directory is subdirectory of plugin directory", func(t *testing.T) {
+			originalPluginDir := *th.App.Config().PluginSettings.Directory
+			originalImportDir := *th.App.Config().ImportSettings.Directory
+
+			tmpDir := t.TempDir()
+			pluginDir := filepath.Join(tmpDir, "plugins")
+			importDir := filepath.Join(tmpDir, "plugins", "imports")
+			require.NoError(t, os.MkdirAll(importDir, 0700))
+
+			defer th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = originalPluginDir
+				*cfg.ImportSettings.Directory = originalImportDir
+			})
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = pluginDir
+				*cfg.ImportSettings.Directory = importDir
+			})
+
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     model.UploadTypeImport,
+			}
+			u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+			require.Nil(t, u)
+			CheckErrorID(t, err, "api.upload.create.directory_conflict.app_error")
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		})
+
+		t.Run("directory conflict - plugin directory is subdirectory of import directory", func(t *testing.T) {
+			originalPluginDir := *th.App.Config().PluginSettings.Directory
+			originalImportDir := *th.App.Config().ImportSettings.Directory
+
+			tmpDir := t.TempDir()
+			importDir := filepath.Join(tmpDir, "data")
+			pluginDir := filepath.Join(tmpDir, "data", "plugins")
+			require.NoError(t, os.MkdirAll(pluginDir, 0700))
+
+			defer th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = originalPluginDir
+				*cfg.ImportSettings.Directory = originalImportDir
+			})
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ImportSettings.Directory = importDir
+				*cfg.PluginSettings.Directory = pluginDir
+			})
+
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     model.UploadTypeImport,
+			}
+			u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+			require.Nil(t, u)
+			CheckErrorID(t, err, "api.upload.create.directory_conflict.app_error")
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		})
+
+		t.Run("directory conflict - same directory", func(t *testing.T) {
+			originalPluginDir := *th.App.Config().PluginSettings.Directory
+			originalImportDir := *th.App.Config().ImportSettings.Directory
+
+			tmpDir := t.TempDir()
+			sharedDir := filepath.Join(tmpDir, "shared")
+			require.NoError(t, os.MkdirAll(sharedDir, 0700))
+
+			defer th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = originalPluginDir
+				*cfg.ImportSettings.Directory = originalImportDir
+			})
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Directory = sharedDir
+				*cfg.ImportSettings.Directory = sharedDir
+			})
+
+			us := &model.UploadSession{
+				Filename: info.Name(),
+				FileSize: info.Size(),
+				Type:     model.UploadTypeImport,
+			}
+			u, resp, err := th.SystemAdminClient.CreateUpload(context.Background(), us)
+			require.Nil(t, u)
+			CheckErrorID(t, err, "api.upload.create.directory_conflict.app_error")
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		})
 	})
 
