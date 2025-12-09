@@ -16,6 +16,11 @@ import {
     onMessageFromParent as onMessageFromParentBrowser,
 } from './use_browser_popout';
 
+const pluginPopoutListeners: Map<string, (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void> = new Map();
+export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void) {
+    pluginPopoutListeners.set(pluginId, onPopoutOpened);
+}
+
 export const FOCUS_REPLY_POST = 'focus-reply-post';
 export async function popoutThread(
     intl: IntlShape,
@@ -54,7 +59,7 @@ export async function popoutRhsPlugin(
     teamName: string,
     channelName: string,
 ) {
-    return popout(
+    const listeners = await popout(
         `/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
         {
             isRHS: true,
@@ -64,6 +69,10 @@ export async function popoutRhsPlugin(
             }, {pluginDisplayName, channelName: '{channelName}', teamName: '{teamName}'}), // Apparently you need to pass it all the arguments for this to work at all
         },
     );
+
+    pluginPopoutListeners.get(pluginId)?.(teamName, channelName, listeners);
+
+    return listeners;
 }
 
 /**
@@ -71,7 +80,7 @@ export async function popoutRhsPlugin(
  * You likely do not need to add anything below this.
  */
 
-type PopoutListeners = {
+export type PopoutListeners = {
     sendToPopout: (channel: string, ...args: unknown[]) => void;
     onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => void;
     onClosePopout: (listener: () => void) => void;
