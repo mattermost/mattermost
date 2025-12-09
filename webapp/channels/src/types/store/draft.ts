@@ -62,6 +62,7 @@ export function scheduledPostToPostDraft(scheduledPost: ScheduledPost): PostDraf
         props: scheduledPost.props,
         channelId: scheduledPost.channel_id,
         rootId: scheduledPost.root_id,
+        type: scheduledPost.type,
         createAt: 0,
         updateAt: 0,
         metadata: {

@@ -348,8 +348,9 @@ function DraftRow({
         actions = draftActions;
     }
 
-    // Burn-on-read is only shown for channel drafts (not thread replies or scheduled posts)
-    const draftBurnOnReadMetadata = !isScheduledPost && !rootId && (item as PostDraft).type === PostTypes.BURN_ON_READ ? {enabled: true} : undefined;
+    // Both PostDraft and ScheduledPost have a type field (ScheduledPost extends Draft which has type)
+    const itemType = (item as PostDraft | ScheduledPost).type;
+    const draftBurnOnReadMetadata = !rootId && itemType === PostTypes.BURN_ON_READ ? {enabled: true} : undefined;
 
     let title: React.ReactNode;
     if (channel) {
