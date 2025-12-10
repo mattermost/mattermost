@@ -47,7 +47,7 @@ describe('popout_windows', () => {
                 return 'Thread - {channelName} - {teamName}';
             }
             if (id === 'rhs_plugin_popout.title') {
-                return '{pluginDisplayName}';
+                return '{serverName} - {pluginDisplayName}';
             }
             return defaultMessage;
         }),

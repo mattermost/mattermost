@@ -65,8 +65,8 @@ export async function popoutRhsPlugin(
             isRHS: true,
             titleTemplate: intl.formatMessage({
                 id: 'rhs_plugin_popout.title',
-                defaultMessage: '{pluginDisplayName}',
-            }, {pluginDisplayName}),
+                defaultMessage: '{serverName} - {pluginDisplayName}',
+            }, {serverName: '{serverName}', pluginDisplayName}),
         },
     );
 
