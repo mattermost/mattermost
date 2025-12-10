@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {Page} from '@playwright/test';
-
 import {expect, test} from '@mattermost/playwright-lib';
 
 test('should be able to scroll the post list with page up and down', async ({pw}) => {
@@ -54,6 +53,42 @@ test('should be able to scroll the post list with page up and down', async ({pw}
     // * Verify that the post list scrolled back to the bottom
     currentScrollTop = await getScrollTop(page, '#postListScrollContainer');
     expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
+});
+
+test('should be able to scroll textinput with pageup/pagedown when overflow', async ({pw}) => {
+    const {user} = await pw.initSetup();
+    const {channelsPage, page} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+
+    // Fill the input with multiple long lines
+    const multiLineMessage = Array.from({length: 30}, () => 'This is a long line for scroll testing.').join('\n');
+    await channelsPage.centerView.postCreate.input.fill(multiLineMessage);
+
+    // Focus the input and scroll to the bottom
+    const inputSelector = await channelsPage.centerView.postCreate.input.selector;
+    await page.focus(inputSelector);
+    await page.$eval(inputSelector, el => el.scrollTop = el.scrollHeight);
+
+    // Save initial scroll positions
+    const inputScrollBefore = await page.$eval(inputSelector, el => el.scrollTop);
+
+    // Press PageUp in the input
+    await page.keyboard.press('PageUp');
+    await page.waitForTimeout(200);
+
+    // * Expect input to scroll up
+    const inputScrollAfterUp = await page.$eval(inputSelector, el => el.scrollTop);
+    expect(inputScrollAfterUp).toBeLessThan(inputScrollBefore);
+
+    // Press PageDown in the input
+    await page.keyboard.press('PageDown');
+    await page.waitForTimeout(200);
+
+    // * Expect input to scroll back down
+    const inputScrollAfterDown = await page.$eval(inputSelector, el => el.scrollTop);
+    expect(inputScrollAfterDown).toBeGreaterThan(inputScrollAfterUp);
 });
 
 async function getScrollTop(page: Page, selector: string): Promise<number> {
