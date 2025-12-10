@@ -186,7 +186,9 @@ describe('Verify Accessibility Support in Modals & Dialogs', () => {
                 should('have.attr', 'aria-live', 'polite').
                 and('have.attr', 'aria-atomic', 'true').
                 invoke('text').then((text) => {
-                    expect(text).equal(selectedRowText);
+                    // Check that the readout starts with the selected user since it may be followed by
+                    // "Already in Channel" depending on which user was selected
+                    expect(text).to.match(new RegExp(`^${selectedRowText}\\b`));
                 });
 
             // # Search for an invalid text and check if reader can read no results
