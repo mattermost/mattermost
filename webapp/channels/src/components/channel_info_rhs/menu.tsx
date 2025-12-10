@@ -8,12 +8,14 @@ import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
 import {openModal} from 'actions/views/modals';
 import {canAccessChannelSettings} from 'selectors/views/channel_settings';
 
+import ChannelSettingsModal from 'components/channel_settings_modal/channel_settings_modal';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
 import {Constants, ModalIdentifiers} from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
 
 const MenuContainer = styled.nav`

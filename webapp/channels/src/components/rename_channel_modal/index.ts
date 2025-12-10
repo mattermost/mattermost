@@ -7,11 +7,9 @@ import type {Dispatch} from 'redux';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 
-import type {GlobalState} from 'types/store';
-
 import RenameChannelModal from './rename_channel_modal';
 
-function mapStateToProps(_state: GlobalState) {
+function mapStateToProps() {
     return {};
 }
 
