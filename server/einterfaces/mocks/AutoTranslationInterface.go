@@ -236,6 +236,42 @@ func (_m *AutoTranslationInterface) SetUserEnabled(channelID string, userID stri
 	return r0
 }
 
+// Shutdown provides a mock function with no fields
+func (_m *AutoTranslationInterface) Shutdown() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Shutdown")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Start provides a mock function with no fields
+func (_m *AutoTranslationInterface) Start() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Start")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Translate provides a mock function with given fields: ctx, objectType, objectID, channelID, userID, content
 func (_m *AutoTranslationInterface) Translate(ctx context.Context, objectType string, objectID string, channelID string, userID string, content interface{}) (*model.Translation, *model.AppError) {
 	ret := _m.Called(ctx, objectType, objectID, channelID, userID, content)

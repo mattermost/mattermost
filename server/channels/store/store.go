@@ -1158,7 +1158,9 @@ type AutoTranslationStore interface {
 	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
 	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
 	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
+	GetAllForObject(objectID string) ([]*model.Translation, *model.AppError)
 	Save(translation *model.Translation) *model.AppError
+	GetAllByStatePage(state model.TranslationState, offset, limit int) ([]*model.Translation, *model.AppError)
 
 	ClearCaches()
 	// InvalidateUserAutoTranslation invalidates all auto-translation caches for a user in a channel.

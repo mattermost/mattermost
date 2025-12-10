@@ -92,7 +92,7 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 // Posts from WebSocket broadcasts (post_created) already have translations populated.
 // This function handles API requests (GetPostsForChannel, etc.) by fetching only the user's language.
 func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostList) {
-	if a.Srv().Channels().AutoTranslation == nil {
+	if a.AutoTranslation() == nil {
 		return
 	}
 
@@ -116,12 +116,12 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 
 	// For API requests, fetch only the user's language translation
 	for channelID, postIDs := range postsNeedingTranslations {
-		userLang, err := a.Srv().Channels().AutoTranslation.GetUserLanguage(userID, channelID)
+		userLang, err := a.AutoTranslation().GetUserLanguage(userID, channelID)
 		if err != nil || userLang == "" {
 			continue
 		}
 
-		translationsMap, err := a.Srv().Channels().AutoTranslation.GetBatch(postIDs, userLang)
+		translationsMap, err := a.AutoTranslation().GetBatch(postIDs, userLang)
 		if err != nil {
 			rctx.Logger().Warn("Failed to fetch translations batch", mlog.Err(err))
 			continue

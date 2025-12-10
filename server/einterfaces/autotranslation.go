@@ -77,4 +77,10 @@ type AutoTranslationInterface interface {
 	// Close cleans up resources used by the auto-translation implementation.
 	// This includes removing the config listener and shutting down the provider if present.
 	Close() error
+
+	// Start initializes and starts the auto-translation service, including workers.
+	Start() error
+
+	// Shutdown gracefully shuts down the auto-translation service.
+	Shutdown() error
 }

@@ -83,6 +83,70 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, 
 	return r0, r1
 }
 
+// GetAllByStatePage provides a mock function with given fields: state, offset, limit
+func (_m *AutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
+	ret := _m.Called(state, offset, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllByStatePage")
+	}
+
+	var r0 []*model.Translation
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int, int) ([]*model.Translation, *model.AppError)); ok {
+		return rf(state, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int, int) []*model.Translation); ok {
+		r0 = rf(state, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TranslationState, int, int) *model.AppError); ok {
+		r1 = rf(state, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetAllForObject provides a mock function with given fields: objectID
+func (_m *AutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, *model.AppError) {
+	ret := _m.Called(objectID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllForObject")
+	}
+
+	var r0 []*model.Translation
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) ([]*model.Translation, *model.AppError)); ok {
+		return rf(objectID)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.Translation); ok {
+		r0 = rf(objectID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(objectID)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetBatch provides a mock function with given fields: objectIDs, dstLang
 func (_m *AutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
 	ret := _m.Called(objectIDs, dstLang)

@@ -248,6 +248,7 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		Confidence: translation.Confidence,
 		State:      model.TranslationState(translation.State),
 		NormHash:   translation.NormHash,
+		Meta:       meta,
 	}
 
 	if result.Type == model.TranslationTypeObject {
@@ -305,6 +306,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 			Confidence: t.Confidence,
 			State:      model.TranslationState(t.State),
 			NormHash:   t.NormHash,
+			Meta:       meta,
 		}
 
 		if modelT.Type == model.TranslationTypeObject {
@@ -314,6 +316,63 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 		}
 
 		result[t.ObjectID] = modelT
+	}
+
+	return result, nil
+}
+
+func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
+		From("Translations").
+		Where(sq.Eq{"ObjectId": objectID})
+
+	var translations []Translation
+	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
+		return nil, model.NewAppError("SqlAutoTranslationStore.GetAllForObject",
+			"store.sql_autotranslation.get_all_for_object.app_error", nil, err.Error(), 500)
+	}
+
+	result := make([]*model.Translation, 0, len(translations))
+	for _, t := range translations {
+		var translationTypeStr string
+
+		meta, err := t.Meta.ToMap()
+		if err != nil {
+			// Log error but continue with other translations
+			continue
+		}
+
+		if v, ok := meta["type"]; ok {
+			if s, ok := v.(string); ok {
+				translationTypeStr = s
+			}
+		}
+
+		// Default objectType to "post" if not set
+		objectType := t.ObjectType
+		if objectType == "" {
+			objectType = "post"
+		}
+
+		modelT := &model.Translation{
+			ObjectID:   t.ObjectID,
+			ObjectType: objectType,
+			Lang:       t.DstLang,
+			Type:       model.TranslationType(translationTypeStr),
+			Confidence: t.Confidence,
+			State:      model.TranslationState(t.State),
+			NormHash:   t.NormHash,
+			Meta:       meta,
+		}
+
+		if modelT.Type == model.TranslationTypeObject {
+			modelT.ObjectJSON = json.RawMessage(t.Text)
+		} else {
+			modelT.Text = t.Text
+		}
+
+		result = append(result, modelT)
 	}
 
 	return result, nil
@@ -383,6 +442,66 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	}
 
 	return nil
+}
+
+func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
+		From("Translations").
+		Where(sq.Eq{"State": string(state)}).
+		OrderBy("UpdateAt ASC").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
+
+	var translations []Translation
+	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
+		return nil, model.NewAppError("SqlAutoTranslationStore.GetAllByStatePage",
+			"store.sql_autotranslation.get_all_by_state_page.app_error", nil, err.Error(), 500)
+	}
+
+	result := make([]*model.Translation, 0, len(translations))
+	for _, t := range translations {
+		var translationTypeStr string
+
+		meta, err := t.Meta.ToMap()
+		if err != nil {
+			// Log error but continue with other translations
+			continue
+		}
+
+		if v, ok := meta["type"]; ok {
+			if s, ok := v.(string); ok {
+				translationTypeStr = s
+			}
+		}
+
+		// Default objectType to "post" if not set
+		objectType := t.ObjectType
+		if objectType == "" {
+			objectType = "post"
+		}
+
+		modelT := &model.Translation{
+			ObjectID:   t.ObjectID,
+			ObjectType: objectType,
+			Lang:       t.DstLang,
+			Type:       model.TranslationType(translationTypeStr),
+			Confidence: t.Confidence,
+			State:      model.TranslationState(t.State),
+			NormHash:   t.NormHash,
+			Meta:       meta,
+		}
+
+		if modelT.Type == model.TranslationTypeObject {
+			modelT.ObjectJSON = json.RawMessage(t.Text)
+		} else {
+			modelT.Text = t.Text
+		}
+
+		result = append(result, modelT)
+	}
+
+	return result, nil
 }
 
 func (s *SqlAutoTranslationStore) ClearCaches() {}
