@@ -136,6 +136,7 @@ export default function Menu(props: MenuProps) {
 
     const showNotificationPreferences = channel.type !== Constants.DM_CHANNEL && !isArchived;
     const showMembers = channel.type !== Constants.DM_CHANNEL;
+    const showChannelSettings = channel.type !== Constants.DM_CHANNEL && channel.type !== Constants.GM_CHANNEL && !isArchived;
     const fileCount = channelStats?.files_count >= 0 ? channelStats?.files_count : 0;
     const canAccessSettings = useSelector((state: GlobalState) => canAccessChannelSettings(state, channel.id));
 
@@ -171,7 +172,7 @@ export default function Menu(props: MenuProps) {
                 defaultMessage: 'Channel Info Actions',
             })}
         >
-            {canAccessSettings && (
+            {showChannelSettings && canAccessSettings && (
                 <MenuItem
                     id='channelInfoRHSChannelSettings'
                     icon={<i className='icon icon-cog-outline'/>}
