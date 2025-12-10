@@ -33,6 +33,9 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+    .agents-config-link {
+        opacity: 1;
+    }
 }
 
 .auto-translation-provider-description {
@@ -71,14 +74,14 @@
 }
 
 .agents-config-link {
-    display: inline-flex;
+    display: inline-block;
+    width: fit-content;
     align-items: center;
     color: var(--link-color);
     cursor: pointer;
     font-family: 'Open Sans', sans-serif;
     font-size: 12px;
     font-weight: 600;
-    gap: 4px;
     line-height: 16px;
     text-decoration: none;
 

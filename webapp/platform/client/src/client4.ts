@@ -3348,6 +3348,13 @@ export default class Client4 {
         );
     };
 
+    getAgentsStatus = () => {
+        return this.doFetch<{available: boolean; reason?: string}>(
+            `${this.getAgentsRoute()}/status`,
+            {method: 'get'},
+        );
+    };
+
     getLLMServices = () => {
         return this.doFetch<LLMService[]>(
             `${this.getBaseRoute()}/llmservices`,

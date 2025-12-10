@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -40,6 +40,12 @@ export default function AgentsSettings(props: SystemConsoleCustomSettingsCompone
     }, [services]);
 
     const hasLLMServices = llmServicesOptions.length > 0;
+
+    useEffect(() => {
+        if (!agentsSettings.LLMServiceID && hasLLMServices) {
+            handleChange('LLMServiceID', llmServicesOptions[0].value);
+        }
+    }, [agentsSettings.LLMServiceID, hasLLMServices, llmServicesOptions, handleChange]);
 
     return (
         <DropdownSetting

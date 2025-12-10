@@ -9638,7 +9638,7 @@
   },
   {
     "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
-    "translation": "Invalid autotranslation agents configuration: LLM Service ID must not be empty."
+    "translation": "Invalid autotranslation agents configuration: AI service must not be empty."
   },
   {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
@@ -11006,7 +11006,7 @@
   },
   {
     "id": "model.translation.is_valid.lang.app_error",
-    "translation": "Invalid language code."
+    "translation": "Invalid language code. Use a standard ISO code such as 'en', 'ja', or 'fr'."
   },
   {
     "id": "model.translation.is_valid.nil.app_error",

@@ -15,6 +15,15 @@ export function getAgents() {
     });
 }
 
+export function getAgentsStatus() {
+    return bindClientFunc({
+        clientFunc: Client4.getAgentsStatus,
+        onSuccess: [AgentTypes.RECEIVED_AGENTS_STATUS],
+        onFailure: AgentTypes.AGENTS_STATUS_FAILURE,
+        onRequest: AgentTypes.AGENTS_STATUS_REQUEST,
+    });
+}
+
 export function getLLMServices() {
     return bindClientFunc({
         clientFunc: Client4.getLLMServices,

@@ -40,10 +40,12 @@ const messages = defineMessages({
     },
 });
 
-export const searchableStrings: SearchableStrings = Object.values(messages);
+export const searchableStrings: SearchableStrings = [
+    ...Object.values(messages),
+];
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
-    const isAgentsBridgeEnabled = useGetAgentsBridgeEnabled();
+    const {available: isAgentsBridgeEnabled, reason: agentsBridgeUnavailableReason} = useGetAgentsBridgeEnabled();
     const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(() => {
         const settings = props.value as AutoTranslationSettings;
         if (!settings.Provider) {
@@ -184,8 +186,8 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                                 <div className='auto-translation-provider-error-message'>
                                     <i className='icon icon-alert-outline'/>
                                     <FormattedMessage
-                                        id='admin.site.localization.autoTranslationAgentsError'
-                                        defaultMessage='Mattermost Agents plugin is either disabled or not configured properly.'
+                                        id={agentsBridgeUnavailableReason || 'admin.site.localization.autoTranslationAgentsError'}
+                                        defaultMessage={agentsBridgeUnavailableReason ? 'Mattermost AI plugin is unavailable.' : 'Mattermost Agents plugin is either disabled or not configured properly.'}
                                     />
                                 </div>
                             )}
@@ -210,6 +212,12 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     onChange={handleChange}
                 />
                 }
+                {autoTranslationSettings.Provider === 'libretranslate' &&
+                <LibreTranslateSettings
+                    {...props}
+                    onChange={handleChange}
+                />
+                }
                 <MultiSelectSetting
                     id={'TargetLanguages'}
                     label={
@@ -230,12 +238,6 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                     disabled={props.disabled || props.setByEnv}
                     setByEnv={props.setByEnv}
                 />
-                {autoTranslationSettings.Provider === 'libretranslate' &&
-                <LibreTranslateSettings
-                    {...props}
-                    onChange={handleChange}
-                />
-                }
             </SectionContent>
             }
         </AdminSection>

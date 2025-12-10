@@ -8,6 +8,10 @@ export function getAgents(state: GlobalState): Agent[] {
     return state.entities.agents?.agents;
 }
 
+export function getAgentsStatus(state: GlobalState): {available: boolean; reason?: string} {
+    return state.entities.agents?.agentsStatus || {available: false};
+}
+
 export function getAgent(state: GlobalState, agentId: string): Agent | undefined {
     const agents = getAgents(state);
     return agents.find((agent) => agent.id === agentId);
