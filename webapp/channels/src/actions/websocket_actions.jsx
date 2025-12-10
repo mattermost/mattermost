@@ -100,7 +100,7 @@ import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/sel
 import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import {handlePostBurned} from 'actions/burn_on_read_deletion';
+import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {handleBurnOnReadPostRevealed} from 'actions/burn_on_read_websocket';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
@@ -378,7 +378,7 @@ export function handleEvent(msg) {
         break;
 
     case SocketEvents.BURN_ON_READ_POST_BURNED:
-        dispatch(handlePostBurned(msg.data));
+        dispatch(handlePostExpired(msg.data.post_id));
         break;
 
     case SocketEvents.LEAVE_TEAM:
