@@ -369,12 +369,7 @@ func (me SqlSessionStore) AnalyticsSessionCount() (int64, error) {
 }
 
 func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
-	var query string
-	if me.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Sessions WHERE Id IN (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?)"
-	} else {
-		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?"
-	}
+	query := "DELETE FROM Sessions WHERE Id IN (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND ? > ExpiresAt LIMIT ?)"
 
 	var rowsAffected int64 = 1
 

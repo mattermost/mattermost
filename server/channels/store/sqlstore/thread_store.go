@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"strconv"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
@@ -1098,30 +1097,19 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 }
 
 func (s *SqlThreadStore) updateThreadParticipantsForUserTx(trx *sqlxTxWrapper, postID, userID string) error {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		userIdParam, err := jsonArray([]string{userID}).Value()
-		if err != nil {
-			return err
-		}
-		if s.IsBinaryParamEnabled() {
-			userIdParam = AppendBinaryFlag(userIdParam.([]byte))
-		}
+	userIdParam, err := jsonArray([]string{userID}).Value()
+	if err != nil {
+		return err
+	}
+	if s.IsBinaryParamEnabled() {
+		userIdParam = AppendBinaryFlag(userIdParam.([]byte))
+	}
 
-		if _, err := trx.ExecRaw(`UPDATE Threads
-					SET participants = participants || $1::jsonb
-					WHERE postid=$2
-					AND NOT participants ? $3`, userIdParam, postID, userID); err != nil {
-			return err
-		}
-	} else {
-		// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]
-		// which is the positional syntax required for appending.
-		if _, err := trx.Exec(`UPDATE Threads
-			SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
-			WHERE PostId=?
-			AND NOT JSON_CONTAINS(Participants, ?)`, userID, postID, strconv.Quote(userID)); err != nil {
-			return err
-		}
+	if _, err := trx.ExecRaw(`UPDATE Threads
+				SET participants = participants || $1::jsonb
+				WHERE postid=$2
+				AND NOT participants ? $3`, userIdParam, postID, userID); err != nil {
+		return err
 	}
 
 	return nil
