@@ -626,14 +626,8 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 
 	now := model.GetMillis()
 
-	var query sq.UpdateBuilder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
-	} else {
-		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
-	}
-
-	query = query.Set("LastViewed", now).
+	query := s.getQueryBuilder().Update("ThreadMemberships").From("Threads").
+		Set("LastViewed", now).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", now).
 		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
@@ -672,14 +666,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId string, threadIds []string) error 
 func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 	timestamp := model.GetMillis()
 
-	var query sq.UpdateBuilder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
-	} else {
-		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
-	}
-
-	query = query.
+	query := s.getQueryBuilder().Update("ThreadMemberships").From("Threads").
 		Where("Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
