@@ -130,6 +130,7 @@ class BurnOnReadTimerTicker {
     public cleanup(): void {
         this.stop();
         this.subscribers.clear();
+        this.started = false;
     }
 }
 

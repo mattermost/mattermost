@@ -33,13 +33,13 @@ describe('BurnOnReadBadge', () => {
         expect(badge.querySelector('svg')).toBeInTheDocument();
     });
 
-    it('should show "Click to Reveal" tooltip for unrevealed recipient', () => {
+    it('should show burn-on-read tooltip for unrevealed recipient', () => {
         renderWithContext(
             <BurnOnReadBadge {...baseProps}/>,
         );
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
-        expect(badge).toHaveAttribute('aria-label', 'Click to Reveal');
+        expect(badge).toHaveAttribute('aria-label', 'Burn-on-read message');
     });
 
     it('should show delete tooltip for sender', () => {
