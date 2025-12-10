@@ -12,6 +12,13 @@ import Markdown from 'components/markdown';
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
 
+const ChannelName = styled.div`
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-family: Metropolis, sans-serif;
+    font-weight: 600;
+`;
+
 const ChannelId = styled.div`
     margin-bottom: 12px;
     font-size: 11px;
@@ -46,6 +53,7 @@ interface Props {
     channel: Channel;
     canEditChannelProperties: boolean;
     actions: {
+        editChannelName: () => void;
         editChannelPurpose: () => void;
         editChannelHeader: () => void;
     };
@@ -56,6 +64,15 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
 
     return (
         <>
+            <ChannelName>
+                <EditableArea
+                    editable={canEditChannelProperties}
+                    content={<div>{channel.display_name}</div>}
+                    onEdit={actions.editChannelName}
+                    emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name', defaultMessage: 'Rename channel'})}
+                />
+            </ChannelName>
+
             {(channel.purpose || canEditChannelProperties) && (
                 <ChannelPurpose>
                     <ChannelDescriptionHeading>

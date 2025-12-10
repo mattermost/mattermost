@@ -13,6 +13,7 @@ import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
+import RenameChannelModal from 'components/rename_channel_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
@@ -128,6 +129,12 @@ const ChannelInfoRhs = ({
         dialogProps: {channel},
     });
 
+    const editChannelName = () => actions.openModal({
+        modalId: ModalIdentifiers.RENAME_CHANNEL,
+        dialogType: RenameChannelModal,
+        dialogProps: {channel, teamName: currentTeam.name},
+    });
+
     const openNotificationSettings = () => actions.openModal({
         modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
         dialogType: ChannelNotificationsModal,
@@ -166,6 +173,7 @@ const ChannelInfoRhs = ({
                 gmUsers={gmUsers}
                 canEditChannelProperties={canEditChannelProperties}
                 actions={{
+                    editChannelName,
                     editChannelHeader,
                     editChannelPurpose,
                 }}

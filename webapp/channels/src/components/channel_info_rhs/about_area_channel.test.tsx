@@ -118,6 +118,7 @@ describe('channel_info_rhs/about_area_channel', () => {
         channelURL: 'https://my-url.mm',
         canEditChannelProperties: true,
         actions: {
+            editChannelName: jest.fn(),
             editChannelPurpose: jest.fn(),
             editChannelHeader: jest.fn(),
         },

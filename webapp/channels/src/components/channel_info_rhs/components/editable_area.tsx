@@ -10,8 +10,8 @@ const EditButton = styled.button`
     margin: 0px;
     padding: 0px;
     border-radius: 4px;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    background: none;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.75);
