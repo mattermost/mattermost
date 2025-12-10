@@ -1164,9 +1164,9 @@ func GenerateTestID() string {
 func CheckUserSanitization(tb testing.TB, user *model.User) {
 	tb.Helper()
 
-	require.Equal(tb, "", user.Password, "password wasn't blank")
+	require.Empty(tb, user.Password, "password wasn't blank")
 	require.Empty(tb, user.AuthData, "auth data wasn't blank")
-	require.Equal(tb, "", user.MfaSecret, "mfa secret wasn't blank")
+	require.Empty(tb, user.MfaSecret, "mfa secret wasn't blank")
 }
 
 func CheckEtag(tb testing.TB, data any, resp *model.Response) {
