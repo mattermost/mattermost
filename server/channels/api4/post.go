@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -128,6 +129,24 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
+	// For burn-on-read posts, the author should see the revealed content in the API response
+	// to avoid relying on websocket events which may fail due to connection issues
+	if rp.Type == model.PostTypeBurnOnRead && rp.UserId == c.AppContext.Session().UserId {
+		// Force read from master DB to avoid replication delay issues in DB cluster environments.
+		// Without this, the replica might not have the post yet, causing "not found" errors.
+		masterCtx := sqlstore.RequestContextWithMaster(c.AppContext)
+		revealedPost, appErr := c.App.GetSinglePost(masterCtx, rp.Id, false)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		// GetSinglePost calls RevealBurnOnReadPostsForUser which reveals the post for the author,
+		// then PreparePostForClient adds metadata (reactions, files, embeds).
+		rp = c.App.PreparePostForClient(masterCtx, revealedPost, &model.PreparePostForClientOpts{
+			IsNewPost: true,
+		})
+	}
+
 	if err := rp.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -266,8 +285,12 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
-	c.App.AddCursorIdsForPostList(list, afterPost, beforePost, since, page, perPage, collapsedThreads)
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+
+	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
+	// to ensure they only reference posts that are actually in the response
+	c.App.AddCursorIdsForPostList(clientPostList, afterPost, beforePost, since, page, perPage, collapsedThreads)
+
 	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -332,10 +355,12 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		}
 	}
 
-	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList, collapsedThreads)
-	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList, collapsedThreads)
-
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
+
+	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
+	// to ensure they only reference posts that are actually in the response
+	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, collapsedThreads)
+	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, collapsedThreads)
 	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -1490,11 +1515,6 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	if !c.App.Config().FeatureFlags.BurnOnRead {
-		c.Err = model.NewAppError("burnPost", "api.post.burn_post.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	userId := c.AppContext.Session().UserId
 	postId := c.Params.PostId
 
@@ -1529,4 +1549,5 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
+	ReturnStatusOK(w)
 }

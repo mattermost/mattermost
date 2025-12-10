@@ -175,7 +175,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	var mentions *MentionResults
 	var keywords MentionKeywords
 	if post.Type == model.PostTypeBurnOnRead {
-		borPost, appErr := a.getBurnOnReadPost(rctx, post)
+		borPost, appErr := a.getBurnOnReadPost(store.RequestContextWithMaster(rctx), post)
 		if appErr != nil {
 			return nil, appErr
 		}

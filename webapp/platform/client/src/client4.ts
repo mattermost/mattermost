@@ -2310,9 +2310,16 @@ export default class Client4 {
     };
 
     revealBurnOnReadPost = (postId: string) => {
-        return this.doFetch<{post: Post; expire_at: number}>(
+        return this.doFetch<Post>(
             `${this.getPostRoute(postId)}/reveal`,
             {method: 'get'},
+        );
+    };
+
+    burnPostNow = (postId: string) => {
+        return this.doFetch(
+            `${this.getPostRoute(postId)}/burn`,
+            {method: 'delete'},
         );
     };
 

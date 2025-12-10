@@ -52,5 +52,8 @@ const WebsocketEvents = {
     THREAD_READ_CHANGED: 'thread_read_changed',
     FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED: 'first_admin_visit_marketplace_status_received',
     GROUP_MEMBER_DELETED: 'group_member_deleted',
+    BURN_ON_READ_POST_REVEALED: 'post_revealed',
+    BURN_ON_READ_POST_BURNED: 'post_burned',
+    BURN_ON_READ_ALL_REVEALED: 'burn_on_read_all_revealed',
 };
 export default WebsocketEvents;

@@ -107,7 +107,7 @@ func (s *SqlTemporaryPostStore) Get(rctx request.CTX, id string) (*model.Tempora
 	}
 
 	var row temporaryPostRow
-	err := s.GetReplica().GetBuilder(&row, query)
+	err := s.DBXFromContext(rctx.Context()).GetBuilder(&row, query)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("TemporaryPost", id)

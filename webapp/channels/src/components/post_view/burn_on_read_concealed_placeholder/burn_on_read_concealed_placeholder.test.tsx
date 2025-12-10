@@ -24,7 +24,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         );
 
         expect(screen.getByTestId('burn-on-read-concealed-post123')).toBeInTheDocument();
-        expect(screen.getByText('This message is concealed and will be revealed when you click on it to view the content')).toBeInTheDocument();
+        expect(screen.getByText('View message')).toBeInTheDocument();
         expect(screen.getByRole('button')).toHaveClass('BurnOnReadConcealedPlaceholder');
     });
 
@@ -108,8 +108,8 @@ describe('BurnOnReadConcealedPlaceholder', () => {
             />,
         );
 
-        expect(screen.getByText(errorMessage)).toBeInTheDocument();
-        expect(screen.getByRole('alert')).toHaveClass('BurnOnReadConcealedPlaceholder__error');
+        expect(screen.getByText('Unable to reveal message. Please try again later.')).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toHaveClass('BurnOnReadConcealedPlaceholder--error');
     });
 
     it('should have correct aria-label for accessibility', () => {

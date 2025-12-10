@@ -23,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+type PostContextKey string
+
 const (
 	PostSystemMessagePrefix      = "system_"
 	PostTypeDefault              = ""
@@ -102,6 +104,8 @@ const (
 
 	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
 	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
+
+	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
 
 type Post struct {
