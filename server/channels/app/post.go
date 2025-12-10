@@ -384,13 +384,16 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	// We make a copy of the post for the plugin hook to avoid a race condition,
 	// and to remove the non-GOB-encodable Metadata from it.
-	pluginPost := rpost.ForPlugin()
-	a.Srv().Go(func() {
-		a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.MessageHasBeenPosted(pluginContext, pluginPost)
-			return true
-		}, plugin.MessageHasBeenPostedID)
-	})
+	// Skip plugin hooks for burn-on-read posts
+	if rpost.Type != model.PostTypeBurnOnRead {
+		pluginPost := rpost.ForPlugin()
+		a.Srv().Go(func() {
+			a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.MessageHasBeenPosted(pluginContext, pluginPost)
+				return true
+			}, plugin.MessageHasBeenPostedID)
+		})
+	}
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents

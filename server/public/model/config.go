@@ -433,7 +433,7 @@ type ServiceSettings struct {
 	EnableBurnOnRead                                  *bool `access:"site_posts"`
 	BurnOnReadDurationSeconds                         *int  `access:"site_posts"`
 	BurnOnReadMaximumTimeToLiveSeconds                *int  `access:"site_posts"`
-	BurnOnReadSchedulerFrequencySeconds               *int  `access:"site_posts",cloud_restrictable"`
+	BurnOnReadSchedulerFrequencySeconds               *int  `access:"site_posts,cloud_restrictable"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
