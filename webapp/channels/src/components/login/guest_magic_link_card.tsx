@@ -16,19 +16,19 @@ const GuestMagicLinkCard = () => {
             <h2>
                 {formatMessage({
                     id: 'guest_magic_link.success.title',
-                    defaultMessage: 'We sent you a link to login!',
+                    defaultMessage: 'Magic link sent to your email',
                 })}
             </h2>
             <p>
                 {formatMessage({
                     id: 'guest_magic_link.success.description',
-                    defaultMessage: 'Please check your email for the link to login.',
+                    defaultMessage: 'Check your email for a magic link to log in without a password.',
                 })}
             </p>
             <p className='guest-magic-link-card-expiry'>
                 {formatMessage({
                     id: 'guest_magic_link.success.expiry',
-                    defaultMessage: 'Your link will expire in 5 minutes.',
+                    defaultMessage: 'The link expires in five minutes.',
                 })}
             </p>
         </div>
