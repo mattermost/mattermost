@@ -15,14 +15,14 @@ import (
 
 func TestCWSLogin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	license := model.NewTestLicense()
 	license.Features.Cloud = model.NewPointer(true)
 	th.App.Srv().SetLicense(license)
 
 	t.Run("Should authenticate user when CWS login is enabled and tokens are equal", func(t *testing.T) {
-		token := model.NewToken(TokenTypeCWSAccess, "")
+		token := model.NewToken(model.TokenTypeCWSAccess, "")
 		defer func() {
 			appErr := th.App.DeleteToken(token)
 			require.Nil(t, appErr)
@@ -40,7 +40,7 @@ func TestCWSLogin(t *testing.T) {
 	})
 
 	t.Run("Should not authenticate the user when CWS token was used", func(t *testing.T) {
-		token := model.NewToken(TokenTypeCWSAccess, "")
+		token := model.NewToken(model.TokenTypeCWSAccess, "")
 		os.Setenv("CWS_CLOUD_TOKEN", token.Token)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {

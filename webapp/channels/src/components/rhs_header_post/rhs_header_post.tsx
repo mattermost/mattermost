@@ -12,8 +12,6 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import PopoutButton from 'components/popout_button';
 import FollowButton from 'components/threading/common/follow_button';
-import CRTThreadsPaneTutorialTip
-    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
 import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
@@ -32,7 +30,6 @@ type Props = WrappedComponentProps & {
     isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
     currentTeam?: Team;
-    showThreadsTutorialTip: boolean;
     currentUserId: string;
     setRhsExpanded: (b: boolean) => void;
     showMentions: () => void;
@@ -43,6 +40,7 @@ type Props = WrappedComponentProps & {
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+    focusPost: (postId: string, returnTo: string, currentUserId: string, option?: {skipRedirectReplyPermalink: boolean}) => Promise<void>;
 };
 
 class RhsHeaderPost extends React.PureComponent<Props> {
@@ -79,11 +77,14 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         this.props.setThreadFollow(currentUserId, currentTeam.id, rootPostId, !isFollowingThread);
     };
 
-    popout = () => {
-        if (!this.props.currentTeam) {
+    popout = async () => {
+        const {currentTeam, intl, rootPostId, focusPost, currentUserId} = this.props;
+        if (!currentTeam) {
             return;
         }
-        popoutThread(this.props.intl, this.props.rootPostId, this.props.currentTeam.name);
+        await popoutThread(intl, rootPostId, currentTeam.name, (postId, returnTo) => {
+            focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
+        });
     };
 
     render() {
@@ -242,7 +243,6 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         </button>
                     </WithTooltip>
                 </div>
-                {this.props.showThreadsTutorialTip && <CRTThreadsPaneTutorialTip/>}
             </div>
         );
     }

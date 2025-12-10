@@ -149,6 +149,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         updateAccessControlPolicyActive: jest.fn().mockResolvedValue({data: {}}),
         validateExpressionAgainstRequester: jest.fn().mockResolvedValue({data: {requester_matches: true}}),
         savePreferences: jest.fn().mockResolvedValue({data: {}}),
+        updateAccessControlPoliciesActive: jest.fn().mockResolvedValue({data: {}}),
     };
 
     const defaultProps = {

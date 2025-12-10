@@ -21,6 +21,10 @@ export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
 }
 
+export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): AdminConfig {
+    return merge<AdminConfig>(getOnPremServerConfig(), overrides);
+}
+
 type TestAdminConfig = {
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
@@ -187,6 +191,7 @@ const defaultServerConfig: AdminConfig = {
         EnableLocalMode: false,
         LocalModeSocketLocation: '/var/tmp/mattermost_local.socket',
         EnableAWSMetering: false,
+        AWSMeteringTimeoutSeconds: 30,
         SplitKey: '',
         FeatureFlagSyncIntervalSeconds: 30,
         DebugSplit: false,
@@ -352,7 +357,7 @@ const defaultServerConfig: AdminConfig = {
         SendPushNotifications: true,
         PushNotificationServer: 'https://push-test.mattermost.com',
         PushNotificationServerType: 'custom',
-        PushNotificationServerLocation: 'us',
+        PushNotificationServerLocation: 'global',
         PushNotificationContents: 'full',
         PushNotificationBuffer: 1000,
         EnableEmailBatching: false,
@@ -556,6 +561,13 @@ const defaultServerConfig: AdminConfig = {
         MobileJailbreakProtection: false,
         MobileEnableSecureFilePreview: false,
         MobileAllowPdfLinkNavigation: false,
+        EnableIntuneMAM: false,
+    },
+    IntuneSettings: {
+        Enable: false,
+        TenantId: '',
+        ClientId: '',
+        AuthService: '',
     },
     CacheSettings: {
         CacheType: 'lru',
@@ -711,6 +723,7 @@ const defaultServerConfig: AdminConfig = {
         AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
+        EnableGuestMagicLink: false,
     },
     ImageProxySettings: {
         Enable: false,

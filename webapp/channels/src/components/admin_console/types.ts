@@ -35,6 +35,7 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
     showTitle?: boolean;
     component: Component;
     label?: string | MessageDescriptor;
+    validate?: Validator;
 }
 
 type AdminDefinitionSettingBase = {
@@ -74,7 +75,7 @@ export type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     setFromMetadataField?: string;
     dynamic_value?: (value: any, config: Partial<AdminConfig>, state: any) => string;
     max_length?: number;
-    default?: string;
+    default?: string | ((value: any, config: Partial<AdminConfig>, state: any) => string);
 }
 
 type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
@@ -185,10 +186,13 @@ export type AdminDefinitionConfigSchemaSection = {
     key: string;
     title?: string;
     subtitle?: string;
+    description?: string | MessageDescriptor;
+    license_sku?: string;
     settings: AdminDefinitionSetting[];
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
     component?: Component;
+    componentProps?: any;
     isHidden?: Check;
 }
 
