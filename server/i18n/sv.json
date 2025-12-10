@@ -61,7 +61,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -5170,10 +5170,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Felaktig grant_type."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Saknar client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
@@ -10945,7 +10941,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggningen skulle tas bort."
+    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggning och tillhörande data skulle tas bort."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -11070,5 +11066,141 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Tidsgränsen för avisering av autotranslation är ogiltig. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Ogiltiga klient-uppgifter."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.channel_not_found",
+    "translation": "Kanal hittades inte"
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Ogiltig inbjudningslänk."
+  },
+  {
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Ogiltigt kanal-ID."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Ogiltigt tidsfält."
+  },
+  {
+    "id": "store.sql_autotranslation.channel_not_found",
+    "translation": "Kanal hittades inte."
+  },
+  {
+    "id": "store.sql_autotranslation.member_not_found",
+    "translation": "Medlem hittades inte."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Tomt svar från AI."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Begärde du inte det här e-mailet?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Logga in till Mattermost"
+  },
+  {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Kunde inte hämta översättning."
+  },
+  {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Kunde inte spara översättningen."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Misslyckades med hämtningen av LLM-tjänster."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Hämtningen av fil-infon misslyckades."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "Den här inbjudningslänken har slutat gälla."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Samtalsbryggningen misslyckades."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Samtalsbryggningen misslyckades."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Ogiltig omskrivningsåtgärd."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Ej stödd token_endpoint_auth_method tillhandahölls."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Inbjudningstoken saknas."
+  },
+  {
+    "id": "model.post.decode_cursor.unsupported_version",
+    "translation": "Pekar-version stöds inte."
+  },
+  {
+    "id": "store.sql_autotranslation.get_active_languages.app_error",
+    "translation": "Kunde inte hämta aktiva språk."
+  },
+  {
+    "id": "store.sql_autotranslation.get_user_language.app_error",
+    "translation": "Kunde inte hämta användarens språk."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Hämtningen av agenterna misslyckades."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Sparningen av auth-token misslyckades."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Ingen behörighet att flytta kommandot"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "Tjänstleverantör för OAuth är avstängd."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Ogiltig länk-typ för inbjudningen."
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Misslyckat anrop till AI-agenten."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för klienten."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Ogiltigt URI-format för omdirigeringen."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Ogiltigt cursor-id."
+  },
+  {
+    "id": "store.sql_autotranslation.query_build_error",
+    "translation": "Misslyckades att skapa frågan."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Ogiltig sorteringsriktning."
   }
 ]

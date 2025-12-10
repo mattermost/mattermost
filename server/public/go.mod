@@ -6,6 +6,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/francoispqt/gojay v1.2.13
+	github.com/goccy/go-yaml v1.18.0
 	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
@@ -31,7 +32,6 @@ require (
 	golang.org/x/oauth2 v0.32.0
 	golang.org/x/text v0.30.0
 	golang.org/x/tools v0.38.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -67,6 +67,7 @@ require (
 	google.golang.org/protobuf v1.36.10 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 // Hack to prevent the willf/bitset module from being upgraded to 1.2.0.
