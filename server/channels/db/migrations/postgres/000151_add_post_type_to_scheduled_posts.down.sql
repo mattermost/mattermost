@@ -1,1 +1,0 @@
-ALTER TABLE scheduledposts DROP COLUMN IF EXISTS type;

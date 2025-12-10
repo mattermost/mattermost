@@ -1,1 +1,0 @@
-ALTER TABLE drafts ADD COLUMN IF NOT EXISTS type text;
