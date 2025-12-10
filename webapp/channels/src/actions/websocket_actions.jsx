@@ -101,7 +101,7 @@ import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, i
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
-import {handleBurnOnReadPostRevealed} from 'actions/burn_on_read_websocket';
+import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -379,6 +379,10 @@ export function handleEvent(msg) {
 
     case SocketEvents.BURN_ON_READ_POST_BURNED:
         dispatch(handlePostExpired(msg.data.post_id));
+        break;
+
+    case SocketEvents.BURN_ON_READ_ALL_REVEALED:
+        dispatch(handleBurnOnReadAllRevealed(msg.data));
         break;
 
     case SocketEvents.LEAVE_TEAM:

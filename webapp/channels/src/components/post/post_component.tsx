@@ -655,13 +655,14 @@ function PostComponent(props: Props) {
         );
     }
 
-    // Burn-on-Read countdown timer chip (only for revealed receiver posts)
+    // Burn-on-Read countdown timer chip
+    // Displays when expire_at is set (after reveal for receivers, after all reveal for sender)
     let burnOnReadTimerChip;
     if (isBoRPost) {
         const isSender = post.user_id === props.currentUserId;
         const hasExpireAt = typeof post.metadata?.expire_at === 'number';
 
-        if (hasExpireAt && !isSender) {
+        if (hasExpireAt) {
             burnOnReadTimerChip = (
                 <BurnOnReadTimerChip
                     expireAt={post.metadata.expire_at as number}

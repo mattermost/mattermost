@@ -73,3 +73,39 @@ export function handleBurnOnReadPostRevealed(data: PostRevealedData) {
         return {data: true};
     };
 }
+
+export interface AllRevealedData {
+    post_id: string;
+    sender_expire_at: number;
+}
+
+/**
+ * Handles the burn_on_read_all_revealed websocket event.
+ * Sent to the post author when all recipients have revealed the message.
+ */
+export function handleBurnOnReadAllRevealed(data: AllRevealedData) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        const state = getState();
+        const {post_id: postId, sender_expire_at: senderExpireAt} = data;
+
+        if (!postId || !senderExpireAt) {
+            return {data: false};
+        }
+
+        const post = state.entities.posts.posts[postId];
+        if (!post) {
+            return {data: false};
+        }
+
+        // Update the post with the sender's expiration time
+        dispatch({
+            type: PostTypes.BURN_ON_READ_ALL_REVEALED,
+            data: {
+                postId,
+                senderExpireAt,
+            },
+        });
+
+        return {data: true};
+    };
+}

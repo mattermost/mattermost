@@ -54,5 +54,6 @@ const WebsocketEvents = {
     GROUP_MEMBER_DELETED: 'group_member_deleted',
     BURN_ON_READ_POST_REVEALED: 'post_revealed',
     BURN_ON_READ_POST_BURNED: 'post_burned',
+    BURN_ON_READ_ALL_REVEALED: 'burn_on_read_all_revealed',
 };
 export default WebsocketEvents;

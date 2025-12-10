@@ -338,6 +338,29 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
+    case PostTypes.BURN_ON_READ_ALL_REVEALED: {
+        const {postId, senderExpireAt} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+
+        // Set sender's expiration time to trigger timer display
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    expire_at: senderExpireAt,
+                },
+            },
+        };
+    }
+
     case ChannelTypes.LEAVE_CHANNEL: {
         const channelId = action.data.id;
 

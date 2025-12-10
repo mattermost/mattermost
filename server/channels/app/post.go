@@ -3217,6 +3217,12 @@ func (a *App) updateTemporaryPostIfAllRead(rctx request.CTX, post *model.Post, r
 		return model.NewAppError("RevealPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Send WebSocket event to author that all recipients have revealed
+	if err := a.publishAllRecipientsRevealedEvent(rctx, post, receipt.ExpireAt); err != nil {
+		// Log warning but don't fail the operation
+		rctx.Logger().Warn("Failed to publish all recipients revealed event", mlog.String("post_id", post.Id), mlog.Err(err))
+	}
+
 	return nil
 }
 
@@ -3297,6 +3303,25 @@ func (a *App) publishPostBurnedEvent(postID string, channelID string, userID str
 	)
 
 	event.Add("post_id", postID)
+	a.Publish(event)
+
+	return nil
+}
+
+// publishAllRecipientsRevealedEvent notifies the post author when all recipients have revealed the message.
+func (a *App) publishAllRecipientsRevealedEvent(rctx request.CTX, post *model.Post, senderExpireAt int64) *model.AppError {
+	event := model.NewWebSocketEvent(
+		model.WebsocketEventBurnOnReadAllRevealed,
+		"",
+		post.ChannelId,
+		post.UserId, // Send to post author only
+		nil,
+		"",
+	)
+
+	event.Add("post_id", post.Id)
+	event.Add("sender_expire_at", senderExpireAt)
+
 	a.Publish(event)
 
 	return nil

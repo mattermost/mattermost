@@ -624,6 +624,8 @@ export const SocketEvents = {
     POST_UPDATED: 'post_updated',
     POST_UNREAD: 'post_unread',
     BURN_ON_READ_POST_REVEALED: 'post_revealed',
+    BURN_ON_READ_POST_BURNED: 'post_burned',
+    BURN_ON_READ_ALL_REVEALED: 'burn_on_read_all_revealed',
     CHANNEL_CONVERTED: 'channel_converted',
     CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
