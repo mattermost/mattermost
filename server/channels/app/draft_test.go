@@ -452,17 +452,17 @@ func TestPublishPageDraft(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("create new page from draft", func(t *testing.T) {
-		draftId := model.NewId()
+		pageId := model.NewId()
 		title := "New Page"
 		content := createTipTapContent("This is the content of the new page")
 
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, content, title, "", nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, pageId, content, title, 0, nil)
 		require.Nil(t, err)
 
 		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:  createdWiki.Id,
-			DraftId: draftId,
-			Title:   title,
+			WikiId: createdWiki.Id,
+			PageId: pageId,
+			Title:  title,
 		})
 		require.Nil(t, appErr)
 		assert.NotNil(t, publishedPage)
@@ -471,24 +471,25 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.Equal(t, model.PostTypePage, publishedPage.Type)
 		assert.Equal(t, channel.Id, publishedPage.ChannelId)
 
-		_, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
+		_, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
 		assert.NotNil(t, getDraftErr)
 	})
 
 	t.Run("update existing page from draft", func(t *testing.T) {
-		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original Title", "", user.Id, "")
+		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original Title", "", user.Id, "", "")
 		require.Nil(t, appErr)
 
-		draftId := model.NewId()
+		// With unified page ID model, use the page's ID as the draft ID
+		pageId := originalPage.Id
 		newTitle := "Updated Title"
 		newContent := createTipTapContent("This is the updated content")
 
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, newContent, newTitle, originalPage.Id, nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, pageId, newContent, newTitle, originalPage.EditAt, nil)
 		require.Nil(t, err)
 
 		updatedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
 			WikiId:     createdWiki.Id,
-			DraftId:    draftId,
+			PageId:     pageId,
 			Title:      newTitle,
 			BaseEditAt: originalPage.EditAt,
 		})
@@ -504,32 +505,33 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.Equal(t, newTitle, retrievedPage.Props["title"])
 	})
 
-	t.Run("multiple autosaves preserve page_id", func(t *testing.T) {
-		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Autosave Test", "", user.Id, "")
+	t.Run("multiple autosaves update draft content", func(t *testing.T) {
+		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Autosave Test", "", user.Id, "", "")
 		require.Nil(t, appErr)
 
-		draftId := model.NewId()
-		title := "Autosave Test"
+		// With unified page ID model, use the page's ID as the draft ID
 		pageId := originalPage.Id
+		title := "Autosave Test"
 		var finalContent string
+		var lastUpdateAt int64 = originalPage.EditAt
 
 		for i := 1; i <= 5; i++ {
 			randomText := model.NewRandomString(50)
 			finalContent = createTipTapContent(randomText)
-			_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, finalContent, title, pageId, nil)
+			savedDraft, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, pageId, finalContent, title, lastUpdateAt, nil)
 			require.Nil(t, err)
+			lastUpdateAt = savedDraft.UpdateAt
 
-			retrievedDraft, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
+			retrievedDraft, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
 			require.Nil(t, getDraftErr)
 			retrievedContent, _ := retrievedDraft.GetDocumentJSON()
 			assert.JSONEq(t, finalContent, retrievedContent)
 			assert.Equal(t, title, retrievedDraft.Title)
-			assert.Equal(t, pageId, retrievedDraft.Props["page_id"])
 		}
 
 		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
 			WikiId:     createdWiki.Id,
-			DraftId:    draftId,
+			PageId:     pageId,
 			Title:      title,
 			BaseEditAt: originalPage.EditAt,
 		})
@@ -539,29 +541,29 @@ func TestPublishPageDraft(t *testing.T) {
 	})
 
 	t.Run("publish non-existent draft fails", func(t *testing.T) {
-		nonExistentDraftId := model.NewId()
+		nonExistentPageId := model.NewId()
 
 		_, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:  createdWiki.Id,
-			DraftId: nonExistentDraftId,
-			Title:   "Title",
+			WikiId: createdWiki.Id,
+			PageId: nonExistentPageId,
+			Title:  "Title",
 		})
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.draft.publish_page.not_found", appErr.Id)
 	})
 
 	t.Run("publish draft calls CreatePage directly without recursion", func(t *testing.T) {
-		draftId := model.NewId()
+		pageId := model.NewId()
 		title := "Direct CreatePage Test"
 		content := createTipTapContent("This test validates that PublishPageDraft calls CreatePage directly")
 
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, content, title, "", nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, pageId, content, title, 0, nil)
 		require.Nil(t, err)
 
 		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:  createdWiki.Id,
-			DraftId: draftId,
-			Title:   title,
+			WikiId: createdWiki.Id,
+			PageId: pageId,
+			Title:  title,
 		})
 		require.Nil(t, appErr, "PublishPageDraft should not cause infinite recursion")
 		assert.NotNil(t, publishedPage)
@@ -579,42 +581,48 @@ func TestPublishPageDraft(t *testing.T) {
 	})
 
 	t.Run("publish parent draft updates child draft references", func(t *testing.T) {
-		parentDraftId := model.NewId()
+		// With the unified page ID model, the draft ID and the published page ID are the same.
+		// This test verifies that child drafts can properly reference parent drafts,
+		// and that the reference remains valid after the parent is published.
+		parentPageId := model.NewId()
 		parentTitle := "Parent Draft"
 		parentContent := createTipTapContent("This is the parent page content")
 
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, parentDraftId, parentContent, parentTitle, "", nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, parentPageId, parentContent, parentTitle, 0, nil)
 		require.Nil(t, err)
 
-		childDraftId := model.NewId()
+		childPageId := model.NewId()
 		childTitle := "Child Draft"
 		childContent := createTipTapContent("This is the child page content")
 
-		_, err = th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, childDraftId, childContent, childTitle, "", map[string]any{
-			"page_parent_id": parentDraftId,
+		_, err = th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, childPageId, childContent, childTitle, 0, map[string]any{
+			model.DraftPropsPageParentID: parentPageId,
 		})
 		require.Nil(t, err)
 
-		childDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childDraftId)
+		childDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childPageId)
 		require.Nil(t, err)
-		assert.Equal(t, parentDraftId, childDraft.Props["page_parent_id"], "Child draft should reference parent draft ID")
+		assert.Equal(t, parentPageId, childDraft.Props[model.DraftPropsPageParentID], "Child draft should reference parent page ID")
 
 		publishedParent, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:  createdWiki.Id,
-			DraftId: parentDraftId,
-			Title:   parentTitle,
+			WikiId: createdWiki.Id,
+			PageId: parentPageId,
+			Title:  parentTitle,
 		})
 		require.Nil(t, appErr)
 		require.NotNil(t, publishedParent)
 
-		updatedChildDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childDraftId)
+		// With unified ID model, published page ID equals draft ID
+		assert.Equal(t, parentPageId, publishedParent.Id, "Published page should have same ID as draft (unified ID model)")
+
+		updatedChildDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childPageId)
 		require.Nil(t, err)
-		assert.Equal(t, publishedParent.Id, updatedChildDraft.Props["page_parent_id"], "Child draft should now reference published parent page ID")
-		assert.NotEqual(t, parentDraftId, updatedChildDraft.Props["page_parent_id"], "Child draft should no longer reference draft ID")
+		// The child draft's parent reference should still be valid since draft ID == published page ID
+		assert.Equal(t, publishedParent.Id, updatedChildDraft.Props[model.DraftPropsPageParentID], "Child draft should reference the parent page ID")
 
 		publishedChild, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
 			WikiId:   createdWiki.Id,
-			DraftId:  childDraftId,
+			PageId:   childPageId,
 			ParentId: publishedParent.Id,
 			Title:    childTitle,
 		})
@@ -629,21 +637,21 @@ func TestPublishPageDraft(t *testing.T) {
 		// The server should accept and store the malformed content (as it's just JSON),
 		// allowing the frontend to handle rendering gracefully.
 
-		draftId := model.NewId()
+		pageId := model.NewId()
 		title := "Malformed Content Page"
 
 		// Create malformed TipTap JSON with invalid node type
 		malformedContent := `{"type":"doc","content":[{"type":"invalid_node_type"}]}`
 
 		// # Save draft with malformed content - should succeed (server stores JSON as-is)
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, malformedContent, title, "", nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, pageId, malformedContent, title, 0, nil)
 		require.Nil(t, err, "Server should accept malformed TipTap JSON")
 
 		// # Publish the draft - should succeed
 		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:  createdWiki.Id,
-			DraftId: draftId,
-			Title:   title,
+			WikiId: createdWiki.Id,
+			PageId: pageId,
+			Title:  title,
 		})
 		require.Nil(t, appErr, "Publishing malformed content should succeed")
 		require.NotNil(t, publishedPage)
@@ -662,17 +670,12 @@ func TestPublishPageDraft(t *testing.T) {
 
 // TestPageDraftWhenPageDeleted tests concurrent editing conflict scenarios where users
 // have unpublished drafts (unsaved work-in-progress) when a page is deleted by another user.
-// These tests verify that unpublished work is retained to prevent data loss, similar to
-// how Confluence retains drafts when pages are moved to trash.
-//
-// Scenario: User A is editing a page (has unsaved changes in draft), User B deletes the page.
-// Expected: User A's draft is retained for potential recovery, but publishing fails gracefully.
+// With the unified page ID model, when editing an existing page the draft ID IS the page ID.
+// These tests verify that draft content can still be retained even after the published page is deleted.
 func TestPageDraftWhenPageDeleted(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	th.SetupPagePermissions()
-	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 	th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 	user := th.BasicUser
@@ -688,110 +691,102 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 
 	sessionCtx := th.CreateSessionContext()
 
-	t.Run("unpublished draft retained when page deleted by another user", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete", "", user.Id, "")
+	t.Run("draft retained when page deleted by another user", func(t *testing.T) {
+		// Create a page
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete", "", user.Id, "", "")
 		require.Nil(t, appErr)
 
-		draftId := model.NewId()
+		// With unified model, use page ID as draft ID when editing existing page
+		pageId := page.Id
 		content := createTipTapContent("Draft content for page about to be deleted")
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, content, "Updated Title", page.Id, nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, pageId, content, "Updated Title", page.EditAt, nil)
 		require.Nil(t, err)
 
-		draftBefore, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
+		// Verify draft exists before deletion
+		draftBefore, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
 		require.Nil(t, getDraftErr)
-		require.Equal(t, page.Id, draftBefore.Props["page_id"])
+		require.NotNil(t, draftBefore)
 
+		// Delete the page
 		err = th.App.DeletePage(sessionCtx, page.Id)
 		require.Nil(t, err)
 
-		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
-		require.Nil(t, getDraftErr, "Unpublished draft should be retained to prevent work loss")
+		// Draft should still be accessible (content is preserved)
+		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		require.Nil(t, getDraftErr, "Draft content should be retained to prevent work loss")
 		draftAfterContent, _ := draftAfter.GetDocumentJSON()
 		require.JSONEq(t, content, draftAfterContent)
-		require.Equal(t, page.Id, draftAfter.Props["page_id"], "Draft should still reference deleted page ID for potential recovery")
-	})
-
-	t.Run("publishing orphaned draft fails when page was deleted concurrently", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete Before Publish", "", user.Id, "")
-		require.Nil(t, appErr)
-
-		draftId := model.NewId()
-		content := createTipTapContent("Draft for deleted page")
-		title := "Updated Title After Deletion"
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, content, title, page.Id, nil)
-		require.Nil(t, err)
-
-		err = th.App.DeletePage(sessionCtx, page.Id)
-		require.Nil(t, err)
-
-		_, publishErr := th.App.PublishPageDraft(th.Context, user.Id, model.PublishPageDraftOptions{
-			WikiId:  createdWiki.Id,
-			DraftId: draftId,
-			Title:   title,
-		})
-		require.NotNil(t, publishErr, "Publishing draft should fail when target page no longer exists")
 	})
 
 	t.Run("draft for new page unaffected when different page deleted", func(t *testing.T) {
-		pageToDelete, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Unrelated Page", "", user.Id, "")
+		pageToDelete, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Unrelated Page", "", user.Id, "", "")
 		require.Nil(t, appErr)
 
-		draftId := model.NewId()
+		// Create a new draft (new page)
+		newPageId := model.NewId()
 		content := createTipTapContent("Draft for new page")
 		title := "New Page Draft"
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, content, title, "", nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, newPageId, content, title, 0, nil)
 		require.Nil(t, err)
 
+		// Delete unrelated page
 		err = th.App.DeletePage(sessionCtx, pageToDelete.Id)
 		require.Nil(t, err)
 
-		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
+		// New draft should be unaffected
+		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, newPageId)
 		require.Nil(t, getDraftErr, "Draft for new page should be unaffected")
 		draftAfterContent, _ := draftAfter.GetDocumentJSON()
 		require.JSONEq(t, content, draftAfterContent)
-		require.Empty(t, draftAfter.Props["page_id"], "Draft for new page should not have page_id")
 
+		// Should be able to publish the new page
 		publishedPage, publishErr := th.App.PublishPageDraft(sessionCtx, user.Id, model.PublishPageDraftOptions{
-			WikiId:  createdWiki.Id,
-			DraftId: draftId,
-			Title:   title,
+			WikiId: createdWiki.Id,
+			PageId: newPageId,
+			Title:  title,
 		})
 		require.Nil(t, publishErr, "Should be able to publish draft for new page")
 		require.Equal(t, title, publishedPage.Props["title"])
 	})
 
-	t.Run("multiple users' unpublished drafts all retained after page deletion", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page with Multiple Drafts", "", user.Id, "")
+	t.Run("multiple users can have drafts for the same page", func(t *testing.T) {
+		// Create a page
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page with Multiple Drafts", "", user.Id, "", "")
 		require.Nil(t, appErr)
 
 		user2 := th.CreateUser(t)
 		th.LinkUserToTeam(t, user2, th.BasicTeam)
 		th.AddUserToChannel(t, user2, channel)
 
-		draft1Id := model.NewId()
+		// User 1 creates a draft (editing the same page)
+		pageId := page.Id
 		content1 := createTipTapContent("User 1 draft")
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draft1Id, content1, "Title 1", page.Id, nil)
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, pageId, content1, "Title 1", page.EditAt, nil)
 		require.Nil(t, err)
 
-		draft2Id := model.NewId()
+		// User 2 creates a draft (editing the same page)
 		content2 := createTipTapContent("User 2 draft")
-		_, err = th.App.SavePageDraftWithMetadata(th.Context, user2.Id, createdWiki.Id, draft2Id, content2, "Title 2", page.Id, nil)
+		_, err = th.App.SavePageDraftWithMetadata(th.Context, user2.Id, createdWiki.Id, pageId, content2, "Title 2", page.EditAt, nil)
 		require.Nil(t, err)
 
+		// Delete the page
 		err = th.App.DeletePage(sessionCtx, page.Id)
 		require.Nil(t, err)
 
-		draft1After, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draft1Id)
-		require.Nil(t, err, "User 1 unpublished work should be retained")
-		require.Equal(t, page.Id, draft1After.Props["page_id"])
+		// Both drafts should be retained
+		draft1After, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, pageId)
+		require.Nil(t, err, "User 1 draft should be retained")
+		draft1Content, _ := draft1After.GetDocumentJSON()
+		require.JSONEq(t, content1, draft1Content)
 
-		draft2After, err := th.App.GetPageDraft(th.Context, user2.Id, createdWiki.Id, draft2Id)
-		require.Nil(t, err, "User 2 unpublished work should be retained")
-		require.Equal(t, page.Id, draft2After.Props["page_id"])
+		draft2After, err := th.App.GetPageDraft(th.Context, user2.Id, createdWiki.Id, pageId)
+		require.Nil(t, err, "User 2 draft should be retained")
+		draft2Content, _ := draft2After.GetDocumentJSON()
+		require.JSONEq(t, content2, draft2Content)
 	})
 
 	t.Run("regular post drafts unaffected by page deletion", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page Unrelated to Post Draft", "", user.Id, "")
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page Unrelated to Post Draft", "", user.Id, "", "")
 		require.Nil(t, appErr)
 
 		regularPostDraft := &model.Draft{

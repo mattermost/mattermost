@@ -89,8 +89,8 @@ func (s *SqlPageStore) CreatePage(rctx request.CTX, post *model.Post, content, s
 		now := model.GetMillis()
 		contentInsertQuery := s.getQueryBuilder().
 			Insert("PageContents").
-			Columns("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
-			Values(post.Id, contentJSON, pageContent.SearchText, now, now, 0)
+			Columns("PageId", "UserId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
+			Values(post.Id, "", contentJSON, pageContent.SearchText, now, now, 0)
 
 		contentQuery, contentArgs, buildErr := contentInsertQuery.ToSql()
 		if buildErr != nil {
@@ -276,11 +276,12 @@ func (s *SqlPageStore) Update(page *model.Post) (*model.Post, error) {
 		}
 
 		// Fetch current PageContent before update (for version history)
+		// UserId = '' means published content (drafts have non-empty UserId)
 		var currentContent model.PageContent
 		selectContentQuery := s.getQueryBuilder().
 			Select("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
 			From("PageContents").
-			Where(sq.Eq{"PageId": page.Id})
+			Where(sq.Eq{"PageId": page.Id, "UserId": ""})
 
 		selectContentSQL, selectContentArgs, buildErr := selectContentQuery.ToSql()
 		if buildErr != nil {
@@ -320,12 +321,13 @@ func (s *SqlPageStore) Update(page *model.Post) (*model.Post, error) {
 		}
 
 		// Update PageContents if content exists
+		// UserId = '' means published content (drafts have non-empty UserId)
 		if hasContent {
 			contentUpdateQuery := s.getQueryBuilder().
 				Update("PageContents").
 				Set("Content", page.Message).
 				Set("UpdateAt", now).
-				Where(sq.Eq{"PageId": page.Id})
+				Where(sq.Eq{"PageId": page.Id, "UserId": ""})
 
 			contentUpdateSQL, contentUpdateArgs, contentBuildErr := contentUpdateQuery.ToSql()
 			if contentBuildErr != nil {
@@ -517,11 +519,12 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			now := model.GetMillis()
 
 			// First, fetch current PageContents to save as history
+			// UserId = '' means published content (drafts have non-empty UserId)
 			var currentContent model.PageContent
 			selectQuery := s.getQueryBuilder().
 				Select("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
 				From("PageContents").
-				Where(sq.Eq{"PageId": pageID})
+				Where(sq.Eq{"PageId": pageID, "UserId": ""})
 
 			selectSQL, selectArgs, buildErr := selectQuery.ToSql()
 			if buildErr != nil {
@@ -541,12 +544,13 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			}
 
 			// Now update current PageContents
+			// UserId = '' means published content (drafts have non-empty UserId)
 			updateQuery := s.getQueryBuilder().
 				Update("PageContents").
 				Set("Content", contentJSON).
 				Set("SearchText", pageContent.SearchText).
 				Set("UpdateAt", now).
-				Where(sq.Eq{"PageId": pageID})
+				Where(sq.Eq{"PageId": pageID, "UserId": ""})
 
 			updateSQL, updateArgs, buildErr := updateQuery.ToSql()
 			if buildErr != nil {
@@ -562,6 +566,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 			rowsAffected, _ := result.RowsAffected()
 			if rowsAffected == 0 {
 				// First-time content creation, no history needed
+				// UserId is not specified, so it defaults to '' (empty = published content)
 				insertQuery := s.getQueryBuilder().
 					Insert("PageContents").
 					Columns("PageId", "Content", "SearchText", "CreateAt", "UpdateAt", "DeleteAt").
@@ -829,7 +834,8 @@ func (s *SqlPageStore) SavePageContent(pageContent *model.PageContent) (*model.P
 }
 
 func (s *SqlPageStore) GetPageContent(pageID string) (*model.PageContent, error) {
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "DeleteAt": 0})
+	// UserId = '' means published content (drafts have non-empty UserId)
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "UserId": "", "DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -865,7 +871,8 @@ func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageConte
 		return []*model.PageContent{}, nil
 	}
 
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "DeleteAt": 0})
+	// UserId = '' means published content (drafts have non-empty UserId)
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": "", "DeleteAt": 0})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -909,7 +916,8 @@ func (s *SqlPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageConte
 }
 
 func (s *SqlPageStore) GetPageContentWithDeleted(pageID string) (*model.PageContent, error) {
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID})
+	// UserId = '' means published content (drafts have non-empty UserId)
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID, "UserId": ""})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -945,7 +953,8 @@ func (s *SqlPageStore) GetManyPageContentsWithDeleted(pageIDs []string) ([]*mode
 		return []*model.PageContent{}, nil
 	}
 
-	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs})
+	// UserId = '' means published content (drafts have non-empty UserId)
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "UserId": ""})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

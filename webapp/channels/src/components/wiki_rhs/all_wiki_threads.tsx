@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
@@ -11,13 +11,13 @@ import type {Post} from '@mattermost/types/posts';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {getPageComments} from 'actions/pages';
-import {getPages} from 'selectors/pages';
+import {getPublishedPages} from 'selectors/pages';
 
 import LoadingScreen from 'components/loading_screen';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {SocketEvents} from 'utils/constants';
-import {isDraftPageId, pageInlineCommentHasAnchor} from 'utils/page_utils';
+import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -35,9 +35,12 @@ type Props = {
 
 const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
     const [loading, setLoading] = useState(true);
     const [pageThreads, setPageThreads] = useState<PageThread[]>([]);
-    const pages = useSelector((state: GlobalState) => getPages(state, wikiId));
+    const pages = useSelector((state: GlobalState) => getPublishedPages(state, wikiId));
+    const didInitialLoad = useRef(false);
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
 
     const fetchAllThreads = useCallback(async () => {
         if (!pages || pages.length === 0) {
@@ -45,14 +48,14 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
             return;
         }
 
-        setLoading(true);
-
-        // Filter out draft pages first
-        const publishedPages = pages.filter((page) => !isDraftPageId(page.id));
+        // Only show loading spinner on initial load to prevent DOM detachment during refetch
+        if (!didInitialLoad.current) {
+            setLoading(true);
+        }
 
         // Fetch all page comments in parallel for better performance
         const results = await Promise.all(
-            publishedPages.map(async (page) => {
+            pages.map(async (page) => {
                 try {
                     const result = await dispatch(getPageComments(wikiId, page.id));
                     const comments = (result as ActionResult<Post[]>).data || [];
@@ -63,7 +66,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
                     if (inlineComments.length > 0) {
                         return {
                             pageId: page.id,
-                            pageTitle: (page.props?.title as string) || 'Untitled',
+                            pageTitle: (page.props?.title as string) || untitledText,
                             threadCount: inlineComments.length,
                             threads: inlineComments as Post[],
                         };
@@ -80,6 +83,7 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
         setPageThreads(threadsData);
         setLoading(false);
+        didInitialLoad.current = true;
     }, [dispatch, pages, wikiId]);
 
     useEffect(() => {

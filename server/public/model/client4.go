@@ -651,6 +651,22 @@ func (c *Client4) channelWikisRoute(channelId string) string {
 	return fmt.Sprintf("/channels/%v/wikis", channelId)
 }
 
+func (c *Client4) wikiDraftsRoute(wikiId string) string {
+	return fmt.Sprintf("%s/drafts", c.wikiRoute(wikiId))
+}
+
+func (c *Client4) wikiDraftRoute(wikiId, pageId string) string {
+	return fmt.Sprintf("%s/%s", c.wikiDraftsRoute(wikiId), pageId)
+}
+
+func (c *Client4) wikiPageRoute(wikiId, pageId string) string {
+	return fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId)
+}
+
+func (c *Client4) wikiPageCommentsRoute(wikiId, pageId string) string {
+	return fmt.Sprintf("%s/comments", c.wikiPageRoute(wikiId, pageId))
+}
+
 func (c *Client4) clientPerfMetricsRoute() string {
 	return "/client_perf"
 }
@@ -5515,8 +5531,8 @@ func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId str
 	return DecodeJSONFromResponse[*Draft](r)
 }
 
-func (c *Client4) GetPageDraft(ctx context.Context, wikiId, draftId string) (*PageDraft, *Response, error) {
-	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/drafts/%s", c.wikiRoute(wikiId), draftId), "")
+func (c *Client4) GetPageDraft(ctx context.Context, wikiId, pageId string) (*PageDraft, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.wikiDraftRoute(wikiId, pageId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5524,15 +5540,14 @@ func (c *Client4) GetPageDraft(ctx context.Context, wikiId, draftId string) (*Pa
 	return DecodeJSONFromResponse[*PageDraft](r)
 }
 
-func (c *Client4) SavePageDraft(ctx context.Context, wikiId, draftId, message string) (*PageDraft, *Response, error) {
-	tipTapContent := fmt.Sprintf(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"%s"}]}]}`, message)
+func (c *Client4) SavePageDraft(ctx context.Context, wikiId, pageId, content string, lastUpdateAt int64) (*PageDraft, *Response, error) {
 	payload := map[string]any{
-		"content": tipTapContent,
-		"title":   "",
-		"page_id": "",
-		"props":   nil,
+		"content":       content,
+		"title":         "",
+		"last_updateat": lastUpdateAt,
+		"props":         nil,
 	}
-	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/drafts/%s", c.wikiRoute(wikiId), draftId), payload)
+	r, err := c.DoAPIPutJSON(ctx, c.wikiDraftRoute(wikiId, pageId), payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5540,8 +5555,8 @@ func (c *Client4) SavePageDraft(ctx context.Context, wikiId, draftId, message st
 	return DecodeJSONFromResponse[*PageDraft](r)
 }
 
-func (c *Client4) DeletePageDraft(ctx context.Context, wikiId, draftId string) (*Response, error) {
-	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/drafts/%s", c.wikiRoute(wikiId), draftId))
+func (c *Client4) DeletePageDraft(ctx context.Context, wikiId, pageId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.wikiDraftRoute(wikiId, pageId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -5550,12 +5565,23 @@ func (c *Client4) DeletePageDraft(ctx context.Context, wikiId, draftId string) (
 }
 
 func (c *Client4) GetPageDraftsForWiki(ctx context.Context, wikiId string) ([]*PageDraft, *Response, error) {
-	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/drafts", c.wikiRoute(wikiId)), "")
+	r, err := c.DoAPIGet(ctx, c.wikiDraftsRoute(wikiId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*PageDraft](r)
+}
+
+// PublishPageDraft publishes a page draft, creating a new page or updating an existing one.
+// The pageId is the unified ID that identifies both the draft and the resulting published page.
+func (c *Client4) PublishPageDraft(ctx context.Context, wikiId, pageId string, opts PublishPageDraftOptions) (*Post, *Response, error) {
+	r, err := c.DoAPIPostJSON(ctx, c.wikiDraftRoute(wikiId, pageId)+"/publish", opts)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
 }
 
 // Commands Section
@@ -7693,7 +7719,7 @@ func (c *Client4) CreatePage(ctx context.Context, wikiId, pageParentId, title st
 
 // GetPage gets a single page from a wiki.
 func (c *Client4) GetPage(ctx context.Context, wikiId, pageId string) (*Post, *Response, error) {
-	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId), "")
+	r, err := c.DoAPIGet(ctx, c.wikiPageRoute(wikiId, pageId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7703,7 +7729,7 @@ func (c *Client4) GetPage(ctx context.Context, wikiId, pageId string) (*Post, *R
 
 // DeletePage permanently deletes a page. The page and all its comments are soft-deleted.
 func (c *Client4) DeletePage(ctx context.Context, wikiId, pageId string) (*Response, error) {
-	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId))
+	r, err := c.DoAPIDelete(ctx, c.wikiPageRoute(wikiId, pageId))
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7716,7 +7742,7 @@ func (c *Client4) MovePageToWiki(ctx context.Context, sourceWikiId, pageId, targ
 	payload := map[string]string{
 		"target_wiki_id": targetWikiId,
 	}
-	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/%s/move", c.wikiPagesRoute(sourceWikiId), pageId), payload)
+	r, err := c.DoAPIPutJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId)+"/move", payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7735,7 +7761,7 @@ func (c *Client4) DuplicatePage(ctx context.Context, sourceWikiId, pageId, targe
 	if customTitle != nil {
 		payload["title"] = *customTitle
 	}
-	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/%s/duplicate", c.wikiPagesRoute(sourceWikiId), pageId), payload)
+	r, err := c.DoAPIPostJSON(ctx, c.wikiPageRoute(sourceWikiId, pageId)+"/duplicate", payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7745,7 +7771,7 @@ func (c *Client4) DuplicatePage(ctx context.Context, sourceWikiId, pageId, targe
 
 // GetPageBreadcrumb retrieves the breadcrumb navigation path for a page.
 func (c *Client4) GetPageBreadcrumb(ctx context.Context, wikiId, pageId string) (*BreadcrumbPath, *Response, error) {
-	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s/breadcrumb", c.wikiPagesRoute(wikiId), pageId), "")
+	r, err := c.DoAPIGet(ctx, c.wikiPageRoute(wikiId, pageId)+"/breadcrumb", "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7758,7 +7784,7 @@ func (c *Client4) UpdatePageParent(ctx context.Context, wikiId, pageId, newParen
 	payload := map[string]string{
 		"new_parent_id": newParentId,
 	}
-	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/%s/parent", c.wikiPagesRoute(wikiId), pageId), payload)
+	r, err := c.DoAPIPutJSON(ctx, c.wikiPageRoute(wikiId, pageId)+"/parent", payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}
@@ -7768,7 +7794,7 @@ func (c *Client4) UpdatePageParent(ctx context.Context, wikiId, pageId, newParen
 
 // GetPageComments retrieves all comments for a page (including inline comments).
 func (c *Client4) GetPageComments(ctx context.Context, wikiId, pageId string) ([]*Post, *Response, error) {
-	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s/comments", c.wikiPagesRoute(wikiId), pageId), "")
+	r, err := c.DoAPIGet(ctx, c.wikiPageCommentsRoute(wikiId, pageId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7785,7 +7811,7 @@ func (c *Client4) CreatePageComment(ctx context.Context, wikiId, pageId, message
 	payload := map[string]string{
 		"message": message,
 	}
-	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/%s/comments", c.wikiPagesRoute(wikiId), pageId), payload)
+	r, err := c.DoAPIPostJSON(ctx, c.wikiPageCommentsRoute(wikiId, pageId), payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -7798,7 +7824,7 @@ func (c *Client4) CreatePageCommentReply(ctx context.Context, wikiId, pageId, pa
 	payload := map[string]string{
 		"message": message,
 	}
-	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/%s/comments/%s/replies", c.wikiPagesRoute(wikiId), pageId, parentCommentId), payload)
+	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/%s/replies", c.wikiPageCommentsRoute(wikiId, pageId), parentCommentId), payload)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

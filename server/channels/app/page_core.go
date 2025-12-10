@@ -28,6 +28,12 @@ const (
 	PageOperationDelete
 )
 
+const (
+	// ActiveEditorTimeoutMs is the time window (in milliseconds) to consider an editor as "active"
+	// Editors who haven't made changes within this window are not shown as active
+	ActiveEditorTimeoutMs = 5 * 60 * 1000 // 5 minutes
+)
+
 func getPagePermission(operation PageOperation) *model.Permission {
 	switch operation {
 	case PageOperationCreate:
@@ -128,8 +134,10 @@ func (a *App) HasPermissionToModifyPage(
 	return nil
 }
 
-// CreatePage creates a new page with title and content
-func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, content, userID, searchText string) (*model.Post, *model.AppError) {
+// CreatePage creates a new page with title and content.
+// If pageID is provided, it will be used as the page's ID (for publishing drafts with unified IDs).
+// If pageID is empty, a new ID will be generated.
+func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, content, userID, searchText, pageID string) (*model.Post, *model.AppError) {
 	start := time.Now()
 	defer func() {
 		if a.Metrics() != nil {
@@ -190,7 +198,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		// If content looks like JSON (starts with {), validate it
 		if strings.HasPrefix(trimmedContent, "{") {
 			if err := model.ValidateTipTapDocument(content); err != nil {
-				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, err.Error(), http.StatusBadRequest)
+				return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 		} else {
 			// Not JSON - treat as plain text and auto-convert to TipTap JSON
@@ -204,6 +212,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	}
 
 	page := &model.Post{
+		Id:           pageID, // If empty, PreSave() will generate a new ID
 		Type:         model.PostTypePage,
 		ChannelId:    channelID,
 		UserId:       userID,
@@ -217,7 +226,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	createdPage, createErr := a.Srv().Store().Page().CreatePage(rctx, page, content, searchText)
 	if createErr != nil {
 		if strings.Contains(createErr.Error(), "invalid_content") {
-			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, createErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(createErr)
 		}
 		return nil, model.NewAppError("CreatePage", "app.page.create.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
 	}
@@ -376,7 +385,7 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 		} else {
 			contentJSON, jsonErr := pageContent.GetDocumentJSON()
 			if jsonErr != nil {
-				return model.NewAppError("loadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+				return model.NewAppError("loadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 			}
 			post.Message = contentJSON
 		}
@@ -415,7 +424,7 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 			return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(storeErr)
 		}
 		if strings.Contains(storeErr.Error(), "invalid_content") {
-			return nil, model.NewAppError("UpdatePage", "app.page.update.invalid_content.app_error", nil, storeErr.Error(), http.StatusBadRequest)
+			return nil, model.NewAppError("UpdatePage", "app.page.update.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(storeErr)
 		}
 		return nil, model.NewAppError("UpdatePage", "app.page.update.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
@@ -658,9 +667,9 @@ type PageActiveEditors struct {
 }
 
 func (a *App) GetPageActiveEditors(rctx request.CTX, pageId string) (*PageActiveEditors, *model.AppError) {
-	fiveMinutesAgo := model.GetMillis() - (5 * 60 * 1000)
+	activeEditorCutoff := model.GetMillis() - ActiveEditorTimeoutMs
 
-	drafts, err := a.Srv().Store().Draft().GetActiveEditorsForPage(pageId, fiveMinutesAgo)
+	drafts, err := a.Srv().Store().Draft().GetActiveEditorsForPage(pageId, activeEditorCutoff)
 	if err != nil {
 		return nil, model.NewAppError("App.GetPageActiveEditors", "app.page.get_active_editors.get_drafts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

@@ -107,6 +107,19 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsCommentType              = "comment_type"
 
+	// Page/Wiki Props keys
+	PagePropsPageID          = "page_id"
+	PagePropsWikiID          = "wiki_id"
+	PagePropsParentCommentID = "parent_comment_id"
+	PagePropsPageStatus      = "page_status"
+	PagePropsCommentResolved = "comment_resolved"
+	PagePropsResolvedAt      = "resolved_at"
+	PagePropsResolvedBy      = "resolved_by"
+	PagePropsInlineAnchor    = "inline_anchor"
+
+	// Draft Props keys (for unpublished page drafts)
+	DraftPropsPageParentID = "page_parent_id"
+
 	PageCommentTypeInline = "inline"
 
 	PostPriorityUrgent = "urgent"

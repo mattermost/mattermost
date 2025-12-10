@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -33,7 +34,7 @@ type Props = {
     wikiId: string;
     channelId: string;
     currentPageId?: string;
-    onPageSelect: (pageId: string) => void;
+    onPageSelect: (pageId: string, isDraft?: boolean) => void;
     onVersionHistory?: (pageId: string) => void;
 
     // From Redux
@@ -75,6 +76,8 @@ const PagesHierarchyPanel = ({
     actions,
 }: Props) => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
     const [searchQuery, setSearchQuery] = useState('');
 
     // Data loading moved to parent WikiView component to prevent duplicate API calls
@@ -99,8 +102,7 @@ const PagesHierarchyPanel = ({
     // Only include drafts for pages that don't exist yet (first-time drafts)
     // Drafts for existing pages will show "Unpublished changes" on the published page instead
     const draftPosts: DraftPage[] = useMemo(() => {
-        return drafts.
-            filter((draft) => !draft.props?.page_id).
+        return drafts.filter((draft) => !draft.props?.has_published_version).
             map((draft): DraftPage => {
                 return {
                     id: draft.rootId,
@@ -118,7 +120,7 @@ const PagesHierarchyPanel = ({
                     page_parent_id: draft.props?.page_parent_id || '',
                     props: {
                         ...draft.props,
-                        title: draft.props?.title || 'Untitled',
+                        title: draft.props?.title || untitledText,
                     },
                     hashtags: '',
                     filenames: [],
@@ -138,8 +140,11 @@ const PagesHierarchyPanel = ({
     }, [drafts]);
 
     // Combine pages and drafts for tree display
+    // Filter out drafts whose IDs already exist as published pages to avoid duplicates
     const allPagesAndDrafts = useMemo(() => {
-        return [...pages, ...draftPosts];
+        const pageIds = new Set(pages.map((p) => p.id));
+        const uniqueDraftPosts = draftPosts.filter((draft) => !pageIds.has(draft.id));
+        return [...pages, ...uniqueDraftPosts];
     }, [pages, draftPosts]);
 
     // Memoize pageMap to avoid recreating it on every render
@@ -200,7 +205,11 @@ const PagesHierarchyPanel = ({
 
     const handlePageSelect = (pageId: string) => {
         actions.setSelectedPage(pageId);
-        onPageSelect(pageId);
+
+        // Check if this is a new draft (not an edit of published page)
+        // New drafts have has_published_version = false/undefined
+        const isNewDraft = drafts.some((draft) => draft.rootId === pageId && !draft.props?.has_published_version);
+        onPageSelect(pageId, isNewDraft);
     };
 
     const handleToggleExpanded = (nodeId: string) => {
@@ -290,7 +299,7 @@ const PagesHierarchyPanel = ({
             {/* Delete confirmation modal */}
             {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
                 <DeletePageModal
-                    pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || 'Untitled'}
+                    pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || untitledText}
                     childCount={menuHandlers.pageToDelete.childCount}
                     onConfirm={menuHandlers.handleDeleteConfirm}
                     onCancel={menuHandlers.handleDeleteCancel}

@@ -3,6 +3,8 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
+    buildChannelUrl,
+    buildWikiPageUrl,
     createWikiThroughUI,
     createTestChannel,
     getEditorAndWait,
@@ -293,7 +295,7 @@ test('displays overflow count when more than 3 editors', {tag: '@pages'}, async 
     const pages = [];
     for (let i = 0; i < 4; i++) {
         const {page: userPage} = await pw.testBrowser.login(users[i]);
-        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${pageId}`;
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, pageId);
         await userPage.goto(wikiPageUrl);
         await userPage.waitForLoadState('networkidle');
 
@@ -389,7 +391,7 @@ test.skip('removes editor from indicator when user navigates away', {tag: '@page
     const activeEditorsIndicator = await waitForActiveEditorsIndicator(page1, {expectedText: '1 person editing'});
 
     // # User 2 navigates away WITHOUT deleting draft (draft persists)
-    await page2.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
+    await page2.goto(buildChannelUrl(pw.url, team.name, channel.name));
     await page2.waitForTimeout(WEBSOCKET_WAIT);
 
     // * Active editors indicator should disappear immediately for User 1

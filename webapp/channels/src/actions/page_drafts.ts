@@ -6,7 +6,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {PageDraft as ServerPageDraft} from '@mattermost/types/drafts';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
-import {Client4} from 'mattermost-redux/client';
+import * as WikiActions from 'mattermost-redux/actions/wikis';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -24,8 +24,8 @@ type PageDraft = {
     timestamp: Date;
 };
 
-export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, draftId: string, userId: string): PageDraft {
-    const key = makePageDraftKey(wikiId, draftId, userId);
+export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, pageId: string, userId: string): PageDraft {
+    const key = makePageDraftKey(wikiId, pageId, userId);
 
     return {
         key,
@@ -37,11 +37,12 @@ export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: s
                 ...serverDraft.props,
                 title: serverDraft.title,
                 ...(serverDraft.file_ids && {file_ids: serverDraft.file_ids}),
+                has_published_version: serverDraft.has_published_version,
             },
             uploadsInProgress: [],
             channelId: '',
             wikiId: serverDraft.wiki_id || wikiId,
-            rootId: draftId,
+            rootId: pageId,
             createAt: serverDraft.create_at,
             updateAt: serverDraft.update_at,
             show: true,
@@ -52,16 +53,16 @@ export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: s
 export function savePageDraft(
     channelId: string,
     wikiId: string,
-    draftId: string,
+    pageId: string,
     message: string,
     title?: string,
-    pageId?: string,
-    additionalProps?: Record<string, any>,
+    lastUpdateAt?: number,
+    additionalProps?: Record<string, unknown>,
 ): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
-        const key = makePageDraftKey(wikiId, draftId, currentUserId);
+        const key = makePageDraftKey(wikiId, pageId, currentUserId);
 
         const timestamp = new Date().getTime();
         const existingDraft = getGlobalItem<Partial<PostDraft>>(state, key, {});
@@ -72,12 +73,11 @@ export function savePageDraft(
             uploadsInProgress: [],
             channelId,
             wikiId,
-            rootId: draftId,
+            rootId: pageId,
             props: {
                 ...existingDraft.props,
                 ...additionalProps,
                 title: title || '',
-                ...(pageId && {page_id: pageId}),
             },
             createAt: existingDraft.createAt || timestamp,
             updateAt: timestamp,
@@ -90,16 +90,19 @@ export function savePageDraft(
         ]));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
-            try {
-                const serverDraft = await Client4.savePageDraft(wikiId, draftId, message, title, pageId, additionalProps);
-                const transformedDraft = transformPageServerDraft(serverDraft, wikiId, draftId, currentUserId);
+            // Delegate to Redux layer for the API call
+            const result = await dispatch(WikiActions.savePageDraft(wikiId, pageId, message, title, lastUpdateAt, additionalProps));
+
+            if (!result.error && result.data) {
+                const serverDraft = result.data as ServerPageDraft;
+                const transformedDraft = transformPageServerDraft(serverDraft, wikiId, pageId, currentUserId);
 
                 dispatch(batchActions([
                     setGlobalItem(key, transformedDraft.value),
                     setGlobalDraftSource(key, true),
                 ]));
-            } catch (error) {
-                return {data: false, error};
+            } else if (result.error) {
+                return {data: false, error: result.error};
             }
         }
 
@@ -107,11 +110,11 @@ export function savePageDraft(
     };
 }
 
-export function loadPageDraft(wikiId: string, draftId: string): ActionFuncAsync<PostDraft | null> {
+export function loadPageDraft(wikiId: string, pageId: string): ActionFuncAsync<PostDraft | null> {
     return async (_dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
-        const key = makePageDraftKey(wikiId, draftId, currentUserId);
+        const key = makePageDraftKey(wikiId, pageId, currentUserId);
         const storedDraft = state.storage.storage[key];
 
         if (storedDraft && storedDraft.value) {
@@ -129,11 +132,11 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
 
         let serverDrafts: PageDraft[] = [];
         if (syncedDraftsAreAllowedAndEnabled(state)) {
-            try {
-                const serverDraftsRaw = await Client4.getPageDraftsForWiki(wikiId);
-                serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.draft_id, currentUserId));
-            } catch (error) {
-                // Handle error silently
+            // Delegate to Redux layer for the API call
+            const result = await dispatch(WikiActions.getPageDraftsForWiki(wikiId));
+            if (!result.error && result.data) {
+                const serverDraftsRaw = result.data as ServerPageDraft[];
+                serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.page_id, currentUserId));
             }
         }
 
@@ -176,35 +179,33 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
     };
 }
 
-export function removePageDraft(wikiId: string, draftId: string): ActionFuncAsync<boolean> {
+export function removePageDraft(wikiId: string, pageId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
-        const key = makePageDraftKey(wikiId, draftId, currentUserId);
+        const key = makePageDraftKey(wikiId, pageId, currentUserId);
 
-        // Delete from server first (if sync is enabled)
+        // Delete from server first (if sync is enabled) - delegate to Redux layer
         if (syncedDraftsAreAllowedAndEnabled(state)) {
-            try {
-                await Client4.deletePageDraft(wikiId, draftId);
-            } catch (error) {
-                // Still remove from local storage even if server delete fails
-                // This prevents the draft from being stuck in UI
-            }
+            await dispatch(WikiActions.deletePageDraft(wikiId, pageId));
+
+            // Still remove from local storage even if server delete fails
+            // This prevents the draft from being stuck in UI
         }
 
         // Remove from local storage and notify Redux
         dispatch(batchActions([
             removeGlobalItem(key),
-            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, userId: currentUserId}},
+            {type: WikiTypes.DELETED_DRAFT, data: {id: pageId, wikiId, userId: currentUserId}},
         ]));
 
         return {data: true};
     };
 }
 
-export function clearPageDraft(wikiId: string, draftId: string): ActionFuncAsync<boolean> {
+export function clearPageDraft(wikiId: string, pageId: string): ActionFuncAsync<boolean> {
     return async (dispatch) => {
-        return dispatch(removePageDraft(wikiId, draftId));
+        return dispatch(removePageDraft(wikiId, pageId));
     };
 }
 

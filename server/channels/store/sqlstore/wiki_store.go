@@ -102,26 +102,27 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 		return nil, errors.Wrap(err, "save_wiki")
 	}
 
-	draftId := model.NewId()
+	pageId := model.NewId()
 	now := model.GetMillis()
 
 	contentJSON := `{"type":"doc","content":[]}`
 
-	// Insert into PageDraftContents table (content only)
+	// Insert into PageContents table with UserId set (non-empty UserId = draft)
 	contentBuilder := s.getQueryBuilder().
-		Insert("PageDraftContents").
-		Columns("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
-		Values(userId, savedWiki.Id, draftId, "Untitled page", contentJSON, now, now)
+		Insert("PageContents").
+		Columns("PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(pageId, userId, savedWiki.Id, "Untitled page", contentJSON, "Untitled page", 0, now, now, 0)
 
 	if _, err = transaction.ExecBuilder(contentBuilder); err != nil {
 		return nil, errors.Wrap(err, "create_default_draft_content")
 	}
 
-	// Insert into Drafts table (metadata) - page drafts store WikiId in ChannelId field
+	// Insert into Drafts table for metadata storage (FileIds, Props)
+	// This ensures the draft can store file attachments before being published
 	draftBuilder := s.getQueryBuilder().
 		Insert("Drafts").
-		Columns("CreateAt", "UpdateAt", "DeleteAt", "UserId", "ChannelId", "RootId", "WikiId", "Message", "Props", "FileIds").
-		Values(now, now, 0, userId, savedWiki.Id, draftId, savedWiki.Id, "", "{}", "[]")
+		Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "WikiId", "UserId", "FileIds", "Props", "Priority").
+		Values(now, now, 0, "", pageId, savedWiki.Id, savedWiki.Id, userId, "[]", "{}", "{}")
 
 	if _, err = transaction.ExecBuilder(draftBuilder); err != nil {
 		return nil, errors.Wrap(err, "create_default_draft_metadata")
@@ -477,22 +478,15 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 		}
 	}
 
-	// Delete page draft contents associated with this wiki
-	pageDraftContentsDeleteQuery := s.getQueryBuilder().
-		Delete("PageDraftContents").
-		Where(sq.Eq{"WikiId": wikiId})
+	// Delete all drafts from PageContents table for this wiki (hard delete since drafts are user-specific)
+	// UserId != '' indicates a draft
+	pageDraftsDeleteQuery := s.getQueryBuilder().
+		Delete("PageContents").
+		Where(sq.Eq{"WikiId": wikiId}).
+		Where(sq.NotEq{"UserId": ""})
 
-	if _, err = transaction.ExecBuilder(pageDraftContentsDeleteQuery); err != nil {
-		return errors.Wrap(err, "failed to delete page draft contents for wiki")
-	}
-
-	// Delete page draft metadata from Drafts table
-	draftsDeleteQuery := s.getQueryBuilder().
-		Delete("Drafts").
-		Where(sq.Eq{"WikiId": wikiId})
-
-	if _, err = transaction.ExecBuilder(draftsDeleteQuery); err != nil {
-		return errors.Wrap(err, "failed to delete page draft metadata for wiki")
+	if _, err = transaction.ExecBuilder(pageDraftsDeleteQuery); err != nil {
+		return errors.Wrap(err, "failed to delete page drafts for wiki")
 	}
 
 	if err = transaction.Commit(); err != nil {

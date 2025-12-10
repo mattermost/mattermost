@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useMemo, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
@@ -40,6 +41,8 @@ const PageDestinationModal = ({
     onCancel,
     confirmButtonTestId,
 }: Props) => {
+    const {formatMessage} = useIntl();
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
     const [selectedWikiId, setSelectedWikiId] = useState(currentWikiId);
     const [parentPageId, setParentPageId] = useState<string | undefined>();
     const [searchQuery, setSearchQuery] = useState('');
@@ -272,7 +275,7 @@ const PageDestinationModal = ({
 
                             {filteredPages.map((page) => {
                                 const title = typeof page.props?.title === 'string' ? page.props.title : '';
-                                const displayTitle = title || page.message || 'Untitled';
+                                const displayTitle = title || page.message || untitledText;
                                 return (
                                     <button
                                         key={page.id}

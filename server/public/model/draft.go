@@ -28,7 +28,7 @@ type Draft struct {
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
-	// Page drafts store content in PageDraftContents table, so Message should be empty
+	// Page drafts store content in PageContents table (status='draft'), so Message should be empty
 	if o.IsPageDraft() {
 		if o.Message != "" {
 			return NewAppError("Drafts.IsValid", "model.draft.is_valid.page_draft_message.app_error",
@@ -136,7 +136,7 @@ func (o *Draft) IsPageDraft() bool {
 		return false
 	}
 	_, hasTitle := props["title"]
-	_, hasPageId := props["page_id"]
+	_, hasPageId := props[PagePropsPageID]
 	return hasTitle || hasPageId
 }
 
@@ -148,7 +148,7 @@ func (o *Draft) IsEditingExistingPage() bool {
 	if props == nil {
 		return false
 	}
-	pageId, hasPageId := props["page_id"]
+	pageId, hasPageId := props[PagePropsPageID]
 	if !hasPageId {
 		return false
 	}
@@ -163,7 +163,7 @@ func (o *Draft) GetPublishedPageId() string {
 	if props == nil {
 		return ""
 	}
-	pageId, ok := props["page_id"]
+	pageId, ok := props[PagePropsPageID]
 	if !ok {
 		return ""
 	}

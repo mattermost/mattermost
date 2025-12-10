@@ -1527,7 +1527,7 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	}
 
 	if shouldSendCommentDeletedEvent(post) {
-		if pageId, ok := post.Props["page_id"].(string); ok && pageId != "" {
+		if pageId, ok := post.Props[model.PagePropsPageID].(string); ok && pageId != "" {
 			page, pageErr := a.GetSinglePost(rctx, pageId, false)
 			if pageErr == nil {
 				a.SendCommentDeletedEvent(rctx, post, page, channel)

@@ -63,8 +63,6 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             },
             wikiPages: {
                 byWiki: {},
-                loading: {},
-                error: {},
                 publishedDraftTimestamps: {},
                 lastPagesInvalidated: {},
                 lastDraftsInvalidated: {},
@@ -472,8 +470,6 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                     byWiki: {
                         wiki_id_1: ['page1', 'page2'],
                     },
-                    loading: {},
-                    error: {},
                 },
             },
         };
@@ -516,8 +512,6 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                         byWiki: {
                             wiki_id_1: [],
                         },
-                        loading: {},
-                        error: {},
                     },
                 },
             };
@@ -583,8 +577,6 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                         byWiki: {
                             wiki_id_1: ['page1', 'page2', 'post1'],
                         },
-                        loading: {},
-                        error: {},
                     },
                 },
             };

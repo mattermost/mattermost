@@ -7,6 +7,7 @@ import {createRandomUser} from '@mattermost/playwright-lib';
 // Regular users are needed because admin users bypass all permission checks.
 import {expect, testWithRegularUser as test} from './pages_test_fixture';
 import {
+    buildChannelPageUrl,
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
@@ -84,9 +85,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         await nonMemberChannelsPage.toBeVisible();
 
         // Now attempt to navigate to the private channel wiki
-        await nonMemberPage.goto(
-            `${pw.url}/${team.name}/channels/${privateChannel.name}/wikis/${wiki.id}/pages/${testPage.id}`,
-        );
+        await nonMemberPage.goto(buildChannelPageUrl(pw.url, team.name, privateChannel.name, wiki.id, testPage.id));
         await nonMemberPage.waitForLoadState('networkidle');
 
         // * Verify access denied (error page, redirect, or permission message)

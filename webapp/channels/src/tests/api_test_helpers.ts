@@ -248,7 +248,7 @@ export async function createTestPage(wikiId: string, title: string, parentId?: s
         const draftId = `draft-${Date.now()}`;
         const content = createTipTapContentWithHeading(title, `Test page content for ${title}`);
 
-        await Client4.savePageDraft(wikiId, draftId, content, title, undefined, {
+        await Client4.savePageDraft(wikiId, draftId, content, title, 0, {
             page_parent_id: parentId || undefined,
         });
 

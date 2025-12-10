@@ -21,13 +21,14 @@ export type Draft = {
 export type PageDraft = {
     user_id: string;
     wiki_id: string;
-    draft_id: string;
+    page_id: string;
     title: string;
     content: any;
     file_ids?: string[];
     props: Record<string, any>;
     create_at: number;
     update_at: number;
+    has_published_version: boolean;
 };
 
 export type PageDraftLocal = {

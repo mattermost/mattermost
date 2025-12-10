@@ -230,8 +230,6 @@ const state: GlobalState = {
         contentFlagging: {},
         wikiPages: {
             byWiki: {},
-            loading: {},
-            error: {},
             publishedDraftTimestamps: {},
             lastPagesInvalidated: {},
             lastDraftsInvalidated: {},
@@ -338,6 +336,10 @@ const state: GlobalState = {
                 status: 'not_started',
                 error: null,
             },
+        },
+        wiki: {
+            loading: {},
+            error: {},
         },
     },
     websocket: {

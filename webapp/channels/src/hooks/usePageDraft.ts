@@ -27,7 +27,7 @@ export function usePageDraft(wikiId: string, pageId: string, channelId: string) 
         title?: string,
         additionalProps?: Record<string, any>,
     ) => {
-        return dispatch(savePageDraft(channelId, wikiId, pageId, message, title, pageId, additionalProps));
+        return dispatch(savePageDraft(channelId, wikiId, pageId, message, title, undefined, additionalProps));
     }, [dispatch, channelId, wikiId, pageId]);
 
     const remove = useCallback(() => {

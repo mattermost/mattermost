@@ -16,7 +16,7 @@ import {openPagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {loadWikiBundle} from 'actions/wiki_actions';
-import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
+import {getPageDraft, getPageDraftsForWiki, getNewDraftsForWiki} from 'selectors/page_drafts';
 import {getPage, getPages} from 'selectors/pages';
 import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
@@ -133,6 +133,7 @@ const WikiView = () => {
     }, [currentDraft?.props?.page_parent_id, currentDraft?.props?.title]);
 
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
+    const newDrafts = useSelector((state: GlobalState) => (wikiId ? getNewDraftsForWiki(state, wikiId) : []));
     const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
 
     // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
@@ -202,6 +203,7 @@ const WikiView = () => {
         wikiId,
         channelId,
         allDrafts,
+        newDrafts,
         allPages,
         lastViewedPageId,
         location,
@@ -269,7 +271,7 @@ const WikiView = () => {
         }
     }, [isWikiRhsOpen, dispatch, pageId, currentDraft, wikiId]);
 
-    const handlePageSelect = React.useCallback((selectedPageId: string) => {
+    const handlePageSelect = React.useCallback((selectedPageId: string, isDraftHint?: boolean) => {
         if (!wikiId || !channelId) {
             return;
         }
@@ -280,10 +282,11 @@ const WikiView = () => {
 
         const teamName = getTeamNameFromPath(location.pathname);
 
-        // Check if selected ID is a draft (for URL generation)
-        // Only navigate to draft if the ID itself is a draft ID (not just if a draft exists for this page)
+        // Check if selected ID is a pure draft (new page, not yet published)
+        // isDraftHint takes precedence when provided (avoids stale closure issue)
+        // Otherwise check newDrafts array (drafts without a PAGE_ID prop)
         // Published pages should always open in view mode, even if they have unsaved drafts
-        const isDraftPage = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId && !draft.props?.page_id);
+        const isDraftPage = isDraftHint ?? newDrafts.some((draft) => draft.rootId === selectedPageId);
 
         const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isDraftPage);
 
@@ -293,7 +296,7 @@ const WikiView = () => {
         if (isWikiRhsOpen && selectedPageId && !isDraftPage) {
             dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
         }
-    }, [wikiId, channelId, dispatch, location.pathname, allDrafts, history, isWikiRhsOpen]);
+    }, [wikiId, channelId, dispatch, location.pathname, newDrafts, history, isWikiRhsOpen]);
 
     // Use shared menu handlers hook - it will combine pages and drafts internally
     const menuHandlers = usePageMenuHandlers({

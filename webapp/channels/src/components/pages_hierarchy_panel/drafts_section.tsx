@@ -2,8 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import './drafts_section.scss';
+
+// Time conversion constants (milliseconds)
+const MS_PER_MINUTE = 60000;
+const MS_PER_HOUR = 3600000;
+const MS_PER_DAY = 86400000;
 
 export type PageDraft = {
     id: string;
@@ -20,6 +26,7 @@ type Props = {
 
 const DraftsSection = ({drafts, currentDraftId, onDraftSelect}: Props) => {
     const [collapsed, setCollapsed] = useState(false);
+    const {formatMessage} = useIntl();
 
     if (drafts.length === 0) {
         return null;
@@ -28,9 +35,9 @@ const DraftsSection = ({drafts, currentDraftId, onDraftSelect}: Props) => {
     const formatRelativeTime = (timestamp: number): string => {
         const now = Date.now();
         const diff = now - timestamp;
-        const minutes = Math.floor(diff / 60000);
-        const hours = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
+        const minutes = Math.floor(diff / MS_PER_MINUTE);
+        const hours = Math.floor(diff / MS_PER_HOUR);
+        const days = Math.floor(diff / MS_PER_DAY);
 
         if (minutes < 1) {
             return 'Just now';
@@ -64,7 +71,7 @@ const DraftsSection = ({drafts, currentDraftId, onDraftSelect}: Props) => {
                         >
                             <i className='icon-file-document-edit-outline'/>
                             <span className='DraftsSection__itemTitle'>
-                                {draft.title || 'Untitled'}
+                                {draft.title || formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'})}
                             </span>
                             <span className='DraftsSection__itemTime'>
                                 {formatRelativeTime(draft.lastModified)}

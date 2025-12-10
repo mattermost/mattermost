@@ -5,6 +5,7 @@ import {createRandomUser} from '@mattermost/playwright-lib';
 
 import {expect, test} from './pages_test_fixture';
 import {
+    buildWikiPageUrl,
     createPageThroughUI,
     createTestChannel,
     createWikiThroughUI,
@@ -92,7 +93,7 @@ test('allows non-author to view page version history', {tag: '@pages'}, async ({
     const {page: page2} = await pw.testBrowser.login(user2);
 
     // # Navigate directly to the wiki page URL
-    const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${createdPage.id}`;
+    const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
     await page2.goto(wikiPageUrl);
     await page2.waitForLoadState('networkidle');
 

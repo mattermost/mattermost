@@ -533,7 +533,7 @@ func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 func clearDrafts(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Helper()
 
-	_, err := ss.GetInternalMasterDB().Exec("DELETE FROM PageDraftContents")
+	_, err := ss.GetInternalMasterDB().Exec("DELETE FROM PageContents WHERE UserId != ''")
 	require.NoError(t, err)
 	_, err = ss.GetInternalMasterDB().Exec("DELETE FROM Drafts")
 	require.NoError(t, err)
@@ -1243,8 +1243,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("successfully updates props with correct version", func(t *testing.T) {
 		initialProps := map[string]any{
-			"page_parent_id": "old-parent-id",
-			"page_id":        "page-123",
+			model.DraftPropsPageParentID: "old-parent-id",
+			model.PagePropsPageID:        "page-123",
 		}
 
 		draft := &model.Draft{
@@ -1263,8 +1263,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		time.Sleep(10 * time.Millisecond)
 
 		updatedProps := map[string]any{
-			"page_parent_id": "new-parent-id",
-			"page_id":        "page-123",
+			model.DraftPropsPageParentID: "new-parent-id",
+			model.PagePropsPageID:        "page-123",
 		}
 
 		err = ss.Draft().UpdatePropsOnly(userId, wikiId, draftId, updatedProps, savedDraft.UpdateAt)
@@ -1274,8 +1274,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		retrievedProps := retrievedDraft.GetProps()
-		assert.Equal(t, "new-parent-id", retrievedProps["page_parent_id"])
-		assert.Equal(t, "page-123", retrievedProps["page_id"])
+		assert.Equal(t, "new-parent-id", retrievedProps[model.DraftPropsPageParentID])
+		assert.Equal(t, "page-123", retrievedProps[model.PagePropsPageID])
 
 		assert.Greater(t, retrievedDraft.UpdateAt, savedDraft.UpdateAt)
 	})
@@ -1286,8 +1286,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		draftId2 := model.NewId()
 
 		initialProps := map[string]any{
-			"page_parent_id": "old-parent-id",
-			"page_id":        "page-456",
+			model.DraftPropsPageParentID: "old-parent-id",
+			model.PagePropsPageID:        "page-456",
 		}
 
 		draft := &model.Draft{
@@ -1307,8 +1307,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		time.Sleep(10 * time.Millisecond)
 
 		intermediateProps := map[string]any{
-			"page_parent_id": "intermediate-parent-id",
-			"page_id":        "page-456",
+			model.DraftPropsPageParentID: "intermediate-parent-id",
+			model.PagePropsPageID:        "page-456",
 		}
 		draft.SetProps(intermediateProps)
 		updatedDraft, err := ss.Draft().UpsertPageDraft(draft)
@@ -1316,8 +1316,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Greater(t, updatedDraft.UpdateAt, staleUpdateAt)
 
 		updatedPropsWithStaleVersion := map[string]any{
-			"page_parent_id": "should-not-be-saved",
-			"page_id":        "page-456",
+			model.DraftPropsPageParentID: "should-not-be-saved",
+			model.PagePropsPageID:        "page-456",
 		}
 
 		err = ss.Draft().UpdatePropsOnly(userId2, wikiId2, draftId2, updatedPropsWithStaleVersion, staleUpdateAt)
@@ -1328,8 +1328,8 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		retrievedProps := retrievedDraft.GetProps()
-		assert.Equal(t, "intermediate-parent-id", retrievedProps["page_parent_id"])
-		assert.NotEqual(t, "should-not-be-saved", retrievedProps["page_parent_id"])
+		assert.Equal(t, "intermediate-parent-id", retrievedProps[model.DraftPropsPageParentID])
+		assert.NotEqual(t, "should-not-be-saved", retrievedProps[model.DraftPropsPageParentID])
 	})
 
 	t.Run("fails when draft does not exist", func(t *testing.T) {
@@ -1338,7 +1338,7 @@ func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
 		nonExistentDraftId := model.NewId()
 
 		props := map[string]any{
-			"page_parent_id": "some-parent",
+			model.DraftPropsPageParentID: "some-parent",
 		}
 
 		err := ss.Draft().UpdatePropsOnly(nonExistentUserId, nonExistentWikiId, nonExistentDraftId, props, model.GetMillis())

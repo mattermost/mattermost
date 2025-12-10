@@ -147,7 +147,7 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	page, appErr := c.App.CreateWikiPage(c.AppContext, c.Params.WikiId, req.PageParentId, req.Title, req.Content, c.AppContext.Session().UserId, "")
+	page, appErr := c.App.CreateWikiPage(c.AppContext, c.Params.WikiId, req.PageParentId, req.Title, req.Content, c.AppContext.Session().UserId, "", "")
 	if appErr != nil {
 		c.Err = appErr
 		return

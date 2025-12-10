@@ -1,14 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {History, Location} from 'history';
-
 import type {Post} from '@mattermost/types/posts';
 
 import {savePageDraft} from 'actions/page_drafts';
 import {hasUnsavedChanges, getPageDraft} from 'selectors/page_drafts';
-
-import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -56,15 +52,14 @@ function checkForUnsavedDraft(
 }
 
 /**
- * Opens a page in edit mode by creating a draft and navigating to it
+ * Creates a draft for editing a page.
+ * Returns the pageId on success so the caller can navigate to the draft.
  */
 export function openPageInEditMode(
     channelId: string,
     wikiId: string,
     page: Post,
-    history: History,
-    location: Location,
-): ActionFuncAsync {
+): ActionFuncAsync<string> {
     return async (dispatch, getState) => {
         const state = getState();
         const pageId = page.id;
@@ -81,6 +76,7 @@ export function openPageInEditMode(
         const additionalProps: Record<string, any> = {
             page_id: pageId,
             original_page_edit_at: page.edit_at,
+            has_published_version: true,
         };
         if (pageParentId) {
             additionalProps.page_parent_id = pageParentId;
@@ -95,17 +91,14 @@ export function openPageInEditMode(
             pageId,
             page.message,
             pageTitle,
-            pageId,
+            undefined,
             additionalProps,
         ));
 
-        // Only navigate if draft was saved successfully
-        if (result.data) {
-            const teamName = getTeamNameFromPath(location.pathname);
-            const draftPath = getWikiUrl(teamName, channelId, wikiId, pageId, true);
-            history.replace(draftPath);
+        if (result.error) {
+            return {error: result.error};
         }
 
-        return {data: true};
+        return {data: pageId};
     };
 }

@@ -907,7 +907,7 @@ func (th *TestHelper) CreateTestWikiInChannel(tb testing.TB, channel *model.Chan
 func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Post {
 	tb.Helper()
 	th.SetupPagePermissions()
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", "", th.BasicUser.Id, "")
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", "", th.BasicUser.Id, "", "")
 	require.Nil(tb, err)
 	require.NotNil(tb, page)
 	return page
@@ -917,7 +917,7 @@ func (th *TestHelper) CreateTestPage(tb testing.TB, title string) *model.Post {
 func (th *TestHelper) CreateTestPageWithContent(tb testing.TB, title, content string) *model.Post {
 	tb.Helper()
 	th.SetupPagePermissions()
-	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", content, th.BasicUser.Id, "")
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, title, "", content, th.BasicUser.Id, "", "")
 	require.Nil(tb, err)
 	require.NotNil(tb, page)
 	return page
@@ -927,7 +927,7 @@ func (th *TestHelper) CreateTestPageWithContent(tb testing.TB, title, content st
 func (th *TestHelper) CreateTestWikiPage(tb testing.TB, wikiId, title string) *model.Post {
 	tb.Helper()
 	th.SetupPagePermissions()
-	page, err := th.App.CreateWikiPage(th.Context, wikiId, "", title, "", th.BasicUser.Id, "")
+	page, err := th.App.CreateWikiPage(th.Context, wikiId, "", title, "", th.BasicUser.Id, "", "")
 	require.Nil(tb, err)
 	require.NotNil(tb, page)
 	return page

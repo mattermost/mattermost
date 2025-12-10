@@ -2,196 +2,183 @@
 // See LICENSE.txt for license information.
 
 import type {AnyAction} from 'redux';
+import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {SelectPropertyField} from '@mattermost/types/properties';
 
 import {UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 
-export type WikiPagesState = {
-    byWiki: Record<string, string[]>;
-    loading: Record<string, boolean>;
-    error: Record<string, string | null>;
-    lastPagesInvalidated: Record<string, number>;
-    lastDraftsInvalidated: Record<string, number>;
-    statusField: SelectPropertyField | null;
-    publishedDraftTimestamps: Record<string, number>;
-};
-
-const initialState: WikiPagesState = {
-    byWiki: {},
-    loading: {},
-    error: {},
-    lastPagesInvalidated: {},
-    lastDraftsInvalidated: {},
-    statusField: null,
-    publishedDraftTimestamps: {},
-};
-
-export default function wikiPagesReducer(state = initialState, action: AnyAction): WikiPagesState {
+function byWiki(state: Record<string, string[]> = {}, action: AnyAction): Record<string, string[]> {
     switch (action.type) {
-    case WikiTypes.GET_PAGES_REQUEST: {
-        const {wikiId} = action.data;
-        return {
-            ...state,
-            loading: {
-                ...state.loading,
-                [wikiId]: true,
-            },
-            error: {
-                ...state.error,
-                [wikiId]: null,
-            },
-        };
-    }
     case WikiTypes.GET_PAGES_SUCCESS: {
         const {wikiId, pages} = action.data;
         const pageIds = pages.map((p: Post) => p.id);
 
         return {
             ...state,
-            byWiki: {
-                ...state.byWiki,
-                [wikiId]: pageIds,
-            },
-            loading: {
-                ...state.loading,
-                [wikiId]: false,
-            },
-        };
-    }
-    case WikiTypes.GET_PAGES_FAILURE: {
-        const {wikiId, error} = action.data;
-        return {
-            ...state,
-            loading: {
-                ...state.loading,
-                [wikiId]: false,
-            },
-            error: {
-                ...state.error,
-                [wikiId]: error,
-            },
+            [wikiId]: pageIds,
         };
     }
     case WikiTypes.RECEIVED_PAGE_IN_WIKI: {
         const {page, wikiId, pendingPageId} = action.data;
 
-        const currentPageIds = state.byWiki[wikiId] || [];
-        let nextPageIds: string[];
+        const currentPageIds = state[wikiId] || [];
+        const pageIdSet = new Set(currentPageIds);
 
         if (pendingPageId) {
             const pendingIndex = currentPageIds.indexOf(pendingPageId);
             if (pendingIndex === -1) {
-                nextPageIds = currentPageIds.includes(page.id) ? currentPageIds : [...currentPageIds, page.id];
-            } else {
-                // Remove any existing instance of page.id first to prevent duplicates
-                // This can happen if WebSocket/API adds the real page before optimistic update completes
-                const withoutExistingPageId = currentPageIds.filter((id) => id !== page.id);
-                const adjustedPendingIndex = withoutExistingPageId.indexOf(pendingPageId);
-
-                nextPageIds = [
-                    ...withoutExistingPageId.slice(0, adjustedPendingIndex),
-                    page.id,
-                    ...withoutExistingPageId.slice(adjustedPendingIndex + 1),
-                ];
+                if (pageIdSet.has(page.id)) {
+                    return state;
+                }
+                pageIdSet.add(page.id);
+                return {
+                    ...state,
+                    [wikiId]: Array.from(pageIdSet),
+                };
             }
-        } else {
-            const alreadyExists = currentPageIds.includes(page.id);
-            nextPageIds = alreadyExists ? currentPageIds : [...currentPageIds, page.id];
+
+            // Replace pending ID with real ID at the same position
+            pageIdSet.delete(pendingPageId);
+            pageIdSet.delete(page.id);
+            const nextPageIds = [
+                ...currentPageIds.slice(0, pendingIndex).filter((id) => id !== page.id),
+                page.id,
+                ...currentPageIds.slice(pendingIndex + 1).filter((id) => id !== pendingPageId && id !== page.id),
+            ];
+            return {
+                ...state,
+                [wikiId]: nextPageIds,
+            };
         }
 
-        // Ensure uniqueness - in HA environments, duplicate WebSocket events can cause
-        // the same page ID to be added multiple times due to race conditions
-        nextPageIds = [...new Set(nextPageIds)];
-
+        if (pageIdSet.has(page.id)) {
+            return state;
+        }
+        pageIdSet.add(page.id);
         return {
             ...state,
-            byWiki: {
-                ...state.byWiki,
-                [wikiId]: nextPageIds,
-            },
+            [wikiId]: Array.from(pageIdSet),
         };
     }
     case WikiTypes.REMOVED_PAGE_FROM_WIKI: {
         const {pageId, wikiId} = action.data;
 
-        const currentPages = state.byWiki[wikiId];
+        const currentPages = state[wikiId];
         if (!currentPages) {
             return state;
         }
 
         return {
             ...state,
-            byWiki: {
-                ...state.byWiki,
-                [wikiId]: currentPages.filter((id) => id !== pageId),
-            },
+            [wikiId]: currentPages.filter((id) => id !== pageId),
         };
     }
     case WikiTypes.DELETED_PAGE: {
         const {id: pageId, wikiId} = action.data;
 
         if (wikiId) {
-            const currentPages = state.byWiki[wikiId];
+            const currentPages = state[wikiId];
             if (!currentPages) {
                 return state;
             }
 
             return {
                 ...state,
-                byWiki: {
-                    ...state.byWiki,
-                    [wikiId]: currentPages.filter((id) => id !== pageId),
-                },
+                [wikiId]: currentPages.filter((id) => id !== pageId),
             };
         }
 
-        const nextByWiki = {...state.byWiki};
+        const nextByWiki = {...state};
         Object.keys(nextByWiki).forEach((wiki) => {
             nextByWiki[wiki] = nextByWiki[wiki].filter((id) => id !== pageId);
         });
 
+        return nextByWiki;
+    }
+    case WikiTypes.DELETED_WIKI: {
+        const {wikiId} = action.data;
+
+        const nextByWiki = {...state};
+        Reflect.deleteProperty(nextByWiki, wikiId);
+
+        return nextByWiki;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function lastPagesInvalidated(state: Record<string, number> = {}, action: AnyAction): Record<string, number> {
+    switch (action.type) {
+    case WikiTypes.INVALIDATE_PAGES: {
+        const {wikiId, timestamp} = action.data;
+
         return {
             ...state,
-            byWiki: nextByWiki,
+            [wikiId]: timestamp,
         };
     }
     case WikiTypes.DELETED_WIKI: {
         const {wikiId} = action.data;
 
-        const nextByWiki = {...state.byWiki};
-        Reflect.deleteProperty(nextByWiki, wikiId);
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, wikiId);
 
-        const nextLoading = {...state.loading};
-        Reflect.deleteProperty(nextLoading, wikiId);
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
 
-        const nextError = {...state.error};
-        Reflect.deleteProperty(nextError, wikiId);
-
-        const nextLastPagesInvalidated = {...state.lastPagesInvalidated};
-        Reflect.deleteProperty(nextLastPagesInvalidated, wikiId);
-
-        const nextLastDraftsInvalidated = {...state.lastDraftsInvalidated};
-        Reflect.deleteProperty(nextLastDraftsInvalidated, wikiId);
-
+function lastDraftsInvalidated(state: Record<string, number> = {}, action: AnyAction): Record<string, number> {
+    switch (action.type) {
+    case WikiTypes.INVALIDATE_DRAFTS: {
+        const {wikiId, timestamp} = action.data;
         return {
             ...state,
-            byWiki: nextByWiki,
-            loading: nextLoading,
-            error: nextError,
-            lastPagesInvalidated: nextLastPagesInvalidated,
-            lastDraftsInvalidated: nextLastDraftsInvalidated,
+            [wikiId]: timestamp,
         };
     }
+    case WikiTypes.DELETED_WIKI: {
+        const {wikiId} = action.data;
+
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, wikiId);
+
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function statusField(state: SelectPropertyField | null = null, action: AnyAction): SelectPropertyField | null {
+    switch (action.type) {
+    case WikiTypes.RECEIVED_PAGE_STATUS_FIELD:
+        return action.data;
+    case UserTypes.LOGOUT_SUCCESS:
+        return null;
+    default:
+        return state;
+    }
+}
+
+function publishedDraftTimestamps(state: Record<string, number> = {}, action: AnyAction): Record<string, number> {
+    switch (action.type) {
     case WikiTypes.PUBLISH_DRAFT_SUCCESS: {
-        const {draftId, publishedAt} = action.data;
+        const {pageId, publishedAt} = action.data;
         return {
             ...state,
-            publishedDraftTimestamps: {
-                ...(state.publishedDraftTimestamps || {}),
-                [draftId]: publishedAt,
-            },
+            [pageId]: publishedAt,
         };
     }
     case WikiTypes.DELETED_DRAFT: {
@@ -199,61 +186,48 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         if (!publishedAt) {
             return state;
         }
-        const existingTimestamp = state.publishedDraftTimestamps?.[id] || 0;
+        const existingTimestamp = state[id] || 0;
         if (publishedAt <= existingTimestamp) {
             return state;
         }
         return {
             ...state,
-            publishedDraftTimestamps: {
-                ...(state.publishedDraftTimestamps || {}),
-                [id]: publishedAt,
-            },
+            [id]: publishedAt,
         };
     }
     case WikiTypes.CLEANUP_PUBLISHED_DRAFT_TIMESTAMPS: {
         const {staleThreshold} = action.data;
-        const publishedDraftTimestamps: Record<string, number> = {};
-        Object.entries(state.publishedDraftTimestamps || {}).forEach(([draftId, timestamp]) => {
+        const nextState: Record<string, number> = {};
+        Object.entries(state).forEach(([pageId, timestamp]) => {
             if (timestamp > staleThreshold) {
-                publishedDraftTimestamps[draftId] = timestamp;
+                nextState[pageId] = timestamp;
             }
         });
-        return {
-            ...state,
-            publishedDraftTimestamps,
-        };
-    }
-    case WikiTypes.INVALIDATE_PAGES: {
-        const {wikiId, timestamp} = action.data;
-
-        return {
-            ...state,
-            lastPagesInvalidated: {
-                ...state.lastPagesInvalidated,
-                [wikiId]: timestamp,
-            },
-        };
-    }
-    case WikiTypes.INVALIDATE_DRAFTS: {
-        const {wikiId, timestamp} = action.data;
-        return {
-            ...state,
-            lastDraftsInvalidated: {
-                ...state.lastDraftsInvalidated,
-                [wikiId]: timestamp,
-            },
-        };
-    }
-    case WikiTypes.RECEIVED_PAGE_STATUS_FIELD: {
-        return {
-            ...state,
-            statusField: action.data,
-        };
+        return nextState;
     }
     case UserTypes.LOGOUT_SUCCESS:
-        return initialState;
+        return {};
     default:
         return state;
     }
 }
+
+export default combineReducers({
+
+    // mapping of wiki id to array of page ids
+    byWiki,
+
+    // timestamp of last pages invalidation per wiki
+    lastPagesInvalidated,
+
+    // timestamp of last drafts invalidation per wiki
+    lastDraftsInvalidated,
+
+    // status field configuration for pages
+    statusField,
+
+    // timestamps of recently published drafts (for deduplication)
+    publishedDraftTimestamps,
+});
+
+export type WikiPagesState = ReturnType<ReturnType<typeof combineReducers>>;

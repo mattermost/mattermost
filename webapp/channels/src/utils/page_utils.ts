@@ -8,7 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import {WikiTypes} from 'mattermost-redux/action_types';
 import {PostTypes} from 'mattermost-redux/constants';
 
-import {Locations} from 'utils/constants';
+import {Locations, PagePropsKeys} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -29,35 +29,40 @@ export function isPageInlineComment(post: Post | null | undefined): boolean {
 }
 
 export function pageInlineCommentHasAnchor(post: Post | null | undefined): boolean {
-    return isPageInlineComment(post) && Boolean(post?.props?.inline_anchor);
+    return isPageInlineComment(post) && Boolean(post?.props?.[PagePropsKeys.INLINE_ANCHOR]);
 }
 
 export function getPageIdFromComment(post: Post | null | undefined): string | null {
     if (!isPageComment(post)) {
         return null;
     }
-    return (post?.props?.page_id as string) || null;
+    return (post?.props?.[PagePropsKeys.PAGE_ID] as string) || null;
 }
 
 export function getPageInlineAnchorText(post: Post | null | undefined): string | null {
-    if (!isPageInlineComment(post) || !post?.props?.inline_anchor) {
+    if (!isPageInlineComment(post) || !post?.props?.[PagePropsKeys.INLINE_ANCHOR]) {
         return null;
     }
-    return (post.props.inline_anchor as {text: string}).text || null;
+    return (post.props[PagePropsKeys.INLINE_ANCHOR] as {text: string}).text || null;
 }
 
 export function isEditingExistingPage(draft: PostDraft | Post | null | undefined): boolean {
     if (!draft) {
         return false;
     }
-    return Boolean(draft.props?.page_id);
+
+    // Use has_published_version from server if available, otherwise fall back to page_id prop
+    if (draft.props?.has_published_version !== undefined) {
+        return Boolean(draft.props.has_published_version);
+    }
+    return Boolean(draft.props?.[PagePropsKeys.PAGE_ID]);
 }
 
 export function getPublishedPageIdFromDraft(draft: PostDraft | Post | null | undefined): string | undefined {
     if (!draft) {
         return undefined;
     }
-    return draft.props?.page_id as string | undefined;
+    return draft.props?.[PagePropsKeys.PAGE_ID] as string | undefined;
 }
 
 /**
@@ -81,7 +86,7 @@ export function getPageDisplayMessage(
         return null;
     }
 
-    const title = (post.props?.title as string) || 'Untitled Page';
+    const title = (post.props?.[PagePropsKeys.TITLE] as string) || 'Untitled Page';
     const searchText = post.props?.search_text as string;
 
     // Priority 1: search_text from Props (used in search results)
@@ -125,10 +130,10 @@ export function isPageCommentThreadRoot(post: Post | null | undefined): boolean 
 export function getPageReceiveActions(post: Post): AnyAction[] {
     const actions: AnyAction[] = [];
 
-    if (isPagePost(post) && post.props?.wiki_id) {
+    if (isPagePost(post) && post.props?.[PagePropsKeys.WIKI_ID]) {
         actions.push({
             type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-            data: {page: post, wikiId: post.props.wiki_id},
+            data: {page: post, wikiId: post.props[PagePropsKeys.WIKI_ID]},
         });
     }
 

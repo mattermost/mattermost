@@ -388,9 +388,9 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    "",
 			Message:   "First inline comment",
 			Props: model.StringInterface{
-				"page_id":                  page.Id,
+				model.PagePropsPageID:      page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
-				"inline_anchor": map[string]any{
+				model.PagePropsInlineAnchor: map[string]any{
 					"nodeId": "paragraph-123",
 					"offset": 10,
 				},
@@ -406,9 +406,9 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    "",
 			Message:   "Second inline comment",
 			Props: model.StringInterface{
-				"page_id":                  page.Id,
+				model.PagePropsPageID:      page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
-				"inline_anchor": map[string]any{
+				model.PagePropsInlineAnchor: map[string]any{
 					"nodeId": "heading-456",
 					"offset": 0,
 				},
@@ -447,9 +447,9 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    "",
 			Message:   "Inline comment",
 			Props: model.StringInterface{
-				"page_id":                  page.Id,
+				model.PagePropsPageID:      page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
-				"inline_anchor": map[string]any{
+				model.PagePropsInlineAnchor: map[string]any{
 					"nodeId": "paragraph-789",
 					"offset": 5,
 				},
@@ -465,7 +465,7 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    inlineComment.Id,
 			Message:   "Reply to inline comment",
 			Props: model.StringInterface{
-				"page_id": page.Id,
+				model.PagePropsPageID: page.Id,
 			},
 		}
 		reply, err = ss.Post().Save(rctx, reply)
@@ -501,9 +501,9 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    "",
 			Message:   "Inline comment to be deleted",
 			Props: model.StringInterface{
-				"page_id":                  page.Id,
+				model.PagePropsPageID:      page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
-				"inline_anchor": map[string]any{
+				model.PagePropsInlineAnchor: map[string]any{
 					"nodeId": "paragraph-111",
 					"offset": 15,
 				},
@@ -541,9 +541,9 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    "",
 			Message:   "Another inline comment to be deleted",
 			Props: model.StringInterface{
-				"page_id":                  page.Id,
+				model.PagePropsPageID:      page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
-				"inline_anchor": map[string]any{
+				model.PagePropsInlineAnchor: map[string]any{
 					"nodeId": "paragraph-222",
 					"offset": 20,
 				},
@@ -624,9 +624,9 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    "",
 			Message:   "First comment",
 			Props: model.StringInterface{
-				"page_id":                  page.Id,
+				model.PagePropsPageID:      page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
-				"inline_anchor": map[string]any{
+				model.PagePropsInlineAnchor: map[string]any{
 					"nodeId": "para-1",
 					"offset": 0,
 				},
@@ -644,9 +644,9 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 			RootId:    "",
 			Message:   "Second comment",
 			Props: model.StringInterface{
-				"page_id":                  page.Id,
+				model.PagePropsPageID:      page.Id,
 				model.PostPropsCommentType: model.PageCommentTypeInline,
-				"inline_anchor": map[string]any{
+				model.PagePropsInlineAnchor: map[string]any{
 					"nodeId": "para-2",
 					"offset": 0,
 				},

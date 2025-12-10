@@ -5,6 +5,6 @@ import debounce from 'lodash/debounce';
 
 import {savePageDraft} from 'actions/page_drafts';
 
-export const debounceSavePageDraft = debounce((dispatch, channelId, wikiId, draftId, message, title, pageId) => {
-    dispatch(savePageDraft(channelId, wikiId, draftId, message, title, pageId));
+export const debounceSavePageDraft = debounce((dispatch, channelId, wikiId, pageId, message, title) => {
+    dispatch(savePageDraft(channelId, wikiId, pageId, message, title));
 }, 500);

@@ -512,9 +512,11 @@ func (s *SqlDraftStore) UpdatePropsOnly(userId, wikiId, draftId string, props ma
 	return nil
 }
 
-// PageDraftContent methods - DraftStore owns both Drafts and PageDraftContents tables (MM pattern)
+// Page draft content methods - Unified PageContent model (drafts stored in PageContents with status='draft')
 
-func (s *SqlDraftStore) UpsertPageDraftContent(content *model.PageDraftContent) (*model.PageDraftContent, error) {
+// CreatePageDraft creates a new page draft in the PageContents table
+func (s *SqlDraftStore) CreatePageDraft(content *model.PageContent) (*model.PageContent, error) {
+	// Status is derived from UserId - drafts have non-empty UserId
 	content.PreSave()
 
 	if err := content.IsValid(); err != nil {
@@ -523,221 +525,213 @@ func (s *SqlDraftStore) UpsertPageDraftContent(content *model.PageDraftContent) 
 
 	contentJSON, err := content.GetDocumentJSON()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to serialize PageDraftContent content")
+		return nil, errors.Wrap(err, "failed to serialize PageContent content")
 	}
 
-	builder := s.getQueryBuilder().Insert("PageDraftContents").
-		Columns("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
-		Values(content.UserId, content.WikiId, content.DraftId, content.Title, contentJSON, content.CreateAt, content.UpdateAt).
-		SuffixExpr(sq.Expr("ON CONFLICT (userid, wikiid, draftid) DO UPDATE SET Title = ?, Content = ?, UpdateAt = ? RETURNING UserId, WikiId, DraftId, Title, Content, CreateAt, UpdateAt",
-			content.Title, contentJSON, content.UpdateAt))
+	builder := s.getQueryBuilder().Insert("PageContents").
+		Columns("PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
+		Values(content.PageId, content.UserId, content.WikiId, content.Title, contentJSON, content.SearchText, content.BaseUpdateAt, content.CreateAt, content.UpdateAt, 0)
 
-	query, args, err := builder.ToSql()
+	_, err = s.GetMaster().ExecBuilder(builder)
 	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_content_upsert_tosql")
+		return nil, errors.Wrapf(err, "failed to create page draft with pageId=%s, userId=%s", content.PageId, content.UserId)
 	}
 
-	var result model.PageDraftContent
-	var resultContentJSON string
-
-	err = s.GetMaster().QueryRow(query, args...).Scan(
-		&result.UserId,
-		&result.WikiId,
-		&result.DraftId,
-		&result.Title,
-		&resultContentJSON,
-		&result.CreateAt,
-		&result.UpdateAt,
-	)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to upsert PageDraftContent with userId=%s, wikiId=%s, draftId=%s", content.UserId, content.WikiId, content.DraftId)
-	}
-
-	if err := result.SetDocumentJSON(resultContentJSON); err != nil {
-		return nil, errors.Wrap(err, "failed to deserialize returned content")
-	}
-
-	return &result, nil
+	return s.GetPageDraft(content.PageId, content.UserId)
 }
 
-func (s *SqlDraftStore) UpsertPageDraftContentT(transaction *sqlxTxWrapper, content *model.PageDraftContent) (*model.PageDraftContent, error) {
-	content.PreSave()
+// UpsertPageDraftContent creates or updates a page draft with optimistic locking.
+// If lastUpdateAt == 0, creates or updates a draft for a new page.
+// If lastUpdateAt > 0, tries to update existing draft; if no draft exists, creates one
+// with BaseUpdateAt set to lastUpdateAt (for editing existing published pages).
+func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentStr, title string, lastUpdateAt int64) (*model.PageContent, error) {
+	now := model.GetMillis()
 
-	if err := content.IsValid(); err != nil {
-		return nil, err
+	// If lastUpdateAt == 0, this is a draft for a new page (not yet published)
+	// Try to update existing draft first, create if it doesn't exist
+	if lastUpdateAt == 0 {
+		// Try to update existing draft first (handles case where draft was created via POST endpoint)
+		// UserId != '' means it's a draft (status derived from UserId)
+		result, err := s.GetMaster().Exec(`
+			UPDATE PageContents
+			SET Content = $1, Title = $2, UpdateAt = $3
+			WHERE PageId = $4
+			  AND UserId = $5
+			  AND UserId != ''`,
+			contentStr, title, now, pageId, userId)
+
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update draft")
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		if rowsAffected > 0 {
+			// Draft was updated successfully
+			return s.GetPageDraft(pageId, userId)
+		}
+
+		// No existing draft, create a new one
+		// UserId being set means it's a draft (status derived from UserId)
+		content := &model.PageContent{
+			PageId: pageId,
+			UserId: userId,
+			WikiId: wikiId,
+			Title:  title,
+		}
+		if err := content.SetDocumentJSON(contentStr); err != nil {
+			return nil, errors.Wrap(err, "failed to parse content JSON")
+		}
+		return s.CreatePageDraft(content)
 	}
 
-	contentJSON, err := content.GetDocumentJSON()
+	// Try to update existing draft with optimistic locking
+	// UserId != '' means it's a draft (status derived from UserId)
+	result, err := s.GetMaster().Exec(`
+		UPDATE PageContents
+		SET Content = $1, Title = $2, UpdateAt = $3
+		WHERE PageId = $4
+		  AND UserId = $5
+		  AND UserId != ''
+		  AND UpdateAt = $6`,
+		contentStr, title, now, pageId, userId, lastUpdateAt)
+
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to serialize PageDraftContent content")
+		return nil, errors.Wrap(err, "failed to save draft")
 	}
 
-	builder := s.getQueryBuilder().Insert("PageDraftContents").
-		Columns("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
-		Values(content.UserId, content.WikiId, content.DraftId, content.Title, contentJSON, content.CreateAt, content.UpdateAt).
-		SuffixExpr(sq.Expr("ON CONFLICT (userid, wikiid, draftid) DO UPDATE SET Title = ?, Content = ?, UpdateAt = ? RETURNING UserId, WikiId, DraftId, Title, Content, CreateAt, UpdateAt",
-			content.Title, contentJSON, content.UpdateAt))
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		// Check why update failed: no draft exists, or version conflict
+		// Query for the user's draft row (UserId = userId, which is non-empty = draft)
+		query := s.getQueryBuilder().
+			Select("UpdateAt").
+			From("PageContents").
+			Where(sq.Eq{"PageId": pageId, "UserId": userId})
 
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_content_upsert_tosql")
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			// No draft exists - create one for editing an existing page
+			return s.createDraftForExistingPage(pageId, userId, wikiId, contentStr, title, lastUpdateAt)
+		}
+
+		var updateAt int64
+		err = s.GetReplica().QueryRow(queryString, args...).Scan(&updateAt)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				// No draft exists yet - create one for editing an existing page
+				return s.createDraftForExistingPage(pageId, userId, wikiId, contentStr, title, lastUpdateAt)
+			}
+			return nil, errors.Wrap(err, "failed to check existing draft")
+		}
+
+		// Draft exists but UpdateAt doesn't match - version conflict
+		if updateAt != lastUpdateAt {
+			return nil, store.NewErrConflict("PageContent", errors.New("version_conflict"), "updateat mismatch")
+		}
+		// Should not reach here - create draft as fallback
+		return s.createDraftForExistingPage(pageId, userId, wikiId, contentStr, title, lastUpdateAt)
 	}
 
-	var result model.PageDraftContent
-	var resultContentJSON string
-
-	err = transaction.QueryRow(query, args...).Scan(
-		&result.UserId,
-		&result.WikiId,
-		&result.DraftId,
-		&result.Title,
-		&resultContentJSON,
-		&result.CreateAt,
-		&result.UpdateAt,
-	)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to upsert PageDraftContent with userId=%s, wikiId=%s, draftId=%s", content.UserId, content.WikiId, content.DraftId)
-	}
-
-	if err := result.SetDocumentJSON(resultContentJSON); err != nil {
-		return nil, errors.Wrap(err, "failed to deserialize returned content")
-	}
-
-	return &result, nil
+	return s.GetPageDraft(pageId, userId)
 }
 
-// UpsertPageDraftWithTransaction saves both PageDraftContent and Draft in a single transaction
-// Following MM pattern: one store owns multiple related tables, manages transaction internally
-func (s *SqlDraftStore) UpsertPageDraftWithTransaction(content *model.PageDraftContent, draft *model.Draft) (*model.PageDraftContent, *model.Draft, error) {
-	var err error
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "begin_transaction")
+// createDraftForExistingPage creates a draft for editing an existing published page.
+// BaseUpdateAt is set to the page's EditAt for conflict detection when publishing.
+func (s *SqlDraftStore) createDraftForExistingPage(pageId, userId, wikiId, contentStr, title string, baseUpdateAt int64) (*model.PageContent, error) {
+	// UserId being set means it's a draft (status derived from UserId)
+	content := &model.PageContent{
+		PageId:       pageId,
+		UserId:       userId,
+		WikiId:       wikiId,
+		Title:        title,
+		BaseUpdateAt: baseUpdateAt,
 	}
-	defer finalizeTransactionX(transaction, &err)
-
-	savedContent, err := s.UpsertPageDraftContentT(transaction, content)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "upsert_content")
+	if err := content.SetDocumentJSON(contentStr); err != nil {
+		return nil, errors.Wrap(err, "failed to parse content JSON")
 	}
-
-	savedDraft, err := s.UpsertPageDraftT(transaction, draft)
-	if err != nil {
-		return nil, nil, errors.Wrap(err, "upsert_draft")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, nil, errors.Wrap(err, "commit_transaction")
-	}
-
-	return savedContent, savedDraft, nil
+	return s.CreatePageDraft(content)
 }
 
-func (s *SqlDraftStore) GetPageDraftContent(userId, wikiId, draftId string) (*model.PageDraftContent, error) {
+// GetPageDraft retrieves a draft by pageId and userId
+func (s *SqlDraftStore) GetPageDraft(pageId, userId string) (*model.PageContent, error) {
+	// UserId != '' means it's a draft (status derived from UserId)
+	// We query by specific userId which is non-empty, so we're getting a draft
+	// Include EXISTS subquery to check if a published version exists
 	query := s.getQueryBuilder().
-		Select("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
-		From("PageDraftContents").
+		Select(
+			"PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt",
+			"EXISTS(SELECT 1 FROM PageContents pc2 WHERE pc2.PageId = PageContents.PageId AND pc2.UserId = '') AS HasPublishedVersion",
+		).
+		From("PageContents").
 		Where(sq.Eq{
-			"UserId":  userId,
-			"WikiId":  wikiId,
-			"DraftId": draftId,
+			"PageId": pageId,
+			"UserId": userId,
 		})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_content_get_tosql")
+		return nil, errors.Wrap(err, "page_draft_get_tosql")
 	}
 
-	var content model.PageDraftContent
+	var content model.PageContent
 	var contentJSON string
 
 	if err := s.GetReplica().QueryRow(queryString, args...).Scan(
+		&content.PageId,
 		&content.UserId,
 		&content.WikiId,
-		&content.DraftId,
 		&content.Title,
 		&contentJSON,
+		&content.SearchText,
+		&content.BaseUpdateAt,
 		&content.CreateAt,
 		&content.UpdateAt,
+		&content.DeleteAt,
+		&content.HasPublishedVersion,
 	); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("PageDraftContent", draftId)
+			return nil, store.NewErrNotFound("PageContent", pageId)
 		}
-		return nil, errors.Wrapf(err, "failed to get PageDraftContent with userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
+		return nil, errors.Wrapf(err, "failed to get page draft with pageId=%s, userId=%s", pageId, userId)
 	}
 
 	if err := content.SetDocumentJSON(contentJSON); err != nil {
-		return nil, errors.Wrap(err, "failed to parse PageDraftContent content")
+		return nil, errors.Wrap(err, "failed to parse PageContent content")
 	}
 
 	return &content, nil
 }
 
-func (s *SqlDraftStore) DeletePageDraftContent(userId, wikiId, draftId string) error {
+// DeletePageDraft removes a draft from PageContents
+func (s *SqlDraftStore) DeletePageDraft(pageId, userId string) error {
+	// UserId != '' means it's a draft (status derived from UserId)
+	// We query by specific userId which is non-empty, so we're deleting a draft
 	query := s.getQueryBuilder().
-		Delete("PageDraftContents").
+		Delete("PageContents").
 		Where(sq.Eq{
-			"UserId":  userId,
-			"WikiId":  wikiId,
-			"DraftId": draftId,
+			"PageId": pageId,
+			"UserId": userId,
 		})
 
 	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete PageDraftContent with userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
+		return errors.Wrapf(err, "failed to delete page draft with pageId=%s, userId=%s", pageId, userId)
 	}
 
-	return s.checkRowsAffected(result, "PageDraftContent", draftId)
+	return s.checkRowsAffected(result, "PageContent", pageId)
 }
 
-func (s *SqlDraftStore) DeletePageDraftContentT(transaction *sqlxTxWrapper, userId, wikiId, draftId string) error {
+// GetPageDraftsForUser retrieves all drafts for a user in a wiki
+func (s *SqlDraftStore) GetPageDraftsForUser(userId, wikiId string) ([]*model.PageContent, error) {
+	// UserId != '' means it's a draft (status derived from UserId)
+	// We query by specific userId which is non-empty, so we're getting drafts
+	// Include EXISTS subquery to check if a published version exists for each draft
 	query := s.getQueryBuilder().
-		Delete("PageDraftContents").
-		Where(sq.Eq{
-			"UserId":  userId,
-			"WikiId":  wikiId,
-			"DraftId": draftId,
-		})
-
-	result, err := transaction.ExecBuilder(query)
-	if err != nil {
-		return errors.Wrapf(err, "failed to delete PageDraftContent with userId=%s, wikiId=%s, draftId=%s", userId, wikiId, draftId)
-	}
-
-	return s.checkRowsAffected(result, "PageDraftContent", draftId)
-}
-
-// DeletePageDraftWithTransaction deletes both PageDraftContent and Draft in a single transaction
-// Following MM pattern: one store owns multiple related tables, manages transaction internally
-func (s *SqlDraftStore) DeletePageDraftWithTransaction(userId, wikiId, channelId, draftId string) error {
-	var err error
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	err = s.DeletePageDraftContentT(transaction, userId, wikiId, draftId)
-	if err != nil {
-		return errors.Wrap(err, "delete_content")
-	}
-
-	err = s.DeleteT(transaction, userId, channelId, draftId)
-	if err != nil {
-		return errors.Wrap(err, "delete_draft")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return errors.Wrap(err, "commit_transaction")
-	}
-
-	return nil
-}
-
-func (s *SqlDraftStore) GetPageDraftContentsForWiki(userId, wikiId string) ([]*model.PageDraftContent, error) {
-	query := s.getQueryBuilder().
-		Select("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
-		From("PageDraftContents").
+		Select(
+			"PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt",
+			"EXISTS(SELECT 1 FROM PageContents pc2 WHERE pc2.PageId = PageContents.PageId AND pc2.UserId = '') AS HasPublishedVersion",
+		).
+		From("PageContents").
 		Where(sq.Eq{
 			"UserId": userId,
 			"WikiId": wikiId,
@@ -746,38 +740,42 @@ func (s *SqlDraftStore) GetPageDraftContentsForWiki(userId, wikiId string) ([]*m
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_content_get_for_wiki_tosql")
+		return nil, errors.Wrap(err, "page_drafts_get_for_user_tosql")
 	}
 
 	rows, err := s.GetReplica().Query(queryString, args...)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to get PageDraftContents for userId=%s, wikiId=%s", userId, wikiId)
+		return nil, errors.Wrapf(err, "failed to get page drafts for userId=%s, wikiId=%s", userId, wikiId)
 	}
 	defer rows.Close()
 
-	contents := []*model.PageDraftContent{}
+	contents := []*model.PageContent{}
 
 	for rows.Next() {
-		var content model.PageDraftContent
+		var content model.PageContent
 		var contentJSON sql.NullString
 
 		err = rows.Scan(
+			&content.PageId,
 			&content.UserId,
 			&content.WikiId,
-			&content.DraftId,
 			&content.Title,
 			&contentJSON,
+			&content.SearchText,
+			&content.BaseUpdateAt,
 			&content.CreateAt,
 			&content.UpdateAt,
+			&content.DeleteAt,
+			&content.HasPublishedVersion,
 		)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan PageDraftContent row")
+			return nil, errors.Wrap(err, "failed to scan PageContent row")
 		}
 
 		if contentJSON.Valid && contentJSON.String != "" {
 			err = content.SetDocumentJSON(contentJSON.String)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to parse PageDraftContent content")
+				return nil, errors.Wrap(err, "failed to parse PageContent content")
 			}
 		}
 
@@ -785,24 +783,27 @@ func (s *SqlDraftStore) GetPageDraftContentsForWiki(userId, wikiId string) ([]*m
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error iterating PageDraftContent rows")
+		return nil, errors.Wrap(err, "error iterating PageContent rows")
 	}
 
 	return contents, nil
 }
 
-func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error) {
+// GetActiveEditorsForPage retrieves drafts for a page that have been recently updated
+func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageContent, error) {
+	// UserId != '' means it's a draft (status derived from UserId)
 	query := s.getQueryBuilder().
-		Select("UserId", "WikiId", "DraftId", "Title", "Content", "CreateAt", "UpdateAt").
-		From("PageDraftContents").
+		Select("PageId", "UserId", "WikiId", "Title", "Content", "SearchText", "BaseUpdateAt", "CreateAt", "UpdateAt", "DeleteAt").
+		From("PageContents").
 		Where(sq.And{
-			sq.Eq{"DraftId": pageId},
+			sq.Eq{"PageId": pageId},
+			sq.NotEq{"UserId": ""},
 			sq.GtOrEq{"UpdateAt": minUpdateAt},
 		})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "page_draft_content_get_active_editors_tosql")
+		return nil, errors.Wrap(err, "page_draft_get_active_editors_tosql")
 	}
 
 	rows, err := s.GetReplica().Query(queryString, args...)
@@ -811,29 +812,32 @@ func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64
 	}
 	defer rows.Close()
 
-	contents := []*model.PageDraftContent{}
+	contents := []*model.PageContent{}
 
 	for rows.Next() {
-		var content model.PageDraftContent
+		var content model.PageContent
 		var contentJSON sql.NullString
 
 		err = rows.Scan(
+			&content.PageId,
 			&content.UserId,
 			&content.WikiId,
-			&content.DraftId,
 			&content.Title,
 			&contentJSON,
+			&content.SearchText,
+			&content.BaseUpdateAt,
 			&content.CreateAt,
 			&content.UpdateAt,
+			&content.DeleteAt,
 		)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan PageDraftContent row")
+			return nil, errors.Wrap(err, "failed to scan PageContent row")
 		}
 
 		if contentJSON.Valid && contentJSON.String != "" {
 			err = content.SetDocumentJSON(contentJSON.String)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to parse PageDraftContent content")
+				return nil, errors.Wrap(err, "failed to parse PageContent content")
 			}
 		}
 
@@ -841,8 +845,122 @@ func (s *SqlDraftStore) GetActiveEditorsForPage(pageId string, minUpdateAt int64
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error iterating PageDraftContent rows")
+		return nil, errors.Wrap(err, "error iterating PageContent rows")
 	}
 
 	return contents, nil
+}
+
+// PublishPageDraft atomically transitions a draft to published state
+func (s *SqlDraftStore) PublishPageDraft(pageId, userId string) (*model.PageContent, error) {
+	now := model.GetMillis()
+
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to begin transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	// Step 1: Delete old published row if exists (UserId = '' means published)
+	_, err = tx.Exec(`DELETE FROM PageContents WHERE PageId = $1 AND UserId = ''`, pageId)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to delete old published row")
+	}
+
+	// Step 2: Flip draft → published by setting UserId = ''
+	// (UserId != '' means draft, UserId = '' means published)
+	var content model.PageContent
+	var contentJSON string
+	err = tx.QueryRow(`
+		UPDATE PageContents
+		SET UserId = '', UpdateAt = $1
+		WHERE PageId = $2 AND UserId = $3 AND UserId != ''
+		RETURNING PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt`,
+		now, pageId, userId).Scan(
+		&content.PageId,
+		&content.UserId,
+		&content.WikiId,
+		&content.Title,
+		&contentJSON,
+		&content.SearchText,
+		&content.BaseUpdateAt,
+		&content.CreateAt,
+		&content.UpdateAt,
+		&content.DeleteAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PageContent", pageId)
+		}
+		return nil, errors.Wrap(err, "failed to publish draft")
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "failed to commit transaction")
+	}
+
+	if err := content.SetDocumentJSON(contentJSON); err != nil {
+		return nil, errors.Wrap(err, "failed to parse published content")
+	}
+
+	return &content, nil
+}
+
+// CreateDraftFromPublished copies published content to a new draft for editing
+func (s *SqlDraftStore) CreateDraftFromPublished(pageId, userId string) (*model.PageContent, error) {
+	// Check if user already has a draft
+	existing, err := s.GetPageDraft(pageId, userId)
+	if err == nil {
+		return existing, nil // Return existing draft
+	}
+
+	now := model.GetMillis()
+
+	// Copy from published to new draft row
+	// UserId = '' means published (source), UserId = $1 (non-empty) means draft (destination)
+	_, err = s.GetMaster().Exec(`
+		INSERT INTO PageContents (PageId, UserId, WikiId, Title, Content, SearchText, BaseUpdateAt, CreateAt, UpdateAt, DeleteAt)
+		SELECT PageId, $1, WikiId, Title, Content, SearchText, UpdateAt, $2, $2, 0
+		FROM PageContents
+		WHERE PageId = $3 AND UserId = ''`,
+		userId, now, pageId)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create draft from published")
+	}
+
+	return s.GetPageDraft(pageId, userId)
+}
+
+// PermanentDeletePageDraftsByUser removes all page drafts for a user
+func (s *SqlDraftStore) PermanentDeletePageDraftsByUser(userId string) error {
+	// UserId != '' means it's a draft (status derived from UserId)
+	// Deleting by userId (non-empty) already ensures we're deleting drafts only
+	query := s.getQueryBuilder().
+		Delete("PageContents").
+		Where(sq.Eq{
+			"UserId": userId,
+		})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete page drafts for userId=%s", userId)
+	}
+
+	return nil
+}
+
+// PermanentDeletePageContentsByWiki removes all page content (drafts and published) for a wiki
+func (s *SqlDraftStore) PermanentDeletePageContentsByWiki(wikiId string) error {
+	query := s.getQueryBuilder().
+		Delete("PageContents").
+		Where(sq.Eq{"WikiId": wikiId})
+
+	_, err := s.GetMaster().ExecBuilder(query)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete page contents for wikiId=%s", wikiId)
+	}
+
+	return nil
 }

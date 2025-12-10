@@ -3,6 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
+    buildWikiPageUrl,
     createWikiThroughUI,
     createPageThroughUI,
     navigateToWikiView,
@@ -180,7 +181,7 @@ test(
 
         // # User 2 logs in and navigates to the page (viewing mode)
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${createdPage.id}`;
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -248,7 +249,7 @@ test(
 
         // # User 2 logs in and views the page
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const wikiPageUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${createdPage.id}`;
+        const wikiPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, createdPage.id);
         await user2Page.goto(wikiPageUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -337,7 +338,7 @@ test(
 
         // # User 2 logs in and views Page A
         const {page: user2Page} = await pw.testBrowser.login(user2);
-        const pageAUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${pageA.id}`;
+        const pageAUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, pageA.id);
         await user2Page.goto(pageAUrl);
         await user2Page.waitForLoadState('networkidle');
 
@@ -429,7 +430,7 @@ test(
         const {user: user3} = await createTestUserInChannel(pw, adminClient, team, channel, 'user3');
 
         // # All three users start on Page A
-        const pageAUrl = `${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${pageA.id}`;
+        const pageAUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, pageA.id);
         await page1.goto(pageAUrl);
         await page1.waitForLoadState('networkidle');
 
@@ -477,7 +478,7 @@ test(
         const currentPageA = await adminClient.getPost(pageA.id);
 
         // Step 2: Create a draft for editing the existing page
-        const draftId = `draft-${Date.now()}`;
+        // With unified IDs, editing an existing page uses the page's ID as the draft ID
         const newContent = JSON.stringify({
             type: 'doc',
             content: [
@@ -490,16 +491,15 @@ test(
 
         await adminClient.savePageDraft(
             wiki.id,
-            draftId,
+            pageA.id, // pageId - unified ID for both draft and published
             newContent,
             pageATitle,
-            pageA.id, // pageId - indicates this is editing an existing page
         );
 
         // Step 3: Publish the draft with base_edit_at to avoid conflict detection
         await adminClient.publishPageDraft(
             wiki.id,
-            draftId,
+            pageA.id, // pageId - unified ID
             '', // parentId
             pageATitle,
             'version 2 edited', // searchText
@@ -587,7 +587,7 @@ test(
         // First get current page to retrieve edit_at timestamp
         const currentPage = await adminClient.getPost(testPage.id);
 
-        const draftId = `draft-${Date.now()}`;
+        // With unified IDs, editing an existing page uses the page's ID as the draft ID
         const externalUpdateContent = JSON.stringify({
             type: 'doc',
             content: [
@@ -598,10 +598,10 @@ test(
             ],
         });
 
-        await adminClient.savePageDraft(wiki.id, draftId, externalUpdateContent, pageTitle, testPage.id);
+        await adminClient.savePageDraft(wiki.id, testPage.id, externalUpdateContent, pageTitle);
         await adminClient.publishPageDraft(
             wiki.id,
-            draftId,
+            testPage.id, // pageId - unified ID
             '',
             pageTitle,
             'external update',
@@ -649,7 +649,7 @@ test(
         // Get the latest page state (after version 2 was published)
         const currentPageV2 = await adminClient.getPost(testPage.id);
 
-        const draft3Id = `draft-${Date.now()}-v3`;
+        // With unified IDs, editing an existing page uses the page's ID as the draft ID
         const version3Content = JSON.stringify({
             type: 'doc',
             content: [
@@ -660,10 +660,10 @@ test(
             ],
         });
 
-        await adminClient.savePageDraft(wiki.id, draft3Id, version3Content, pageTitle, testPage.id);
+        await adminClient.savePageDraft(wiki.id, testPage.id, version3Content, pageTitle);
         await adminClient.publishPageDraft(
             wiki.id,
-            draft3Id,
+            testPage.id, // pageId - unified ID
             '',
             pageTitle,
             'version 3',

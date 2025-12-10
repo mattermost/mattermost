@@ -11,8 +11,6 @@ import wikiPagesReducer from './wiki_pages';
 describe('wiki_pages reducer', () => {
     const initialState = {
         byWiki: {},
-        loading: {},
-        error: {},
         lastPagesInvalidated: {},
         lastDraftsInvalidated: {},
         statusField: null,
@@ -47,20 +45,6 @@ describe('wiki_pages reducer', () => {
         },
     };
 
-    describe('GET_PAGES_REQUEST', () => {
-        test('should set loading state', () => {
-            const action = {
-                type: WikiTypes.GET_PAGES_REQUEST,
-                data: {wikiId},
-            };
-
-            const nextState = wikiPagesReducer(initialState, action);
-
-            expect(nextState.loading[wikiId]).toBe(true);
-            expect(nextState.error[wikiId]).toBeNull();
-        });
-    });
-
     describe('GET_PAGES_SUCCESS', () => {
         test('should store page IDs in byWiki', () => {
             const pages = [mockPage, {...mockPage, id: 'page456'}];
@@ -72,7 +56,6 @@ describe('wiki_pages reducer', () => {
             const nextState = wikiPagesReducer(initialState, action);
 
             expect(nextState.byWiki[wikiId]).toEqual(['page123', 'page456']);
-            expect(nextState.loading[wikiId]).toBe(false);
         });
 
         test('should not store page data (only IDs)', () => {
@@ -86,21 +69,6 @@ describe('wiki_pages reducer', () => {
 
             expect(nextState).not.toHaveProperty('pageSummaries');
             expect(nextState).not.toHaveProperty('fullPages');
-        });
-    });
-
-    describe('GET_PAGES_FAILURE', () => {
-        test('should set error state', () => {
-            const error = 'Failed to load pages';
-            const action = {
-                type: WikiTypes.GET_PAGES_FAILURE,
-                data: {wikiId, error},
-            };
-
-            const nextState = wikiPagesReducer(initialState, action);
-
-            expect(nextState.loading[wikiId]).toBe(false);
-            expect(nextState.error[wikiId]).toBe(error);
         });
     });
 
@@ -319,39 +287,39 @@ describe('wiki_pages reducer', () => {
 
     describe('PUBLISH_DRAFT_SUCCESS', () => {
         test('should seed publishedDraftTimestamps with server timestamp', () => {
-            const draftId = 'draft123';
+            const pageId = 'page123';
             const publishedAt = 1700000000000;
             const action = {
                 type: WikiTypes.PUBLISH_DRAFT_SUCCESS,
-                data: {draftId, pageId: 'page123', optimisticId: 'pending-123', publishedAt},
+                data: {pageId, optimisticId: 'pending-123', publishedAt},
             };
 
             const nextState = wikiPagesReducer(initialState, action);
 
-            expect(nextState.publishedDraftTimestamps[draftId]).toBe(publishedAt);
+            expect(nextState.publishedDraftTimestamps[pageId]).toBe(publishedAt);
         });
 
         test('should preserve existing timestamps when adding new one', () => {
-            const existingDraftId = 'existing-draft';
+            const existingPageId = 'existing-page';
             const existingTimestamp = 1600000000000;
             const stateWithTimestamp = {
                 ...initialState,
                 publishedDraftTimestamps: {
-                    [existingDraftId]: existingTimestamp,
+                    [existingPageId]: existingTimestamp,
                 },
             };
 
-            const newDraftId = 'new-draft';
+            const newPageId = 'page456';
             const newTimestamp = 1700000000000;
             const action = {
                 type: WikiTypes.PUBLISH_DRAFT_SUCCESS,
-                data: {draftId: newDraftId, pageId: 'page456', publishedAt: newTimestamp},
+                data: {pageId: newPageId, publishedAt: newTimestamp},
             };
 
             const nextState = wikiPagesReducer(stateWithTimestamp, action);
 
-            expect(nextState.publishedDraftTimestamps[existingDraftId]).toBe(existingTimestamp);
-            expect(nextState.publishedDraftTimestamps[newDraftId]).toBe(newTimestamp);
+            expect(nextState.publishedDraftTimestamps[existingPageId]).toBe(existingTimestamp);
+            expect(nextState.publishedDraftTimestamps[newPageId]).toBe(newTimestamp);
         });
     });
 
@@ -512,11 +480,9 @@ describe('wiki_pages reducer', () => {
             expect(initialState).not.toHaveProperty('fullPages');
         });
 
-        test('should only store metadata (byWiki, loading, error)', () => {
+        test('should only store metadata (byWiki, publishedDraftTimestamps, etc)', () => {
             const stateKeys = Object.keys(initialState);
             expect(stateKeys).toContain('byWiki');
-            expect(stateKeys).toContain('loading');
-            expect(stateKeys).toContain('error');
             expect(stateKeys).toContain('publishedDraftTimestamps');
             expect(stateKeys).not.toContain('pageSummaries');
             expect(stateKeys).not.toContain('fullPages');

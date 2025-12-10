@@ -9,22 +9,28 @@ import (
 )
 
 // PageDraft is a composite model combining metadata from Drafts table
-// and content from PageDraftContents table. This mirrors the Posts/PageContents pattern.
+// and content from PageContents table (status='draft').
+// With the unified page ID model, PageId is server-generated and remains
+// the same throughout the draft -> publish lifecycle.
 // Used for API responses and app layer operations.
 type PageDraft struct {
 	// From Drafts table (metadata)
 	UserId    string          `json:"user_id"`
 	WikiId    string          `json:"wiki_id"`
 	ChannelId string          `json:"channel_id"`
-	DraftId   string          `json:"draft_id"`
+	PageId    string          `json:"page_id"` // Unified page ID (server-generated)
 	FileIds   StringArray     `json:"file_ids,omitempty"`
 	Props     StringInterface `json:"props"`
 	CreateAt  int64           `json:"create_at"`
 	UpdateAt  int64           `json:"update_at"`
 
-	// From PageDraftContents table (content)
-	Title   string         `json:"title"`
-	Content TipTapDocument `json:"content"`
+	// From PageContents table (content)
+	Title        string         `json:"title"`
+	Content      TipTapDocument `json:"content"`
+	BaseUpdateAt int64          `json:"base_updateat,omitempty"` // For conflict detection when editing published pages
+
+	// Computed field - indicates whether a published version exists for this page
+	HasPublishedVersion bool `json:"has_published_version"`
 }
 
 // GetPublishedPageId returns the published page ID if this draft is editing an
@@ -78,7 +84,7 @@ func (pd *PageDraft) IsContentEmpty() bool {
 // This consolidates the many parameters into a structured options object.
 type PublishPageDraftOptions struct {
 	WikiId     string `json:"wiki_id"`
-	DraftId    string `json:"draft_id"`
+	PageId     string `json:"page_id"` // Unified page ID (same for draft and published)
 	ParentId   string `json:"page_parent_id,omitempty"`
 	Title      string `json:"title"`
 	SearchText string `json:"search_text,omitempty"`
@@ -93,8 +99,8 @@ func (opts *PublishPageDraftOptions) IsValid() *AppError {
 	if !IsValidId(opts.WikiId) {
 		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.wiki_id.app_error", nil, "", http.StatusBadRequest)
 	}
-	if opts.DraftId == "" {
-		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.draft_id.app_error", nil, "", http.StatusBadRequest)
+	if !IsValidId(opts.PageId) {
+		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.page_id.app_error", nil, "", http.StatusBadRequest)
 	}
 	if len(opts.Title) > MaxPageTitleLength {
 		return NewAppError("PublishPageDraftOptions.IsValid", "model.page_draft.publish_options.title_too_long.app_error",
@@ -117,8 +123,8 @@ func (pd *PageDraft) IsValid() *AppError {
 		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.channel_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if pd.DraftId == "" {
-		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.draft_id.app_error", nil, "draft_id cannot be empty", http.StatusBadRequest)
+	if !IsValidId(pd.PageId) {
+		return NewAppError("PageDraft.IsValid", "model.page_draft.is_valid.page_id.app_error", nil, "page_id must be a valid ID", http.StatusBadRequest)
 	}
 
 	if len(pd.Title) > MaxPageTitleLength {

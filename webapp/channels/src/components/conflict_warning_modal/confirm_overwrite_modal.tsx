@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -20,6 +20,9 @@ export default function ConfirmOverwriteModal({
     onConfirm,
     onCancel,
 }: ConfirmOverwriteModalProps) {
+    const {formatMessage} = useIntl();
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
+
     return (
         <Modal
             show={show}
@@ -55,7 +58,7 @@ export default function ConfirmOverwriteModal({
                             <FormattedMessage
                                 id='confirm_overwrite.page_title'
                                 defaultMessage='Page: {title}'
-                                values={{title: (currentPage.props?.title as string | undefined) || 'Untitled'}}
+                                values={{title: (currentPage.props?.title as string | undefined) || untitledText}}
                             />
                         </strong>
                         <br/>

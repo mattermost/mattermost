@@ -790,17 +790,6 @@ func (c *Context) RequirePageId() *Context {
 	return c
 }
 
-func (c *Context) RequireDraftId() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	if c.Params.DraftId == "" {
-		c.SetInvalidURLParam("draft_id")
-	}
-	return c
-}
-
 func (c *Context) RequireWikiModifyPermission(op app.WikiOperation, callerContext string) (*model.Wiki, *model.Channel, bool) {
 	if c.Err != nil {
 		return nil, nil, false
@@ -863,7 +852,7 @@ func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
 		return nil, false
 	}
 
-	pageWikiId, ok := page.Props["wiki_id"].(string)
+	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
 	if !ok || pageWikiId == "" {
 		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_not_set",
 			nil, "", http.StatusBadRequest)

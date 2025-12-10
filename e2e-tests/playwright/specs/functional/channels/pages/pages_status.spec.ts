@@ -3,6 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
+    buildWikiPageUrl,
     createWikiThroughUI,
     createPageThroughUI,
     createTestChannel,
@@ -293,7 +294,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await publishCurrentPage(page);
 
     // # Navigate back to wiki root
-    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+    await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id));
     await page.waitForLoadState('networkidle');
 
     // # Create second page
@@ -321,7 +322,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     expect(statusText?.trim()).toBe('Done');
 
     // # Navigate back to page 1
-    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${page1.id}`);
+    await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, page1.id));
     await page.waitForLoadState('networkidle');
 
     // * Verify page 1 still has status 'Rough draft'
@@ -361,7 +362,6 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     await page.waitForLoadState('networkidle');
 
     // # Change status to a different value
-    const targetStatusValue = initialLabel === 'In progress' ? 'done' : 'in_progress';
     const targetStatusLabel = initialLabel === 'In progress' ? 'Done' : 'In progress';
 
     const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
@@ -370,7 +370,7 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     const statusMenu = page.locator('.selectable-select-property__menu');
     await expect(statusMenu).toBeVisible();
 
-    const targetOption = page.locator('.selectable-select-property__option', {hasText: targetStatusValue});
+    const targetOption = page.locator('.selectable-select-property__option', {hasText: targetStatusLabel});
     await targetOption.click();
 
     // # Wait for autosave

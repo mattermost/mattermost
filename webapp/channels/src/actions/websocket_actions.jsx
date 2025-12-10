@@ -112,7 +112,7 @@ import {transformPageServerDraft} from 'actions/page_drafts';
 import {loadPage} from 'actions/pages';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
-import {setGlobalItem} from 'actions/storage';
+import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, setGlobalDraftSource, transformServerDraft} from 'actions/views/drafts';
@@ -121,6 +121,7 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {reloadWikiBundle} from 'actions/wiki_actions';
+import {makePageDraftKey} from 'selectors/page_drafts';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
@@ -944,14 +945,13 @@ export function handlePostUnreadEvent(msg) {
 
 export function handlePagePublishedEvent(msg) {
     const page = JSON.parse(msg.data.page);
-    const draftId = msg.data.draft_id;
+    const pageId = msg.data.page_id;
     const wikiId = msg.data.wiki_id;
     const sourceWikiId = msg.data.source_wiki_id;
+    const publishingUserId = msg.data.user_id;
 
-    // Check if the current user is actively editing this page
-    const currentUrl = window.location.pathname;
-    const isDraftBeingEdited = currentUrl.includes(`/drafts/${draftId}`) ||
-                                (currentUrl.includes('/wiki/') && currentUrl.includes(`/${page.id}`));
+    const currentUserId = getCurrentUserId(getState());
+    const isCurrentUserPublishing = currentUserId === publishingUserId;
 
     // Dispatch actions individually instead of batching to ensure subscribers are notified
     dispatch({type: PostTypes.RECEIVED_POST, data: page});
@@ -962,12 +962,14 @@ export function handlePagePublishedEvent(msg) {
         dispatch({type: WikiTypes.REMOVED_PAGE_FROM_WIKI, data: {pageId: page.id, wikiId: sourceWikiId}});
     }
 
-    if (!isDraftBeingEdited) {
-        // User is not editing this draft, safe to delete
-        // Include publishedAt for HA duplicate prevention
-        // Delete the current user's draft for this page (each user has their own draft key)
-        const currentUserId = getCurrentUserId(getState());
-        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId, userId: currentUserId, publishedAt: page.update_at}});
+    // Only delete draft if the CURRENT USER published this page.
+    // If another user published, keep the current user's draft (they may have unsaved changes).
+    if (isCurrentUserPublishing) {
+        const draftKey = makePageDraftKey(wikiId, pageId, currentUserId);
+
+        // Remove draft from local storage AND mark as published for filtering
+        dispatch(removeGlobalItem(draftKey));
+        dispatch({type: WikiTypes.DELETED_DRAFT, data: {id: pageId, wikiId, userId: currentUserId, publishedAt: page.update_at}});
     }
 }
 
@@ -2031,7 +2033,7 @@ function handleUpsertDraftEvent(msg) {
 
         // Check if this is a page draft (has wiki_id field)
         if (draft.wiki_id) {
-            const draftId = draft.draft_id;
+            const pageId = draft.page_id;
 
             // Check if the page has already been published
             // This prevents race condition where a draft_updated event arrives after the page was published
@@ -2042,7 +2044,7 @@ function handleUpsertDraftEvent(msg) {
             // IMPORTANT: If the draft exists in publishedDraftTimestamps, it means it was published.
             // We should ignore ALL incoming draft events for this ID, regardless of timestamps,
             // because the draft should no longer exist - it has been converted to a page.
-            const publishedAt = state.entities.wikiPages?.publishedDraftTimestamps?.[draftId];
+            const publishedAt = state.entities.wikiPages?.publishedDraftTimestamps?.[pageId];
             if (publishedAt) {
                 // Draft was published - ignore any incoming draft events for this ID
                 // This handles HA race conditions where draft events arrive after publish
@@ -2050,7 +2052,7 @@ function handleUpsertDraftEvent(msg) {
             }
 
             // Handle page draft
-            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.draft_id, draft.user_id);
+            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.page_id, draft.user_id);
             transformedDraft.value.show = true;
 
             // Update active editors for this page
@@ -2059,8 +2061,8 @@ function handleUpsertDraftEvent(msg) {
             const isCreate = msg.event === SocketEvents.DRAFT_CREATED;
 
             const activeEditorAction = isCreate ?
-                handleActiveEditorDraftCreated(draftId, userId, timestamp) :
-                handleActiveEditorDraftUpdated(draftId, userId, timestamp);
+                handleActiveEditorDraftCreated(pageId, userId, timestamp) :
+                handleActiveEditorDraftUpdated(pageId, userId, timestamp);
 
             doDispatch(batchActions([
                 setGlobalItem(transformedDraft.key, transformedDraft.value),
@@ -2125,7 +2127,7 @@ function handleDeleteDraftEvent(msg) {
 
         // Check if this is a page draft
         if (draft.wiki_id) {
-            const pageId = draft.draft_id;
+            const pageId = draft.page_id;
             const userId = draft.user_id;
 
             // Remove editor from active editors list

@@ -5,6 +5,7 @@ import {expect, test} from './pages_test_fixture';
 import {
     addInlineCommentInEditMode,
     addReplyToCommentThread,
+    buildChannelUrl,
     buildWikiPageUrl,
     clickCommentMarkerAndOpenRHS,
     confirmMoveToTarget,
@@ -563,11 +564,11 @@ test(
         await page.waitForTimeout(ELEMENT_TIMEOUT);
 
         // # Simulate browser close (navigate away)
-        await page.goto(`${pw.url}/${team.name}/channels/town-square`);
+        await page.goto(buildChannelUrl(pw.url, team.name, 'town-square'));
         await page.waitForLoadState('networkidle');
 
         // # Return to wiki (use correct wiki URL format)
-        await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+        await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id));
         await page.waitForLoadState('networkidle');
 
         // # Wait for hierarchy panel to load
@@ -594,7 +595,7 @@ test(
         await verifyPageContentContains(page, 'Important draft content that must not be lost');
 
         // * Verify draft no longer in drafts section (use correct wiki URL format)
-        await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+        await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id));
         await page.waitForLoadState('networkidle');
 
         const hierarchyPanel2 = getHierarchyPanel(page);

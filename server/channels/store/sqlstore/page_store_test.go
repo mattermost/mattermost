@@ -12,3 +12,7 @@ import (
 func TestPageStore(t *testing.T) {
 	StoreTestWithSqlStore(t, storetest.TestPageStore)
 }
+
+func TestPageContentStore(t *testing.T) {
+	StoreTestWithSqlStore(t, storetest.TestPageContentStore)
+}

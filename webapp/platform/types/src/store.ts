@@ -25,6 +25,7 @@ import type {
     FilesRequestsStatuses, GeneralRequestsStatuses,
     PostsRequestsStatuses, RolesRequestsStatuses,
     TeamsRequestsStatuses, UsersRequestsStatuses,
+    WikiRequestsStatuses,
 } from './requests';
 import type {Role} from './roles';
 import type {ScheduledPostsState} from './schedule_post';
@@ -96,8 +97,6 @@ export type GlobalState = {
         contentFlagging: ContentFlaggingState;
         wikiPages: {
             byWiki: Record<string, string[]>;
-            loading: Record<string, boolean>;
-            error: Record<string, string | null>;
             lastPagesInvalidated: Record<string, number>;
             lastDraftsInvalidated: Record<string, number>;
             statusField: SelectPropertyField | null;
@@ -124,6 +123,7 @@ export type GlobalState = {
         admin: AdminRequestsStatuses;
         files: FilesRequestsStatuses;
         roles: RolesRequestsStatuses;
+        wiki: WikiRequestsStatuses;
     };
     websocket: {
         connected: boolean;

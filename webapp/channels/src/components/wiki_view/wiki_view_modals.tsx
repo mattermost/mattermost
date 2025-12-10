@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -56,12 +57,15 @@ const WikiViewModals: React.FC<WikiViewModalsProps> = ({
     conflictModal,
     confirmOverwriteModal,
 }) => {
+    const {formatMessage} = useIntl();
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
+
     return (
         <>
             {/* Delete page modal */}
             {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
                 <DeletePageModal
-                    pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || 'Untitled'}
+                    pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || untitledText}
                     childCount={menuHandlers.pageToDelete.childCount}
                     onConfirm={menuHandlers.handleDeleteConfirm}
                     onCancel={menuHandlers.handleDeleteCancel}
@@ -106,7 +110,7 @@ const WikiViewModals: React.FC<WikiViewModalsProps> = ({
                 if (!versionHistoryPage) {
                     return null;
                 }
-                const pageTitle = (versionHistoryPage.props?.title as string | undefined) || versionHistoryPage.message || 'Untitled';
+                const pageTitle = (versionHistoryPage.props?.title as string | undefined) || versionHistoryPage.message || untitledText;
                 return (
                     <PageVersionHistoryModal
                         page={versionHistoryPage}

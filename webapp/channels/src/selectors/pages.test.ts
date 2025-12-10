@@ -76,9 +76,13 @@ describe('pages selectors', () => {
                 byWiki: {
                     [wikiId]: [pageId1, pageId2, pageId3],
                 },
+                publishedDraftTimestamps: {},
+            },
+        },
+        requests: {
+            wiki: {
                 loading: {},
                 error: {},
-                publishedDraftTimestamps: {},
             },
         },
     } as any;
@@ -266,10 +270,10 @@ describe('pages selectors', () => {
         test('should return loading state for wiki', () => {
             const stateWithLoading: Partial<GlobalState> = {
                 ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    wikiPages: {
-                        ...initialState.entities!.wikiPages,
+                requests: {
+                    ...initialState.requests,
+                    wiki: {
+                        ...initialState.requests!.wiki,
                         loading: {[wikiId]: true},
                     },
                 },
@@ -292,10 +296,10 @@ describe('pages selectors', () => {
             const error = 'Failed to load pages';
             const stateWithError: Partial<GlobalState> = {
                 ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    wikiPages: {
-                        ...initialState.entities!.wikiPages,
+                requests: {
+                    ...initialState.requests,
+                    wiki: {
+                        ...initialState.requests!.wiki,
                         error: {[wikiId]: error},
                     },
                 },

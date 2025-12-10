@@ -3,7 +3,7 @@
 
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {DraggableProvidedDragHandleProps} from 'react-beautiful-dnd';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -58,6 +58,7 @@ const PageTreeNode = ({
     channelId,
     dragHandleProps,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
 
     const [isTitleTruncated, setIsTitleTruncated] = useState(false);
@@ -74,9 +75,11 @@ const PageTreeNode = ({
     // Get appropriate aria label for icon button
     const getIconButtonLabel = () => {
         if (!node.hasChildren) {
-            return 'Select page';
+            return formatMessage({id: 'pages_hierarchy.tree_node.select_page', defaultMessage: 'Select page'});
         }
-        return node.isExpanded ? 'Collapse' : 'Expand';
+        return node.isExpanded ?
+            formatMessage({id: 'pages_hierarchy.tree_node.collapse', defaultMessage: 'Collapse'}) :
+            formatMessage({id: 'pages_hierarchy.tree_node.expand', defaultMessage: 'Expand'});
     };
 
     useEffect(() => {

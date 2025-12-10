@@ -27,30 +27,30 @@ export function makePageDraftPrefix(wikiId: string): string {
     return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_`;
 }
 
-export function getPageDraft(state: GlobalState, wikiId: string, pageId: string): PostDraft | null {
+export const getPageDraft: (state: GlobalState, wikiId: string, pageId: string) => PostDraft | null = (state: GlobalState, wikiId: string, pageId: string): PostDraft | null => {
     const userId = getCurrentUserId(state);
     const key = makePageDraftKey(wikiId, pageId, userId);
     return getGlobalItem<PostDraft | null>(state, key, null);
-}
+};
 
-export function hasPageDraft(state: GlobalState, wikiId: string, pageId: string): boolean {
+export const hasPageDraft: (state: GlobalState, wikiId: string, pageId: string) => boolean = (state: GlobalState, wikiId: string, pageId: string): boolean => {
     return getPageDraft(state, wikiId, pageId) !== null;
-}
+};
 
-export function hasUnsavedChanges(state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean {
+export const hasUnsavedChanges: (state: GlobalState, wikiId: string, pageId: string, publishedContent: string) => boolean = (state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean => {
     const draft = getPageDraft(state, wikiId, pageId);
     if (!draft) {
         return false;
     }
     return draft.message !== publishedContent;
-}
+};
 
-export const getPageDraftsForWiki = createSelector(
+export const getPageDraftsForWiki: (state: GlobalState, wikiId: string) => PostDraft[] = createSelector(
     'getPageDraftsForWiki',
     (state: GlobalState) => state.storage.storage,
     (_state: GlobalState, wikiId: string) => wikiId,
     (state: GlobalState) => getCurrentUserId(state),
-    (storage, wikiId, currentUserId) => {
+    (storage, wikiId, currentUserId): PostDraft[] => {
         const prefix = makePageDraftPrefix(wikiId);
         const drafts: PostDraft[] = [];
 
@@ -68,7 +68,7 @@ export const getPageDraftsForWiki = createSelector(
     },
 );
 
-export function getUserDraftKeysForPage(state: GlobalState, wikiId: string, pageId: string): string[] {
+export const getUserDraftKeysForPage: (state: GlobalState, wikiId: string, pageId: string) => string[] = (state: GlobalState, wikiId: string, pageId: string): string[] => {
     const currentUserId = getCurrentUserId(state);
     const prefix = makePageDraftPrefix(wikiId);
     const keys: string[] = [];
@@ -84,13 +84,48 @@ export function getUserDraftKeysForPage(state: GlobalState, wikiId: string, page
     });
 
     return keys;
-}
+};
 
-export function getFirstPageDraftForWiki(state: GlobalState, wikiId: string): PostDraft | null {
+export const getFirstPageDraftForWiki: (state: GlobalState, wikiId: string) => PostDraft | null = (state: GlobalState, wikiId: string): PostDraft | null => {
     const drafts = getPageDraftsForWiki(state, wikiId);
     return drafts.length > 0 ? drafts[0] : null;
-}
+};
 
-export function hasUnpublishedChanges(state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean {
+// Get published draft timestamps from wiki pages state
+const getPublishedDraftTimestamps = (state: GlobalState): Record<string, number> => {
+    return state.entities.wikiPages?.publishedDraftTimestamps || {};
+};
+
+/**
+ * Get unpublished drafts for a wiki, filtering out recently published drafts.
+ * When a draft is published, it gets added to publishedDraftTimestamps to prevent
+ * the draft from appearing in the tree momentarily before being fully removed from storage.
+ */
+export const getUnpublishedPageDraftsForWiki: (state: GlobalState, wikiId: string) => PostDraft[] = createSelector(
+    'getUnpublishedPageDraftsForWiki',
+    getPageDraftsForWiki,
+    getPublishedDraftTimestamps,
+    (allDrafts, publishedDraftTimestamps): PostDraft[] => {
+        return allDrafts.filter((draft) => {
+            const draftId = draft.rootId;
+            const isPublished = Boolean(publishedDraftTimestamps[draftId]);
+            return !isPublished;
+        });
+    },
+);
+
+export const hasUnpublishedChanges: (state: GlobalState, wikiId: string, pageId: string, publishedContent: string) => boolean = (state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean => {
     return hasUnsavedChanges(state, wikiId, pageId, publishedContent);
-}
+};
+
+/**
+ * Get new drafts for a wiki (drafts that are not edits of existing pages).
+ * New drafts are identified by has_published_version being false/undefined.
+ */
+export const getNewDraftsForWiki: (state: GlobalState, wikiId: string) => PostDraft[] = createSelector(
+    'getNewDraftsForWiki',
+    getUnpublishedPageDraftsForWiki,
+    (allDrafts): PostDraft[] => {
+        return allDrafts.filter((draft) => !draft.props?.has_published_version);
+    },
+);

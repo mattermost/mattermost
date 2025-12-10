@@ -230,7 +230,8 @@ func TestPageDraftPermissions(t *testing.T) {
 	draftId := model.NewId()
 
 	t.Run("save page draft successfully", func(t *testing.T) {
-		draft, resp, err := th.Client.SavePageDraft(context.Background(), wiki.Id, draftId, "Test draft content")
+		tipTapContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test draft content"}]}]}`
+		draft, resp, err := th.Client.SavePageDraft(context.Background(), wiki.Id, draftId, tipTapContent, 0)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, draft)
@@ -256,15 +257,15 @@ func TestPageDraftPermissions(t *testing.T) {
 		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		privateDraftId := model.NewId()
-		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, createTipTapContent("Private draft"), "Private draft", "", nil)
+		privatePageId := model.NewId()
+		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privatePageId, createTipTapContent("Private draft"), "Private draft", 0, nil)
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
 		require.NoError(t, lErr)
 
-		_, resp, err := client2.GetPageDraft(context.Background(), privateWiki.Id, privateDraftId)
+		_, resp, err := client2.GetPageDraft(context.Background(), privateWiki.Id, privatePageId)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -284,7 +285,8 @@ func TestPageDraftPermissions(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
 		require.NoError(t, lErr)
 
-		_, resp, err := client2.SavePageDraft(context.Background(), privateWiki.Id, model.NewId(), "Unauthorized draft")
+		tipTapContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Unauthorized draft"}]}]}`
+		_, resp, err := client2.SavePageDraft(context.Background(), privateWiki.Id, model.NewId(), tipTapContent, 0)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -300,15 +302,15 @@ func TestPageDraftPermissions(t *testing.T) {
 		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		privateDraftId := model.NewId()
-		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, createTipTapContent("Private draft"), "Private draft", "", nil)
+		privatePageId := model.NewId()
+		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privatePageId, createTipTapContent("Private draft"), "Private draft", 0, nil)
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
 		require.NoError(t, lErr)
 
-		resp, err := client2.DeletePageDraft(context.Background(), privateWiki.Id, privateDraftId)
+		resp, err := client2.DeletePageDraft(context.Background(), privateWiki.Id, privatePageId)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})

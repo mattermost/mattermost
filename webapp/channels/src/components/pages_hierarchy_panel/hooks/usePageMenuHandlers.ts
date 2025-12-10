@@ -17,6 +17,7 @@ import {expandAncestors} from 'actions/views/pages_hierarchy';
 import {openPageInEditMode} from 'actions/wiki_edit';
 
 import {PageDisplayTypes} from 'utils/constants';
+import {getTeamNameFromPath, getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -26,7 +27,7 @@ type UsePageMenuHandlersProps = {
     channelId: string;
     pages: Post[];
     drafts: PostDraft[];
-    onPageSelect?: (pageId: string) => void;
+    onPageSelect?: (pageId: string, isDraft?: boolean) => void;
 };
 
 export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSelect}: UsePageMenuHandlersProps) => {
@@ -138,7 +139,9 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                 if (parentPageId) {
                     dispatch(expandAncestors(wikiId, [parentPageId]));
                 }
-                onPageSelect?.(draftId);
+
+                // Pass true to indicate this is a new draft (not a published page)
+                onPageSelect?.(draftId, true);
             }
         } finally {
             setCreatingPage(false);
@@ -150,13 +153,20 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setCreatePageParent(null);
     }, []);
 
-    const handleRename = useCallback((pageId: string) => {
+    const handleRename = useCallback(async (pageId: string) => {
         const page = allPages.find((p) => p.id === pageId);
         if (!page || !wikiId) {
             return;
         }
 
-        dispatch(openPageInEditMode(channelId, wikiId, page, history, location));
+        const result = await dispatch(openPageInEditMode(channelId, wikiId, page));
+
+        // Navigate to draft on success
+        if (result.data) {
+            const teamName = getTeamNameFromPath(location.pathname);
+            const draftPath = getWikiUrl(teamName, channelId, wikiId, result.data, true);
+            history.replace(draftPath);
+        }
     }, [allPages, wikiId, channelId, history, location, dispatch]);
 
     const handleDuplicate = useCallback(async (pageId: string) => {

@@ -101,18 +101,18 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 	}
 
 	props := model.StringInterface{
-		"page_id": pageID,
+		model.PagePropsPageID: pageID,
 	}
 
 	wikiID, wikiErr := a.GetWikiIdForPage(rctx, pageID)
 	if wikiErr == nil && wikiID != "" {
-		props["wiki_id"] = wikiID
+		props[model.PagePropsWikiID] = wikiID
 	}
 
 	rootID := pageID
 	if len(inlineAnchor) > 0 {
 		props[model.PostPropsCommentType] = model.PageCommentTypeInline
-		props["inline_anchor"] = inlineAnchor
+		props[model.PagePropsInlineAnchor] = inlineAnchor
 		rootID = ""
 	}
 
@@ -159,7 +159,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 			nil, "parent is not a page comment", http.StatusBadRequest)
 	}
 
-	if parentComment.Props["parent_comment_id"] != nil {
+	if parentComment.Props[model.PagePropsParentCommentID] != nil {
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.reply_to_reply_not_allowed.app_error",
 			nil, "Can only reply to top-level comments", http.StatusBadRequest)
@@ -176,13 +176,13 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 	}
 
 	replyProps := model.StringInterface{
-		"page_id":           pageID,
-		"parent_comment_id": parentCommentID,
+		model.PagePropsPageID:          pageID,
+		model.PagePropsParentCommentID: parentCommentID,
 	}
 
 	wikiID, wikiErr := a.GetWikiIdForPage(rctx, pageID)
 	if wikiErr == nil && wikiID != "" {
-		replyProps["wiki_id"] = wikiID
+		replyProps[model.PagePropsWikiID] = wikiID
 	}
 
 	reply := &model.Post{
@@ -214,7 +214,7 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 	}
 
 	parentCommentID := post.RootId
-	pageID, _ := parentComment.Props["page_id"].(string)
+	pageID, _ := parentComment.Props[model.PagePropsPageID].(string)
 
 	if pageID == "" {
 		rctx.Logger().Warn("Parent comment missing page_id prop, cannot transform reply",
@@ -222,7 +222,7 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 		return false
 	}
 
-	if parentComment.Props["parent_comment_id"] != nil {
+	if parentComment.Props[model.PagePropsParentCommentID] != nil {
 		return false
 	}
 
@@ -236,8 +236,8 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 	if post.Props == nil {
 		post.Props = make(model.StringInterface)
 	}
-	post.Props["page_id"] = pageID
-	post.Props["parent_comment_id"] = parentCommentID
+	post.Props[model.PagePropsPageID] = pageID
+	post.Props[model.PagePropsParentCommentID] = parentCommentID
 
 	rctx.Logger().Debug("Transformed page comment reply structure",
 		mlog.String("original_root_id", parentCommentID),
@@ -271,16 +271,16 @@ func (a *App) ResolvePageComment(rctx request.CTX, commentId string, userId stri
 	}
 
 	props := comment.GetProps()
-	if resolved, ok := props["comment_resolved"].(bool); ok && resolved {
+	if resolved, ok := props[model.PagePropsCommentResolved].(bool); ok && resolved {
 		return comment, nil
 	}
 
 	newProps := make(model.StringInterface)
 	maps.Copy(newProps, props)
 
-	newProps["comment_resolved"] = true
-	newProps["resolved_at"] = model.GetMillis()
-	newProps["resolved_by"] = userId
+	newProps[model.PagePropsCommentResolved] = true
+	newProps[model.PagePropsResolvedAt] = model.GetMillis()
+	newProps[model.PagePropsResolvedBy] = userId
 	newProps["resolution_reason"] = "manual"
 	comment.SetProps(newProps)
 
@@ -289,7 +289,7 @@ func (a *App) ResolvePageComment(rctx request.CTX, commentId string, userId stri
 		return nil, updateErr
 	}
 
-	pageId, ok := comment.Props["page_id"].(string)
+	pageId, ok := comment.Props[model.PagePropsPageID].(string)
 	if !ok || pageId == "" {
 		return updatedComment, nil
 	}
@@ -315,9 +315,9 @@ func (a *App) UnresolvePageComment(rctx request.CTX, commentId string) (*model.P
 	newProps := make(model.StringInterface)
 	maps.Copy(newProps, props)
 
-	delete(newProps, "comment_resolved")
-	delete(newProps, "resolved_at")
-	delete(newProps, "resolved_by")
+	delete(newProps, model.PagePropsCommentResolved)
+	delete(newProps, model.PagePropsResolvedAt)
+	delete(newProps, model.PagePropsResolvedBy)
 	delete(newProps, "resolution_reason")
 	comment.SetProps(newProps)
 
@@ -326,7 +326,7 @@ func (a *App) UnresolvePageComment(rctx request.CTX, commentId string) (*model.P
 		return nil, updateErr
 	}
 
-	pageId, ok := comment.Props["page_id"].(string)
+	pageId, ok := comment.Props[model.PagePropsPageID].(string)
 	if !ok || pageId == "" {
 		return updatedComment, nil
 	}
@@ -354,8 +354,8 @@ func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, pa
 	props := comment.GetProps()
 	message.Add("comment_id", comment.Id)
 	message.Add("page_id", page.Id)
-	message.Add("resolved_at", props["resolved_at"])
-	message.Add("resolved_by", props["resolved_by"])
+	message.Add("resolved_at", props[model.PagePropsResolvedAt])
+	message.Add("resolved_by", props[model.PagePropsResolvedBy])
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId:           comment.ChannelId,
 		ReliableClusterSend: true,

@@ -172,7 +172,7 @@ const WikiPageEditor = ({
                             className='page-status badge'
                             data-testid='wiki-page-draft-badge'
                         >
-                            {'Draft'}
+                            {formatMessage({id: 'wiki.page_tree_node.draft_badge', defaultMessage: 'Draft'})}
                         </span>
                     )}
                     <div className='page-status-wrapper'>

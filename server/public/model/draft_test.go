@@ -110,7 +110,7 @@ func TestDraftIsPageDraft(t *testing.T) {
 			Message:   "test message",
 		}
 		draft.SetProps(map[string]any{
-			"page_id": NewId(),
+			PagePropsPageID: NewId(),
 		})
 		assert.True(t, draft.IsPageDraft())
 	})
@@ -123,8 +123,8 @@ func TestDraftIsPageDraft(t *testing.T) {
 			Message:   "test message",
 		}
 		draft.SetProps(map[string]any{
-			"title":   "Page Title",
-			"page_id": NewId(),
+			"title":         "Page Title",
+			PagePropsPageID: NewId(),
 		})
 		assert.True(t, draft.IsPageDraft())
 	})

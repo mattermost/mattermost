@@ -2277,9 +2277,11 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// For pages: search PageContents.SearchText field
 		regularPostsClause := fmt.Sprintf("(q2.Type != '%s' AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", model.PostTypePage, textSearchCfg, searchType, textSearchCfg)
 
+		// UserId = '' means published content (drafts have non-empty UserId)
 		pageSearchSubquery := s.getSubQueryBuilder().
 			Select("PageId").
 			From("PageContents").
+			Where("UserId = ''").
 			Where("DeleteAt = 0").
 			Where(fmt.Sprintf("to_tsvector('%s', SearchText) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg), tsQueryClause)
 

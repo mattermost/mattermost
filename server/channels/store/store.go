@@ -1068,16 +1068,22 @@ type DraftStore interface {
 	PermanentDeleteByUser(userId string) error
 	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
 
-	// Page draft content methods (PageDraftContents table) - DraftStore owns both tables (MM pattern)
-	UpsertPageDraftContent(content *model.PageDraftContent) (*model.PageDraftContent, error)
-	GetPageDraftContent(userId, wikiId, draftId string) (*model.PageDraftContent, error)
-	DeletePageDraftContent(userId, wikiId, draftId string) error
-	GetPageDraftContentsForWiki(userId, wikiId string) ([]*model.PageDraftContent, error)
-	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageDraftContent, error)
+	// Page draft content methods (PageContents table with status='draft')
+	// With unified page ID model, drafts are stored in PageContents table
+	CreatePageDraft(content *model.PageContent) (*model.PageContent, error)
+	UpsertPageDraftContent(pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error)
+	GetPageDraft(pageId, userId string) (*model.PageContent, error)
+	DeletePageDraft(pageId, userId string) error
+	GetPageDraftsForUser(userId, wikiId string) ([]*model.PageContent, error)
+	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageContent, error)
 
-	// Transactional methods - manage both Drafts and PageDraftContents atomically
-	UpsertPageDraftWithTransaction(content *model.PageDraftContent, draft *model.Draft) (*model.PageDraftContent, *model.Draft, error)
-	DeletePageDraftWithTransaction(userId, wikiId, channelId, draftId string) error
+	// Publish operations (atomic state transition)
+	PublishPageDraft(pageId, userId string) (*model.PageContent, error)
+	CreateDraftFromPublished(pageId, userId string) (*model.PageContent, error)
+
+	// Cleanup operations
+	PermanentDeletePageDraftsByUser(userId string) error
+	PermanentDeletePageContentsByWiki(wikiId string) error
 }
 
 type PostAcknowledgementStore interface {

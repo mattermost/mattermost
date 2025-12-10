@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
@@ -29,26 +30,28 @@ const PageLinkModal = ({
     onCancel,
     initialLinkText,
 }: Props) => {
+    const {formatMessage} = useIntl();
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
     const [searchQuery, setSearchQuery] = useState('');
     const [linkText, setLinkText] = useState(initialLinkText || '');
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     const filteredPages = useMemo(() => {
         return pages.filter((page) => {
-            const title = (page.props?.title as string) || 'Untitled';
+            const title = (page.props?.title as string) || untitledText;
             return title.toLowerCase().includes(searchQuery.toLowerCase());
         }).slice(0, 10);
-    }, [pages, searchQuery]);
+    }, [pages, searchQuery, untitledText]);
 
     const handleConfirm = useCallback((indexOverride?: number) => {
         const idx = indexOverride === undefined ? selectedIndex : indexOverride;
         const selectedPage = filteredPages[idx];
         if (selectedPage && linkText.trim()) {
-            const title = (selectedPage.props?.title as string) || 'Untitled';
+            const title = (selectedPage.props?.title as string) || untitledText;
             const pageWikiId = (selectedPage as any).wiki_id || wikiId;
             onSelect(selectedPage.id, title, pageWikiId, linkText.trim());
         }
-    }, [filteredPages, selectedIndex, linkText, wikiId, onSelect]);
+    }, [filteredPages, selectedIndex, linkText, wikiId, onSelect, untitledText]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'ArrowDown') {
@@ -126,7 +129,7 @@ const PageLinkModal = ({
                                 >
                                     <i className='icon icon-file-document-outline PageLinkModal__page-icon'/>
                                     <span className='PageLinkModal__page-title'>
-                                        {(page.props?.title as string) || 'Untitled'}
+                                        {(page.props?.title as string) || untitledText}
                                     </span>
                                     {isSelected && (
                                         <i className='icon icon-check PageLinkModal__selected-icon'/>

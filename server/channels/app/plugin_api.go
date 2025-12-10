@@ -1663,7 +1663,7 @@ func (api *PluginAPI) GetFirstWikiForChannel(channelID string) (string, *model.A
 // CreateWikiPage creates a new wiki page with the given title and content on behalf of the specified user.
 // Returns the created page post.
 func (api *PluginAPI) CreateWikiPage(wikiID, title, content, userID string) (*model.Post, *model.AppError) {
-	page, err := api.app.CreateWikiPage(api.ctx, wikiID, "", title, content, userID, "")
+	page, err := api.app.CreateWikiPage(api.ctx, wikiID, "", title, content, userID, "", "")
 	if err != nil {
 		return nil, err
 	}

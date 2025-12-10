@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -336,12 +337,16 @@ func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.App
 	return nil
 }
 
-func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content, userId, searchText string) (*model.Post, *model.AppError) {
+// CreateWikiPage creates a new page in a wiki.
+// If pageID is provided, it will be used as the page's ID (for publishing drafts with unified IDs).
+// If pageID is empty, a new ID will be generated.
+func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content, userId, searchText, pageID string) (*model.Post, *model.AppError) {
 	isChild := parentId != ""
 	rctx.Logger().Debug("Creating wiki page",
 		mlog.String("wiki_id", wikiId),
 		mlog.String("parent_id", parentId),
 		mlog.String("title", title),
+		mlog.String("page_id", pageID),
 		mlog.Bool("is_child_page", isChild))
 
 	wiki, err := a.GetWiki(rctx, wikiId)
@@ -349,7 +354,7 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 		return nil, err
 	}
 
-	createdPage, createErr := a.CreatePage(rctx, wiki.ChannelId, title, parentId, content, userId, searchText)
+	createdPage, createErr := a.CreatePage(rctx, wiki.ChannelId, title, parentId, content, userId, searchText, pageID)
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -399,7 +404,7 @@ func (a *App) GetWikiIdForPage(rctx request.CTX, pageId string) (string, *model.
 	}
 
 	// Fast path: check Props cache
-	if wikiId, ok := post.Props["wiki_id"].(string); ok && wikiId != "" {
+	if wikiId, ok := post.Props[model.PagePropsWikiID].(string); ok && wikiId != "" {
 		return wikiId, nil
 	}
 
@@ -675,7 +680,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 	if jsonErr != nil {
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.serialize_content_failed", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
-	duplicatedPage, createErr := a.CreatePage(rctx, targetWiki.ChannelId, duplicateTitle, parentId, contentJSON, userId, sourceContent.SearchText)
+	duplicatedPage, createErr := a.CreatePage(rctx, targetWiki.ChannelId, duplicateTitle, parentId, contentJSON, userId, sourceContent.SearchText, "")
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -700,100 +705,84 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 	return duplicatedPage, nil
 }
 
-func (a *App) sendWikiAddedNotification(rctx request.CTX, wiki *model.Wiki, channel *model.Channel, userId string) {
-	user, err := a.GetUser(userId)
+type wikiNotificationParams struct {
+	postType    string
+	wiki        *model.Wiki
+	channel     *model.Channel
+	userId      string
+	extraProps  map[string]any
+	userPropKey string
+}
+
+func (a *App) sendWikiNotification(rctx request.CTX, params wikiNotificationParams) {
+	user, err := a.GetUser(params.userId)
 	if err != nil {
-		rctx.Logger().Warn("Failed to get user for wiki added notification",
-			mlog.String("user_id", userId),
+		rctx.Logger().Warn("Failed to get user for wiki notification",
+			mlog.String("post_type", params.postType),
+			mlog.String("user_id", params.userId),
 			mlog.Err(err))
 		return
 	}
 
-	systemPost := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    userId,
-		Type:      model.PostTypeWikiAdded,
-		Props: map[string]any{
-			"wiki_id":       wiki.Id,
-			"wiki_title":    wiki.Title,
-			"channel_id":    channel.Id,
-			"channel_name":  channel.Name,
-			"added_user_id": userId,
-			"username":      user.Username,
-		},
+	props := map[string]any{
+		"wiki_id":          params.wiki.Id,
+		"wiki_title":       params.wiki.Title,
+		"channel_id":       params.channel.Id,
+		"channel_name":     params.channel.Name,
+		params.userPropKey: params.userId,
+		"username":         user.Username,
 	}
 
-	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
-		rctx.Logger().Warn("Failed to create wiki added system message",
-			mlog.String("wiki_id", wiki.Id),
-			mlog.String("channel_id", channel.Id),
+	maps.Copy(props, params.extraProps)
+
+	systemPost := &model.Post{
+		ChannelId: params.channel.Id,
+		UserId:    params.userId,
+		Type:      params.postType,
+		Props:     props,
+	}
+
+	if _, err := a.CreatePost(rctx, systemPost, params.channel, model.CreatePostFlags{}); err != nil {
+		rctx.Logger().Warn("Failed to create wiki notification",
+			mlog.String("post_type", params.postType),
+			mlog.String("wiki_id", params.wiki.Id),
+			mlog.String("channel_id", params.channel.Id),
 			mlog.Err(err))
 	}
+}
+
+func (a *App) sendWikiAddedNotification(rctx request.CTX, wiki *model.Wiki, channel *model.Channel, userId string) {
+	a.sendWikiNotification(rctx, wikiNotificationParams{
+		postType:    model.PostTypeWikiAdded,
+		wiki:        wiki,
+		channel:     channel,
+		userId:      userId,
+		userPropKey: "added_user_id",
+	})
 }
 
 func (a *App) sendWikiDeletedNotification(rctx request.CTX, wiki *model.Wiki, channel *model.Channel, userId string) {
-	user, err := a.GetUser(userId)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get user for wiki deleted notification",
-			mlog.String("user_id", userId),
-			mlog.Err(err))
-		return
-	}
-
-	systemPost := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    userId,
-		Type:      model.PostTypeWikiDeleted,
-		Props: map[string]any{
-			"wiki_id":         wiki.Id,
-			"wiki_title":      wiki.Title,
-			"channel_id":      channel.Id,
-			"channel_name":    channel.Name,
-			"deleted_user_id": userId,
-			"username":        user.Username,
-		},
-	}
-
-	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
-		rctx.Logger().Warn("Failed to create wiki deleted system message",
-			mlog.String("wiki_id", wiki.Id),
-			mlog.String("channel_id", channel.Id),
-			mlog.Err(err))
-	}
+	a.sendWikiNotification(rctx, wikiNotificationParams{
+		postType:    model.PostTypeWikiDeleted,
+		wiki:        wiki,
+		channel:     channel,
+		userId:      userId,
+		userPropKey: "deleted_user_id",
+	})
 }
 
 func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string, pageTitle string) {
-	user, err := a.GetUser(userId)
-	if err != nil {
-		rctx.Logger().Warn("Failed to get user for page added notification",
-			mlog.String("user_id", userId),
-			mlog.Err(err))
-		return
-	}
-
-	systemPost := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    userId,
-		Type:      model.PostTypePageAdded,
-		Props: map[string]any{
-			"page_id":       page.Id,
-			"page_title":    pageTitle,
-			"wiki_id":       wiki.Id,
-			"wiki_title":    wiki.Title,
-			"channel_id":    channel.Id,
-			"channel_name":  channel.Name,
-			"added_user_id": userId,
-			"username":      user.Username,
+	a.sendWikiNotification(rctx, wikiNotificationParams{
+		postType:    model.PostTypePageAdded,
+		wiki:        wiki,
+		channel:     channel,
+		userId:      userId,
+		userPropKey: "added_user_id",
+		extraProps: map[string]any{
+			"page_id":    page.Id,
+			"page_title": pageTitle,
 		},
-	}
-
-	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
-		rctx.Logger().Warn("Failed to create page added system message",
-			mlog.String("page_id", page.Id),
-			mlog.String("wiki_id", wiki.Id),
-			mlog.String("channel_id", channel.Id),
-			mlog.Err(err))
-	}
+	})
 }
 
 func (a *App) MoveWikiToChannel(rctx request.CTX, wiki *model.Wiki, targetChannel *model.Channel, userId string) (*model.Wiki, *model.AppError) {

@@ -12,7 +12,7 @@ import (
 const twoHoursInMilliseconds = int64(2 * 60 * 60 * 1000)
 
 func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, userId string) {
-	wikiId, _ := page.Props["wiki_id"].(string)
+	wikiId, _ := page.Props[model.PagePropsWikiID].(string)
 	if wikiId == "" {
 		var err *model.AppError
 		wikiId, err = a.GetWikiIdForPage(rctx, page.Id)
@@ -58,7 +58,7 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 	var existingNotification *model.Post
 	for _, post := range existingPosts.Posts {
 		if post.Type == model.PostTypePageUpdated {
-			if pageIdProp, ok := post.Props["page_id"].(string); ok && pageIdProp == page.Id {
+			if pageIdProp, ok := post.Props[model.PagePropsPageID].(string); ok && pageIdProp == page.Id {
 				existingNotification = post
 				break
 			}
@@ -136,16 +136,16 @@ func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post
 		UserId:    userId,
 		Type:      model.PostTypePageUpdated,
 		Props: map[string]any{
-			"page_id":            page.Id,
-			"page_title":         pageTitle,
-			"wiki_id":            wiki.Id,
-			"wiki_title":         wiki.Title,
-			"channel_id":         channel.Id,
-			"channel_name":       channel.Name,
-			"update_count":       updateCount,
-			"last_update_time":   model.GetMillis(),
-			"updater_ids":        []string{userId},
-			"username_" + userId: user.Username,
+			model.PagePropsPageID: page.Id,
+			"page_title":          pageTitle,
+			model.PagePropsWikiID: wiki.Id,
+			"wiki_title":          wiki.Title,
+			"channel_id":          channel.Id,
+			"channel_name":        channel.Name,
+			"update_count":        updateCount,
+			"last_update_time":    model.GetMillis(),
+			"updater_ids":         []string{userId},
+			"username_" + userId:  user.Username,
 		},
 	}
 

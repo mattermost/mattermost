@@ -2056,7 +2056,7 @@ export default class Client4 {
     updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
         return this.doFetch<{updated: ChannelBookmark; deleted: ChannelBookmark}>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
-            {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
+            {method: 'patch', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
         );
     };
 
@@ -2109,7 +2109,7 @@ export default class Client4 {
     deleteWiki = (wikiId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiRoute(wikiId)}`,
-            {method: 'DELETE'},
+            {method: 'delete'},
         );
     };
 
@@ -2186,14 +2186,14 @@ export default class Client4 {
     deletePage = (wikiId: string, pageId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
-            {method: 'DELETE'},
+            {method: 'delete'},
         );
     };
 
     updatePageParent = (wikiId: string, pageId: string, newParentId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(wikiId, pageId)}/parent`,
-            {method: 'PUT', body: JSON.stringify({new_parent_id: newParentId})},
+            {method: 'put', body: JSON.stringify({new_parent_id: newParentId})},
         );
     };
 
@@ -2204,7 +2204,7 @@ export default class Client4 {
         }
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(sourceWikiId, pageId)}/move`,
-            {method: 'PUT', body: JSON.stringify(body)},
+            {method: 'put', body: JSON.stringify(body)},
         );
     };
 
@@ -2212,7 +2212,7 @@ export default class Client4 {
         return this.doFetch<Wiki>(
             `${this.getWikiRoute(wikiId)}/move`,
             {
-                method: 'POST',
+                method: 'post',
                 body: JSON.stringify({target_channel_id: targetChannelId}),
             },
         );
@@ -4728,27 +4728,37 @@ export default class Client4 {
         );
     };
 
-    getPageDraft = (wikiId: string, draftId: string) => {
+    getPageDraft = (wikiId: string, pageId: string) => {
         return this.doFetch<PageDraft>(
-            `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
+            `${this.getWikiRoute(wikiId)}/drafts/${pageId}`,
             {method: 'get'},
         );
     };
 
-    savePageDraft = (wikiId: string, draftId: string, content: string, title?: string, pageId?: string, props?: Record<string, any>) => {
+    createPageDraft = (wikiId: string, title: string, pageParentId?: string) => {
         return this.doFetch<PageDraft>(
-            `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
+            `${this.getWikiRoute(wikiId)}/drafts`,
             {
-                method: 'PUT',
-                body: JSON.stringify({content, title, page_id: pageId, props}),
+                method: 'post',
+                body: JSON.stringify({title, page_parent_id: pageParentId || ''}),
             },
         );
     };
 
-    deletePageDraft = (wikiId: string, draftId: string) => {
+    savePageDraft = (wikiId: string, pageId: string, content: string, title?: string, lastUpdateAt?: number, props?: Record<string, any>) => {
+        return this.doFetch<PageDraft>(
+            `${this.getWikiRoute(wikiId)}/drafts/${pageId}`,
+            {
+                method: 'put',
+                body: JSON.stringify({content, title, last_updateat: lastUpdateAt || 0, props}),
+            },
+        );
+    };
+
+    deletePageDraft = (wikiId: string, pageId: string) => {
         return this.doFetch<null>(
-            `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
-            {method: 'DELETE'},
+            `${this.getWikiRoute(wikiId)}/drafts/${pageId}`,
+            {method: 'delete'},
         );
     };
 
@@ -4756,7 +4766,7 @@ export default class Client4 {
         // Use keepalive to ensure request completes even if page is navigating away
         return this.doFetch<null>(
             `${this.getWikiRoute(wikiId)}/drafts/${pageId}/editor_stopped`,
-            {method: 'POST', keepalive: true},
+            {method: 'post', keepalive: true},
         );
     };
 

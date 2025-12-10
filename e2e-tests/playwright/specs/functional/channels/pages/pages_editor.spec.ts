@@ -3,6 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
+    buildChannelUrl,
     createTestChannel,
     createTestUserInTeam,
     createWikiThroughUI,
@@ -620,7 +621,7 @@ test.skip(
 
         // # Login as author user and create wiki
         const {page: authorPage} = await pw.testBrowser.login(user);
-        await authorPage.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
+        await authorPage.goto(buildChannelUrl(pw.url, team.name, channel.name));
 
         await createWikiThroughUI(authorPage, `Notification Wiki ${await pw.random.id()}`);
 
@@ -675,7 +676,7 @@ test.skip(
             storageState: mentionedUserStorageState,
         });
         const mentionedUserPage = await mentionedUserContext.newPage();
-        await mentionedUserPage.goto(`${pw.url}/${team.name}/channels/off-topic`);
+        await mentionedUserPage.goto(buildChannelUrl(pw.url, team.name, 'off-topic'));
         await mentionedUserPage.waitForLoadState('networkidle');
 
         // * Wait for channel to fully load by checking for post input

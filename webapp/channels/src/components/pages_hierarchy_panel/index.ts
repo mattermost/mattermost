@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
 import {loadPages, createPage, updatePage, deletePage, movePage, movePageToWiki, duplicatePage} from 'actions/pages';
 import {toggleNodeExpanded, setSelectedPage, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
-import {getPageDraftsForWiki} from 'selectors/page_drafts';
+import {getUnpublishedPageDraftsForWiki} from 'selectors/page_drafts';
 import {getPages, getPagesLoading} from 'selectors/pages';
 import {getExpandedNodes, getSelectedPageId, getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
@@ -16,47 +16,24 @@ import type {GlobalState} from 'types/store';
 
 import PagesHierarchyPanel from './pages_hierarchy_panel';
 
-// Get published draft timestamps from wiki pages state
-const getPublishedDraftTimestamps = (state: GlobalState): Record<string, number> => {
-    return state.entities.wikiPages?.publishedDraftTimestamps || {};
-};
-
 type OwnProps = {
     wikiId: string;
     channelId: string;
     currentPageId?: string;
-    onPageSelect: (pageId: string) => void;
+    onPageSelect: (pageId: string, isDraft?: boolean) => void;
     onVersionHistory?: (pageId: string) => void;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const {wikiId} = ownProps;
 
-    const pages = getPages(state, wikiId);
-    const allDrafts = getPageDraftsForWiki(state, wikiId);
-    const publishedDraftTimestamps = getPublishedDraftTimestamps(state);
-
-    // Filter out drafts that have been recently published to prevent flicker
-    // When a draft is published, it gets added to publishedDraftTimestamps
-    // This prevents the draft from appearing in the tree momentarily before
-    // being fully removed from storage
-    const drafts = allDrafts.filter((draft) => {
-        const draftId = draft.rootId;
-        return !publishedDraftTimestamps[draftId];
-    });
-
-    const loading = getPagesLoading(state, wikiId);
-    const expandedNodes = getExpandedNodes(state, wikiId);
-    const selectedPageId = getSelectedPageId(state);
-    const isPanelCollapsed = getIsPanesPanelCollapsed(state);
-
     return {
-        pages,
-        drafts,
-        loading,
-        expandedNodes,
-        selectedPageId,
-        isPanelCollapsed,
+        pages: getPages(state, wikiId),
+        drafts: getUnpublishedPageDraftsForWiki(state, wikiId),
+        loading: getPagesLoading(state, wikiId),
+        expandedNodes: getExpandedNodes(state, wikiId),
+        selectedPageId: getSelectedPageId(state),
+        isPanelCollapsed: getIsPanesPanelCollapsed(state),
     };
 }
 

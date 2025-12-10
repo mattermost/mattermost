@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
@@ -12,7 +13,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {loadWiki, getPageBreadcrumb} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
-import {buildBreadcrumbFromRedux} from 'selectors/pages';
+import {arePagesLoaded, buildBreadcrumbFromRedux} from 'selectors/pages';
 
 import {getWikiUrl} from 'utils/url';
 
@@ -36,8 +37,11 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
+    const untitledText = formatMessage({id: 'wiki.untitled_page', defaultMessage: 'Untitled'});
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
+    const pagesLoaded = useSelector((state: GlobalState) => arePagesLoaded(state, wikiId));
 
     const teamName = currentTeam?.name || 'team';
 
@@ -75,7 +79,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                         if (isDraftId(parentPageId)) {
                             // Parent is a draft - build breadcrumb recursively from draft data
                             const parentDraft = getDraftById(parentPageId);
-                            const parentTitle = parentDraft?.props?.title || 'Untitled';
+                            const parentTitle = parentDraft?.props?.title || untitledText;
                             const grandparentId = parentDraft?.props?.page_parent_id;
 
                             // Recursively fetch grandparent breadcrumb if it exists and is published
@@ -181,7 +185,15 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     }
                 } else if (pageId) {
                     // Published page - build breadcrumb from Redux (no API call)
-                    // Load wiki if not already in Redux
+                    // Wait for pages to be loaded by WikiView before building breadcrumb
+                    // This avoids race condition when navigating via direct URL
+                    if (!pagesLoaded) {
+                        // Pages not loaded yet - stay in loading state
+                        // WikiView's loadWikiBundle will populate pages, triggering re-render
+                        return;
+                    }
+
+                    // Load wiki metadata if not already in Redux
                     await dispatch(loadWiki(wikiId));
 
                     // Get current state and build breadcrumb from Redux
@@ -224,7 +236,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, currentPage?.page_parent_id, currentPage?.props?.page_parent_id, currentPage?.props?.wiki_id, dispatch]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, currentPage?.page_parent_id, currentPage?.props?.page_parent_id, currentPage?.props?.wiki_id, pagesLoaded, dispatch]);
 
     if (isLoading) {
         return (

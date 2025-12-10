@@ -3,6 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
+    buildChannelPageUrl,
     createWikiThroughUI,
     createPageThroughUI,
     getNewPageButton,
@@ -100,7 +101,7 @@ test.skip(
         const publishedPage = await createPageThroughUI(page, 'Published Page', 'Original content');
 
         // Navigate to page
-        await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${publishedPage.id}`);
+        await page.goto(buildChannelPageUrl(pw.url, team.name, channel.name, wiki.id, publishedPage.id));
         await page.waitForLoadState('networkidle');
 
         // # Start editing

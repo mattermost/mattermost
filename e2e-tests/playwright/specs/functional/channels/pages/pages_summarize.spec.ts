@@ -244,28 +244,24 @@ test('creates page with summarized content from channel thread', {tag: '@pages'}
 
 /**
  * @objective Verify graceful degradation when AI plugin is not available
+ *
+ * @precondition
+ * AI plugin is NOT configured (test will skip if AI is available)
  */
 test(
     'hides summarize to page option when AI plugin is not available',
     {tag: '@pages'},
     async ({pw, sharedPagesSetup}) => {
+        // Skip if AI is configured - we can't test graceful degradation when AI is enabled
+        if (!shouldSkipAITests()) {
+            test.skip(true, 'AI plugin is configured - cannot test graceful degradation');
+            return;
+        }
+
         const {team, user, adminClient} = sharedPagesSetup;
 
         const channel = await createTestChannel(adminClient, team.id, `No AI Test ${await pw.random.id()}`);
         const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        // # Create wiki
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
-        const wikiName = `Test Wiki ${await pw.random.id()}`;
-        await createWikiThroughUI(page, wikiName);
-
-        // # Check if AI plugin is available - skip test if it IS available
-        const hasAIPlugin = await checkAIPluginAvailability(page);
-        if (hasAIPlugin) {
-            test.skip(true, 'AI plugin is configured - cannot test graceful degradation without disabling plugin');
-            return;
-        }
 
         // # Navigate back to channel
         await channelsPage.goto(team.name, channel.name);

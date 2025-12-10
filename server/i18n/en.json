@@ -5839,6 +5839,10 @@
     "translation": "Unable to save the Draft."
   },
   {
+    "id": "app.draft.save_page.already_published",
+    "translation": "Page draft has already been published."
+  },
+  {
     "id": "app.draft.save_page.app_error",
     "translation": "Unable to save page draft."
   },
@@ -5851,8 +5855,12 @@
     "translation": "Cannot save draft for archived channel."
   },
   {
-    "id": "app.draft.save_page.invalid_content.app_error",
-    "translation": "Invalid content for page draft."
+    "id": "app.draft.save_page.not_found",
+    "translation": "Page draft not found."
+  },
+  {
+    "id": "app.draft.save_page.version_conflict",
+    "translation": "Page draft version conflict. The page has been modified."
   },
   {
     "id": "app.draft.save_page.wiki_not_found.app_error",
@@ -11377,8 +11385,20 @@
     "translation": "Invalid page ID in page content."
   },
   {
+    "id": "model.page_content.is_valid.title_too_long.app_error",
+    "translation": "Page title exceeds maximum length."
+  },
+  {
     "id": "model.page_content.is_valid.update_at.app_error",
     "translation": "Invalid page content update time."
+  },
+  {
+    "id": "model.page_content.is_valid.user_id.app_error",
+    "translation": "Invalid user ID in page content."
+  },
+  {
+    "id": "model.page_content.is_valid.wiki_id.app_error",
+    "translation": "Invalid wiki ID in page content."
   },
   {
     "id": "model.page_draft.is_valid.channel_id.app_error",
@@ -11393,8 +11413,8 @@
     "translation": "Page draft content exceeds maximum size."
   },
   {
-    "id": "model.page_draft.is_valid.draft_id.app_error",
-    "translation": "Invalid draft ID in page draft."
+    "id": "model.page_draft.is_valid.page_id.app_error",
+    "translation": "Invalid page ID in page draft."
   },
   {
     "id": "model.page_draft.is_valid.title_too_long.app_error",
@@ -11409,8 +11429,8 @@
     "translation": "Invalid wiki ID in page draft."
   },
   {
-    "id": "model.page_draft.publish_options.draft_id.app_error",
-    "translation": "Invalid draft ID in publish options."
+    "id": "model.page_draft.publish_options.page_id.app_error",
+    "translation": "Invalid page ID in publish options."
   },
   {
     "id": "model.page_draft.publish_options.title_too_long.app_error",
@@ -11419,38 +11439,6 @@
   {
     "id": "model.page_draft.publish_options.wiki_id.app_error",
     "translation": "Invalid wiki ID in publish options."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.content_invalid.app_error",
-    "translation": "Invalid page draft content."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.content_too_large.app_error",
-    "translation": "Page draft content exceeds maximum size."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.create_at.app_error",
-    "translation": "Invalid page draft content create time."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.draft_id.app_error",
-    "translation": "Invalid draft ID in page draft content."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.title_too_long.app_error",
-    "translation": "Page draft title is too long."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.update_at.app_error",
-    "translation": "Invalid page draft content update time."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.user_id.app_error",
-    "translation": "Invalid user ID in page draft content."
-  },
-  {
-    "id": "model.page_draft_content.is_valid.wiki_id.app_error",
-    "translation": "Invalid wiki ID in page draft content."
   },
   {
     "id": "model.plugin_command.error.app_error",

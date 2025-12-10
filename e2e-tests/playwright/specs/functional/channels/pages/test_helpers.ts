@@ -5,6 +5,8 @@ import type {Page, Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {createRandomUser} from '@mattermost/playwright-lib';
 
@@ -21,6 +23,16 @@ export const HIERARCHY_TIMEOUT = 10000; // Timeout for hierarchy panel operation
 export const PAGE_LOAD_TIMEOUT = 15000; // Timeout for full page load operations
 export const DRAG_ANIMATION_WAIT = 1500; // Wait for drag-and-drop animations to complete
 export const STALE_CLEANUP_TIMEOUT = 65000; // Timeout for stale editor cleanup (60s + buffer)
+
+/**
+ * Generates a unique name with a timestamp suffix.
+ * Use this instead of `pw.random.id()` to avoid async/await issues.
+ * @param prefix - The prefix for the name (e.g., 'Test Wiki', 'Test Channel')
+ * @returns A unique string like 'Test Wiki 1733789234567'
+ */
+export function uniqueName(prefix: string): string {
+    return `${prefix} ${Date.now()}`;
+}
 
 /**
  * Gets a locator for the page actions menu (dropdown menu from the 3-dot button)
@@ -221,6 +233,38 @@ export async function createMultipleTestUsersInChannel(
         users.push(result);
     }
     return users;
+}
+
+/**
+ * Common test setup: creates a channel, logs in, navigates to channel, and creates a wiki.
+ * Reduces boilerplate in tests that need a wiki in a fresh channel.
+ *
+ * @param pw - Playwright test context
+ * @param sharedPagesSetup - The fixture providing team, user, and adminClient
+ * @param wikiNamePrefix - Prefix for wiki name (will be made unique with timestamp)
+ * @param channelNamePrefix - Prefix for channel name (will be made unique internally)
+ * @returns Object with page, channelsPage, channel, and wiki
+ *
+ * @example
+ * const {page, channel, wiki} = await setupWikiInChannel(pw, sharedPagesSetup, 'Test Wiki');
+ */
+export async function setupWikiInChannel(
+    pw: {testBrowser: {login: (user: UserProfile) => Promise<{page: Page; channelsPage: any}>}},
+    sharedPagesSetup: {team: Team; user: UserProfile; adminClient: Client4},
+    wikiNamePrefix: string = 'Test Wiki',
+    channelNamePrefix: string = 'Test Channel',
+): Promise<{page: Page; channelsPage: any; channel: Channel; wiki: {id: string; title: string}}> {
+    const {team, user, adminClient} = sharedPagesSetup;
+
+    const channel = await createTestChannel(adminClient, team.id, channelNamePrefix);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    const wiki = await createWikiThroughUI(page, uniqueName(wikiNamePrefix));
+
+    return {page, channelsPage, channel, wiki};
 }
 
 /**
@@ -470,7 +514,8 @@ export async function navigateToPage(
     const url = `${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`;
     await page.goto(url);
 
-    await page.waitForLoadState('networkidle');
+    // Use a longer timeout (60s) to debug potential timing issues with multi-user tests
+    await page.waitForLoadState('networkidle', {timeout: 60000});
 
     // Wait for wiki view and page to load
     await waitForWikiViewLoad(page);
@@ -498,6 +543,38 @@ export function buildWikiPageUrl(
 ): string {
     const basePath = `${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}`;
     return pageId ? `${basePath}/${pageId}` : basePath;
+}
+
+/**
+ * Constructs a channel URL
+ * Matches the URL pattern: /:team/channels/:channelName
+ * @param baseUrl - Base URL (e.g., pw.url)
+ * @param teamName - Team name
+ * @param channelName - Channel name (not channel ID)
+ * @returns Full URL to the channel
+ */
+export function buildChannelUrl(baseUrl: string, teamName: string, channelName: string): string {
+    return `${baseUrl}/${teamName}/channels/${channelName}`;
+}
+
+/**
+ * Constructs a channel page URL (wiki page accessed via channel route)
+ * Matches the URL pattern: /:team/channels/:channelName/wikis/:wikiId/pages/:pageId
+ * @param baseUrl - Base URL (e.g., pw.url)
+ * @param teamName - Team name
+ * @param channelName - Channel name (not channel ID)
+ * @param wikiId - Wiki ID
+ * @param pageId - Page ID
+ * @returns Full URL to the page via channel route
+ */
+export function buildChannelPageUrl(
+    baseUrl: string,
+    teamName: string,
+    channelName: string,
+    wikiId: string,
+    pageId: string,
+): string {
+    return `${baseUrl}/${teamName}/channels/${channelName}/wikis/${wikiId}/pages/${pageId}`;
 }
 
 /**
@@ -3004,7 +3081,7 @@ export async function openAIActionsMenu(page: Page, postId: string): Promise<Loc
     await expect(postLocator).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await postLocator.hover();
 
-    const aiActionsButton = page.getByTestId('ai-actions-menu');
+    const aiActionsButton = postLocator.getByRole('button', {name: 'AI Actions'});
     await expect(aiActionsButton).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await aiActionsButton.click();
     await page.waitForTimeout(SHORT_WAIT);

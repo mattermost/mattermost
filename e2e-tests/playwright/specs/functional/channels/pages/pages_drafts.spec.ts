@@ -3,6 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 import {
+    buildChannelUrl,
     createWikiThroughUI,
     createPageThroughUI,
     createChildPageThroughContextMenu,
@@ -261,7 +262,7 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, 
 
     // # Navigate back to wiki (without publishing)
     // First go to channel to deselect any auto-selected drafts
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
+    await page.goto(buildChannelUrl(pw.url, team.name, channel.name));
     await page.waitForTimeout(SHORT_WAIT);
 
     // Then navigate back to wiki
@@ -547,7 +548,7 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
 
     // # Navigate back and create second draft
     // First go to channel to deselect any auto-selected drafts
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}`);
+    await page.goto(buildChannelUrl(pw.url, team.name, channel.name));
     await page.waitForTimeout(SHORT_WAIT);
 
     // Then navigate back to wiki

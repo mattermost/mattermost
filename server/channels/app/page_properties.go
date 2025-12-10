@@ -336,10 +336,10 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		if !found {
 			status = model.PageStatusInProgress
 		}
-		props["page_status"] = status
+		props[model.PagePropsPageStatus] = status
 
 		if wikiId, found := wikiMap[page.Id]; found && wikiId != "" {
-			props["wiki_id"] = wikiId
+			props[model.PagePropsWikiID] = wikiId
 		}
 
 		page.SetProps(props)
