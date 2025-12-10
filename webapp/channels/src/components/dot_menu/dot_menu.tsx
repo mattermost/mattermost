@@ -463,7 +463,6 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
         const isBurnOnReadPost = this.props.isBurnOnReadPost;
         const isBurnOnReadPostSender = isBurnOnReadPost && this.props.post.user_id === this.props.userId;
-        const isBurnOnReadConcealed = isBurnOnReadPost && !isBurnOnReadPostSender && !this.props.isUnrevealedBurnOnReadPost;
 
         this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
 
