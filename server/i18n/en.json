@@ -9633,6 +9633,10 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Invalid autotranslation agents configuration: LLM Service ID must not be empty."
+  },
+  {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
     "translation": "LibreTranslate URL must be a valid URL and start with http:// or https://."
   },

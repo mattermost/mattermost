@@ -422,7 +422,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	query := s.getQueryBuilder().
 		Insert("Translations").
 		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
-		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), string(translation.State), now).
+		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, sq.Expr("?::jsonb", string(metaBytes)), string(translation.State), now).
 		Suffix(`ON CONFLICT (ObjectId, dstLang)
 				DO UPDATE SET
 					ObjectType = EXCLUDED.ObjectType,

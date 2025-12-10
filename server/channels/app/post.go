@@ -2848,7 +2848,7 @@ func (a *App) RewriteMessage(
 	}
 
 	// Prepare completion request in the format expected by the client
-	client := a.getBridgeClient(rctx.Session().UserId)
+	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
 			{Role: "system", Message: model.RewriteSystemPrompt},

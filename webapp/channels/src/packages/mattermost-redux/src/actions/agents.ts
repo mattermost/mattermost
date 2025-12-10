@@ -14,3 +14,12 @@ export function getAgents() {
         onRequest: AgentTypes.AGENTS_REQUEST,
     });
 }
+
+export function getLLMServices() {
+    return bindClientFunc({
+        clientFunc: Client4.getLLMServices,
+        onSuccess: [AgentTypes.RECEIVED_LLM_SERVICES],
+        onFailure: AgentTypes.LLM_SERVICES_FAILURE,
+        onRequest: AgentTypes.LLM_SERVICES_REQUEST,
+    });
+}

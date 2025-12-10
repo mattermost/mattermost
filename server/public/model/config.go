@@ -2717,8 +2717,7 @@ type AutoTranslationSettings struct {
 	QueueWorkers    *int                            `access:"site_localization,cloud_restrictable"`
 	TimeoutsMs      *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
 	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
-	// TODO: Enable Agents provider in future release
-	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
+	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
 // AutoTranslationTimeoutsInMs defines content-aware timeout thresholds.
@@ -2746,10 +2745,9 @@ type LibreTranslateProviderSettings struct {
 	MaxRPS         *int    `access:"site_localization,cloud_restrictable"` // Max requests per second, default: 14
 }
 
-// TODO: Enable Agents provider in future release
-// type AgentsProviderSettings struct {
-// 	BotUserId *string `access:"site_localization,cloud_restrictable"`
-// }
+type AgentsProviderSettings struct {
+	LLMServiceID *string `access:"site_localization,cloud_restrictable"`
+}
 
 func (s *AutoTranslationSettings) SetDefaults() {
 	if s.Enable == nil {
@@ -4750,11 +4748,10 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 		}
-	// TODO: Enable Agents provider in future release
-	// case "agents":
-	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-	// 	}
+	case "agents":
+		if s.Agents == nil || s.Agents.LLMServiceID == nil || *s.Agents.LLMServiceID == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.llm_service_id.app_error", nil, "", http.StatusBadRequest)
+		}
 	default:
 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
 	}

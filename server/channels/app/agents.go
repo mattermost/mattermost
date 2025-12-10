@@ -17,8 +17,8 @@ const (
 	minAIPluginVersionForBridge = "1.5.0"
 )
 
-// getBridgeClient returns a bridge client for making requests to the plugin bridge API
-func (a *App) getBridgeClient(userID string) *agentclient.Client {
+// GetBridgeClient returns a bridge client for making requests to the plugin bridge API
+func (a *App) GetBridgeClient(userID string) *agentclient.Client {
 	return agentclient.NewClientFromApp(a, userID)
 }
 
@@ -85,7 +85,7 @@ func (a *App) GetAgents(rctx request.CTX, userID string) ([]agentclient.BridgeAg
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getBridgeClient(sessionUserID)
+	client := a.GetBridgeClient(sessionUserID)
 
 	agents, err := client.GetAgents(userID)
 	if err != nil {
@@ -111,7 +111,7 @@ func (a *App) GetLLMServices(rctx request.CTX, userID string) ([]agentclient.Bri
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getBridgeClient(sessionUserID)
+	client := a.GetBridgeClient(sessionUserID)
 
 	services, err := client.GetServices(userID)
 	if err != nil {

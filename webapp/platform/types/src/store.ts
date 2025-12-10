@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {AdminState} from './admin';
+import type {LLMService} from './agents';
 import type {AppsState} from './apps';
 import type {Bot} from './bots';
 import type {ChannelBookmarksState} from './channel_bookmarks';
@@ -53,6 +54,7 @@ export type GlobalState = {
                 service_id: string;
                 service_type: string;
             }>;
+            llmServices: LLMService[];
         };
         bots: {
             accounts: Record<string, Bot>;
