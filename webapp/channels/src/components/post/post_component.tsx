@@ -664,7 +664,6 @@ function PostComponent(props: Props) {
     // Displays when expire_at is set (after reveal for receivers, after all reveal for sender)
     let burnOnReadTimerChip;
     if (isBoRPost) {
-        const isSender = post.user_id === props.currentUserId;
         const hasExpireAt = typeof post.metadata?.expire_at === 'number';
 
         if (hasExpireAt) {
