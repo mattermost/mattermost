@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Post} from '@mattermost/types/posts';
+
 import {PostTypes} from 'mattermost-redux/action_types';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {DispatchFunc, GetStateFunc} from 'types/store';
 
 export interface PostRevealedData {
-    post?: string | any;
+    post?: string | Post;
     recipients?: string[];
 }
 
@@ -19,13 +22,15 @@ export interface PostRevealedData {
 export function handleBurnOnReadPostRevealed(data: PostRevealedData) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
-        const currentUserId = state.entities.users.currentUserId;
+        const currentUserId = getCurrentUserId(state);
 
         let post;
         if (typeof data.post === 'string') {
             try {
                 post = JSON.parse(data.post);
             } catch (e) {
+                // eslint-disable-next-line no-console
+                console.error('Failed to parse burn-on-read post revealed data:', e);
                 return {data: false};
             }
         } else {

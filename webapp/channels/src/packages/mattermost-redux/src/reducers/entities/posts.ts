@@ -382,70 +382,68 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
     let currentState = nextState;
 
-    const processedPost = post;
-
     // Check if post already exists in state or if nested permalink
-    if (!shouldUpdatePost(processedPost, currentState[processedPost.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
+    if (!shouldUpdatePost(post, currentState[post.id]) || (nestedPermalinkLevel && nestedPermalinkLevel > 1)) {
         return currentState;
     }
 
     // If post is a permalink and not nested (it links directly to the original message),
     // and is missing embedded metadata, then update state with new post metadata
-    if (!nestedPermalinkLevel && isPermalink(processedPost) && currentState[processedPost.id] && !currentState[processedPost.id].metadata && processedPost.metadata) {
-        currentState[processedPost.id] = {...currentState[processedPost.id], ...processedPost.metadata};
+    if (!nestedPermalinkLevel && isPermalink(post) && currentState[post.id] && !currentState[post.id].metadata && post.metadata) {
+        currentState[post.id] = {...currentState[post.id], ...post.metadata};
     }
 
     // Edited posts that don't have 'is_following' specified should maintain 'is_following' state
-    if (processedPost.update_at > 0 && processedPost.is_following == null && currentState[processedPost.id]) {
-        processedPost.is_following = currentState[processedPost.id].is_following;
+    if (post.update_at > 0 && post.is_following == null && currentState[post.id]) {
+        post.is_following = currentState[post.id].is_following;
     }
 
-    if (processedPost.delete_at > 0) {
+    if (post.delete_at > 0) {
         // We've received a deleted post, so mark the post as deleted if we already have it
-        if (currentState[processedPost.id]) {
-            currentState[processedPost.id] = {
-                ...removeUnneededMetadata(processedPost),
+        if (currentState[post.id]) {
+            currentState[post.id] = {
+                ...removeUnneededMetadata(post),
                 state: Posts.POST_DELETED,
                 file_ids: [],
                 has_reactions: false,
             };
         }
-    } else if (processedPost.metadata && processedPost.metadata.embeds) {
-        processedPost.metadata.embeds.forEach((embed) => {
+    } else if (post.metadata && post.metadata.embeds) {
+        post.metadata.embeds.forEach((embed) => {
             if (embed.type === 'permalink') {
                 if (embed.data && 'post_id' in embed.data && embed.data.post) {
                     currentState = handlePostReceived(currentState, embed.data.post, nestedPermalinkLevel ? nestedPermalinkLevel + 1 : 1);
 
                     if (isPermalink(embed.data.post)) {
-                        currentState[processedPost.id] = removeUnneededMetadata(processedPost);
+                        currentState[post.id] = removeUnneededMetadata(post);
                     }
                 }
             }
         });
 
-        currentState[processedPost.id] = processedPost;
+        currentState[post.id] = post;
     } else {
-        currentState[processedPost.id] = removeUnneededMetadata(processedPost);
+        currentState[post.id] = removeUnneededMetadata(post);
     }
 
     // Delete any pending post that existed for this post
-    if (processedPost.pending_post_id && processedPost.id !== processedPost.pending_post_id && currentState[processedPost.pending_post_id]) {
-        Reflect.deleteProperty(currentState, processedPost.pending_post_id);
+    if (post.pending_post_id && post.id !== post.pending_post_id && currentState[post.pending_post_id]) {
+        Reflect.deleteProperty(currentState, post.pending_post_id);
     }
 
-    const rootPost: Post = currentState[processedPost.root_id];
-    if (processedPost.root_id && rootPost) {
+    const rootPost: Post = currentState[post.root_id];
+    if (post.root_id && rootPost) {
         const participants = rootPost.participants || [];
         const nextRootPost = {...rootPost};
-        if (!participants.find((user: UserProfile) => user.id === processedPost.user_id)) {
-            nextRootPost.participants = [...participants, {id: processedPost.user_id}];
+        if (!participants.find((user: UserProfile) => user.id === post.user_id)) {
+            nextRootPost.participants = [...participants, {id: post.user_id}];
         }
 
-        if (processedPost.reply_count) {
-            nextRootPost.reply_count = processedPost.reply_count;
+        if (post.reply_count) {
+            nextRootPost.reply_count = post.reply_count;
         }
 
-        currentState[processedPost.root_id] = nextRootPost;
+        currentState[post.root_id] = nextRootPost;
     }
 
     return currentState;
