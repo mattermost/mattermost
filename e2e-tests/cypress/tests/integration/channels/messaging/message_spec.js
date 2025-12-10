@@ -28,6 +28,15 @@ describe('Message', () => {
         });
     });
 
+    beforeEach(() => {
+        // # Close any open modals from previous tests (e.g., move-thread-modal)
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
+        });
+    });
+
     it('MM-T77 Consecutive message does not repeat profile info', () => {
         // # Wait for posts to load
         cy.get('#postListContent').should('be.visible');
