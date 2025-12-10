@@ -28,6 +28,11 @@ export function getBurnOnReadRecipientData(state: GlobalState, post: Post | null
     }
 
     const revealedCount = post.metadata?.recipients?.length || 0;
+
+    // Note: Assumes author is still in channel (subtracts 1 from member count to exclude author).
+    // Edge case: If author leaves after creating post, count will be incorrect.
+    // This doesn't affect UX since only authors see receipts and they can't view the channel after leaving.
+    // If read receipts become visible to non-authors, consider storing recipient count at creation time.
     const totalRecipients = Math.max(0, stats.member_count - 1);
 
     return {

@@ -452,10 +452,10 @@ function PostComponent(props: Props) {
         }
     }, [props.actions, formatMessage]);
 
-    const handleTimerChipClick = useCallback(() => {
+    const handleBurnOnReadClick = useCallback((skipConfirmation: boolean) => {
         const isSender = post.user_id === props.currentUserId;
 
-        if (props.burnOnReadSkipConfirmation) {
+        if (skipConfirmation) {
             props.actions.burnPostNow?.(post.id);
             return;
         }
@@ -477,28 +477,15 @@ function PostComponent(props: Props) {
                 ...handlers,
             },
         });
-    }, [props.burnOnReadSkipConfirmation, props.actions, post.id, post.user_id, props.currentUserId]);
+    }, [props.actions, post.id, post.user_id, props.currentUserId]);
+
+    const handleTimerChipClick = useCallback(() => {
+        handleBurnOnReadClick(Boolean(props.burnOnReadSkipConfirmation));
+    }, [handleBurnOnReadClick, props.burnOnReadSkipConfirmation]);
 
     const handleBadgeClick = useCallback(() => {
-        const isSender = post.user_id === props.currentUserId;
-        const handlers = createBurnOnReadDeleteModalHandlers(
-            props.actions,
-            {
-                postId: post.id,
-                userId: props.currentUserId,
-                isSender,
-            },
-        );
-
-        props.actions.openModal({
-            modalId: ModalIdentifiers.BURN_ON_READ_CONFIRMATION,
-            dialogType: BurnOnReadConfirmationModal,
-            dialogProps: {
-                show: true,
-                ...handlers,
-            },
-        });
-    }, [props.actions, post.id, post.user_id, props.currentUserId]);
+        handleBurnOnReadClick(false);
+    }, [handleBurnOnReadClick]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 

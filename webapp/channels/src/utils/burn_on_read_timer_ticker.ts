@@ -18,6 +18,7 @@ type TickCallback = (now: number) => void;
 class BurnOnReadTimerTicker {
     private subscribers: Set<TickCallback> = new Set();
     private timerId: ReturnType<typeof setTimeout> | null = null;
+    private started: boolean = false;
     private readonly tickInterval = 1000; // 1 second
 
     /**
@@ -28,8 +29,9 @@ class BurnOnReadTimerTicker {
     public subscribe(callback: TickCallback): () => void {
         this.subscribers.add(callback);
 
-        if (this.subscribers.size === 1) {
+        if (!this.started) {
             this.start();
+            this.started = true;
         }
 
         return () => {
@@ -43,8 +45,9 @@ class BurnOnReadTimerTicker {
     private unsubscribe(callback: TickCallback): void {
         this.subscribers.delete(callback);
 
-        if (this.subscribers.size === 0) {
+        if (this.subscribers.size === 0 && this.started) {
             this.stop();
+            this.started = false;
         }
     }
 
@@ -82,9 +85,8 @@ class BurnOnReadTimerTicker {
         }
 
         const now = Date.now();
-        const snapshot = Array.from(this.subscribers);
 
-        snapshot.forEach((callback) => {
+        this.subscribers.forEach((callback) => {
             try {
                 callback(now);
             } catch (error) {
