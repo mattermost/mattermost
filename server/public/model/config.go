@@ -2776,11 +2776,10 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 	s.LibreTranslate.SetDefaults()
 
-	// TODO: Enable Agents provider in future release
-	// if s.Agents == nil {
-	// 	s.Agents = &AgentsProviderSettings{}
-	// }
-	// s.Agents.SetDefaults()
+	if s.Agents == nil {
+		s.Agents = &AgentsProviderSettings{}
+	}
+	s.Agents.SetDefaults()
 }
 
 func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
@@ -2819,12 +2818,11 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 	}
 }
 
-// TODO: Enable Agents provider in future release
-// func (s *AgentsProviderSettings) SetDefaults() {
-// 	if s.BotUserId == nil {
-// 		s.BotUserId = NewPointer("")
-// 	}
-// }
+func (s *AgentsProviderSettings) SetDefaults() {
+	if s.LLMServiceID == nil {
+		s.LLMServiceID = NewPointer("")
+	}
+}
 
 type SamlSettings struct {
 	// Basic
