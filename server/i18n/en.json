@@ -4455,6 +4455,22 @@
     "translation": "CWS token is not valid"
   },
   {
+    "id": "api.user.login_by_intune.account_locked.app_error",
+    "translation": "Your account has been deactivated. Please contact your system administrator."
+  },
+  {
+    "id": "api.user.login_by_intune.bot_login_forbidden.app_error",
+    "translation": "Bot accounts cannot sign in using Microsoft authentication."
+  },
+  {
+    "id": "api.user.login_by_intune.not_available.app_error",
+    "translation": "Microsoft Intune authentication is not available."
+  },
+  {
+    "id": "api.user.login_by_intune.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },
@@ -8681,6 +8697,38 @@
     "translation": "Your license does not support ID Loaded Push Notifications."
   },
   {
+    "id": "ent.intune.login.account_not_found.app_error",
+    "translation": "Your account isn't fully set up yet. Please sign in to Mattermost via the web or desktop app first."
+  },
+  {
+    "id": "ent.intune.login.extract_auth_data.app_error",
+    "translation": "Authentication failed. Please try again or contact your system administrator."
+  },
+  {
+    "id": "ent.intune.login.not_configured.app_error",
+    "translation": "Microsoft Intune authentication is not configured."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_tenant_id.app_error",
+    "translation": "Authentication failed. Invalid configuration."
+  },
+  {
+    "id": "ent.intune.validate_token.invalid_token.app_error",
+    "translation": "Authentication failed. Please try again."
+  },
+  {
+    "id": "ent.intune.validate_token.jwks_init.app_error",
+    "translation": "Authentication service initialization failed. Please contact your system administrator."
+  },
+  {
+    "id": "ent.intune.validate_token.missing_claims.app_error",
+    "translation": "Authentication failed. Required user information is missing."
+  },
+  {
+    "id": "ent.intune.validate_token.token_expired.app_error",
+    "translation": "Authentication session has expired. Please try signing in again."
+  },
+  {
     "id": "ent.jobs.start_synchronize_job.timeout",
     "translation": "Reached AD/LDAP synchronization job timeout."
   },
@@ -9907,6 +9955,38 @@
   {
     "id": "model.config.is_valid.import.retention_days_too_low.app_error",
     "translation": "Invalid value for RetentionDays. Value is too low."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service.app_error",
+    "translation": "Intune MAM Auth Service is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_auth_service_invalid.app_error",
+    "translation": "Intune MAM Auth Service must be either 'office365' or 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id.app_error",
+    "translation": "Intune MAM Client ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_client_id_format.app_error",
+    "translation": "Intune MAM Client ID must be a valid UUID."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_office365.app_error",
+    "translation": "Intune MAM requires OpenID Connect (Office 365) to be enabled when Auth Service is set to 'office365'."
+  },
+  {
+    "id": "model.config.is_valid.intune_requires_saml.app_error",
+    "translation": "Intune MAM requires SAML to be enabled when Auth Service is set to 'saml'."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id.app_error",
+    "translation": "Intune MAM Tenant ID is required when Intune is enabled."
+  },
+  {
+    "id": "model.config.is_valid.intune_tenant_id_format.app_error",
+    "translation": "Intune MAM Tenant ID must be a valid UUID."
   },
   {
     "id": "model.config.is_valid.invalid_redis_db.app_error",

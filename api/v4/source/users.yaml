@@ -127,6 +127,145 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /oauth/intune:
+    post:
+      tags:
+        - users
+      summary: Login with Microsoft Intune MAM
+      description: >
+        Authenticate a mobile user using a Microsoft Entra ID (Azure AD) access token
+        for Intune Mobile Application Management (MAM) protected apps.
+
+
+        This endpoint enables authentication for mobile apps protected by Microsoft Intune MAM
+        policies. The access token is obtained via the Microsoft Authentication Library (MSAL)
+        and validated against the configured Azure AD tenant and Intune MAM app registration.
+
+
+        **Authentication Flow:**
+
+        1. Mobile app acquires an Entra ID access token via MSAL with the Intune MAM scope
+
+        2. Token is sent to this endpoint for validation
+
+        3. Server validates the token signature, claims, and tenant configuration
+
+        4. User is authenticated or created based on the token claims
+
+        5. Session token is returned for subsequent API requests
+
+
+        **User Provisioning:**
+
+        - **Office365 AuthService**: Users are automatically created on first login using
+        the `oid` (Azure AD object ID) claim as the unique identifier
+
+        - **SAML AuthService**: Users must first login via web/desktop to establish their
+        account with the `oid` (Azure AD object ID) as AuthData. Intune MAM 
+        always uses objectId for SAML users. For Entra ID Domain Services LDAP sync,
+        configure LdapSettings.IdAttribute to `msDS-aadObjectId` to ensure consistency.
+
+
+        **Error Handling:**
+
+        This endpoint returns specific HTTP status codes to help mobile apps handle different
+        error scenarios:
+
+        - `428 Precondition Required`: SAML user needs to login via web/desktop first
+
+        - `403 Forbidden`: Configuration issues or bot accounts
+
+        - `409 Conflict`: User account is deactivated
+
+        - `401 Unauthorized`: Token has expired
+
+        - `400 Bad Request`: Invalid token format, claims, or configuration
+
+
+        ##### Permissions
+
+
+        No permission required. Authentication is performed via the Entra ID access token.
+
+
+        ##### Enterprise Feature
+
+
+        Requires Mattermost Enterprise Advanced license and proper Intune MAM configuration
+        (tenant ID, client ID, and auth service).
+      operationId: LoginIntune
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IntuneLoginRequest"
+        description: Intune login credentials containing the Entra ID access token
+        required: true
+      responses:
+        "200":
+          description: User authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: >
+            Bad request - Invalid token format, signature, claims, or configuration.
+            Common causes include: invalid JSON body, missing access_token, malformed JWT,
+            invalid token issuer/audience/tenant, missing required claims (oid, email),
+            or empty auth data after extraction.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "401":
+          description: Unauthorized - The Entra ID access token has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "403":
+          description: >
+            Forbidden - Access denied. Common causes include: Intune MAM not properly
+            configured or enabled, or user is a bot account (bots cannot use Intune login).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "409":
+          description: Conflict - User account has been deactivated (DeleteAt != 0)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "428":
+          description: >
+            Precondition Required - SAML user account not found. The user must first
+            login via web or desktop application to establish their Mattermost account
+            with objectId as AuthData before using mobile Intune MAM authentication.
+            For Entra ID Domain Services LDAP sync, ensure SamlSettings.IdAttribute references
+            the objectidentifier claim and LdapSettings.IdAttribute is set to 'msDS-aadObjectId'.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "500":
+          description: >
+            Internal Server Error - Server-side error. Common causes include: failed to
+            initialize JWKS (JSON Web Key Set) from Microsoft's OpenID configuration,
+            or failed to create user session.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+        "501":
+          description: >
+            Not Implemented - Intune MAM feature is not available. This occurs when
+            running Mattermost Team Edition or when enterprise features are not loaded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   /api/v4/users/logout:
     post:
       tags:

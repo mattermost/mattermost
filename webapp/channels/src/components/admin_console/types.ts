@@ -75,7 +75,7 @@ export type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     setFromMetadataField?: string;
     dynamic_value?: (value: any, config: Partial<AdminConfig>, state: any) => string;
     max_length?: number;
-    default?: string;
+    default?: string | ((value: any, config: Partial<AdminConfig>, state: any) => string);
 }
 
 type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
