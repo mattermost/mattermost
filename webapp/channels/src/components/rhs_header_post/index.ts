@@ -6,7 +6,7 @@ import {connect} from 'react-redux';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getInt, isCollapsedThreadsEnabled, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
@@ -27,7 +27,6 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {focusPost} from 'components/permalink_view/actions';
 
-import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
 
@@ -46,7 +45,6 @@ function makeMapStateToProps() {
         const collapsedThreads = isCollapsedThreadsEnabled(state);
         const root = getPost(state, rootPostId);
         const currentUserId = getCurrentUserId(state);
-        const tipStep = getInt(state, Preferences.CRT_THREAD_PANE_STEP, currentUserId);
 
         if (root && collapsedThreads) {
             const thread = getThreadOrSynthetic(state, root);
@@ -60,8 +58,6 @@ function makeMapStateToProps() {
             }
         }
 
-        const showThreadsTutorialTip = tipStep === CrtThreadPaneSteps.THREADS_PANE_POPOVER && isCollapsedThreadsEnabled(state) && onboardingTourTipsEnabled(state);
-
         return {
             isExpanded: getIsRhsExpanded(state),
             isMobileView: getIsMobileView(state),
@@ -70,7 +66,6 @@ function makeMapStateToProps() {
             currentUserId,
             isCollapsedThreadsEnabled: collapsedThreads,
             isFollowingThread,
-            showThreadsTutorialTip,
         };
     };
 }

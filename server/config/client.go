@@ -4,6 +4,7 @@
 package config
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -417,6 +418,23 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			// Check IntuneSettings configuration
+			intuneEnabled := (c.IntuneSettings.Enable != nil && *c.IntuneSettings.Enable && c.IntuneSettings.IsValid() == nil)
+
+			props["IntuneMAMEnabled"] = strconv.FormatBool(intuneEnabled)
+
+			if intuneEnabled {
+				// Use IntuneSettings for scope
+				props["IntuneScope"] = fmt.Sprintf("api://%s/login.mattermost", *c.IntuneSettings.ClientId)
+
+				// Expose AuthService if set
+				if c.IntuneSettings.AuthService != nil && *c.IntuneSettings.AuthService != "" {
+					props["IntuneAuthService"] = *c.IntuneSettings.AuthService
+				}
+			}
 		}
 	}
 
