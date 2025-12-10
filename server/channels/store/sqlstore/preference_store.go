@@ -284,12 +284,8 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 // Delete preference for limit_visible_dms_gms where their value is greater than "40" or less than "1"
 func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
-	var queryString string
-	var args []any
-	var err error
-
 	// We need to pad the value field with zeros when doing comparison's because the value is stored as a string.
-	// Having them the same length allows Postgres/MySQL to compare them correctly.
+	// Having them the same length allows Postgres to compare them correctly.
 	whereClause := sq.And{
 		sq.Eq{"Category": model.PreferenceCategorySidebarSettings},
 		sq.Eq{"Name": model.PreferenceLimitVisibleDmsGms},
@@ -298,28 +294,17 @@ func (s SqlPreferenceStore) DeleteInvalidVisibleDmsGms() (int64, error) {
 			sq.Lt{"SUBSTRING(CONCAT('000000000000000', Value), LENGTH(Value) + 1, 15)": "000000000000001"},
 		},
 	}
-	if s.DriverName() == "postgres" {
-		subQuery := s.getQueryBuilder().
-			Select("UserId, Category, Name").
-			From("Preferences").
-			Where(whereClause).
-			Limit(100)
-		queryString, args, err = s.getQueryBuilder().
-			Delete("Preferences").
-			Where(sq.Expr("(userid, category, name) IN (?)", subQuery)).
-			ToSql()
-		if err != nil {
-			return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
-		}
-	} else {
-		queryString, args, err = s.getQueryBuilder().
-			Delete("Preferences").
-			Where(whereClause).
-			Limit(100).
-			ToSql()
-		if err != nil {
-			return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
-		}
+	subQuery := s.getQueryBuilder().
+		Select("UserId, Category, Name").
+		From("Preferences").
+		Where(whereClause).
+		Limit(100)
+	queryString, args, err := s.getQueryBuilder().
+		Delete("Preferences").
+		Where(sq.Expr("(userid, category, name) IN (?)", subQuery)).
+		ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "could not build sql query to delete preference")
 	}
 
 	result, err := s.GetMaster().Exec(queryString, args...)
