@@ -1586,3 +1586,236 @@ func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", appErr.Id)
 	})
 }
+
+// TestLoginByIntune_InterfaceNotAvailable tests that LoginByIntune returns proper error when enterprise not compiled
+func TestLoginByIntune_InterfaceNotAvailable(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Intune interface should be nil in non-enterprise setup
+	require.Nil(t, th.App.Intune())
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "fake-token")
+
+	// Should return error
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.not_available.app_error", appErr.Id)
+	assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+}
+
+// TestLoginByIntune_NotConfigured tests that LoginByIntune returns proper error when Intune not configured
+func TestLoginByIntune_NotConfigured(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create mock Intune interface
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(false)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "fake-token")
+
+	// Should return error
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.not_configured.app_error", appErr.Id)
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_Success_Office365 tests successful login with Office365 auth service
+func TestLoginByIntune_Success_Office365(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create test user with Office365 auth
+	testUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:         "office365user@example.com",
+		Username:      "office365user",
+		AuthService:   model.ServiceOffice365,
+		AuthData:      model.NewPointer("test-oid-123"),
+		EmailVerified: true,
+	})
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "valid-token").Return(testUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "valid-token")
+
+	// Should succeed
+	require.Nil(t, appErr)
+	require.NotNil(t, user)
+	assert.Equal(t, testUser.Id, user.Id)
+	assert.Equal(t, model.ServiceOffice365, user.AuthService)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_Success_SAML tests successful login with SAML auth service
+func TestLoginByIntune_Success_SAML(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create test user with SAML auth
+	testUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:         "samluser@example.com",
+		Username:      "samluser",
+		AuthService:   model.UserAuthServiceSaml,
+		AuthData:      model.NewPointer("test@example.com"),
+		EmailVerified: true,
+	})
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "valid-token").Return(testUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "valid-token")
+
+	// Should succeed
+	require.Nil(t, appErr)
+	require.NotNil(t, user)
+	assert.Equal(t, testUser.Id, user.Id)
+	assert.Equal(t, model.UserAuthServiceSaml, user.AuthService)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_BotAccountBlocked tests that bot accounts cannot login via Intune
+func TestLoginByIntune_BotAccountBlocked(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create bot account
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface that returns bot user
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "bot-token").Return(botUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "bot-token")
+
+	// Should be blocked
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.bot_login_forbidden.app_error", appErr.Id)
+	assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_AccountLocked tests that deleted/locked accounts cannot login
+func TestLoginByIntune_AccountLocked(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create user and then soft delete it
+	deletedUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:         "deleteduser@example.com",
+		Username:      "deleteduser",
+		AuthService:   model.ServiceOffice365,
+		AuthData:      model.NewPointer("deleted-oid-123"),
+		EmailVerified: true,
+	})
+	require.Nil(t, appErr)
+
+	// Soft delete the user (deactivate)
+	_, appErr = th.App.UpdateActive(th.Context, deletedUser, false)
+	require.Nil(t, appErr)
+
+	// Reload user to get updated DeleteAt
+	deletedUser, appErr = th.App.GetUser(deletedUser.Id)
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface that returns deleted user
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "deleted-token").Return(deletedUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "deleted-token")
+
+	// Should be blocked
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.account_locked.app_error", appErr.Id)
+	assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_TokenValidationFailure tests that invalid tokens are rejected
+func TestLoginByIntune_TokenValidationFailure(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create mock Intune interface that returns validation error
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "invalid-token").Return(nil, model.NewAppError(
+		"IntuneInterface.Login",
+		"ent.intune.validate_token.invalid_token.app_error",
+		nil,
+		"token validation failed",
+		http.StatusBadRequest,
+	))
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "invalid-token")
+
+	// Should return validation error
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "ent.intune.validate_token.invalid_token.app_error", appErr.Id)
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
+}

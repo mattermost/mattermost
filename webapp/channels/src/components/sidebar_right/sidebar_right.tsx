@@ -158,6 +158,12 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         if (this.props.isOpen && (contentChanged || (!wasOpen && isOpen))) {
             this.previousActiveElement = document.activeElement as HTMLElement;
 
+            // For RHS with textbox, don't auto-focus the first element with this approach.
+            // The RHS textbox will focus itself via use_textbox_focus.tsx hook with correct focus logic.
+            if (this.props.postRightVisible) {
+                return;
+            }
+
             // Focus the sidebar after a tick
             setTimeout(() => {
                 if (this.sidebarRight.current) {
