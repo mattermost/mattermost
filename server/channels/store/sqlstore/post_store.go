@@ -35,6 +35,9 @@ type SqlPostStore struct {
 	metrics           einterfaces.MetricsInterface
 	maxPostSizeOnce   sync.Once
 	maxPostSizeCached int
+
+	// postsQuery is a starting point for queries that return one or more Posts.
+	postsQuery sq.SelectBuilder
 }
 
 type postWithExtra struct {
@@ -140,11 +143,17 @@ func postSliceCoalesceQuery() string {
 }
 
 func newSqlPostStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.PostStore {
-	return &SqlPostStore{
+	s := &SqlPostStore{
 		SqlStore:          sqlStore,
 		metrics:           metrics,
 		maxPostSizeCached: model.PostMessageMaxRunesV1,
 	}
+
+	s.postsQuery = s.getQueryBuilder().
+		Select(postSliceColumnsWithName("Posts")...).
+		From("Posts")
+
+	return s
 }
 
 func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
@@ -613,13 +622,10 @@ func (s *SqlPostStore) getPostWithCollapsedThreads(rctx request.CTX, id, userID 
 	}
 
 	posts := []*model.Post{}
-	query := s.getQueryBuilder().
-		Select(postSliceColumnsWithName("Posts")...).
-		From("Posts").
-		Where(sq.Eq{
-			"Posts.RootId":   id,
-			"Posts.DeleteAt": 0,
-		})
+	query := s.postsQuery.Where(sq.Eq{
+		"Posts.RootId":   id,
+		"Posts.DeleteAt": 0,
+	})
 
 	var sort string
 	if opts.Direction != "" {
@@ -889,33 +895,23 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 }
 
 func (s *SqlPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
-	query := s.getQueryBuilder().
-		Select(postSliceColumnsWithName("p")...).
-		From("Posts p").
-		Where(sq.Eq{"p.Id": id})
+	query := s.postsQuery.Where(sq.Eq{"Posts.Id": id})
 
 	replyCountSubQuery := s.getQueryBuilder().
 		Select("COUNT(*)").
-		From("Posts").
-		Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
+		From("Posts p").
+		Where(sq.Expr("p.RootId = (CASE WHEN Posts.RootId = '' THEN Posts.Id ELSE Posts.RootId END) AND p.DeleteAt = 0"))
 
 	if !inclDeleted {
-		query = query.Where(sq.Eq{"p.DeleteAt": 0})
+		query = query.Where(sq.Eq{"Posts.DeleteAt": 0})
 	}
 	query = query.Column(sq.Alias(replyCountSubQuery, "ReplyCount"))
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "getsingleincldeleted_tosql")
-	}
-
 	var post model.Post
-	err = s.DBXFromContext(rctx.Context()).Get(&post, queryString, args...)
-	if err != nil {
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&post, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Post", id)
 		}
-
 		return nil, errors.Wrapf(err, "failed to get Post with id=%s", id)
 	}
 	return &post, nil
@@ -1442,9 +1438,7 @@ func (s *SqlPostStore) HasAutoResponsePostByUserSince(options model.GetPostsSinc
 }
 
 func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error) {
-	query := s.getQueryBuilder().
-		Select(postSliceColumnsWithName("Posts")...).
-		From("Posts").
+	query := s.postsQuery.
 		OrderBy("Posts.UpdateAt", "Id").
 		Limit(uint64(limit))
 
@@ -1532,9 +1526,7 @@ func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.
 	}
 
 	// Build base query - request one extra to determine if there are more pages
-	query := s.getQueryBuilder().
-		Select(postSliceColumns()...).
-		From("Posts").
+	query := s.postsQuery.
 		Where(sq.Eq{"ChannelId": queryParams.ChannelId}).
 		OrderBy(fmt.Sprintf("%s %s", timeField, sortDirection), fmt.Sprintf("Id %s", sortDirection)).
 		Limit(uint64(queryParams.PerPage + 1))
@@ -1617,9 +1609,7 @@ func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.
 }
 
 func (s *SqlPostStore) GetPostsByThread(threadId string, since int64) ([]*model.Post, error) {
-	query := s.getQueryBuilder().
-		Select(postSliceColumns()...).
-		From("Posts").
+	query := s.postsQuery.
 		Where(sq.Eq{"RootId": threadId}).
 		Where(sq.Eq{"DeleteAt": 0}).
 		Where(sq.GtOrEq{"CreateAt": since})
@@ -1655,7 +1645,7 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 		direction = ">"
 		sort = "ASC"
 	}
-	columns := []string{"p.*"}
+	columns := postSliceColumnsWithName("p")
 	if options.CollapsedThreads {
 		columns = append(columns,
 			"COALESCE(Threads.ReplyCount, 0) as ThreadReplyCount",
@@ -1813,9 +1803,7 @@ func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64, collapsedT
 	if collapsedThreads {
 		conditions = sq.And{conditions, sq.Eq{"RootId": ""}}
 	}
-	query := s.getQueryBuilder().
-		Select(postSliceColumns()...).
-		From("Posts").
+	query := s.postsQuery.
 		Where(conditions).
 		// Adding ChannelId and DeleteAt order columns
 		// to let mysql choose the "idx_posts_channel_id_delete_at_create_at" index always.
@@ -1896,7 +1884,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 		return nil, nil
 	}
 
-	cols := []string{"p.*"}
+	cols := postSliceColumnsWithName("p")
 	var where sq.Sqlizer
 	where = sq.Eq{"p.Id": roots}
 	if skipFetchThreads {
@@ -2579,9 +2567,7 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, error) {
 }
 
 func (s *SqlPostStore) GetEditHistoryForPost(postId string) ([]*model.Post, error) {
-	builder := s.getQueryBuilder().
-		Select(postSliceColumnsWithName("Posts")...).
-		From("Posts").
+	builder := s.postsQuery.
 		Where(sq.Eq{"Posts.OriginalId": postId}).
 		OrderBy("Posts.EditAt DESC")
 
@@ -2814,11 +2800,9 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 	aggFn := "COALESCE(json_agg(u1.username) FILTER (WHERE u1.username IS NOT NULL), '[]')"
 	result := []*model.ReplyForExport{}
 
-	qb := s.getQueryBuilder().
-		Select(postSliceColumnsWithName("Posts")...).
+	qb := s.postsQuery.
 		Column("u2.Username as Username").
 		Column(fmt.Sprintf("%s as FlaggedBy", aggFn)).
-		From("Posts").
 		LeftJoin("Preferences ON Posts.Id = Preferences.Name").
 		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 		InnerJoin("Users u2 ON Posts.UserId = u2.Id").
