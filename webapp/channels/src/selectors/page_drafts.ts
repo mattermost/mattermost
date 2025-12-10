@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import isEqual from 'lodash/isEqual';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -42,7 +44,20 @@ export const hasUnsavedChanges: (state: GlobalState, wikiId: string, pageId: str
     if (!draft) {
         return false;
     }
-    return draft.message !== publishedContent;
+
+    // For TipTap JSON content, do deep comparison instead of string comparison
+    // This handles cases where JSON formatting differs but content is semantically identical
+    try {
+        const draftJson = JSON.parse(draft.message || '{}');
+        const publishedJson = JSON.parse(publishedContent || '{}');
+
+        // Use lodash isEqual for deep comparison
+        return !isEqual(draftJson, publishedJson);
+    } catch (error) {
+        // Fallback to string comparison if JSON parsing fails
+        // (though this shouldn't happen for TipTap content)
+        return draft.message !== publishedContent;
+    }
 };
 
 export const getPageDraftsForWiki: (state: GlobalState, wikiId: string) => PostDraft[] = createSelector(
