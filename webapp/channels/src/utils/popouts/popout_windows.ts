@@ -65,8 +65,8 @@ export async function popoutRhsPlugin(
             isRHS: true,
             titleTemplate: intl.formatMessage({
                 id: 'rhs_plugin_popout.title',
-                defaultMessage: '{pluginDisplayName} - {channelName} - {teamName}',
-            }, {pluginDisplayName, channelName: '{channelName}', teamName: '{teamName}'}), // Apparently you need to pass it all the arguments for this to work at all
+                defaultMessage: '{pluginDisplayName}',
+            }, {pluginDisplayName}),
         },
     );
 

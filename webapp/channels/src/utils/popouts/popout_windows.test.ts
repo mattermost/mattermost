@@ -47,7 +47,7 @@ describe('popout_windows', () => {
                 return 'Thread - {channelName} - {teamName}';
             }
             if (id === 'rhs_plugin_popout.title') {
-                return '{pluginDisplayName} - {channelName} - {teamName}';
+                return '{pluginDisplayName}';
             }
             return defaultMessage;
         }),
@@ -153,7 +153,7 @@ describe('popout_windows', () => {
                 '/_popout/rhs/test-team/test-channel/plugin/test-plugin-id',
                 {
                     isRHS: true,
-                    titleTemplate: '{pluginDisplayName} - {channelName} - {teamName}',
+                    titleTemplate: '{pluginDisplayName}',
                 },
             );
         });
