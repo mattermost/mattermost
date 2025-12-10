@@ -71,6 +71,7 @@ mme2e_log "  Runs per page: $LIGHTHOUSE_RUNS"
 export MM_BASE_URL="http://localhost:8065"
 export MM_ADMIN_USERNAME="$ADMIN_USERNAME"
 export MM_ADMIN_PASSWORD="$ADMIN_PASSWORD"
+export NODE_OPTIONS="--max-old-space-size=8192"
 
 # Run lighthouse tests
 # Exit code: 0 = PASS/WARN, 1 = FAIL (any page failed Web Vitals thresholds)
