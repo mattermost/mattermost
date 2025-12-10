@@ -1874,3 +1874,448 @@ func TestCPAField_CanModifyField(t *testing.T) {
 		require.True(t, nonProtectedField.CanModifyField(""))
 	})
 }
+
+func TestIsKnownCPAAccessMode(t *testing.T) {
+	tests := []struct {
+		name       string
+		accessMode string
+		expected   bool
+	}{
+		{"public is valid", CustomProfileAttributesAccessModePublic, true},
+		{"source_only is valid", CustomProfileAttributesAccessModeSourceOnly, true},
+		{"shared_only is valid", CustomProfileAttributesAccessModeSharedOnly, true},
+		{"empty string is invalid", "", false},
+		{"unknown mode is invalid", "unknown", false},
+		{"random string is invalid", "random_mode", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := IsKnownCPAAccessMode(tt.accessMode)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestCPAField_SetDefaults_AccessMode(t *testing.T) {
+	t.Run("field with empty access_mode should set default to public", func(t *testing.T) {
+		field := &CPAField{
+			Attrs: CPAAttrs{
+				AccessMode: "",
+			},
+		}
+
+		field.SetDefaults()
+		assert.Equal(t, CustomProfileAttributesAccessModePublic, field.Attrs.AccessMode)
+	})
+
+	t.Run("field with existing access_mode should not change", func(t *testing.T) {
+		field := &CPAField{
+			Attrs: CPAAttrs{
+				AccessMode: CustomProfileAttributesAccessModeSourceOnly,
+			},
+		}
+
+		field.SetDefaults()
+		assert.Equal(t, CustomProfileAttributesAccessModeSourceOnly, field.Attrs.AccessMode)
+	})
+}
+
+func TestCPAField_ToPropertyField_AccessMode(t *testing.T) {
+	t.Run("access_mode should be included in conversion", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:       NewId(),
+				GroupID:  CustomProfileAttributesPropertyGroupName,
+				Name:     "Test Field",
+				Type:     PropertyFieldTypeText,
+				CreateAt: GetMillis(),
+				UpdateAt: GetMillis(),
+			},
+			Attrs: CPAAttrs{
+				AccessMode: CustomProfileAttributesAccessModeSourceOnly,
+			},
+		}
+
+		pf := field.ToPropertyField()
+		assert.Equal(t, CustomProfileAttributesAccessModeSourceOnly, pf.Attrs[CustomProfileAttributesPropertyAttrsAccessMode])
+	})
+}
+
+func TestCPAField_SanitizeAndValidate_AccessMode(t *testing.T) {
+	tests := []struct {
+		name        string
+		field       *CPAField
+		expectError bool
+		errorId     string
+	}{
+		{
+			name: "valid public access mode",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeText},
+				Attrs:         CPAAttrs{AccessMode: CustomProfileAttributesAccessModePublic},
+			},
+			expectError: false,
+		},
+		{
+			name: "valid source_only access mode",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeText},
+				Attrs:         CPAAttrs{AccessMode: CustomProfileAttributesAccessModeSourceOnly},
+			},
+			expectError: false,
+		},
+		{
+			name: "valid shared_only access mode with select field",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeSelect},
+				Attrs: CPAAttrs{
+					AccessMode: CustomProfileAttributesAccessModeSharedOnly,
+					Options: []*CustomProfileAttributesSelectOption{
+						{Name: "Option 1"},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "valid shared_only access mode with multiselect field",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+				Attrs: CPAAttrs{
+					AccessMode: CustomProfileAttributesAccessModeSharedOnly,
+					Options: []*CustomProfileAttributesSelectOption{
+						{Name: "Option 1"},
+					},
+				},
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid shared_only access mode with text field",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeText},
+				Attrs:         CPAAttrs{AccessMode: CustomProfileAttributesAccessModeSharedOnly},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
+		},
+		{
+			name: "invalid shared_only access mode with date field",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeDate},
+				Attrs:         CPAAttrs{AccessMode: CustomProfileAttributesAccessModeSharedOnly},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
+		},
+		{
+			name: "invalid shared_only access mode with user field",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeUser},
+				Attrs:         CPAAttrs{AccessMode: CustomProfileAttributesAccessModeSharedOnly},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
+		},
+		{
+			name: "unknown access mode",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeText},
+				Attrs:         CPAAttrs{AccessMode: "unknown_mode"},
+			},
+			expectError: true,
+			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
+		},
+		{
+			name: "access mode with whitespace should be trimmed",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeText},
+				Attrs:         CPAAttrs{AccessMode: " source_only "},
+			},
+			expectError: false,
+		},
+		{
+			name: "empty access mode should default to public",
+			field: &CPAField{
+				PropertyField: PropertyField{Type: PropertyFieldTypeText},
+				Attrs:         CPAAttrs{AccessMode: ""},
+			},
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.field.SanitizeAndValidate()
+			if tt.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tt.errorId, err.Id)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestCanReadPropertyFieldWithoutRestrictions(t *testing.T) {
+	tests := []struct {
+		name           string
+		field          *PropertyField
+		callerPluginID string
+		expected       bool
+	}{
+		{
+			name: "public access mode - any caller can read",
+			field: &PropertyField{
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsAccessMode: CustomProfileAttributesAccessModePublic,
+				},
+			},
+			callerPluginID: "any-plugin",
+			expected:       true,
+		},
+		{
+			name: "empty access mode - defaults to public",
+			field: &PropertyField{
+				Attrs: StringInterface{},
+			},
+			callerPluginID: "any-plugin",
+			expected:       true,
+		},
+		{
+			name: "nil attrs - defaults to public",
+			field: &PropertyField{
+				Attrs: nil,
+			},
+			callerPluginID: "any-plugin",
+			expected:       true,
+		},
+		{
+			name: "source_only - source plugin can read",
+			field: &PropertyField{
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsAccessMode:     CustomProfileAttributesAccessModeSourceOnly,
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			callerPluginID: "plugin1",
+			expected:       true,
+		},
+		{
+			name: "source_only - different plugin cannot read",
+			field: &PropertyField{
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsAccessMode:     CustomProfileAttributesAccessModeSourceOnly,
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			callerPluginID: "plugin2",
+			expected:       false,
+		},
+		{
+			name: "source_only - empty caller cannot read",
+			field: &PropertyField{
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsAccessMode:     CustomProfileAttributesAccessModeSourceOnly,
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			callerPluginID: "",
+			expected:       false,
+		},
+		{
+			name: "shared_only - source plugin has unrestricted access",
+			field: &PropertyField{
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsAccessMode:     CustomProfileAttributesAccessModeSharedOnly,
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			callerPluginID: "plugin1",
+			expected:       true,
+		},
+		{
+			name: "shared_only - different plugin has restricted access",
+			field: &PropertyField{
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsAccessMode:     CustomProfileAttributesAccessModeSharedOnly,
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			callerPluginID: "plugin2",
+			expected:       false,
+		},
+		{
+			name: "shared_only - empty caller has restricted access",
+			field: &PropertyField{
+				Attrs: StringInterface{
+					CustomProfileAttributesPropertyAttrsAccessMode:     CustomProfileAttributesAccessModeSharedOnly,
+					CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				},
+			},
+			callerPluginID: "",
+			expected:       false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := CanReadPropertyFieldWithoutRestrictions(tt.field, tt.callerPluginID)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestFilterSharedOnlyValue(t *testing.T) {
+	t.Run("select field - matching values return target value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeSelect},
+		}
+		callerValue := json.RawMessage(`"option1"`)
+		targetValue := json.RawMessage(`"option1"`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.True(t, hasValue)
+		assert.Equal(t, targetValue, result)
+	})
+
+	t.Run("select field - different values return no value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeSelect},
+		}
+		callerValue := json.RawMessage(`"option1"`)
+		targetValue := json.RawMessage(`"option2"`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+	})
+
+	t.Run("select field - empty caller value returns no value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeSelect},
+		}
+		callerValue := json.RawMessage(`""`)
+		targetValue := json.RawMessage(`"option1"`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+	})
+
+	t.Run("select field - empty target value returns no value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeSelect},
+		}
+		callerValue := json.RawMessage(`"option1"`)
+		targetValue := json.RawMessage(`""`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+	})
+
+	t.Run("select field - nil caller value returns no value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeSelect},
+		}
+		targetValue := json.RawMessage(`"option1"`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, nil, targetValue)
+		require.NoError(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+	})
+
+	t.Run("multiselect field - intersection of values", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+		}
+		callerValue := json.RawMessage(`["option1", "option2", "option3"]`)
+		targetValue := json.RawMessage(`["option2", "option3", "option4"]`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.True(t, hasValue)
+
+		var intersection []string
+		err = json.Unmarshal(result, &intersection)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"option2", "option3"}, intersection)
+	})
+
+	t.Run("multiselect field - no intersection returns no value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+		}
+		callerValue := json.RawMessage(`["option1", "option2"]`)
+		targetValue := json.RawMessage(`["option3", "option4"]`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+	})
+
+	t.Run("multiselect field - empty caller array returns no value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+		}
+		callerValue := json.RawMessage(`[]`)
+		targetValue := json.RawMessage(`["option1", "option2"]`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+	})
+
+	t.Run("multiselect field - empty target array returns no value", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+		}
+		callerValue := json.RawMessage(`["option1", "option2"]`)
+		targetValue := json.RawMessage(`[]`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+	})
+
+	t.Run("multiselect field - filters empty strings in intersection", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeMultiselect},
+		}
+		callerValue := json.RawMessage(`["option1", "", "option2"]`)
+		targetValue := json.RawMessage(`["option1", "option2", ""]`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.NoError(t, err)
+		require.True(t, hasValue)
+
+		var intersection []string
+		err = json.Unmarshal(result, &intersection)
+		require.NoError(t, err)
+		assert.ElementsMatch(t, []string{"option1", "option2"}, intersection)
+	})
+
+	t.Run("unsupported field types return error", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{Type: PropertyFieldTypeText},
+		}
+		callerValue := json.RawMessage(`"caller text"`)
+		targetValue := json.RawMessage(`"target text"`)
+
+		result, hasValue, err := FilterSharedOnlyValue(field, callerValue, targetValue)
+		require.Error(t, err)
+		require.False(t, hasValue)
+		assert.Nil(t, result)
+		assert.Contains(t, err.Error(), "only supports select and multiselect")
+	})
+}

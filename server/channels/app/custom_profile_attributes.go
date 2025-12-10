@@ -61,10 +61,72 @@ func (a *App) GetCPAField(fieldID string) (*model.CPAField, *model.AppError) {
 	return cpaField, nil
 }
 
-func (a *App) ListCPAFields() ([]*model.CPAField, *model.AppError) {
+// filterCPAFieldOptions filters field options based on access mode and caller's access level.
+// If hasFullAccess is true, returns field unchanged.
+// If hasFullAccess is false:
+//   - For source_only: clears all options
+//   - For shared_only: filters to only caller's associated options (fetches caller value if needed)
+//   - For public or other modes: returns field unchanged
+func (a *App) filterCPAFieldOptions(field *model.CPAField, hasFullAccess bool, callerUserID string) (*model.CPAField, *model.AppError) {
+	// If caller has full access, no filtering needed
+	if hasFullAccess {
+		return field, nil
+	}
+
+	// Apply filtering based on access mode
+	switch field.Attrs.AccessMode {
+	case model.CustomProfileAttributesAccessModeSourceOnly:
+		// source_only without access: clear all options
+		filteredField := *field
+		filteredField.Attrs.Options = model.PropertyOptions[*model.CustomProfileAttributesSelectOption]{}
+		return &filteredField, nil
+
+	case model.CustomProfileAttributesAccessModeSharedOnly:
+		// shared_only without access: filter options to caller's associated options
+		// Fetch caller's value for this field
+		var callerValue json.RawMessage
+		if callerUserID != "" {
+			groupID, err := a.CpaGroupID()
+			if err != nil {
+				return nil, model.NewAppError("filterCPAFieldOptions", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+
+			values, valErr := a.Srv().propertyService.SearchPropertyValues(groupID, model.PropertyValueSearchOpts{
+				TargetIDs: []string{callerUserID},
+				FieldID:   field.ID,
+				PerPage:   1,
+			})
+			if valErr != nil {
+				return nil, model.NewAppError("filterCPAFieldOptions", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(valErr)
+			}
+			if len(values) > 0 {
+				callerValue = values[0].Value
+			}
+		}
+
+		filteredOptions, err := model.FilterSharedOnlyOptions(field, callerValue)
+		if err != nil {
+			return nil, model.NewAppError("filterCPAFieldOptions", "app.custom_profile_attributes.filter_options.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		filteredField := *field
+		filteredField.Attrs.Options = model.PropertyOptions[*model.CustomProfileAttributesSelectOption](filteredOptions)
+		return &filteredField, nil
+
+	default:
+		// Public or unrecognized access mode - return unchanged
+		return field, nil
+	}
+}
+
+// ListCPAFieldsForCaller returns all CPA fields filtered by the caller's read access.
+// For source_only fields without access, options are cleared.
+// For shared_only fields without access, only the caller's associated options are shown.
+// callerPluginID is used for source_only access control (from Mattermost-Plugin-ID header).
+// callerUserID is used for shared_only option filtering (from authenticated session).
+func (a *App) ListCPAFieldsForCaller(callerPluginID, callerUserID string) ([]*model.CPAField, *model.AppError) {
 	groupID, err := a.CpaGroupID()
 	if err != nil {
-		return nil, model.NewAppError("ListCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("ListCPAFieldsForCaller", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	opts := model.PropertyFieldSearchOpts{
@@ -74,17 +136,27 @@ func (a *App) ListCPAFields() ([]*model.CPAField, *model.AppError) {
 
 	fields, err := a.Srv().propertyService.SearchPropertyFields(groupID, opts)
 	if err != nil {
-		return nil, model.NewAppError("ListCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("ListCPAFieldsForCaller", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Convert PropertyFields to CPAFields
+	// Convert PropertyFields to CPAFields and apply access filtering
 	cpaFields := make([]*model.CPAField, 0, len(fields))
 	for _, field := range fields {
 		cpaField, convErr := model.NewCPAFieldFromPropertyField(field)
 		if convErr != nil {
-			return nil, model.NewAppError("ListCPAFields", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
+			return nil, model.NewAppError("ListCPAFieldsForCaller", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
 		}
-		cpaFields = append(cpaFields, cpaField)
+
+		// Check if caller has unrestricted read access
+		hasFullAccess := model.CanReadPropertyFieldWithoutRestrictions(field, callerPluginID)
+
+		// Apply option filtering (fetches caller value only if needed for shared_only)
+		filteredField, appErr := a.filterCPAFieldOptions(cpaField, hasFullAccess, callerUserID)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		cpaFields = append(cpaFields, filteredField)
 	}
 
 	sort.Slice(cpaFields, func(i, j int) bool {
@@ -92,6 +164,10 @@ func (a *App) ListCPAFields() ([]*model.CPAField, *model.AppError) {
 	})
 
 	return cpaFields, nil
+}
+
+func (a *App) ListCPAFields() ([]*model.CPAField, *model.AppError) {
+	return a.ListCPAFieldsForCaller("", "")
 }
 
 func (a *App) CreateCPAField(field *model.CPAField) (*model.CPAField, *model.AppError) {
@@ -216,6 +292,112 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 	a.Publish(message)
 
 	return nil
+}
+
+// ListCPAValuesForCaller returns property values for a target user, filtered by the caller's read access.
+// - source_only fields: values are omitted unless caller plugin is the source plugin
+// - shared_only fields: values are filtered to the intersection of caller and target values
+// - public fields: values are returned as-is
+// callerUserID is the authenticated user making the request (for shared_only filtering).
+// targetUserID is the user whose values are being fetched.
+// callerPluginID is the plugin ID from the request header (for source_only access control).
+func (a *App) ListCPAValuesForCaller(callerUserID, targetUserID, callerPluginID string) ([]*model.PropertyValue, *model.AppError) {
+	groupID, err := a.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("ListCPAValuesForCaller", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Get all fields to check access modes
+	fields, appErr := a.ListCPAFields()
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Build a map of field ID to field for quick lookup
+	fieldMap := make(map[string]*model.CPAField, len(fields))
+	for _, field := range fields {
+		fieldMap[field.ID] = field
+	}
+
+	// Get target user's values
+	targetValues, err := a.Srv().propertyService.SearchPropertyValues(groupID, model.PropertyValueSearchOpts{
+		TargetIDs: []string{targetUserID},
+		PerPage:   CustomProfileAttributesFieldLimit,
+	})
+	if err != nil {
+		return nil, model.NewAppError("ListCPAValuesForCaller", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Get caller's values (for shared_only filtering)
+	var callerValuesMap map[string]json.RawMessage
+	if callerUserID != "" && callerUserID != targetUserID {
+		callerValues, valErr := a.Srv().propertyService.SearchPropertyValues(groupID, model.PropertyValueSearchOpts{
+			TargetIDs: []string{callerUserID},
+			PerPage:   CustomProfileAttributesFieldLimit,
+		})
+		if valErr != nil {
+			return nil, model.NewAppError("ListCPAValuesForCaller", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(valErr)
+		}
+		callerValuesMap = make(map[string]json.RawMessage, len(callerValues))
+		for _, val := range callerValues {
+			callerValuesMap[val.FieldID] = val.Value
+		}
+	}
+
+	// Filter values based on access mode
+	filteredValues := make([]*model.PropertyValue, 0, len(targetValues))
+	for _, targetValue := range targetValues {
+		field, exists := fieldMap[targetValue.FieldID]
+		if !exists {
+			// Field doesn't exist anymore, skip
+			continue
+		}
+
+		// Convert to PropertyField for access check
+		propertyField := field.ToPropertyField()
+
+		// Check if caller has unrestricted access
+		hasFullAccess := model.CanReadPropertyFieldWithoutRestrictions(propertyField, callerPluginID)
+
+		// Apply access filtering
+		if hasFullAccess {
+			// Full access: return value as-is
+			filteredValues = append(filteredValues, targetValue)
+		} else {
+			switch field.Attrs.AccessMode {
+			case model.CustomProfileAttributesAccessModeSourceOnly:
+				// source_only without access: omit value entirely
+				continue
+
+			case model.CustomProfileAttributesAccessModeSharedOnly:
+				// shared_only without access: filter to intersection
+				// Special case: if caller is viewing their own profile, return the value as-is
+				// (intersection of a value with itself is the value itself)
+				if callerUserID == targetUserID {
+					filteredValues = append(filteredValues, targetValue)
+				} else {
+					callerValue := callerValuesMap[field.ID]
+					filteredValue, hasValue, filterErr := model.FilterSharedOnlyValue(field, callerValue, targetValue.Value)
+					if filterErr != nil {
+						return nil, model.NewAppError("ListCPAValuesForCaller", "app.custom_profile_attributes.filter_value.app_error", nil, "", http.StatusInternalServerError).Wrap(filterErr)
+					}
+					if hasValue {
+						// Create a new PropertyValue with the filtered value
+						newValue := *targetValue
+						newValue.Value = filteredValue
+						filteredValues = append(filteredValues, &newValue)
+					}
+					// If no intersection, omit the value entirely
+				}
+
+			default:
+				// Public or unrecognized: return value as-is
+				filteredValues = append(filteredValues, targetValue)
+			}
+		}
+	}
+
+	return filteredValues, nil
 }
 
 func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppError) {
@@ -361,7 +543,9 @@ func (a *App) ValidatePluginFieldDelete(groupID, fieldID, pluginID string) *mode
 	return nil
 }
 
-// ValidatePluginValueUpdate checks if a plugin can update a value for a CPA field
+// ValidatePluginValueUpdate checks if a plugin can update a value for a CPA field.
+// This validates both write access (protected) and read access (access_mode).
+// If no read access, write access is denied as well.
 func (a *App) ValidatePluginValueUpdate(groupID, fieldID, pluginID string) *model.AppError {
 	field, err := a.Srv().propertyService.GetPropertyField(groupID, fieldID)
 	if err != nil {
@@ -369,11 +553,22 @@ func (a *App) ValidatePluginValueUpdate(groupID, fieldID, pluginID string) *mode
 			"app.custom_profile_attributes.get_field.app_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Check read access first - if no read access, deny write access
+	if !model.CanReadPropertyFieldWithoutRestrictions(field, pluginID) {
+		return model.NewAppError("ValidatePluginValueUpdate",
+			"app.custom_profile_attributes.no_read_access.app_error",
+			nil, "cannot modify field values without read access",
+			http.StatusForbidden)
+	}
+
+	// Check write access (protected field check)
 	if !model.CanModifyPropertyField(field, pluginID) {
 		return model.NewAppError("ValidatePluginValueUpdate",
 			"app.custom_profile_attributes.field_is_protected.app_error",
 			nil, "protected field values can only be modified by the source plugin",
 			http.StatusForbidden)
 	}
+
 	return nil
 }

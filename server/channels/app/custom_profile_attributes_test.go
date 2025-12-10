@@ -1254,4 +1254,582 @@ func TestValidatePluginValueUpdate(t *testing.T) {
 		appErr := th.App.ValidatePluginValueUpdate(cpaGroupID, createdField.ID, "plugin2")
 		require.Nil(t, appErr)
 	})
+
+	t.Run("should deny write access when plugin lacks read access (source_only)", func(t *testing.T) {
+		sourceOnlyField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSourceOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(sourceOnlyField)
+		require.NoError(t, err)
+
+		// Different plugin should be denied due to lack of read access
+		appErr := th.App.ValidatePluginValueUpdate(cpaGroupID, createdField.ID, "plugin2")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.no_read_access.app_error", appErr.Id)
+	})
+
+	t.Run("should allow source plugin to write to source_only field", func(t *testing.T) {
+		sourceOnlyField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSourceOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(sourceOnlyField)
+		require.NoError(t, err)
+
+		// Source plugin should be allowed
+		appErr := th.App.ValidatePluginValueUpdate(cpaGroupID, createdField.ID, "plugin1")
+		require.Nil(t, appErr)
+	})
+
+	t.Run("should deny write access when plugin lacks read access (shared_only)", func(t *testing.T) {
+		sharedOnlyField := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		}
+
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(sharedOnlyField)
+		require.NoError(t, err)
+
+		// Different plugin should be denied due to lack of read access
+		appErr := th.App.ValidatePluginValueUpdate(cpaGroupID, createdField.ID, "plugin2")
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.custom_profile_attributes.no_read_access.app_error", appErr.Id)
+	})
+}
+
+func TestListCPAFieldsForCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaGroupID, cErr := th.App.CpaGroupID()
+	require.NoError(t, cErr)
+
+	t.Run("should return all fields with full details for source plugin", func(t *testing.T) {
+		// Create a source_only field with options
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		sourceOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Source Only Field",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSourceOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sourceOnlyField)
+		require.Nil(t, appErr)
+
+		// Source plugin should see all options
+		fields, appErr := th.App.ListCPAFieldsForCaller("plugin1", "")
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		var foundField *model.CPAField
+		for _, f := range fields {
+			if f.ID == createdField.ID {
+				foundField = f
+				break
+			}
+		}
+		require.NotNil(t, foundField)
+		require.Len(t, foundField.Attrs.Options, 2)
+		require.Equal(t, "Option 1", foundField.Attrs.Options[0].Name)
+	})
+
+	t.Run("should clear options for source_only field when caller is not source plugin", func(t *testing.T) {
+		// Create a source_only field with options
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		sourceOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Source Only Field 2",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSourceOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sourceOnlyField)
+		require.Nil(t, appErr)
+
+		// Different plugin should see field but no options
+		fields, appErr := th.App.ListCPAFieldsForCaller("plugin2", "")
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		var foundField *model.CPAField
+		for _, f := range fields {
+			if f.ID == createdField.ID {
+				foundField = f
+				break
+			}
+		}
+		require.NotNil(t, foundField)
+		require.Empty(t, foundField.Attrs.Options)
+	})
+
+	t.Run("should filter options for shared_only field to caller's values", func(t *testing.T) {
+		// Create a shared_only field with options
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		option3ID := model.NewId()
+		sharedOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Shared Only Field",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+					{"id": option3ID, "name": "Option 3", "color": "#333333"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sharedOnlyField)
+		require.Nil(t, appErr)
+
+		// Create a value for the caller user
+		callerUserID := model.NewId()
+		_, appErr = th.App.PatchCPAValue(callerUserID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, option2ID)), false)
+		require.Nil(t, appErr)
+
+		// Non-source plugin with caller user should only see option 2
+		fields, appErr := th.App.ListCPAFieldsForCaller("plugin2", callerUserID)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		var foundField *model.CPAField
+		for _, f := range fields {
+			if f.ID == createdField.ID {
+				foundField = f
+				break
+			}
+		}
+		require.NotNil(t, foundField)
+		require.Len(t, foundField.Attrs.Options, 1)
+		require.Equal(t, option2ID, foundField.Attrs.Options[0].ID)
+		require.Equal(t, "Option 2", foundField.Attrs.Options[0].Name)
+	})
+
+	t.Run("should clear options for shared_only field when caller has no value", func(t *testing.T) {
+		// Create a shared_only field with options
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		sharedOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Shared Only Field 2",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sharedOnlyField)
+		require.Nil(t, appErr)
+
+		// Non-source plugin with caller user who has no value
+		callerUserID := model.NewId()
+		fields, appErr := th.App.ListCPAFieldsForCaller("plugin2", callerUserID)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		var foundField *model.CPAField
+		for _, f := range fields {
+			if f.ID == createdField.ID {
+				foundField = f
+				break
+			}
+		}
+		require.NotNil(t, foundField)
+		require.Empty(t, foundField.Attrs.Options)
+	})
+
+	t.Run("should return all options for public fields regardless of caller", func(t *testing.T) {
+		// Create a public field with options
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		publicField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Public Field",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(publicField)
+		require.Nil(t, appErr)
+
+		// Any caller should see all options
+		fields, appErr := th.App.ListCPAFieldsForCaller("plugin2", "")
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		var foundField *model.CPAField
+		for _, f := range fields {
+			if f.ID == createdField.ID {
+				foundField = f
+				break
+			}
+		}
+		require.NotNil(t, foundField)
+		require.Len(t, foundField.Attrs.Options, 2)
+	})
+}
+
+func TestListCPAValuesForCaller(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaGroupID, cErr := th.App.CpaGroupID()
+	require.NoError(t, cErr)
+
+	t.Run("should return all values for source plugin with source_only field", func(t *testing.T) {
+		// Create a source_only field
+		sourceOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Source Only Field",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSourceOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sourceOnlyField)
+		require.Nil(t, appErr)
+
+		// Create a value for the target user
+		targetUserID := model.NewId()
+		_, appErr = th.App.PatchCPAValue(targetUserID, createdField.ID, json.RawMessage(`"secret value"`), false)
+		require.Nil(t, appErr)
+
+		// Source plugin should see the value
+		values, appErr := th.App.ListCPAValuesForCaller("", targetUserID, "plugin1")
+		require.Nil(t, appErr)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"secret value"`), values[0].Value)
+	})
+
+	t.Run("should omit source_only values for non-source plugin", func(t *testing.T) {
+		// Create a source_only field
+		sourceOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Source Only Field 2",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSourceOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sourceOnlyField)
+		require.Nil(t, appErr)
+
+		// Create a value for the target user
+		targetUserID := model.NewId()
+		_, appErr = th.App.PatchCPAValue(targetUserID, createdField.ID, json.RawMessage(`"secret value"`), false)
+		require.Nil(t, appErr)
+
+		// Different plugin should not see the value
+		values, appErr := th.App.ListCPAValuesForCaller("", targetUserID, "plugin2")
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
+
+	t.Run("should return intersection for shared_only select field", func(t *testing.T) {
+		// Create a shared_only select field
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		option3ID := model.NewId()
+		sharedOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Shared Only Select",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+					{"id": option3ID, "name": "Option 3", "color": "#333333"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sharedOnlyField)
+		require.Nil(t, appErr)
+
+		// Create values for caller and target users with the same option
+		callerUserID := model.NewId()
+		targetUserID := model.NewId()
+		_, appErr = th.App.PatchCPAValue(callerUserID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, option2ID)), false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.PatchCPAValue(targetUserID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, option2ID)), false)
+		require.Nil(t, appErr)
+
+		// Non-source plugin should see the value since they match
+		values, appErr := th.App.ListCPAValuesForCaller(callerUserID, targetUserID, "plugin2")
+		require.Nil(t, appErr)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(fmt.Sprintf(`"%s"`, option2ID)), values[0].Value)
+	})
+
+	t.Run("should omit value when shared_only select values don't match", func(t *testing.T) {
+		// Create a shared_only select field
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		sharedOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Shared Only Select 2",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sharedOnlyField)
+		require.Nil(t, appErr)
+
+		// Create values for caller and target users with different options
+		callerUserID := model.NewId()
+		targetUserID := model.NewId()
+		_, appErr = th.App.PatchCPAValue(callerUserID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, option1ID)), false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.PatchCPAValue(targetUserID, createdField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, option2ID)), false)
+		require.Nil(t, appErr)
+
+		// Non-source plugin should not see the value since they don't match
+		values, appErr := th.App.ListCPAValuesForCaller(callerUserID, targetUserID, "plugin2")
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
+
+	t.Run("should return intersection for shared_only multiselect field", func(t *testing.T) {
+		// Create a shared_only multiselect field
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		option3ID := model.NewId()
+		option4ID := model.NewId()
+		sharedOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Shared Only Multiselect",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+					{"id": option3ID, "name": "Option 3", "color": "#333333"},
+					{"id": option4ID, "name": "Option 4", "color": "#444444"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sharedOnlyField)
+		require.Nil(t, appErr)
+
+		// Create values with partial overlap
+		callerUserID := model.NewId()
+		targetUserID := model.NewId()
+		callerValue := fmt.Sprintf(`["%s", "%s", "%s"]`, option1ID, option2ID, option3ID)
+		targetValue := fmt.Sprintf(`["%s", "%s", "%s"]`, option2ID, option3ID, option4ID)
+		_, appErr = th.App.PatchCPAValue(callerUserID, createdField.ID, json.RawMessage(callerValue), false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.PatchCPAValue(targetUserID, createdField.ID, json.RawMessage(targetValue), false)
+		require.Nil(t, appErr)
+
+		// Non-source plugin should see only the intersection
+		values, appErr := th.App.ListCPAValuesForCaller(callerUserID, targetUserID, "plugin2")
+		require.Nil(t, appErr)
+		require.Len(t, values, 1)
+
+		var intersection []string
+		err = json.Unmarshal(values[0].Value, &intersection)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{option2ID, option3ID}, intersection)
+	})
+
+	t.Run("should omit value when shared_only multiselect has no intersection", func(t *testing.T) {
+		// Create a shared_only multiselect field
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		option3ID := model.NewId()
+		sharedOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Shared Only Multiselect 2",
+			Type:    model.PropertyFieldTypeMultiselect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+					{"id": option3ID, "name": "Option 3", "color": "#333333"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(sharedOnlyField)
+		require.Nil(t, appErr)
+
+		// Create values with no overlap
+		callerUserID := model.NewId()
+		targetUserID := model.NewId()
+		callerValue := fmt.Sprintf(`["%s"]`, option1ID)
+		targetValue := fmt.Sprintf(`["%s", "%s"]`, option2ID, option3ID)
+		_, appErr = th.App.PatchCPAValue(callerUserID, createdField.ID, json.RawMessage(callerValue), false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.PatchCPAValue(targetUserID, createdField.ID, json.RawMessage(targetValue), false)
+		require.Nil(t, appErr)
+
+		// Non-source plugin should not see any value
+		values, appErr := th.App.ListCPAValuesForCaller(callerUserID, targetUserID, "plugin2")
+		require.Nil(t, appErr)
+		require.Empty(t, values)
+	})
+
+	t.Run("should return all public values regardless of caller", func(t *testing.T) {
+		// Create a public field
+		publicField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Public Field",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		})
+		require.NoError(t, err)
+
+		createdField, appErr := th.App.CreateCPAField(publicField)
+		require.Nil(t, appErr)
+
+		// Create a value for the target user
+		targetUserID := model.NewId()
+		_, appErr = th.App.PatchCPAValue(targetUserID, createdField.ID, json.RawMessage(`"public value"`), false)
+		require.Nil(t, appErr)
+
+		// Any plugin should see the value
+		values, appErr := th.App.ListCPAValuesForCaller("", targetUserID, "plugin2")
+		require.Nil(t, appErr)
+		require.Len(t, values, 1)
+		require.Equal(t, json.RawMessage(`"public value"`), values[0].Value)
+	})
+
+	t.Run("should handle caller viewing their own values", func(t *testing.T) {
+		// Create fields of different access modes
+		sourceOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Source Only Self View",
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSourceOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+			},
+		})
+		require.NoError(t, err)
+		createdSourceField, appErr := th.App.CreateCPAField(sourceOnlyField)
+		require.Nil(t, appErr)
+
+		option1ID := model.NewId()
+		option2ID := model.NewId()
+		sharedOnlyField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Shared Only Self View",
+			Type:    model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsAccessMode:     model.CustomProfileAttributesAccessModeSharedOnly,
+				model.CustomProfileAttributesPropertyAttrsSourcePluginID: "plugin1",
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": option1ID, "name": "Option 1", "color": "#111111"},
+					{"id": option2ID, "name": "Option 2", "color": "#222222"},
+				},
+			},
+		})
+		require.NoError(t, err)
+		createdSharedField, appErr := th.App.CreateCPAField(sharedOnlyField)
+		require.Nil(t, appErr)
+
+		// Create values for the same user
+		userID := model.NewId()
+		_, appErr = th.App.PatchCPAValue(userID, createdSourceField.ID, json.RawMessage(`"source value"`), false)
+		require.Nil(t, appErr)
+		_, appErr = th.App.PatchCPAValue(userID, createdSharedField.ID, json.RawMessage(fmt.Sprintf(`"%s"`, option1ID)), false)
+		require.Nil(t, appErr)
+
+		// Non-source plugin viewing own values should not see source_only but should see shared_only
+		values, appErr := th.App.ListCPAValuesForCaller(userID, userID, "plugin2")
+		require.Nil(t, appErr)
+
+		// Should only have the shared field value, not the source_only
+		var foundSourceValue, foundSharedValue bool
+		for _, v := range values {
+			if v.FieldID == createdSourceField.ID {
+				foundSourceValue = true
+			}
+			if v.FieldID == createdSharedField.ID {
+				foundSharedValue = true
+			}
+		}
+		require.False(t, foundSourceValue, "should not see source_only value even when viewing own profile")
+		require.True(t, foundSharedValue, "should see shared_only value when viewing own profile")
+	})
 }

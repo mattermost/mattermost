@@ -33,7 +33,8 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fields, appErr := c.App.ListCPAFields()
+	callerUserID := c.AppContext.Session().UserId
+	fields, appErr := c.App.ListCPAFieldsForCaller(noPluginId, callerUserID)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -252,6 +253,15 @@ func patchCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		if _, isBeingUpdated := updates[field.ID]; !isBeingUpdated {
 			continue
 		}
+		// Check read access first - cannot modify what you cannot read
+		if !model.CanReadPropertyFieldWithoutRestrictions(field.ToPropertyField(), noPluginId) {
+			c.Err = model.NewAppError("Api4.patchCPAValues",
+				"app.custom_profile_attributes.no_read_access.app_error",
+				nil,
+				"cannot modify field values without read access",
+				http.StatusForbidden)
+			return
+		}
 		// Check if field is protected (only source plugin can modify values)
 		if !field.CanModifyField(noPluginId) {
 			c.Err = model.NewAppError("Api4.patchCPAValues",
@@ -300,17 +310,19 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.Params.UserId
+	targetUserID := c.Params.UserId
+	callerUserID := c.AppContext.Session().UserId
+
 	// we check unrestricted sessions to allow local mode requests to go through
 	if !c.AppContext.Session().IsUnrestricted() {
-		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
+		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, callerUserID, targetUserID)
 		if err != nil || !canSee {
 			c.SetPermissionError(model.PermissionViewMembers)
 			return
 		}
 	}
 
-	values, appErr := c.App.ListCPAValues(userID)
+	values, appErr := c.App.ListCPAValuesForCaller(callerUserID, targetUserID, noPluginId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -364,6 +376,15 @@ func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, field := range fields {
 		if _, isBeingUpdated := updates[field.ID]; !isBeingUpdated {
 			continue
+		}
+		// Check read access first - cannot modify what you cannot read
+		if !model.CanReadPropertyFieldWithoutRestrictions(field.ToPropertyField(), noPluginId) {
+			c.Err = model.NewAppError("Api4.patchCPAValuesForUser",
+				"app.custom_profile_attributes.no_read_access.app_error",
+				nil,
+				"cannot modify field values without read access",
+				http.StatusForbidden)
+			return
 		}
 		// Check if field is protected (only source plugin can modify values)
 		if !field.CanModifyField(noPluginId) {

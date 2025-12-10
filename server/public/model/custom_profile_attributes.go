@@ -24,6 +24,12 @@ const (
 	CustomProfileAttributesPropertyAttrsManaged        = "managed"
 	CustomProfileAttributesPropertyAttrsProtected      = "protected"
 	CustomProfileAttributesPropertyAttrsSourcePluginID = "source_plugin_id"
+	CustomProfileAttributesPropertyAttrsAccessMode     = "access_mode"
+
+	// Access Modes
+	CustomProfileAttributesAccessModePublic     = "public"
+	CustomProfileAttributesAccessModeSourceOnly = "source_only"
+	CustomProfileAttributesAccessModeSharedOnly = "shared_only"
 
 	// Value Types
 	CustomProfileAttributesValueTypeEmail = "email"
@@ -60,6 +66,17 @@ func IsKnownCPAVisibility(visibility string) bool {
 	case CustomProfileAttributesVisibilityHidden,
 		CustomProfileAttributesVisibilityWhenSet,
 		CustomProfileAttributesVisibilityAlways:
+		return true
+	}
+
+	return false
+}
+
+func IsKnownCPAAccessMode(accessMode string) bool {
+	switch accessMode {
+	case CustomProfileAttributesAccessModePublic,
+		CustomProfileAttributesAccessModeSourceOnly,
+		CustomProfileAttributesAccessModeSharedOnly:
 		return true
 	}
 
@@ -123,6 +140,7 @@ type CPAAttrs struct {
 	Managed        string                                                `json:"managed"`
 	Protected      bool                                                  `json:"protected"`
 	SourcePluginID string                                                `json:"source_plugin_id"`
+	AccessMode     string                                                `json:"access_mode"`
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -142,6 +160,9 @@ func (c *CPAField) IsProtected() bool {
 func (c *CPAField) SetDefaults() {
 	if c.Attrs.Visibility == "" {
 		c.Attrs.Visibility = CustomProfileAttributesVisibilityDefault
+	}
+	if c.Attrs.AccessMode == "" {
+		c.Attrs.AccessMode = CustomProfileAttributesAccessModePublic
 	}
 }
 
@@ -184,6 +205,7 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		CustomProfileAttributesPropertyAttrsManaged:        c.Attrs.Managed,
 		CustomProfileAttributesPropertyAttrsProtected:      c.Attrs.Protected,
 		CustomProfileAttributesPropertyAttrsSourcePluginID: c.Attrs.SourcePluginID,
+		CustomProfileAttributesPropertyAttrsAccessMode:     c.Attrs.AccessMode,
 	}
 
 	return &pf
@@ -272,6 +294,25 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 		c.Attrs.Managed = managed
 	}
 
+	// Validate access_mode
+	if accessMode := strings.TrimSpace(c.Attrs.AccessMode); accessMode != "" {
+		if !IsKnownCPAAccessMode(accessMode) {
+			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
+				"AttributeName": CustomProfileAttributesPropertyAttrsAccessMode,
+				"Reason":        "unknown access mode",
+			}, "", http.StatusUnprocessableEntity)
+		}
+		c.Attrs.AccessMode = accessMode
+
+		// Validate that shared_only is only used with select/multiselect types
+		if accessMode == CustomProfileAttributesAccessModeSharedOnly && !c.SupportsOptions() {
+			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
+				"AttributeName": CustomProfileAttributesPropertyAttrsAccessMode,
+				"Reason":        "shared_only access mode is only valid for select and multiselect field types",
+			}, "", http.StatusUnprocessableEntity)
+		}
+	}
+
 	return nil
 }
 
@@ -304,6 +345,154 @@ func CanModifyPropertyField(field *PropertyField, callerPluginID string) bool {
 	// Field is protected - only the source plugin can modify
 	sourcePluginID, _ := field.Attrs[CustomProfileAttributesPropertyAttrsSourcePluginID].(string)
 	return sourcePluginID != "" && sourcePluginID == callerPluginID
+}
+
+// CanReadPropertyFieldWithoutRestrictions checks if the given caller can read a PropertyField
+// without any restrictions (i.e., with full access to all options and values).
+// Returns TRUE only for: public fields, or source_only/shared_only fields when the caller is the source plugin.
+// Returns FALSE for source_only and shared_only fields when the caller is not the source plugin.
+func CanReadPropertyFieldWithoutRestrictions(field *PropertyField, callerPluginID string) bool {
+	if field.Attrs == nil {
+		return true
+	}
+
+	accessMode, ok := field.Attrs[CustomProfileAttributesPropertyAttrsAccessMode].(string)
+	if !ok || accessMode == "" || accessMode == CustomProfileAttributesAccessModePublic {
+		return true
+	}
+
+	// For source_only and shared_only modes, only the source plugin has unrestricted access
+	if accessMode == CustomProfileAttributesAccessModeSourceOnly || accessMode == CustomProfileAttributesAccessModeSharedOnly {
+		sourcePluginID, _ := field.Attrs[CustomProfileAttributesPropertyAttrsSourcePluginID].(string)
+		return sourcePluginID != "" && sourcePluginID == callerPluginID
+	}
+
+	return true
+}
+
+// extractOptionIDsFromValue parses a JSON value and extracts option IDs into a set.
+// For select fields: returns a set with one option ID
+// For multiselect fields: returns a set with multiple option IDs
+// Returns nil if value is empty, or an error if field type is not select/multiselect.
+func extractOptionIDsFromValue(fieldType PropertyFieldType, value json.RawMessage) (map[string]struct{}, error) {
+	if len(value) == 0 {
+		return nil, nil
+	}
+
+	optionIDs := make(map[string]struct{})
+
+	switch fieldType {
+	case PropertyFieldTypeSelect:
+		var optionID string
+		if err := json.Unmarshal(value, &optionID); err != nil {
+			return nil, err
+		}
+		if optionID != "" {
+			optionIDs[optionID] = struct{}{}
+		}
+
+	case PropertyFieldTypeMultiselect:
+		var ids []string
+		if err := json.Unmarshal(value, &ids); err != nil {
+			return nil, err
+		}
+		for _, id := range ids {
+			if id != "" {
+				optionIDs[id] = struct{}{}
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select and multiselect field types, got: %s", fieldType)
+	}
+
+	return optionIDs, nil
+}
+
+// FilterSharedOnlyOptions filters a field's options to only include those associated with the caller.
+// Returns a new slice of options containing only the caller's associated options.
+// If callerValue is empty or invalid, returns an empty slice.
+// Returns an error if field type is not select or multiselect.
+func FilterSharedOnlyOptions(field *CPAField, callerValue json.RawMessage) ([]*CustomProfileAttributesSelectOption, error) {
+	if field.Type != PropertyFieldTypeSelect && field.Type != PropertyFieldTypeMultiselect {
+		return nil, fmt.Errorf("FilterSharedOnlyOptions only supports select and multiselect field types, got: %s", field.Type)
+	}
+
+	// Extract caller's associated option IDs
+	callerOptionIDs, err := extractOptionIDsFromValue(field.Type, callerValue)
+	if err != nil {
+		return nil, err
+	}
+	if callerOptionIDs == nil {
+		return []*CustomProfileAttributesSelectOption{}, nil
+	}
+
+	// Filter options to only include those the caller has associated
+	filteredOptions := make([]*CustomProfileAttributesSelectOption, 0)
+	for _, option := range field.Attrs.Options {
+		if _, exists := callerOptionIDs[option.ID]; exists {
+			filteredOptions = append(filteredOptions, option)
+		}
+	}
+
+	return filteredOptions, nil
+}
+
+// FilterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
+// Returns the filtered value, whether a value should be returned, and any error.
+// For single-select: returns value only if both users have the same value.
+// For multi-select: returns the intersection of arrays.
+// If there's no match/intersection, returns (nil, false, nil) to indicate no value should be returned.
+// Returns an error if field type is not select or multiselect.
+func FilterSharedOnlyValue(field *CPAField, callerValue, targetValue json.RawMessage) (json.RawMessage, bool, error) {
+	if field.Type != PropertyFieldTypeSelect && field.Type != PropertyFieldTypeMultiselect {
+		return nil, false, fmt.Errorf("FilterSharedOnlyValue only supports select and multiselect field types, got: %s", field.Type)
+	}
+
+	// Extract option IDs from both values
+	callerOptionIDs, err := extractOptionIDsFromValue(field.Type, callerValue)
+	if err != nil {
+		return nil, false, err
+	}
+	targetOptionIDs, err := extractOptionIDsFromValue(field.Type, targetValue)
+	if err != nil {
+		return nil, false, err
+	}
+
+	// If either is empty, no intersection
+	if callerOptionIDs == nil || targetOptionIDs == nil {
+		return nil, false, nil
+	}
+
+	// Find intersection
+	intersection := make([]string, 0)
+	for targetID := range targetOptionIDs {
+		if _, exists := callerOptionIDs[targetID]; exists {
+			intersection = append(intersection, targetID)
+		}
+	}
+
+	// If there's no intersection, return nothing
+	if len(intersection) == 0 {
+		return nil, false, nil
+	}
+
+	// Format result based on field type
+	switch field.Type {
+	case PropertyFieldTypeSelect:
+		// For single-select, return the single matching value
+		result, err := json.Marshal(intersection[0])
+		return result, true, err
+
+	case PropertyFieldTypeMultiselect:
+		// For multi-select, return the array of matching values
+		result, err := json.Marshal(intersection)
+		return result, true, err
+
+	default:
+		// Should never reach here due to check at function start
+		return nil, false, fmt.Errorf("unexpected field type: %s", field.Type)
+	}
 }
 
 func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
