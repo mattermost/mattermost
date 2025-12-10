@@ -92,11 +92,43 @@ function BurnOnReadBadge({
         }
 
         if (!isSender && !revealed) {
-            // Recipient sees "Click to Reveal" before revealing
-            return formatMessage({
-                id: 'burn_on_read.badge.recipient.click_to_reveal',
-                defaultMessage: 'Click to Reveal',
+            // Recipient sees burn-on-read info before revealing
+            const primaryText = formatMessage({
+                id: 'burn_on_read.badge.recipient.title',
+                defaultMessage: 'Burn-on-read message',
             });
+
+            const readDuration = post.props?.read_duration;
+            if (readDuration && typeof readDuration === 'number') {
+                const minutes = Math.floor(readDuration / 60000);
+                const secondaryText = formatMessage(
+                    {
+                        id: 'burn_on_read.badge.recipient.subtitle',
+                        defaultMessage: 'Message will be deleted {time} after you view it',
+                    },
+                    {
+                        time: minutes > 0 ? formatMessage(
+                            {
+                                id: 'burn_on_read.duration.minutes',
+                                defaultMessage: '{count, plural, one {# min} other {# mins}}',
+                            },
+                            {count: minutes},
+                        ) : formatMessage({
+                            id: 'burn_on_read.duration.less_than_minute',
+                            defaultMessage: 'less than 1 min',
+                        }),
+                    },
+                );
+
+                return (
+                    <div className='BurnOnReadBadge__tooltip-content'>
+                        <div className='primary-text'>{primaryText}</div>
+                        <div className='secondary-text'>{secondaryText}</div>
+                    </div>
+                );
+            }
+
+            return primaryText;
         }
 
         // For revealed recipient posts, no badge tooltip (timer chip shows instead)
@@ -128,10 +160,36 @@ function BurnOnReadBadge({
             return deleteText;
         }
         if (!isSender && !revealed) {
-            return formatMessage({
-                id: 'burn_on_read.badge.recipient.click_to_reveal',
-                defaultMessage: 'Click to Reveal',
+            const primaryText = formatMessage({
+                id: 'burn_on_read.badge.recipient.title',
+                defaultMessage: 'Burn-on-read message',
             });
+
+            const readDuration = post.props?.read_duration;
+            if (readDuration && typeof readDuration === 'number') {
+                const minutes = Math.floor(readDuration / 60000);
+                const secondaryText = formatMessage(
+                    {
+                        id: 'burn_on_read.badge.recipient.subtitle',
+                        defaultMessage: 'Message will be deleted {time} after you view it',
+                    },
+                    {
+                        time: minutes > 0 ? formatMessage(
+                            {
+                                id: 'burn_on_read.duration.minutes',
+                                defaultMessage: '{count, plural, one {# min} other {# mins}}',
+                            },
+                            {count: minutes},
+                        ) : formatMessage({
+                            id: 'burn_on_read.duration.less_than_minute',
+                            defaultMessage: 'less than 1 min',
+                        }),
+                    },
+                );
+                return `${primaryText}. ${secondaryText}`;
+            }
+
+            return primaryText;
         }
         return '';
     };

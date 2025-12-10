@@ -462,6 +462,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
         const isBurnOnReadPost = this.props.isBurnOnReadPost;
+        const isBurnOnReadPostSender = isBurnOnReadPost && this.props.post.user_id === this.props.userId;
+        const isBurnOnReadConcealed = isBurnOnReadPost && !isBurnOnReadPostSender && !this.props.isUnrevealedBurnOnReadPost;
 
         this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
 
@@ -724,22 +726,39 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.copyText}
                     />
                 }
-                {!isSystemMessage && isBurnOnReadPost && <Menu.Separator/>}
-                {(this.state.canDelete || isBurnOnReadPost) &&
-                    <Menu.Item
-                        id={`delete_post_${this.props.post.id}`}
-                        data-testid={`delete_post_${this.props.post.id}`}
-                        leadingElement={<TrashCanOutlineIcon size={18}/>}
-                        trailingElements={<span>{'delete'}</span>}
-                        labels={
-                            <FormattedMessage
-                                id='post_info.del'
-                                defaultMessage='Delete'
-                            />}
-                        onClick={this.handleDeleteMenuItemActivated}
-                        isDestructive={true}
-                    />
-                }
+                {(() => {
+                    // Determine if delete should show for BoR posts
+                    const shouldShowDeleteForBoR = isBurnOnReadPost && (
+                        isBurnOnReadPostSender || // Sender always sees delete
+                        !this.props.isUnrevealedBurnOnReadPost // Receiver sees delete only if revealed (not concealed)
+                    );
+
+                    // Delete button should show if:
+                    // 1. Non-BoR with delete permission, OR
+                    // 2. BoR post meeting above criteria
+                    const shouldShowDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
+
+                    return (
+                        <>
+                            {!isSystemMessage && shouldShowDelete && <Menu.Separator/>}
+                            {shouldShowDelete &&
+                                <Menu.Item
+                                    id={`delete_post_${this.props.post.id}`}
+                                    data-testid={`delete_post_${this.props.post.id}`}
+                                    leadingElement={<TrashCanOutlineIcon size={18}/>}
+                                    trailingElements={<span>{'delete'}</span>}
+                                    labels={
+                                        <FormattedMessage
+                                            id='post_info.del'
+                                            defaultMessage='Delete'
+                                        />}
+                                    onClick={this.handleDeleteMenuItemActivated}
+                                    isDestructive={true}
+                                />
+                            }
+                        </>
+                    );
+                })()}
                 {
                     this.props.canFlagContent &&
                     <Menu.Item
