@@ -491,9 +491,9 @@ describe('components/login/Login', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
             // Should show the guest magic link success message
-            expect(await screen.findByText('We sent you a link to login!')).toBeVisible();
-            expect(screen.getByText('Please check your email for the link to login.')).toBeVisible();
-            expect(screen.getByText('Your link will expire in 5 minutes.')).toBeVisible();
+            expect(await screen.findByText('Magic link sent to your email')).toBeVisible();
+            expect(screen.getByText('Check your email for a magic link to log in without a password.')).toBeVisible();
+            expect(screen.getByText('The link expires in five minutes.')).toBeVisible();
         });
 
         it('should show password field when user login type requires password', async () => {

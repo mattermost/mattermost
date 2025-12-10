@@ -103,9 +103,6 @@ describe('Leave channel', () => {
             // * RHS text box should be visible
             cy.uiGetReplyTextBox();
 
-            // * Close tour tip
-            cy.get('#tipNextButton').should('be.visible').click();
-
             // # Archive the channel
             cy.uiLeaveChannel();
             cy.wait(TIMEOUTS.TWO_SEC);
