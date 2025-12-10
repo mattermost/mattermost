@@ -4475,7 +4475,6 @@ func TestRevealPost(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
 	})
 
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// Helper to create a burn-on-read post
@@ -4688,7 +4687,6 @@ func TestBurnPost(t *testing.T) {
 		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
 	})
 
-	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	// feature flag, configuration and license is not checked for this feature
