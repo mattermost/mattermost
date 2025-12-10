@@ -75,6 +75,7 @@
 
 .agents-config-link {
     display: inline-block;
+    width: fit-content;
     align-items: center;
     color: var(--link-color);
     cursor: pointer;
@@ -83,7 +84,6 @@
     font-weight: 600;
     line-height: 16px;
     text-decoration: none;
-    width: fit-content;
 
     .icon {
         color: var(--link-color);

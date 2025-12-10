@@ -55,6 +55,7 @@ export type GlobalState = {
                 service_type: string;
             }>;
             llmServices: LLMService[];
+            agentsStatus: {available: boolean; reason?: string};
         };
         bots: {
             accounts: Record<string, Bot>;

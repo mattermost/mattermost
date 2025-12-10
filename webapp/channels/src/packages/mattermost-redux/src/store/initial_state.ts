@@ -10,6 +10,7 @@ const state: GlobalState = {
         agents: {
             agents: [],
             llmServices: [],
+            agentsStatus: {available: false},
         },
         general: {
             config: {},
