@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"maps"
 
 	sq "github.com/mattermost/squirrel"
 
@@ -402,9 +403,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	metaMap := make(map[string]any)
 	if translation.Meta != nil {
 		// Copy existing Meta fields (e.g., "src_lang", "error", etc.)
-		for k, v := range translation.Meta {
-			metaMap[k] = v
-		}
+		maps.Copy(metaMap, translation.Meta)
 	}
 	// Always set "type" field
 	metaMap["type"] = string(translation.Type)

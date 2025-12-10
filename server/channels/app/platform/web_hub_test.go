@@ -65,22 +65,6 @@ func registerDummyWebConn(tb testing.TB, th *TestHelper, addr net.Addr, session 
 	return wc
 }
 
-// setupWithFastIteration creates a test helper with EnableWebHubChannelIteration enabled
-func setupWithFastIteration(tb testing.TB) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-
-	dbStore, dbSettings := setupDBStore(tb)
-
-	// Config modifier to enable fast iteration before service starts
-	enableFastIteration := func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
-	}
-
-	return setupTestHelperWithConfigModifiers(dbStore, dbSettings, false, true, tb, nil, enableFastIteration)
-}
-
 func TestHubStopWithMultipleConnections(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
