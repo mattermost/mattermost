@@ -2531,51 +2531,44 @@ func (s SqlChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, userId s
 
 func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, error) {
 	lastPostAtTimes := []struct {
-		Id                string
-		LastPostAt        int64
-		TotalMsgCount     int64
-		TotalMsgCountRoot int64
+		Id         string
+		LastPostAt int64
 	}{}
 
 	if len(channelIds) == 0 {
 		return map[string]int64{}, nil
 	}
 
-	// We use the question placeholder format for both databases, because
-	// we replace that with the dollar format later on.
-	// It's needed to support the prefix CTE query. See: https://github.com/Masterminds/squirrel/issues/285.
+	// We use the question placeholder format because we replace it with the
+	// dollar format later on. It's needed to support the prefix CTE query.
+	// See: https://github.com/Masterminds/squirrel/issues/285.
 	query := sq.StatementBuilder.PlaceholderFormat(sq.Question).
 		Select("Id, LastPostAt, TotalMsgCount, TotalMsgCountRoot").
 		From("Channels").
 		Where(sq.Eq{"Id": channelIds})
 
-	// TODO: use a CTE for mysql too when version 8 becomes the minimum supported version.
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		with := query.Prefix("WITH c AS (").Suffix(") ,")
-		update := sq.StatementBuilder.PlaceholderFormat(sq.Question).
-			Update("ChannelMembers cm").
-			Set("MentionCount", 0).
-			Set("MentionCountRoot", 0).
-			Set("UrgentMentionCount", 0).
-			Set("MsgCount", sq.Expr("greatest(cm.MsgCount, c.TotalMsgCount)")).
-			Set("MsgCountRoot", sq.Expr("greatest(cm.MsgCountRoot, c.TotalMsgCountRoot)")).
-			Set("LastViewedAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
-			Set("LastUpdateAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
-			SuffixExpr(sq.Expr("FROM c WHERE cm.UserId = ? AND c.Id = cm.ChannelId", userId))
-		updateWrap := update.Prefix("updated AS (").Suffix(")")
-		query = with.SuffixExpr(updateWrap).Suffix("SELECT Id, LastPostAt FROM c")
-	}
+	with := query.Prefix("WITH c AS (").Suffix(") ,")
+	update := sq.StatementBuilder.PlaceholderFormat(sq.Question).
+		Update("ChannelMembers cm").
+		Set("MentionCount", 0).
+		Set("MentionCountRoot", 0).
+		Set("UrgentMentionCount", 0).
+		Set("MsgCount", sq.Expr("greatest(cm.MsgCount, c.TotalMsgCount)")).
+		Set("MsgCountRoot", sq.Expr("greatest(cm.MsgCountRoot, c.TotalMsgCountRoot)")).
+		Set("LastViewedAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
+		Set("LastUpdateAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
+		SuffixExpr(sq.Expr("FROM c WHERE cm.UserId = ? AND c.Id = cm.ChannelId", userId))
+	updateWrap := update.Prefix("updated AS (").Suffix(")")
+	query = with.SuffixExpr(updateWrap).Suffix("SELECT Id, LastPostAt FROM c")
 
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "UpdateLastViewedAt_CTE_Tosql")
 	}
 
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		sql, err = sq.Dollar.ReplacePlaceholders(sql)
-		if err != nil {
-			return nil, errors.Wrap(err, "UpdateLastViewedAt_ReplacePlaceholders")
-		}
+	sql, err = sq.Dollar.ReplacePlaceholders(sql)
+	if err != nil {
+		return nil, errors.Wrap(err, "UpdateLastViewedAt_ReplacePlaceholders")
 	}
 
 	err = s.GetMaster().Select(&lastPostAtTimes, sql, args...)
@@ -2588,53 +2581,9 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	}
 
 	times := map[string]int64{}
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		for _, t := range lastPostAtTimes {
-			times[t.Id] = t.LastPostAt
-		}
-		return times, nil
-	}
-
-	msgCountQuery, msgCountQueryRoot, lastViewedQuery := sq.Case("ChannelId"), sq.Case("ChannelId"), sq.Case("ChannelId")
-
 	for _, t := range lastPostAtTimes {
 		times[t.Id] = t.LastPostAt
-
-		msgCountQuery = msgCountQuery.When(
-			sq.Expr("?", t.Id),
-			sq.Expr("GREATEST(MsgCount, ?)", t.TotalMsgCount))
-
-		msgCountQueryRoot = msgCountQueryRoot.When(
-			sq.Expr("?", t.Id),
-			sq.Expr("GREATEST(MsgCountRoot, ?)", t.TotalMsgCountRoot))
-
-		lastViewedQuery = lastViewedQuery.When(
-			sq.Expr("?", t.Id),
-			sq.Expr("GREATEST(LastViewedAt, ?)", t.LastPostAt))
 	}
-
-	updateQuery := s.getQueryBuilder().Update("ChannelMembers").
-		Set("MentionCount", 0).
-		Set("MentionCountRoot", 0).
-		Set("UrgentMentionCount", 0).
-		Set("MsgCount", msgCountQuery).
-		Set("MsgCountRoot", msgCountQueryRoot).
-		Set("LastViewedAt", lastViewedQuery).
-		Set("LastUpdateAt", sq.Expr("LastViewedAt")).
-		Where(sq.Eq{
-			"UserId":    userId,
-			"ChannelId": channelIds,
-		})
-
-	sql, args, err = updateQuery.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "UpdateLastViewedAt_Update_Tosql")
-	}
-
-	if _, err := s.GetMaster().Exec(sql, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to update ChannelMembers with userId=%s and channelId in %v", userId, channelIds)
-	}
-
 	return times, nil
 }
 
