@@ -17,6 +17,10 @@ start-server: generate-server
 	bash ./.ci/server.prepare.sh
 run-test:
 	bash ./.ci/server.run_test.sh
+run-perf-test:
+	bash ./.ci/server.run_playwright_perf.sh
+run-lh:
+	bash ./.ci/server.run_lighthouse.sh
 stop-server: generate-server
 	bash ./.ci/server.stop.sh
 restart-server: stop-server start-server

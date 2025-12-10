@@ -1,0 +1,36 @@
+{
+  "name": "@mattermost/lighthouse-web-vitals",
+  "version": "1.0.0",
+  "description": "Web Vitals with Lighthouse for Mattermost web application",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lh": "npx tsx src/lighthouse.ts",
+    "lh:login": "npx tsx src/lighthouse.ts --login",
+    "lh:channels": "npx tsx src/lighthouse.ts --channels",
+    "lh:admin": "npx tsx src/lighthouse.ts --admin",
+    "lh:all": "npx tsx src/lighthouse.ts --all",
+    "baseline": "npx tsx src/lighthouse.ts --all --runs=10 --baseline",
+    "baseline:update": "npx tsx src/lighthouse.ts --all --runs=10 --baseline",
+    "check": "npm run tsc",
+    "tsc": "tsc --noEmit",
+    "prettier": "prettier . --check",
+    "prettier:fix": "prettier --write .",
+    "clean": "rm -rf results/ node_modules/"
+  },
+  "dependencies": {
+    "@playwright/test": "1.56.0",
+    "chrome-launcher": "1.2.1",
+    "chrome-remote-interface": "0.33.3",
+    "lighthouse": "13.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.2",
+    "prettier": "3.7.4",
+    "tsx": "4.19.4",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
