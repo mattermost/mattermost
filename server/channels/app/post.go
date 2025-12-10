@@ -1608,7 +1608,6 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	}
 
 	if post.Type == model.PostTypeBurnOnRead {
-		// add cache invalidations
 		return nil, a.PermanentDeletePost(rctx, postID, deleteByID)
 	}
 

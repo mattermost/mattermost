@@ -433,6 +433,7 @@ type ServiceSettings struct {
 	EnableBurnOnRead                                  *bool `access:"site_posts"`
 	BurnOnReadDurationSeconds                         *int  `access:"site_posts"`
 	BurnOnReadMaximumTimeToLiveSeconds                *int  `access:"site_posts"`
+	BurnOnReadSchedulerFrequencySeconds               *int  `access:"site_posts",cloud_restrictable"`
 	EnableAPIChannelDeletion                          *bool
 	EnableLocalMode                                   *bool   `access:"cloud_restrictable"`
 	LocalModeSocketLocation                           *string `access:"cloud_restrictable"` // telemetry: none
@@ -988,6 +989,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.BurnOnReadMaximumTimeToLiveSeconds == nil {
 		s.BurnOnReadMaximumTimeToLiveSeconds = NewPointer(604800) // 7 days in seconds
+	}
+
+	if s.BurnOnReadSchedulerFrequencySeconds == nil {
+		s.BurnOnReadSchedulerFrequencySeconds = NewPointer(600) // 10 minutes in seconds
 	}
 
 	if s.MaximumPayloadSizeBytes == nil {

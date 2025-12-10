@@ -10,11 +10,14 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 )
 
-const schedFreq = 10 * time.Minute
-
 func MakeScheduler(jobServer *jobs.JobServer) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
-		return model.SafeDereference(cfg.ServiceSettings.EnableBurnOnRead)
+		featureFlagEnabled := cfg.FeatureFlags.BurnOnRead
+		serviceSettingEnabled := model.SafeDereference(cfg.ServiceSettings.EnableBurnOnRead)
+
+		return featureFlagEnabled && serviceSettingEnabled
 	}
+
+	schedFreq := time.Duration(model.SafeDereference(jobServer.Config().ServiceSettings.BurnOnReadSchedulerFrequencySeconds)) * time.Second
 	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeDeleteExpiredPosts, schedFreq, isEnabled)
 }
