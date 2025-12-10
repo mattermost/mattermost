@@ -388,14 +388,14 @@ func TestGetClientConfig(t *testing.T) {
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
 					EnableBurnOnRead:          model.NewPointer(true),
-					BurnOnReadDurationMinutes: model.NewPointer("30"),
+					BurnOnReadDurationSeconds: model.NewPointer(1800), // 30 minutes in seconds
 				},
 			},
 			"",
 			nil,
 			map[string]string{
 				"EnableBurnOnRead":          "true",
-				"BurnOnReadDurationMinutes": "30",
+				"BurnOnReadDurationSeconds": "1800",
 			},
 		},
 		{
@@ -403,14 +403,14 @@ func TestGetClientConfig(t *testing.T) {
 			&model.Config{
 				ServiceSettings: model.ServiceSettings{
 					EnableBurnOnRead:          model.NewPointer(false),
-					BurnOnReadDurationMinutes: model.NewPointer("10"),
+					BurnOnReadDurationSeconds: model.NewPointer(600), // 10 minutes in seconds
 				},
 			},
 			"",
 			nil,
 			map[string]string{
 				"EnableBurnOnRead":          "false",
-				"BurnOnReadDurationMinutes": "10",
+				"BurnOnReadDurationSeconds": "600",
 			},
 		},
 		{
@@ -420,7 +420,7 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableBurnOnRead":          "false",
-				"BurnOnReadDurationMinutes": "10",
+				"BurnOnReadDurationSeconds": "600", // 10 minutes in seconds
 			},
 		},
 		{

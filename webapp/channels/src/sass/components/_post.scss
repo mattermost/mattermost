@@ -1281,6 +1281,15 @@
                 margin: 0;
             }
         }
+
+        .badges-wrapper {
+            gap: 6px;
+            .BurnOnReadTimerChip, .BurnOnReadBadge  {
+                margin-left: 0;
+            }
+        }
+
+
     }
 
     .post__img {

@@ -90,6 +90,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             handleLoginLogoutSignal,
             redirectToOnboardingOrDefaultTeam,
         }, dispatch),
+        dispatch,
     };
 }
 

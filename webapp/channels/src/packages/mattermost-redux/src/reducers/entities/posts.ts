@@ -22,6 +22,7 @@ import type {
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes, LimitsTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
+import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
@@ -186,6 +187,12 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             return state;
         }
 
+        if (state[post.id].type === PostTypeConstants.BURN_ON_READ) {
+            const nextState = {...state};
+            Reflect.deleteProperty(nextState, post.id);
+            return nextState;
+        }
+
         // Mark the post as deleted
         const nextState = {
             ...state,
@@ -286,16 +293,69 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             return state;
         }
 
+        const currentPost = state[post.id];
+        const currentMetadata = currentPost.metadata || {};
+        const newMetadata = post.metadata || {};
+
         return {
             ...state,
             [post.id]: {
-                ...state[post.id],
+                ...currentPost,
                 ...post,
-                props: {
-                    ...state[post.id].props,
-                    ...post.props,
-                    revealed: true,
+                metadata: {
+                    ...currentMetadata,
+                    ...newMetadata,
                     expire_at: expireAt,
+                },
+            },
+        };
+    }
+
+    case PostTypes.POST_RECIPIENTS_UPDATED: {
+        const {postId, recipients} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+        const currentRecipients = currentMetadata.recipients || [];
+
+        // Merge new recipients with existing ones (don't replace).
+        // Server sends incremental updates (only the revealing user), so we must merge.
+        const mergedRecipients = [...new Set([...currentRecipients, ...recipients])];
+
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    recipients: mergedRecipients,
+                },
+            },
+        };
+    }
+
+    case PostTypes.BURN_ON_READ_ALL_REVEALED: {
+        const {postId, senderExpireAt} = action.data;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        const currentPost = state[postId];
+        const currentMetadata = currentPost.metadata || {};
+
+        // Set sender's expiration time to trigger timer display
+        return {
+            ...state,
+            [postId]: {
+                ...currentPost,
+                metadata: {
+                    ...currentMetadata,
+                    expire_at: senderExpireAt,
                 },
             },
         };
@@ -773,21 +833,30 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
     case PostTypes.POST_DELETED: {
         const post = action.data;
 
-        // Deleting a post removes its comments from the order, but does not remove the post itself
-
         const postsForChannel = state[post.channel_id] || [];
         if (postsForChannel.length === 0) {
             return state;
         }
 
         let changed = false;
-
         let nextPostsForChannel = [...postsForChannel];
+
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
+        const shouldRemovePost = (postId: string) => {
+            const isTheDeletedPost = postId === post.id;
+            const isReplyToDeletedPost = prevPosts[postId]?.root_id === post.id;
+
+            if (isBoRPost) {
+                return isTheDeletedPost;
+            }
+
+            return isReplyToDeletedPost;
+        };
+
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
-
-            // Remove any comments for this post
-            const nextOrder = block.order.filter((postId: string) => prevPosts[postId].root_id !== post.id);
+            const nextOrder = block.order.filter((postId) => !shouldRemovePost(postId));
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {
@@ -824,12 +893,18 @@ export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, act
 
         let changed = false;
 
+        const isBoRPost = prevPosts[post.id]?.type === PostTypeConstants.BURN_ON_READ;
+
         // Remove the post and its comments from the channel
         let nextPostsForChannel = [...postsForChannel];
         for (let i = 0; i < nextPostsForChannel.length; i++) {
             const block = nextPostsForChannel[i];
 
-            const nextOrder = block.order.filter((postId: string) => postId !== post.id && prevPosts[postId].root_id !== post.id);
+            // For BoR posts: only remove the post itself (BoR doesn't support threads)
+            // For regular posts: remove the post and its thread replies
+            const nextOrder = isBoRPost ?
+                block.order.filter((postId: string) => postId !== post.id) :
+                block.order.filter((postId: string) => postId !== post.id && prevPosts[postId]?.root_id !== post.id);
 
             if (nextOrder.length !== block.order.length) {
                 nextPostsForChannel[i] = {

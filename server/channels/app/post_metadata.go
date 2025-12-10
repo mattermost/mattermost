@@ -145,7 +145,11 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 		// if metadata expire is not set, it means the post is not revealed yet
 		// so we need to reset the metadata. Or, if the user is the author, we don't reset the metadata.
 		if post.Metadata.ExpireAt == 0 && post.UserId != rctx.Session().UserId {
-			post.Metadata = &model.PostMetadata{}
+			if scheduledPost, ok := rctx.Context().Value(model.PostContextKeyIsScheduledPost).(bool); ok && scheduledPost {
+				// if the post is a scheduled post, we don't reset the metadata
+			} else {
+				post.Metadata = &model.PostMetadata{}
+			}
 		}
 	}
 

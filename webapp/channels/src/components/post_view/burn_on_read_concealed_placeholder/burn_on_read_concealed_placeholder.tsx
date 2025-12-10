@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
+
+import {EyeOutlineIcon, AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -19,6 +21,8 @@ type Props = {
     error?: string | null;
 };
 
+const ERROR_STATE_DURATION_MS = 3000;
+
 function BurnOnReadConcealedPlaceholder({
     postId,
     authorName,
@@ -27,19 +31,31 @@ function BurnOnReadConcealedPlaceholder({
     error = null,
 }: Props) {
     const {formatMessage} = useIntl();
+    const [showError, setShowError] = useState(false);
+
+    useEffect(() => {
+        if (error) {
+            setShowError(true);
+            const timer = setTimeout(() => {
+                setShowError(false);
+            }, ERROR_STATE_DURATION_MS);
+            return () => clearTimeout(timer);
+        }
+        return undefined;
+    }, [error]);
 
     const handleClick = useCallback(() => {
-        if (!loading) {
+        if (!loading && !showError) {
             onReveal(postId);
         }
-    }, [postId, onReveal, loading]);
+    }, [postId, onReveal, loading, showError]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if ((isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) && !loading) {
+        if ((isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) && !loading && !showError) {
             e.preventDefault();
             onReveal(postId);
         }
-    }, [postId, onReveal, loading]);
+    }, [postId, onReveal, loading, showError]);
 
     const ariaLabel = formatMessage(
         {
@@ -50,38 +66,55 @@ function BurnOnReadConcealedPlaceholder({
     );
 
     return (
-        <div
-            className={`BurnOnReadConcealedPlaceholder ${loading ? 'BurnOnReadConcealedPlaceholder--loading' : ''} ${error ? 'BurnOnReadConcealedPlaceholder--error' : ''}`}
-            onClick={handleClick}
-            onKeyDown={handleKeyDown}
-            role='button'
-            tabIndex={0}
-            aria-label={ariaLabel}
-            data-testid={`burn-on-read-concealed-${postId}`}
-        >
-            {loading ? (
-                <LoadingSpinner/>
-            ) : (
+        <>
+            {showError ? (
                 <div
-                    className='BurnOnReadConcealedPlaceholder__text'
-                    aria-hidden='true'
-                >
-                    {formatMessage({
-                        id: 'post.burn_on_read.concealed_placeholder',
-                        defaultMessage: 'This message is concealed and will be revealed when you click on it to view the content',
-                    })}
-                </div>
-            )}
-
-            {error && (
-                <div
-                    className='BurnOnReadConcealedPlaceholder__error'
+                    className='BurnOnReadConcealedPlaceholder BurnOnReadConcealedPlaceholder--error'
                     role='alert'
                 >
-                    {error}
+                    <div className='BurnOnReadConcealedPlaceholder__content'>
+                        <AlertCircleOutlineIcon
+                            size={12}
+                            className='BurnOnReadConcealedPlaceholder__icon BurnOnReadConcealedPlaceholder__icon--error'
+                        />
+                        <span className='BurnOnReadConcealedPlaceholder__text BurnOnReadConcealedPlaceholder__text--error'>
+                            {formatMessage({
+                                id: 'post.burn_on_read.reveal_error',
+                                defaultMessage: 'Unable to reveal message. Please try again later.',
+                            })}
+                        </span>
+                    </div>
                 </div>
+            ) : (
+                <button
+                    type='button'
+                    className={`BurnOnReadConcealedPlaceholder ${loading ? 'BurnOnReadConcealedPlaceholder--loading' : ''}`}
+                    onClick={handleClick}
+                    onKeyDown={handleKeyDown}
+                    disabled={loading}
+                    aria-label={ariaLabel}
+                    tabIndex={0}
+                    data-testid={`burn-on-read-concealed-${postId}`}
+                >
+                    {loading ? (
+                        <LoadingSpinner/>
+                    ) : (
+                        <div className='BurnOnReadConcealedPlaceholder__content'>
+                            <EyeOutlineIcon
+                                size={12}
+                                className='BurnOnReadConcealedPlaceholder__icon'
+                            />
+                            <span className='BurnOnReadConcealedPlaceholder__text'>
+                                {formatMessage({
+                                    id: 'post.burn_on_read.view_message',
+                                    defaultMessage: 'View message',
+                                })}
+                            </span>
+                        </div>
+                    )}
+                </button>
             )}
-        </div>
+        </>
     );
 }
 

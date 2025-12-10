@@ -79,6 +79,17 @@ export function makeFilterPostsAndAddSeparators() {
                     continue;
                 }
 
+                // Filter out expired burn-on-read posts
+                // Note: BoR posts should display regardless of feature flag being enabled/disabled
+                // The feature flag only controls creation of NEW BoR messages, not display of existing ones
+                if (post.type === Posts.POST_TYPES.BURN_ON_READ) {
+                    // Skip if already expired and deleted
+                    const expireAt = post.metadata?.expire_at;
+                    if (expireAt && typeof expireAt === 'number' && expireAt <= Date.now()) {
+                        continue;
+                    }
+                }
+
                 lastDate = pushPostDateIfNeeded(post, currentUser, out, lastDate);
 
                 if (
