@@ -154,7 +154,8 @@ func (s *SqlReadReceiptStore) GetUnreadCountForPost(rctx request.CTX, post *mode
 		})
 
 	var unreadCount int64
-	err := s.GetReplica().GetBuilder(&unreadCount, unreadQuery)
+	// Use master to avoid stale data from replica after writing a read receipt
+	err := s.GetMaster().GetBuilder(&unreadCount, unreadQuery)
 	if err != nil {
 		return -1, errors.Wrapf(err, "failed to get unread count for postId=%s channelId=%s", post.Id, post.ChannelId)
 	}
