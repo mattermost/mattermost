@@ -3204,6 +3204,14 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text_markdown: false,
                                     options: [
                                         {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_2_MINUTES),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.2minutes', defaultMessage: '2 minutes'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_5_MINUTES),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.5minutes', defaultMessage: '5 minutes'}),
+                                        },
+                                        {
                                             value: String(Posts.BURN_ON_READ.MAX_TTL_1_DAY),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.1day', defaultMessage: '1 day'}),
                                         },

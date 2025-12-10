@@ -628,6 +628,8 @@ function PostComponent(props: Props) {
         const revealed = typeof post.metadata?.expire_at === 'number';
 
         // Parse expiration times - can be either number or string from API
+        // For revealed posts: metadata.expire_at contains the reveal timer
+        // For unrevealed posts: props.expire_at contains the maximum TTL
         let expireAt = null;
         if (typeof post.metadata?.expire_at === 'number') {
             expireAt = post.metadata.expire_at;
@@ -636,10 +638,13 @@ function PostComponent(props: Props) {
         }
 
         let maxExpireAt = null;
-        if (typeof post.props?.max_expire_at === 'number') {
-            maxExpireAt = post.props.max_expire_at;
-        } else if (post.props?.max_expire_at) {
-            maxExpireAt = parseInt(String(post.props.max_expire_at), 10);
+        if (!revealed) {
+            // Unrevealed posts: read maximum TTL from props.expire_at
+            if (typeof post.props?.expire_at === 'number') {
+                maxExpireAt = post.props.expire_at;
+            } else if (post.props?.expire_at) {
+                maxExpireAt = parseInt(String(post.props.expire_at), 10);
+            }
         }
 
         burnOnReadBadge = (

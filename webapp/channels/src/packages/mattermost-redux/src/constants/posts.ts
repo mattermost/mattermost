@@ -81,6 +81,8 @@ export default {
         DURATION_1_HOUR: 3600,
         DURATION_8_HOURS: 28800,
         DURATION_DEFAULT: 600,
+        MAX_TTL_2_MINUTES: 120,
+        MAX_TTL_5_MINUTES: 300,
         MAX_TTL_1_DAY: 86400,
         MAX_TTL_3_DAYS: 259200,
         MAX_TTL_7_DAYS: 604800,
