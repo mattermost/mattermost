@@ -22,7 +22,6 @@ export interface MetricsResult {
     performanceScore: number;
     accessibilityScore: number;
     bestPracticesScore: number;
-    seoScore: number;
     metrics: {
         coreWebVitals: LighthouseMetric[];
         timing: LighthouseMetric[];
@@ -58,7 +57,6 @@ export interface RunResult {
     performanceScore: number;
     accessibilityScore: number;
     bestPracticesScore: number;
-    seoScore: number;
     lcp: number;
     tbt: number;
     cls: number;
@@ -95,7 +93,6 @@ export interface MultiRunSummary {
         performanceScore: StatisticalSummary;
         accessibilityScore: StatisticalSummary;
         bestPracticesScore: StatisticalSummary;
-        seoScore: StatisticalSummary;
         lcp: StatisticalSummary;
         tbt: StatisticalSummary;
         cls: StatisticalSummary;
@@ -153,7 +150,6 @@ export interface LighthouseBaseline {
             performanceScore: BaselineMetric;
             accessibilityScore: BaselineMetric;
             bestPracticesScore: BaselineMetric;
-            seoScore: BaselineMetric;
             lcp: BaselineMetric;
             tbt: BaselineMetric;
             cls: BaselineMetric;

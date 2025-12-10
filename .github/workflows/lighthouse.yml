@@ -27,22 +27,16 @@ on:
         default: '10'
 
 jobs:
-  lighthouse-metrics:
-    name: Web Vitals with Lighthouse
-    runs-on: ubuntu-latest-8-cores
-    timeout-minutes: 45
+  setup:
+    name: Setup Test Variables
+    runs-on: ubuntu-latest
     # Only run if smoke tests succeeded (for workflow_run trigger) or always for manual dispatch
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    defaults:
-      run:
-        shell: bash
-    env:
-      LIGHTHOUSE_RUNS: ${{ inputs.lighthouse_runs || '10' }}
-      TEST: none
-      ENABLED_DOCKER_SERVICES: postgres inbucket
-
+    outputs:
+      COMMIT_SHA: ${{ steps.vars.outputs.COMMIT_SHA }}
+      SERVER_IMAGE: ${{ steps.vars.outputs.SERVER_IMAGE }}
     steps:
       - name: ci/derive-test-variables
         id: vars
@@ -64,10 +58,24 @@ jobs:
           echo "Commit SHA: ${COMMIT_SHA}"
           echo "Server Image: ${SERVER_IMAGE}"
 
+  lighthouse-metrics:
+    name: Web Vitals with Lighthouse
+    needs: setup
+    runs-on: ubuntu-latest-8-cores
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      LIGHTHOUSE_RUNS: ${{ inputs.lighthouse_runs || '10' }}
+      TEST: none
+      ENABLED_DOCKER_SERVICES: postgres inbucket
+
+    steps:
       - name: ci/checkout-repo
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ steps.vars.outputs.COMMIT_SHA }}
+          ref: ${{ needs.setup.outputs.COMMIT_SHA }}
           fetch-depth: 0
 
       - name: ci/setup-node
@@ -85,7 +93,7 @@ jobs:
         working-directory: e2e-tests
         run: TEST=none make
         env:
-          SERVER_IMAGE: ${{ steps.vars.outputs.SERVER_IMAGE }}
+          SERVER_IMAGE: ${{ needs.setup.outputs.SERVER_IMAGE }}
 
       - name: ci/wait-for-server
         run: |
@@ -95,7 +103,7 @@ jobs:
 
       - name: ci/run-lighthouse-tests
         working-directory: e2e-tests
-        run: bash .ci/server.run_lighthouse.sh
+        run: make run-lh
         env:
           MM_ADMIN_USERNAME: sysadmin
           MM_ADMIN_PASSWORD: Sys@dmin-sample1
@@ -103,7 +111,7 @@ jobs:
           MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
           LIGHTHOUSE_RUNS: ${{ env.LIGHTHOUSE_RUNS }}
           LIGHTHOUSE_PAGES: "--all"
-          DOCKER_IMAGE_TAG: ${{ steps.vars.outputs.SERVER_IMAGE }}
+          DOCKER_IMAGE_TAG: ${{ needs.setup.outputs.SERVER_IMAGE }}
 
       - name: ci/upload-lighthouse-results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -129,7 +137,7 @@ jobs:
           script: |
             const fs = require('fs');
 
-            const commitSha = '${{ steps.vars.outputs.COMMIT_SHA }}';
+            const commitSha = '${{ needs.setup.outputs.COMMIT_SHA }}';
             if (!commitSha) {
               console.log('No commit SHA available, skipping status update');
               return;
@@ -184,8 +192,8 @@ jobs:
 
             const resultsDir = 'e2e-tests/lighthouse/results';
             const gradesPath = path.join(resultsDir, 'grades.json');
-            const serverImage = '${{ steps.vars.outputs.SERVER_IMAGE }}';
-            const commitSha = '${{ steps.vars.outputs.COMMIT_SHA }}';
+            const serverImage = '${{ needs.setup.outputs.SERVER_IMAGE }}';
+            const commitSha = '${{ needs.setup.outputs.COMMIT_SHA }}';
             const runs = '${{ env.LIGHTHOUSE_RUNS }}';
 
             let summary = '## Web Vitals Results\n\n';
@@ -208,7 +216,7 @@ jobs:
             // Find results file
             let results = null;
             if (fs.existsSync(resultsDir)) {
-              const files = fs.readdirSync(resultsDir).filter(f => f.endsWith('_results.json'));
+              const files = fs.readdirSync(resultsDir).filter(f => f.endsWith('_perf.json'));
               if (files.length > 0) {
                 results = JSON.parse(fs.readFileSync(path.join(resultsDir, files[files.length - 1]), 'utf-8'));
               }
@@ -280,6 +288,140 @@ jobs:
             }
 
             core.summary.addRaw(summary).write();
+
+      - name: ci/stop-server
+        if: always()
+        working-directory: e2e-tests
+        run: make stop-server || true
+
+  lighthouse-metrics-no-plugins:
+    name: Web Vitals (No Plugins)
+    needs: setup
+    runs-on: ubuntu-latest-8-cores
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      LIGHTHOUSE_RUNS: ${{ inputs.lighthouse_runs || '10' }}
+      TEST: none
+      ENABLED_DOCKER_SERVICES: postgres inbucket
+
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ needs.setup.outputs.COMMIT_SHA }}
+          fetch-depth: 0
+
+      - name: ci/setup-node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/lighthouse/package-lock.json"
+
+      - name: ci/generate-server-config
+        working-directory: e2e-tests
+        run: make generate-server
+
+      - name: ci/start-server
+        working-directory: e2e-tests
+        run: TEST=none make
+        env:
+          SERVER_IMAGE: ${{ needs.setup.outputs.SERVER_IMAGE }}
+
+      - name: ci/wait-for-server
+        run: |
+          echo "Waiting for Mattermost server to be ready..."
+          timeout 120 bash -c 'until curl -s http://localhost:8065/api/v4/system/ping | grep -q "OK"; do sleep 2; done'
+          echo "Server is ready!"
+
+      - name: ci/disable-all-plugins
+        working-directory: e2e-tests
+        run: make disable-plugins
+
+      - name: ci/run-lighthouse-tests
+        working-directory: e2e-tests
+        run: make run-lh
+        env:
+          MM_ADMIN_USERNAME: sysadmin
+          MM_ADMIN_PASSWORD: Sys@dmin-sample1
+          MM_ADMIN_EMAIL: sysadmin@sample.mattermost.com
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          LIGHTHOUSE_RUNS: ${{ env.LIGHTHOUSE_RUNS }}
+          LIGHTHOUSE_PAGES: "--all"
+          LIGHTHOUSE_BASELINE_SUFFIX: "_no_plugins"
+          DOCKER_IMAGE_TAG: ${{ needs.setup.outputs.SERVER_IMAGE }}
+
+      - name: ci/upload-lighthouse-results
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: lighthouse-results-no-plugins-${{ github.run_id }}
+          path: |
+            e2e-tests/lighthouse/results/
+          retention-days: 30
+
+      - name: ci/upload-lighthouse-reports
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: lighthouse-html-reports-no-plugins-${{ github.run_id }}
+          path: e2e-tests/lighthouse/results/*.html
+          retention-days: 30
+
+      - name: ci/set-commit-status
+        if: always()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+
+            const commitSha = '${{ needs.setup.outputs.COMMIT_SHA }}';
+            if (!commitSha) {
+              console.log('No commit SHA available, skipping status update');
+              return;
+            }
+
+            const gradesPath = 'e2e-tests/lighthouse/results/grades.json';
+            let status = 'success';
+            let description = 'Lighthouse metrics collected (no plugins)';
+
+            try {
+              if (fs.existsSync(gradesPath)) {
+                const grades = JSON.parse(fs.readFileSync(gradesPath, 'utf-8'));
+                const overall = grades.overall;
+                const scores = grades.scores;
+                const pages = grades.pages.map(p => `${p.pageId}[${p.grade}]`).join(' ');
+
+                status = overall === 'FAIL' ? 'failure' : 'success';
+                if (scores) {
+                  description = `[No Plugins] Perf:${scores.performance} A11y:${scores.accessibility} BP:${scores.bestPractices} | ${pages}`;
+                } else {
+                  description = `[No Plugins] Web Vitals: ${overall} | ${pages}`;
+                }
+              } else {
+                status = 'failure';
+                description = 'Lighthouse results not found (no plugins)';
+              }
+            } catch (error) {
+              console.log('Error reading grades:', error.message);
+              status = 'failure';
+              description = `Error: ${error.message}`;
+            }
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: commitSha,
+              state: status,
+              target_url: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+              description: description.substring(0, 140),
+              context: 'Lighthouse Metrics (No Plugins)'
+            });
+
+            console.log(`Commit status: ${status} - ${description}`);
 
       - name: ci/stop-server
         if: always()

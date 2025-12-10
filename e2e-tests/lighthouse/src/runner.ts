@@ -33,7 +33,6 @@ function extractAllMetrics(
     const performanceScore = Math.round((lhr.categories?.performance?.score || 0) * 100);
     const accessibilityScore = Math.round((lhr.categories?.accessibility?.score || 0) * 100);
     const bestPracticesScore = Math.round((lhr.categories?.['best-practices']?.score || 0) * 100);
-    const seoScore = Math.round((lhr.categories?.seo?.score || 0) * 100);
 
     const result: MetricsResult = {
         pageId,
@@ -42,7 +41,6 @@ function extractAllMetrics(
         performanceScore,
         accessibilityScore,
         bestPracticesScore,
-        seoScore,
         metrics: {
             coreWebVitals: [],
             timing: [],
@@ -295,7 +293,6 @@ async function runLighthouseSingleAndReturn(
             performanceScore: Math.round((lhr.categories?.performance?.score || 0) * 100),
             accessibilityScore: Math.round((lhr.categories?.accessibility?.score || 0) * 100),
             bestPracticesScore: Math.round((lhr.categories?.['best-practices']?.score || 0) * 100),
-            seoScore: Math.round((lhr.categories?.seo?.score || 0) * 100),
             lcp: audits['largest-contentful-paint']?.numericValue || 0,
             tbt: audits['total-blocking-time']?.numericValue || 0,
             cls: audits['cumulative-layout-shift']?.numericValue || 0,
@@ -382,7 +379,6 @@ export async function runLighthouseMultiple(
             performanceScore: calculateStats(runs.map((r) => r.performanceScore)),
             accessibilityScore: calculateStats(runs.map((r) => r.accessibilityScore)),
             bestPracticesScore: calculateStats(runs.map((r) => r.bestPracticesScore)),
-            seoScore: calculateStats(runs.map((r) => r.seoScore)),
             lcp: calculateStats(runs.map((r) => r.lcp)),
             tbt: calculateStats(runs.map((r) => r.tbt)),
             cls: calculateStats(runs.map((r) => r.cls)),

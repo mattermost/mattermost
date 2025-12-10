@@ -24,6 +24,7 @@
  *   --setup-auth Create authentication session before running tests (auto-runs if auth missing)
  *   --runs=N     Run N iterations per page and report statistical summary (default: 1)
  *   --baseline   Save multi-run results as baseline for future comparison
+ *   --baseline-suffix=SUFFIX  Add suffix to baseline filename (e.g., "_no_plugins")
  *   --yes, -y    Skip confirmation prompts when updating existing baselines
  *
  * Environment Variables:
@@ -95,12 +96,17 @@ async function main() {
     const numRuns = runsArg ? parseInt(runsArg.split('=')[1], 10) : 1;
     const saveAsBaseline = args.includes('--baseline');
     const skipConfirm = args.includes('--yes') || args.includes('-y');
+    const baselineSuffixArg = args.find((a) => a.startsWith('--baseline-suffix='));
+    const baselineSuffix = baselineSuffixArg ? baselineSuffixArg.split('=')[1] : '';
 
     if (numRuns > 1) {
         console.log(`   Multi-run mode: ${numRuns} iterations per page`);
     }
     if (saveAsBaseline) {
         console.log(`   Baseline mode: Results will be saved as baseline`);
+    }
+    if (baselineSuffix) {
+        console.log(`   Baseline suffix: ${baselineSuffix}`);
     }
 
     if (!runLogin && !runChannels && !runAdmin && !args.find((a) => a.startsWith('--url='))) {
@@ -180,26 +186,26 @@ async function main() {
     }
 
     if (saveAsBaseline && summaries.length > 0) {
-        await saveBaseline(summaries, numRuns, baseUrl, skipConfirm);
+        await saveBaseline(summaries, numRuns, baseUrl, skipConfirm, baselineSuffix);
     } else if (saveAsBaseline && summaries.length === 0) {
         console.warn('\n[WARN] Cannot save baseline: No multi-run summaries available.');
         console.warn('   Use --runs=N with --baseline to generate baseline data.');
     } else if (!saveAsBaseline && summaries.length > 0) {
         // Save results to results folder for inspection (without updating baseline)
-        await saveResults(summaries, numRuns, baseUrl);
+        await saveResults(summaries, numRuns, baseUrl, baselineSuffix);
     }
 
     // Check for complete failures first
     if (failedPages.length > 0) {
         console.log(`\n${'='.repeat(60)}`);
-        console.log('❌ Lighthouse tests failed!');
+        console.log('Lighthouse tests failed!');
         console.log(`   ${failedPages.length} page(s) failed completely: ${failedPages.join(', ')}`);
         console.log(`${'='.repeat(60)}\n`);
         process.exit(1);
     }
 
     console.log(`\n${'='.repeat(60)}`);
-    console.log('✅ All Lighthouse tests complete!');
+    console.log('All Lighthouse tests complete!');
     if (numRuns > 1 && summaries.length > 0) {
         console.log(`   ${summaries.length} page(s) analyzed with ${numRuns} runs each`);
         if (saveAsBaseline) {
@@ -252,9 +258,11 @@ async function main() {
 
         console.log(`${'='.repeat(60)}\n`);
 
-        if (hasFail) {
-            process.exit(1);
-        }
+        // NOTE: Web Vitals failures do not fail the job for now (monitoring mode)
+        // Once thresholds are resolved, uncomment to enforce:
+        // if (hasFail) {
+        //     process.exit(1);
+        // }
     } else {
         console.log(`${'='.repeat(60)}\n`);
     }

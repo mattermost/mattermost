@@ -9,6 +9,7 @@ ADMIN_PASSWORD="${MM_ADMIN_PASSWORD:-Sys@dmin-sample1}"
 ADMIN_EMAIL="${MM_ADMIN_EMAIL:-sysadmin@sample.mattermost.com}"
 LIGHTHOUSE_RUNS="${LIGHTHOUSE_RUNS:-5}"
 LIGHTHOUSE_PAGES="${LIGHTHOUSE_PAGES:---all}"
+LIGHTHOUSE_BASELINE_SUFFIX="${LIGHTHOUSE_BASELINE_SUFFIX:-}"
 
 mme2e_log "=== Web Vitals with Lighthouse ==="
 
@@ -73,9 +74,16 @@ export MM_ADMIN_USERNAME="$ADMIN_USERNAME"
 export MM_ADMIN_PASSWORD="$ADMIN_PASSWORD"
 export NODE_OPTIONS="--max-old-space-size=8192"
 
+# Build lighthouse command with optional baseline suffix
+LIGHTHOUSE_CMD="npm run lh -- $LIGHTHOUSE_PAGES --runs=$LIGHTHOUSE_RUNS"
+if [ -n "$LIGHTHOUSE_BASELINE_SUFFIX" ]; then
+    LIGHTHOUSE_CMD="$LIGHTHOUSE_CMD --baseline-suffix=$LIGHTHOUSE_BASELINE_SUFFIX"
+    mme2e_log "  Baseline suffix: $LIGHTHOUSE_BASELINE_SUFFIX"
+fi
+
 # Run lighthouse tests
 # Exit code: 0 = PASS/WARN, 1 = FAIL (any page failed Web Vitals thresholds)
-npm run lh -- "$LIGHTHOUSE_PAGES" --runs="$LIGHTHOUSE_RUNS" 2>&1 | tee results/lighthouse.log
+$LIGHTHOUSE_CMD 2>&1 | tee results/lighthouse.log
 LIGHTHOUSE_EXIT_CODE=${PIPESTATUS[0]}
 
 if [ "$LIGHTHOUSE_EXIT_CODE" -ne 0 ]; then

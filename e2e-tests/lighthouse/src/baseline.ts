@@ -49,6 +49,17 @@ export function loadBaseline(): LighthouseBaseline | null {
     }
 }
 
+function loadBaselineFromFile(filePath: string): LighthouseBaseline | null {
+    if (!fs.existsSync(filePath)) {
+        return null;
+    }
+    try {
+        return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    } catch {
+        return null;
+    }
+}
+
 export function getMachineInfo(): MachineInfo {
     const cpus = os.cpus();
     return {
@@ -127,21 +138,23 @@ export async function saveBaseline(
     runsPerPage: number,
     baseUrl: string,
     skipConfirm: boolean = false,
+    suffix: string = '',
 ): Promise<void> {
     const machine = getMachineInfo();
     const server = await getServerInfo(baseUrl);
 
     const serverVersion = server?.version || 'unknown';
-    const versionedFileName = `${serverVersion}_perf.json`;
+    const versionedFileName = `${serverVersion}${suffix}_perf.json`;
     const versionedFilePath = path.resolve(BASELINE_DIR, versionedFileName);
+    const latestBaselineFile = suffix ? path.resolve(BASELINE_DIR, `latest${suffix}_perf.json`) : LATEST_BASELINE_FILE;
 
     // Check if baseline files already exist
-    const latestExists = fs.existsSync(LATEST_BASELINE_FILE);
+    const latestExists = fs.existsSync(latestBaselineFile);
     const versionedExists = fs.existsSync(versionedFilePath);
     const baselineExists = latestExists || versionedExists;
 
-    // Load existing baseline to preserve pages that won't be updated
-    const existingBaseline = loadBaseline();
+    // Load existing baseline to preserve pages that won't be updated (use suffix-specific file)
+    const existingBaseline = suffix ? loadBaselineFromFile(latestBaselineFile) : loadBaseline();
 
     const baseline: LighthouseBaseline = {
         version: BASELINE_VERSION,
@@ -156,7 +169,7 @@ export async function saveBaseline(
     if (baselineExists && !skipConfirm) {
         console.log(`\nBaseline files already exist:`);
         if (latestExists) {
-            console.log(`   Latest:    ${LATEST_BASELINE_FILE}`);
+            console.log(`   Latest:    ${latestBaselineFile}`);
         }
         if (versionedExists) {
             console.log(`   Versioned: ${versionedFilePath}`);
@@ -185,7 +198,6 @@ export async function saveBaseline(
                 performanceScore: toBaselineMetric(summary.stats.performanceScore),
                 accessibilityScore: toBaselineMetric(summary.stats.accessibilityScore),
                 bestPracticesScore: toBaselineMetric(summary.stats.bestPracticesScore),
-                seoScore: toBaselineMetric(summary.stats.seoScore),
                 lcp: toBaselineMetric(summary.stats.lcp),
                 tbt: toBaselineMetric(summary.stats.tbt),
                 cls: toBaselineMetric(summary.stats.cls),
@@ -214,11 +226,11 @@ export async function saveBaseline(
         fs.mkdirSync(BASELINE_DIR, {recursive: true});
     }
 
-    fs.writeFileSync(LATEST_BASELINE_FILE, JSON.stringify(baseline, null, 2));
+    fs.writeFileSync(latestBaselineFile, JSON.stringify(baseline, null, 2));
     fs.writeFileSync(versionedFilePath, JSON.stringify(baseline, null, 2));
 
     console.log(`\nBaseline saved:`);
-    console.log(`   Latest:    file://${LATEST_BASELINE_FILE}`);
+    console.log(`   Latest:    file://${latestBaselineFile}`);
     console.log(`   Versioned: file://${versionedFilePath}`);
     console.log(`   Updated:   ${updatedPages.join(', ')}`);
     if (skippedPages.length > 0) {
@@ -235,12 +247,16 @@ export async function saveBaseline(
 /**
  * Save multi-run results to results folder (similar format to baseline, for inspection)
  */
-export async function saveResults(summaries: MultiRunSummary[], runsPerPage: number, baseUrl: string): Promise<string> {
+export async function saveResults(
+    summaries: MultiRunSummary[],
+    runsPerPage: number,
+    baseUrl: string,
+    suffix: string = '',
+): Promise<string> {
     const machine = getMachineInfo();
     const server = await getServerInfo(baseUrl);
 
     const serverVersion = server?.version || 'unknown';
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
     const results: LighthouseBaseline = {
         version: BASELINE_VERSION,
@@ -257,7 +273,6 @@ export async function saveResults(summaries: MultiRunSummary[], runsPerPage: num
             performanceScore: toBaselineMetric(summary.stats.performanceScore),
             accessibilityScore: toBaselineMetric(summary.stats.accessibilityScore),
             bestPracticesScore: toBaselineMetric(summary.stats.bestPracticesScore),
-            seoScore: toBaselineMetric(summary.stats.seoScore),
             lcp: toBaselineMetric(summary.stats.lcp),
             tbt: toBaselineMetric(summary.stats.tbt),
             cls: toBaselineMetric(summary.stats.cls),
@@ -276,8 +291,8 @@ export async function saveResults(summaries: MultiRunSummary[], runsPerPage: num
         fs.mkdirSync(RESULTS_DIR, {recursive: true});
     }
 
-    // Save with server version and timestamp
-    const resultsFileName = `${serverVersion}_${timestamp}_results.json`;
+    // Save with server version and optional suffix
+    const resultsFileName = `${serverVersion}${suffix}_perf.json`;
     const resultsFilePath = path.resolve(RESULTS_DIR, resultsFileName);
     fs.writeFileSync(resultsFilePath, JSON.stringify(results, null, 2));
 
