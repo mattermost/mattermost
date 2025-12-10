@@ -1091,6 +1091,53 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
+    post:
+      tags:
+        - wikis
+      summary: Create page draft
+      description: |
+        Create a new page draft in a wiki.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `create_post` permission in the wiki's channel.
+      operationId: CreatePageDraft
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: The content of the draft
+                page_parent_id:
+                  type: string
+                  description: Optional parent page ID for hierarchical organization
+        description: Draft data
+        required: true
+      responses:
+        "201":
+          description: Draft creation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Draft"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
   /api/v4/wikis/{wiki_id}/drafts/{draft_id}:
     get:
       tags:
