@@ -6,8 +6,7 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
-import {fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
