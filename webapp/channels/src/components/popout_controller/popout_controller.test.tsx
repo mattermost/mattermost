@@ -35,6 +35,11 @@ jest.mock('components/thread_popout', () => ({
     __esModule: true,
     default: () => <div data-testid='thread-popout'>{'Thread Popout'}</div>,
 }));
+
+jest.mock('components/rhs_popout', () => ({
+    __esModule: true,
+    default: () => <div data-testid='rhs-popout'>{'RHS Popout'}</div>,
+}));
 jest.mock('utils/popouts/use_browser_popout', () => ({
     __esModule: true,
     useBrowserPopout: jest.fn(),
@@ -43,6 +48,13 @@ jest.mock('utils/popouts/use_browser_popout', () => ({
 jest.mock('components/logged_in', () => ({
     __esModule: true,
     default: ({children}: {children: React.ReactNode}) => <div data-testid='logged-in'>{children}</div>,
+}));
+
+jest.mock('plugins/pluggable', () => ({
+    __esModule: true,
+    default: ({pluggableName}: {pluggableName: string}) => (
+        <div data-testid={`pluggable-${pluggableName}`}>{`Pluggable: ${pluggableName}`}</div>
+    ),
 }));
 
 const mockGetMe = getMe as jest.MockedFunction<typeof getMe>;
@@ -129,6 +141,16 @@ describe('PopoutController', () => {
         expect(screen.getByTestId('thread-popout')).toBeInTheDocument();
     });
 
+    it('should render rhs popout for rhs route', () => {
+        renderWithContext(
+            <MemoryRouter initialEntries={['/_popout/rhs/test-team/channel-identifier']}>
+                <PopoutController {...baseRouteProps}/>
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('rhs-popout')).toBeInTheDocument();
+    });
+
     it('should maintain body classes on re-render', () => {
         const {rerender} = renderWithContext(
             <PopoutController {...baseRouteProps}/>,
@@ -176,5 +198,14 @@ describe('PopoutController', () => {
 
         expect(mockLoadStatusesByIds).toHaveBeenCalledTimes(1);
         expect(mockLoadStatusesByIds).toHaveBeenCalledWith([currentUserId]);
+    });
+
+    it('should render Pluggable for Root', () => {
+        renderWithContext(
+            <PopoutController {...baseRouteProps}/>,
+        );
+
+        expect(screen.getByTestId('pluggable-Root')).toBeInTheDocument();
+        expect(screen.getByText('Pluggable: Root')).toBeInTheDocument();
     });
 });
