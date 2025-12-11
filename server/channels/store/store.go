@@ -619,7 +619,9 @@ type SystemStore interface {
 	SaveOrUpdate(system *model.System) error
 	Update(system *model.System) error
 	Get() (model.StringMap, error)
+	GetWithContext(rctx request.CTX) (model.StringMap, error)
 	GetByName(name string) (*model.System, error)
+	GetByNameWithContext(rctx request.CTX, name string) (*model.System, error)
 	PermanentDeleteByName(name string) (*model.System, error)
 	InsertIfExists(system *model.System) (*model.System, error)
 }
