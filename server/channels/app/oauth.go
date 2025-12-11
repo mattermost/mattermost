@@ -1193,6 +1193,10 @@ func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId 
 		return "", err
 	}
 
+	if user.IsMagicLinkEnabled() {
+		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.magic_link.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if user.Id != requesterId {
 		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.context.app_error", nil, "", http.StatusForbidden)
 	}
