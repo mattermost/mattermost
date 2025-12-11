@@ -160,9 +160,10 @@ const useKeyHandler = (
 
         if ((Keyboard.isKeyPressed(e, KeyCodes.PAGE_UP) || Keyboard.isKeyPressed(e, KeyCodes.PAGE_DOWN))) {
             const textbox = textboxRef.current?.getInputBox();
-            const hasScrollableContent = textbox.scrollHeight > textbox.clientHeight;
 
-            if (textbox && textbox === document.activeElement && hasScrollableContent) {
+            const hasScrollableContent = textbox && textbox.scrollHeight > textbox.clientHeight;
+
+            if (hasScrollableContent) {
                 return;
             }
 
