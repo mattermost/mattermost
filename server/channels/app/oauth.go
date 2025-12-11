@@ -794,6 +794,62 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 	return user, nil
 }
 
+// LoginByIntune authenticates a user using a Microsoft Entra ID access_token from MSAL
+// This is used by mobile clients with Microsoft Intune MAM enabled
+func (a *App) LoginByIntune(rctx request.CTX, accessToken string) (*model.User, *model.AppError) {
+	// Check if Intune interface is available (enterprise feature)
+	if a.Intune() == nil {
+		return nil, model.NewAppError(
+			"App.LoginByIntune",
+			"api.user.login_by_intune.not_available.app_error",
+			nil,
+			"",
+			http.StatusNotImplemented,
+		)
+	}
+
+	// Check if Intune is configured
+	if !a.Intune().IsConfigured() {
+		return nil, model.NewAppError(
+			"App.LoginByIntune",
+			"api.user.login_by_intune.not_configured.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	// Perform Intune login via enterprise interface
+	user, appErr := a.Intune().Login(rctx, accessToken)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Prevent bot login
+	if user.IsBot {
+		return nil, model.NewAppError(
+			"App.LoginByIntune",
+			"api.user.login_by_intune.bot_login_forbidden.app_error",
+			nil,
+			"",
+			http.StatusForbidden,
+		)
+	}
+
+	// Check if account is locked/disabled
+	if user.DeleteAt != 0 {
+		return nil, model.NewAppError(
+			"App.LoginByIntune",
+			"api.user.login_by_intune.account_locked.app_error",
+			nil,
+			"user_id="+user.Id,
+			http.StatusConflict,
+		)
+	}
+
+	return user, nil
+}
+
 func (a *App) CompleteSwitchWithOAuth(rctx request.CTX, service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
