@@ -741,23 +741,24 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         return null;
                     }
 
-                    return [
-                        !isSystemMessage && <Menu.Separator key='delete-separator'/>,
-                        <Menu.Item
-                            key='delete-item'
-                            id={`delete_post_${this.props.post.id}`}
-                            data-testid={`delete_post_${this.props.post.id}`}
-                            leadingElement={<TrashCanOutlineIcon size={18}/>}
-                            trailingElements={<span>{'delete'}</span>}
-                            labels={
-                                <FormattedMessage
-                                    id='post_info.del'
-                                    defaultMessage='Delete'
-                                />}
-                            onClick={this.handleDeleteMenuItemActivated}
-                            isDestructive={true}
-                        />,
-                    ];
+                    return (
+                        <>
+                            {!isSystemMessage && <Menu.Separator/>}
+                            <Menu.Item
+                                id={`delete_post_${this.props.post.id}`}
+                                data-testid={`delete_post_${this.props.post.id}`}
+                                leadingElement={<TrashCanOutlineIcon size={18}/>}
+                                trailingElements={<span>{'delete'}</span>}
+                                labels={
+                                    <FormattedMessage
+                                        id='post_info.del'
+                                        defaultMessage='Delete'
+                                    />}
+                                onClick={this.handleDeleteMenuItemActivated}
+                                isDestructive={true}
+                            />
+                        </>
+                    );
                 })()}
                 {
                     this.props.canFlagContent &&
