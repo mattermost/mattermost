@@ -146,7 +146,6 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-
 	_, _, err = configStore.Set(memoryConfig)
 	require.NoError(tb, err)
 
