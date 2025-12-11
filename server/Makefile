@@ -45,9 +45,11 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 # Coverage instrumentation increases memory usage significantly. Combined with
 # parallel test execution, this can cause OOM kills in CI. We limit both package
 # parallelism (-p) and test parallelism (-parallel) to reduce memory pressure.
+# GOGC=50 triggers GC more frequently to keep memory usage lower.
 ENABLE_COVERAGE ?= false
 ifeq ($(ENABLE_COVERAGE),true)
-COVERAGE_FLAG = -p 1 -parallel 2 -coverprofile=cover.out -covermode=atomic
+COVERAGE_FLAG = -p 1 -parallel 0 -coverprofile=cover.out -covermode=atomic
+COVERAGE_ENV = GOGC=50
 endif
 
 # mmctl
@@ -472,7 +474,7 @@ test-server: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server: test-server-pre
-	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m $(COVERAGE_FLAG)
+	$(COVERAGE_ENV) $(GOBIN)/gotestsum --rerun-fails=3 --packages="$(TE_PACKAGES) $(EE_PACKAGES)" -- $(GOFLAGS) -timeout=90m $(COVERAGE_FLAG)
 ifneq ($(IS_CI),true)
   ifneq ($(MM_NO_DOCKER),true)
     ifneq ($(TEMP_DOCKER_SERVICES),)
