@@ -13,6 +13,8 @@ const EditButton = styled.button`
     padding: 0px;
     border-radius: 4px;
     background: none;
+    position: relative;
+    top: -2px;
     color: rgba(var(--center-channel-color-rgb), 0.64);
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
