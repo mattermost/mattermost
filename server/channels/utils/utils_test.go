@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -444,8 +445,8 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.True(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.NoError(t, err)
 	})
 
 	t.Run("Valid redirect URL with matching scheme and host with port", func(t *testing.T) {
@@ -456,8 +457,8 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com:8080/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.True(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.NoError(t, err)
 	})
 
 	t.Run("Invalid redirect URL with different scheme", func(t *testing.T) {
@@ -468,8 +469,9 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "http://example.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "scheme")
 	})
 
 	t.Run("Invalid redirect URL with different host", func(t *testing.T) {
@@ -480,8 +482,9 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://malicious.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "host")
 	})
 
 	t.Run("Invalid redirect URL with different port", func(t *testing.T) {
@@ -492,8 +495,9 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com:9090/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "host")
 	})
 
 	t.Run("Invalid redirect URL - malformed URL", func(t *testing.T) {
@@ -502,10 +506,11 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 				SiteURL: model.NewPointer("https://example.com"),
 			},
 		}
-		redirectURL := "not-a-valid-url"
+		redirectURL := "://not-a-valid-url"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to parse redirect URL")
 	})
 
 	t.Run("Invalid config - nil SiteURL", func(t *testing.T) {
@@ -516,20 +521,22 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "SiteURL is not configured")
 	})
 
 	t.Run("Invalid config - malformed SiteURL", func(t *testing.T) {
 		config := &model.Config{
 			ServiceSettings: model.ServiceSettings{
-				SiteURL: model.NewPointer("not-a-valid-url"),
+				SiteURL: model.NewPointer("://not-a-valid-url"),
 			},
 		}
 		redirectURL := "https://example.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to parse SiteURL")
 	})
 
 	t.Run("Valid redirect URL with subdomain", func(t *testing.T) {
@@ -540,8 +547,8 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://app.example.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.True(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.NoError(t, err)
 	})
 
 	t.Run("Invalid redirect URL with different subdomain", func(t *testing.T) {
@@ -552,8 +559,9 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://api.example.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "host")
 	})
 
 	t.Run("Valid redirect URL with path", func(t *testing.T) {
@@ -564,8 +572,8 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/mattermost/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.True(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.NoError(t, err)
 	})
 
 	t.Run("Valid redirect URL with query parameters", func(t *testing.T) {
@@ -576,8 +584,8 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback?state=abc123&code=def456"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.True(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.NoError(t, err)
 	})
 
 	t.Run("Valid redirect URL with fragment", func(t *testing.T) {
@@ -588,8 +596,8 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback#token=abc123"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.True(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.NoError(t, err)
 	})
 
 	t.Run("Invalid redirect URL with @ symbol in host", func(t *testing.T) {
@@ -600,7 +608,8 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://qa-release.test.mattermost.cloud@example.com/oauth/callback"
 
-		result := IsValidWebAuthRedirectURL(config, redirectURL)
-		assert.False(t, result)
+		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "host")
 	})
 }
