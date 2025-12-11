@@ -227,6 +227,32 @@ describe('Channel Info RHS', () => {
                     cy.uiGetRHS().findByText('header for the tests').should('be.visible');
                 });
             });
+            it('should be able to rename channel from About area', () => {
+                // # Go to test channel
+                cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
+                // # Open Channel Info RHS
+                cy.get('#channel-info-btn').click();
+
+                // # Click edit on channel name (first Edit in About)
+                cy.uiGetRHS().findAllByLabelText('Edit').first().click({force: true});
+
+                // * Rename Channel modal appears
+                cy.findByRole('heading', {name: /rename channel/i}).should('be.visible');
+
+                // # Fill display name and URL
+                cy.findByPlaceholderText(/enter display name/i).clear().type('Renamed Channel');
+                cy.get('.new-channel-modal__url').find('input').clear().type('renamed-channel');
+
+                // # Save
+                cy.findByRole('button', {name: /save/i}).click();
+
+                // * URL updated
+                cy.location('pathname').should('include', `/${testTeam.name}/channels/renamed-channel`);
+
+                // * Header shows new name
+                cy.get('#channelHeaderTitle').should('contain', 'Renamed Channel');
+            });
         });
         describe('bottom menu', () => {
             it('should be able to manage notifications', () => {
@@ -241,6 +267,19 @@ describe('Channel Info RHS', () => {
 
                 // * Ensures the modal is there
                 cy.get('.ChannelNotificationModal').should('be.visible');
+            });
+            it('should open Channel Settings from RHS menu', () => {
+                // # Go to test channel
+                cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+
+                // # Click on the channel info button
+                cy.get('#channel-info-btn').click();
+
+                // * Channel Settings item is visible in RHS menu
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Channel Settings').should('be.visible').click();
+
+                // * Channel Settings modal opens
+                cy.get('.ChannelSettingsModal').should('be.visible');
             });
             it('should be able to view files and come back', () => {
                 // # Go to test channel
