@@ -40,4 +40,5 @@ const (
 	NotificationReasonTooManyUsersInChannel              NotificationReason = "too_many_users_in_channel"
 	NotificationReasonResolvePersistentNotificationError NotificationReason = "resolve_persistent_notification_error"
 	NotificationReasonMissingThreadMembership            NotificationReason = "missing_thread_membership"
+	NotificationReasonRecipientIsBot                     NotificationReason = "recipient_is_bot"
 )
