@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -29,6 +30,18 @@ func (ps *PlatformService) NewClusterDiscoveryService() *ClusterDiscoveryService
 }
 
 func (ps *PlatformService) IsLeader() bool {
+	license := ps.License()
+	var serializedLicense []byte
+	if license != nil {
+		serializedLicense, _ = json.Marshal(license)
+	}
+
+	mlog.Info("AAAAAA",
+		mlog.String("License", string(serializedLicense)),
+		mlog.Bool("ClusterEnabled", *ps.Config().ClusterSettings.Enable),
+		mlog.Bool("clusterinterface", ps.clusterIFace != nil),
+	)
+
 	if ps.License() != nil && *ps.Config().ClusterSettings.Enable && ps.clusterIFace != nil {
 		return ps.clusterIFace.IsLeader()
 	}
