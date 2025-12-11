@@ -6,8 +6,8 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
-import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
+import {setMyChannelAutotranslation, updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
+import {getChannelAutotranslation, getMyChannelAutotranslation, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     isCollapsedThreadsEnabled,
@@ -17,14 +17,18 @@ import type {GlobalState} from 'types/store/index';
 
 import ChannelNotificationsModal from './channel_notifications_modal';
 
-const mapStateToProps = (state: GlobalState) => ({
+const mapStateToProps = (state: GlobalState, ownProps: {channel: {id: string}}) => ({
     collapsedReplyThreads: isCollapsedThreadsEnabled(state),
     channelMember: getMyCurrentChannelMembership(state),
     sendPushNotifications: getConfig(state).SendPushNotifications === 'true',
+    channelAutotranslationEnabled: getChannelAutotranslation(state, ownProps.channel.id),
+    myChannelAutotranslation: getMyChannelAutotranslation(state, ownProps.channel.id),
+    enableAutoTranslation: getConfig(state).EnableAutoTranslation === 'true',
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
+        setMyChannelAutotranslation,
         updateChannelNotifyProps,
     }, dispatch),
 });

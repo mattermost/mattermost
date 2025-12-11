@@ -37,6 +37,7 @@ import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
+import GlobeIcon from 'components/widgets/icons/globe_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
@@ -122,6 +123,7 @@ export type Props = {
     pluginActions: PostActionComponent[];
     shouldDisplayBurnOnReadConcealed?: boolean;
     isBurnOnReadEnabled?: boolean;
+    isChannelAutotranslated?: boolean;
 };
 
 function PostComponent(props: Props) {
@@ -524,6 +526,7 @@ function PostComponent(props: Props) {
                 pluginPostTypes={props.pluginPostTypes}
                 isRHS={isRHS}
                 compactDisplay={props.compactDisplay}
+                isChannelAutotranslated={props.isChannelAutotranslated}
             />
         );
     }
@@ -663,6 +666,15 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
+                                {props.isChannelAutotranslated && post.translation_state === 'ready' && (
+                                    <GlobeIcon
+                                        className='icon icon--small post__translation-icon'
+                                        aria-label={formatMessage({
+                                            id: 'post_info.translation_icon',
+                                            defaultMessage: 'This post has been translated',
+                                        })}
+                                    />
+                                )}
                                 {priority}
                                 {burnOnReadBadge}
                                 {((!props.compactDisplay && !(hasSameRoot(props) && props.isConsecutivePost)) || (props.compactDisplay && isRHS)) &&

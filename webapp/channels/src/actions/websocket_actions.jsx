@@ -36,6 +36,7 @@ import {
     fetchAllMyChannelMembers,
     fetchAllMyTeamsChannels,
     fetchChannelsAndMembers,
+    deletePostsForChannel,
 } from 'mattermost-redux/actions/channels';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
@@ -81,6 +82,8 @@ import {
     getCurrentChannel,
     getCurrentChannelId,
     getRedirectChannelNameForTeam,
+    getMyChannelMember as getMyChannelMemberInternal,
+    getAllChannels,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -444,7 +447,7 @@ export function handleEvent(msg) {
         break;
 
     case SocketEvents.CHANNEL_MEMBER_UPDATED:
-        handleChannelMemberUpdatedEvent(msg);
+        dispatch(handleChannelMemberUpdatedEvent(msg));
         break;
 
     case SocketEvents.CHANNEL_BOOKMARK_CREATED:
@@ -694,6 +697,11 @@ export function handleChannelUpdatedEvent(msg) {
             if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
                 actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
             }
+
+            // If autotranslation was disabled, delete posts for this channel
+            if (existingChannel.autotranslation && !channel.autotranslation) {
+                doDispatch(deletePostsForChannel(channel.id));
+            }
         }
 
         doDispatch(batchActions(actions));
@@ -707,10 +715,21 @@ export function handleChannelUpdatedEvent(msg) {
 }
 
 function handleChannelMemberUpdatedEvent(msg) {
-    const channelMember = JSON.parse(msg.data.channelMember);
-    const roles = channelMember.roles.split(' ');
-    dispatch(loadRolesIfNeeded(roles));
-    dispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
+    return (doDispatch, doGetState) => {
+        const channelMember = JSON.parse(msg.data.channelMember);
+        const roles = channelMember.roles.split(' ');
+        doDispatch(loadRolesIfNeeded(roles));
+
+        const state = doGetState();
+        const existingMember = getMyChannelMemberInternal(state, channelMember.channel_id);
+
+        // If user autotranslation changed, delete posts for this channel
+        if (existingMember && existingMember.autotranslation !== channelMember.autotranslation) {
+            doDispatch(deletePostsForChannel(channelMember.channel_id));
+        }
+
+        doDispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
+    };
 }
 
 function debouncePostEvent(wait) {
@@ -1416,7 +1435,25 @@ function handleUserRoleUpdated(msg) {
 }
 
 function handleConfigChanged(msg) {
-    store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: msg.data.config});
+    const state = getState();
+    const currentConfig = getConfig(state);
+    const newConfig = msg.data.config;
+
+    // Check if EnableAutoTranslation changed from enabled to disabled
+    const enableAutoTranslationWasEnabled = currentConfig?.EnableAutoTranslation === 'true';
+    const enableAutoTranslationIsDisabled = newConfig?.EnableAutoTranslation !== 'true';
+
+    if (enableAutoTranslationWasEnabled && enableAutoTranslationIsDisabled) {
+        // Delete posts for all channels with autotranslation enabled
+        const allChannels = getAllChannels(state);
+        for (const channel of Object.values(allChannels)) {
+            if (channel.autotranslation) {
+                dispatch(deletePostsForChannel(channel.id));
+            }
+        }
+    }
+
+    store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
 }
 
 function handleLicenseChanged(msg) {
