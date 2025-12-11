@@ -126,7 +126,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         onClick={this.onHide}
                     >
                         <FormattedMessage
-                            id='rename_channel.cancel'
+                            id='generic_btn.cancel'
                             defaultMessage='Cancel'
                         />
                     </button>
@@ -137,7 +137,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
-                            id='rename_channel.save'
+                            id='generic_btn.save'
                             defaultMessage='Save'
                         />
                     </button>
