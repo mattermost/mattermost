@@ -257,7 +257,7 @@ describe('components/post_view/MessageAttachment', () => {
         expect(wrapper.find('.attachment')).toMatchSnapshot();
     });
 
-    test('should handle action errors and display error message', async () => {
+    test('should handle action errors and display error message', (done) => {
         const errorMessage = 'Action failed to execute';
         const doPostActionWithCookie = jest.fn().mockResolvedValue({
             error: {message: errorMessage},
@@ -274,21 +274,25 @@ describe('components/post_view/MessageAttachment', () => {
         expect(wrapper.find('.has-error')).toHaveLength(0);
 
         // Trigger action
-        await wrapper.instance().handleAction({
-            preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
         } as React.MouseEvent, []);
 
-        // Update wrapper to get latest state
-        wrapper.update();
+        // Wait for promise to resolve
+        process.nextTick(() => {
+            // Update wrapper to get latest state
+            wrapper.update();
 
-        // Error should now be displayed
-        expect(wrapper.state('actionError')).toBe(errorMessage);
-        expect(wrapper.find('.has-error')).toHaveLength(1);
-        expect(wrapper.find('.control-label').text()).toBe(errorMessage);
+            // Error should now be displayed
+            expect(wrapper.state('actionError')).toBe(errorMessage);
+            expect(wrapper.find('.has-error')).toHaveLength(1);
+            expect(wrapper.find('.control-label').text()).toBe(errorMessage);
+            done();
+        });
     });
 
-    test('should handle promise rejection errors', async () => {
+    test('should handle promise rejection errors', (done) => {
         const errorMessage = 'Network error occurred';
         const doPostActionWithCookie = jest.fn().mockRejectedValue(new Error(errorMessage));
         const actionId = 'action_id_1';
@@ -303,21 +307,25 @@ describe('components/post_view/MessageAttachment', () => {
         expect(wrapper.find('.has-error')).toHaveLength(0);
 
         // Trigger action
-        await wrapper.instance().handleAction({
-            preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
         } as React.MouseEvent, []);
 
-        // Update wrapper to get latest state
-        wrapper.update();
+        // Wait for promise to reject and catch to execute
+        process.nextTick(() => {
+            // Update wrapper to get latest state
+            wrapper.update();
 
-        // Error should now be displayed
-        expect(wrapper.state('actionError')).toBe(errorMessage);
-        expect(wrapper.find('.has-error')).toHaveLength(1);
-        expect(wrapper.find('.control-label').text()).toBe(errorMessage);
+            // Error should now be displayed
+            expect(wrapper.state('actionError')).toBe(errorMessage);
+            expect(wrapper.find('.has-error')).toHaveLength(1);
+            expect(wrapper.find('.control-label').text()).toBe(errorMessage);
+            done();
+        });
     });
 
-    test('should clear previous errors when new action is triggered', async () => {
+    test('should clear previous errors when new action is triggered', (done) => {
         const doPostActionWithCookie = jest.fn().mockResolvedValue({data: 'success'});
         const actionId = 'action_id_1';
         const newAttachment = {
@@ -332,16 +340,20 @@ describe('components/post_view/MessageAttachment', () => {
         expect(wrapper.state('actionError')).toBe('Previous error');
 
         // Trigger new action
-        await wrapper.instance().handleAction({
-            preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
         } as React.MouseEvent, []);
 
-        // Error should be cleared on successful action
-        expect(wrapper.state('actionError')).toBeNull();
+        // Wait for promise to resolve
+        process.nextTick(() => {
+            // Error should be cleared on successful action
+            expect(wrapper.state('actionError')).toBeNull();
+            done();
+        });
     });
 
-    test('should render error message with default text when no error message provided', async () => {
+    test('should render error message with default text when no error message provided', (done) => {
         const doPostActionWithCookie = jest.fn().mockResolvedValue({
             error: {}, // Error object without message
         });
@@ -354,16 +366,20 @@ describe('components/post_view/MessageAttachment', () => {
         const wrapper = shallow<MessageAttachment>(<MessageAttachment {...props}/>);
 
         // Trigger action
-        await wrapper.instance().handleAction({
-            preventDefault: jest.fn(),
-            currentTarget: {getAttribute: jest.fn().mockReturnValue('attr_value')} as any,
+        wrapper.instance().handleAction({
+            preventDefault: () => {},
+            currentTarget: {getAttribute: () => 'attr_value'} as any,
         } as React.MouseEvent, []);
 
-        // Update wrapper to get latest state
-        wrapper.update();
+        // Wait for promise to resolve
+        process.nextTick(() => {
+            // Update wrapper to get latest state
+            wrapper.update();
 
-        // Should show default error message
-        expect(wrapper.state('actionError')).toBe('Action failed to execute');
-        expect(wrapper.find('.control-label').text()).toBe('Action failed to execute');
+            // Should show default error message
+            expect(wrapper.state('actionError')).toBe('Action failed to execute');
+            expect(wrapper.find('.control-label').text()).toBe('Action failed to execute');
+            done();
+        });
     });
 });
