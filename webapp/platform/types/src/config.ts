@@ -24,6 +24,7 @@ export type ClientConfig = {
     BuildHash: string;
     BuildHashEnterprise: string;
     BuildNumber: string;
+    IsFipsEnabled: string;
     CollapsedThreads: CollapsedThreads;
     CustomBrandText: string;
     CustomDescriptionText: string;
