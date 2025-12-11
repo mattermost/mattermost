@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -51,6 +52,8 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
+	api.BaseRoutes.Post.Handle("/reveal", api.APISessionRequired(revealPost)).Methods(http.MethodGet)
+	api.BaseRoutes.Post.Handle("/burn", api.APISessionRequired(burnPost)).Methods(http.MethodDelete)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -126,6 +129,24 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	// Note that rp has already had PreparePostForClient called on it by App.CreatePost
+	// For burn-on-read posts, the author should see the revealed content in the API response
+	// to avoid relying on websocket events which may fail due to connection issues
+	if rp.Type == model.PostTypeBurnOnRead && rp.UserId == c.AppContext.Session().UserId {
+		// Force read from master DB to avoid replication delay issues in DB cluster environments.
+		// Without this, the replica might not have the post yet, causing "not found" errors.
+		masterCtx := sqlstore.RequestContextWithMaster(c.AppContext)
+		revealedPost, appErr := c.App.GetSinglePost(masterCtx, rp.Id, false)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		// GetSinglePost calls RevealBurnOnReadPostsForUser which reveals the post for the author,
+		// then PreparePostForClient adds metadata (reactions, files, embeds).
+		rp = c.App.PreparePostForClient(masterCtx, revealedPost, &model.PreparePostForClientOpts{
+			IsNewPost: true,
+		})
+	}
+
 	if err := rp.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -264,8 +285,12 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HeaderEtagServer, etag)
 	}
 
-	c.App.AddCursorIdsForPostList(list, afterPost, beforePost, since, page, perPage, collapsedThreads)
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, list)
+
+	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
+	// to ensure they only reference posts that are actually in the response
+	c.App.AddCursorIdsForPostList(clientPostList, afterPost, beforePost, since, page, perPage, collapsedThreads)
+
 	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -330,10 +355,12 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 		}
 	}
 
-	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList, collapsedThreads)
-	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList, collapsedThreads)
-
 	clientPostList := c.App.PreparePostListForClient(c.AppContext, postList)
+
+	// Calculate NextPostId and PrevPostId AFTER filtering (including BoR filtering)
+	// to ensure they only reference posts that are actually in the response
+	clientPostList.NextPostId = c.App.GetNextPostIdFromPostList(clientPostList, collapsedThreads)
+	clientPostList.PrevPostId = c.App.GetPrevPostIdFromPostList(clientPostList, collapsedThreads)
 	clientPostList, err = c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -1416,4 +1443,111 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(*response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	if !c.App.Config().FeatureFlags.BurnOnRead {
+		c.Err = model.NewAppError("revealPost", "api.post.reveal_post.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+	postId := c.Params.PostId
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRevealPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", postId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
+
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+		return
+	}
+
+	_, err = c.App.GetChannelMember(c.AppContext, post.ChannelId, userId)
+	if err != nil {
+		if err.Id == "app.channel.get_member.missing.app_error" {
+			c.Err = model.NewAppError("revealPost", "api.post.reveal_post.user_not_in_channel.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusForbidden)
+		} else {
+			c.Err = err
+		}
+		return
+	}
+
+	if post.UserId == userId {
+		c.Err = model.NewAppError("revealPost", "api.post.reveal_post.cannot_reveal_own_post.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusBadRequest)
+		return
+	}
+
+	// should reveal the post
+	// if it's already revealed, it should be a no-op if the post is not expired yet
+	// if it's expired, it should return an error
+	revealedPost, err := c.App.RevealPost(c.AppContext, post, userId, connectionID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(revealedPost)
+
+	if jsErr := revealedPost.EncodeJSON(w); jsErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jsErr))
+	}
+}
+
+func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	userId := c.AppContext.Session().UserId
+	postId := c.Params.PostId
+
+	auditRec := c.MakeAuditRecord(model.AuditEventBurnPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", postId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
+
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+		return
+	}
+
+	_, err = c.App.GetChannelMember(c.AppContext, post.ChannelId, userId)
+	if err != nil {
+		if err.Id == "app.channel.get_member.missing.app_error" {
+			c.Err = model.NewAppError("burnPost", "api.post.burn_post.user_not_in_channel.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusForbidden)
+		} else {
+			c.Err = err
+		}
+		return
+	}
+
+	err = c.App.BurnPost(c.AppContext, post, userId, connectionID)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
