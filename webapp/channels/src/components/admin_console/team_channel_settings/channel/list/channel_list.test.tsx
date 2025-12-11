@@ -92,4 +92,60 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
         wrapper.setState({loading: false});
         expect(wrapper).toMatchSnapshot();
     });
+
+    test('should render correct icon for archived public channel', () => {
+        const archivedPublicChannel = [{
+            ...channel,
+            id: 'archived-public',
+            type: 'O',
+            display_name: 'Archived Public',
+            delete_at: 1234567890,
+            team_display_name: 'teamDisplayName',
+            team_name: 'teamName',
+            team_update_at: 1,
+        }];
+
+        const actions = {
+            getData: jest.fn().mockResolvedValue(archivedPublicChannel),
+            searchAllChannels: jest.fn().mockResolvedValue(archivedPublicChannel),
+        };
+
+        const wrapper = shallow(
+            <ChannelList
+                data={archivedPublicChannel}
+                total={1}
+                actions={actions}
+            />);
+
+        wrapper.setState({loading: false});
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should render correct icon for archived private channel', () => {
+        const archivedPrivateChannel = [{
+            ...channel,
+            id: 'archived-private',
+            type: 'P',
+            display_name: 'Archived Private',
+            delete_at: 1234567890,
+            team_display_name: 'teamDisplayName',
+            team_name: 'teamName',
+            team_update_at: 1,
+        }];
+
+        const actions = {
+            getData: jest.fn().mockResolvedValue(archivedPrivateChannel),
+            searchAllChannels: jest.fn().mockResolvedValue(archivedPrivateChannel),
+        };
+
+        const wrapper = shallow(
+            <ChannelList
+                data={archivedPrivateChannel}
+                total={1}
+                actions={actions}
+            />);
+
+        wrapper.setState({loading: false});
+        expect(wrapper).toMatchSnapshot();
+    });
 });

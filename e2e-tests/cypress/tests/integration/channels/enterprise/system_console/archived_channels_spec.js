@@ -14,17 +14,26 @@ import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Archived channels', () => {
     let testChannel;
+    let testPrivateChannel;
+    let testTeam;
 
     before(() => {
         cy.apiRequireLicense();
 
         cy.apiInitSetup({
             channelPrefix: {name: '000-archive', displayName: '000 Archive Test'},
-        }).then(({channel}) => {
+        }).then(({channel, team}) => {
             testChannel = channel;
+            testTeam = team;
 
-            // # Archive the channel
+            // # Archive the public channel
             cy.apiDeleteChannel(testChannel.id);
+
+            // # Create and archive a private channel
+            cy.apiCreateChannel(team.id, 'private-archive', 'Private Archive Test', 'P').then(({channel: privateChannel}) => {
+                testPrivateChannel = privateChannel;
+                cy.apiDeleteChannel(privateChannel.id);
+            });
         });
     });
 
@@ -82,5 +91,27 @@ describe('Archived channels', () => {
         cy.apiGetChannel(testChannel.id).then(({channel}) => {
             expect(channel.delete_at).to.eq(0);
         });
+    });
+
+    it('display archive icon for public archived channels in channel list', () => {
+        // # Go to the channels list view
+        cy.visit('/admin_console/user_management/channels');
+
+        // * Verify the archived public channel is visible
+        cy.findByText(testChannel.display_name, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
+
+        // * Verify the archive icon is displayed
+        cy.findByTestId(`${testChannel.name}-archive-icon`).should('be.visible');
+    });
+
+    it('display archive-lock icon for private archived channels in channel list', () => {
+        // # Go to the channels list view
+        cy.visit('/admin_console/user_management/channels');
+
+        // * Verify the archived private channel is visible
+        cy.findByText(testPrivateChannel.display_name, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
+
+        // * Verify the archive icon is displayed for private channel
+        cy.findByTestId(`${testPrivateChannel.name}-archive-icon`).should('be.visible');
     });
 });
