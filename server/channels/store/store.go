@@ -1165,6 +1165,7 @@ type AutoTranslationStore interface {
 	GetAllForObject(objectID string) ([]*model.Translation, *model.AppError)
 	Save(translation *model.Translation) *model.AppError
 	GetAllByStatePage(state model.TranslationState, offset, limit int) ([]*model.Translation, *model.AppError)
+	GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError)
 
 	ClearCaches()
 	// InvalidateUserAutoTranslation invalidates all auto-translation caches for a user in a channel.

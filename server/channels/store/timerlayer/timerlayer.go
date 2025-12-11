@@ -806,6 +806,38 @@ func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 	return result, resultVar1
 }
 
+func (s *TimerLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetAllByStatePage", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetAllForObject(objectID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetAllForObject", success, elapsed)
+	}
+	return result, resultVar1
+}
+
 func (s *TimerLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
 	start := time.Now()
 
@@ -818,6 +850,22 @@ func (s *TimerLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang st
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetBatch", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetByStateOlderThan(state, olderThanMillis, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetByStateOlderThan", success, elapsed)
 	}
 	return result, resultVar1
 }
@@ -6802,6 +6850,22 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsCreatedAt", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsForReporting", success, elapsed)
 	}
 	return result, err
 }

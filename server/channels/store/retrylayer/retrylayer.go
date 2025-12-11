@@ -854,9 +854,27 @@ func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 
 }
 
+func (s *RetryLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetAllForObject(objectID)
+
+}
+
 func (s *RetryLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
 
 	return s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetByStateOlderThan(state, olderThanMillis, limit)
 
 }
 
@@ -8344,6 +8362,27 @@ func (s *RetryLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 	tries := 0
 	for {
 		result, err := s.PostStore.GetPostsCreatedAt(channelID, timestamp)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
 		if err == nil {
 			return result, nil
 		}
