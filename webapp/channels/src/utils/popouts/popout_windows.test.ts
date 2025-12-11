@@ -153,7 +153,7 @@ describe('popout_windows', () => {
                 '/_popout/rhs/test-team/test-channel/plugin/test-plugin-id',
                 {
                     isRHS: true,
-                    titleTemplate: '{pluginDisplayName}',
+                    titleTemplate: '{serverName} - {pluginDisplayName}',
                 },
             );
         });
