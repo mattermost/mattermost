@@ -228,30 +228,37 @@ describe('Channel Info RHS', () => {
                 });
             });
             it('should be able to rename channel from About area', () => {
-                // # Go to test channel
-                cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
+                // # Create a dedicated channel for renaming to avoid affecting other tests
+                cy.apiCreateChannel(testTeam.id, 'channel-to-rename', 'Channel To Rename', 'O').then(({channel}) => {
+                    cy.apiAddUserToChannel(channel.id, admin.id);
 
-                // # Open Channel Info RHS
-                cy.get('#channel-info-btn').click();
+                    // # Go to the channel
+                    cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-                // # Click edit on channel name (first Edit in About)
-                cy.uiGetRHS().findAllByLabelText('Edit').first().click({force: true});
+                    // # Open Channel Info RHS
+                    cy.get('#channel-info-btn').click();
 
-                // * Rename Channel modal appears
-                cy.findByRole('heading', {name: /rename channel/i}).should('be.visible');
+                    // # Click edit on channel name (first Edit in About)
+                    cy.uiGetRHS().findAllByLabelText('Edit').first().click({force: true});
 
-                // # Fill display name and URL
-                cy.findByPlaceholderText(/enter display name/i).clear().type('Renamed Channel');
-                cy.get('.new-channel-modal__url').find('input').clear().type('renamed-channel');
+                    // * Rename Channel modal appears
+                    cy.findByRole('heading', {name: /rename channel/i}).should('be.visible');
 
-                // # Save
-                cy.findByRole('button', {name: /save/i}).click();
+                    // # Fill display name and URL
+                    cy.findByPlaceholderText(/enter display name/i).clear().type('Renamed Channel');
+                    cy.get('.url-input-button').click();
+                    cy.get('.url-input-container input').clear().type('renamed-channel');
+                    cy.get('.url-input-container button.url-input-button').click();
 
-                // * URL updated
-                cy.location('pathname').should('include', `/${testTeam.name}/channels/renamed-channel`);
+                    // # Save
+                    cy.findByRole('button', {name: /save/i}).click();
 
-                // * Header shows new name
-                cy.get('#channelHeaderTitle').should('contain', 'Renamed Channel');
+                    // * URL updated
+                    cy.location('pathname').should('include', `/${testTeam.name}/channels/renamed-channel`);
+
+                    // * Header shows new name
+                    cy.get('#channelHeaderTitle').should('contain', 'Renamed Channel');
+                });
             });
         });
         describe('bottom menu', () => {
@@ -272,8 +279,13 @@ describe('Channel Info RHS', () => {
                 // # Go to test channel
                 cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
-                // # Click on the channel info button
-                cy.get('#channel-info-btn').click();
+                // # Close RHS if it's open, then click on the channel info button
+                cy.get('body').then(($body) => {
+                    if ($body.find('#rhsCloseButton').length > 0) {
+                        cy.get('#rhsCloseButton').click();
+                    }
+                    cy.get('#channel-info-btn').should('be.visible').click();
+                });
 
                 // * Channel Settings item is visible in RHS menu
                 cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Channel Settings').should('be.visible').click();
@@ -528,6 +540,6 @@ describe('Channel Info RHS', () => {
 function ensureRHSIsOpenOnChannelInfo(testChannel) {
     cy.get('#rhsContainer').then((rhsContainer) => {
         cy.wrap(rhsContainer).findByText('Info').should('be.visible');
-        cy.wrap(rhsContainer).findByText(testChannel.display_name).should('be.visible');
+        cy.wrap(rhsContainer).find('.sidebar--right__title__subtitle').should('contain', testChannel.display_name);
     });
 }

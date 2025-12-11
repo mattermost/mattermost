@@ -75,7 +75,9 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
 
         if (data && !error) {
             this.onHide();
-            const path = `/${this.props.teamName}/channels/${channelUrl.trim()}`;
+            // Use the actual channel name from the response, as the server may have sanitized it
+            const updatedChannelName = data.name || channelUrl.trim();
+            const path = `/${this.props.teamName}/channels/${updatedChannelName}`;
             getHistory().push(path);
         }
     };
