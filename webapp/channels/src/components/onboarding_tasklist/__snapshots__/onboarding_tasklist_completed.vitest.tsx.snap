@@ -1,0 +1,81 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx > should match snapshot 1`] = `
+<div>
+  <div
+    class="sc-iBAcGC cUvYOK"
+  >
+    <img
+      alt="completed tasks image"
+      src="/src/images/completed.svg"
+    />
+    <h2>
+      Well done. You’ve completed all of the tasks!
+    </h2>
+    <span
+      class="completed-subtitle"
+    >
+      We hope Mattermost is more familiar now.
+    </span>
+    <span
+      class="start-trial-text"
+    >
+      Interested in our higher-security features?
+       
+      <br />
+      Start your free Enterprise trial now!
+    </span>
+    <a
+      class="btn btn-secondary"
+      id="start_trial_btn"
+    >
+      Start trial
+    </a>
+    <button
+      class="no-thanks-link style-link"
+    >
+      No, thanks
+    </button>
+    <div
+      class="download-apps"
+    >
+      <span>
+        Now that you’re all set up, 
+        <a
+          href="https://mattermost.com/download?utm_source=mattermost&utm_medium=in-product&utm_content=onboarding_tasklist_completed&uid=&sid=&edition=team&server_version=#desktop"
+          location="onboarding_tasklist_completed"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          download our apps.
+        </a>
+      </span>
+    </div>
+    <div
+      class="disclaimer"
+    >
+      <span>
+        By clicking “Start trial”, I agree to the 
+        <a
+          href="https://mattermost.com/pl/software-and-services-license-agreement?utm_source=mattermost&utm_medium=in-product&utm_content=onboarding_tasklist_completed&uid=&sid=&edition=team&server_version="
+          location="onboarding_tasklist_completed"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Mattermost Software Evaluation Agreement,
+        </a>
+         
+        <a
+          href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=onboarding_tasklist_completed&uid=&sid=&edition=team&server_version="
+          location="onboarding_tasklist_completed"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          privacy policy,
+        </a>
+         and receiving product emails.
+      </span>
+    </div>
+  </div>
+</div>
+`;

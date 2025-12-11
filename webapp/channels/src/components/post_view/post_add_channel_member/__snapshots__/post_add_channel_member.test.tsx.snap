@@ -16,7 +16,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
         mentionName="username_1"
       />
       <span
-        key="1"
+        key="comma-1"
       >
         , 
       </span>
@@ -37,7 +37,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
       <MemoizedFormattedMessage
         defaultMessage=" and "
         id="post_body.check_for_out_of_channel_mentions.link.and"
-        key="1"
+        key="and-1"
       />
       <Connect(Component)
         channelId="channel_id"
@@ -79,7 +79,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
         mentionName="username_1"
       />
       <span
-        key="1"
+        key="comma-1"
       >
         , 
       </span>
@@ -89,7 +89,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
         mentionName="username_2"
       />
       <span
-        key="2"
+        key="comma-2"
       >
         , 
       </span>
@@ -101,7 +101,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, more t
       <MemoizedFormattedMessage
         defaultMessage=" and "
         id="post_body.check_for_out_of_channel_mentions.link.and"
-        key="3"
+        key="and-3"
       />
       <Connect(Component)
         channelId="channel_id"
@@ -202,7 +202,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, with A
       mentionName="username_1"
     />
     <span
-      key="1"
+      key="comma-1"
     >
       , 
     </span>
@@ -214,7 +214,7 @@ exports[`components/post_view/PostAddChannelMember should match snapshot, with A
     <MemoizedFormattedMessage
       defaultMessage=" and "
       id="post_body.check_for_out_of_channel_mentions.link.and"
-      key="2"
+      key="and-2"
     />
     <Connect(Component)
       channelId="channel_id"

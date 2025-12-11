@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ModalController > component should match snapshot without any modals 1`] = `<div />`;

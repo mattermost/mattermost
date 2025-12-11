@@ -1,0 +1,498 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/team/TeamProfile > should match snapshot (not cloud, freemium disabled 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="team_profile"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Team Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the team, including team name and description.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div
+          class="d-flex"
+        >
+          <div
+            class="large-team-image-col"
+          >
+            <div
+              class="TeamIcon TeamIcon__lg no-hover"
+            >
+              <div
+                class="TeamIcon__content no-hover"
+              >
+                <div
+                  aria-label="name Team Initials"
+                  class="TeamIcon__initials TeamIcon__initials__lg"
+                  data-testid="teamIconInitial"
+                  role="img"
+                >
+                  na
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="team-desc-col"
+          >
+            <div
+              class="row row-bottom-padding"
+            >
+              <b>
+                Team Name
+              </b>
+              :
+              <br />
+              name
+            </div>
+            <div
+              class="row"
+            >
+              <b>
+                Team Description
+              </b>
+              :
+              <br />
+              <span
+                class="greyed-out"
+              >
+                No team description added.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn ArchiveButton ArchiveButton___unarchived cloud-limits-disabled"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-outline"
+            />
+            Archive Team
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile > should match snapshot with isArchived true 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="team_profile"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Team Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the team, including team name and description.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div
+          class="d-flex"
+        >
+          <div
+            class="large-team-image-col"
+          >
+            <div
+              class="TeamIcon TeamIcon__lg no-hover"
+            >
+              <div
+                class="TeamIcon__content no-hover"
+              >
+                <div
+                  aria-label="name Team Initials"
+                  class="TeamIcon__initials TeamIcon__initials__lg"
+                  data-testid="teamIconInitial"
+                  role="img"
+                >
+                  na
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="team-desc-col"
+          >
+            <div
+              class="row row-bottom-padding"
+            >
+              <b>
+                Team Name
+              </b>
+              :
+              <br />
+              name
+            </div>
+            <div
+              class="row"
+            >
+              <b>
+                Team Description
+              </b>
+              :
+              <br />
+              <span
+                class="greyed-out"
+              >
+                No team description added.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-arrow-up-outline"
+            />
+            Unarchive Team
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud > restore should not be disabled when below teams limit 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="team_profile"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Team Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the team, including team name and description.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div
+          class="d-flex"
+        >
+          <div
+            class="large-team-image-col"
+          >
+            <div
+              class="TeamIcon TeamIcon__lg no-hover"
+            >
+              <div
+                class="TeamIcon__content no-hover"
+              >
+                <div
+                  aria-label="name Team Initials"
+                  class="TeamIcon__initials TeamIcon__initials__lg"
+                  data-testid="teamIconInitial"
+                  role="img"
+                >
+                  na
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="team-desc-col"
+          >
+            <div
+              class="row row-bottom-padding"
+            >
+              <b>
+                Team Name
+              </b>
+              :
+              <br />
+              name
+            </div>
+            <div
+              class="row"
+            >
+              <b>
+                Team Description
+              </b>
+              :
+              <br />
+              <span
+                class="greyed-out"
+              >
+                No team description added.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-arrow-up-outline"
+            />
+            Unarchive Team
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud > should match snapshot - archived, at teams limit 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="team_profile"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Team Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the team, including team name and description.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div
+          class="d-flex"
+        >
+          <div
+            class="large-team-image-col"
+          >
+            <div
+              class="TeamIcon TeamIcon__lg no-hover"
+            >
+              <div
+                class="TeamIcon__content no-hover"
+              >
+                <div
+                  aria-label="name Team Initials"
+                  class="TeamIcon__initials TeamIcon__initials__lg"
+                  data-testid="teamIconInitial"
+                  role="img"
+                >
+                  na
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="team-desc-col"
+          >
+            <div
+              class="row row-bottom-padding"
+            >
+              <b>
+                Team Name
+              </b>
+              :
+              <br />
+              name
+            </div>
+            <div
+              class="row"
+            >
+              <b>
+                Team Description
+              </b>
+              :
+              <br />
+              <span
+                class="greyed-out"
+              >
+                No team description added.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <div
+            class="disabled-overlay-wrapper"
+          >
+            <button
+              class="btn btn-danger ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+              disabled=""
+              style="pointer-events: none;"
+              type="button"
+            >
+              <i
+                class="icon icon-archive-arrow-up-outline"
+              />
+              Unarchive Team
+            </button>
+          </div>
+          <button
+            class="btn btn-secondary upgrade-options-button"
+            type="button"
+          >
+            View upgrade options
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud > should match snapshot - not archived, at teams limit 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="team_profile"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Team Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the team, including team name and description.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels"
+    >
+      <div
+        class="group-teams-and-channels--body"
+      >
+        <div
+          class="d-flex"
+        >
+          <div
+            class="large-team-image-col"
+          >
+            <div
+              class="TeamIcon TeamIcon__lg no-hover"
+            >
+              <div
+                class="TeamIcon__content no-hover"
+              >
+                <div
+                  aria-label="name Team Initials"
+                  class="TeamIcon__initials TeamIcon__initials__lg"
+                  data-testid="teamIconInitial"
+                  role="img"
+                >
+                  na
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="team-desc-col"
+          >
+            <div
+              class="row row-bottom-padding"
+            >
+              <b>
+                Team Name
+              </b>
+              :
+              <br />
+              name
+            </div>
+            <div
+              class="row"
+            >
+              <b>
+                Team Description
+              </b>
+              :
+              <br />
+              <span
+                class="greyed-out"
+              >
+                No team description added.
+              </span>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn ArchiveButton ArchiveButton___unarchived cloud-limits-disabled"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-outline"
+            />
+            Archive Team
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

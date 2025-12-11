@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/file_preview_modal/popover_bar/PopoverBar > should match snapshot with zoom controls enabled 1`] = `
+<div>
+  <div
+    class="modal-button-bar file-preview-modal__zoom-bar"
+    data-testid="fileCountFooter"
+  >
+    <div
+      class="modal-column"
+    >
+      <span
+        class="btn-inactive"
+      >
+        <i
+          class="icon icon-minus"
+        />
+      </span>
+      <span
+        class="btn-inactive"
+      >
+        <i
+          class="icon icon-magnify-minus"
+        />
+      </span>
+      <span
+        class="btn-inactive"
+      >
+        <i
+          class="icon icon-plus"
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;

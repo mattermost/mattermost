@@ -1,0 +1,756 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/group/GroupList > should match snapshot 1`] = `
+<div>
+  <div
+    class="groups-list groups-list-no-padding"
+  >
+    <div
+      class="groups-list--header"
+    >
+      <div
+        class="group-name group-name-adjusted"
+      >
+        Group Name
+      </div>
+      <div
+        class="group-content"
+      >
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Member Count
+        </div>
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Roles
+        </div>
+        <div
+          class="group-actions"
+        />
+      </div>
+    </div>
+    <div
+      class="groups-list--body"
+      id="groups-list--body"
+    >
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DNMembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="groups-list--footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 1 of 1
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        data-testid="page-link-next"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/group/GroupList > should match snapshot with paging 1`] = `
+<div>
+  <div
+    class="groups-list groups-list-no-padding"
+  >
+    <div
+      class="groups-list--header"
+    >
+      <div
+        class="group-name group-name-adjusted"
+      >
+        Group Name
+      </div>
+      <div
+        class="group-content"
+      >
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Member Count
+        </div>
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Roles
+        </div>
+        <div
+          class="group-actions"
+        />
+      </div>
+    </div>
+    <div
+      class="groups-list--body"
+      id="groups-list--body"
+    >
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN0
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN0MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN1
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN1MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN2
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN2MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN3
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN3MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN4
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN4MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN5
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN5MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN6
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN6MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN7
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN7MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN8
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN8MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN9
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN9MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="groups-list--footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 10 of 30
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next "
+        data-testid="page-link-next"
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;

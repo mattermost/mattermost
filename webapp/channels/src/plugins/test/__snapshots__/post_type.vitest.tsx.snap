@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`plugins/PostMessageView > should match snapshot with extended post type 1`] = `
+<div>
+  <span
+    id="pluginId"
+  >
+    PostTypePlugin
+  </span>
+</div>
+`;
+
+exports[`plugins/PostMessageView > should match snapshot with no extended post type 1`] = `
+<div>
+  <div
+    class="post-message post-message--collapsed"
+  >
+    <div
+      class="post-message__text-container"
+      style="max-height: 600px;"
+    >
+      <div
+        class="post-message__text"
+        dir="auto"
+        id="postMessageText_post_id"
+      >
+        <p>
+          this is some text
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+`;

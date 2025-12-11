@@ -1,0 +1,411 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`component/user_group_popover > should match snapshot 1`] = `
+<div>
+  <div
+    class="sc-dIEovb eYySyY"
+  >
+    <div
+      class="sc-hHvloA kfomTN"
+    >
+      <div
+        class="sc-bBbNOE gHMaVB"
+      >
+        <span
+          class="sc-kgvfea bkKKzK overflow--ellipsis text-nowrap"
+        >
+          group_display_name
+        </span>
+        <button
+          aria-label="Close user group popover"
+          class="sc-fLBbbD kEClb btn btn-sm btn-compact btn-icon a11y--active a11y--focused"
+        >
+          <i
+            class="icon icon-close"
+          />
+        </button>
+      </div>
+      <div
+        class="sc-ivDtld MsJsB"
+      >
+        <span
+          class="overflow--ellipsis text-nowrap"
+        >
+          @
+          group_name
+        </span>
+        <span
+          class="sc-cwKhYV sc-lltiPY gHJWUG eHAeCd"
+        >
+          •
+        </span>
+        <span
+          class="sc-cwKhYV gHJWUG"
+        >
+          15 Members
+        </span>
+      </div>
+      <button
+        aria-label="group_display_name @group_name 15 Members View full group info"
+        class="sc-dmBhmd cLlFU user-group-popover_header-button"
+      />
+    </div>
+    <div
+      class="sc-iJfeOL JFBTF"
+    >
+      <svg
+        fill="currentColor"
+        height="1em"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="1em"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M20.224,18.829l-3.775-3.775C17.418,13.791,18,12.215,18,10.5C18,6.358,14.642,3,10.5,3S3,6.358,3,10.5S6.358,18,10.5,18c1.708,0,3.278-0.578,4.539-1.539l3.775,3.749c0.39,0.388,1.02,0.388,1.41,0C20.592,19.823,20.592,19.216,20.224,18.829z M5,10.5
+	C5,7.462,7.462,5,10.5,5S16,7.462,16,10.5S13.538,16,10.5,16S5,13.538,5,10.5z"
+        />
+      </svg>
+      <div
+        class="input-wrapper"
+      >
+        <input
+          class="user-group-popover_search-bar"
+          placeholder="Search members"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="sc-jrkPvW fUjaHR"
+      role="list"
+      style="height: 307.20000000000005px;"
+    >
+      <div
+        style="position: relative; height: 100px; width: 100px; overflow: auto; will-change: transform; direction: ltr;"
+      >
+        <div
+          style="height: 708px; width: 100%;"
+        >
+          <div
+            class="sc-kDnyiN iDSIkN group-member-list_item"
+            role="listitem"
+            style="position: absolute; left: 0px; top: 0px; width: 100%;"
+          >
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+            >
+              <button
+                class="sc-ipMuEU fsupPK"
+              >
+                <span
+                  class="status-wrapper"
+                >
+                  <img
+                    alt="username0 profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/id0/image?_=0"
+                    tabindex="-1"
+                  />
+                  <span
+                    class="status "
+                  >
+                    <svg
+                      aria-label="Offline"
+                      class="offline--icon"
+                      height="100%"
+                      role="img"
+                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+                <span
+                  class="sc-eLSDC jvcPNE overflow--ellipsis text-nowrap"
+                >
+                  username0
+                </span>
+                <span
+                  class="sc-csmWhv bkcSsG group-member-list_gap"
+                />
+              </button>
+            </span>
+            <div
+              class="sc-bqOBqt bKaABa group-member-list_dm-button"
+            >
+              <button
+                aria-label="Send message to username0"
+                class="sc-ksJhlw feeUvd btn btn-icon btn-xs"
+              >
+                <i
+                  class="icon icon-send"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="sc-kDnyiN cSbxFQ group-member-list_item"
+            role="listitem"
+            style="position: absolute; left: 0px; top: 48px; width: 100%;"
+          >
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+            >
+              <button
+                class="sc-ipMuEU fsupPK"
+              >
+                <span
+                  class="status-wrapper"
+                >
+                  <img
+                    alt="username1 profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/id1/image?_=0"
+                    tabindex="-1"
+                  />
+                  <span
+                    class="status "
+                  >
+                    <svg
+                      aria-label="Offline"
+                      class="offline--icon"
+                      height="100%"
+                      role="img"
+                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+                <span
+                  class="sc-eLSDC jvcPNE overflow--ellipsis text-nowrap"
+                >
+                  username1
+                </span>
+                <span
+                  class="sc-csmWhv bkcSsG group-member-list_gap"
+                />
+              </button>
+            </span>
+            <div
+              class="sc-bqOBqt bKaABa group-member-list_dm-button"
+            >
+              <button
+                aria-label="Send message to username1"
+                class="sc-ksJhlw feeUvd btn btn-icon btn-xs"
+              >
+                <i
+                  class="icon icon-send"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="sc-kDnyiN cSbxFQ group-member-list_item"
+            role="listitem"
+            style="position: absolute; left: 0px; top: 88px; width: 100%;"
+          >
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+            >
+              <button
+                class="sc-ipMuEU fsupPK"
+              >
+                <span
+                  class="status-wrapper"
+                >
+                  <img
+                    alt="username10 profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/id10/image?_=0"
+                    tabindex="-1"
+                  />
+                  <span
+                    class="status "
+                  >
+                    <svg
+                      aria-label="Offline"
+                      class="offline--icon"
+                      height="100%"
+                      role="img"
+                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+                <span
+                  class="sc-eLSDC jvcPNE overflow--ellipsis text-nowrap"
+                >
+                  username10
+                </span>
+                <span
+                  class="sc-csmWhv bkcSsG group-member-list_gap"
+                />
+              </button>
+            </span>
+            <div
+              class="sc-bqOBqt bKaABa group-member-list_dm-button"
+            >
+              <button
+                aria-label="Send message to username10"
+                class="sc-ksJhlw feeUvd btn btn-icon btn-xs"
+              >
+                <i
+                  class="icon icon-send"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="sc-kDnyiN cSbxFQ group-member-list_item"
+            role="listitem"
+            style="position: absolute; left: 0px; top: 128px; width: 100%;"
+          >
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+            >
+              <button
+                class="sc-ipMuEU fsupPK"
+              >
+                <span
+                  class="status-wrapper"
+                >
+                  <img
+                    alt="username11 profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/id11/image?_=0"
+                    tabindex="-1"
+                  />
+                  <span
+                    class="status "
+                  >
+                    <svg
+                      aria-label="Offline"
+                      class="offline--icon"
+                      height="100%"
+                      role="img"
+                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+                <span
+                  class="sc-eLSDC jvcPNE overflow--ellipsis text-nowrap"
+                >
+                  username11
+                </span>
+                <span
+                  class="sc-csmWhv bkcSsG group-member-list_gap"
+                />
+              </button>
+            </span>
+            <div
+              class="sc-bqOBqt bKaABa group-member-list_dm-button"
+            >
+              <button
+                aria-label="Send message to username11"
+                class="sc-ksJhlw feeUvd btn btn-icon btn-xs"
+              >
+                <i
+                  class="icon icon-send"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="sc-kDnyiN cSbxFQ group-member-list_item"
+            role="listitem"
+            style="position: absolute; left: 0px; top: 168px; width: 100%;"
+          >
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+            >
+              <button
+                class="sc-ipMuEU fsupPK"
+              >
+                <span
+                  class="status-wrapper"
+                >
+                  <img
+                    alt="username12 profile image"
+                    class="Avatar Avatar-sm avatar-post-preview"
+                    loading="lazy"
+                    src="/api/v4/users/id12/image?_=0"
+                    tabindex="-1"
+                  />
+                  <span
+                    class="status "
+                  >
+                    <svg
+                      aria-label="Offline"
+                      class="offline--icon"
+                      height="100%"
+                      role="img"
+                      style="fill-rule: evenodd; clip-rule: evenodd; stroke-linejoin: round; stroke-miterlimit: 1.41421;"
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </span>
+                <span
+                  class="sc-eLSDC jvcPNE overflow--ellipsis text-nowrap"
+                >
+                  username12
+                </span>
+                <span
+                  class="sc-csmWhv bkcSsG group-member-list_gap"
+                />
+              </button>
+            </span>
+            <div
+              class="sc-bqOBqt bKaABa group-member-list_dm-button"
+            >
+              <button
+                aria-label="Send message to username12"
+                class="sc-ksJhlw feeUvd btn btn-icon btn-xs"
+              >
+                <i
+                  class="icon icon-send"
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

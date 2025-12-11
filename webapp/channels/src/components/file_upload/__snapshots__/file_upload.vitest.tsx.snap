@@ -1,0 +1,201 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/FileUpload > should match snapshot 1`] = `
+<div>
+  <div
+    class="style--none"
+  >
+    <div>
+      <button
+        aria-label="attachment"
+        class="style--none AdvancedTextEditor__action-button"
+        id="fileUploadButton"
+        type="button"
+      >
+        <svg
+          aria-label="Attachment Icon"
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.5,7v9.5c0,2.209-1.791,4-4,4s-4-1.791-4-4V6c0-1.381,1.119-2.5,2.5-2.5s2.5,1.119,2.5,2.5v9.5c0,0.552-0.448,1-1,1s-1-0.448-1-1V7H10v8.5c0,1.381,1.119,2.5,2.5,2.5s2.5-1.119,2.5-2.5V6c0-2.209-1.791-4-4-4S7,3.791,7,6v10.5
+	c0,3.038,2.462,5.5,5.5,5.5s5.5-2.462,5.5-5.5V7H16.5z"
+          />
+        </svg>
+      </button>
+      <input
+        accept=""
+        aria-label="Upload files"
+        id="fileUploadInput"
+        multiple=""
+        tabindex="-1"
+        type="file"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUpload > should prevent event default and progogation on call of onClick on fileInput 1`] = `
+<div>
+  <div
+    class="style--none"
+  >
+    <div>
+      <button
+        aria-label="attachment"
+        class="style--none AdvancedTextEditor__action-button"
+        id="fileUploadButton"
+        type="button"
+      >
+        <svg
+          aria-label="Attachment Icon"
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.5,7v9.5c0,2.209-1.791,4-4,4s-4-1.791-4-4V6c0-1.381,1.119-2.5,2.5-2.5s2.5,1.119,2.5,2.5v9.5c0,0.552-0.448,1-1,1s-1-0.448-1-1V7H10v8.5c0,1.381,1.119,2.5,2.5,2.5s2.5-1.119,2.5-2.5V6c0-2.209-1.791-4-4-4S7,3.791,7,6v10.5
+	c0,3.038,2.462,5.5,5.5,5.5s5.5-2.462,5.5-5.5V7H16.5z"
+          />
+        </svg>
+      </button>
+      <input
+        accept=""
+        aria-label="Upload files"
+        id="fileUploadInput"
+        multiple=""
+        tabindex="-1"
+        type="file"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUpload > should prevent event default and progogation on call of onTouchEnd on fileInput 1`] = `
+<div>
+  <div
+    class="style--none"
+  >
+    <div>
+      <button
+        aria-label="attachment"
+        class="style--none AdvancedTextEditor__action-button"
+        id="fileUploadButton"
+        type="button"
+      >
+        <svg
+          aria-label="Attachment Icon"
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.5,7v9.5c0,2.209-1.791,4-4,4s-4-1.791-4-4V6c0-1.381,1.119-2.5,2.5-2.5s2.5,1.119,2.5,2.5v9.5c0,0.552-0.448,1-1,1s-1-0.448-1-1V7H10v8.5c0,1.381,1.119,2.5,2.5,2.5s2.5-1.119,2.5-2.5V6c0-2.209-1.791-4-4-4S7,3.791,7,6v10.5
+	c0,3.038,2.462,5.5,5.5,5.5s5.5-2.462,5.5-5.5V7H16.5z"
+          />
+        </svg>
+      </button>
+      <input
+        accept=""
+        aria-label="Upload files"
+        id="fileUploadInput"
+        multiple=""
+        tabindex="-1"
+        type="file"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUpload > should props.onFileUpload when fileUploadSuccess is called 1`] = `
+<div>
+  <div
+    class="style--none"
+  >
+    <div>
+      <button
+        aria-label="attachment"
+        class="style--none AdvancedTextEditor__action-button"
+        id="fileUploadButton"
+        type="button"
+      >
+        <svg
+          aria-label="Attachment Icon"
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.5,7v9.5c0,2.209-1.791,4-4,4s-4-1.791-4-4V6c0-1.381,1.119-2.5,2.5-2.5s2.5,1.119,2.5,2.5v9.5c0,0.552-0.448,1-1,1s-1-0.448-1-1V7H10v8.5c0,1.381,1.119,2.5,2.5,2.5s2.5-1.119,2.5-2.5V6c0-2.209-1.791-4-4-4S7,3.791,7,6v10.5
+	c0,3.038,2.462,5.5,5.5,5.5s5.5-2.462,5.5-5.5V7H16.5z"
+          />
+        </svg>
+      </button>
+      <input
+        accept=""
+        aria-label="Upload files"
+        id="fileUploadInput"
+        multiple=""
+        tabindex="-1"
+        type="file"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/FileUpload > should props.onUploadError when fileUploadFail is called 1`] = `
+<div>
+  <div
+    class="style--none"
+  >
+    <div>
+      <button
+        aria-label="attachment"
+        class="style--none AdvancedTextEditor__action-button"
+        id="fileUploadButton"
+        type="button"
+      >
+        <svg
+          aria-label="Attachment Icon"
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.5,7v9.5c0,2.209-1.791,4-4,4s-4-1.791-4-4V6c0-1.381,1.119-2.5,2.5-2.5s2.5,1.119,2.5,2.5v9.5c0,0.552-0.448,1-1,1s-1-0.448-1-1V7H10v8.5c0,1.381,1.119,2.5,2.5,2.5s2.5-1.119,2.5-2.5V6c0-2.209-1.791-4-4-4S7,3.791,7,6v10.5
+	c0,3.038,2.462,5.5,5.5,5.5s5.5-2.462,5.5-5.5V7H16.5z"
+          />
+        </svg>
+      </button>
+      <input
+        accept=""
+        aria-label="Upload files"
+        id="fileUploadInput"
+        multiple=""
+        tabindex="-1"
+        type="file"
+      />
+    </div>
+  </div>
+</div>
+`;

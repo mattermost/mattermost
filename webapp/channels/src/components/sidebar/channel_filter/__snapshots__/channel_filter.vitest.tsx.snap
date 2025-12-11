@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/sidebar/channel_filter > should match snapshot 1`] = `
+<div>
+  <div
+    class="SidebarFilters"
+  >
+    <a
+      aria-label="unreads filter"
+      class="SidebarFilters_filterButton"
+      href="#"
+    >
+      <i
+        class="icon icon-filter-variant"
+      />
+    </a>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/channel_filter > should match snapshot if the unread filter is enabled 1`] = `
+<div>
+  <div
+    class="SidebarFilters"
+  >
+    <a
+      aria-label="unreads filter"
+      class="SidebarFilters_filterButton active"
+      href="#"
+    >
+      <i
+        class="icon icon-filter-variant"
+      />
+    </a>
+  </div>
+</div>
+`;

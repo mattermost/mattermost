@@ -1,0 +1,271 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/billing/plan_details/feature_list > should match snapshot when running FREE tier 1`] = `
+<div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Group and one-to-one messaging, file sharing, and search
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Incident collaboration
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Unlimited users & message history
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Multi-Factor Authentication (MFA)
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Multi-language translations
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/billing/plan_details/feature_list > should match snapshot when running paid tier and enterprise 1`] = `
+<div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Enterprise administration & SSO
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Automated compliance exports
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Custom data retention policies
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      AD/LDAP group sync to teams & channels
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Premium Support (optional upgrade)
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/billing/plan_details/feature_list > should match snapshot when running paid tier and free 1`] = `
+<div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Group and one-to-one messaging, file sharing, and search
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Incident collaboration
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Unlimited users & message history
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Multi-Factor Authentication (MFA)
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Multi-language translations
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/billing/plan_details/feature_list > should match snapshot when running paid tier and professional 1`] = `
+<div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Unlimited file storage
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Guest Accounts
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      AD/LDAP user sync
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      SSO w/ SAML (includes Okta and OneLogIn)
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      SSO with Google, O365
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      OpenID
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      MFA enforcement
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Advanced team permissions
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Read-only announcement channels
+    </span>
+  </div>
+  <div
+    class="PlanDetailsFeature"
+  >
+    <i
+      class="icon-check"
+    />
+    <span>
+      Shared channels (coming soon)
+    </span>
+  </div>
+</div>
+`;

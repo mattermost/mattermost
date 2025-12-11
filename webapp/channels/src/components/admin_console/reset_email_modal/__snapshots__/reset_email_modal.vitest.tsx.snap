@@ -1,0 +1,254 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/reset_email_modal/reset_email_modal.tsx > should match snapshot when not the current user 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="resetEmailModalLabel"
+      class="fade in modal"
+      data-testid="resetEmailModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="resetEmailModalLabel"
+            >
+              Update Email
+            </h1>
+          </div>
+          <form
+            class="form-horizontal"
+            role="form"
+          >
+            <div
+              class="modal-body"
+            >
+              <div
+                class="form-group"
+              >
+                <div
+                  class="col-sm-10"
+                >
+                  <div
+                    class="input-group input-group--limit mb-5"
+                    data-testid="resetEmailForm"
+                  >
+                    <span
+                      class="input-group-addon email__group-addon"
+                      data-toggle="tooltip"
+                      title="New Email"
+                    >
+                      New Email
+                    </span>
+                    <input
+                      class="form-control"
+                      maxlength="128"
+                      type="email"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="btn btn-tertiary"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                class="btn btn-primary"
+                data-testid="resetEmailButton"
+                type="submit"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/reset_email_modal/reset_email_modal.tsx > should match snapshot when the current user 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="resetEmailModalLabel"
+      class="fade in modal"
+      data-testid="resetEmailModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="resetEmailModalLabel"
+            >
+              Update Email
+            </h1>
+          </div>
+          <form
+            class="form-horizontal"
+            role="form"
+          >
+            <div
+              class="modal-body"
+            >
+              <div
+                class="form-group"
+              >
+                <div
+                  class="col-sm-10"
+                >
+                  <div
+                    class="input-group input-group--limit mb-5"
+                    data-testid="resetEmailForm"
+                  >
+                    <span
+                      class="input-group-addon email__group-addon"
+                      data-toggle="tooltip"
+                      title="New Email"
+                    >
+                      New Email
+                    </span>
+                    <input
+                      class="form-control"
+                      maxlength="128"
+                      type="email"
+                    />
+                  </div>
+                  <div
+                    class="input-group input-group--limit mb-5"
+                    data-testid="resetEmailForm"
+                  >
+                    <span
+                      class="input-group-addon email__group-addon"
+                      data-toggle="tooltip"
+                      title="Current Password"
+                    >
+                      Current Password
+                    </span>
+                    <input
+                      class="form-control"
+                      type="password"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="modal-footer"
+            >
+              <button
+                class="btn btn-tertiary"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                class="btn btn-primary"
+                data-testid="resetEmailButton"
+                type="submit"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/reset_email_modal/reset_email_modal.tsx > should match snapshot when there is no user 1`] = `
+<body
+  class=""
+  style="padding-right: 0px;"
+>
+  <div>
+    <div />
+  </div>
+</body>
+`;

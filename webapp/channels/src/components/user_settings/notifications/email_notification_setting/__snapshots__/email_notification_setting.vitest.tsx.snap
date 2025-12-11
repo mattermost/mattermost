@@ -1,0 +1,695 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Email notifications
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset>
+            <fieldset>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    data-email-interval="30"
+                    data-enable-email="true"
+                    id="emailNotificationImmediately"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  On
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    checked=""
+                    class="a11y--active a11y--focused"
+                    data-email-interval="0"
+                    data-enable-email="false"
+                    id="emailNotificationNever"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  Off
+                </label>
+              </div>
+            </fieldset>
+            <div
+              class="mt-3"
+            >
+              When enabled, email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
+            </div>
+          </fieldset>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, active section != email and SendEmailNotifications !== true 1`] = `
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="emailTitle"
+      >
+        Email notifications
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="emailTitle emailEdit"
+        class="color--link style--none section-min__edit"
+        id="emailEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="emailDesc"
+    >
+      Email notifications are not enabled
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, active section != email and SendEmailNotifications = true 1`] = `
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="emailTitle"
+      >
+        Email notifications
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="emailTitle emailEdit"
+        class="color--link style--none section-min__edit"
+        id="emailEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="emailDesc"
+    >
+      Off
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, active section != email, SendEmailNotifications = true and enableEmail = true 1`] = `
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="emailTitle"
+      >
+        Email notifications
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="emailTitle emailEdit"
+        class="color--link style--none section-min__edit"
+        id="emailEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="emailDesc"
+    >
+      On
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, enabled email batching 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Email notifications
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset>
+            <legend
+              class="form-legend"
+            >
+              Send email notifications
+            </legend>
+            <fieldset>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    data-email-interval="30"
+                    data-enable-email="true"
+                    id="emailNotificationImmediately"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  As soon as you’re away for 5 minutes
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    data-email-interval="900"
+                    data-enable-email="true"
+                    id="emailNotificationMinutes"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  Every 15 minutes
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    data-email-interval="3600"
+                    data-enable-email="true"
+                    id="emailNotificationHour"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  Every hour
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    checked=""
+                    class="a11y--active a11y--focused"
+                    data-email-interval="0"
+                    data-enable-email="false"
+                    id="emailNotificationNever"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  Never
+                </label>
+              </div>
+            </fieldset>
+            <div
+              class="mt-3"
+            >
+              Email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes. If you choose to receive notifications every 15 minutes or every hour, notifications during that period will be combined into a single email.
+            </div>
+          </fieldset>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, not send email notifications 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal a11y--active a11y--focused"
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Email notifications
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            Email notifications have not been enabled by your System Administrator.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, on serverError 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Email notifications
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset>
+            <fieldset>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    data-email-interval="30"
+                    data-enable-email="true"
+                    id="emailNotificationImmediately"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  On
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    checked=""
+                    class="a11y--active a11y--focused"
+                    data-email-interval="0"
+                    data-enable-email="false"
+                    id="emailNotificationNever"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  Off
+                </label>
+              </div>
+            </fieldset>
+            <div
+              class="mt-3"
+            >
+              When enabled, email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
+            </div>
+          </fieldset>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          >
+            <div
+              class="form-group"
+            >
+              <label
+                class="col-sm-12 has-error"
+              >
+                <i
+                  class="icon icon-alert-circle-outline"
+                  role="presentation"
+                />
+                <span
+                  class="sr-only"
+                >
+                  Error
+                </span>
+                <span
+                  id="serverError"
+                >
+                  serverError
+                </span>
+              </label>
+            </div>
+          </div>
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, when CRT on and email set to immediately 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Email notifications
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset>
+            <fieldset>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    checked=""
+                    class="a11y--active a11y--focused"
+                    data-email-interval="30"
+                    data-enable-email="true"
+                    id="emailNotificationImmediately"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  On
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    data-email-interval="0"
+                    data-enable-email="false"
+                    id="emailNotificationNever"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  Off
+                </label>
+              </div>
+            </fieldset>
+            <div
+              class="mt-3"
+            >
+              When enabled, email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
+            </div>
+          </fieldset>
+          <hr />
+          <fieldset>
+            <div
+              class="checkbox single-checkbox"
+            >
+              <label>
+                <input
+                  checked=""
+                  id="desktopThreadsNotificationAllActivity"
+                  name="desktopThreadsNotificationLevel"
+                  type="checkbox"
+                />
+                Notify me about replies to threads I’m following
+              </label>
+            </div>
+          </fieldset>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/user_settings/notifications/EmailNotificationSetting > should match snapshot, when CRT on and email set to never 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Email notifications
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <fieldset>
+            <fieldset>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    data-email-interval="30"
+                    data-enable-email="true"
+                    id="emailNotificationImmediately"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  On
+                </label>
+              </div>
+              <div
+                class="radio"
+              >
+                <label>
+                  <input
+                    checked=""
+                    class="a11y--active a11y--focused"
+                    data-email-interval="0"
+                    data-enable-email="false"
+                    id="emailNotificationNever"
+                    name="emailNotifications"
+                    type="radio"
+                  />
+                  Off
+                </label>
+              </div>
+            </fieldset>
+            <div
+              class="mt-3"
+            >
+              When enabled, email notifications are sent for mentions and direct messages when you are offline or away for more than 5 minutes.
+            </div>
+          </fieldset>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

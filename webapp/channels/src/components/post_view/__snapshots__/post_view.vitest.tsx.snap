@@ -1,0 +1,62 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/post_view > should match snapshot for channel loading 1`] = `
+<div>
+  <div
+    id="post-list"
+  >
+    <div
+      class="loading-screen loading-screen--in-middle"
+      style="position: relative;"
+    >
+      <div
+        class="loading__content"
+      >
+        <p>
+          Loading
+        </p>
+        <div
+          class="round round-1"
+        />
+        <div
+          class="round round-2"
+        />
+        <div
+          class="round round-3"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_view > should match snapshot for loaderForChangeOfPostsChunk 1`] = `
+<div>
+  <div
+    id="post-list"
+    role="main"
+  >
+    <div
+      class="loading-screen loading-screen--in-middle"
+      style="position: relative;"
+    >
+      <div
+        class="loading__content"
+      >
+        <p>
+          Loading
+        </p>
+        <div
+          class="round round-1"
+        />
+        <div
+          class="round round-2"
+        />
+        <div
+          class="round round-3"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

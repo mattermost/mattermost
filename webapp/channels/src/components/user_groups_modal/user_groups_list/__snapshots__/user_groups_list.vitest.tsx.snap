@@ -1,0 +1,156 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`component/user_groups_modal > should match snapshot with groups 1`] = `
+<div>
+  <div
+    class="user-groups-modal__content user-groups-list"
+    style="overflow: overlay;"
+  >
+    <div
+      style="position: relative; height: 156px; width: 100%; overflow: auto; will-change: transform; direction: ltr;"
+    >
+      <div
+        style="height: 156px; width: 100%;"
+      >
+        <div
+          aria-label="Group 0 group"
+          class="group-row"
+          role="button"
+          style="position: absolute; left: 0px; top: 0px; height: 52px; width: 100%;"
+          tabindex="0"
+        >
+          <span
+            class="group-display-name"
+          >
+            Group 0
+          </span>
+          <span
+            class="group-name"
+          >
+            @
+            group0
+          </span>
+          <div
+            class="group-member-count"
+          >
+            1 member
+          </div>
+          <div
+            class="group-action"
+          >
+            <button
+              aria-controls="group-actions-menu"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="Group 0 actions"
+              class="btn btn-icon btn-xs"
+              id="customWrapper-group0"
+            >
+              <i
+                class="icon icon-dots-vertical"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          aria-label="Group 1 group"
+          class="group-row"
+          role="button"
+          style="position: absolute; left: 0px; top: 52px; height: 52px; width: 100%;"
+          tabindex="0"
+        >
+          <span
+            class="group-display-name"
+          >
+            Group 1
+          </span>
+          <span
+            class="group-name"
+          >
+            @
+            group1
+          </span>
+          <div
+            class="group-member-count"
+          >
+            2 members
+          </div>
+          <div
+            class="group-action"
+          >
+            <button
+              aria-controls="group-actions-menu"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="Group 1 actions"
+              class="btn btn-icon btn-xs"
+              id="customWrapper-group1"
+            >
+              <i
+                class="icon icon-dots-vertical"
+              />
+            </button>
+          </div>
+        </div>
+        <div
+          aria-label="Group 2 group"
+          class="group-row"
+          role="button"
+          style="position: absolute; left: 0px; top: 104px; height: 52px; width: 100%;"
+          tabindex="0"
+        >
+          <span
+            class="group-display-name"
+          >
+            Group 2
+          </span>
+          <span
+            class="group-name"
+          >
+            @
+            group2
+          </span>
+          <div
+            class="group-member-count"
+          >
+            3 members
+          </div>
+          <div
+            class="group-action"
+          >
+            <button
+              aria-controls="group-actions-menu"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="Group 2 actions"
+              class="btn btn-icon btn-xs"
+              id="customWrapper-group2"
+            >
+              <i
+                class="icon icon-dots-vertical"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`component/user_groups_modal > should match snapshot without groups 1`] = `
+<div>
+  <div
+    class="user-groups-modal__content user-groups-list"
+    style="overflow: overlay;"
+  >
+    <div
+      style="position: relative; height: 156px; width: 100%; overflow: auto; will-change: transform; direction: ltr;"
+    >
+      <div
+        style="height: 0px; width: 100%;"
+      />
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,48 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ScrollToBottomToast Component > should render ScrollToBottomToast component 1`] = `
+<div>
+  <div
+    class="scroll-to-bottom-toast btn btn-primary"
+    data-testid="scroll-to-bottom-toast"
+  >
+    <span>
+      <svg
+        aria-label="Down Arrow Icon"
+        height="16"
+        role="img"
+        viewBox="0 0 16 16"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M8.696 2H7.184V11L3.062 6.878L2 7.94L7.94 13.88L13.88 7.94L12.818 6.878L8.696 11V2Z"
+        />
+      </svg>
+    </span>
+    Jump to recents
+    <div
+      class="scroll-to-bottom-toast__dismiss"
+      data-testid="scroll-to-bottom-toast--dismiss-button"
+    >
+      <span
+        class="close-btn"
+        id="dismissScrollToBottomToast"
+      >
+        <svg
+          aria-label="Close Icon"
+          height="24px"
+          role="img"
+          viewBox="0 0 24 24"
+          width="24px"
+        >
+          <path
+            d="M18 7.209L16.791 6 12 10.791 7.209 6 6 7.209 10.791 12 6 16.791 7.209 18 12 13.209 16.791 18 18 16.791 13.209 12z"
+            fill-rule="nonzero"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
+</div>
+`;

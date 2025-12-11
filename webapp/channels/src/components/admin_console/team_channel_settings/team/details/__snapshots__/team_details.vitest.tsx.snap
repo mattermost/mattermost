@@ -1,0 +1,609 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/team/TeamDetails > should match snapshot 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header with-back"
+    >
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/user_management/teams"
+        />
+        Team Configuration
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="AdminPanel clearfix "
+          id="team_profile"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Profile
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Summary of the team, including team name and description.
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-teams-and-channels"
+          >
+            <div
+              class="group-teams-and-channels--body"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="large-team-image-col"
+                >
+                  <div
+                    class="TeamIcon TeamIcon__lg no-hover"
+                  >
+                    <div
+                      class="TeamIcon__content no-hover"
+                    >
+                      <div
+                        aria-label="team Team Initials"
+                        class="TeamIcon__initials TeamIcon__initials__lg"
+                        data-testid="teamIconInitial"
+                        role="img"
+                      >
+                        te
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="team-desc-col"
+                >
+                  <div
+                    class="row row-bottom-padding"
+                  >
+                    <b>
+                      Team Name
+                    </b>
+                    :
+                    <br />
+                    team
+                  </div>
+                  <div
+                    class="row"
+                  >
+                    <b>
+                      Team Description
+                    </b>
+                    :
+                    <br />
+                    <span
+                      class="greyed-out"
+                    >
+                      No team description added.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="AdminChannelDetails_archiveContainer"
+              >
+                <button
+                  class="btn ArchiveButton ArchiveButton___unarchived cloud-limits-disabled"
+                  type="button"
+                >
+                  <i
+                    class="icon icon-archive-outline"
+                  />
+                  Archive Team
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix "
+          id="team_manage"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Management
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Choose between inviting members manually or syncing members automatically from groups.
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-teams-and-channels"
+          >
+            <div
+              class="group-teams-and-channels--body"
+            >
+              <div>
+                <div
+                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                >
+                  <label
+                    class="line-switch__label"
+                  >
+                    Anyone can join this team
+                  </label>
+                  <div
+                    class="line-switch__toggle"
+                    data-testid="allowAllToggleSwitch"
+                  >
+                    <button
+                      aria-pressed="false"
+                      class="btn btn-lg btn-toggle"
+                      data-testid="allowAllToggleSwitch-button"
+                      id="allowAllToggleSwitch"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <div
+                        class="handle"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="row"
+                >
+                  <div
+                    class="col-sm-10"
+                  >
+                    <div
+                      class="help-text-small help-text-no-padding help-text-single-line"
+                    >
+                      This team can be discovered allowing anyone with an account to join this team.
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="section-separator"
+                >
+                  <hr
+                    class="separator__hr"
+                  />
+                </div>
+              </div>
+              <div>
+                <div
+                  class="line-switch d-flex flex-sm-column flex-md-row align-items-sm-start align-items-center"
+                >
+                  <label
+                    class="line-switch__label"
+                  >
+                    Only specific email domains can join this team
+                  </label>
+                  <div
+                    class="line-switch__toggle"
+                    data-testid="allowedDomainsToggleSwitch"
+                  >
+                    <button
+                      aria-pressed="false"
+                      class="btn btn-lg btn-toggle"
+                      data-testid="allowedDomainsToggleSwitch-button"
+                      id="allowedDomainsToggleSwitch"
+                      tabindex="0"
+                      type="button"
+                    >
+                      <div
+                        class="handle"
+                      />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="row"
+                >
+                  <div
+                    class="col-sm-10"
+                  >
+                    <div
+                      class="help-text-small help-text-no-padding help-text-single-line"
+                    >
+                      Users can only join the team if their email matches one of the specified domains
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="help-text csvDomains"
+                >
+                  Comma Separated Email Domain List
+                </div>
+                <input
+                  class="form-control"
+                  placeholder="mattermost.com"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="AdminPanel clearfix "
+          id="teamMembers"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Members
+              </h3>
+              <div
+                class="mt-2"
+              >
+                A list of users who are currently in the team right now
+              </div>
+            </div>
+            <div
+              class="button"
+            >
+              <button
+                class="style--none btn btn-primary"
+                id="addTeamMembers"
+              >
+                Add Members
+              </button>
+            </div>
+          </div>
+          <div
+            class="DataGrid"
+          >
+            <div
+              class="DataGrid_search"
+            >
+              <div
+                class="DataGrid_searchBar"
+              >
+                <span
+                  aria-hidden="true"
+                  class="DataGrid_searchIcon"
+                >
+                  <i
+                    class="fa fa-search"
+                    title="Search Icon"
+                  />
+                </span>
+                <input
+                  data-testid="searchInput"
+                  placeholder="Search"
+                  type="text"
+                  value=""
+                />
+                <i
+                  class="DataGrid_clearButton fa fa-times-circle hidden"
+                  data-testid="clear-search"
+                />
+              </div>
+              <div
+                class="Filter"
+              >
+                <button
+                  class="Filter_button"
+                  type="button"
+                >
+                  <i
+                    class="Icon icon-filter-variant"
+                  />
+                  Filters
+                </button>
+                <div
+                  class="Filter_content"
+                >
+                  <div
+                    class="Filter_header"
+                  >
+                    <div
+                      class="Filter_title"
+                    >
+                      Filter by
+                    </div>
+                    <a
+                      class="Filter_reset"
+                    >
+                      Reset filters
+                    </a>
+                  </div>
+                  <hr />
+                  <div
+                    class="Filter_lists"
+                  >
+                    <div
+                      class="FilterList"
+                    >
+                      <div
+                        class="FilterList_name"
+                      >
+                        Role
+                      </div>
+                      <div
+                        class="FilterList_item"
+                      >
+                        <div
+                          class="FilterList_checkbox"
+                        >
+                          <label>
+                            <input
+                              id="team_user"
+                              name="team_user"
+                              type="checkbox"
+                            />
+                            Member
+                          </label>
+                        </div>
+                      </div>
+                      <div
+                        class="FilterList_item"
+                      >
+                        <div
+                          class="FilterList_checkbox"
+                        >
+                          <label>
+                            <input
+                              id="team_admin"
+                              name="team_admin"
+                              type="checkbox"
+                            />
+                            Team Admin
+                          </label>
+                        </div>
+                      </div>
+                      <div
+                        class="FilterList_item"
+                      >
+                        <div
+                          class="FilterList_checkbox"
+                        >
+                          <label>
+                            <input
+                              id="system_admin"
+                              name="system_admin"
+                              type="checkbox"
+                            />
+                            System Admin
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary btn-sm Filter_apply"
+                    disabled=""
+                    type="button"
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="DataGrid_header"
+            >
+              <div
+                class="DataGrid_cell"
+                style="flex-grow: 3;"
+              >
+                Name
+              </div>
+              <div
+                class="DataGrid_cell"
+              />
+              <div
+                class="DataGrid_cell"
+              >
+                Role
+              </div>
+              <div
+                class="DataGrid_cell"
+              />
+            </div>
+            <div
+              class="DataGrid_rows"
+              style="min-height: 0px;"
+            >
+              <div
+                class="DataGrid_empty"
+              >
+                No users found
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/user_management/teams"
+        id="cancelButtonSettings"
+      >
+        Cancel
+      </a>
+      <div
+        class="error-message"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/team/TeamDetails > should match snapshot with isLocalArchived true 1`] = `
+<div>
+  <div
+    class="wrapper--fixed"
+  >
+    <div
+      class="admin-console__header with-back"
+    >
+      <div>
+        <a
+          class="fa fa-angle-left back"
+          href="/admin_console/user_management/teams"
+        />
+        Team Configuration
+      </div>
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <div
+          class="AdminPanel clearfix "
+          id="team_profile"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Team Profile
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Summary of the team, including team name and description.
+              </div>
+            </div>
+          </div>
+          <div
+            class="group-teams-and-channels"
+          >
+            <div
+              class="group-teams-and-channels--body"
+            >
+              <div
+                class="d-flex"
+              >
+                <div
+                  class="large-team-image-col"
+                >
+                  <div
+                    class="TeamIcon TeamIcon__lg no-hover"
+                  >
+                    <div
+                      class="TeamIcon__content no-hover"
+                    >
+                      <div
+                        aria-label="team Team Initials"
+                        class="TeamIcon__initials TeamIcon__initials__lg"
+                        data-testid="teamIconInitial"
+                        role="img"
+                      >
+                        te
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="team-desc-col"
+                >
+                  <div
+                    class="row row-bottom-padding"
+                  >
+                    <b>
+                      Team Name
+                    </b>
+                    :
+                    <br />
+                    team
+                  </div>
+                  <div
+                    class="row"
+                  >
+                    <b>
+                      Team Description
+                    </b>
+                    :
+                    <br />
+                    <span
+                      class="greyed-out"
+                    >
+                      No team description added.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="AdminChannelDetails_archiveContainer"
+              >
+                <button
+                  class="btn ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+                  type="button"
+                >
+                  <i
+                    class="icon icon-archive-arrow-up-outline"
+                  />
+                  Unarchive Team
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <a
+        class="btn btn-quaternary"
+        href="/admin_console/user_management/teams"
+        id="cancelButtonSettings"
+      >
+        Cancel
+      </a>
+      <div
+        class="error-message"
+      />
+    </div>
+  </div>
+</div>
+`;

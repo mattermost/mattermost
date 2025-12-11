@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/MarkdownImageExpand > should match snapshot for collapsed embeds 1`] = `
+<div>
+  <div
+    class="markdown-image-expand "
+  >
+    <button
+      class="markdown-image-expand__expand-button"
+      type="button"
+    >
+      <span
+        class="icon icon-menu-right markdown-image-expand__expand-icon"
+      />
+      <span
+        class="markdown-image-expand__alt-text"
+      >
+        Some alt text
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/MarkdownImageExpand > should match snapshot for expanded embeds 1`] = `
+<div>
+  <div
+    class="markdown-image-expand markdown-image-expand--expanded"
+  >
+    <button
+      class="markdown-image-expand__collapse-button"
+      type="button"
+    >
+      <span
+        class="icon icon-menu-down"
+      />
+    </button>
+    An image to expand
+  </div>
+</div>
+`;

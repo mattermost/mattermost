@@ -1,0 +1,969 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/integrations/InstalledOAuthApps > should match snapshot 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        OAuth 2.0 Applications
+      </h1>
+      <a
+        class="add-link"
+        href="/test/integrations/oauth2-apps/add"
+      >
+        <button
+          class="btn btn-primary"
+          id="addOauthApp"
+          type="button"
+        >
+          <span>
+            Add OAuth 2.0 Application
+          </span>
+        </button>
+      </a>
+    </div>
+    <div
+      class="backstage-filters"
+    >
+      <div
+        class="backstage-filter__search"
+      >
+        <i
+          class="fa fa-search"
+          title="Search Icon"
+        />
+        <input
+          class="form-control"
+          id="searchInput"
+          placeholder="Search OAuth 2.0 Applications"
+          type="search"
+          value=""
+        />
+      </div>
+    </div>
+    <span
+      class="backstage-list__help"
+    >
+      Create 
+      <a
+        href="https://mattermost.com/pl/setup-oauth-2.0?utm_source=mattermost&utm_medium=in-product&utm_content=installed_oauth_apps&uid=&sid=&edition=team&server_version="
+        location="installed_oauth_apps"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        OAuth 2.0 applications
+      </a>
+       to securely integrate bots and third-party apps with Mattermost. Visit the 
+      <a
+        href="https://mattermost.com/marketplace/?utm_source=mattermost&utm_medium=in-product&utm_content=installed_oauth_apps&uid=&sid=&edition=team&server_version="
+        location="installed_oauth_apps"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        App Directory
+      </a>
+       to find available self-hosted apps.
+    </span>
+    <div
+      class="backstage-list"
+    >
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="integration__icon integration-list__icon"
+        >
+          <img
+            alt="get app screenshot"
+            src="https://test.com/icon"
+          />
+        </div>
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              firstApp
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+                id="showSecretButton"
+              >
+                Show Secret
+              </button>
+               - 
+              <button
+                class="style--none color--link"
+                id="regenerateSecretButton"
+              >
+                Regenerate Secret
+              </button>
+               - 
+              <a
+                href="/test/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              testing
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Is Trusted: 
+              <strong>
+                No
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client ID: 
+              <strong>
+                facxd9wpzpbpfp8pad78xj75pr
+              </strong>
+              <button
+                aria-label="Copy Client Id"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client Secret: 
+              <strong>
+                ***************
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: https://test.com/callback
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by  on Saturday, July 29, 2017
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="integration__icon integration-list__icon"
+        >
+          <img
+            alt="get app screenshot"
+            src="https://test2.com/icon"
+          />
+        </div>
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              secondApp
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+                id="showSecretButton"
+              >
+                Show Secret
+              </button>
+               - 
+              <button
+                class="style--none color--link"
+                id="regenerateSecretButton"
+              >
+                Regenerate Secret
+              </button>
+               - 
+              <a
+                href="/test/integrations/oauth2-apps/edit?id=fzcxd9wpzpbpfp8pad78xj75pr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              testing2
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Is Trusted: 
+              <strong>
+                Yes
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client ID: 
+              <strong>
+                fzcxd9wpzpbpfp8pad78xj75pr
+              </strong>
+              <button
+                aria-label="Copy Client Id"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client Secret: 
+              <strong>
+                ***************
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: https://test2.com/callback, https://test2.com/callback2
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by  on Saturday, July 29, 2017
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="backstage-footer"
+    >
+      <div
+        class="backstage-footer__cell"
+      >
+        1 - 2 of 2
+        <button
+          aria-label="Previous"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOAuthApps > should match snapshot for Apps 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        OAuth 2.0 Applications
+      </h1>
+      <a
+        class="add-link"
+        href="/test/integrations/oauth2-apps/add"
+      >
+        <button
+          class="btn btn-primary"
+          id="addOauthApp"
+          type="button"
+        >
+          <span>
+            Add OAuth 2.0 Application
+          </span>
+        </button>
+      </a>
+    </div>
+    <div
+      class="backstage-filters"
+    >
+      <div
+        class="backstage-filter__search"
+      >
+        <i
+          class="fa fa-search"
+          title="Search Icon"
+        />
+        <input
+          class="form-control"
+          id="searchInput"
+          placeholder="Search OAuth 2.0 Applications"
+          type="search"
+          value=""
+        />
+      </div>
+    </div>
+    <span
+      class="backstage-list__help"
+    >
+      Create 
+      <a
+        href="https://mattermost.com/pl/setup-oauth-2.0?utm_source=mattermost&utm_medium=in-product&utm_content=installed_oauth_apps&uid=&sid=&edition=team&server_version="
+        location="installed_oauth_apps"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        OAuth 2.0 applications
+      </a>
+       to securely integrate bots and third-party apps with Mattermost. Visit the 
+      <a
+        href="https://mattermost.com/marketplace/?utm_source=mattermost&utm_medium=in-product&utm_content=installed_oauth_apps&uid=&sid=&edition=team&server_version="
+        location="installed_oauth_apps"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        App Directory
+      </a>
+       to find available self-hosted apps.
+    </span>
+    <div
+      class="backstage-list"
+    >
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="integration__icon integration-list__icon"
+        >
+          <img
+            alt="get app screenshot"
+            src="https://test.com/icon"
+          />
+        </div>
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              firstApp
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+                id="showSecretButton"
+              >
+                Show Secret
+              </button>
+               - 
+              <button
+                class="style--none color--link"
+                id="regenerateSecretButton"
+              >
+                Regenerate Secret
+              </button>
+               - 
+              <a
+                href="/test/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              testing
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Is Trusted: 
+              <strong>
+                No
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client ID: 
+              <strong>
+                facxd9wpzpbpfp8pad78xj75pr
+              </strong>
+              <button
+                aria-label="Copy Client Id"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client Secret: 
+              <strong>
+                ***************
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: https://test.com/callback
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by  on Saturday, July 29, 2017
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="integration__icon integration-list__icon"
+        >
+          <img
+            alt="get app screenshot"
+            src="https://test2.com/icon"
+          />
+        </div>
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              secondApp
+            </strong>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              testing2
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Managed by Apps Framework
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="backstage-footer"
+    >
+      <div
+        class="backstage-footer__cell"
+      >
+        1 - 2 of 2
+        <button
+          aria-label="Previous"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/InstalledOAuthApps > should props.deleteOAuthApp on deleteOAuthApp 1`] = `
+<div>
+  <div
+    class="backstage-content"
+  >
+    <div
+      class="backstage-header"
+    >
+      <h1>
+        OAuth 2.0 Applications
+      </h1>
+      <a
+        class="add-link"
+        href="/test/integrations/oauth2-apps/add"
+      >
+        <button
+          class="btn btn-primary"
+          id="addOauthApp"
+          type="button"
+        >
+          <span>
+            Add OAuth 2.0 Application
+          </span>
+        </button>
+      </a>
+    </div>
+    <div
+      class="backstage-filters"
+    >
+      <div
+        class="backstage-filter__search"
+      >
+        <i
+          class="fa fa-search"
+          title="Search Icon"
+        />
+        <input
+          class="form-control"
+          id="searchInput"
+          placeholder="Search OAuth 2.0 Applications"
+          type="search"
+          value=""
+        />
+      </div>
+    </div>
+    <span
+      class="backstage-list__help"
+    >
+      Create 
+      <a
+        href="https://mattermost.com/pl/setup-oauth-2.0?utm_source=mattermost&utm_medium=in-product&utm_content=installed_oauth_apps&uid=&sid=&edition=team&server_version="
+        location="installed_oauth_apps"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        OAuth 2.0 applications
+      </a>
+       to securely integrate bots and third-party apps with Mattermost. Visit the 
+      <a
+        href="https://mattermost.com/marketplace/?utm_source=mattermost&utm_medium=in-product&utm_content=installed_oauth_apps&uid=&sid=&edition=team&server_version="
+        location="installed_oauth_apps"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        App Directory
+      </a>
+       to find available self-hosted apps.
+    </span>
+    <div
+      class="backstage-list"
+    >
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="integration__icon integration-list__icon"
+        >
+          <img
+            alt="get app screenshot"
+            src="https://test.com/icon"
+          />
+        </div>
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              firstApp
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+                id="showSecretButton"
+              >
+                Show Secret
+              </button>
+               - 
+              <button
+                class="style--none color--link"
+                id="regenerateSecretButton"
+              >
+                Regenerate Secret
+              </button>
+               - 
+              <a
+                href="/test/integrations/oauth2-apps/edit?id=facxd9wpzpbpfp8pad78xj75pr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              testing
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Is Trusted: 
+              <strong>
+                No
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client ID: 
+              <strong>
+                facxd9wpzpbpfp8pad78xj75pr
+              </strong>
+              <button
+                aria-label="Copy Client Id"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client Secret: 
+              <strong>
+                ***************
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: https://test.com/callback
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by  on Saturday, July 29, 2017
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="backstage-list__item"
+      >
+        <div
+          class="integration__icon integration-list__icon"
+        >
+          <img
+            alt="get app screenshot"
+            src="https://test2.com/icon"
+          />
+        </div>
+        <div
+          class="item-details"
+        >
+          <div
+            class="item-details__row d-flex flex-column flex-md-row justify-content-between"
+          >
+            <strong
+              class="item-details__name"
+            >
+              secondApp
+            </strong>
+            <div
+              class="item-actions"
+            >
+              <button
+                class="style--none color--link"
+                id="showSecretButton"
+              >
+                Show Secret
+              </button>
+               - 
+              <button
+                class="style--none color--link"
+                id="regenerateSecretButton"
+              >
+                Regenerate Secret
+              </button>
+               - 
+              <a
+                href="/test/integrations/oauth2-apps/edit?id=fzcxd9wpzpbpfp8pad78xj75pr"
+              >
+                Edit
+              </a>
+               - 
+              <button
+                class="color--link style--none"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__description"
+            >
+              testing2
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Is Trusted: 
+              <strong>
+                Yes
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client ID: 
+              <strong>
+                fzcxd9wpzpbpfp8pad78xj75pr
+              </strong>
+              <button
+                aria-label="Copy Client Id"
+                class="btn btn-link icon-content-copy ml-2"
+                data-testid="copyText"
+              />
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__token"
+            >
+              Client Secret: 
+              <strong>
+                ***************
+              </strong>
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__url word-break--all"
+            >
+              Callback URLs: https://test2.com/callback, https://test2.com/callback2
+            </span>
+          </div>
+          <div
+            class="item-details__row"
+          >
+            <span
+              class="item-details__creation"
+            >
+              Created by  on Saturday, July 29, 2017
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="backstage-footer"
+    >
+      <div
+        class="backstage-footer__cell"
+      >
+        1 - 2 of 2
+        <button
+          aria-label="Previous"
+          class="btn btn-quaternary btn-icon btn-sm ml-2 prev disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-left"
+            title="Previous Icon"
+          />
+        </button>
+        <button
+          aria-label="Next"
+          class="btn btn-quaternary btn-icon btn-sm next disabled"
+          type="button"
+        >
+          <i
+            class="icon icon-chevron-right"
+            title="Next Icon"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

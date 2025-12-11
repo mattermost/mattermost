@@ -1,0 +1,706 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/SettingItemMin > should match snapshot with active Save button 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <img
+            alt="profile image"
+            class="profile-img"
+            src="http://localhost:8065/api/v4/users/src_id"
+          />
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-primary"
+              data-testid="saveSettingPicture"
+              tabindex="0"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/SettingItemMin > should match snapshot with active Save button 2`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <img
+            alt="profile image"
+            class="profile-img"
+            src="http://localhost:8065/api/v4/users/src_id"
+          />
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/SettingItemMin > should match snapshot, on loading picture 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <img
+            alt="profile image"
+            class="profile-img"
+            src="http://localhost:8065/api/v4/users/src_id"
+          />
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              disabled=""
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+              disabled=""
+            >
+              Select
+            </button>
+            <button
+              aria-label="Uploading..."
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              <span
+                class="LoadingSpinner with-text"
+                data-testid="loadingSpinner"
+                id="loadingSpinner"
+              >
+                <span
+                  class="fa fa-spinner fa-fw fa-pulse spinner"
+                  title="Loading Icon"
+                />
+                Uploading...
+              </span>
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/SettingItemMin > should match snapshot, profile picture on file 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <div
+            class="profile-img-preview"
+          >
+            <div
+              class="img-preview__image"
+            >
+              <div
+                class="profile-img-preview"
+                style="background-image: url(null);"
+              />
+            </div>
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/SettingItemMin > should match snapshot, profile picture on source 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <img
+            alt="profile image"
+            class="profile-img"
+            src="http://localhost:8065/api/v4/users/src_id"
+          />
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/SettingItemMin > should match snapshot, team icon on file 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <div
+            class="team-img-preview"
+          >
+            <div
+              class="img-preview__image"
+            >
+              <div
+                class="team-img-preview"
+                style="background-image: url(null);"
+              />
+            </div>
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/SettingItemMin > should match snapshot, team icon on source 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <div
+            class="team-img__container"
+          >
+            <div
+              aria-hidden="true"
+              class="img-preview__image"
+            >
+              <img
+                alt="team image"
+                class="team-img"
+                src="http://localhost:8065/api/v4/users/src_id"
+              />
+            </div>
+            <button
+              class="team-img__remove"
+              data-testid="removeSettingPicture"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Remove This Icon
+              </span>
+            </button>
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/SettingItemMin > should match snapshot, user icon on source 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal"
+  >
+    <h4
+      class="col-xs-12 section-title"
+    >
+      Profile Picture
+    </h4>
+    <div
+      class="col-sm-10 col-sm-offset-2"
+    >
+      <div
+        aria-describedby="setting-picture__helptext"
+        aria-label="Profile Picture"
+        class="setting-list"
+        tabindex="-1"
+      >
+        <li
+          class="setting-list-item"
+          role="presentation"
+        >
+          <div
+            class="profile-img__container"
+          >
+            <div
+              aria-hidden="true"
+              class="img-preview__image"
+            >
+              <img
+                alt="profile image"
+                class="profile-img"
+                src="http://localhost:8065/api/v4/users/src_id"
+              />
+            </div>
+            <button
+              class="profile-img__remove"
+              data-testid="removeSettingPicture"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Remove Profile Picture
+              </span>
+            </button>
+          </div>
+        </li>
+        <div
+          class="setting-list-item pt-3"
+          id="setting-picture__helptext"
+        >
+          Upload a picture in BMP, JPG or PNG format. Maximum file size: 52428800
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <span>
+            <input
+              accept=".jpeg,.jpg,.png,.bmp"
+              aria-hidden="true"
+              class="hidden"
+              data-testid="uploadPicture"
+              tabindex="-1"
+              type="file"
+            />
+            <button
+              aria-label="Select"
+              class="btn btn-primary btn-file"
+              data-testid="inputSettingPictureButton"
+            >
+              Select
+            </button>
+            <button
+              aria-label="Save"
+              class="btn btn-inactive disabled"
+              data-testid="saveSettingPicture"
+              disabled=""
+              tabindex="-1"
+            >
+              Save
+            </button>
+          </span>
+          <button
+            aria-label="Cancel"
+            class="btn btn-tertiary theme ml-2"
+            data-testid="cancelSettingPicture"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

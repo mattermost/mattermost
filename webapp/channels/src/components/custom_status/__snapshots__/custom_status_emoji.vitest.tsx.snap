@@ -1,0 +1,5 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/custom_status/custom_status_emoji > should match snapshot 1`] = `<div />`;
+
+exports[`components/custom_status/custom_status_emoji > should match snapshot with props 1`] = `<div />`;

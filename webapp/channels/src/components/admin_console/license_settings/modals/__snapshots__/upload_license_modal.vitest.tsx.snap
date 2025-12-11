@@ -1,0 +1,869 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/license_settings/modals/upload_license_modal > should format users number 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="UploadLicenseModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign UploadLicenseModal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              />
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="content-body"
+                >
+                  <div
+                    class="svg-image"
+                  >
+                    <svg
+                      fill="none"
+                      height="103"
+                      viewBox="0 0 101 69"
+                      width="151"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="24"
+                        rx="3.75"
+                        width="84"
+                        x="0.000976562"
+                        y="9"
+                      />
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="25"
+                        rx="3.75"
+                        width="87"
+                        x="14.001"
+                        y="36"
+                      />
+                      <rect
+                        fill="var(--indigo-400)"
+                        height="58.8953"
+                        rx="2"
+                        width="48.1218"
+                        x="28.0286"
+                        y="9.33704"
+                      />
+                      <rect
+                        fill="var(--center-channel-bg)"
+                        height="65.3594"
+                        rx="2"
+                        width="50.505"
+                        x="23.001"
+                      />
+                      <rect
+                        height="64.3594"
+                        rx="1.5"
+                        stroke="var(--center-channel-color)"
+                        stroke-opacity="0.8"
+                        width="49.505"
+                        x="23.501"
+                        y="0.5"
+                      />
+                      <path
+                        d="M48.001 49C56.2853 49 63.001 42.2843 63.001 34C63.001 25.7157 56.2853 19 48.001 19C39.7167 19 33.001 25.7157 33.001 34C33.001 42.2843 39.7167 49 48.001 49Z"
+                        fill="var(--button-bg)"
+                      />
+                      <path
+                        d="M29 7H37.6188"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 54H57.0112"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 11H44.8012"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 58H65.63"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M38 15H44.4641"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M49.0192 42H46.9828V29.8788L41.4313 35.4303L40.001 34L48.001 26L56.001 34L54.5707 35.4303L49.0192 29.8788V42Z"
+                        fill="white"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="title"
+                  >
+                    Upload a License Key
+                  </div>
+                  <div
+                    class="subtitle"
+                  >
+                    Upload a license key for Mattermost Enterprise Edition to upgrade this server. 
+                  </div>
+                  <div
+                    class="file-upload"
+                  >
+                    <div
+                      class="file-upload__titleSection"
+                    >
+                      File
+                    </div>
+                    <div
+                      class="file-upload__inputSection"
+                    >
+                      <div
+                        class="help-text file-name-section"
+                      >
+                        No file selected
+                      </div>
+                      <div
+                        class="file__upload"
+                      >
+                        <a>
+                          Remove
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="content-footer"
+                >
+                  <div
+                    class="btn-upload-wrapper"
+                  >
+                    <button
+                      class="btn btn-primary"
+                      id="upload-button"
+                    >
+                      Upload
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/license_settings/modals/upload_license_modal > should match snapshot when is licensed 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="UploadLicenseModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign UploadLicenseModal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              />
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="content-body"
+                >
+                  <div
+                    class="svg-image"
+                  >
+                    <svg
+                      fill="none"
+                      height="103"
+                      viewBox="0 0 101 69"
+                      width="151"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="24"
+                        rx="3.75"
+                        width="84"
+                        x="0.000976562"
+                        y="9"
+                      />
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="25"
+                        rx="3.75"
+                        width="87"
+                        x="14.001"
+                        y="36"
+                      />
+                      <rect
+                        fill="var(--indigo-400)"
+                        height="58.8953"
+                        rx="2"
+                        width="48.1218"
+                        x="28.0286"
+                        y="9.33704"
+                      />
+                      <rect
+                        fill="var(--center-channel-bg)"
+                        height="65.3594"
+                        rx="2"
+                        width="50.505"
+                        x="23.001"
+                      />
+                      <rect
+                        height="64.3594"
+                        rx="1.5"
+                        stroke="var(--center-channel-color)"
+                        stroke-opacity="0.8"
+                        width="49.505"
+                        x="23.501"
+                        y="0.5"
+                      />
+                      <path
+                        d="M48.001 49C56.2853 49 63.001 42.2843 63.001 34C63.001 25.7157 56.2853 19 48.001 19C39.7167 19 33.001 25.7157 33.001 34C33.001 42.2843 39.7167 49 48.001 49Z"
+                        fill="var(--button-bg)"
+                      />
+                      <path
+                        d="M29 7H37.6188"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 54H57.0112"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 11H44.8012"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 58H65.63"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M38 15H44.4641"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M49.0192 42H46.9828V29.8788L41.4313 35.4303L40.001 34L48.001 26L56.001 34L54.5707 35.4303L49.0192 29.8788V42Z"
+                        fill="white"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="title"
+                  >
+                    Upload a License Key
+                  </div>
+                  <div
+                    class="subtitle"
+                  >
+                    Upload a license key for Mattermost Enterprise Edition to upgrade this server. 
+                  </div>
+                  <div
+                    class="file-upload"
+                  >
+                    <div
+                      class="file-upload__titleSection"
+                    >
+                      File
+                    </div>
+                    <div
+                      class="file-upload__inputSection"
+                    >
+                      <div
+                        class="help-text file-name-section"
+                      >
+                        No file selected
+                      </div>
+                      <div
+                        class="file__upload"
+                      >
+                        <a>
+                          Remove
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="content-footer"
+                >
+                  <div
+                    class="btn-upload-wrapper"
+                  >
+                    <button
+                      class="btn btn-primary"
+                      id="upload-button"
+                    >
+                      Upload
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/license_settings/modals/upload_license_modal > should match snapshot when is not licensed 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="UploadLicenseModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign UploadLicenseModal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              />
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="content-body"
+                >
+                  <div
+                    class="svg-image"
+                  >
+                    <svg
+                      fill="none"
+                      height="103"
+                      viewBox="0 0 101 69"
+                      width="151"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="24"
+                        rx="3.75"
+                        width="84"
+                        x="0.000976562"
+                        y="9"
+                      />
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="25"
+                        rx="3.75"
+                        width="87"
+                        x="14.001"
+                        y="36"
+                      />
+                      <rect
+                        fill="var(--indigo-400)"
+                        height="58.8953"
+                        rx="2"
+                        width="48.1218"
+                        x="28.0286"
+                        y="9.33704"
+                      />
+                      <rect
+                        fill="var(--center-channel-bg)"
+                        height="65.3594"
+                        rx="2"
+                        width="50.505"
+                        x="23.001"
+                      />
+                      <rect
+                        height="64.3594"
+                        rx="1.5"
+                        stroke="var(--center-channel-color)"
+                        stroke-opacity="0.8"
+                        width="49.505"
+                        x="23.501"
+                        y="0.5"
+                      />
+                      <path
+                        d="M48.001 49C56.2853 49 63.001 42.2843 63.001 34C63.001 25.7157 56.2853 19 48.001 19C39.7167 19 33.001 25.7157 33.001 34C33.001 42.2843 39.7167 49 48.001 49Z"
+                        fill="var(--button-bg)"
+                      />
+                      <path
+                        d="M29 7H37.6188"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 54H57.0112"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 11H44.8012"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 58H65.63"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M38 15H44.4641"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M49.0192 42H46.9828V29.8788L41.4313 35.4303L40.001 34L48.001 26L56.001 34L54.5707 35.4303L49.0192 29.8788V42Z"
+                        fill="white"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="title"
+                  >
+                    Upload a License Key
+                  </div>
+                  <div
+                    class="subtitle"
+                  >
+                    Upload a license key for Mattermost Enterprise Edition to upgrade this server. 
+                  </div>
+                  <div
+                    class="file-upload"
+                  >
+                    <div
+                      class="file-upload__titleSection"
+                    >
+                      File
+                    </div>
+                    <div
+                      class="file-upload__inputSection"
+                    >
+                      <div
+                        class="help-text file-name-section"
+                      >
+                        No file selected
+                      </div>
+                      <div
+                        class="file__upload"
+                      >
+                        <a>
+                          Remove
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="content-footer"
+                >
+                  <div
+                    class="btn-upload-wrapper"
+                  >
+                    <button
+                      class="btn btn-primary"
+                      id="upload-button"
+                    >
+                      Upload
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/license_settings/modals/upload_license_modal > should show success image when open and there is a license (successful license upload) 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="UploadLicenseModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign UploadLicenseModal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              />
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="content-body"
+                >
+                  <div
+                    class="svg-image"
+                  >
+                    <svg
+                      fill="none"
+                      height="103"
+                      viewBox="0 0 101 69"
+                      width="151"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="24"
+                        rx="3.75"
+                        width="84"
+                        x="0.000976562"
+                        y="9"
+                      />
+                      <rect
+                        fill="var(--button-bg)"
+                        fill-opacity="0.12"
+                        height="25"
+                        rx="3.75"
+                        width="87"
+                        x="14.001"
+                        y="36"
+                      />
+                      <rect
+                        fill="var(--indigo-400)"
+                        height="58.8953"
+                        rx="2"
+                        width="48.1218"
+                        x="28.0286"
+                        y="9.33704"
+                      />
+                      <rect
+                        fill="var(--center-channel-bg)"
+                        height="65.3594"
+                        rx="2"
+                        width="50.505"
+                        x="23.001"
+                      />
+                      <rect
+                        height="64.3594"
+                        rx="1.5"
+                        stroke="var(--center-channel-color)"
+                        stroke-opacity="0.8"
+                        width="49.505"
+                        x="23.501"
+                        y="0.5"
+                      />
+                      <path
+                        d="M48.001 49C56.2853 49 63.001 42.2843 63.001 34C63.001 25.7157 56.2853 19 48.001 19C39.7167 19 33.001 25.7157 33.001 34C33.001 42.2843 39.7167 49 48.001 49Z"
+                        fill="var(--button-bg)"
+                      />
+                      <path
+                        d="M29 7H37.6188"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 54H57.0112"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 11H44.8012"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M29 58H65.63"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M38 15H44.4641"
+                        stroke="var(--center-channel-color)"
+                        stroke-linecap="round"
+                        stroke-opacity="0.48"
+                      />
+                      <path
+                        d="M49.0192 42H46.9828V29.8788L41.4313 35.4303L40.001 34L48.001 26L56.001 34L54.5707 35.4303L49.0192 29.8788V42Z"
+                        fill="white"
+                      />
+                    </svg>
+                  </div>
+                  <div
+                    class="title"
+                  >
+                    Upload a License Key
+                  </div>
+                  <div
+                    class="subtitle"
+                  >
+                    Upload a license key for Mattermost Enterprise Edition to upgrade this server. 
+                  </div>
+                  <div
+                    class="file-upload"
+                  >
+                    <div
+                      class="file-upload__titleSection"
+                    >
+                      File
+                    </div>
+                    <div
+                      class="file-upload__inputSection"
+                    >
+                      <div
+                        class="help-text file-name-section"
+                      >
+                        No file selected
+                      </div>
+                      <div
+                        class="file__upload"
+                      >
+                        <a>
+                          Remove
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="content-footer"
+                >
+                  <div
+                    class="btn-upload-wrapper"
+                  >
+                    <button
+                      class="btn btn-primary"
+                      id="upload-button"
+                    >
+                      Upload
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

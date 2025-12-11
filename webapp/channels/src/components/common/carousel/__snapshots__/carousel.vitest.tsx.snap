@@ -1,0 +1,75 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/common/Carousel > should match snapshot 1`] = `
+<div>
+  <div
+    class="container-slider"
+    id="test-string"
+  >
+    <div
+      class="slide active-anim"
+    >
+      <p
+        class="slide"
+      >
+        First Slide
+      </p>
+    </div>
+    <div
+      class="slide"
+    >
+      <p
+        class="slide"
+      >
+        Second Slide
+      </p>
+    </div>
+    <div
+      class="slide"
+    >
+      <p
+        class="slide"
+      >
+        Third Slide
+      </p>
+    </div>
+    <div
+      class="container-footer"
+    >
+      <div
+        class="container-dots"
+      >
+        <div
+          class="dot active"
+        />
+        <div
+          class="dot"
+        />
+        <div
+          class="dot"
+        />
+      </div>
+      <div
+        class=" buttons container-buttons"
+      >
+        <a
+          class=" prev previous-btn"
+        >
+          <i
+            class="icon-arrow-back-ios"
+          />
+          Previous
+        </a>
+        <a
+          class=" next next-btn"
+        >
+          Next
+          <i
+            class="icon-arrow-forward-ios"
+          />
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;

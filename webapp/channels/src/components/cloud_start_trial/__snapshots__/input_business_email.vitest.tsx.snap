@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/cloud_start_trial/input_business_email > should match snapshot 1`] = `
+<div>
+  <div
+    class="Input_container request-business-email-container"
+  >
+    <div
+      class="Input_fieldset Input_fieldset___legend"
+      data-testid="input-wrapper"
+    >
+      <label
+        class="Input_legend Input_legend___focus"
+        for="input_request-business-email"
+      >
+                                
+        Enter business email
+      </label>
+      <div
+        class="Input_wrapper"
+      >
+        <input
+          aria-label="Enter business email"
+          autocomplete="off"
+          class="Input form-control medium request-business-email-input Input__focus"
+          id="input_request-business-email"
+          name="request-business-email"
+          placeholder="name@companyname.com"
+          type="email"
+          value="foo@example.com"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

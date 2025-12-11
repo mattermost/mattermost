@@ -1,0 +1,60 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/system_role_permission_dropdown > should match snapshot 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      aria-expanded="true"
+      class="PermissionSectionDropdownButton dropdown-toggle theme"
+      id="systemRolePermissionDropdownenvironemnt"
+      type="button"
+    >
+      <div
+        class="PermissionSectionDropdownButton_text"
+      >
+        Read only
+      </div>
+      <div
+        class="PermissionSectionDropdownButton_icon"
+      >
+        <i
+          class="fa fa-angle-down"
+          title="Dropdown Icon"
+        />
+      </div>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`admin_console/system_role_permission_dropdown > should match snapshot with isDisabledTrue 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+    disabled=""
+  >
+    <button
+      aria-expanded="true"
+      class="PermissionSectionDropdownButton dropdown-toggle theme"
+      id="systemRolePermissionDropdownenvironemnt"
+      type="button"
+    >
+      <div
+        class="PermissionSectionDropdownButton_text"
+      >
+        Read only
+      </div>
+      <div
+        class="PermissionSectionDropdownButton_icon"
+      >
+        <i
+          class="fa fa-angle-down"
+          title="Dropdown Icon"
+        />
+      </div>
+    </button>
+  </div>
+</div>
+`;

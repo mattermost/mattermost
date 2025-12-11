@@ -1,0 +1,161 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/channel_members_dropdown > should match snapshot for channel_members_dropdown 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
+      />
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/channel_members_dropdown > should match snapshot for dropdown with guest user 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
+      />
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/channel_members_dropdown > should match snapshot for dropdown with shared user 1`] = `<div />`;
+
+exports[`components/channel_members_dropdown > should match snapshot for group_constrained channel 1`] = `
+<div>
+  <div>
+    Channel Admin
+  </div>
+</div>
+`;
+
+exports[`components/channel_members_dropdown > should match snapshot for not dropdown with guest user 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
+      />
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/channel_members_dropdown > should match snapshot opening dropdown upwards 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
+      />
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/channel_members_dropdown > should match snapshot when user is current user 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
+      />
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/channel_members_dropdown > should match snapshot with role change possible 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button
+      class="dropdown-toggle theme color--link style--none"
+      type="button"
+    >
+      <span
+        class="sr-only"
+      />
+      <span>
+        Channel Admin
+         
+      </span>
+      <i
+        class="fa fa-angle-down"
+        title="Dropdown Icon"
+      />
+    </button>
+  </div>
+</div>
+`;

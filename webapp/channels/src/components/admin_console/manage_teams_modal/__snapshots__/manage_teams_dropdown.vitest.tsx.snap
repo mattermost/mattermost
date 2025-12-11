@@ -1,0 +1,81 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ManageTeamsDropdown > should match snapshot for guest 1`] = `
+<body>
+  <div>
+    <div
+      class="MenuWrapper "
+    >
+      <a>
+        <span>
+          Guest
+           
+        </span>
+        <span
+          class="caret"
+        />
+      </a>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`ManageTeamsDropdown > should match snapshot for system admin 1`] = `
+<body>
+  <div>
+    <div
+      class="MenuWrapper "
+    >
+      <a>
+        <span>
+          System Admin
+           
+        </span>
+        <span
+          class="caret"
+        />
+      </a>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`ManageTeamsDropdown > should match snapshot for team admin 1`] = `
+<body>
+  <div>
+    <div
+      class="MenuWrapper "
+    >
+      <a>
+        <span>
+          Team Admin
+           
+        </span>
+        <span
+          class="caret"
+        />
+      </a>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`ManageTeamsDropdown > should match snapshot for team member 1`] = `
+<body>
+  <div>
+    <div
+      class="MenuWrapper "
+    >
+      <a>
+        <span>
+          Team Member
+           
+        </span>
+        <span
+          class="caret"
+        />
+      </a>
+    </div>
+  </div>
+</body>
+`;

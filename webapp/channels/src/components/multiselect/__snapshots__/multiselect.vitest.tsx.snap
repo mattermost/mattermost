@@ -1,0 +1,465 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/multiselect/multiselect > MultiSelectList should match snapshot when custom no option message is defined 1`] = `
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-5-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi react-select-auto react-select__value-container--has-value css-1dyz3mf"
+            >
+              <div
+                class="react-select-auto react-select__multi-value css-1p3m7a8-multiValue"
+              >
+                <div
+                  class="react-select__padded-component"
+                >
+                  <div />
+                </div>
+                <div
+                  aria-label="Remove [object Object]"
+                  class="react-select-auto react-select__multi-value__remove css-v7duua"
+                  role="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="14"
+                    viewBox="0 0 20 20"
+                    width="14"
+                  >
+                    <path
+                      d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-5-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          class="btn btn-primary "
+          data-testid="saveSetting"
+          id="saveItems"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      >
+        0 of 8 members
+      </div>
+    </div>
+    <div
+      aria-live="polite"
+      class="multi-select__wrapper"
+    >
+      <div
+        class="custom-no-options-message"
+      >
+        <span>
+          No matches found
+        </span>
+      </div>
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+    <div
+      class="filter-controls"
+    />
+  </div>
+</div>
+`;
+
+exports[`components/multiselect/multiselect > should match snapshot 1`] = `
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-2-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi react-select-auto react-select__value-container--has-value css-1dyz3mf"
+            >
+              <div
+                class="react-select-auto react-select__multi-value css-1p3m7a8-multiValue"
+              >
+                <div
+                  class="react-select__padded-component"
+                >
+                  <div />
+                </div>
+                <div
+                  aria-label="Remove [object Object]"
+                  class="react-select-auto react-select__multi-value__remove css-v7duua"
+                  role="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="14"
+                    viewBox="0 0 20 20"
+                    width="14"
+                  >
+                    <path
+                      d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-2-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          class="btn btn-primary "
+          data-testid="saveSetting"
+          id="saveItems"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      >
+        5 of 8 members
+      </div>
+    </div>
+    <div
+      aria-live="polite"
+      class="multi-select__wrapper"
+    >
+      <div
+        class="more-modal__list"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="status"
+        >
+          5 results found for your search.
+        </div>
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+        >
+          <div />
+        </div>
+        <div
+          class="more-modal__options"
+          id="multiSelectList"
+          role="presentation"
+        >
+          <div
+            data-testid="option-0"
+          >
+            0
+          </div>
+          <div
+            data-testid="option-1"
+          >
+            1
+          </div>
+          <div
+            data-testid="option-2"
+          >
+            2
+          </div>
+          <div
+            data-testid="option-3"
+          >
+            3
+          </div>
+          <div
+            data-testid="option-4"
+          >
+            4
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+    <div
+      class="filter-controls"
+    >
+      <button
+        class="btn btn-sm btn-tertiary filter-control filter-control__next"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/multiselect/multiselect > should match snapshot for page 2 1`] = `
+<div>
+  <div
+    class="filtered-user-list"
+  >
+    <div
+      class="filter-row"
+    >
+      <div
+        class="multi-select__container react-select"
+      >
+        <div
+          class="css-1dedlln"
+          id="selectItems"
+        >
+          <span
+            class="css-1f43avz-a11yText-A11yText"
+            id="react-select-3-live-region"
+          />
+          <span
+            aria-atomic="false"
+            aria-live="polite"
+            aria-relevant="additions text"
+            class="css-1f43avz-a11yText-A11yText"
+            role="log"
+          />
+          <div
+            class="react-select-auto react-select__control css-13cymwt-control"
+          >
+            <div
+              class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi react-select-auto react-select__value-container--has-value css-1dyz3mf"
+            >
+              <div
+                class="react-select-auto react-select__multi-value css-1p3m7a8-multiValue"
+              >
+                <div
+                  class="react-select__padded-component"
+                >
+                  <div />
+                </div>
+                <div
+                  aria-label="Remove [object Object]"
+                  class="react-select-auto react-select__multi-value__remove css-v7duua"
+                  role="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="css-tj5bde-Svg"
+                    focusable="false"
+                    height="14"
+                    viewBox="0 0 20 20"
+                    width="14"
+                  >
+                    <path
+                      d="M14.348 14.849c-0.469 0.469-1.229 0.469-1.697 0l-2.651-3.030-2.651 3.029c-0.469 0.469-1.229 0.469-1.697 0-0.469-0.469-0.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-0.469-0.469-0.469-1.228 0-1.697s1.228-0.469 1.697 0l2.652 3.031 2.651-3.031c0.469-0.469 1.228-0.469 1.697 0s0.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c0.469 0.469 0.469 1.229 0 1.698z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                class="react-select-auto react-select__input-container css-19bb58m"
+                data-value=""
+              >
+                <input
+                  aria-activedescendant=""
+                  aria-autocomplete="list"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  aria-invalid="false"
+                  autocapitalize="none"
+                  autocomplete="off"
+                  autocorrect="off"
+                  class="react-select-auto react-select__input"
+                  id="react-select-3-input"
+                  role="combobox"
+                  spellcheck="false"
+                  style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                  tabindex="0"
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button
+          class="btn btn-primary "
+          data-testid="saveSetting"
+          id="saveItems"
+          type="submit"
+        >
+          <span>
+            Save
+          </span>
+        </button>
+      </div>
+      <div
+        class="multi-select__help"
+        id="multiSelectHelpMemberInfo"
+      >
+        3 of 8 members
+      </div>
+    </div>
+    <div
+      aria-live="polite"
+      class="multi-select__wrapper"
+    >
+      <div
+        class="more-modal__list"
+      >
+        <div
+          aria-live="polite"
+          class="sr-only"
+          role="status"
+        >
+          3 results found for your search.
+        </div>
+        <div
+          aria-atomic="true"
+          aria-live="polite"
+          class="sr-only"
+        >
+          <div />
+        </div>
+        <div
+          class="more-modal__options"
+          id="multiSelectList"
+          role="presentation"
+        >
+          <div
+            data-testid="option-5"
+          >
+            5
+          </div>
+          <div
+            data-testid="option-6"
+          >
+            6
+          </div>
+          <div
+            data-testid="option-7"
+          >
+            7
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="multi-select__help"
+      id="multiSelectMessageNote"
+    />
+    <div
+      class="filter-controls"
+    >
+      <button
+        class="btn btn-sm btn-tertiary filter-control filter-control__prev"
+      >
+        Previous
+      </button>
+    </div>
+  </div>
+</div>
+`;

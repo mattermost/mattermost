@@ -1,0 +1,94 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/unarchive_channel_modal > should match snapshot for unarchive_channel_modal 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="unarchiveChannelModalLabel"
+      class="fade in modal"
+      id="unarchiveChannelModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+              id="unarchiveChannelModalLabel"
+            >
+              Confirm UNARCHIVE Channel
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="alert alert-danger"
+            >
+              Are you sure you wish to unarchive the 
+              <b>
+                testing
+              </b>
+               channel?
+            </div>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <button
+              class="btn btn-tertiary"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="btn btn-danger"
+              data-dismiss="modal"
+              id="unarchiveChannelModalDeleteButton"
+              type="button"
+            >
+              Unarchive
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

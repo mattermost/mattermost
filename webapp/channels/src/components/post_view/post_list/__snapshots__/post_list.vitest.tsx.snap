@@ -1,0 +1,43 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/post_list > snapshot for loading when there are no posts 1`] = `
+<div>
+  <div
+    class="post-list-holder-by-time"
+  >
+    <div
+      class="post-list__table"
+    >
+      <div
+        class="post-list__content"
+        id="virtualizedPostListContent"
+      >
+        <div
+          data-testid="virt-post-list"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list > snapshot with couple of posts 1`] = `
+<div>
+  <div
+    class="post-list-holder-by-time"
+  >
+    <div
+      class="post-list__table"
+    >
+      <div
+        class="post-list__content"
+        id="virtualizedPostListContent"
+      >
+        <div
+          data-testid="virt-post-list"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;

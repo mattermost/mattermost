@@ -1,0 +1,120 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/threading/common/thread_menu > should match snapshot 1`] = `
+<div>
+  <div
+    class="MenuWrapper "
+  >
+    <button>
+      test
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/threading/common/thread_menu > should match snapshot after opening 1`] = `
+<div>
+  <div
+    class="MenuWrapper  MenuWrapper--open"
+  >
+    <button>
+      test
+    </button>
+    <div
+      aria-label="Actions"
+      class="a11y__popup Menu MenuWrapperAnimation-enter MenuWrapperAnimation-enter-active"
+    >
+      <ul
+        class="Menu__content dropdown-menu openLeft"
+        role="menu"
+      >
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none MenuItem__with-help"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Follow thread
+            </span>
+            <span
+              class="MenuItem__help-text"
+            >
+              You will be notified about replies
+            </span>
+          </button>
+        </li>
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Open in channel
+            </span>
+          </button>
+        </li>
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Mark as unread
+            </span>
+          </button>
+        </li>
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Save
+            </span>
+          </button>
+        </li>
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Copy link
+            </span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,211 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SidebarList > should match snapshot 1`] = `
+<div>
+  <div
+    aria-label="channel sidebar region"
+    class="SidebarNavContainer a11y__region"
+    data-a11y-disable-nav="false"
+    data-a11y-sort-order="7"
+    id="sidebar-left"
+    role="application"
+  >
+    <div
+      data-testid="scrollbars"
+    >
+      <div>
+        <div
+          id="sidebar-droppable-categories"
+        >
+          <div
+            class="SidebarChannelGroup a11y__section"
+          >
+            <div
+              class=""
+            >
+              <div
+                class="SidebarChannelGroupHeader"
+              >
+                <button
+                  aria-expanded="true"
+                  aria-label="custom_category_1"
+                  class="SidebarChannelGroupHeader_groupButton"
+                >
+                  <i
+                    class="icon icon-chevron-down"
+                  />
+                  <div
+                    class="SidebarChannelGroupHeader_text"
+                    tabindex="-1"
+                  >
+                    custom_category_1
+                  </div>
+                </button>
+                <div
+                  class="SidebarMenu MenuWrapper"
+                >
+                  <button
+                    aria-controls="SidebarChannelMenu-MenuList-category1"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-label="custom_category_1 category options"
+                    class="SidebarMenu_menuButton"
+                    id="SidebarCategoryMenu-Button-category1"
+                  >
+                    <svg
+                      fill="currentColor"
+                      height="16"
+                      version="1.1"
+                      viewBox="0 0 24 24"
+                      width="16"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div
+                class="SidebarChannelGroup_content"
+              >
+                <ul
+                  class="NavGroupContent"
+                >
+                  <li
+                    class="SidebarChannel expanded active noFloat"
+                    draggable="false"
+                    role="listitem"
+                    tabindex="-1"
+                  >
+                    <a
+                      aria-label="channel_display_name public channel"
+                      class="SidebarLink"
+                      href="/test/channels/"
+                      id="sidebarItem_"
+                      tabindex="0"
+                    >
+                      <i
+                        class="icon icon-globe"
+                      />
+                      <div
+                        class="SidebarChannelLinkLabel_wrapper"
+                      >
+                        <span
+                          class="SidebarChannelLinkLabel"
+                        >
+                          channel_display_name
+                        </span>
+                      </div>
+                      <div
+                        class="SidebarMenu MenuWrapper"
+                      >
+                        <button
+                          aria-controls="SidebarChannelMenu-MenuList-channel_id"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-label="Channel options for "
+                          class="SidebarMenu_menuButton"
+                          id="SidebarChannelMenu-Button-channel_id"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="16"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div
+                        class="tour-tip__pulsating-dot-ctr"
+                        data-pulsating-dot-placement="right"
+                        id="tipButton"
+                        style="transform: translate(undefinedpx, undefinedpx);"
+                      >
+                        <span
+                          class="pulsating_dot"
+                          data-testid="pulsating_dot"
+                        />
+                      </div>
+                    </a>
+                  </li>
+                  <li
+                    class="SidebarChannel expanded noFloat"
+                    draggable="false"
+                    role="listitem"
+                    tabindex="-1"
+                  >
+                    <a
+                      aria-label="channel_display_name_2 public channel"
+                      class="SidebarLink"
+                      href="/test/channels/"
+                      id="sidebarItem_"
+                      tabindex="0"
+                    >
+                      <i
+                        class="icon icon-globe"
+                      />
+                      <div
+                        class="SidebarChannelLinkLabel_wrapper"
+                      >
+                        <span
+                          class="SidebarChannelLinkLabel"
+                        >
+                          channel_display_name_2
+                        </span>
+                      </div>
+                      <div
+                        class="SidebarMenu MenuWrapper"
+                      >
+                        <button
+                          aria-controls="SidebarChannelMenu-MenuList-channel_id_2"
+                          aria-expanded="false"
+                          aria-haspopup="true"
+                          aria-label="Channel options for "
+                          class="SidebarMenu_menuButton"
+                          id="SidebarChannelMenu-Button-channel_id_2"
+                        >
+                          <svg
+                            fill="currentColor"
+                            height="16"
+                            version="1.1"
+                            viewBox="0 0 24 24"
+                            width="16"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      <div
+                        class="tour-tip__pulsating-dot-ctr"
+                        data-pulsating-dot-placement="right"
+                        id="tipButton"
+                        style="transform: translate(undefinedpx, undefinedpx);"
+                      >
+                        <span
+                          class="pulsating_dot"
+                          data-testid="pulsating_dot"
+                        />
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

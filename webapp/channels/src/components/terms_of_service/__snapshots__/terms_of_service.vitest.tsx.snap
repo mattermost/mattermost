@@ -1,0 +1,345 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/terms_of_service/TermsOfService > should match snapshot 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="announcement-bar"
+      css="[object Object]"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <i
+          class="icon icon-alert-circle-outline"
+        />
+        <span>
+          Your browser does not support browser notifications.
+        </span>
+        <button
+          class="btn btn-tertiary btn-xs btn-inverted"
+        >
+          Update your browser
+        </button>
+      </div>
+      <a
+        class="announcement-bar__close"
+        href="#"
+      >
+        ×
+      </a>
+    </div>
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="btn btn-primary"
+            id="acceptTerms"
+            type="submit"
+          >
+            I Agree
+          </button>
+          <button
+            class="btn-quaternary btn btn-default"
+            id="rejectTerms"
+            type="reset"
+          >
+            I Disagree
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/terms_of_service/TermsOfService > should match snapshot on loading 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="announcement-bar"
+      css="[object Object]"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <i
+          class="icon icon-alert-circle-outline"
+        />
+        <span>
+          Your browser does not support browser notifications.
+        </span>
+        <button
+          class="btn btn-tertiary btn-xs btn-inverted"
+        >
+          Update your browser
+        </button>
+      </div>
+      <a
+        class="announcement-bar__close"
+        href="#"
+      >
+        ×
+      </a>
+    </div>
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="btn btn-primary"
+            id="acceptTerms"
+            type="submit"
+          >
+            I Agree
+          </button>
+          <button
+            class="btn-quaternary btn btn-default"
+            id="rejectTerms"
+            type="reset"
+          >
+            I Disagree
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/terms_of_service/TermsOfService > should match snapshot, on accept terms 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="announcement-bar"
+      css="[object Object]"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <i
+          class="icon icon-alert-circle-outline"
+        />
+        <span>
+          Your browser does not support browser notifications.
+        </span>
+        <button
+          class="btn btn-tertiary btn-xs btn-inverted"
+        >
+          Update your browser
+        </button>
+      </div>
+      <a
+        class="announcement-bar__close"
+        href="#"
+      >
+        ×
+      </a>
+    </div>
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="btn btn-primary"
+            id="acceptTerms"
+            type="submit"
+          >
+            I Agree
+          </button>
+          <button
+            class="btn-quaternary btn btn-default"
+            id="rejectTerms"
+            type="reset"
+          >
+            I Disagree
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/terms_of_service/TermsOfService > should match snapshot, on reject terms 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="announcement-bar"
+      css="[object Object]"
+    >
+      <div
+        class="announcement-bar__text"
+      >
+        <i
+          class="icon icon-alert-circle-outline"
+        />
+        <span>
+          Your browser does not support browser notifications.
+        </span>
+        <button
+          class="btn btn-tertiary btn-xs btn-inverted"
+        >
+          Update your browser
+        </button>
+      </div>
+      <a
+        class="announcement-bar__close"
+        href="#"
+      >
+        ×
+      </a>
+    </div>
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="btn btn-primary"
+            id="acceptTerms"
+            type="submit"
+          >
+            I Agree
+          </button>
+          <button
+            class="btn-quaternary btn btn-default"
+            id="rejectTerms"
+            type="reset"
+          >
+            I Disagree
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

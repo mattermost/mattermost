@@ -1,0 +1,89 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/components/create_team/components/display_name > should match snapshot 1`] = `
+<div>
+  <div>
+    <form>
+      <img
+        alt="signup team logo"
+        class="signup-team-logo"
+        src="logo.png"
+      />
+      <label
+        for="teamURLInput"
+      >
+        <strong>
+          Team URL
+        </strong>
+      </label>
+      <div
+        class="form-group"
+      >
+        <div
+          class="row"
+        >
+          <div
+            class="col-sm-11"
+          >
+            <div
+              class="input-group input-group--limit"
+            >
+              <span
+                class="input-group-addon"
+              >
+                http://localhost:8065/
+              </span>
+              <input
+                aria-describedby="teamURLInputError"
+                class="form-control"
+                id="teamURLInput"
+                maxlength="128"
+                placeholder=""
+                spellcheck="false"
+                type="text"
+                value="test-team"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      <p>
+        Choose the web address of your new team:
+      </p>
+      <ul
+        class="color--light"
+      >
+        <li>
+          Short and memorable is best
+        </li>
+        <li>
+          Use lowercase letters, numbers and dashes
+        </li>
+        <li>
+          Must start with a letter and can't end in a dash
+        </li>
+      </ul>
+      <div
+        class="mt-8"
+      >
+        <button
+          class="btn btn-primary"
+          id="teamURLFinishButton"
+          type="submit"
+        >
+          Finish
+        </button>
+      </div>
+      <div
+        class="mt-8"
+      >
+        <a
+          href="#"
+        >
+          Back to previous step
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+`;

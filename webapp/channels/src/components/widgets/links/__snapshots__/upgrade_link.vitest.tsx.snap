@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/widgets/links/UpgradeLink > should match the snapshot on show 1`] = `
+<div>
+  <button
+    class="upgradeLink"
+  >
+    Upgrade now
+  </button>
+</div>
+`;
+
+exports[`components/widgets/links/UpgradeLink > should open window when button clicked 1`] = `
+<div>
+  <button
+    class="upgradeLink"
+  >
+    Upgrade now
+  </button>
+</div>
+`;

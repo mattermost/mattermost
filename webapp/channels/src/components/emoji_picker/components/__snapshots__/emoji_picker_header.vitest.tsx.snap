@@ -1,0 +1,59 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/emoji_picker/components/EmojiPickerHeader > handleEmojiPickerClose, should have called props.handleEmojiPickerClose 1`] = `
+<div>
+  <div
+    class="emoji-picker__header"
+  >
+    <button
+      class="close emoji-picker__header-close-button"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+      <span
+        class="sr-only"
+      >
+        Close
+      </span>
+    </button>
+    <h4
+      class="modal-title emoji-picker__header-title"
+    >
+      Emoji Picker
+    </h4>
+  </div>
+</div>
+`;
+
+exports[`components/emoji_picker/components/EmojiPickerHeader > should match snapshot,  1`] = `
+<div>
+  <div
+    class="emoji-picker__header"
+  >
+    <button
+      class="close emoji-picker__header-close-button"
+      type="button"
+    >
+      <span
+        aria-hidden="true"
+      >
+        ×
+      </span>
+      <span
+        class="sr-only"
+      >
+        Close
+      </span>
+    </button>
+    <h4
+      class="modal-title emoji-picker__header-title"
+    >
+      Emoji Picker
+    </h4>
+  </div>
+</div>
+`;

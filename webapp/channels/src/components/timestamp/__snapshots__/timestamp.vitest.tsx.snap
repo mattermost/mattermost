@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/timestamp/Timestamp > should be wrapped in SemanticTime and support passthrough className and label 1`] = `
+<div>
+  <time
+    aria-label="test label"
+    class="test class"
+    datetime="2019-05-03T13:20:00.000"
+  >
+    Friday
+  </time>
+</div>
+`;
+
+exports[`components/timestamp/Timestamp > should not be wrapped in SemanticTime 1`] = `
+<div>
+  Friday
+</div>
+`;

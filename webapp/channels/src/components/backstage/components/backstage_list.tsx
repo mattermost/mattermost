@@ -79,6 +79,10 @@ const BackstageList = (remainingProps: Props) => {
             children = remainingProps.children as JSX.Element[];
         }
         children = React.Children.map(children, (child) => {
+            // Only pass filterLowered to React components, not DOM elements
+            if (typeof child.type === 'string') {
+                return child;
+            }
             return React.cloneElement(child, {filterLowered});
         });
         if (children.length === 0 || !hasChildren) {

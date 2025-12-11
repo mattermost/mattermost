@@ -1,0 +1,67 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/error_page/ErrorTitle > should match snapshot, channel_not_found type 1`] = `
+<div>
+  Channel Not Found
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, local_storage type 1`] = `
+<div>
+  Cannot Load Mattermost
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, no type but with title 1`] = `
+<div>
+  error title
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, no type nor title 1`] = `
+<div>
+  Error
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, oauth_access_denied type 1`] = `
+<div>
+  Authorization Error
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, oauth_invalid_param type 1`] = `
+<div>
+  OAuth Parameter Error
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, oauth_invalid_redirect_url type 1`] = `
+<div>
+  OAuth Parameter Error
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, oauth_missing_code type 1`] = `
+<div>
+  Mattermost Needs Your Help
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, page_not_found type 1`] = `
+<div>
+  Page Not Found
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, permalink_not_found type 1`] = `
+<div>
+  Message Not Found
+</div>
+`;
+
+exports[`components/error_page/ErrorTitle > should match snapshot, team_not_found type 1`] = `
+<div>
+  Team Not Found
+</div>
+`;

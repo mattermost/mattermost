@@ -1,0 +1,162 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/user_settings/notifications/ManageAutoResponder > should match snapshot, default disabled 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Automatic direct message replies
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="checkbox"
+            id="autoResponderCheckbox"
+          >
+            <label>
+              <input
+                class="a11y--active a11y--focused"
+                id="autoResponderActive"
+                type="checkbox"
+              />
+              Enabled
+            </label>
+          </div>
+          <div
+            class="mt-5"
+          >
+            Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`components/user_settings/notifications/ManageAutoResponder > should match snapshot, enabled 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Automatic direct message replies
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="checkbox"
+            id="autoResponderCheckbox"
+          >
+            <label>
+              <input
+                checked=""
+                class="a11y--active a11y--focused"
+                id="autoResponderActive"
+                type="checkbox"
+              />
+              Enabled
+            </label>
+          </div>
+          <div
+            id="autoResponderMessage"
+          >
+            <div
+              class="pt-2"
+            >
+              <textarea
+                class="form-control"
+                id="autoResponderMessageInput"
+                maxlength="200"
+                placeholder="Message"
+                rows="5"
+                style="resize: none; height: auto;"
+              >
+                Hello World!
+              </textarea>
+            </div>
+          </div>
+          <div
+            class="mt-5"
+          >
+            Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

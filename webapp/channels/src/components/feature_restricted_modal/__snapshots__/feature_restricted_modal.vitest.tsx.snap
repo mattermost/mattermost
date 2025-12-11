@@ -1,0 +1,340 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/global/product_switcher_menu > should show with end user post trial 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="FeatureRestrictedModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign FeatureRestrictedModal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Title end user
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="FeatureRestrictedModal__body"
+                >
+                  <p
+                    class="FeatureRestrictedModal__description"
+                  >
+                    Message end user
+                  </p>
+                  <div
+                    class="FeatureRestrictedModal__buttons single"
+                  >
+                    <button
+                      class="button-plans"
+                      id="button-plans"
+                    >
+                      Notify admin
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/global/product_switcher_menu > should show with end user pre trial 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="FeatureRestrictedModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign FeatureRestrictedModal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Title end user
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="FeatureRestrictedModal__body"
+                >
+                  <p
+                    class="FeatureRestrictedModal__description"
+                  >
+                    Message end user
+                  </p>
+                  <div
+                    class="FeatureRestrictedModal__buttons single"
+                  >
+                    <button
+                      class="button-plans"
+                      id="button-plans"
+                    >
+                      Notify admin
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`components/global/product_switcher_menu > should show with system admin pre trial for self hosted 1`] = `
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="FeatureRestrictedModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign FeatureRestrictedModal modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Title admin pre trial
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div
+                  class="FeatureRestrictedModal__body"
+                >
+                  <p
+                    class="FeatureRestrictedModal__description"
+                  >
+                    Message admin pre trial
+                  </p>
+                  <p
+                    class="FeatureRestrictedModal__terms"
+                  >
+                    By selecting 
+                    <strong>
+                      Try free for 30 days
+                    </strong>
+                    , I agree to the 
+                    <a
+                      href="https://mattermost.com/pl/software-and-services-license-agreement?utm_source=mattermost&utm_medium=in-product&utm_content=feature_restricted_modal&uid=user1&sid=&edition=team&server_version="
+                      location="feature_restricted_modal"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Mattermost Software Evaluation Agreement
+                    </a>
+                    , 
+                    <a
+                      href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=feature_restricted_modal&uid=user1&sid=&edition=team&server_version="
+                      location="feature_restricted_modal"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      Privacy Policy
+                    </a>
+                    , and receiving product emails.
+                  </p>
+                  <div
+                    class="FeatureRestrictedModal__buttons"
+                  >
+                    <button
+                      class="button-plans"
+                      id="button-plans"
+                    >
+                      View plans
+                    </button>
+                    <button
+                      class="btn btn-primary"
+                      id="start_trial_btn"
+                    >
+                      Start trial
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+`;

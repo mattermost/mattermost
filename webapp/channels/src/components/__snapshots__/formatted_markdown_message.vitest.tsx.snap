@@ -1,0 +1,69 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/FormattedMarkdownMessage > should allow to disable links 1`] = `
+<div>
+  <span>
+    <em>
+      Hi
+    </em>
+     http://www.mattermost.com!
+  </span>
+</div>
+`;
+
+exports[`components/FormattedMarkdownMessage > should backup to default 1`] = `
+<div>
+  <span>
+    testing default message
+  </span>
+</div>
+`;
+
+exports[`components/FormattedMarkdownMessage > should escape non-BR 1`] = `
+<div>
+  <span>
+    &lt;b&gt;hello&lt;/b&gt; &lt;script&gt;var malicious = true;&lt;/script&gt; world!
+  </span>
+</div>
+`;
+
+exports[`components/FormattedMarkdownMessage > should render message 1`] = `
+<div>
+  <span>
+    <strong>
+      bold
+    </strong>
+     
+    <em>
+      italic
+    </em>
+     
+    <a
+      href="https://mattermost.com/"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      link
+    </a>
+     &lt;br/&gt; 
+    <a
+      href="https://mattermost.com/"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      link target blank
+    </a>
+  </span>
+</div>
+`;
+
+exports[`components/FormattedMarkdownMessage > values should work 1`] = `
+<div>
+  <span>
+    <em>
+      Hi
+    </em>
+     sweetie!
+  </span>
+</div>
+`;

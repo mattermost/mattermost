@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/learn_more_trial_modal/start_trial_btn > should match snapshot 1`] = `
+<div>
+  <a
+    class="btn btn-secondary"
+    id="start_trial_btn"
+  >
+    Start trial
+  </a>
+</div>
+`;

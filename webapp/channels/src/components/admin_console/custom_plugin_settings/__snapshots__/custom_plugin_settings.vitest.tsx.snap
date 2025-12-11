@@ -1,0 +1,801 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/CustomPluginSettings > should match snapshot with no settings and plugin 1`] = `
+<div>
+  <div
+    class="wrapper--fixed "
+    data-testid="sysconsole_section_testplugin"
+  >
+    <div
+      class="admin-console__header"
+    >
+      testplugin
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <form
+          class="form-horizontal"
+          role="form"
+        >
+          <div
+            class=""
+          >
+            <div
+              class=""
+            >
+              <div
+                class="banner"
+              >
+                <span>
+                  <h1
+                    id="header"
+                  >
+                    Header
+                  </h1>
+                  
+
+                  <em>
+                    This
+                  </em>
+                   is the 
+                  <strong>
+                    header
+                  </strong>
+                </span>
+              </div>
+              <div
+                class="form-group"
+                data-testid="settinga"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="settingalabel"
+                  for="settinga"
+                >
+                  Setting One
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <input
+                    class="form-control"
+                    data-testid="settingainput"
+                    id="settinga"
+                    maxlength="-1"
+                    placeholder="e.g. some setting"
+                    type="text"
+                    value="setting_default"
+                  />
+                  <div
+                    class="help-text"
+                    data-testid="settingahelp-text"
+                  >
+                    <span>
+                      This is some help text for the text field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <fieldset
+                class="form-group"
+                data-testid="settingb"
+                id="settingb"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Setting Two
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <label
+                    class="sc-bcPLoT eTrMuN"
+                  >
+                    <input
+                      checked=""
+                      data-testid="settingbtrue"
+                      id="settingbtrue"
+                      name="settingb"
+                      type="radio"
+                      value="true"
+                    />
+                    True
+                  </label>
+                  <label
+                    class="sc-bcPLoT eTrMuN"
+                  >
+                    <input
+                      data-testid="settingbfalse"
+                      id="settingbfalse"
+                      name="settingb"
+                      type="radio"
+                      value="false"
+                    />
+                    False
+                  </label>
+                  <div
+                    class="help-text"
+                    data-testid="settingbhelp-text"
+                  >
+                    <span>
+                      This is some help text for the bool field.
+                    </span>
+                  </div>
+                </div>
+              </fieldset>
+              <div
+                class="form-group"
+                data-testid="settingc"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="settingc"
+                >
+                  Setting Three
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="settingcdropdown"
+                    id="settingc"
+                  >
+                    <option
+                      value="option1"
+                    >
+                      Option 1
+                    </option>
+                    <option
+                      value="option2"
+                    >
+                      Option 2
+                    </option>
+                    <option
+                      value="option3"
+                    >
+                      Option 3
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="settingchelp-text"
+                  >
+                    <span>
+                      This is some help text for the dropdown field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+                data-testid="settingd"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="settingd"
+                >
+                  Setting Four
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <label
+                    class="RadioSetting__label"
+                  >
+                    <input
+                      class="RadioSetting__input"
+                      name="settingd"
+                      type="radio"
+                      value="option1"
+                    />
+                    <span
+                      class="RadioSetting__text"
+                    >
+                      Option 1
+                    </span>
+                  </label>
+                  <label
+                    class="RadioSetting__label"
+                  >
+                    <input
+                      checked=""
+                      class="RadioSetting__input"
+                      name="settingd"
+                      type="radio"
+                      value="option2"
+                    />
+                    <span
+                      class="RadioSetting__text"
+                    >
+                      Option 2
+                    </span>
+                  </label>
+                  <label
+                    class="RadioSetting__label"
+                  >
+                    <input
+                      class="RadioSetting__input"
+                      name="settingd"
+                      type="radio"
+                      value="option3"
+                    />
+                    <span
+                      class="RadioSetting__text"
+                    >
+                      Option 3
+                    </span>
+                  </label>
+                  <div
+                    class="help-text"
+                    data-testid="settingdhelp-text"
+                  >
+                    <span>
+                      This is some help text for the radio field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="settinge"
+                >
+                  Setting Five
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="form-control disabled"
+                    id="settinge"
+                  >
+                    option3
+                  </div>
+                  <div
+                    class="help-text"
+                  >
+                    <span>
+                      This is some help text for the generated field.
+                    </span>
+                  </div>
+                  <div
+                    class="help-text"
+                  >
+                    <button
+                      class="btn btn-tertiary"
+                      type="button"
+                    >
+                      Regenerate
+                    </button>
+                  </div>
+                  <div
+                    class="help-text"
+                  >
+                    This is help text for the regenerate button.
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+                data-testid="settingf"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="settingf"
+                >
+                  Setting Six
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="admin-setting-user__dropdown"
+                  >
+                    <div
+                      class=""
+                    >
+                      <div
+                        class="input-wrapper"
+                      >
+                        <input
+                          aria-autocomplete="list"
+                          aria-controls="suggestionList"
+                          aria-expanded="false"
+                          autocomplete="off"
+                          class="form-control"
+                          id="admin_user_setting_settingf"
+                          placeholder="Type a username here"
+                          role="combobox"
+                          value="option4"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="settingfhelp-text"
+                  >
+                    <span>
+                      This is some help text for the user autocomplete field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="banner"
+              >
+                <span>
+                  <h1
+                    id="footer"
+                  >
+                    Footer
+                  </h1>
+                  
+
+                  <em>
+                    This
+                  </em>
+                   is the 
+                  <strong>
+                    footer
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <div
+        class="error-message"
+        data-testid="errorMessage"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/CustomPluginSettings > should match snapshot with settings and no plugin 1`] = `
+<div>
+  <div
+    class="wrapper--fixed "
+    data-testid="sysconsole_section_testplugin"
+  >
+    <div
+      class="admin-console__header"
+    >
+      testplugin
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <form
+          class="form-horizontal"
+          role="form"
+        />
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <div
+        class="error-message"
+        data-testid="errorMessage"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/CustomPluginSettings > should match snapshot with settings and plugin 1`] = `
+<div>
+  <div
+    class="wrapper--fixed "
+    data-testid="sysconsole_section_testplugin"
+  >
+    <div
+      class="admin-console__header"
+    >
+      testplugin
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
+      >
+        <form
+          class="form-horizontal"
+          role="form"
+        >
+          <div
+            class=""
+          >
+            <div
+              class=""
+            >
+              <div
+                class="banner"
+              >
+                <span>
+                  <h1
+                    id="header"
+                  >
+                    Header
+                  </h1>
+                  
+
+                  <em>
+                    This
+                  </em>
+                   is the 
+                  <strong>
+                    header
+                  </strong>
+                </span>
+              </div>
+              <div
+                class="form-group"
+                data-testid="PluginSettings.Plugins.testplugin.settinga"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  data-testid="PluginSettings.Plugins.testplugin.settingalabel"
+                  for="PluginSettings.Plugins.testplugin.settinga"
+                >
+                  Setting One
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <input
+                    class="form-control"
+                    data-testid="PluginSettings.Plugins.testplugin.settingainput"
+                    id="PluginSettings.Plugins.testplugin.settinga"
+                    maxlength="-1"
+                    placeholder="e.g. some setting"
+                    type="text"
+                    value="fsdsdg"
+                  />
+                  <div
+                    class="help-text"
+                    data-testid="PluginSettings.Plugins.testplugin.settingahelp-text"
+                  >
+                    <span>
+                      This is some help text for the text field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <fieldset
+                class="form-group"
+                data-testid="PluginSettings.Plugins.testplugin.settingb"
+                id="PluginSettings.Plugins.testplugin.settingb"
+              >
+                <legend
+                  class="control-label form-legend col-sm-4"
+                >
+                  Setting Two
+                </legend>
+                <div
+                  class="col-sm-8"
+                >
+                  <label
+                    class="sc-bcPLoT eTrMuN"
+                  >
+                    <input
+                      data-testid="PluginSettings.Plugins.testplugin.settingbtrue"
+                      id="PluginSettings.Plugins.testplugin.settingbtrue"
+                      name="PluginSettings.Plugins.testplugin.settingb"
+                      type="radio"
+                      value="true"
+                    />
+                    True
+                  </label>
+                  <label
+                    class="sc-bcPLoT eTrMuN"
+                  >
+                    <input
+                      checked=""
+                      data-testid="PluginSettings.Plugins.testplugin.settingbfalse"
+                      id="PluginSettings.Plugins.testplugin.settingbfalse"
+                      name="PluginSettings.Plugins.testplugin.settingb"
+                      type="radio"
+                      value="false"
+                    />
+                    False
+                  </label>
+                  <div
+                    class="help-text"
+                    data-testid="PluginSettings.Plugins.testplugin.settingbhelp-text"
+                  >
+                    <span>
+                      This is some help text for the bool field.
+                    </span>
+                  </div>
+                </div>
+              </fieldset>
+              <div
+                class="form-group"
+                data-testid="PluginSettings.Plugins.testplugin.settingc"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="PluginSettings.Plugins.testplugin.settingc"
+                >
+                  Setting Three
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="PluginSettings.Plugins.testplugin.settingcdropdown"
+                    id="PluginSettings.Plugins.testplugin.settingc"
+                  >
+                    <option
+                      value="option1"
+                    >
+                      Option 1
+                    </option>
+                    <option
+                      value="option2"
+                    >
+                      Option 2
+                    </option>
+                    <option
+                      value="option3"
+                    >
+                      Option 3
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="PluginSettings.Plugins.testplugin.settingchelp-text"
+                  >
+                    <span>
+                      This is some help text for the dropdown field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+                data-testid="PluginSettings.Plugins.testplugin.settingd"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="PluginSettings.Plugins.testplugin.settingd"
+                >
+                  Setting Four
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <label
+                    class="RadioSetting__label"
+                  >
+                    <input
+                      checked=""
+                      class="RadioSetting__input"
+                      name="PluginSettings.Plugins.testplugin.settingd"
+                      type="radio"
+                      value="option1"
+                    />
+                    <span
+                      class="RadioSetting__text"
+                    >
+                      Option 1
+                    </span>
+                  </label>
+                  <label
+                    class="RadioSetting__label"
+                  >
+                    <input
+                      class="RadioSetting__input"
+                      name="PluginSettings.Plugins.testplugin.settingd"
+                      type="radio"
+                      value="option2"
+                    />
+                    <span
+                      class="RadioSetting__text"
+                    >
+                      Option 2
+                    </span>
+                  </label>
+                  <label
+                    class="RadioSetting__label"
+                  >
+                    <input
+                      class="RadioSetting__input"
+                      name="PluginSettings.Plugins.testplugin.settingd"
+                      type="radio"
+                      value="option3"
+                    />
+                    <span
+                      class="RadioSetting__text"
+                    >
+                      Option 3
+                    </span>
+                  </label>
+                  <div
+                    class="help-text"
+                    data-testid="PluginSettings.Plugins.testplugin.settingdhelp-text"
+                  >
+                    <span>
+                      This is some help text for the radio field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="PluginSettings.Plugins.testplugin.settinge"
+                >
+                  Setting Five
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="form-control disabled"
+                    id="PluginSettings.Plugins.testplugin.settinge"
+                  >
+                    Q6DHXrFLOIS5sOI5JNF4PyDLqWm7vh23
+                  </div>
+                  <div
+                    class="help-text"
+                  >
+                    <span>
+                      This is some help text for the generated field.
+                    </span>
+                  </div>
+                  <div
+                    class="help-text"
+                  >
+                    <button
+                      class="btn btn-tertiary"
+                      type="button"
+                    >
+                      Regenerate
+                    </button>
+                  </div>
+                  <div
+                    class="help-text"
+                  >
+                    This is help text for the regenerate button.
+                  </div>
+                </div>
+              </div>
+              <div
+                class="form-group"
+                data-testid="PluginSettings.Plugins.testplugin.settingf"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="PluginSettings.Plugins.testplugin.settingf"
+                >
+                  Setting Six
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <div
+                    class="admin-setting-user__dropdown"
+                  >
+                    <div
+                      class=""
+                    >
+                      <div
+                        class="input-wrapper"
+                      >
+                        <input
+                          aria-autocomplete="list"
+                          aria-controls="suggestionList"
+                          aria-expanded="false"
+                          autocomplete="off"
+                          class="form-control"
+                          id="admin_user_setting_PluginSettings.Plugins.testplugin.settingf"
+                          placeholder="Type a username here"
+                          role="combobox"
+                          value="3xz3r6n7dtbbmgref3yw4zg7sr"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="help-text"
+                    data-testid="PluginSettings.Plugins.testplugin.settingfhelp-text"
+                  >
+                    <span>
+                      This is some help text for the user autocomplete field.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="banner"
+              >
+                <span>
+                  <h1
+                    id="footer"
+                  >
+                    Footer
+                  </h1>
+                  
+
+                  <em>
+                    This
+                  </em>
+                   is the 
+                  <strong>
+                    footer
+                  </strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div
+      class="admin-console-save"
+    >
+      <button
+        class="btn btn-primary"
+        data-testid="saveSetting"
+        disabled=""
+        id="saveSetting"
+        type="submit"
+      >
+        <span>
+          Save
+        </span>
+      </button>
+      <div
+        class="error-message"
+        data-testid="errorMessage"
+      />
+    </div>
+  </div>
+</div>
+`;

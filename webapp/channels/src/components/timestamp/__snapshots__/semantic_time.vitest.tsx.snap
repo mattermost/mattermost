@@ -1,0 +1,10 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/timestamp/SemanticTime > should support custom label 1`] = `
+<div>
+  <time
+    aria-label="A custom label"
+    datetime="2020-06-05T10:20:30.000"
+  />
+</div>
+`;

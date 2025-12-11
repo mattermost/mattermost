@@ -28,6 +28,7 @@
         "../../channels/src/packages/mattermost-redux/src/**/*"
     ],
     "exclude": [
-        "../../**/*.test.*"
+        "../../**/*.test.*",
+        "../../**/*.vitest.*"
     ]
 }

@@ -1,0 +1,41 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SchemaText > should render markdown text correctly 1`] = `
+<div>
+  <span>
+    This is 
+    <strong>
+      HELP TEXT
+    </strong>
+  </span>
+</div>
+`;
+
+exports[`SchemaText > should render plain text correctly 1`] = `
+<div>
+  <span>
+    This is help text
+  </span>
+</div>
+`;
+
+exports[`SchemaText > should render translated markdown text correctly 1`] = `
+<div>
+  <span>
+    This is 
+    <a
+      href="https://example.com"
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      a help link
+    </a>
+  </span>
+</div>
+`;
+
+exports[`SchemaText > should render translated text correctly 1`] = `
+<div>
+  This is help text
+</div>
+`;

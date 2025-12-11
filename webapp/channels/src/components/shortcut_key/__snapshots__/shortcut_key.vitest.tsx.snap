@@ -1,0 +1,21 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ShortcutKey > should match snapshot for contrast key 1`] = `
+<div>
+  <mark
+    class="shortcut-key shortcut-key--contrast"
+  >
+    Shift
+  </mark>
+</div>
+`;
+
+exports[`components/ShortcutKey > should match snapshot for regular key 1`] = `
+<div>
+  <mark
+    class="shortcut-key"
+  >
+    Shift
+  </mark>
+</div>
+`;

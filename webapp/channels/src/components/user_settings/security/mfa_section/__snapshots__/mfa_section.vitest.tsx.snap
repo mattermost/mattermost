@@ -1,0 +1,342 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MfaSection > rendering > should render nothing when MFA is not available 1`] = `<div />`;
+
+exports[`MfaSection > rendering > when section is collapsed and MFA is active 1`] = `
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="mfaTitle"
+      >
+        Multi-factor Authentication
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="mfaTitle mfaEdit"
+        class="color--link style--none section-min__edit"
+        id="mfaEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="mfaDesc"
+    >
+      Active
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MfaSection > rendering > when section is collapsed and MFA is not active 1`] = `
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="mfaTitle"
+      >
+        Multi-factor Authentication
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="mfaTitle mfaEdit"
+        class="color--link style--none section-min__edit"
+        id="mfaEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="mfaDesc"
+    >
+      Inactive
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MfaSection > rendering > when section is expanded and MFA is active and enforced 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Multi-factor Authentication
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            <a
+              class="btn btn-primary a11y--active a11y--focused"
+              href="#"
+            >
+              Reset MFA on Account
+            </a>
+            <br />
+          </div>
+          <div
+            class="setting-list__hint"
+            id="extraInfo"
+          >
+            Multi-factor authentication is required on this server. Resetting is only recommended when you need to switch code generation to a new mobile device. You will be required to set it up again immediately.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`MfaSection > rendering > when section is expanded and MFA is active but not enforced 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Multi-factor Authentication
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            <a
+              class="btn btn-primary a11y--active a11y--focused"
+              href="#"
+            >
+              Remove MFA from Account
+            </a>
+            <br />
+          </div>
+          <div
+            class="setting-list__hint"
+            id="extraInfo"
+          >
+            Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`MfaSection > rendering > when section is expanded and MFA is not active 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Multi-factor Authentication
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            <a
+              class="btn btn-primary a11y--active a11y--focused"
+              href="#"
+            >
+              Add MFA to Account
+            </a>
+            <br />
+          </div>
+          <div
+            class="setting-list__hint"
+            id="extraInfo"
+          >
+            Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`MfaSection > rendering > when section is expanded with a server error 1`] = `
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
+    >
+      Multi-factor Authentication
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
+      >
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            <a
+              class="btn btn-primary a11y--active a11y--focused"
+              href="#"
+            >
+              Remove MFA from Account
+            </a>
+            <br />
+          </div>
+          <div
+            class="setting-list__hint"
+            id="extraInfo"
+          >
+            Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          >
+            <div
+              class="form-group"
+            >
+              <label
+                class="col-sm-12 has-error"
+              >
+                <i
+                  class="icon icon-alert-circle-outline"
+                  role="presentation"
+                />
+                <span
+                  class="sr-only"
+                >
+                  Error
+                </span>
+                <span
+                  id="serverError"
+                >
+                  An error has occurred
+                </span>
+              </label>
+            </div>
+          </div>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

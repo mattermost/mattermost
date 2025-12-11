@@ -1,0 +1,38 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`CommandSuggestion > should match snapshot 1`] = `
+<div>
+  <li
+    aria-describedby="test-suggestion-description"
+    aria-labelledby="test-suggestion-label"
+    class="suggestion-list__item suggestion--selected"
+    id="test-suggestion"
+    role="option"
+    tabindex="-1"
+  >
+    <div
+      class="slash-command__icon"
+    >
+      <span>
+        /
+      </span>
+    </div>
+    <div
+      class="slash-command__info"
+    >
+      <div
+        class="slash-command__title"
+        id="test-suggestion-label"
+      >
+        invite @[username] ~[channel]
+      </div>
+      <div
+        class="slash-command__desc"
+        id="test-suggestion-description"
+      >
+        Invite a user to a channel
+      </div>
+    </div>
+  </li>
+</div>
+`;

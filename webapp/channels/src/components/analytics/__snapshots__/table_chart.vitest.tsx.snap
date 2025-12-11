@@ -1,0 +1,76 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/analytics/table_chart.tsx > should match snapshot, loaded with data 1`] = `
+<div>
+  <div
+    class="col-sm-6"
+  >
+    <div
+      class="total-count recent-active-users"
+    >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="content"
+      >
+        <table>
+          <tbody>
+            <tr>
+              <td>
+                <span>
+                  test1
+                </span>
+              </td>
+              <td>
+                <p>
+                  test-value1
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span>
+                  test2
+                </span>
+              </td>
+              <td>
+                <p>
+                  test-value2
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/analytics/table_chart.tsx > should match snapshot, loaded without data 1`] = `
+<div>
+  <div
+    class="col-sm-6"
+  >
+    <div
+      class="total-count recent-active-users"
+    >
+      <div
+        class="title"
+      >
+        Test
+      </div>
+      <div
+        class="content"
+      >
+        <table>
+          <tbody />
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+`;

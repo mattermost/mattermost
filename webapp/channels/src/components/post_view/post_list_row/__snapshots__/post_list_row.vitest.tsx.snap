@@ -1,0 +1,149 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/post_view/post_list_row > should have class hideAnimation for NEWER_MESSAGES_LOADER if loadingNewerPosts is false 1`] = `
+<div>
+  <div
+    class="loading-screen"
+  >
+    <div
+      class="loading__content hideAnimation"
+    >
+      <div
+        class="round round-1"
+      />
+      <div
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should have class hideAnimation for OLDER_MESSAGES_LOADER if loadingOlderPosts is false 1`] = `
+<div>
+  <div
+    class="loading-screen"
+  >
+    <div
+      class="loading__content hideAnimation"
+    >
+      <div
+        class="round round-1"
+      />
+      <div
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should render channel intro message 1`] = `
+<div>
+  <div
+    data-testid="channel-intro-message"
+  >
+    Channel Intro Message
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should render combined post 1`] = `
+<div>
+  <div
+    data-testid="combined-user-activity-post"
+  >
+    Combined: 
+    user-activity-1234-5678
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should render date line 1`] = `
+<div>
+  <div
+    class="Separator BasicSeparator"
+    data-testid="basicSeparator"
+  >
+    <hr
+      class="separator__hr"
+    />
+    <div
+      class="separator__text"
+    >
+      March 20, 2019
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should render manual load messages trigger 1`] = `
+<div>
+  <button
+    class="more-messages-text theme style--none color--link"
+  >
+    Load More messages
+  </button>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should render more messages loading indicator 1`] = `
+<div>
+  <div
+    class="loading-screen"
+  >
+    <div
+      class="loading__content"
+    >
+      <div
+        class="round round-1"
+      />
+      <div
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should render new messages line 1`] = `
+<div>
+  <div
+    class="new-separator"
+  >
+    <div
+      class="Separator NotificationSeparator"
+      data-testid="NotificationSeparator"
+    >
+      <hr
+        class="separator__hr"
+      />
+      <div
+        class="separator__text"
+      >
+        New Messages
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/post_list_row > should render post 1`] = `
+<div>
+  <div
+    data-testid="post-component"
+  >
+    Post: 
+    post_id_1
+  </div>
+</div>
+`;

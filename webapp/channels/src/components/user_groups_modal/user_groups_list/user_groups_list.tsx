@@ -126,12 +126,20 @@ const UserGroupsList = (props: Props) => {
             }
 
             return (
-                <button
+                <div
                     className='group-row'
                     style={style}
                     key={group.id}
+                    role='button'
+                    tabIndex={0}
                     onClick={() => {
                         goToViewGroupModal(group);
+                    }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            goToViewGroupModal(group);
+                        }
                     }}
                     aria-label={formatMessage({id: 'user_groups_list.groupAriaLabel', defaultMessage: '{group_name} group'}, {group_name: group.display_name})}
                 >
@@ -216,7 +224,7 @@ const UserGroupsList = (props: Props) => {
                             )}
                         </Menu.Container>
                     </div>
-                </button>
+                </div>
             );
         }
         if (loading) {

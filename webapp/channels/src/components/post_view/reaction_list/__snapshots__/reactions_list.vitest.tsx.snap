@@ -1,0 +1,55 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/ReactionList > should render nothing when no reactions 1`] = `<div />`;
+
+exports[`components/ReactionList > should render when there are reactions 1`] = `
+<div>
+  <div
+    aria-label="reactions"
+    class="post-reaction-list"
+  >
+    <button
+      aria-label="1 user reacted with :expressionless:"
+      class="Reaction Reaction--unreacted Reaction--read-only"
+      id="postReaction-post_id-expressionless"
+    >
+      <span
+        class="d-flex align-items-center"
+      >
+        <img
+          alt=""
+          aria-hidden="true"
+          class="Reaction__emoji emoticon"
+          src="/static/emoji/1f611.png"
+        />
+        <span
+          class="Reaction__count"
+        >
+          <span
+            class="Reaction__number"
+          >
+            <span
+              class="Reaction__number--display"
+            >
+              1
+            </span>
+            <span
+              class="Reaction__number--unreacted"
+            >
+              1
+            </span>
+            <span
+              class="Reaction__number--reacted"
+            >
+              2
+            </span>
+          </span>
+        </span>
+      </span>
+    </button>
+    <span
+      class="emoji-picker__container"
+    />
+  </div>
+</div>
+`;

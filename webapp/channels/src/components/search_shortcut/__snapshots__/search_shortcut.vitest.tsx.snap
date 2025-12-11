@@ -1,0 +1,77 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/SearchShortcut > should match snapshot on Mac desktop 1`] = `
+<div>
+  <span
+    class="search-shortcut"
+  >
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      F
+    </mark>
+  </span>
+</div>
+`;
+
+exports[`components/SearchShortcut > should match snapshot on Mac webapp 1`] = `
+<div>
+  <span
+    class="search-shortcut"
+  >
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      F
+    </mark>
+  </span>
+</div>
+`;
+
+exports[`components/SearchShortcut > should match snapshot on Windows desktop 1`] = `
+<div>
+  <span
+    class="search-shortcut"
+  >
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      F
+    </mark>
+  </span>
+</div>
+`;
+
+exports[`components/SearchShortcut > should match snapshot on Windows webapp 1`] = `
+<div>
+  <span
+    class="search-shortcut"
+  >
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      ⌘
+    </mark>
+    <mark
+      class="shortcut-key shortcut-key--contrast"
+    >
+      F
+    </mark>
+  </span>
+</div>
+`;

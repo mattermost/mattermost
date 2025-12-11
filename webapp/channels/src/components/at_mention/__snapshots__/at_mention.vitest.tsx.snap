@@ -1,0 +1,186 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/AtMention > should match snapshot when mentioning a group followed by punctuation 1`] = `
+<div>
+  <span
+    aria-expanded="false"
+    aria-haspopup="dialog"
+  >
+    <a
+      class="group-mention-link"
+      role="button"
+      tabindex="0"
+    >
+      @developers
+    </a>
+  </span>
+  .
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning a group that is allowed reference 1`] = `
+<div>
+  <span
+    aria-expanded="false"
+    aria-haspopup="dialog"
+  >
+    <a
+      class="group-mention-link"
+      role="button"
+      tabindex="0"
+    >
+      @developers
+    </a>
+  </span>
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning a group that is allowed reference with group highlight disabled 1`] = `
+<div>
+  (at)-developers
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning a group that is not allowed reference 1`] = `
+<div>
+  (at)-marketing
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning all 1`] = `
+<div>
+  (at)-all
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning all with mixed case 1`] = `
+<div>
+  (at)-aLL
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning current user 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none mention--highlight"
+  >
+    <span
+      class="mention-link"
+    >
+      @First Last
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning user 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
+    >
+      @Nick
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning user containing and followed by punctuation 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
+    >
+      @Dot Matrix
+    </span>
+  </button>
+  .
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning user containing punctuation 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
+    >
+      @Dot Matrix
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning user followed by punctuation 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
+    >
+      @Nick
+    </span>
+  </button>
+  ...
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning user with different teammate name display setting 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
+    >
+      @user1
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when mentioning user with mixed case 1`] = `
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="style--none"
+  >
+    <span
+      class="mention-link"
+    >
+      @Nick
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when not mentioning a user 1`] = `
+<div>
+  (at)-notauser
+</div>
+`;
+
+exports[`components/AtMention > should match snapshot when not mentioning a user with mixed case 1`] = `
+<div>
+  (at)-NOTAuser
+</div>
+`;

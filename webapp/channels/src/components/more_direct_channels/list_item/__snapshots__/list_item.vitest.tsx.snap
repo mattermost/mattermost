@@ -1,0 +1,92 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ListItem > should match snapshot when rendering GroupChannel 1`] = `
+<div>
+  <div
+    class="more-modal__row clickable"
+  >
+    <div
+      class="more-modal__gm-icon"
+    >
+      3
+    </div>
+    <div
+      class="more-modal__details"
+    >
+      <div
+        class="more-modal__name"
+      >
+        <span>
+          @user1, @user2, @user3
+        </span>
+      </div>
+    </div>
+    <div
+      class="more-modal__actions"
+    >
+      <button
+        aria-label="Add option "
+        class="more-modal__actions--round"
+      >
+        <i
+          class="icon icon-plus"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ListItem > should match snapshot when rendering user 1`] = `
+<div>
+  <div
+    class="more-modal__row clickable"
+  >
+    <span
+      class="status-wrapper style--none"
+    >
+      <span
+        class="profile-icon "
+      >
+        <img
+          alt="user profile image"
+          class="Avatar Avatar-md"
+          loading="lazy"
+          src="/api/v4/users/user_id_1/image"
+        />
+      </span>
+    </span>
+    <div
+      class="more-modal__details"
+    >
+      <div
+        class="more-modal__name"
+      >
+        <span
+          id="displayedUserNameusername1"
+        >
+          @username1
+          <span
+            class="light"
+          />
+        </span>
+      </div>
+      <div
+        class="more-modal__description"
+      />
+    </div>
+    <div
+      class="more-modal__actions"
+    >
+      <button
+        aria-label="Add option "
+        class="more-modal__actions--round"
+      >
+        <i
+          class="icon icon-plus"
+        />
+      </button>
+    </div>
+  </div>
+</div>
+`;

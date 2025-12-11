@@ -1,0 +1,36 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/backstage/components/BackstageHeader > should match snapshot with children 1`] = `
+<div>
+  <div
+    class="backstage-header"
+  >
+    <h1>
+      <div>
+        Child 1
+      </div>
+      <span
+        class="backstage-header__divider"
+      >
+        <i
+          class="fa fa-angle-right"
+          title="Breadcrumb Icon"
+        />
+      </span>
+      <div>
+        Child 2
+      </div>
+    </h1>
+  </div>
+</div>
+`;
+
+exports[`components/backstage/components/BackstageHeader > should match snapshot without children 1`] = `
+<div>
+  <div
+    class="backstage-header"
+  >
+    <h1 />
+  </div>
+</div>
+`;

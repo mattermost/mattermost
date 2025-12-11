@@ -1,0 +1,1294 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree > should ask to toggle on row toggle 1`] = `
+<div>
+  <div
+    class="permissions-tree guest"
+  >
+    <div
+      class="permissions-tree--header"
+    >
+      <div
+        class="permission-name"
+      >
+        Permission
+      </div>
+      <div
+        class="permission-description"
+      >
+        Description
+      </div>
+    </div>
+    <div
+      class="permissions-tree--body"
+    >
+      <div
+        class="permission-group-permissions open"
+      >
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_edit_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_edit_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Edit Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              <button
+                class="edit-post-time-limit-button"
+                type="button"
+              >
+                <i
+                  class="fa fa-gear"
+                />
+                Anytime
+              </button>
+               after posting, allow users to edit their own posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_delete_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_delete_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Delete Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Author's own posts can be deleted.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Allow users to create posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_reactions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_reactions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Post Reactions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Add and delete reactions on posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_channel_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_channel_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Channel Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify channel members with @all, @channel and @here
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_group_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_group_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Group Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify group members with a group mention
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree > should match snapshot on default data 1`] = `
+<div>
+  <div
+    class="permissions-tree guest"
+  >
+    <div
+      class="permissions-tree--header"
+    >
+      <div
+        class="permission-name"
+      >
+        Permission
+      </div>
+      <div
+        class="permission-description"
+      >
+        Description
+      </div>
+    </div>
+    <div
+      class="permissions-tree--body"
+    >
+      <div
+        class="permission-group-permissions open"
+      >
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_edit_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_edit_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Edit Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              <button
+                class="edit-post-time-limit-button"
+                type="button"
+              >
+                <i
+                  class="fa fa-gear"
+                />
+                Anytime
+              </button>
+               after posting, allow users to edit their own posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_delete_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_delete_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Delete Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Author's own posts can be deleted.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Allow users to create posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_reactions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_reactions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Post Reactions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Add and delete reactions on posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_channel_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_channel_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Channel Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify channel members with @all, @channel and @here
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_group_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_group_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Group Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify group members with a group mention
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree > should match snapshot on license without LDAPGroups 1`] = `
+<div>
+  <div
+    class="permissions-tree guest"
+  >
+    <div
+      class="permissions-tree--header"
+    >
+      <div
+        class="permission-name"
+      >
+        Permission
+      </div>
+      <div
+        class="permission-description"
+      >
+        Description
+      </div>
+    </div>
+    <div
+      class="permissions-tree--body"
+    >
+      <div
+        class="permission-group-permissions open"
+      >
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_edit_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_edit_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Edit Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              <button
+                class="edit-post-time-limit-button"
+                type="button"
+              >
+                <i
+                  class="fa fa-gear"
+                />
+                Anytime
+              </button>
+               after posting, allow users to edit their own posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_delete_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_delete_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Delete Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Author's own posts can be deleted.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Allow users to create posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_reactions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_reactions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Post Reactions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Add and delete reactions on posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_channel_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_channel_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Channel Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify channel members with @all, @channel and @here
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree > should match snapshot on read only 1`] = `
+<div>
+  <div
+    class="permissions-tree guest"
+  >
+    <div
+      class="permissions-tree--header"
+    >
+      <div
+        class="permission-name"
+      >
+        Permission
+      </div>
+      <div
+        class="permission-description"
+      >
+        Description
+      </div>
+    </div>
+    <div
+      class="permissions-tree--body"
+    >
+      <div
+        class="permission-group-permissions open"
+      >
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  read-only combined"
+            id="test-guest_edit_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_edit_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Edit Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              <button
+                class="edit-post-time-limit-button"
+                disabled=""
+                type="button"
+              >
+                <i
+                  class="fa fa-gear"
+                />
+                Anytime
+              </button>
+               after posting, allow users to edit their own posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  read-only combined"
+            id="test-guest_delete_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_delete_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Delete Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Author's own posts can be deleted.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  read-only combined"
+            id="test-guest_create_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Allow users to create posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  read-only combined"
+            id="test-guest_reactions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_reactions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Post Reactions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Add and delete reactions on posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  read-only combined"
+            id="test-guest_use_channel_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_channel_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Channel Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify channel members with @all, @channel and @here
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  read-only combined"
+            id="test-guest_use_group_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_group_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Group Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify group members with a group mention
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree > should match snapshot on system scope 1`] = `
+<div>
+  <div
+    class="permissions-tree guest"
+  >
+    <div
+      class="permissions-tree--header"
+    >
+      <div
+        class="permission-name"
+      >
+        Permission
+      </div>
+      <div
+        class="permission-description"
+      >
+        Description
+      </div>
+    </div>
+    <div
+      class="permissions-tree--body"
+    >
+      <div
+        class="permission-group-permissions open"
+      >
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_private_channel"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_private_channel-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Channels
+            </span>
+            <span
+              class="permission-description"
+            >
+              Create new private channels.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_edit_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_edit_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Edit Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              <button
+                class="edit-post-time-limit-button"
+                type="button"
+              >
+                <i
+                  class="fa fa-gear"
+                />
+                Anytime
+              </button>
+               after posting, allow users to edit their own posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_delete_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_delete_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Delete Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Author's own posts can be deleted.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Allow users to create posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_reactions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_reactions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Post Reactions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Add and delete reactions on posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_channel_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_channel_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Channel Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify channel members with @all, @channel and @here
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_group_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_group_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Group Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify group members with a group mention
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree > should match snapshot on team scope 1`] = `
+<div>
+  <div
+    class="permissions-tree guest"
+  >
+    <div
+      class="permissions-tree--header"
+    >
+      <div
+        class="permission-name"
+      >
+        Permission
+      </div>
+      <div
+        class="permission-description"
+      >
+        Description
+      </div>
+    </div>
+    <div
+      class="permissions-tree--body"
+    >
+      <div
+        class="permission-group-permissions open"
+      >
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_private_channel"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_private_channel-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Channels
+            </span>
+            <span
+              class="permission-description"
+            >
+              Create new private channels.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_edit_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_edit_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Edit Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              <button
+                class="edit-post-time-limit-button"
+                type="button"
+              >
+                <i
+                  class="fa fa-gear"
+                />
+                Anytime
+              </button>
+               after posting, allow users to edit their own posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_delete_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_delete_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Delete Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Author's own posts can be deleted.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Allow users to create posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_reactions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_reactions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Post Reactions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Add and delete reactions on posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_channel_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_channel_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Channel Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify channel members with @all, @channel and @here
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_group_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_group_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Group Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify group members with a group mention
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_tree > should match snapshot with parentRole with permissions 1`] = `
+<div>
+  <div
+    class="permissions-tree guest"
+  >
+    <div
+      class="permissions-tree--header"
+    >
+      <div
+        class="permission-name"
+      >
+        Permission
+      </div>
+      <div
+        class="permission-description"
+      >
+        Description
+      </div>
+    </div>
+    <div
+      class="permissions-tree--body"
+    >
+      <div
+        class="permission-group-permissions open"
+      >
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_private_channel"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_private_channel-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Channels
+            </span>
+            <span
+              class="permission-description"
+            >
+              Create new private channels.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_edit_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_edit_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Edit Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              <button
+                class="edit-post-time-limit-button"
+                type="button"
+              >
+                <i
+                  class="fa fa-gear"
+                />
+                Anytime
+              </button>
+               after posting, allow users to edit their own posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_delete_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_delete_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Delete Own Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Author's own posts can be deleted.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_create_post"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_create_post-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Create Posts
+            </span>
+            <span
+              class="permission-description"
+            >
+              Allow users to create posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_reactions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_reactions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Post Reactions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Add and delete reactions on posts.
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_channel_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_channel_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Channel Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify channel members with @all, @channel and @here
+            </span>
+          </div>
+        </div>
+        <div
+          class="permission-group"
+        >
+          <div
+            class="permission-group-row  combined"
+            id="test-guest_use_group_mentions"
+          >
+            <div
+              class="permission-check "
+              data-testid="test-guest_use_group_mentions-checkbox"
+            />
+            <span
+              class="permission-name"
+            >
+              Group Mentions
+            </span>
+            <span
+              class="permission-description"
+            >
+              Notify group members with a group mention
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,941 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/user_settings/display/CustomThemeChooser > should match, init 1`] = `
+<div>
+  <div
+    aria-labelledby="customThemes"
+    class="appearance-section pt-2"
+    id="customThemesSection"
+  >
+    <div
+      class="theme-elements row"
+    >
+      <h4
+        class="theme-elements__header"
+      >
+        <button
+          aria-controls="sidebarStylesSection"
+          aria-expanded="false"
+          class="theme-elements__header"
+          id="sidebarStylesAccordion"
+        >
+          Sidebar Styles
+          <div
+            class="header__icon"
+          >
+            <i
+              aria-hidden="true"
+              class="fa fa-plus"
+              title="Expand Icon"
+            />
+            <i
+              aria-hidden="true"
+              class="fa fa-minus"
+              title="Collapse Icon"
+            />
+          </div>
+        </button>
+      </h4>
+      <div
+        aria-labelledby="sidebarStylesAccordion"
+        class="theme-elements__body"
+        id="sidebarStylesSection"
+      >
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarBg-inputColorValue"
+          >
+            Sidebar BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#1e325c"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarBg-squareColorIconValue"
+                style="background-color: rgb(30, 50, 92);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarText-inputColorValue"
+          >
+            Sidebar Text
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarText-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffffff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarText-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarText-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarHeaderBg-inputColorValue"
+          >
+            Sidebar Header BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarHeaderBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#192a4d"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarHeaderBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarHeaderBg-squareColorIconValue"
+                style="background-color: rgb(25, 42, 77);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarTeamBarBg-inputColorValue"
+          >
+            Team Sidebar BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarTeamBarBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#162545"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarTeamBarBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarTeamBarBg-squareColorIconValue"
+                style="background-color: rgb(22, 37, 69);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarHeaderTextColor-inputColorValue"
+          >
+            Sidebar Header Text
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarHeaderTextColor-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffffff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarHeaderTextColor-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarHeaderTextColor-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarUnreadText-inputColorValue"
+          >
+            Sidebar Unread Text
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarUnreadText-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffffff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarUnreadText-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarUnreadText-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarTextHoverBg-inputColorValue"
+          >
+            Sidebar Text Hover BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarTextHoverBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#28427b"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarTextHoverBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarTextHoverBg-squareColorIconValue"
+                style="background-color: rgb(40, 66, 123);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarTextActiveBorder-inputColorValue"
+          >
+            Sidebar Text Active Border
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarTextActiveBorder-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#5d89ea"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarTextActiveBorder-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarTextActiveBorder-squareColorIconValue"
+                style="background-color: rgb(93, 137, 234);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="sidebarTextActiveColor-inputColorValue"
+          >
+            Sidebar Text Active Color
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="sidebarTextActiveColor-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffffff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="sidebarTextActiveColor-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="sidebarTextActiveColor-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="onlineIndicator-inputColorValue"
+          >
+            Online Indicator
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="onlineIndicator-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#3db887"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="onlineIndicator-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="onlineIndicator-squareColorIconValue"
+                style="background-color: rgb(61, 184, 135);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="awayIndicator-inputColorValue"
+          >
+            Away Indicator
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="awayIndicator-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffbc1f"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="awayIndicator-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="awayIndicator-squareColorIconValue"
+                style="background-color: rgb(255, 188, 31);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="dndIndicator-inputColorValue"
+          >
+            Do Not Disturb Indicator
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="dndIndicator-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#d24b4e"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="dndIndicator-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="dndIndicator-squareColorIconValue"
+                style="background-color: rgb(210, 75, 78);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="mentionBg-inputColorValue"
+          >
+            Mention Jewel BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="mentionBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffffff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="mentionBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="mentionBg-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="mentionColor-inputColorValue"
+          >
+            Mention Jewel Text
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="mentionColor-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#1e325c"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="mentionColor-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="mentionColor-squareColorIconValue"
+                style="background-color: rgb(30, 50, 92);"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="theme-elements row"
+    >
+      <h4
+        class="theme-elements__header"
+      >
+        <button
+          aria-controls="centerChannelStylesSection"
+          aria-expanded="false"
+          class="theme-elements__header"
+          id="centerChannelStylesAccordion"
+        >
+          Center Channel Styles
+          <div
+            class="header__icon"
+          >
+            <i
+              aria-hidden="true"
+              class="fa fa-plus"
+              title="Expand Icon"
+            />
+            <i
+              aria-hidden="true"
+              class="fa fa-minus"
+              title="Collapse Icon"
+            />
+          </div>
+        </button>
+      </h4>
+      <div
+        aria-labelledby="centerChannelStylesAccordion"
+        class="theme-elements__body"
+        id="centerChannelStylesSection"
+      >
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="centerChannelBg-inputColorValue"
+          >
+            Center Channel BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="centerChannelBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffffff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="centerChannelBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="centerChannelBg-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="centerChannelColor-inputColorValue"
+          >
+            Center Channel Text
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="centerChannelColor-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#3f4350"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="centerChannelColor-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="centerChannelColor-squareColorIconValue"
+                style="background-color: rgb(63, 67, 80);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="newMessageSeparator-inputColorValue"
+          >
+            New Message Separator
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="newMessageSeparator-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#cc8f00"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="newMessageSeparator-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="newMessageSeparator-squareColorIconValue"
+                style="background-color: rgb(204, 143, 0);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="errorTextColor-inputColorValue"
+          >
+            Error Text Color
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="errorTextColor-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#d24b4e"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="errorTextColor-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="errorTextColor-squareColorIconValue"
+                style="background-color: rgb(210, 75, 78);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="mentionHighlightBg-inputColorValue"
+          >
+            Mention Highlight BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="mentionHighlightBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffd470"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="mentionHighlightBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="mentionHighlightBg-squareColorIconValue"
+                style="background-color: rgb(255, 212, 112);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="mentionHighlightLink-inputColorValue"
+          >
+            Mention Highlight Link
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="mentionHighlightLink-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#1b1d22"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="mentionHighlightLink-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="mentionHighlightLink-squareColorIconValue"
+                style="background-color: rgb(27, 29, 34);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group"
+        >
+          <label
+            class="custom-label"
+            for="codeThemeSelect"
+          >
+            Code Theme
+          </label>
+          <div
+            class="input-group theme-group group--code dropdown"
+            id="codeTheme"
+          >
+            <select
+              class="form-control"
+              id="codeThemeSelect"
+            >
+              <option
+                value="solarized-dark"
+              >
+                Solarized Dark
+              </option>
+              <option
+                value="solarized-light"
+              >
+                Solarized Light
+              </option>
+              <option
+                selected=""
+                value="github"
+              >
+                GitHub
+              </option>
+              <option
+                value="monokai"
+              >
+                Monokai
+              </option>
+            </select>
+            <span
+              class="input-group-addon"
+            >
+              <img
+                alt="code theme image"
+                src="/src/images/themes/code_themes/github.png"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="theme-elements row"
+    >
+      <h4
+        class="theme-elements__header"
+      >
+        <button
+          aria-controls="linkAndButtonsStylesSection"
+          aria-expanded="false"
+          class="theme-elements__header"
+          id="linkAndButtonsStylesAccordion"
+        >
+          Link and Button Styles
+          <div
+            class="header__icon"
+          >
+            <i
+              aria-hidden="true"
+              class="fa fa-plus"
+              title="Expand Icon"
+            />
+            <i
+              aria-hidden="true"
+              class="fa fa-minus"
+              title="Collapse Icon"
+            />
+          </div>
+        </button>
+      </h4>
+      <div
+        aria-labelledby="linkAndButtonsStylesAccordion"
+        class="theme-elements__body"
+        id="linkAndButtonsStylesSection"
+      >
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="linkColor-inputColorValue"
+          >
+            Link Color
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="linkColor-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#386fe5"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="linkColor-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="linkColor-squareColorIconValue"
+                style="background-color: rgb(56, 111, 229);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="buttonBg-inputColorValue"
+          >
+            Button BG
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="buttonBg-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#1c58d9"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="buttonBg-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="buttonBg-squareColorIconValue"
+                style="background-color: rgb(28, 88, 217);"
+              />
+            </span>
+          </div>
+        </div>
+        <div
+          class="col-sm-6 form-group element"
+        >
+          <label
+            class="custom-label"
+            for="buttonColor-inputColorValue"
+          >
+            Button Text
+          </label>
+          <div
+            class="color-input input-group"
+          >
+            <input
+              class="form-control"
+              data-testid="color-inputColorValue"
+              id="buttonColor-inputColorValue"
+              maxlength="7"
+              type="text"
+              value="#ffffff"
+            />
+            <span
+              class="input-group-addon color-pad"
+              id="buttonColor-squareColorIcon"
+            >
+              <i
+                class="color-icon"
+                id="buttonColor-squareColorIconValue"
+                style="background-color: rgb(255, 255, 255);"
+              />
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="row mt-3"
+    >
+      <div
+        class="col-sm-12"
+      >
+        <label
+          class="custom-label"
+          for="pasteBox"
+        >
+          Copy and paste to share theme colors:
+        </label>
+        <textarea
+          class="form-control"
+          id="pasteBox"
+        >
+          {"sidebarBg":"#1e325c","sidebarText":"#ffffff","sidebarUnreadText":"#ffffff","sidebarTextHoverBg":"#28427b","sidebarTextActiveBorder":"#5d89ea","sidebarTextActiveColor":"#ffffff","sidebarHeaderBg":"#192a4d","sidebarHeaderTextColor":"#ffffff","sidebarTeamBarBg":"#162545","onlineIndicator":"#3db887","awayIndicator":"#ffbc1f","dndIndicator":"#d24b4e","mentionBg":"#ffffff","mentionBj":"#ffffff","mentionColor":"#1e325c","centerChannelBg":"#ffffff","centerChannelColor":"#3f4350","newMessageSeparator":"#cc8f00","linkColor":"#386fe5","buttonBg":"#1c58d9","buttonColor":"#ffffff","errorTextColor":"#d24b4e","mentionHighlightBg":"#ffd470","mentionHighlightLink":"#1b1d22","codeTheme":"github"}
+        </textarea>
+        <div
+          class="mt-3"
+        >
+          <button
+            class="btn btn-tertiary"
+          >
+            Copy Theme Colors
+          </button>
+          <span
+            class="alert alert-success copy-theme-success"
+            role="alert"
+            style="display: none;"
+          >
+            ✔ Copied
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

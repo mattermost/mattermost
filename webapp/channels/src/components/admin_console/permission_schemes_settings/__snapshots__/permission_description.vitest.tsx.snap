@@ -1,0 +1,67 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/admin_console/permission_schemes_settings/permission_description > should allow select with link 1`] = `
+<body>
+  <div>
+    <span
+      class="permission-description"
+    >
+      <span
+        class="inherit-link-wrapper"
+      >
+        Inherited from 
+        <a>
+          All Members
+        </a>
+        .
+      </span>
+    </span>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_description > should match snapshot if inherited 1`] = `
+<body>
+  <div>
+    <span
+      class="permission-description"
+    >
+      <span
+        class="inherit-link-wrapper"
+      >
+        Inherited from 
+        <a>
+          All Members
+        </a>
+        .
+      </span>
+    </span>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_description > should match snapshot with clickable link 1`] = `
+<body>
+  <div>
+    <span
+      class="permission-description"
+    >
+      <span>
+        This is a clickable description
+      </span>
+    </span>
+  </div>
+</body>
+`;
+
+exports[`components/admin_console/permission_schemes_settings/permission_description > should match snapshot with default Props 1`] = `
+<body>
+  <div>
+    <span
+      class="permission-description"
+    >
+      This is the description
+    </span>
+  </div>
+</body>
+`;

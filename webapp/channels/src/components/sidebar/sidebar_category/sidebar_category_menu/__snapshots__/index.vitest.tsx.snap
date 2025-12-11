@@ -1,0 +1,121 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/sidebar/sidebar_category/sidebar_category_menu > should match snapshot and contain correct buttons 1`] = `
+<div>
+  <div
+    class="SidebarMenu MenuWrapper"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-test_category_id"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-label="custom_category_1 category options"
+      class="SidebarMenu_menuButton"
+      id="SidebarCategoryMenu-Button-test_category_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category/sidebar_category_menu > should show correct menu items when category is direct messages 1`] = `
+<div>
+  <div
+    class="SidebarMenu MenuWrapper"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-test_category_id"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-label="custom_category_1 category options"
+      class="SidebarMenu_menuButton"
+      id="SidebarCategoryMenu-Button-test_category_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category/sidebar_category_menu > should show correct menu items when category is not direct messages 1`] = `
+<div>
+  <div
+    class="SidebarMenu MenuWrapper"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-test_category_id"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-label="custom_category_1 category options"
+      class="SidebarMenu_menuButton"
+      id="SidebarCategoryMenu-Button-test_category_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`components/sidebar/sidebar_category/sidebar_category_menu > should show correct menu itemsu when category is favorites 1`] = `
+<div>
+  <div
+    class="SidebarMenu MenuWrapper"
+  >
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-test_category_id"
+      aria-expanded="false"
+      aria-haspopup="true"
+      aria-label="custom_category_1 category options"
+      class="SidebarMenu_menuButton"
+      id="SidebarCategoryMenu-Button-test_category_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;

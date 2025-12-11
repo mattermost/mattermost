@@ -1,0 +1,446 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/threading/global_threads/thread_item > should report total number of replies 1`] = `
+<div>
+  <div
+    aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    aria-label="Thread by Someone"
+    class="ThreadItem"
+    id=""
+    role="link"
+    tabindex="0"
+  >
+    <div
+      class="thread-item-header"
+    >
+      <div
+        class="ThreadItem__author"
+      >
+        Someone
+      </div>
+      <div
+        class="ThreadItem__tags"
+      >
+        <button
+          class="sc-bcPLoT kyXOme Tag Tag--xs"
+        >
+          <span
+            class="sc-grYavY hdoSIM"
+          >
+            Team name
+          </span>
+        </button>
+      </div>
+      <time
+        class="alt-hidden"
+        datetime="2021-01-12T21:28:21.110"
+      >
+        now
+      </time>
+    </div>
+    <div
+      class="menu-anchor alt-visible"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          aria-label="Actions"
+          class="Button Button___transparent Button___icon"
+        >
+          <span
+            class="Button_label margin_top"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="preview"
+      dir="auto"
+    >
+      <p
+        class="markdown__paragraph-inline"
+      >
+        test msg
+      </p>
+    </div>
+    <div
+      class="activity"
+    >
+      <div
+        class="Avatars Avatars___xs"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/mt5td9mdriyapmwuh5pc84dmhr/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/ij61jet1bbdk8fhhxitywdj4ih/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/7n4ach3i53bbmj84dfmu5b7c1c/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+      </div>
+      9 replies
+    </div>
+    <span
+      class="sr-only"
+      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    >
+      Last reply 
+      <time
+        datetime="2021-01-12T21:28:21.110"
+      >
+        now
+      </time>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/threading/global_threads/thread_item > should report unread mentions 1`] = `
+<div>
+  <div
+    aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    aria-label="Thread by Someone"
+    class="ThreadItem has-unreads"
+    id=""
+    role="link"
+    tabindex="0"
+  >
+    <div
+      class="thread-item-header"
+    >
+      <div
+        class="indicator"
+      >
+        <div
+          class="dot-mentions"
+        >
+          2
+        </div>
+      </div>
+      <div
+        class="ThreadItem__author"
+      >
+        Someone
+      </div>
+      <div
+        class="ThreadItem__tags"
+      >
+        <button
+          class="sc-bcPLoT kyXOme Tag Tag--xs"
+        >
+          <span
+            class="sc-grYavY hdoSIM"
+          >
+            Team name
+          </span>
+        </button>
+      </div>
+      <time
+        class="alt-hidden"
+        datetime="2021-01-12T21:28:21.110"
+      >
+        now
+      </time>
+    </div>
+    <div
+      class="menu-anchor alt-visible"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          aria-label="Actions"
+          class="Button Button___transparent Button___icon"
+        >
+          <span
+            class="Button_label margin_top"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="preview"
+      dir="auto"
+    >
+      <p
+        class="markdown__paragraph-inline"
+      >
+        test msg
+      </p>
+    </div>
+    <div
+      class="activity"
+    >
+      <div
+        class="Avatars Avatars___xs"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/mt5td9mdriyapmwuh5pc84dmhr/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/ij61jet1bbdk8fhhxitywdj4ih/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/7n4ach3i53bbmj84dfmu5b7c1c/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+      </div>
+      5 new replies
+    </div>
+    <span
+      class="sr-only"
+      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    >
+      Last reply 
+      <time
+        datetime="2021-01-12T21:28:21.110"
+      >
+        now
+      </time>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`components/threading/global_threads/thread_item > should report unread messages 1`] = `
+<div>
+  <div
+    aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    aria-label="Thread by Someone"
+    class="ThreadItem has-unreads"
+    id=""
+    role="link"
+    tabindex="0"
+  >
+    <div
+      class="thread-item-header"
+    >
+      <div
+        class="indicator"
+      >
+        <div
+          class="dot-unreads"
+        />
+      </div>
+      <div
+        class="ThreadItem__author"
+      >
+        Someone
+      </div>
+      <div
+        class="ThreadItem__tags"
+      >
+        <button
+          class="sc-bcPLoT kyXOme Tag Tag--xs"
+        >
+          <span
+            class="sc-grYavY hdoSIM"
+          >
+            Team name
+          </span>
+        </button>
+      </div>
+      <time
+        class="alt-hidden"
+        datetime="2021-01-12T21:28:21.110"
+      >
+        now
+      </time>
+    </div>
+    <div
+      class="menu-anchor alt-visible"
+    >
+      <div
+        class="MenuWrapper "
+      >
+        <button
+          aria-label="Actions"
+          class="Button Button___transparent Button___icon"
+        >
+          <span
+            class="Button_label margin_top"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div
+      class="preview"
+      dir="auto"
+    >
+      <p
+        class="markdown__paragraph-inline"
+      >
+        test msg
+      </p>
+    </div>
+    <div
+      class="activity"
+    >
+      <div
+        class="Avatars Avatars___xs"
+      >
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/mt5td9mdriyapmwuh5pc84dmhr/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/ij61jet1bbdk8fhhxitywdj4ih/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+        <button
+          aria-expanded="false"
+          aria-haspopup="dialog"
+          class="style--none btn-round"
+        >
+          <img
+            alt="user profile image"
+            class="Avatar Avatar-xs"
+            loading="lazy"
+            src="/api/v4/users/7n4ach3i53bbmj84dfmu5b7c1c/image?_=0"
+            style="background: rgb(240, 240, 241);"
+            tabindex="-1"
+          />
+        </button>
+      </div>
+      2 new replies
+    </div>
+    <span
+      class="sr-only"
+      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+    >
+      Last reply 
+      <time
+        datetime="2021-01-12T21:28:21.110"
+      >
+        now
+      </time>
+    </span>
+  </div>
+</div>
+`;

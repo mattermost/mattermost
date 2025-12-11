@@ -1,0 +1,95 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/activity_log_modal/ActivityLog > should match snapshot 1`] = `
+<div>
+  <div
+    class="activity-log__table"
+  >
+    <div
+      class="activity-log__report"
+    >
+      <div
+        class="report__platform"
+      >
+        <i
+          class="fa fa-linux"
+          title="Linux Icon"
+        />
+        Native Desktop App
+      </div>
+      <div
+        class="report__info"
+      >
+        <div>
+          Last activity: 
+          August 22, 2018
+          , 
+          06:00 AM
+        </div>
+        <a
+          class="theme"
+          href="#"
+        >
+          More info
+        </a>
+      </div>
+    </div>
+    <div
+      class="activity-log__action"
+    >
+      <button
+        class="btn btn-primary"
+      >
+        Log Out
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/activity_log_modal/ActivityLog > should match snapshot with mobile props 1`] = `
+<div>
+  <div
+    class="activity-log__table"
+  >
+    <div
+      class="activity-log__report"
+    >
+      <div
+        class="report__platform"
+      >
+        <i
+          class="fa fa-apple"
+          title="Apple Icon"
+        />
+        iPhone Native Classic App
+      </div>
+      <div
+        class="report__info"
+      >
+        <div>
+          Last activity: 
+          August 22, 2018
+          , 
+          06:00 AM
+        </div>
+        <a
+          class="theme"
+          href="#"
+        >
+          More info
+        </a>
+      </div>
+    </div>
+    <div
+      class="activity-log__action"
+    >
+      <button
+        class="btn btn-primary"
+      >
+        Log Out
+      </button>
+    </div>
+  </div>
+</div>
+`;

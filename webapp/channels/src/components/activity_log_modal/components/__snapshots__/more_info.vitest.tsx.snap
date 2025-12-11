@@ -1,0 +1,34 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`components/activity_log_modal/MoreInfo > should match snapshot extra info toggled off 1`] = `
+<div>
+  <a
+    class="theme"
+    href="#"
+  >
+    More info
+  </a>
+</div>
+`;
+
+exports[`components/activity_log_modal/MoreInfo > should match snapshot, extra info toggled on 1`] = `
+<div>
+  <div>
+    <div>
+      First time active: 
+      August 22, 2018
+      , 
+      05:54 AM
+    </div>
+    <div>
+      OS: Linux
+    </div>
+    <div>
+      Browser: Desktop App
+    </div>
+    <div>
+      Session ID: sessionId
+    </div>
+  </div>
+</div>
+`;

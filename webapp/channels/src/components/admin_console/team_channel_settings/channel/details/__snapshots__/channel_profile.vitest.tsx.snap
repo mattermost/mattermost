@@ -1,0 +1,140 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`admin_console/team_channel_settings/channel/ChannelProfile > should match snapshot 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_profile"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Channel Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the channel, including the channel name.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels AdminChannelDetails"
+    >
+      <div
+        class="group-teams-and-channels--body channel-desc-col"
+      >
+        <div
+          class="channel-name"
+        >
+          <b>
+            Name
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="channel-team"
+        >
+          <b>
+            Team
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn btn-secondary btn-danger"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-outline"
+            />
+            Archive Channel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`admin_console/team_channel_settings/channel/ChannelProfile > should match snapshot for a shared channel 1`] = `
+<div>
+  <div
+    class="AdminPanel clearfix "
+    id="channel_profile"
+  >
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Channel Profile
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Summary of the channel, including the channel name.
+        </div>
+      </div>
+    </div>
+    <div
+      class="group-teams-and-channels AdminChannelDetails"
+    >
+      <div
+        class="group-teams-and-channels--body channel-desc-col"
+      >
+        <div
+          class="channel-name"
+        >
+          <b>
+            Name
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="channel-team"
+        >
+          <b>
+            Team
+          </b>
+          <br />
+          test
+        </div>
+        <div
+          class="channel-organizations"
+        >
+          <b>
+            Organizations
+          </b>
+          <br />
+          <i
+            class="shared-channel-icon icon-circle-multiple-outline"
+            data-testid="SharedChannelIcon"
+          />
+          Shared with trusted organizations
+        </div>
+        <div
+          class="AdminChannelDetails_archiveContainer"
+        >
+          <button
+            class="btn btn-secondary btn-danger"
+            type="button"
+          >
+            <i
+              class="icon icon-archive-outline"
+            />
+            Archive Channel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
