@@ -64,6 +64,7 @@ const (
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
 	EmailNotificationWillBeSentID             = 47
+	FileWillBeDownloadedID                    = 48
 	TotalHooksID                              = iota
 )
 
@@ -238,6 +239,22 @@ type Hooks interface {
 	//
 	// Minimum server version: 5.2
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
+
+	// FileWillBeDownloaded is invoked when a file is requested for download, but before it is sent to the client.
+	//
+	// To reject a file download, return an non-empty string describing why the file was rejected.
+	// To allow the download, return an empty string.
+	//
+	// The downloadType parameter indicates the type of file access and can be one of:
+	//   - model.FileDownloadTypeFile: Full file download
+	//   - model.FileDownloadTypeThumbnail: Thumbnail request
+	//   - model.FileDownloadTypePreview: Preview image request
+	//   - model.FileDownloadTypePublic: Public link access (userID will be empty string in this case)
+	//
+	// Note that this method will be called for files requested by users with appropriate permissions.
+	//
+	// Minimum server version: 11.3
+	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
 
 	// ReactionHasBeenAdded is invoked after the reaction has been committed to the database.
 	//
