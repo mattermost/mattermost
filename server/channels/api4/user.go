@@ -3683,7 +3683,7 @@ func setUnreadThreadByPostId(c *Context, w http.ResponseWriter, r *http.Request)
 
 	// We want to make sure the thread is followed when marking as unread
 	// https://mattermost.atlassian.net/browse/MM-36430
-	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
+	err := c.App.UpdateThreadFollowForUser(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -3723,7 +3723,7 @@ func unfollowThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, false)
+	err := c.App.UpdateThreadFollowForUser(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -3756,7 +3756,7 @@ func followThreadByUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.UpdateThreadFollowForUser(c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
+	err := c.App.UpdateThreadFollowForUser(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.ThreadId, true)
 	if err != nil {
 		c.Err = err
 		return

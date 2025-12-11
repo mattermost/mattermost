@@ -2959,7 +2959,7 @@ func (a *App) UpdateThreadsReadForUser(userID, teamID string) *model.AppError {
 	return nil
 }
 
-func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state bool) *model.AppError {
+func (a *App) UpdateThreadFollowForUser(rctx request.CTX, userID, teamID, threadId string, state bool) *model.AppError {
 	opts := store.ThreadMembershipOpts{
 		Following:             state,
 		IncrementMentions:     false,
@@ -2967,20 +2967,27 @@ func (a *App) UpdateThreadFollowForUser(userID, teamID, threadID string, state b
 		UpdateViewedTimestamp: state,
 		UpdateParticipants:    false,
 	}
-	_, err := a.Srv().Store().Thread().MaintainMembership(userID, threadID, opts)
+	_, err := a.Srv().Store().Thread().MaintainMembership(userID, threadId, opts)
 	if err != nil {
 		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	thread, err := a.Srv().Store().Thread().Get(threadID)
-	if err != nil {
-		return model.NewAppError("UpdateThreadFollowForUser", "app.user.update_thread_follow_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+
+	// If the post has no replies, there's no thread but we still want to get the channel ID for invalidating the cache
+	post, appErr := a.GetSinglePost(rctx, threadId, false)
+	if appErr != nil {
+		return appErr
 	}
+
 	replyCount := int64(0)
-	if thread != nil {
-		replyCount = thread.ReplyCount
+	if post != nil {
+		// The post is always modified since the UpdateAt always changes
+		a.Srv().Store().Post().InvalidateLastPostTimeCache(post.ChannelId)
+
+		replyCount = post.ReplyCount
 	}
+
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadFollowChanged, teamID, "", userID, nil, "")
-	message.Add("thread_id", threadID)
+	message.Add("thread_id", threadId)
 	message.Add("state", state)
 	message.Add("reply_count", replyCount)
 	a.Publish(message)
