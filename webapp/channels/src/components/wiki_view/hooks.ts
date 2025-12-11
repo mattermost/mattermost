@@ -10,6 +10,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -81,6 +82,7 @@ export function useWikiPageData(
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const member = useSelector((state: GlobalState) => state.entities.channels.myMembers[channelId]);
+    const existingPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : undefined));
 
     // Use refs to avoid re-running effect when channel/member objects change reference
     const channelRef = useRef(channel);
@@ -147,15 +149,18 @@ export function useWikiPageData(
 
             if (pageId) {
                 if (wikiId) {
-                    const result = await dispatch(loadPage(pageId, wikiId));
+                    const hasPageContent = existingPage?.message?.trim();
 
-                    // Check for permission error (403) or not found error (404) when loading page
-                    if (result.error && (result.error.status_code === 403 || result.error.status_code === 404)) {
-                        const teamName = currentTeamRef.current?.name || '';
-                        const channelName = loadedChannel?.name || channelId;
-                        historyRef.current.replace(`/${teamName}/channels/${channelName}`);
-                        setLoading(false);
-                        return;
+                    if (!hasPageContent) {
+                        const result = await dispatch(loadPage(pageId, wikiId));
+
+                        if (result.error && (result.error.status_code === 403 || result.error.status_code === 404)) {
+                            const teamName = currentTeamRef.current?.name || '';
+                            const channelName = loadedChannel?.name || channelId;
+                            historyRef.current.replace(`/${teamName}/channels/${channelName}`);
+                            setLoading(false);
+                            return;
+                        }
                     }
                 }
                 setLoading(false);

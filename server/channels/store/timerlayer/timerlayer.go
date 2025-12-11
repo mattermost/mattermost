@@ -43,6 +43,7 @@ type TimerLayer struct {
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
+	PageStore                       store.PageStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -169,6 +170,10 @@ func (s *TimerLayer) OAuth() store.OAuthStore {
 
 func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return s.OutgoingOAuthConnectionStore
+}
+
+func (s *TimerLayer) Page() store.PageStore {
+	return s.PageStore
 }
 
 func (s *TimerLayer) Plugin() store.PluginStore {
@@ -408,6 +413,11 @@ type TimerLayerOAuthStore struct {
 
 type TimerLayerOutgoingOAuthConnectionStore struct {
 	store.OutgoingOAuthConnectionStore
+	Root *TimerLayer
+}
+
+type TimerLayerPageStore struct {
+	store.PageStore
 	Root *TimerLayer
 }
 
@@ -4035,22 +4045,6 @@ func (s *TimerLayerDraftStore) PublishPageDraft(pageId string, userId string) (*
 	return result, err
 }
 
-func (s *TimerLayerDraftStore) UpsertPageDraftContent(pageId string, userId string, wikiId string, content string, title string, lastUpdateAt int64) (*model.PageContent, error) {
-	start := time.Now()
-
-	result, err := s.DraftStore.UpsertPageDraftContent(pageId, userId, wikiId, content, title, lastUpdateAt)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraftContent", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerDraftStore) UpdatePropsOnly(userId string, wikiId string, draftId string, props map[string]any, expectedUpdateAt int64) error {
 	start := time.Now()
 
@@ -4095,6 +4089,22 @@ func (s *TimerLayerDraftStore) UpsertPageDraft(d *model.Draft) (*model.Draft, er
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraft", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) UpsertPageDraftContent(pageId string, userId string, wikiId string, content string, title string, lastUpdateAt int64) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.UpsertPageDraftContent(pageId, userId, wikiId, content, title, lastUpdateAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraftContent", success, elapsed)
 	}
 	return result, err
 }
@@ -6365,6 +6375,342 @@ func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.UpdateConnection", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) ChangePageParent(postID string, newParentID string) error {
+	start := time.Now()
+
+	err := s.PageStore.ChangePageParent(postID, newParentID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.ChangePageParent", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPageStore) CreatePage(rctx request.CTX, post *model.Post, content string, searchText string) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.CreatePage(rctx, post, content, searchText)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.CreatePage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) DeletePage(pageID string, deleteByID string) error {
+	start := time.Now()
+
+	err := s.PageStore.DeletePage(pageID, deleteByID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.DeletePage", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPageStore) DeletePageContent(pageID string) error {
+	start := time.Now()
+
+	err := s.PageStore.DeletePageContent(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.DeletePageContent", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPageStore) GetChannelPages(channelID string) (*model.PostList, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetChannelPages(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetChannelPages", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetCommentsForPage(pageID, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetCommentsForPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetManyPageContents(pageIDs []string) ([]*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetManyPageContents(pageIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetManyPageContents", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetManyPageContentsWithDeleted(pageIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetManyPageContentsWithDeleted", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPage(pageID string, includeDeleted bool) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPage(pageID, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPageAncestors(postID string) (*model.PostList, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPageAncestors(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPageAncestors", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPageChildren(postID, options)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPageChildren", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPageContent(pageID string) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPageContent(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPageContent", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPageContentWithDeleted(pageID string) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPageContentWithDeleted(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPageContentWithDeleted", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPageDescendants(postID string) (*model.PostList, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPageDescendants(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPageDescendants", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) GetPageVersionHistory(pageID string) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.GetPageVersionHistory(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.GetPageVersionHistory", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) PermanentDeletePageContent(pageID string) error {
+	start := time.Now()
+
+	err := s.PageStore.PermanentDeletePageContent(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.PermanentDeletePageContent", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPageStore) RestorePageContent(pageID string) error {
+	start := time.Now()
+
+	err := s.PageStore.RestorePageContent(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.RestorePageContent", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPageStore) SavePageContent(pageContent *model.PageContent) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.SavePageContent(pageContent)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.SavePageContent", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) Update(page *model.Post) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.Update(page)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) UpdatePageContent(pageContent *model.PageContent) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.UpdatePageContent(pageContent)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.UpdatePageContent", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageStore) UpdatePageWithContent(rctx request.CTX, pageID string, title string, content string, searchText string) (*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PageStore.UpdatePageWithContent(rctx, pageID, title, content, searchText)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageStore.UpdatePageWithContent", success, elapsed)
 	}
 	return result, err
 }
@@ -14180,6 +14526,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
+	newStore.PageStore = &TimerLayerPageStore{PageStore: childStore.Page(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}

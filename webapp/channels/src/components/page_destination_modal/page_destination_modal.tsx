@@ -131,7 +131,7 @@ const PageDestinationModal = ({
             handleCancel={onCancel}
             onExited={onCancel}
             confirmButtonText={confirmButtonText}
-            cancelButtonText='Cancel'
+            cancelButtonText={formatMessage({id: 'page_destination_modal.cancel', defaultMessage: 'Cancel'})}
             isConfirmDisabled={!selectedWikiId}
             autoCloseOnConfirmButton={true}
             confirmButtonTestId={confirmButtonTestId}
@@ -163,7 +163,7 @@ const PageDestinationModal = ({
                             />
                             <div>
                                 <strong style={{display: 'block', marginBottom: '4px'}}>
-                                    {'Child pages will be moved'}
+                                    {formatMessage({id: 'page_destination_modal.children_warning_title', defaultMessage: 'Child pages will be moved'})}
                                 </strong>
                                 <span style={{color: 'var(--center-channel-color-72)'}}>
                                     {childrenWarningText}
@@ -187,7 +187,7 @@ const PageDestinationModal = ({
                         fontWeight: 600,
                     }}
                 >
-                    {'Select Target Wiki'}
+                    {formatMessage({id: 'page_destination_modal.select_wiki_label', defaultMessage: 'Select Target Wiki'})}
                 </label>
                 <select
                     id='target-wiki-select'
@@ -201,13 +201,15 @@ const PageDestinationModal = ({
                     autoFocus={true}
                     style={{width: '100%', marginBottom: '16px'}}
                 >
-                    <option value=''>{'-- Select a wiki --'}</option>
+                    <option value=''>{formatMessage({id: 'page_destination_modal.select_wiki_placeholder', defaultMessage: '-- Select a wiki --'})}</option>
                     {availableWikis.map((wiki) => (
                         <option
                             key={wiki.id}
                             value={wiki.id}
                         >
-                            {wiki.title}{wiki.id === currentWikiId ? ' (current)' : ''}
+                            {wiki.id === currentWikiId ?
+                                formatMessage({id: 'page_destination_modal.wiki_current', defaultMessage: '{title} (current)'}, {title: wiki.title}) :
+                                wiki.title}
                         </option>
                     ))}
                 </select>
@@ -222,14 +224,14 @@ const PageDestinationModal = ({
                                 fontWeight: 600,
                             }}
                         >
-                            {'Parent Page (Optional)'}
+                            {formatMessage({id: 'page_destination_modal.parent_page_label', defaultMessage: 'Parent Page (Optional)'})}
                         </label>
 
                         <input
                             id='parent-page-search'
                             type='text'
                             className='form-control'
-                            placeholder='Search for a parent page...'
+                            placeholder={formatMessage({id: 'page_destination_modal.parent_page_placeholder', defaultMessage: 'Search for a parent page...'})}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             style={{width: '100%', marginBottom: '8px'}}
@@ -258,18 +260,18 @@ const PageDestinationModal = ({
                                     borderBottom: '1px solid var(--center-channel-color-16)',
                                 }}
                             >
-                                {'Root level (no parent)'}
+                                {formatMessage({id: 'page_destination_modal.root_level', defaultMessage: 'Root level (no parent)'})}
                             </button>
 
                             {filteredPages.length === 0 && searchQuery && (
                                 <div style={{padding: '12px', color: 'var(--center-channel-color-64)'}}>
-                                    {'No pages found matching "' + searchQuery + '"'}
+                                    {formatMessage({id: 'page_destination_modal.no_pages_matching', defaultMessage: 'No pages found matching "{query}"'}, {query: searchQuery})}
                                 </div>
                             )}
 
                             {filteredPages.length === 0 && !searchQuery && targetPages.length === 0 && (
                                 <div style={{padding: '12px', color: 'var(--center-channel-color-64)'}}>
-                                    {'No pages available in this wiki'}
+                                    {formatMessage({id: 'page_destination_modal.no_pages_available', defaultMessage: 'No pages available in this wiki'})}
                                 </div>
                             )}
 

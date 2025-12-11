@@ -240,13 +240,14 @@ type MetricsInterfaceImpl struct {
 	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
 
-	WikiPageOperationDuration *prometheus.HistogramVec
-	WikiHierarchyLoadDuration prometheus.Histogram
-	WikiDraftSaveTotal        *prometheus.CounterVec
-	WikiEditConflictsTotal    prometheus.Counter
-	WikiHierarchyDepth        prometheus.Histogram
-	WikiPagesPerChannel       prometheus.Histogram
-	WikiSearchDuration        prometheus.Histogram
+	WikiPageOperationDuration   *prometheus.HistogramVec
+	WikiHierarchyLoadDuration   prometheus.Histogram
+	WikiBreadcrumbFetchDuration prometheus.Histogram
+	WikiDraftSaveTotal          *prometheus.CounterVec
+	WikiEditConflictsTotal      prometheus.Counter
+	WikiHierarchyDepth          prometheus.Histogram
+	WikiPagesPerChannel         prometheus.Histogram
+	WikiSearchDuration          prometheus.Histogram
 }
 
 func init() {
@@ -1604,10 +1605,21 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 			Subsystem: MetricsSubsystemWiki,
 			Name:      "hierarchy_load_seconds",
 			Help:      "Time to load page hierarchy for a channel",
-			Buckets:   []float64{0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60},
+			Buckets:   []float64{0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5},
 		}),
 	)
 	m.Registry.MustRegister(m.WikiHierarchyLoadDuration)
+
+	m.WikiBreadcrumbFetchDuration = prometheus.NewHistogram(
+		withLabels(prometheus.HistogramOpts{
+			Namespace: MetricsNamespace,
+			Subsystem: MetricsSubsystemWiki,
+			Name:      "breadcrumb_fetch_seconds",
+			Help:      "Time to fetch breadcrumb path for a page",
+			Buckets:   []float64{0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5},
+		}),
+	)
+	m.Registry.MustRegister(m.WikiBreadcrumbFetchDuration)
 
 	m.WikiDraftSaveTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -2292,6 +2304,12 @@ func (mi *MetricsInterfaceImpl) ObserveWikiPageOperation(operation string, elaps
 func (mi *MetricsInterfaceImpl) ObserveWikiHierarchyLoad(elapsed float64) {
 	if mi.WikiHierarchyLoadDuration != nil {
 		mi.WikiHierarchyLoadDuration.Observe(elapsed)
+	}
+}
+
+func (mi *MetricsInterfaceImpl) ObserveWikiBreadcrumbFetch(elapsed float64) {
+	if mi.WikiBreadcrumbFetchDuration != nil {
+		mi.WikiBreadcrumbFetchDuration.Observe(elapsed)
 	}
 }
 

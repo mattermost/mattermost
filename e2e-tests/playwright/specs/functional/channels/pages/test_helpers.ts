@@ -924,31 +924,26 @@ export async function renamePageViaContextMenu(page: Page, currentTitle: string,
     const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]');
     await renameButton.click();
 
-    // # Wait for page to open in edit mode
-    await waitForEditModeReady(page);
+    // # Wait for rename modal to appear
+    const renameModal = page.locator('.TextInputModal');
+    await renameModal.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
 
-    // # Update title in editor
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
-    await titleInput.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
-    await titleInput.clear();
-    await titleInput.fill(newTitle);
+    // # Fill in new title in modal input
+    const modalInput = page.locator('[data-testid="rename-page-modal-title-input"]');
+    await modalInput.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
+    await modalInput.clear();
+    await modalInput.fill(newTitle);
 
-    // # Publish/Update the page
-    const updateButton = page.locator('[data-testid="wiki-page-update-button"]').first();
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    // # Click confirm button in modal
+    const confirmButton = renameModal.locator('button.btn-primary');
+    await confirmButton.click();
 
-    const isUpdateVisible = await updateButton.isVisible().catch(() => false);
-    if (isUpdateVisible) {
-        await updateButton.click();
-    } else {
-        await publishButton.click();
-    }
+    // # Wait for modal to close
+    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
 
-    // # Wait for save to complete
+    // # Wait for rename to complete and propagate
     await page.waitForLoadState('networkidle');
-
-    // # Wait for view mode to load
-    await waitForWikiViewLoad(page);
+    await page.waitForTimeout(SHORT_WAIT); // Extra wait for server to process rename
 }
 
 /**

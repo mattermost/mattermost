@@ -142,6 +142,7 @@ type MetricsInterface interface {
 
 	ObserveWikiPageOperation(operation string, elapsed float64)
 	ObserveWikiHierarchyLoad(elapsed float64)
+	ObserveWikiBreadcrumbFetch(elapsed float64)
 	IncrementWikiDraftSave(result string)
 	IncrementWikiEditConflict()
 	ObserveWikiHierarchyDepth(depth float64)

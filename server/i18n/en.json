@@ -4867,6 +4867,10 @@
     "translation": "You do not have permission to access this wiki."
   },
   {
+    "id": "api.wiki.update_page.channel_mismatch",
+    "translation": "Page and wiki must belong to the same channel."
+  },
+  {
     "id": "api.wiki.update_page_parent.not_page.app_error",
     "translation": "Post is not a page."
   },

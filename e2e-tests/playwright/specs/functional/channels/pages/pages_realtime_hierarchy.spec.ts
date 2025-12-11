@@ -318,10 +318,12 @@ test(
         // # User 1 renames the page via UI
         const newTitle = `Renamed Title ${await pw.random.id()}`;
         await renamePageViaContextMenu(page1, originalTitle, newTitle);
-        await page1.waitForTimeout(EDITOR_LOAD_WAIT);
+
+        // * Verify rename succeeded for user1 first
+        await verifyPageInHierarchy(page1, newTitle, 5000);
 
         // * Verify new title appears in user2's hierarchy (real-time)
-        await user2Page.waitForTimeout(WEBSOCKET_WAIT); // Allow WebSocket message to propagate
+        await user2Page.waitForTimeout(WEBSOCKET_WAIT);
 
         await verifyPageInHierarchy(user2Page, newTitle, 5000);
 

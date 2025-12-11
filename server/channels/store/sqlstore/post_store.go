@@ -1432,10 +1432,11 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	       Posts
 	WHERE
 	       UpdateAt > ? AND ChannelId = ?
+	       AND (Type IS NULL OR Type NOT IN ('page', 'page_comment'))
 	       LIMIT 1000)
 	(SELECT *` + replyCountQuery2 + ` FROM cte)
 	UNION
-	(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
+	(SELECT *` + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte) AND (p1.Type IS NULL OR p1.Type NOT IN ('page', 'page_comment')))
 	ORDER BY CreateAt ` + order
 
 	params = []any{options.Time, options.ChannelId}

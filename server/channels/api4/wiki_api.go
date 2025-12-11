@@ -22,6 +22,7 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(getWikiPages)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(createPage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getWikiPage)).Methods(http.MethodGet)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(updatePage)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePage)).Methods(http.MethodDelete)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/active_editors", api.APISessionRequired(getPageActiveEditors)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/version_history", api.APISessionRequired(getPageVersionHistory)).Methods(http.MethodGet)

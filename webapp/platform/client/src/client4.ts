@@ -2190,6 +2190,23 @@ export default class Client4 {
         );
     };
 
+    updatePage = (wikiId: string, pageId: string, title?: string, content?: string, searchText?: string) => {
+        const body: {title?: string; content?: string; search_text?: string} = {};
+        if (title !== undefined) {
+            body.title = title;
+        }
+        if (content !== undefined) {
+            body.content = content;
+        }
+        if (searchText !== undefined) {
+            body.search_text = searchText;
+        }
+        return this.doFetch<Post>(
+            `${this.getWikiPageRoute(wikiId, pageId)}`,
+            {method: 'put', body: JSON.stringify(body)},
+        );
+    };
+
     updatePageParent = (wikiId: string, pageId: string, newParentId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(wikiId, pageId)}/parent`,

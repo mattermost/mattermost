@@ -235,7 +235,7 @@ const PagesHierarchyPanel = ({
                     className='PagesHierarchyPanel__loading'
                     data-testid='pages-hierarchy-loading'
                 >
-                    {'Loading pages...'}
+                    {formatMessage({id: 'pages_panel.loading', defaultMessage: 'Loading pages...'})}
                 </div>
             </div>
         );
@@ -250,7 +250,7 @@ const PagesHierarchyPanel = ({
         >
             {/* Header */}
             <PagesHeader
-                title='Pages'
+                title={formatMessage({id: 'pages_panel.header.title', defaultMessage: 'Pages'})}
                 onNewPage={handleNewPage}
                 onCollapse={actions.closePagesPanel}
                 isCreating={menuHandlers.creatingPage}
@@ -272,7 +272,9 @@ const PagesHierarchyPanel = ({
                         className='PagesHierarchyPanel__empty'
                         data-testid='pages-hierarchy-empty'
                     >
-                        {searchQuery ? 'No pages found' : 'No pages yet'}
+                        {searchQuery ?
+                            formatMessage({id: 'pages_panel.no_results', defaultMessage: 'No pages found'}) :
+                            formatMessage({id: 'pages_panel.empty', defaultMessage: 'No pages yet'})}
                     </div>
                 ) : (
                     <PageTreeView
@@ -323,13 +325,17 @@ const PagesHierarchyPanel = ({
             {/* Create page modal */}
             <TextInputModal
                 show={menuHandlers.showCreatePageModal}
-                title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
-                fieldLabel='Page title'
-                placeholder='Enter page title...'
-                helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
-                confirmButtonText='Create'
+                title={menuHandlers.createPageParent ?
+                    formatMessage({id: 'pages_panel.create_child_modal.title', defaultMessage: 'Create Child Page under "{parentTitle}"'}, {parentTitle: menuHandlers.createPageParent.title}) :
+                    formatMessage({id: 'pages_panel.create_modal.title', defaultMessage: 'Create New Page'})}
+                fieldLabel={formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'})}
+                placeholder={formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'})}
+                helpText={menuHandlers.createPageParent ?
+                    formatMessage({id: 'pages_panel.create_child_modal.help_text', defaultMessage: 'This page will be created as a child of "{parentTitle}".'}, {parentTitle: menuHandlers.createPageParent.title}) :
+                    formatMessage({id: 'pages_panel.create_modal.help_text', defaultMessage: 'A new draft will be created for you to edit.'})}
+                confirmButtonText={formatMessage({id: 'pages_panel.create_modal.confirm', defaultMessage: 'Create'})}
                 maxLength={255}
-                ariaLabel='Create Page'
+                ariaLabel={formatMessage({id: 'pages_panel.create_modal.aria_label', defaultMessage: 'Create Page'})}
                 inputTestId='create-page-modal-title-input'
                 onConfirm={menuHandlers.handleConfirmCreatePage}
                 onCancel={menuHandlers.handleCancelCreatePage}
@@ -341,9 +347,26 @@ const PagesHierarchyPanel = ({
                 <BookmarkChannelSelect
                     onSelect={handleChannelSelected}
                     onClose={menuHandlers.handleBookmarkCancel}
-                    title='Bookmark in channel'
+                    title={formatMessage({id: 'pages_panel.bookmark_modal.title', defaultMessage: 'Bookmark in channel'})}
                 />
             )}
+
+            {/* Rename page modal */}
+            <TextInputModal
+                show={menuHandlers.showRenameModal}
+                title={formatMessage({id: 'pages_panel.rename_modal.title', defaultMessage: 'Rename Page'})}
+                fieldLabel={formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'})}
+                placeholder={formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'})}
+                helpText={formatMessage({id: 'pages_panel.rename_modal.help_text', defaultMessage: 'The page will be renamed immediately.'})}
+                confirmButtonText={formatMessage({id: 'pages_panel.rename_modal.confirm', defaultMessage: 'Rename'})}
+                maxLength={255}
+                initialValue={menuHandlers.pageToRename?.currentTitle || ''}
+                ariaLabel={formatMessage({id: 'pages_panel.rename_modal.aria_label', defaultMessage: 'Rename Page'})}
+                inputTestId='rename-page-modal-title-input'
+                onConfirm={menuHandlers.handleConfirmRename}
+                onCancel={menuHandlers.handleCancelRename}
+                onHide={() => menuHandlers.setShowRenameModal(false)}
+            />
         </div>
     );
 };

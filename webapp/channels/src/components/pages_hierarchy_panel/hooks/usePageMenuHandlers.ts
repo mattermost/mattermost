@@ -3,7 +3,6 @@
 
 import {useState, useCallback, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
-import {useHistory, useLocation} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
@@ -12,12 +11,10 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {removePageDraft} from 'actions/page_drafts';
-import {createPage, deletePage, duplicatePage, loadChannelWikis, loadPages, movePageToWiki} from 'actions/pages';
+import {createPage, deletePage, duplicatePage, loadChannelWikis, loadPages, movePageToWiki, updatePage} from 'actions/pages';
 import {expandAncestors} from 'actions/views/pages_hierarchy';
-import {openPageInEditMode} from 'actions/wiki_edit';
 
 import {PageDisplayTypes} from 'utils/constants';
-import {getTeamNameFromPath, getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -32,8 +29,6 @@ type UsePageMenuHandlersProps = {
 
 export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSelect}: UsePageMenuHandlersProps) => {
     const dispatch = useDispatch();
-    const history = useHistory();
-    const location = useLocation();
     const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
 
     // Convert drafts to Post-like objects and combine with pages
@@ -91,6 +86,9 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     const [creatingPage, setCreatingPage] = useState(false);
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
     const [pageToBookmark, setPageToBookmark] = useState<{pageId: string; pageTitle: string} | null>(null);
+    const [showRenameModal, setShowRenameModal] = useState(false);
+    const [pageToRename, setPageToRename] = useState<{pageId: string; currentTitle: string} | null>(null);
+    const [renamingPage, setRenamingPage] = useState(false);
 
     const getDescendantCount = useCallback((pageId: string): number => {
         const children = allPages.filter((p) => p.page_parent_id === pageId);
@@ -153,21 +151,41 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setCreatePageParent(null);
     }, []);
 
-    const handleRename = useCallback(async (pageId: string) => {
+    const handleRename = useCallback((pageId: string) => {
+        if (renamingPage) {
+            return;
+        }
         const page = allPages.find((p) => p.id === pageId);
         if (!page || !wikiId) {
             return;
         }
 
-        const result = await dispatch(openPageInEditMode(channelId, wikiId, page));
+        const currentTitle = (page.props?.title as string | undefined) || page.message || '';
+        setPageToRename({pageId, currentTitle});
+        setShowRenameModal(true);
+    }, [allPages, wikiId, renamingPage]);
 
-        // Navigate to draft on success
-        if (result.data) {
-            const teamName = getTeamNameFromPath(location.pathname);
-            const draftPath = getWikiUrl(teamName, channelId, wikiId, result.data, true);
-            history.replace(draftPath);
+    const handleConfirmRename = useCallback(async (newTitle: string) => {
+        if (!pageToRename || !wikiId) {
+            return;
         }
-    }, [allPages, wikiId, channelId, history, location, dispatch]);
+
+        setRenamingPage(true);
+        try {
+            const result = await dispatch(updatePage(pageToRename.pageId, newTitle, wikiId)) as ActionResult<Post>;
+            if (result.error) {
+                throw result.error;
+            }
+        } finally {
+            setRenamingPage(false);
+            setPageToRename(null);
+        }
+    }, [dispatch, pageToRename, wikiId]);
+
+    const handleCancelRename = useCallback(() => {
+        setShowRenameModal(false);
+        setPageToRename(null);
+    }, []);
 
     const handleDuplicate = useCallback(async (pageId: string) => {
         const page = allPages.find((p) => p.id === pageId);
@@ -354,6 +372,8 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setShowDeleteModal,
         showBookmarkModal,
         setShowBookmarkModal,
+        showRenameModal,
+        setShowRenameModal,
 
         // Modal data
         createPageParent,
@@ -361,6 +381,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         pageToDelete,
         availableWikis,
         pageToBookmark,
+        pageToRename,
 
         // Modal handlers
         handleConfirmCreatePage,
@@ -370,6 +391,8 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         handleDeleteConfirm,
         handleDeleteCancel,
         handleBookmarkCancel,
+        handleConfirmRename,
+        handleCancelRename,
 
         // Helper
         fetchPagesForWiki,
@@ -377,5 +400,6 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         // Loading states
         deletingPageId,
         creatingPage,
+        renamingPage,
     };
 };

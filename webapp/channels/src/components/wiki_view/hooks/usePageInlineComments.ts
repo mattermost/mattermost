@@ -31,10 +31,18 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
 
     const isWikiRhsOpen = rhsState === 'wiki';
 
+    // Track which pages have had comments loaded to avoid redundant fetches
+    const loadedPagesRef = useRef<Set<string>>(new Set());
+
     // Store fetch logic in a ref to avoid recreating callbacks
-    const fetchInlineCommentsRef = useRef<() => Promise<void>>();
-    fetchInlineCommentsRef.current = async () => {
+    const fetchInlineCommentsRef = useRef<(force?: boolean) => Promise<void>>();
+    fetchInlineCommentsRef.current = async (force = false) => {
         if (!pageId || isDraftPageId(pageId) || !wikiId) {
+            return;
+        }
+
+        // Skip fetch if already loaded for this page (unless force=true)
+        if (!force && loadedPagesRef.current.has(pageId)) {
             return;
         }
 
@@ -48,14 +56,15 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
 
             const comments = result.data;
 
+            // Mark this page as loaded
+            loadedPagesRef.current.add(pageId);
+
             // Filter to only inline comments that are NOT resolved
-            // Confluence behavior: resolved comments have their highlights removed
             const inline = comments.filter((post: Post) => {
                 if (!pageInlineCommentHasAnchor(post)) {
                     return false;
                 }
 
-                // Exclude resolved comments from highlights
                 return !post.props?.comment_resolved;
             });
 
@@ -66,14 +75,14 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     };
 
     // Stable wrapper that calls the latest version from ref
-    const fetchInlineComments = useCallback(async () => {
-        await fetchInlineCommentsRef.current?.();
+    const fetchInlineComments = useCallback(async (force = false) => {
+        await fetchInlineCommentsRef.current?.(force);
     }, []);
 
     // Callback when a new inline comment is created
     const handleInlineCommentCreated = useCallback((commentId: string) => {
-        // Refresh comments to show the new highlight
-        fetchInlineComments();
+        // Refresh comments to show the new highlight (force refetch)
+        fetchInlineComments(true);
 
         // Open RHS focused on the new comment
         if (pageId && wikiId) {
@@ -149,7 +158,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 const eventPageId = msg.data?.page_id;
 
                 if (eventPageId === pageId) {
-                    fetchInlineComments();
+                    fetchInlineComments(true);
                 }
                 return;
             }

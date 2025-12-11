@@ -166,6 +166,69 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func updatePage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	if _, ok := c.ValidatePageBelongsToWiki(); !ok {
+		return
+	}
+
+	var req struct {
+		Title      string `json:"title,omitempty"`
+		Content    string `json:"content,omitempty"`
+		SearchText string `json:"search_text,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("updatePage", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("wiki_id", c.Params.WikiId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "updatePage")
+	if !ok {
+		return
+	}
+
+	page, pageErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	if pageErr != nil {
+		c.Err = pageErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationEdit, "updatePage"); err != nil {
+		c.Err = err
+		return
+	}
+
+	if page.ChannelId != wiki.ChannelId {
+		c.Err = model.NewAppError("updatePage", "api.wiki.update_page.channel_mismatch", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	updatedPage, appErr := c.App.UpdatePage(c.AppContext, c.Params.PageId, req.Title, req.Content, req.SearchText)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(updatedPage)
+	auditRec.AddEventObjectType("page")
+
+	if err := json.NewEncoder(w).Encode(updatedPage); err != nil {
+		c.Logger.Warn("Error encoding response", mlog.Err(err))
+	}
+}
+
 func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireChannelId()
 	if c.Err != nil {

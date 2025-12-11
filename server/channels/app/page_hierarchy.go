@@ -161,6 +161,13 @@ func (a *App) calculateMaxDepthFromPostList(postList *model.PostList) int {
 
 // ChangePageParent updates the parent of a page
 func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID string) *model.AppError {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiPageOperation("move", time.Since(start).Seconds())
+		}
+	}()
+
 	post, err := a.getPagePost(rctx, postID)
 	if err != nil {
 		return model.NewAppError("ChangePageParent", "app.page.change_parent.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
@@ -272,6 +279,13 @@ func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.A
 // BuildBreadcrumbPath builds the breadcrumb navigation path for a page.
 // Accepts pre-fetched wiki and channel to avoid redundant DB queries.
 func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel) (*model.BreadcrumbPath, *model.AppError) {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiBreadcrumbFetch(time.Since(start).Seconds())
+		}
+	}()
+
 	var breadcrumbItems []*model.BreadcrumbItem
 
 	ancestors, err := a.GetPageAncestors(rctx, page.Id)

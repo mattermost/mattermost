@@ -573,6 +573,11 @@ func (_m *MetricsInterface) ObserveWikiHierarchyLoad(elapsed float64) {
 	_m.Called(elapsed)
 }
 
+// ObserveWikiBreadcrumbFetch provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveWikiBreadcrumbFetch(elapsed float64) {
+	_m.Called(elapsed)
+}
+
 // ObserveWikiPageOperation provides a mock function with given fields: operation, elapsed
 func (_m *MetricsInterface) ObserveWikiPageOperation(operation string, elapsed float64) {
 	_m.Called(operation, elapsed)

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Wiki} from '@mattermost/types/wikis';
@@ -20,20 +21,24 @@ type Props = {
 };
 
 const MovePageModal = (props: Props) => {
+    const {formatMessage} = useIntl();
+
     const helpText = (selectedWiki: string, currentWiki: string) => {
         if (selectedWiki === currentWiki) {
-            return 'Moving within the same wiki allows you to reorganize the hierarchy.';
+            return formatMessage({id: 'move_page_modal.help_text_same_wiki', defaultMessage: 'Moving within the same wiki allows you to reorganize the hierarchy.'});
         }
-        return 'The page and all child pages will be moved to the selected wiki.';
+        return formatMessage({id: 'move_page_modal.help_text_different_wiki', defaultMessage: 'The page and all child pages will be moved to the selected wiki.'});
     };
 
-    const childrenWarning = props.hasChildren ? 'This page has child pages. All child pages will be moved with this page to maintain the hierarchy.' : undefined;
+    const childrenWarning = props.hasChildren ?
+        formatMessage({id: 'move_page_modal.children_warning', defaultMessage: 'This page has child pages. All child pages will be moved with this page to maintain the hierarchy.'}) :
+        undefined;
 
     return (
         <PageDestinationModal
             {...props}
-            modalHeaderText='Move Page to Wiki'
-            confirmButtonText='Move'
+            modalHeaderText={formatMessage({id: 'move_page_modal.title', defaultMessage: 'Move Page to Wiki'})}
+            confirmButtonText={formatMessage({id: 'move_page_modal.confirm', defaultMessage: 'Move'})}
             helpText={helpText}
             childrenWarningText={childrenWarning}
             confirmButtonTestId='confirm-button'

@@ -90,19 +90,40 @@ const WikiViewModals: React.FC<WikiViewModalsProps> = ({
             {menuHandlers.showCreatePageModal && (
                 <TextInputModal
                     show={menuHandlers.showCreatePageModal}
-                    title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
-                    fieldLabel='Page title'
-                    placeholder='Enter page title...'
-                    helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
-                    confirmButtonText='Create'
+                    title={menuHandlers.createPageParent ?
+                        formatMessage({id: 'pages_panel.create_child_modal.title', defaultMessage: 'Create Child Page under "{parentTitle}"'}, {parentTitle: menuHandlers.createPageParent.title}) :
+                        formatMessage({id: 'pages_panel.create_modal.title', defaultMessage: 'Create New Page'})}
+                    fieldLabel={formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'})}
+                    placeholder={formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'})}
+                    helpText={menuHandlers.createPageParent ?
+                        formatMessage({id: 'pages_panel.create_child_modal.help_text', defaultMessage: 'This page will be created as a child of "{parentTitle}".'}, {parentTitle: menuHandlers.createPageParent.title}) :
+                        formatMessage({id: 'pages_panel.create_modal.help_text', defaultMessage: 'A new draft will be created for you to edit.'})}
+                    confirmButtonText={formatMessage({id: 'pages_panel.create_modal.confirm', defaultMessage: 'Create'})}
                     maxLength={255}
-                    ariaLabel='Create Page'
+                    ariaLabel={formatMessage({id: 'pages_panel.create_modal.aria_label', defaultMessage: 'Create Page'})}
                     inputTestId='create-page-modal-title-input'
                     onConfirm={menuHandlers.handleConfirmCreatePage}
                     onCancel={menuHandlers.handleCancelCreatePage}
                     onHide={() => menuHandlers.setShowCreatePageModal(false)}
                 />
             )}
+
+            {/* Rename page modal */}
+            <TextInputModal
+                show={menuHandlers.showRenameModal}
+                title={formatMessage({id: 'pages_panel.rename_modal.title', defaultMessage: 'Rename Page'})}
+                fieldLabel={formatMessage({id: 'pages_panel.modal.field_label', defaultMessage: 'Page title'})}
+                placeholder={formatMessage({id: 'pages_panel.modal.placeholder', defaultMessage: 'Enter page title...'})}
+                helpText={formatMessage({id: 'pages_panel.rename_modal.help_text', defaultMessage: 'The page will be renamed immediately.'})}
+                confirmButtonText={formatMessage({id: 'pages_panel.rename_modal.confirm', defaultMessage: 'Rename'})}
+                maxLength={255}
+                initialValue={menuHandlers.pageToRename?.currentTitle || ''}
+                ariaLabel={formatMessage({id: 'pages_panel.rename_modal.aria_label', defaultMessage: 'Rename Page'})}
+                inputTestId='rename-page-modal-title-input'
+                onConfirm={menuHandlers.handleConfirmRename}
+                onCancel={menuHandlers.handleCancelRename}
+                onHide={() => menuHandlers.setShowRenameModal(false)}
+            />
 
             {/* Version history modal */}
             {versionHistory.show && versionHistory.pageId && (() => {

@@ -23,6 +23,7 @@ import {getPageDraft, getUserDraftKeysForPage, makePageDraftKey} from 'selectors
 
 import {getHistory} from 'utils/browser_history';
 import {PageConstants, PagePropsKeys} from 'utils/constants';
+import {getPageReceiveActions} from 'utils/page_utils';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -232,18 +233,8 @@ export function moveWikiToChannel(wikiId: string, targetChannelId: string): Acti
     };
 }
 
-// Load single page
-// force: bypass cache and always fetch from server (useful after navigation to ensure fresh content)
-export function loadPage(pageId: string, wikiId: string, force = false): ActionFuncAsync<Page> {
+export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
-        const state = getState();
-        const existingPage = state.entities.posts.posts[pageId];
-
-        // Return cached page if content already exists (unless force is true)
-        if (!force && existingPage?.message?.trim()) {
-            return {data: existingPage};
-        }
-
         let data: Page;
         try {
             data = await Client4.getPage(wikiId, pageId) as Page;
@@ -260,7 +251,6 @@ export function loadPage(pageId: string, wikiId: string, force = false): ActionF
             },
         ];
 
-        // Extract and store page status in Redux
         const pageStatus = data.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined;
         if (pageStatus) {
             actions.push({
@@ -520,21 +510,15 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
         });
 
         try {
-            const data = await Client4.patchPost({
-                id: pageId,
-                props: {[PagePropsKeys.TITLE]: newTitle},
-            });
+            const data = await Client4.updatePage(wikiId, pageId, newTitle);
 
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,
                 data,
             });
 
-            const timestamp = Date.now();
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId, timestamp},
-            });
+            const pageActions = getPageReceiveActions(data);
+            pageActions.forEach((action) => dispatch(action));
 
             return {data};
         } catch (error) {

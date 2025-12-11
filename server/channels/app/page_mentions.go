@@ -247,6 +247,20 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 	rctx.Logger().Debug("Wiki has channel feed mentions enabled, proceeding with post creation",
 		mlog.String("wiki_id", wikiId))
 
+	// Batch fetch all mentioned users to avoid N+1 queries
+	mentionedUsers, getUsersErr := a.Srv().Store().User().GetProfileByIds(rctx, mentionedUserIDs, nil, false)
+	if getUsersErr != nil {
+		rctx.Logger().Warn("Failed to batch fetch mentioned users",
+			mlog.Err(getUsersErr))
+		return
+	}
+
+	// Create a map for quick lookup
+	mentionedUsersMap := make(map[string]*model.User, len(mentionedUsers))
+	for _, u := range mentionedUsers {
+		mentionedUsersMap[u.Id] = u
+	}
+
 	pageTitle := page.GetProp("title")
 	if pageTitle == "" {
 		pageTitle = "Untitled"
@@ -257,11 +271,10 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 		mlog.Int("content_length", len(content)))
 
 	for _, mentionedUserID := range mentionedUserIDs {
-		mentionedUser, mentionErr := a.GetUser(mentionedUserID)
-		if mentionErr != nil {
-			rctx.Logger().Warn("Failed to get mentioned user for channel post",
-				mlog.String("user_id", mentionedUserID),
-				mlog.Err(mentionErr))
+		mentionedUser, ok := mentionedUsersMap[mentionedUserID]
+		if !ok {
+			rctx.Logger().Warn("Mentioned user not found in batch fetch",
+				mlog.String("user_id", mentionedUserID))
 			continue
 		}
 

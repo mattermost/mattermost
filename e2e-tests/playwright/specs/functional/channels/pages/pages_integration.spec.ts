@@ -373,25 +373,27 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     const renameMenuItem = page.locator('[data-testid="page-context-menu-rename"]').first();
     await renameMenuItem.click();
 
-    // * Verify edit mode opened
-    await expect(page.locator('[data-testid="wiki-page-title-input"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
+    // * Verify rename modal opened
+    await expect(page.locator('[data-testid="rename-page-modal-title-input"]')).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
-    // # Change title in edit mode
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
+    // # Change title in rename modal
+    const titleInput = page.locator('[data-testid="rename-page-modal-title-input"]');
     await titleInput.clear();
     await titleInput.fill(newTitle);
 
-    // # Save/publish the page
-    await publishPage(page);
+    // # Confirm rename
+    const renameButton = page.locator('button:has-text("Rename")').last();
+    await renameButton.click();
 
-    // * Verify title updated in viewer
-    const pageTitle = page.locator('[data-testid="page-viewer-title"]');
-    await expect(pageTitle).toContainText(newTitle);
+    // * Verify modal closed
+    await expect(page.locator('[data-testid="rename-page-modal-title-input"]')).not.toBeVisible({
+        timeout: ELEMENT_TIMEOUT,
+    });
 
-    // * Verify hierarchy panel shows new title before navigating
+    // * Verify title updated in hierarchy panel
     // This ensures Redux state is fully updated before we navigate away
-    const hierarchyPanelBeforeNav = getHierarchyPanel(page);
-    await expect(hierarchyPanelBeforeNav).toContainText(newTitle, {timeout: ELEMENT_TIMEOUT});
+    const hierarchyPanelAfterRename = getHierarchyPanel(page);
+    await expect(hierarchyPanelAfterRename).toContainText(newTitle, {timeout: ELEMENT_TIMEOUT});
 
     // # Navigate to child page
     const childPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
@@ -404,7 +406,7 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     // * Verify breadcrumb no longer shows old title
     await verifyBreadcrumbDoesNotContain(page, oldTitle);
 
-    // * Verify hierarchy panel shows new title
+    // * Verify hierarchy panel shows new title on child page
     const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await expect(hierarchyPanel).toContainText(newTitle);

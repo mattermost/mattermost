@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 
@@ -20,26 +21,28 @@ const DeletePageModal = ({
     onConfirm,
     onCancel,
 }: Props) => {
+    const {formatMessage} = useIntl();
     const [deleteChildren, setDeleteChildren] = useState(false);
 
     const handleConfirm = useCallback(() => {
         onConfirm(deleteChildren);
     }, [deleteChildren, onConfirm]);
 
-    const childText = childCount === 1 ? '1 child page' : `${childCount} child pages`;
+    const modalTitle = formatMessage({id: 'delete_page_modal.title', defaultMessage: 'Delete Page'});
+    const confirmText = formatMessage({id: 'delete_page_modal.confirm', defaultMessage: 'Delete'});
 
     return (
         <GenericModal
             className='DeletePageModal'
-            ariaLabel='Delete Page'
-            modalHeaderText='Delete Page'
+            ariaLabel={modalTitle}
+            modalHeaderText={modalTitle}
             compassDesign={true}
             keyboardEscape={true}
             enforceFocus={false}
             handleConfirm={handleConfirm}
             handleCancel={onCancel}
             onExited={onCancel}
-            confirmButtonText='Delete'
+            confirmButtonText={confirmText}
             confirmButtonClassName='btn-danger'
             confirmButtonTestId='delete-button'
             autoCloseOnConfirmButton={true}
@@ -47,19 +50,15 @@ const DeletePageModal = ({
             <div className='DeletePageModal__body'>
                 <p className='DeletePageModal__warning'>
                     {childCount > 0 ? (
-                        <>
-                            {'You are about to delete '}
-                            <strong>{'"'}{pageTitle}{'"'}</strong>
-                            {'. This page has '}
-                            <strong>{childText}</strong>
-                            {'.'}
-                        </>
+                        formatMessage(
+                            {id: 'delete_page_modal.warning_with_children', defaultMessage: 'You are about to delete "{pageTitle}". This page has {childCount, plural, one {1 child page} other {{childCount} child pages}}.'},
+                            {pageTitle, childCount},
+                        )
                     ) : (
-                        <>
-                            {'Are you sure you want to delete '}
-                            <strong>{'"'}{pageTitle}{'"'}</strong>
-                            {'?'}
-                        </>
+                        formatMessage(
+                            {id: 'delete_page_modal.warning', defaultMessage: 'Are you sure you want to delete "{pageTitle}"?'},
+                            {pageTitle},
+                        )
                     )}
                 </p>
 
@@ -72,12 +71,12 @@ const DeletePageModal = ({
                                 name='deleteOption'
                                 checked={!deleteChildren}
                                 onChange={() => setDeleteChildren(false)}
-                                aria-label='Delete this page only'
+                                aria-label={formatMessage({id: 'delete_page_modal.option_page_only.aria_label', defaultMessage: 'Delete this page only'})}
                             />
                             <div className='DeletePageModal__optionContent'>
-                                <strong>{'Delete this page only'}</strong>
+                                <strong>{formatMessage({id: 'delete_page_modal.option_page_only.title', defaultMessage: 'Delete this page only'})}</strong>
                                 <span className='DeletePageModal__optionDescription'>
-                                    {'Child pages will move to the parent page'}
+                                    {formatMessage({id: 'delete_page_modal.option_page_only.description', defaultMessage: 'Child pages will move to the parent page'})}
                                 </span>
                             </div>
                         </label>
@@ -89,14 +88,15 @@ const DeletePageModal = ({
                                 name='deleteOption'
                                 checked={deleteChildren}
                                 onChange={() => setDeleteChildren(true)}
-                                aria-label='Delete this page and all child pages'
+                                aria-label={formatMessage({id: 'delete_page_modal.option_with_children.aria_label', defaultMessage: 'Delete this page and all child pages'})}
                             />
                             <div className='DeletePageModal__optionContent'>
-                                <strong>{'Delete this page and all child pages'}</strong>
+                                <strong>{formatMessage({id: 'delete_page_modal.option_with_children.title', defaultMessage: 'Delete this page and all child pages'})}</strong>
                                 <span className='DeletePageModal__optionDescription'>
-                                    {'All '}
-                                    {childCount}
-                                    {' child pages will be permanently deleted'}
+                                    {formatMessage(
+                                        {id: 'delete_page_modal.option_with_children.description', defaultMessage: 'All {childCount} child pages will be permanently deleted'},
+                                        {childCount},
+                                    )}
                                 </span>
                             </div>
                         </label>
@@ -105,7 +105,7 @@ const DeletePageModal = ({
 
                 <p className='DeletePageModal__note'>
                     <i className='icon icon-alert-outline'/>
-                    {'This action cannot be undone.'}
+                    {formatMessage({id: 'delete_page_modal.note', defaultMessage: 'This action cannot be undone.'})}
                 </p>
             </div>
         </GenericModal>

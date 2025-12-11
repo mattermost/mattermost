@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -52,6 +52,13 @@ const TextInputModal = ({
     const dispatch = useDispatch();
     const [value, setValue] = useState(initialValue);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Reset value when modal opens or initialValue changes
+    useEffect(() => {
+        if (show) {
+            setValue(initialValue);
+        }
+    }, [show, initialValue]);
 
     const handleConfirm = useCallback(async () => {
         const trimmedValue = value.trim();

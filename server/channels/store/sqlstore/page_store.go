@@ -177,19 +177,8 @@ func (s *SqlPageStore) DeletePage(pageID string, deleteByID string) error {
 			Set("UpdateAt", now).
 			Set("Props", sq.Expr("jsonb_set(Props, ?, ?)", jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID))).
 			Where(sq.And{
-				sq.Or{
-					// Root-level page comments (RootId = pageID)
-					sq.And{
-						sq.Eq{"RootId": pageID},
-						sq.Eq{"Type": model.PostTypePageComment},
-					},
-					// Inline comments and their replies (Props->>'page_id' = pageID)
-					// This catches both root inline comments (RootId = "") and replies (RootId = parentCommentID)
-					sq.And{
-						sq.Expr("Props->>'page_id' = ?", pageID),
-						sq.Eq{"Type": model.PostTypePageComment},
-					},
-				},
+				sq.Expr("Props->>'page_id' = ?", pageID),
+				sq.Eq{"Type": model.PostTypePageComment},
 				sq.Eq{"DeleteAt": 0},
 			})
 
@@ -745,11 +734,10 @@ func (s *SqlPageStore) GetCommentsForPage(pageID string, includeDeleted bool) (*
 
 	pl := model.NewPostList()
 
-	// Build query: Get page + all comments/replies (exclude system posts)
+	// Build query: Get page + all comments/replies
 	// - Page itself: Id = pageID AND Type = 'page'
-	// - Regular comments and replies: RootId = pageID AND Type = 'page_comment'
-	// - Inline comments: RootId is empty AND Props->>'page_id' = pageID AND Type = 'page_comment'
-	// - Replies to inline comments: Props->>'page_id' = pageID AND RootId not empty/not pageID AND Type = 'page_comment'
+	// - All comments: Props->>'page_id' = pageID AND Type = 'page_comment'
+	//   (All comments have page_id in Props - root-level, inline, and replies)
 	query := s.getQueryBuilder().
 		Select(postSliceColumns()...).
 		From("Posts").
@@ -759,18 +747,7 @@ func (s *SqlPageStore) GetCommentsForPage(pageID string, includeDeleted bool) (*
 				sq.Eq{"Type": model.PostTypePage},
 			},
 			sq.And{
-				sq.Eq{"RootId": pageID},
-				sq.Eq{"Type": model.PostTypePageComment},
-			},
-			sq.And{
 				sq.Expr("Props->>'page_id' = ?", pageID),
-				sq.Eq{"RootId": ""},
-				sq.Eq{"Type": model.PostTypePageComment},
-			},
-			sq.And{
-				sq.Expr("Props->>'page_id' = ?", pageID),
-				sq.NotEq{"RootId": ""},
-				sq.NotEq{"RootId": pageID},
 				sq.Eq{"Type": model.PostTypePageComment},
 			},
 		}).

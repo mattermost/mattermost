@@ -8,6 +8,7 @@ import (
 	"errors"
 	"maps"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -172,6 +173,13 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string) *model.AppErro
 }
 
 func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) ([]*model.Post, *model.AppError) {
+	start := time.Now()
+	defer func() {
+		if a.Metrics() != nil {
+			a.Metrics().ObserveWikiHierarchyLoad(time.Since(start).Seconds())
+		}
+	}()
+
 	rctx.Logger().Debug("Getting wiki pages", mlog.String("wiki_id", wikiId), mlog.Int("offset", offset), mlog.Int("limit", limit))
 
 	pages, err := a.Srv().Store().Wiki().GetPages(wikiId, offset, limit)
@@ -180,8 +188,9 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 	}
 
 	// Enrich pages with property values (status, etc.)
+	var postList *model.PostList
 	if len(pages) > 0 {
-		postList := &model.PostList{
+		postList = &model.PostList{
 			Posts: make(map[string]*model.Post),
 			Order: make([]string, 0, len(pages)),
 		}
@@ -192,6 +201,12 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 		if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
 			return nil, enrichErr
 		}
+	}
+
+	if a.Metrics() != nil && postList != nil {
+		maxDepth := a.calculateMaxDepthFromPostList(postList)
+		a.Metrics().ObserveWikiHierarchyDepth(float64(maxDepth))
+		a.Metrics().ObserveWikiPagesPerChannel(float64(len(postList.Posts)))
 	}
 
 	return pages, nil
