@@ -7,6 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {fireEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -114,6 +115,7 @@ describe('channel_info_rhs/about_area_channel', () => {
             id: 'test-c-id',
             header: 'my channel header',
             purpose: 'my channel purpose',
+            display_name: 'My Channel',
         } as Channel,
         channelURL: 'https://my-url.mm',
         canEditChannelProperties: true,
@@ -144,5 +146,26 @@ describe('channel_info_rhs/about_area_channel', () => {
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();
+    });
+
+    test('should trigger editChannelName when clicking channel display name', () => {
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                editChannelName: jest.fn(),
+            },
+        };
+
+        renderWithContext(
+            <AboutAreaChannel
+                {...props}
+            />,
+            initialState,
+        );
+
+        const editButtons = screen.getAllByLabelText('Edit');
+        fireEvent.click(editButtons[0]);
+        expect(props.actions.editChannelName).toHaveBeenCalled();
     });
 });

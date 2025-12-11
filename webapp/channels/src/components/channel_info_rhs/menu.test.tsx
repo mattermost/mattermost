@@ -5,15 +5,28 @@ import React from 'react';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
+import {openModal} from 'actions/views/modals';
+import {canAccessChannelSettings} from 'selectors/views/channel_settings';
+
 import {
     act,
     fireEvent,
     renderWithContext,
     screen,
 } from 'tests/react_testing_utils';
-import Constants from 'utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
+
+jest.mock('selectors/views/channel_settings', () => ({
+    canAccessChannelSettings: jest.fn(),
+}));
+jest.mock('actions/views/modals', () => ({
+    openModal: jest.fn(() => ({type: 'OPEN_MODAL'})),
+}));
 
 import Menu from './menu';
+
+const mockedCanAccessChannelSettings = canAccessChannelSettings as unknown as jest.Mock;
+const mockedOpenModal = openModal as unknown as jest.Mock;
 
 describe('channel_info_rhs/menu', () => {
     const defaultProps = {
@@ -30,6 +43,8 @@ describe('channel_info_rhs/menu', () => {
     };
 
     beforeEach(() => {
+        mockedOpenModal.mockClear();
+        mockedCanAccessChannelSettings.mockReset();
         defaultProps.actions = {
             openNotificationSettings: jest.fn(),
             showChannelFiles: jest.fn(),
@@ -181,5 +196,91 @@ describe('channel_info_rhs/menu', () => {
 
         const membersItem = screen.queryByText('Members');
         expect(membersItem).not.toBeInTheDocument();
+    });
+
+    test('should display Channel Settings and open modal on click (non-DM/GM, not archived, permitted)', async () => {
+        mockedCanAccessChannelSettings.mockReturnValue(true);
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+
+        await act(async () => {
+            props.actions.getChannelStats();
+        });
+
+        const settingsItem = screen.getByText('Channel Settings');
+        expect(settingsItem).toBeInTheDocument();
+
+        fireEvent.click(settingsItem);
+        expect(mockedOpenModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                modalId: ModalIdentifiers.CHANNEL_SETTINGS,
+            }),
+        );
+    });
+
+    test('should NOT display Channel Settings in DM', async () => {
+        mockedCanAccessChannelSettings.mockReturnValue(true);
+        const props = {
+            ...defaultProps,
+            channel: {type: Constants.DM_CHANNEL} as Channel,
+        };
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+        await act(async () => props.actions.getChannelStats());
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    test('should NOT display Channel Settings in GM', async () => {
+        mockedCanAccessChannelSettings.mockReturnValue(true);
+        const props = {
+            ...defaultProps,
+            channel: {type: Constants.GM_CHANNEL} as Channel,
+        };
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+        await act(async () => props.actions.getChannelStats());
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    test('should NOT display Channel Settings when archived', async () => {
+        mockedCanAccessChannelSettings.mockReturnValue(true);
+        const props = {
+            ...defaultProps,
+            isArchived: true,
+        };
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+        await act(async () => props.actions.getChannelStats());
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    test('should NOT display Channel Settings without permission', async () => {
+        mockedCanAccessChannelSettings.mockReturnValue(false);
+        const props = {...defaultProps};
+
+        renderWithContext(
+            <Menu
+                {...props}
+            />,
+        );
+        await act(async () => props.actions.getChannelStats());
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
     });
 });
