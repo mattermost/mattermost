@@ -11201,21 +11201,21 @@ func (s *RetryLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 
 }
 
-func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+func (s *RetryLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) (int64, error) {
 
 	tries := 0
 	for {
-		err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+		result, err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
 		if err == nil {
-			return nil
+			return result, nil
 		}
 		if !isRepeatableError(err) {
-			return err
+			return result, err
 		}
 		tries++
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return err
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

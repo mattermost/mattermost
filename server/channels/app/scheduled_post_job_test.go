@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProcessScheduledPosts(t *testing.T) {
@@ -328,7 +329,8 @@ func TestHandleFailedScheduledPosts(t *testing.T) {
 		messagesUser2, closeWSUser2 := connectFakeWebSocket(t, th, user2.Id, "", []model.WebsocketEventType{model.WebsocketScheduledPostUpdated})
 		defer closeWSUser2()
 
-		th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
+		err = th.App.handleFailedScheduledPosts(rctx, failedScheduledPosts)
+		require.NoError(t, err)
 
 		// Validate that the WebSocket events for both users are sent and received correctly
 		for i := range failedScheduledPosts {
