@@ -48,7 +48,7 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 # GOGC=50 triggers GC more frequently to keep memory usage lower.
 ENABLE_COVERAGE ?= false
 ifeq ($(ENABLE_COVERAGE),true)
-COVERAGE_FLAG = -p 1 -parallel 0 -coverprofile=cover.out -covermode=atomic
+COVERAGE_FLAG = -p 1 -parallel 1 -coverprofile=cover.out -covermode=atomic
 COVERAGE_ENV = GOGC=50
 endif
 
