@@ -389,7 +389,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	if a.AutoTranslation() != nil {
 		enabled, err := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
 		if err == nil && enabled {
-			_, _ = a.AutoTranslation().Translate(rctx.Context(), "post", rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			_, _ = a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
 		} else if err != nil {
 			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
 		}

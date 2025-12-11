@@ -137,24 +137,25 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 				post.Metadata.Translations = make(map[string]*model.PostTranslation)
 			}
 
-			text := t.Text
-			if t.Type == model.TranslationTypeObject {
-				text = string(t.ObjectJSON)
-			}
-
 			// Extract source language from meta if available
 			var sourceLang string
 			if srcLang, ok := t.Meta["src_lang"].(string); ok {
 				sourceLang = srcLang
 			}
 
-			post.Metadata.Translations[t.Lang] = &model.PostTranslation{
-				Text:       text,
+			pt := &model.PostTranslation{
 				Type:       string(t.Type),
-				Confidence: t.Confidence,
 				State:      string(t.State),
 				SourceLang: sourceLang,
 			}
+
+			if t.Type == model.TranslationTypeObject {
+				pt.Object = t.ObjectJSON
+			} else {
+				pt.Text = t.Text
+			}
+
+			post.Metadata.Translations[t.Lang] = pt
 		}
 	}
 }

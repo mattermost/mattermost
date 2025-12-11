@@ -9,6 +9,11 @@ import (
 	"maps"
 )
 
+// TranslationObjectType identifies the type of object being translated
+const (
+	TranslationObjectTypePost = "post"
+)
+
 // TranslationType indicates the type of translated content
 type TranslationType string
 

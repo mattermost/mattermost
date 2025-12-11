@@ -237,7 +237,7 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 	// Default objectType to "post" if not set
 	objectType := translation.ObjectType
 	if objectType == "" {
-		objectType = "post"
+		objectType = model.TranslationObjectTypePost
 	}
 
 	result := &model.Translation{
@@ -295,7 +295,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 		// Default objectType to "post" if not set
 		objectType := t.ObjectType
 		if objectType == "" {
-			objectType = "post"
+			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -353,7 +353,7 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Tra
 		// Default objectType to "post" if not set
 		objectType := t.ObjectType
 		if objectType == "" {
-			objectType = "post"
+			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -480,7 +480,7 @@ func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState
 		// Default objectType to "post" if not set
 		objectType := t.ObjectType
 		if objectType == "" {
-			objectType = "post"
+			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -541,7 +541,7 @@ func (s *SqlAutoTranslationStore) GetByStateOlderThan(state model.TranslationSta
 		// Default objectType to "post" if not set
 		objectType := t.ObjectType
 		if objectType == "" {
-			objectType = "post"
+			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
