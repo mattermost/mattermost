@@ -27,7 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
-func dummyWebsocketHandler(tb testing.TB) http.HandlerFunc {
+func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -38,17 +38,15 @@ func dummyWebsocketHandler(tb testing.TB) http.HandlerFunc {
 			_, _, err = conn.ReadMessage()
 		}
 		if _, ok := err.(*websocket.CloseError); !ok {
-			assert.NoError(tb, err)
+			require.NoError(t, err)
 		}
 	}
 }
 
-func registerDummyWebConn(tb testing.TB, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
+func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
 	d := websocket.Dialer{}
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
-	if err != nil {
-		tb.Fatalf("Failed to dial websocket: %v", err)
-	}
+	require.NoError(t, err)
 
 	cfg := &WebConnConfig{
 		WebSocket: c,
@@ -57,28 +55,9 @@ func registerDummyWebConn(tb testing.TB, th *TestHelper, addr net.Addr, session 
 		Locale:    "en",
 	}
 	wc := th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
-
-	if err := th.Service.HubRegister(wc); err != nil {
-		tb.Fatalf("Failed to register WebConn: %v", err)
-	}
+	require.NoError(t, th.Service.HubRegister(wc))
 	go wc.Pump()
 	return wc
-}
-
-// setupWithFastIteration creates a test helper with EnableWebHubChannelIteration enabled
-func setupWithFastIteration(tb testing.TB) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-
-	dbStore, dbSettings := setupDBStore(tb)
-
-	// Config modifier to enable fast iteration before service starts
-	enableFastIteration := func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableWebHubChannelIteration = true
-	}
-
-	return setupTestHelperWithConfigModifiers(dbStore, dbSettings, false, true, tb, nil, enableFastIteration)
 }
 
 func TestHubStopWithMultipleConnections(t *testing.T) {
@@ -972,330 +951,5 @@ func TestClusterBroadcastHooks(t *testing.T) {
 		assert.Equal(t, []string{hookID}, received.GetBroadcast().BroadcastHooks)
 		assert.IsType(t, map[string]any{}, received.GetBroadcast().BroadcastHookArgs[0]["user"])
 		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
-	})
-}
-
-// BenchmarkGetActiveUserIDsForChannel benchmarks querying active users in a channel.
-// Note: Benchmark setup is expensive as it requires creating real WebSocket connections.
-// The sync.Pool optimization reduces allocations significantly in the hot path.
-func BenchmarkGetActiveUserIDsForChannel(b *testing.B) {
-	// Helper to setup connections for a test helper
-	setupConnections := func(b *testing.B, th *TestHelper, numUsers int) ([]*model.User, []*WebConn) {
-		users := make([]*model.User, numUsers)
-
-		for i := range numUsers {
-			user, err := th.Service.Store.User().Save(th.Context, &model.User{
-				Username: fmt.Sprintf("benchuser%d_%s", i, model.NewId()),
-				Email:    fmt.Sprintf("bench%d_%s@test.com", i, model.NewId()),
-			})
-			require.NoError(b, err)
-			users[i] = user
-
-			// Add each user to the channel
-			_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
-				ChannelId:   th.BasicChannel.Id,
-				UserId:      user.Id,
-				NotifyProps: model.GetDefaultChannelNotifyProps(),
-			})
-			require.NoError(b, err)
-		}
-
-		s := httptest.NewServer(dummyWebsocketHandler(b))
-		b.Cleanup(s.Close)
-
-		var wcs []*WebConn
-		for i := range numUsers {
-			session, err := th.Service.CreateSession(th.Context, &model.Session{
-				UserId: users[i].Id,
-			})
-			require.NoError(b, err)
-
-			wc := registerDummyWebConn(b, th, s.Listener.Addr(), session)
-			wcs = append(wcs, wc)
-		}
-
-		// Wait for all registrations to complete
-		// The hub event loop needs to process each connection and fetch channel memberships
-		require.Eventually(b, func() bool {
-			for _, user := range users {
-				if th.Service.WebConnCountForUser(user.Id) == 0 {
-					return false
-				}
-			}
-			return true
-		}, 5*time.Second, 50*time.Millisecond, "Timeout waiting for all connections to be registered")
-
-		// Verify at least one connection worked
-		sampleCount := th.Service.WebConnCountForUser(users[0].Id)
-		require.NotEqual(b, 0, sampleCount, "No connections registered - benchmark setup failed")
-
-		return users, wcs
-	}
-
-	b.Run("fast_iteration", func(b *testing.B) {
-		// Setup with fast iteration enabled from the start
-		th := setupWithFastIteration(b).InitBasic(b)
-		defer th.Shutdown(b)
-
-		_, wcs := setupConnections(b, th, 100)
-		defer func() {
-			for _, wc := range wcs {
-				wc.Close()
-			}
-		}()
-
-		// Warmup call
-		result := th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		require.NotEmpty(b, result, "Fast iteration returned 0 users")
-
-		b.ReportAllocs()
-		b.ResetTimer()
-
-		for b.Loop() {
-			_ = th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		}
-
-		b.StopTimer()
-	})
-
-	b.Run("fallback_iteration", func(b *testing.B) {
-		// Setup with fast iteration disabled (default)
-		th := Setup(b).InitBasic(b)
-		defer th.Shutdown(b)
-
-		_, wcs := setupConnections(b, th, 100)
-		defer func() {
-			for _, wc := range wcs {
-				wc.Close()
-			}
-		}()
-
-		// Warmup call
-		result := th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		require.NotEmpty(b, result, "Fallback iteration returned 0 users")
-
-		b.ReportAllocs()
-		b.ResetTimer()
-
-		for b.Loop() {
-			_ = th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		}
-
-		b.StopTimer()
-	})
-}
-
-func waitForActiveConnections(tb testing.TB, svc *PlatformService, userID string, expected int, timeout time.Duration) {
-	require.Eventually(tb, func() bool {
-		return svc.WebConnCountForUser(userID) == expected
-	}, timeout, 50*time.Millisecond, "Timeout waiting for %d active connections for user %s", expected, userID)
-}
-
-func TestGetActiveUserIDsForChannel(t *testing.T) {
-	t.Run("basic connection test", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-		defer th.Shutdown(t)
-
-		_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   th.BasicChannel.Id,
-			UserId:      th.BasicUser.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-		})
-		require.NoError(t, err)
-
-		session, err := th.Service.CreateSession(th.Context, &model.Session{
-			UserId: th.BasicUser.Id,
-		})
-		require.NoError(t, err)
-
-		s := httptest.NewServer(dummyWebsocketHandler(t))
-		defer s.Close()
-
-		wc := registerDummyWebConn(t, th, s.Listener.Addr(), session)
-		defer wc.Close()
-
-		waitForActiveConnections(t, th.Service, th.BasicUser.Id, 1, 2*time.Second)
-
-		count := th.Service.WebConnCountForUser(th.BasicUser.Id)
-		assert.Equal(t, 1, count, "Should have 1 active connection for user")
-
-		activeUserIDs := th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		assert.Len(t, activeUserIDs, 1, "Should find 1 active user in channel")
-		assert.Contains(t, activeUserIDs, th.BasicUser.Id)
-	})
-
-	t.Run("with fast iteration enabled", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := setupWithFastIteration(t).InitBasic(t)
-		defer th.Shutdown(t)
-
-		assert.True(t, *th.Service.Config().ServiceSettings.EnableWebHubChannelIteration,
-			"Fast iteration should be enabled for this test")
-
-		user1, err := th.Service.Store.User().Save(th.Context, &model.User{
-			Username: "user1_" + model.NewId(),
-			Email:    model.NewId() + "@test.com",
-		})
-		require.NoError(t, err)
-
-		user2, err := th.Service.Store.User().Save(th.Context, &model.User{
-			Username: "user2_" + model.NewId(),
-			Email:    model.NewId() + "@test.com",
-		})
-		require.NoError(t, err)
-
-		user3, err := th.Service.Store.User().Save(th.Context, &model.User{
-			Username: "user3_" + model.NewId(),
-			Email:    model.NewId() + "@test.com",
-		})
-		require.NoError(t, err)
-
-		_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   th.BasicChannel.Id,
-			UserId:      user1.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-		})
-		require.NoError(t, err)
-
-		_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   th.BasicChannel.Id,
-			UserId:      user2.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-		})
-		require.NoError(t, err)
-
-		_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   th.BasicChannel.Id,
-			UserId:      user3.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-		})
-		require.NoError(t, err)
-
-		session1, err := th.Service.CreateSession(th.Context, &model.Session{UserId: user1.Id})
-		require.NoError(t, err)
-		session2, err := th.Service.CreateSession(th.Context, &model.Session{UserId: user2.Id})
-		require.NoError(t, err)
-		session3, err := th.Service.CreateSession(th.Context, &model.Session{UserId: user3.Id})
-		require.NoError(t, err)
-
-		s := httptest.NewServer(dummyWebsocketHandler(t))
-		defer s.Close()
-
-		wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session1)
-		defer wc1.Close()
-		wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session2)
-		defer wc2.Close()
-
-		waitForActiveConnections(t, th.Service, user1.Id, 1, 2*time.Second)
-		waitForActiveConnections(t, th.Service, user2.Id, 1, 2*time.Second)
-
-		activeUserIDs := th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		assert.Len(t, activeUserIDs, 2)
-		assert.Contains(t, activeUserIDs, user1.Id)
-		assert.Contains(t, activeUserIDs, user2.Id)
-		assert.NotContains(t, activeUserIDs, user3.Id)
-
-		wc2.Close()
-		waitForActiveConnections(t, th.Service, user2.Id, 0, 2*time.Second)
-
-		activeUserIDs = th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		assert.Len(t, activeUserIDs, 1)
-		assert.Contains(t, activeUserIDs, user1.Id)
-		assert.NotContains(t, activeUserIDs, user2.Id)
-
-		wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session3)
-		defer wc3.Close()
-		waitForActiveConnections(t, th.Service, user3.Id, 1, 2*time.Second)
-
-		activeUserIDs = th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		assert.Len(t, activeUserIDs, 2)
-		assert.Contains(t, activeUserIDs, user1.Id)
-		assert.Contains(t, activeUserIDs, user3.Id)
-		assert.NotContains(t, activeUserIDs, user2.Id)
-	})
-
-	t.Run("with fast iteration disabled", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-		defer th.Shutdown(t)
-
-		user1, err := th.Service.Store.User().Save(th.Context, &model.User{
-			Username: "user1_" + model.NewId(),
-			Email:    model.NewId() + "@test.com",
-		})
-		require.NoError(t, err)
-
-		user2, err := th.Service.Store.User().Save(th.Context, &model.User{
-			Username: "user2_" + model.NewId(),
-			Email:    model.NewId() + "@test.com",
-		})
-		require.NoError(t, err)
-
-		_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   th.BasicChannel.Id,
-			UserId:      user1.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-		})
-		require.NoError(t, err)
-		_, err = th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   th.BasicChannel.Id,
-			UserId:      user2.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-		})
-		require.NoError(t, err)
-
-		session1, err := th.Service.CreateSession(th.Context, &model.Session{UserId: user1.Id})
-		require.NoError(t, err)
-		session2, err := th.Service.CreateSession(th.Context, &model.Session{UserId: user2.Id})
-		require.NoError(t, err)
-
-		s := httptest.NewServer(dummyWebsocketHandler(t))
-		defer s.Close()
-
-		wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session1)
-		defer wc1.Close()
-		wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session2)
-		defer wc2.Close()
-
-		waitForActiveConnections(t, th.Service, user1.Id, 1, 2*time.Second)
-		waitForActiveConnections(t, th.Service, user2.Id, 1, 2*time.Second)
-
-		activeUserIDs := th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, user1.Id)
-		assert.Len(t, activeUserIDs, 1)
-		assert.Contains(t, activeUserIDs, user2.Id)
-		assert.NotContains(t, activeUserIDs, user1.Id)
-
-		activeUserIDs = th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		assert.Len(t, activeUserIDs, 2)
-		assert.Contains(t, activeUserIDs, user1.Id)
-		assert.Contains(t, activeUserIDs, user2.Id)
-	})
-
-	t.Run("empty channel returns empty list", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-		defer th.Shutdown(t)
-
-		channel, err := th.Service.Store.Channel().Save(th.Context, &model.Channel{
-			Name:        "test_" + model.NewId(),
-			DisplayName: "Test Channel",
-			Type:        model.ChannelTypeOpen,
-			TeamId:      th.BasicTeam.Id,
-		}, 100)
-		require.NoError(t, err)
-
-		activeUserIDs := th.Service.GetActiveUserIDsForChannel(channel.Id, "")
-		assert.Empty(t, activeUserIDs)
-	})
-
-	t.Run("empty channelID returns empty list", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-		defer th.Shutdown(t)
-
-		activeUserIDs := th.Service.GetActiveUserIDsForChannel("", "")
-		assert.NotNil(t, activeUserIDs)
-		assert.Empty(t, activeUserIDs)
 	})
 }

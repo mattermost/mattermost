@@ -115,12 +115,6 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
 		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
-		stringStructMapPool: sync.Pool{
-			New: func() any {
-				// Pre-allocate with reasonable capacity hint
-				return make(map[string]struct{}, 64)
-			},
-		},
 	}
 }
 

@@ -83,9 +83,6 @@ func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {
 	return dbStore, dbSettings
 }
 
-// ConfigModifier is a function that modifies the test config before service initialization
-type ConfigModifier func(*model.Config)
-
 func Setup(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
@@ -133,10 +130,6 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 }
 
 func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
-	return setupTestHelperWithConfigModifiers(dbStore, dbSettings, enterprise, includeCacheLayer, tb, options)
-}
-
-func setupTestHelperWithConfigModifiers(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, tb testing.TB, options []Option, configModifiers ...ConfigModifier) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	require.NoError(tb, err)
 
@@ -153,11 +146,6 @@ func setupTestHelperWithConfigModifiers(dbStore store.Store, dbSettings *model.S
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-
-	// Apply config modifiers before setting the config
-	for _, modifier := range configModifiers {
-		modifier(memoryConfig)
-	}
 
 	_, _, err = configStore.Set(memoryConfig)
 	require.NoError(tb, err)
