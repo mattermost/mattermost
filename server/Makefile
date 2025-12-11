@@ -47,7 +47,7 @@ GOTESTSUM_JSONFILE ?= gotestsum.json
 # parallelism (-p) and test parallelism (-parallel) to reduce memory pressure.
 ENABLE_COVERAGE ?= false
 ifeq ($(ENABLE_COVERAGE),true)
-COVERAGE_FLAG = -p 2 -parallel 2 -coverprofile=cover.out -covermode=atomic
+COVERAGE_FLAG = -p 1 -parallel 2 -coverprofile=cover.out -covermode=atomic
 endif
 
 # mmctl
