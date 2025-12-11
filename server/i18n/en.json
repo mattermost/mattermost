@@ -2657,6 +2657,10 @@
     "translation": "Unable to verify plugin signature."
   },
   {
+    "id": "api.post.burn_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to burn this post. You must be a member of the channel."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
     "translation": "@{{.GroupName}} has no members on this team"
   },
@@ -2683,6 +2687,10 @@
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.app_error",
+    "translation": "An error occurred while creating a burn-on-read post."
   },
   {
     "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
@@ -2753,8 +2761,20 @@
     "translation": "Unable to get the pending post."
   },
   {
+    "id": "api.post.fill_in_post_props.burn_on_read.config.app_error",
+    "translation": "Burn-on-read posts are not enabled. Please enable the feature flag and service setting."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.license.app_error",
+    "translation": "Burn-on-read posts require an Enterprise Advanced license."
+  },
+  {
     "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
     "translation": "The AI-generated user must be either the post creator or a bot."
+  },
+  {
+    "id": "api.post.get_link_metadata_for_permalink.burn_on_read.app_error",
+    "translation": "Cannot retrieve link metadata for burn-on-read post permalink."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2781,6 +2801,10 @@
   {
     "id": "api.post.move_thread.no_permission",
     "translation": "You do not have permission to move this thread."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_burn_on_read_post.error",
+    "translation": "Burn-on-read posts cannot be updated."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2817,6 +2841,18 @@
   {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
+  },
+  {
+    "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "api.post.reveal_post.disabled.app_error",
+    "translation": "Burn-on-read feature is not enabled or requires an Enterprise Advanced license."
+  },
+  {
+    "id": "api.post.reveal_post.user_not_in_channel.app_error",
+    "translation": "You do not have permission to reveal this post. You must be a member of the channel."
   },
   {
     "id": "api.post.search_files.invalid_body.app_error",
@@ -2861,6 +2897,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "sent you a message."
+  },
+  {
+    "id": "api.post.update_post.burn_on_read.app_error",
+    "translation": "Burn-on-read posts cannot be edited."
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
@@ -2957,6 +2997,10 @@
   {
     "id": "api.reaction.save.archived_channel.app_error",
     "translation": "You cannot react in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.burn_on_read.app_error",
+    "translation": "You cannot react to a burn-on-read post."
   },
   {
     "id": "api.reaction.save.restricted_dm.error",
@@ -4849,6 +4893,22 @@
   {
     "id": "app.bot.update.app_error",
     "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.burn_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be burned."
+  },
+  {
+    "id": "app.burn_post.not_revealed.app_error",
+    "translation": "This burn-on-read post has not been revealed yet. You must reveal it before burning."
+  },
+  {
+    "id": "app.burn_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.burn_post.read_receipt.update.error",
+    "translation": "An error occurred while updating the read receipt."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
@@ -7079,6 +7139,10 @@
     "translation": "Unable to get the flagged posts."
   },
   {
+    "id": "app.post.get_post.app_error",
+    "translation": "An error occurred while retrieving the burn-on-read post content."
+  },
+  {
     "id": "app.post.get_post_after_time.app_error",
     "translation": "Unable to get post after time bound."
   },
@@ -7349,6 +7413,38 @@
   {
     "id": "app.report.start_users_batch_export.started_export",
     "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
+  },
+  {
+    "id": "app.reveal_post.cannot_reveal_own_post.app_error",
+    "translation": "You cannot reveal your own burn-on-read post."
+  },
+  {
+    "id": "app.reveal_post.missing_expire_at.app_error",
+    "translation": "The burn-on-read post is missing the required expiration time."
+  },
+  {
+    "id": "app.reveal_post.not_burn_on_read.app_error",
+    "translation": "This post is not a burn-on-read post and cannot be revealed."
+  },
+  {
+    "id": "app.reveal_post.post_expired.app_error",
+    "translation": "This burn-on-read post has expired and can no longer be revealed."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get.error",
+    "translation": "An error occurred while retrieving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.get_unread_count.error",
+    "translation": "Unable to get the unread count for the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt.save.error",
+    "translation": "An error occurred while saving the read receipt."
+  },
+  {
+    "id": "app.reveal_post.read_receipt_expired.error",
+    "translation": "Your access to this burn-on-read post has expired."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
