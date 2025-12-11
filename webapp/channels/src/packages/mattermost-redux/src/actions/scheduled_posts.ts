@@ -31,7 +31,7 @@ export function createSchedulePost(schedulePost: ScheduledPost, teamId: string, 
     };
 }
 
-export function fetchTeamScheduledPosts(teamId: string, includeDirectChannels: boolean, prune?: false) {
+export function fetchTeamScheduledPosts(teamId: string, includeDirectChannels: boolean, prune?: boolean) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let scheduledPosts;
 
