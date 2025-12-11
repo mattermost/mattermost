@@ -304,10 +304,13 @@ export async function saveResults(
     return resultsFilePath;
 }
 
-export function printBaselineComparison(pageId: string, metrics: MetricsResult): void {
-    const baseline = loadBaseline();
+export function printBaselineComparison(pageId: string, metrics: MetricsResult, suffix: string = ''): void {
+    // Load baseline from suffix-specific file if suffix provided
+    const baselineFile = suffix ? path.resolve(BASELINE_DIR, `latest${suffix}_perf.json`) : LATEST_BASELINE_FILE;
+    const baseline = suffix ? loadBaselineFromFile(baselineFile) : loadBaseline();
     if (!baseline || !baseline.pages[pageId]) {
-        console.log(`\n  BASELINE: No baseline found for '${pageId}'`);
+        const suffixNote = suffix ? ` (suffix: ${suffix})` : '';
+        console.log(`\n  BASELINE: No baseline found for '${pageId}'${suffixNote}`);
         console.log(`     Run with --runs=N --baseline to create one`);
         return;
     }
@@ -422,10 +425,13 @@ export function printBaselineComparison(pageId: string, metrics: MetricsResult):
     );
 }
 
-export function printMultiRunBaselineComparison(summary: MultiRunSummary): void {
-    const baseline = loadBaseline();
+export function printMultiRunBaselineComparison(summary: MultiRunSummary, suffix: string = ''): void {
+    // Load baseline from suffix-specific file if suffix provided
+    const baselineFile = suffix ? path.resolve(BASELINE_DIR, `latest${suffix}_perf.json`) : LATEST_BASELINE_FILE;
+    const baseline = suffix ? loadBaselineFromFile(baselineFile) : loadBaseline();
     if (!baseline || !baseline.pages[summary.pageId]) {
-        console.log(`\n  BASELINE: No baseline found for '${summary.pageId}'`);
+        const suffixNote = suffix ? ` (suffix: ${suffix})` : '';
+        console.log(`\n  BASELINE: No baseline found for '${summary.pageId}'${suffixNote}`);
         console.log(`     Run with --runs=N --baseline to create one`);
         return;
     }
@@ -576,7 +582,7 @@ export function printMultiRunBaselineComparison(summary: MultiRunSummary): void 
     );
 }
 
-export function printMultiRunSummary(summary: MultiRunSummary): void {
+export function printMultiRunSummary(summary: MultiRunSummary, suffix: string = ''): void {
     const {stats} = summary;
 
     console.log(`\n ${'─'.repeat(70)}`);
@@ -641,5 +647,5 @@ export function printMultiRunSummary(summary: MultiRunSummary): void {
         console.log(` [WARN] Outliers detected: ${stats.performanceScore.outliers.join(', ')}`);
     }
 
-    printMultiRunBaselineComparison(summary);
+    printMultiRunBaselineComparison(summary, suffix);
 }

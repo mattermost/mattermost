@@ -23,6 +23,35 @@ function ensureResultsDir(): void {
     }
 }
 
+/**
+ * Warm up the server by making initial requests to eliminate cold start variance.
+ * This ensures caches are populated and the server is ready before actual measurements.
+ */
+async function warmUpServer(url: string, attempts: number = 2): Promise<void> {
+    console.log(`\n  Warming up server (${attempts} request${attempts > 1 ? 's' : ''})...`);
+    for (let i = 0; i < attempts; i++) {
+        try {
+            const startTime = Date.now();
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (compatible; Lighthouse warm-up)',
+                },
+            });
+            const duration = Date.now() - startTime;
+            const status = response.ok ? 'OK' : `${response.status}`;
+            console.log(`    Warm-up ${i + 1}/${attempts}: ${status} (${duration}ms)`);
+            // Small delay between warm-up requests
+            if (i < attempts - 1) {
+                await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+        } catch (error) {
+            console.log(`    Warm-up ${i + 1}/${attempts}: Failed - ${error instanceof Error ? error.message : error}`);
+        }
+    }
+    // Allow server to settle after warm-up
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
 function extractAllMetrics(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lhr: any,
@@ -89,6 +118,7 @@ export async function runLighthouse(
     pageId: string,
     useAuth: boolean = false,
     needsPreAuth: boolean = false,
+    baselineSuffix: string = '',
 ): Promise<WebVitalsGrade | null> {
     ensureResultsDir();
 
@@ -100,6 +130,9 @@ export async function runLighthouse(
     console.log(`Lighthouse: ${pageId}`);
     console.log(`   URL: ${url}`);
     console.log(`${'='.repeat(60)}`);
+
+    // Warm up the server before measurement to reduce cold start variance
+    await warmUpServer(url, 1);
 
     let storageState: StorageState | null = null;
     if (useAuth) {
@@ -201,7 +234,7 @@ export async function runLighthouse(
         });
         console.log(`\n ${formatGrade(grade)}`);
 
-        printBaselineComparison(pageId, metricsResult);
+        printBaselineComparison(pageId, metricsResult, baselineSuffix);
 
         const totalMetrics =
             metricsResult.metrics.coreWebVitals.length +
@@ -331,11 +364,15 @@ export async function runLighthouseMultiple(
     numRuns: number,
     useAuth: boolean = false,
     needsPreAuth: boolean = false,
+    baselineSuffix: string = '',
 ): Promise<{summary: MultiRunSummary; grade: WebVitalsGrade} | null> {
     console.log(`\n${'='.repeat(70)}`);
     console.log(`Multi-Run Lighthouse: ${pageId} (${numRuns} iterations)`);
     console.log(`   URL: ${url}`);
     console.log(`${'='.repeat(70)}`);
+
+    // Warm up the server before actual measurements to reduce cold start variance
+    await warmUpServer(url);
 
     const runs: RunResult[] = [];
 
@@ -393,7 +430,7 @@ export async function runLighthouseMultiple(
         },
     };
 
-    printMultiRunSummary(summary);
+    printMultiRunSummary(summary, baselineSuffix);
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const summaryPath = path.join(RESULTS_DIR, `${pageId}-multirun-${timestamp}.json`);

@@ -59,7 +59,7 @@ jobs:
           echo "Server Image: ${SERVER_IMAGE}"
 
   lighthouse-metrics:
-    name: Web Vitals with Lighthouse
+    name: Lighthouse Web Vitals
     needs: setup
     runs-on: ubuntu-latest-8-cores
     timeout-minutes: 45
@@ -295,7 +295,7 @@ jobs:
         run: make stop-server || true
 
   lighthouse-metrics-no-plugins:
-    name: Web Vitals (No Plugins)
+    name: Lighthouse Web Vitals (No Plugins)
     needs: setup
     runs-on: ubuntu-latest-8-cores
     timeout-minutes: 45
@@ -397,9 +397,9 @@ jobs:
 
                 status = overall === 'FAIL' ? 'failure' : 'success';
                 if (scores) {
-                  description = `[No Plugins] Perf:${scores.performance} A11y:${scores.accessibility} BP:${scores.bestPractices} | ${pages}`;
+                  description = `Perf:${scores.performance} A11y:${scores.accessibility} BP:${scores.bestPractices} | ${pages}`;
                 } else {
-                  description = `[No Plugins] Web Vitals: ${overall} | ${pages}`;
+                  description = `Web Vitals: ${overall} | ${pages}`;
                 }
               } else {
                 status = 'failure';

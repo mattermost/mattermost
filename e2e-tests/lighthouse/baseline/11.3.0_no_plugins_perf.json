@@ -1,0 +1,413 @@
+{
+  "version": "1.0.0",
+  "createdAt": "2025-12-10T18:32:02.674Z",
+  "runsPerPage": 10,
+  "machine": {
+    "platform": "linux",
+    "arch": "x64",
+    "osRelease": "6.11.0-1018-azure",
+    "cpuModel": "AMD EPYC 7763 64-Core Processor",
+    "cpuCores": 8,
+    "totalMemoryGB": 31.3,
+    "nodeVersion": "v20.11.1"
+  },
+  "server": {
+    "version": "11.3.0",
+    "buildNumber": "-20092025554",
+    "buildDate": "Wed Dec 10 08:31:37 UTC 2025",
+    "buildHash": "ef75cbf2046142a09bb5ad6acf540023bae448e1",
+    "buildHashEnterprise": "a9527415f00d2276fe33aa2f7bf91615c602fc88",
+    "buildEnterpriseReady": true,
+    "siteUrl": "http://localhost:8065",
+    "dockerImageTag": "mattermostdevelopment/mattermost-enterprise-edition:ef75cbf"
+  },
+  "pages": {
+    "login": {
+      "url": "http://localhost:8065/login",
+      "performanceScore": {
+        "median": 88,
+        "stdDev": 12.59,
+        "cv": 15.02,
+        "min": 48,
+        "max": 88,
+        "lowerBound": 62.82,
+        "upperBound": 113.18
+      },
+      "accessibilityScore": {
+        "median": 77,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 77,
+        "max": 77,
+        "lowerBound": 77,
+        "upperBound": 77
+      },
+      "bestPracticesScore": {
+        "median": 100,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 100,
+        "max": 100,
+        "lowerBound": 100,
+        "upperBound": 100
+      },
+      "lcp": {
+        "median": 819.52,
+        "stdDev": 616.22,
+        "cv": 60.81,
+        "min": 798.26,
+        "max": 2766.81,
+        "lowerBound": 0,
+        "upperBound": 2051.96
+      },
+      "tbt": {
+        "median": 290.43,
+        "stdDev": 209.85,
+        "cv": 58.93,
+        "min": 284.25,
+        "max": 953.27,
+        "lowerBound": 0,
+        "upperBound": 710.13
+      },
+      "cls": {
+        "median": 0,
+        "stdDev": 0,
+        "cv": 35.14,
+        "min": 0,
+        "max": 0,
+        "lowerBound": 0,
+        "upperBound": 0
+      },
+      "fcp": {
+        "median": 171.58,
+        "stdDev": 360.35,
+        "cv": 126.15,
+        "min": 157.78,
+        "max": 1311.06,
+        "lowerBound": 0,
+        "upperBound": 892.2800000000001
+      },
+      "si": {
+        "median": 686,
+        "stdDev": 515.63,
+        "cv": 61.12,
+        "min": 666,
+        "max": 2311,
+        "lowerBound": 0,
+        "upperBound": 1717.26
+      },
+      "tti": {
+        "median": 651.48,
+        "stdDev": 585.6,
+        "cv": 70.13,
+        "min": 639.13,
+        "max": 2501.45,
+        "lowerBound": 0,
+        "upperBound": 1822.68
+      },
+      "ttfb": {
+        "median": 0,
+        "stdDev": 0.32,
+        "cv": 316.23,
+        "min": 0,
+        "max": 1,
+        "lowerBound": 0,
+        "upperBound": 0.64
+      },
+      "maxFid": {
+        "median": 213.4,
+        "stdDev": 131.18,
+        "cv": 51.33,
+        "min": 209.9,
+        "max": 628.75,
+        "lowerBound": 0,
+        "upperBound": 475.76
+      },
+      "totalByteWeight": {
+        "median": 2732658,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 2732658,
+        "max": 2732658,
+        "lowerBound": 2732658,
+        "upperBound": 2732658
+      },
+      "mainThreadWork": {
+        "median": 739.83,
+        "stdDev": 547.87,
+        "cv": 60.05,
+        "min": 722.67,
+        "max": 2471.39,
+        "lowerBound": 0,
+        "upperBound": 1835.5700000000002
+      },
+      "bootupTime": {
+        "median": 455.9,
+        "stdDev": 255.42,
+        "cv": 47.14,
+        "min": 445.23,
+        "max": 1266,
+        "lowerBound": 0,
+        "upperBound": 966.74
+      }
+    },
+    "channels": {
+      "url": "http://localhost:8065/",
+      "performanceScore": {
+        "median": 82.5,
+        "stdDev": 1.52,
+        "cv": 1.86,
+        "min": 78,
+        "max": 83,
+        "lowerBound": 79.46,
+        "upperBound": 85.54
+      },
+      "accessibilityScore": {
+        "median": 92,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 92,
+        "max": 92,
+        "lowerBound": 92,
+        "upperBound": 92
+      },
+      "bestPracticesScore": {
+        "median": 100,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 100,
+        "max": 100,
+        "lowerBound": 100,
+        "upperBound": 100
+      },
+      "lcp": {
+        "median": 1116.05,
+        "stdDev": 82.08,
+        "cv": 7.11,
+        "min": 1091.46,
+        "max": 1354.48,
+        "lowerBound": 951.89,
+        "upperBound": 1280.21
+      },
+      "tbt": {
+        "median": 336.54,
+        "stdDev": 19.66,
+        "cv": 5.77,
+        "min": 324.44,
+        "max": 395.41,
+        "lowerBound": 297.22,
+        "upperBound": 375.86
+      },
+      "cls": {
+        "median": 0.06,
+        "stdDev": 0.02,
+        "cv": 38.04,
+        "min": 0.01,
+        "max": 0.06,
+        "lowerBound": 0.019999999999999997,
+        "upperBound": 0.1
+      },
+      "fcp": {
+        "median": 171.25,
+        "stdDev": 10.79,
+        "cv": 6.31,
+        "min": 156.69,
+        "max": 189.46,
+        "lowerBound": 149.67000000000002,
+        "upperBound": 192.82999999999998
+      },
+      "si": {
+        "median": 1065,
+        "stdDev": 28.89,
+        "cv": 2.73,
+        "min": 1023,
+        "max": 1110,
+        "lowerBound": 1007.22,
+        "upperBound": 1122.78
+      },
+      "tti": {
+        "median": 942.46,
+        "stdDev": 31.39,
+        "cv": 3.3,
+        "min": 927.13,
+        "max": 1033.45,
+        "lowerBound": 879.6800000000001,
+        "upperBound": 1005.24
+      },
+      "ttfb": {
+        "median": 0,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 0,
+        "max": 0,
+        "lowerBound": 0,
+        "upperBound": 0
+      },
+      "maxFid": {
+        "median": 214.05,
+        "stdDev": 4.69,
+        "cv": 2.18,
+        "min": 209.96,
+        "max": 222.29,
+        "lowerBound": 204.67000000000002,
+        "upperBound": 223.43
+      },
+      "totalByteWeight": {
+        "median": 3050254,
+        "stdDev": 369.35,
+        "cv": 0.01,
+        "min": 3050254,
+        "max": 3051422,
+        "lowerBound": 3049515.3,
+        "upperBound": 3050992.7
+      },
+      "mainThreadWork": {
+        "median": 1306.5,
+        "stdDev": 48.51,
+        "cv": 3.66,
+        "min": 1297.13,
+        "max": 1458.2,
+        "lowerBound": 1209.48,
+        "upperBound": 1403.52
+      },
+      "bootupTime": {
+        "median": 812.72,
+        "stdDev": 42.49,
+        "cv": 5.27,
+        "min": 759.47,
+        "max": 866.57,
+        "lowerBound": 727.74,
+        "upperBound": 897.7
+      }
+    },
+    "admin_console": {
+      "url": "http://localhost:8065/admin_console",
+      "performanceScore": {
+        "median": 69,
+        "stdDev": 0.48,
+        "cv": 0.7,
+        "min": 68,
+        "max": 69,
+        "lowerBound": 68.04,
+        "upperBound": 69.96
+      },
+      "accessibilityScore": {
+        "median": 96,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 96,
+        "max": 96,
+        "lowerBound": 96,
+        "upperBound": 96
+      },
+      "bestPracticesScore": {
+        "median": 100,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 100,
+        "max": 100,
+        "lowerBound": 100,
+        "upperBound": 100
+      },
+      "lcp": {
+        "median": 1461.94,
+        "stdDev": 17.56,
+        "cv": 1.21,
+        "min": 1421.63,
+        "max": 1480.5,
+        "lowerBound": 1426.8200000000002,
+        "upperBound": 1497.06
+      },
+      "tbt": {
+        "median": 695.84,
+        "stdDev": 10.4,
+        "cv": 1.5,
+        "min": 676.5,
+        "max": 713.85,
+        "lowerBound": 675.0400000000001,
+        "upperBound": 716.64
+      },
+      "cls": {
+        "median": 0,
+        "stdDev": 0,
+        "cv": 35.14,
+        "min": 0,
+        "max": 0,
+        "lowerBound": 0,
+        "upperBound": 0
+      },
+      "fcp": {
+        "median": 175.54,
+        "stdDev": 6.39,
+        "cv": 3.67,
+        "min": 162.75,
+        "max": 181.31,
+        "lowerBound": 162.76,
+        "upperBound": 188.32
+      },
+      "si": {
+        "median": 1303,
+        "stdDev": 13.48,
+        "cv": 1.04,
+        "min": 1277,
+        "max": 1313,
+        "lowerBound": 1276.04,
+        "upperBound": 1329.96
+      },
+      "tti": {
+        "median": 1430.12,
+        "stdDev": 15.35,
+        "cv": 1.08,
+        "min": 1391.02,
+        "max": 1440.4,
+        "lowerBound": 1399.4199999999998,
+        "upperBound": 1460.82
+      },
+      "ttfb": {
+        "median": 0,
+        "stdDev": 0,
+        "cv": 0,
+        "min": 0,
+        "max": 0,
+        "lowerBound": 0,
+        "upperBound": 0
+      },
+      "maxFid": {
+        "median": 405.55,
+        "stdDev": 9.37,
+        "cv": 2.3,
+        "min": 396.9,
+        "max": 430.97,
+        "lowerBound": 386.81,
+        "upperBound": 424.29
+      },
+      "totalByteWeight": {
+        "median": 4856378,
+        "stdDev": 1.9,
+        "cv": 0,
+        "min": 4856372,
+        "max": 4856378,
+        "lowerBound": 4856374.2,
+        "upperBound": 4856381.8
+      },
+      "mainThreadWork": {
+        "median": 1504.45,
+        "stdDev": 26,
+        "cv": 1.72,
+        "min": 1487.12,
+        "max": 1555.12,
+        "lowerBound": 1452.45,
+        "upperBound": 1556.45
+      },
+      "bootupTime": {
+        "median": 1120.21,
+        "stdDev": 37.68,
+        "cv": 3.4,
+        "min": 1017.47,
+        "max": 1152.11,
+        "lowerBound": 1044.8500000000001,
+        "upperBound": 1195.57
+      }
+    }
+  }
+}

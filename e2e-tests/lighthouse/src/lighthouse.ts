@@ -150,7 +150,14 @@ async function main() {
 
     for (const page of pages) {
         if (numRuns > 1) {
-            const result = await runLighthouseMultiple(page.url, page.id, numRuns, page.auth, page.needsPreAuth);
+            const result = await runLighthouseMultiple(
+                page.url,
+                page.id,
+                numRuns,
+                page.auth,
+                page.needsPreAuth,
+                baselineSuffix,
+            );
             if (result) {
                 summaries.push(result.summary);
                 const issues = getIssuesFromGrade(result.grade);
@@ -170,7 +177,7 @@ async function main() {
                 failedPages.push(page.id);
             }
         } else {
-            const gradeResult = await runLighthouse(page.url, page.id, page.auth, page.needsPreAuth);
+            const gradeResult = await runLighthouse(page.url, page.id, page.auth, page.needsPreAuth, baselineSuffix);
             if (gradeResult) {
                 const issues = getIssuesFromGrade(gradeResult);
                 grades.push({
