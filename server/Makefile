@@ -42,9 +42,12 @@ GOTESTSUM_JUNITFILE ?= report.xml
 GOTESTSUM_JSONFILE ?= gotestsum.json
 
 # Go test coverage
+# Coverage instrumentation increases memory usage significantly. Combined with
+# parallel test execution, this can cause OOM kills in CI. We limit both package
+# parallelism (-p) and test parallelism (-parallel) to reduce memory pressure.
 ENABLE_COVERAGE ?= false
 ifeq ($(ENABLE_COVERAGE),true)
-COVERAGE_FLAG = -coverprofile=cover.out -covermode=atomic
+COVERAGE_FLAG = -p 2 -parallel 2 -coverprofile=cover.out -covermode=atomic
 endif
 
 # mmctl
