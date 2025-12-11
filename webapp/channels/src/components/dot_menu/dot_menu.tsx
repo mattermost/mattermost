@@ -22,6 +22,7 @@ import {
     PinIcon,
     PinOutlineIcon,
     ReplyOutlineIcon,
+    TranslateIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';
@@ -37,6 +38,7 @@ import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import ViewTranslationModal from 'components/view_translation_modal';
 
 import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
@@ -136,6 +138,7 @@ type Props = {
     isFollowingThread?: boolean;
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
+    isChannelAutotranslated: boolean;
 }
 
 type State = {
@@ -410,11 +413,22 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         this.props.handleDropdownOpened?.(open);
     };
 
+    handleShowTranslation = () => {
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.VIEW_TRANSLATION,
+            dialogType: ViewTranslationModal,
+            dialogProps: {postId: this.props.post.id},
+        });
+    };
+
     render(): JSX.Element {
         const {formatMessage} = this.props.intl;
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
+
+        const translation = PostUtils.getPostTranslation(this.props.post, this.props.intl.locale);
+        const showTranslation = this.props.isChannelAutotranslated && translation?.state === 'ready';
 
         this.canPostBeForwarded = !(isSystemMessage);
 
@@ -648,6 +662,20 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {!isSystemMessage && <Menu.Separator/>}
+                {showTranslation && (
+                    <Menu.Item
+                        id={`show_translation_${this.props.post.id}`}
+                        data-testid={`show_translation_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.show_translation'
+                                defaultMessage='Show translation'
+                            />
+                        }
+                        leadingElement={<TranslateIcon size={18}/>}
+                        onClick={this.handleShowTranslation}
+                    />
+                )}
                 {this.state.canEdit &&
                     <Menu.Item
                         id={`edit_post_${this.props.post.id}`}

@@ -70,6 +70,7 @@ export type Channel = {
     banner_info?: ChannelBanner;
     policy_enforced?: boolean;
     default_category_name?: string;
+    autotranslation?: boolean;
 };
 
 export type ServerChannel = Channel & {
@@ -135,6 +136,7 @@ export type ChannelMembership = {
     scheme_user: boolean;
     scheme_admin: boolean;
     post_root_id?: string;
+    autotranslation?: boolean;
 };
 
 export type ChannelUnread = {

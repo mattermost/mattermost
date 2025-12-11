@@ -48,6 +48,7 @@ export type ClientConfig = {
     EmailNotificationContentsType: string;
     EnableAskCommunityLink: string;
     EnableBanner: string;
+    EnableAutoTranslation: string;
     EnableBotAccountCreation: string;
     EnableChannelViewedMessages: string;
     EnableClientMetrics: string;

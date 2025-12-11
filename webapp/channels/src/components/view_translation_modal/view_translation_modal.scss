@@ -1,0 +1,43 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ViewTranslationModal {
+    min-width: 42vw;
+
+    &__body {
+        padding: 20px;
+    }
+
+    &__content {
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+    }
+
+    &__messageBlock {
+        flex: 1;
+        background-color: var(--center-channel-bg);
+        padding: 16px;
+        border-radius: 4px;
+
+        &--original {
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__badgeContainer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 12px;
+        gap: 8px;
+    }
+
+    &__languageText {
+        color: var(--center-channel-color);
+        text-transform: uppercase;
+        font-weight: 600;
+        font-size: 12px;
+    }
+}
+

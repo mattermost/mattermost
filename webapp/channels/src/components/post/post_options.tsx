@@ -55,6 +55,7 @@ type Props = {
     isPostBeingEdited?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    isChannelAutotranslated: boolean;
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -233,6 +234,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 isReadOnly={isReadOnly || channelIsArchived}
                 isMenuOpen={showDotMenu}
                 enableEmojiPicker={props.enableEmojiPicker}
+                isChannelAutotranslated={props.isChannelAutotranslated}
             />
         </li>
     );

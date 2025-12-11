@@ -78,6 +78,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMember.Handle("/roles", api.APISessionRequired(updateChannelMemberRoles)).Methods(http.MethodPut)
 	api.BaseRoutes.ChannelMember.Handle("/schemeRoles", api.APISessionRequired(updateChannelMemberSchemeRoles)).Methods(http.MethodPut)
 	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.APISessionRequired(updateChannelMemberNotifyProps)).Methods(http.MethodPut)
+	api.BaseRoutes.ChannelMember.Handle("/autotranslation", api.APISessionRequired(updateChannelMemberAutotranslation)).Methods(http.MethodPut)
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods(http.MethodPut)
@@ -1824,6 +1825,43 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 	auditRec.Success()
 
 	ReturnStatusOK(w)
+}
+
+type UpdateChannelMemberAutotranslationProps struct {
+	Autotranslation bool `json:"autotranslation"`
+}
+
+func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	props := UpdateChannelMemberAutotranslationProps{}
+	if err := json.NewDecoder(r.Body).Decode(&props); err != nil {
+		c.SetInvalidParamWithErr("autotranslation", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberAutotranslation, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "autotranslation", props.Autotranslation)
+
+	updatedChannelMember, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.AppContext.Session().UserId, props.Autotranslation)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(updatedChannelMember)
+	auditRec.AddEventObjectType("channel_member")
+	c.LogAudit("channel_id=" + c.Params.ChannelId)
+
+	if err := json.NewEncoder(w).Encode(updatedChannelMember); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {

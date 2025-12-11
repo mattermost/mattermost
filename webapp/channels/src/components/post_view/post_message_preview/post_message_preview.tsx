@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -38,11 +38,12 @@ export type Props = OwnProps & {
     actions: {
         toggleEmbedVisibility: (id: string) => void;
     };
+    isChannelAutotranslated: boolean;
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled} = props;
-
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, isChannelAutotranslated} = props;
+    const {locale} = useIntl();
     const toggleEmbedVisibility = () => {
         if (previewPost) {
             props.actions.toggleEmbedVisibility(previewPost.id);
@@ -163,6 +164,8 @@ const PostMessagePreview = (props: Props) => {
                     post={previewPost}
                     overflowType='ellipsis'
                     maxHeight={105}
+                    userLanguage={locale}
+                    isChannelAutotranslated={isChannelAutotranslated}
                 />
                 {urlPreview}
                 {fileAttachmentPreview}

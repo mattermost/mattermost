@@ -1724,6 +1724,13 @@ export default class Client4 {
         );
     };
 
+    setMyChannelAutotranslation = (channelId: string, enabled: boolean) => {
+        return this.doFetch<ChannelMembership>(
+            `${this.getChannelMemberRoute(channelId, 'me')}/autotranslation`,
+            {method: 'put', body: JSON.stringify({autotranslation: enabled})},
+        );
+    };
+
     updateChannelNotifyProps = (props: any) => {
         return this.doFetch<StatusOK>(
             `${this.getChannelMemberRoute(props.channel_id, props.user_id)}/notify_props`,

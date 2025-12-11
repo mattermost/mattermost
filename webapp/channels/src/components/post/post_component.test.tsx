@@ -51,6 +51,7 @@ describe('PostComponent', () => {
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),
         },
+        isChannelAutotranslated: false,
     };
 
     describe('reactions', () => {

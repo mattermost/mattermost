@@ -206,6 +206,7 @@ describe('components/dot_menu/DotMenu', () => {
         userId: 'user_id_1',
         isMilitaryTime: false,
         canMove: true,
+        isChannelAutotranslated: false,
     };
 
     test('should show edit menu, on Center', async () => {

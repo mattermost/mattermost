@@ -313,11 +313,48 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         };
     }
 
+    case PostTypes.POST_TRANSLATION_UPDATED: {
+        const data: PostTranslationUpdateData = action.data;
+        if (!state[data.post_id]) {
+            return state;
+        }
+
+        const translations = state[data.post_id].metadata?.translations || {};
+        const newTranslations = {
+            ...translations,
+            [data.language]: {
+                lang: data.language,
+                text: data.translation,
+                type: data.translation_type,
+                state: data.state,
+            }};
+        return {
+            ...state,
+            [data.post_id]: {
+                ...state[data.post_id],
+                metadata: {
+                    ...state[data.post_id].metadata,
+                    translations: newTranslations,
+                },
+            },
+        };
+    }
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
         return state;
     }
+}
+
+type PostTranslationUpdateData = {
+    language: string;
+    object_id: string;
+    post_id: string;
+    src_lang: string;
+    state: 'ready' | 'skipped' | 'processing' | 'unavailable';
+    translation: string;
+    translation_type: 'string' | 'object';
 }
 
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {
@@ -459,7 +496,13 @@ export function handlePendingPosts(state: string[] = [], action: MMReduxAction) 
 export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: MMReduxAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
-        return {};
+        const {channelId} = action;
+        if (!channelId) {
+            return {};
+        }
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, channelId);
+        return nextState;
     }
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data as Post;

@@ -66,6 +66,7 @@ func NewMapFromChannelMemberModel(cm *model.ChannelMember) map[string]any {
 		"SchemeGuest":        sql.NullBool{Valid: true, Bool: cm.SchemeGuest},
 		"SchemeUser":         sql.NullBool{Valid: true, Bool: cm.SchemeUser},
 		"SchemeAdmin":        sql.NullBool{Valid: true, Bool: cm.SchemeAdmin},
+		"Autotranslation":    cm.AutoTranslation,
 	}
 }
 
@@ -90,6 +91,7 @@ type channelMemberWithSchemeRoles struct {
 	ChannelSchemeDefaultUserRole  sql.NullString
 	ChannelSchemeDefaultAdminRole sql.NullString
 	MsgCountRoot                  int64
+	AutoTranslation               bool
 }
 
 type channelMemberWithTeamWithSchemeRoles struct {
@@ -102,7 +104,7 @@ type channelMemberWithTeamWithSchemeRoles struct {
 type channelMemberWithTeamWithSchemeRolesList []channelMemberWithTeamWithSchemeRoles
 
 func channelMemberSliceColumns() []string {
-	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "UrgentMentionCount", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest"}
+	return []string{"ChannelId", "UserId", "Roles", "LastViewedAt", "MsgCount", "MsgCountRoot", "MentionCount", "MentionCountRoot", "UrgentMentionCount", "NotifyProps", "LastUpdateAt", "SchemeUser", "SchemeAdmin", "SchemeGuest", "AutoTranslation"}
 }
 
 // channelSliceColumns returns fields of the channel as a string slice.
@@ -194,6 +196,7 @@ func channelMemberToSlice(member *model.ChannelMember) []any {
 	resultSlice = append(resultSlice, member.SchemeUser)
 	resultSlice = append(resultSlice, member.SchemeAdmin)
 	resultSlice = append(resultSlice, member.SchemeGuest)
+	resultSlice = append(resultSlice, member.AutoTranslation)
 	return resultSlice
 }
 
@@ -324,6 +327,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 		SchemeUser:         rolesResult.schemeUser,
 		SchemeGuest:        rolesResult.schemeGuest,
 		ExplicitRoles:      strings.Join(rolesResult.explicitRoles, " "),
+		AutoTranslation:    db.AutoTranslation,
 	}
 }
 
@@ -388,6 +392,7 @@ func (db channelMemberWithTeamWithSchemeRoles) ToModel() *model.ChannelMemberWit
 			SchemeUser:         rolesResult.schemeUser,
 			SchemeGuest:        rolesResult.schemeGuest,
 			ExplicitRoles:      strings.Join(rolesResult.explicitRoles, " "),
+			AutoTranslation:    db.AutoTranslation,
 		},
 		TeamName:        db.TeamName,
 		TeamDisplayName: db.TeamDisplayName,
@@ -529,6 +534,7 @@ func (s *SqlChannelStore) initializeQueries() {
 			"ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole",
 			"ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole",
 			"ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole",
+			"ChannelMembers.Autotranslation",
 		).
 		From("ChannelMembers").
 		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
@@ -806,7 +812,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			TotalMsgCountRoot=:TotalMsgCountRoot,
 			LastRootPostAt=:LastRootPostAt,
 		    BannerInfo=:BannerInfo,
-			DefaultCategoryName=:DefaultCategoryName
+			DefaultCategoryName=:DefaultCategoryName,
+			AutoTranslation=:AutoTranslation
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
@@ -1627,6 +1634,7 @@ var channelMembersWithSchemeSelectQuery = `
 		ChannelMembers.SchemeUser,
 		ChannelMembers.SchemeAdmin,
 		ChannelMembers.SchemeGuest,
+		ChannelMembers.AutoTranslation,
 		COALESCE(Teams.DisplayName, '') TeamDisplayName,
 		COALESCE(Teams.Name, '') TeamName,
 		COALESCE(Teams.UpdateAt, 0) TeamUpdateAt,
@@ -2188,6 +2196,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 			ChannelMembers.SchemeUser,
 			ChannelMembers.SchemeAdmin,
 			ChannelMembers.SchemeGuest,
+			ChannelMembers.AutoTranslation,
 			TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
 			TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
 			TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
@@ -4113,7 +4122,8 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 		ChannelMembers.SchemeUser,
 		ChannelMembers.SchemeAdmin,
 		(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
-		Channels.Name as ChannelName
+		Channels.Name as ChannelName,
+		ChannelMembers.AutoTranslation,
 	FROM
 		ChannelMembers
 	INNER JOIN
@@ -4164,7 +4174,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		channelIds = append(channelIds, channel.Id)
 	}
 	query = s.getQueryBuilder().
-		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MsgCountRoot, MentionCount, MentionCountRoot, COALESCE(UrgentMentionCount, 0) UrgentMentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
+		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MsgCountRoot, MentionCount, MentionCountRoot, COALESCE(UrgentMentionCount, 0) UrgentMentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, cm.AutoTranslation as AutoTranslation").
 		From("ChannelMembers cm").
 		Join("Users u ON ( u.Id = cm.UserId )").
 		Where(sq.Eq{"cm.ChannelId": channelIds})

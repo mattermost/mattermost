@@ -118,6 +118,8 @@ export interface Props {
     shouldStartFromBottomWhenUnread: boolean;
     hasInaccessiblePosts: boolean;
 
+    isChannelAutotranslated: boolean;
+
     actions: {
 
         /*
@@ -389,6 +391,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                             latestPostTimeStamp={this.props.latestPostTimeStamp}
                             isMobileView={this.props.isMobileView}
                             lastViewedAt={this.props.lastViewedAt}
+                            isChannelAutotranslated={this.props.isChannelAutotranslated}
                         />
                     </div>
                 </div>

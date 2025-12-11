@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
@@ -48,6 +48,7 @@ import {makeIsEligibleForClick} from 'utils/utils';
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
 import {withPostErrorBoundary} from './post_error_boundary';
+import PostHeaderTranslateIcon from './post_header_translate_icon';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
 
@@ -117,6 +118,7 @@ export type Props = {
     isCardOpen?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    isChannelAutotranslated: boolean;
 };
 
 function PostComponent(props: Props) {
@@ -135,6 +137,8 @@ function PostComponent(props: Props) {
     const [fadeOutHighlight, setFadeOutHighlight] = useState(false);
     const [alt, setAlt] = useState(false);
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
+
+    const {locale} = useIntl();
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -397,7 +401,17 @@ function PostComponent(props: Props) {
         }
     }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
-    const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
+    const translation = PostUtils.getPostTranslation(post, locale);
+    const isTranslating = translation?.state === 'processing';
+
+    const postClass = classNames(
+        'post__body',
+        {
+            'post--edited': PostUtils.isEdited(post),
+            'search-item-snippet': isSearchResultItem,
+            'post-message__shimmer': props.isChannelAutotranslated && isTranslating,
+        },
+    );
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -459,6 +473,8 @@ function PostComponent(props: Props) {
                     mentionHighlight: props.isMentionSearch,
                 }}
                 isRHS={isRHS}
+                isChannelAutotranslated={props.isChannelAutotranslated}
+                userLanguage={locale}
             />
         </PostBodyAdditionalContent>
     ) : (
@@ -468,6 +484,7 @@ function PostComponent(props: Props) {
             pluginPostTypes={props.pluginPostTypes}
             isRHS={isRHS}
             compactDisplay={props.compactDisplay}
+            isChannelAutotranslated={props.isChannelAutotranslated}
         />
     );
 
@@ -588,6 +605,12 @@ function PostComponent(props: Props) {
                                         timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
                                     />
                                 }
+                                {!hideProfilePicture && props.isChannelAutotranslated && !isSystemMessage && (
+                                    <PostHeaderTranslateIcon
+                                        postId={post.id}
+                                        translationState={translation?.state}
+                                    />
+                                )}
                                 {priority}
                                 {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
                                     typeof post.props.ai_generated_by === 'string' &&
