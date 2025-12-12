@@ -41,6 +41,7 @@ describe('PostComponent', () => {
         replyCount: 0,
         team: currentTeam,
         pluginActions: [],
+        burnOnReadDurationMinutes: 10,
         actions: {
             markPostAsUnread: jest.fn(),
             emitShortcutReactToLastPostFrom: jest.fn(),
@@ -51,6 +52,9 @@ describe('PostComponent', () => {
             selectPostCard: jest.fn(),
             setRhsExpanded: jest.fn(),
             revealBurnOnReadPost: jest.fn(),
+            savePreferences: jest.fn(),
+            openModal: jest.fn(),
+            closeModal: jest.fn(),
         },
     };
 
