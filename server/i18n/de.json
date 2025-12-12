@@ -1185,10 +1185,6 @@
     "translation": "invalid_request: Fehlerhafte client_id."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: client_secret fehlt."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Fehlerhafter grant_type."
   },
@@ -11086,5 +11082,225 @@
   {
     "id": "app.content_flagging.set_thread_replies_properties.app_error",
     "translation": "Das Setzen von Eigenschaftswerten auf Antworten von Unterhaltungen für den markierten Beitrag ist fehlgeschlagen."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Kanälen ist nicht aktiviert. ServiceSettings.EnableAPIChannelDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen"
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Teams ist nicht aktiviert. ServiceSettings.EnableAPITeamDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Die Funktion zum permanenten Löschen von Benutzern ist nicht aktiviert. ServiceSettings.EnableAPIUserDeletion muss auf true gesetzt werden, um diesen Befehl zu verwenden. Siehe https://mattermost.com/pl/environment-configuration-settings für weitere Informationen."
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Agenten konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge-Aufruf fehlgeschlagen."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "LLM Dienste konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge-Aufruf fehlgeschlagen."
+  },
+  {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "Keine Erlaubnis, den Befehl zu verschieben"
+  },
+  {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) ist für öffentliche OAuth-Clients erforderlich, die den Autorisierungscodefluss verwenden."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth-Dienstanbieter ist deaktiviert."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Ungültige URL-Konfiguration für Autorisierungsserver-Metadaten."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Die URL der Website muss so konfiguriert sein, dass sie die Metadaten des Autorisierungsservers enthält."
+  },
+  {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Nicht übereinstimmende Ressourcenparameter zwischen Autorisierungs- und Token-Anfragen."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Das Geheimnis für öffentliche OAuth-Clients kann nicht neu generiert werden."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "Der KI-generierte Nutzer muss entweder der Ersteller des Beitrags oder ein Bot sein."
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht gepatcht werden"
+  },
+  {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Der KI-Agent konnte nicht angerufen werden."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Leere Antwort von KI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Ungültige Rewrite-Aktion."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Die Rewrite-Antwort von KI konnte nicht analysiert werden."
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Das Löschen des Push-Proxy-Auth-Tokens ist fehlgeschlagen."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Das Auth-Token vom Push-Proxy-Server konnte nicht abgerufen werden."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "HTTP-Anfrage für Push-Proxy-Authentifizierung konnte nicht erstellt werden."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Der Push-Proxy hat ein leeres Auth-Token zurückgegeben."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Payload für Push-Proxy-Authentifizierung konnte nicht verschlüsselt werden."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Die HTTP-Anfrage an den Push-Proxy konnte nicht gesendet werden."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Die Nutzdaten für die Push-Proxy-Authentifizierung konnten nicht übermittelt werden."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Der Request Body für die Push-Proxy-Authentifizierung konnte nicht übertragen werden."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "Kein Verschlüsselungsschlüssel für Push-Proxy-Authentifizierung verfügbar."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Die Antwort vom Push-Proxy-Authentifizierungsendpunkt konnte nicht analysiert werden."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Speichern des Auth-Tokens fehlgeschlagen."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Die Push-Proxy-Schnittstelle ist null."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Bei der Verwendung von PKCE ist eine Codeabfrage erforderlich."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Der Challenge-Code muss base64url-kodiert sein (mit den Zeichen A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Der Challenge Code muss zwischen 43 und 128 Zeichen lang sein."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Die Code-Challenge-Methode ist erforderlich, wenn du PKCE verwendest."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Es wird nur die Code-Challenge-Methode \"S256\" unterstützt."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Der Ressourcenparameter kann keine Fragmentkomponente enthalten."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Der Ressourcenparameter muss ein gültiger URI sein."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Der Ressourcenparameter darf 512 Zeichen nicht überschreiten."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Der Ressourcenparameter muss ein absoluter URI sein."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE-Code-Prüfer angegeben, aber PKCE wurde bei der Autorisierung nicht verwendet."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) ist für öffentliche Clients erforderlich."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE Code Verifier stimmt nicht mit der Code Challenge überein."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "Die PKCE-Codeüberprüfung ist erforderlich, wenn PKCE verwendet wird."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Der Name des Kunden darf höchstens 64 Zeichen lang sein."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Ungültiges Client-URI-Format."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "Die Kunden-URI muss weniger als 256 Zeichen enthalten."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Ungültiges Redirect-URI-Format."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "Mindestens ein Redirect-URI ist erforderlich."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Nicht unterstützte token_endpoint_auth_method geliefert."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Ungültige Client-Anmeldedaten."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) ist für öffentliche Clients erforderlich."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Öffentliche Clients können den Grant-Typ Refresh Token nicht verwenden."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Öffentliche Kunden dürfen kein Kundengeheimnis angeben."
   }
 ]

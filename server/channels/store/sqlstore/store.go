@@ -110,7 +110,10 @@ type SqlStoreStores struct {
 	propertyValue              store.PropertyValueStore
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
+	autotranslation            store.AutoTranslationStore
 	ContentFlagging            store.ContentFlaggingStore
+	readReceipt                store.ReadReceiptStore
+	temporaryPost              store.TemporaryPostStore
 }
 
 type SqlStore struct {
@@ -260,7 +263,10 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyValue = newPropertyValueStore(store)
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
+	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
+	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -874,6 +880,18 @@ func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
 
 func (ss *SqlStore) Attributes() store.AttributesStore {
 	return ss.stores.Attributes
+}
+
+func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
+	return ss.stores.autotranslation
+}
+
+func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
+	return ss.stores.readReceipt
+}
+
+func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
+	return ss.stores.temporaryPost
 }
 
 func (ss *SqlStore) DropAllTables() {

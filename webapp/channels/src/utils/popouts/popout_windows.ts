@@ -16,6 +16,11 @@ import {
     onMessageFromParent as onMessageFromParentBrowser,
 } from './use_browser_popout';
 
+const pluginPopoutListeners: Map<string, (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void> = new Map();
+export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void) {
+    pluginPopoutListeners.set(pluginId, onPopoutOpened);
+}
+
 export const FOCUS_REPLY_POST = 'focus-reply-post';
 export async function popoutThread(
     intl: IntlShape,
@@ -47,12 +52,35 @@ export async function popoutThread(
     return popoutListeners;
 }
 
+export async function popoutRhsPlugin(
+    intl: IntlShape,
+    pluginId: string,
+    pluginDisplayName: string,
+    teamName: string,
+    channelName: string,
+) {
+    const listeners = await popout(
+        `/_popout/rhs/${teamName}/${channelName}/plugin/${pluginId}`,
+        {
+            isRHS: true,
+            titleTemplate: intl.formatMessage({
+                id: 'rhs_plugin_popout.title',
+                defaultMessage: '{serverName} - {pluginDisplayName}',
+            }, {serverName: '{serverName}', pluginDisplayName}),
+        },
+    );
+
+    pluginPopoutListeners.get(pluginId)?.(teamName, channelName, listeners);
+
+    return listeners;
+}
+
 /**
  * Below this is generic popout code
  * You likely do not need to add anything below this.
  */
 
-type PopoutListeners = {
+export type PopoutListeners = {
     sendToPopout: (channel: string, ...args: unknown[]) => void;
     onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => void;
     onClosePopout: (listener: () => void) => void;
@@ -87,6 +115,10 @@ export function onMessageFromParent(listener: (channel: string, ...args: unknown
 
 export function isPopoutWindow() {
     return window.location.href.startsWith(`${Client4.getUrl()}/_popout/`);
+}
+
+export function isThreadPopoutWindow(teamName: string, threadId: string) {
+    return window.location.href.startsWith(`${Client4.getUrl()}/_popout/thread/${teamName}/${threadId}`);
 }
 
 export function canPopout() {

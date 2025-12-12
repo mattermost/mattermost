@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TestHelper} from 'utils/test_helper';
+
 import type {GlobalState} from 'types/store';
 
 import * as selectors from './threads';
@@ -10,6 +12,9 @@ describe('selectors/views/threads', () => {
         entities: {
             teams: {
                 currentTeamId: 'current_team_id',
+                teams: {
+                    current_team_id: TestHelper.getTeamMock({id: 'current_team_id', name: 'current-team'}),
+                },
             },
             threads: {
                 selected_thread_id: {

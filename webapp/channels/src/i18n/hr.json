@@ -1586,8 +1586,6 @@
   "suggestion.user.isCurrent": "(ti)",
   "system_notice.dont_show": "Nemoj više prikazivati",
   "system_notice.remind_me": "Podsjeti me kasnije",
-  "system_notice.title": "Mattermost obavijest",
-  "system_notice.title.gm_as_dm": "Aktualiziranja poruka grupa",
   "tag.default.beta": "BETA",
   "tag.default.bot": "BOT",
   "tag.default.guest": "GOST",

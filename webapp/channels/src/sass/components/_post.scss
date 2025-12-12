@@ -1442,6 +1442,15 @@
                 margin: 0;
             }
         }
+
+        .badges-wrapper {
+            gap: 6px;
+            .BurnOnReadTimerChip, .BurnOnReadBadge  {
+                margin-left: 0;
+            }
+        }
+
+
     }
 
     .post__img {
@@ -1827,7 +1836,7 @@
     .ai-generated-indicator {
         display: inline-flex;
         align-items: center;
-        margin-left: 8px;
+        margin-left: 4px;
         color: inherit;
         opacity: 0.73;
 
@@ -1835,6 +1844,10 @@
             width: 14px;
             height: 14px;
         }
+    }
+
+    &.post--compact .col__name .ai-generated-indicator {
+        margin-left: 0px;
     }
 
     .post__permalink {

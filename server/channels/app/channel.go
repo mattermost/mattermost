@@ -329,15 +329,21 @@ func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID str
 		if err != nil {
 			return nil, err
 		}
-		var isBot bool
+		var isPluginOwnedBot bool
 		for _, user := range users {
 			if user.IsBot {
-				isBot = true
-				break
+				isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+				if err != nil {
+					return nil, err
+				}
+				if isOwnedByCurrentUserOrPlugin {
+					isPluginOwnedBot = true
+					break
+				}
 			}
 		}
 		// if one of the users is a bot, don't restrict to team members
-		if !isBot {
+		if !isPluginOwnedBot {
 			commonTeamIDs, err := a.GetCommonTeamIDsForTwoUsers(userID, otherUserID)
 			if err != nil {
 				return nil, err
@@ -2732,6 +2738,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(userIDToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
+	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userIDToRemove, channel.Id)
+	a.Srv().Store().AutoTranslation().InvalidateUserLocaleCache(userIDToRemove)
 
 	var actorUser *model.User
 	if removerUserId != "" {
@@ -2876,6 +2884,7 @@ func (a *App) MarkChannelAsUnreadFromPost(rctx request.CTX, postID string, userI
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(rctx, userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(rctx, postID, userID)
 	}
+
 	post, err := a.GetSinglePost(rctx, postID, false)
 	if err != nil {
 		return nil, err
@@ -3698,9 +3707,18 @@ func (a *App) GetDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, channe
 		Active:      true,
 	})
 
-	userIDs := make([]string, len(users))
-	for i := range users {
-		userIDs[i] = users[i].Id
+	userIDs := make([]string, 0, len(users))
+	for _, user := range users {
+		if user.IsBot {
+			isOwnedByCurrentUserOrPlugin, err := a.IsBotOwnedByCurrentUserOrPlugin(rctx, user.Id)
+			if err != nil {
+				return nil, err
+			}
+			if isOwnedByCurrentUserOrPlugin {
+				continue
+			}
+		}
+		userIDs = append(userIDs, user.Id)
 	}
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
