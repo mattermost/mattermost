@@ -55,9 +55,9 @@ import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchable
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
-import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
+import CustomEnableDisableGuestAccountsMagicLinkSetting from './custom_enable_disable_guest_accounts_magic_link_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
@@ -3194,63 +3194,8 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
                                     ),
                                 },
-                                {
-                                    type: 'radio',
-                                    key: 'ServiceSettings.BurnOnReadAllowedUsers',
-                                    label: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.title', defaultMessage: 'Users Allowed to Send Burn-on-Read Messages'}),
-                                    options: [
-                                        {
-                                            value: 'all',
-                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.all', defaultMessage: 'Allow for all users'}),
-                                        },
-                                        {
-                                            value: 'allow_selected',
-                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.allowSelected', defaultMessage: 'Allow selected users'}),
-                                        },
-                                        {
-                                            value: 'block_selected',
-                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.blockSelected', defaultMessage: 'Block selected users'}),
-                                        },
-                                    ],
-                                    onConfigLoad: (value: any) => value ?? 'all',
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
-                                    ),
-                                },
-                                {
-                                    type: 'custom',
-                                    key: 'ServiceSettings.BurnOnReadAllowedUsersList',
-                                    label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Selected users and groups'}),
-                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Choose users or groups that will be allowed or blocked from sending burn-on-read messages, depending on your selection above.'}),
-                                    component: BurnOnReadUserGroupSelector,
-                                    isDisabled: it.any(
-                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
-                                    ),
-                                    isHidden: it.any(
-                                        it.stateEqualsOrDefault('ServiceSettings.BurnOnReadAllowedUsers', 'all', 'all'),
-                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
-                                    ),
-                                    validate: (value) => {
-                                        const isEmpty = !value ||
-                                            (typeof value === 'string' && value.trim() === '') ||
-                                            (Array.isArray(value) && value.length === 0);
-
-                                        if (isEmpty) {
-                                            return new ValidationResult(
-                                                false,
-                                                defineMessage({
-                                                    id: 'admin.posts.burnOnRead.usersList.required',
-                                                    defaultMessage: 'At least one user or group must be selected.',
-                                                }),
-                                            );
-                                        }
-
-                                        return new ValidationResult(true, '');
-                                    },
-                                },
                             ],
+                            isHidden: it.configIsFalse('FeatureFlags', 'BurnOnRead'),
                         },
                         {
                             key: 'PostSettings.Previews',
@@ -5117,6 +5062,12 @@ const AdminDefinition: AdminDefinitionType = {
                             ),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                         },
+                        {
+                            type: 'custom',
+                            component: CustomEnableDisableGuestAccountsMagicLinkSetting,
+                            key: 'GuestAccountsSettings.EnableGuestMagicLink',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
+                        },
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(),
@@ -5713,7 +5664,8 @@ const AdminDefinition: AdminDefinitionType = {
                 ),
                 schema: {
                     id: 'ExperimentalAuditSettings',
-                    name: 'Audit logging (Beta)',
+                    isBeta: true,
+                    name: defineMessage({id: 'admin.auditlogging.title', defaultMessage: 'Audit Logging'}),
                     settings: [
                         {
                             type: 'banner',

@@ -101,6 +101,7 @@ type Channel struct {
 	LastRootPostAt      int64              `json:"last_root_post_at"`
 	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
 	PolicyEnforced      bool               `json:"policy_enforced"`
+	PolicyIsActive      bool               `json:"policy_is_active"`
 	DefaultCategoryName string             `json:"default_category_name"`
 }
 
@@ -124,6 +125,7 @@ func (o *Channel) Auditable() map[string]any {
 		"update_at":            o.UpdateAt,
 		"policy_enforced":      o.PolicyEnforced,
 		"autotranslation":      o.AutoTranslation,
+		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
 	}
 }
 

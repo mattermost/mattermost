@@ -671,7 +671,6 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {channelId} = this.props;
         const {dynamicListStyle} = this.state;
 
         return (
@@ -696,10 +695,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                         />
                     </>
                 )}
-                <div
-                    className='post-list-holder-by-time'
-                    key={'postlist-' + channelId}
-                >
+                <div className='post-list-holder-by-time'>
                     <div
                         className='post-list__table'
                     >

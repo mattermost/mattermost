@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
@@ -62,8 +64,15 @@ const (
 	PostMessageMaxRunesV1 = 4000
 	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
-	PostPropsMaxRunes     = 800000
-	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
+
+	// Reporting API constants
+	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
+	ReportingTimeFieldCreateAt = "create_at"
+	ReportingTimeFieldUpdateAt = "update_at"
+	ReportingSortDirectionAsc  = "asc"
+	ReportingSortDirectionDesc = "desc"
+	PostPropsMaxRunes          = 800000
+	PostPropsMaxUserRunes      = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
 	PropsAddChannelMember = "add_channel_member"
 
@@ -1142,6 +1151,17 @@ type PreparePostForClientOpts struct {
 	IncludeDeleted  bool
 }
 
+// ReportPostOptions contains options for querying posts for reporting/compliance purposes
+type ReportPostOptions struct {
+	ChannelId          string `json:"channel_id"`
+	StartTime          int64  `json:"start_time,omitempty"`           // Optional: Start time for query range (unix timestamp in milliseconds)
+	TimeField          string `json:"time_field,omitempty"`           // "create_at" or "update_at" (default: "create_at")
+	SortDirection      string `json:"sort_direction,omitempty"`       // "asc" or "desc" (default: "asc")
+	PerPage            int    `json:"per_page,omitempty"`             // Number of posts per page (default: 100, max: MaxReportingPerPage)
+	IncludeDeleted     bool   `json:"include_deleted,omitempty"`      // Include deleted posts
+	ExcludeSystemPosts bool   `json:"exclude_system_posts,omitempty"` // Exclude all system posts (any type starting with "system_")
+	IncludeMetadata    bool   `json:"include_metadata,omitempty"`     // Include file info, reactions, etc.
+}
 type RewriteAction string
 
 const (
@@ -1168,3 +1188,149 @@ type RewriteResponse struct {
 const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only. 
 Return this exact format: {"rewritten_text":"content"}. 
 Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
+
+// ReportPostOptionsCursor contains cursor information for pagination.
+// The cursor is an opaque base64-encoded string that encodes all pagination state.
+// Clients should treat this as an opaque token and pass it back unchanged.
+//
+// Internal format (before base64 encoding):
+//
+//	v1: "version:channel_id:time_field:include_deleted:exclude_system_posts:sort_direction:timestamp:post_id"
+//
+// Field order (general to specific):
+// - version: Allows format evolution
+// - channel_id: Which channel to query (filter)
+// - time_field: Which timestamp column to use for ordering (filter/config)
+// - include_deleted: Whether to include deleted posts (filter)
+// - exclude_system_posts: Whether to exclude channel metadata system posts (filter)
+// - sort_direction: Query direction ASC vs DESC (filter/config)
+// - timestamp: The cursor position in time (pagination state)
+// - post_id: Tie-breaker for posts with identical timestamps (pagination state)
+//
+// Version history:
+// - v1: Initial format with all query-affecting parameters ordered general→specific, base64-encoded for opacity
+// ReportPostOptionsCursor contains the pagination cursor for posts reporting.
+//
+// The cursor is opaque and self-contained:
+// - It's base64-encoded and contains all query parameters (channel_id, time_field, sort_direction, etc.)
+// - When a cursor is provided, query parameters in the request body are IGNORED
+// - The cursor's embedded parameters take precedence over request body parameters
+// - This allows clients to keep sending the same parameters on every page without errors
+// - For the first page, omit the cursor field or set it to ""
+type ReportPostOptionsCursor struct {
+	Cursor string `json:"cursor,omitempty"` // Optional: Opaque base64-encoded cursor string (omit or use "" for first request)
+}
+
+// ReportPostListResponse contains the response for cursor-based post reporting queries
+type ReportPostListResponse struct {
+	Posts      []*Post                  `json:"posts"`
+	NextCursor *ReportPostOptionsCursor `json:"next_cursor,omitempty"` // nil if no more pages
+}
+
+// ReportPostQueryParams contains the fully resolved query parameters for the store layer.
+// This struct is used internally after cursor decoding and parameter resolution.
+// The store layer receives these concrete parameters and executes the query.
+type ReportPostQueryParams struct {
+	ChannelId          string // Required: Channel to query
+	CursorTime         int64  // Pagination cursor time position
+	CursorId           string // Pagination cursor ID for tie-breaking
+	TimeField          string // Resolved: "create_at" or "update_at"
+	SortDirection      string // Resolved: "asc" or "desc"
+	IncludeDeleted     bool   // Resolved: include deleted posts
+	ExcludeSystemPosts bool   // Resolved: exclude system posts
+	PerPage            int    // Number of posts per page (already validated)
+}
+
+// Validate validates the ReportPostQueryParams fields.
+// This should be called after parameter resolution (from cursor or options) and before passing to the store layer.
+// Note: PerPage is handled separately in the API layer (capped at 100-1000 range).
+func (q *ReportPostQueryParams) Validate() *AppError {
+	// Validate ChannelId
+	if !IsValidId(q.ChannelId) {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_channel_id", nil, "channel_id must be a valid 26-character ID", 400)
+	}
+
+	// Validate TimeField
+	if q.TimeField != ReportingTimeFieldCreateAt && q.TimeField != ReportingTimeFieldUpdateAt {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_time_field", nil, fmt.Sprintf("time_field must be %q or %q", ReportingTimeFieldCreateAt, ReportingTimeFieldUpdateAt), 400)
+	}
+
+	// Validate SortDirection
+	if q.SortDirection != ReportingSortDirectionAsc && q.SortDirection != ReportingSortDirectionDesc {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_sort_direction", nil, fmt.Sprintf("sort_direction must be %q or %q", ReportingSortDirectionAsc, ReportingSortDirectionDesc), 400)
+	}
+
+	// Validate CursorId - can be empty (first page) or must be a valid ID format (subsequent pages)
+	if q.CursorId != "" && !IsValidId(q.CursorId) {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_cursor_id", nil, "cursor_id must be a valid 26-character ID", 400)
+	}
+
+	// CursorTime is validated by the fact it's an int64
+	// PerPage is handled in API layer before calling Validate()
+	return nil
+}
+
+// EncodeReportPostCursor creates an opaque cursor string from pagination state.
+// The cursor encodes all query-affecting parameters to ensure consistency across pages.
+// The cursor is base64-encoded to ensure it's truly opaque and URL-safe.
+//
+// Internal format: "version:channel_id:time_field:include_deleted:exclude_system_posts:sort_direction:timestamp:post_id"
+// Example (before encoding): "1:abc123xyz:create_at:false:true:asc:1635724800000:post456def"
+func EncodeReportPostCursor(channelId string, timeField string, includeDeleted bool, excludeSystemPosts bool, sortDirection string, timestamp int64, postId string) string {
+	plainText := fmt.Sprintf("1:%s:%s:%t:%t:%s:%d:%s",
+		channelId,
+		timeField,
+		includeDeleted,
+		excludeSystemPosts,
+		sortDirection,
+		timestamp,
+		postId)
+	return base64.URLEncoding.EncodeToString([]byte(plainText))
+}
+
+// DecodeReportPostCursorV1 parses an opaque cursor string into query parameters.
+// Returns a partially populated ReportPostQueryParams (missing PerPage which comes from the request).
+func DecodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, *AppError) {
+	decoded, err := base64.URLEncoding.DecodeString(cursor)
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_base64", nil, err.Error(), 400)
+	}
+
+	parts := strings.Split(string(decoded), ":")
+	if len(parts) != 8 {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_format", nil, fmt.Sprintf("expected 8 parts, got %d", len(parts)), 400)
+	}
+
+	version, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_version", nil, fmt.Sprintf("version must be an integer: %s", err.Error()), 400)
+	}
+	if version != 1 {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.unsupported_version", nil, fmt.Sprintf("version %d", version), 400)
+	}
+
+	includeDeleted, err := strconv.ParseBool(parts[3])
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_include_deleted", nil, fmt.Sprintf("include_deleted must be a boolean: %s", err.Error()), 400)
+	}
+
+	excludeSystemPosts, err := strconv.ParseBool(parts[4])
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_exclude_system_posts", nil, fmt.Sprintf("exclude_system_posts must be a boolean: %s", err.Error()), 400)
+	}
+
+	timestamp, err := strconv.ParseInt(parts[6], 10, 64)
+	if err != nil {
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_timestamp", nil, fmt.Sprintf("timestamp must be an integer: %s", err.Error()), 400)
+	}
+
+	return &ReportPostQueryParams{
+		ChannelId:          parts[1],
+		CursorTime:         timestamp,
+		CursorId:           parts[7],
+		TimeField:          parts[2],
+		SortDirection:      parts[5],
+		IncludeDeleted:     includeDeleted,
+		ExcludeSystemPosts: excludeSystemPosts,
+	}, nil
+}

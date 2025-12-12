@@ -162,7 +162,10 @@ test('should show mobile security upsell when not licensed', async ({pw}) => {
 
     const license = await adminClient.getClientLicenseOld();
 
-    test.skip(license.SkuShortName === 'enterprise', 'Skipping test - server has enterprise license');
+    test.skip(
+        license.SkuShortName !== 'enterprise' || license.short_sku_name !== 'advanced',
+        'Skipping test - server has no enterprise or enterprise advanced license',
+    );
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');

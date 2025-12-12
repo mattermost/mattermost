@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
+	"github.com/goccy/go-yaml"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 )
 
 type PluginOption struct {

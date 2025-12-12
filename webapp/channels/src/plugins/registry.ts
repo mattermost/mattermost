@@ -63,6 +63,7 @@ import type {
     AppBarChannelAction,
     DesktopNotificationHook,
     PluggableText,
+    SidebarBrowseOrAddChannelMenuAction,
 } from 'types/store/plugins';
 
 const defaultShouldRender = () => true;
@@ -1211,6 +1212,40 @@ export default class PluginRegistry {
      */
     registerSidebarChannelLinkLabelComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
         return dispatchPluginComponentAction('SidebarChannelLinkLabel', this.id, component);
+    });
+
+    /**
+     * Register a component in the "Browse or Create Channels" menu in the sidebar.
+     * Accepts the following:
+     * - text - A string or React element to display in the menu
+     * - action - A function to trigger when component is clicked on. It receives the teamId as an argument.
+     * - icon - A React element to use as the button's icon
+     * Returns a unique identifier.
+     */
+    registerSidebarBrowseOrAddChannelMenuAction = reArg([
+        'text',
+        'action',
+        'icon',
+    ], ({
+        text,
+        action,
+        icon,
+    }: {
+        text: ReactResolvable;
+        action: SidebarBrowseOrAddChannelMenuAction['action'];
+        icon: ReactResolvable;
+    }) => {
+        const id = generateId();
+
+        dispatchPluginComponentWithData('SidebarBrowseOrAddChannelMenu', {
+            id,
+            pluginId: this.id,
+            text: resolveReactElement(text),
+            action,
+            icon: resolveReactElement(icon),
+        });
+
+        return id;
     });
 
     /**

@@ -26,7 +26,7 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
         } as Partial<AdminConfig>),
     );
 
-    const otherUser = pw.random.user('other');
+    const otherUser = await pw.random.user('other');
     const createdOtherUser = await adminClient.createUser(otherUser, '', '');
     otherUser.id = createdOtherUser.id;
 

@@ -20,6 +20,7 @@ describe('mapStateToProps', () => {
                 config: {
                     EnableGuestAccounts: 'true',
                     BuildEnterpriseReady: 'true',
+                    EnableGuestMagicLink: 'false',
                 },
                 license: {
                     IsLicensed: 'true',
@@ -179,5 +180,98 @@ describe('mapStateToProps', () => {
         const props = mapStateToProps(testState, {channelToInvite: testChannel});
 
         expect(props.currentTeam?.id).toBe(testChannel.team_id);
+    });
+
+    test('canInviteGuestsWithMagicLink is false when EnableGuestMagicLink is false', () => {
+        const testState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                        BuildEnterpriseReady: 'true',
+                        EnableGuestMagicLink: 'false',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    teams: {
+                        [currentTeamId]: {
+                            id: currentTeamId,
+                            group_constrained: false,
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = mapStateToProps(testState, {});
+        expect(props.canInviteGuestsWithMagicLink).toBe(false);
+    });
+
+    test('canInviteGuestsWithMagicLink is true when EnableGuestMagicLink is true and can invite guests', () => {
+        const testState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                        BuildEnterpriseReady: 'true',
+                        EnableGuestMagicLink: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    teams: {
+                        [currentTeamId]: {
+                            id: currentTeamId,
+                            group_constrained: false,
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = mapStateToProps(testState, {});
+        expect(props.canInviteGuestsWithMagicLink).toBe(true);
+    });
+
+    test('canInviteGuestsWithMagicLink is false when EnableGuestMagicLink is true but cannot invite guests', () => {
+        const testState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'false',
+                        BuildEnterpriseReady: 'true',
+                        EnableGuestMagicLink: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    teams: {
+                        [currentTeamId]: {
+                            id: currentTeamId,
+                            group_constrained: false,
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = mapStateToProps(testState, {});
+        expect(props.canInviteGuestsWithMagicLink).toBe(false);
     });
 });

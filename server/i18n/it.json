@@ -1184,10 +1184,6 @@
     "translation": "richiesta non valida: client_id incorretto."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Secret_client mancante."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: Grant_type non valido."
   },

@@ -538,13 +538,21 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 			cfg.TeamSettings.RestrictDirectMessage = &setting
 		})
 
+		// Create a session for the bot owner so IsBotOwnedByCurrentUserOrPlugin can work
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
 		// check with bot in first userid param
-		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, bot1.UserId, user1.Id)
+		channel, appErr := th.App.GetOrCreateDirectChannel(rctx, bot1.UserId, user1.Id)
 		require.NotNil(t, channel, "channel should be non-nil")
 		require.Nil(t, appErr)
 
 		// check with bot in second userid param
-		channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, user1.Id, bot1.UserId)
+		channel, appErr = th.App.GetOrCreateDirectChannel(rctx, user1.Id, bot1.UserId)
 		require.NotNil(t, channel, "channel should be non-nil")
 		require.Nil(t, appErr)
 	})

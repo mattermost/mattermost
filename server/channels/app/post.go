@@ -386,12 +386,25 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	// Initialize translations for the post before sending WebSocket events
 	// This ensures translation metadata is included in the 'posted' event
-	if a.Srv().Channels().AutoTranslation != nil {
-		enabled, err := a.Srv().Channels().AutoTranslation.IsChannelEnabled(rpost.ChannelId)
-		if err == nil && enabled {
-			_, _ = a.Srv().Channels().AutoTranslation.Translate(rctx.Context(), "post", rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
-		} else if err != nil {
-			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
+	// Check if auto-translation is available before making database calls
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
+		enabled, atErr := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
+		if atErr == nil && enabled {
+			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			if translateErr != nil {
+				var notAvailErr *model.ErrAutoTranslationNotAvailable
+				if errors.As(translateErr, &notAvailErr) {
+					// Feature not available - log at debug level and continue
+					rctx.Logger().Debug("Auto-translation feature not available", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+					// No translatable content (only URLs/mentions) - this is expected, don't log
+				} else {
+					// Unexpected error - log at warn level but don't fail post creation
+					rctx.Logger().Warn("Failed to translate post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				}
+			}
+		} else if atErr != nil {
+			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(atErr))
 		}
 	}
 
@@ -502,7 +515,7 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		}
 
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelTypeOpen {
+			if mentioned.Type == model.ChannelTypeOpen && a.HasPermissionToReadChannel(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
@@ -2848,7 +2861,7 @@ func (a *App) RewriteMessage(
 	}
 
 	// Prepare completion request in the format expected by the client
-	client := a.getBridgeClient(rctx.Session().UserId)
+	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
 			{Role: "system", Message: model.RewriteSystemPrompt},

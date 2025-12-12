@@ -29,7 +29,8 @@ const (
 
 func (w *Web) InitOAuth() {
 	// OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414)
-	w.MainRouter.Handle(model.OAuthMetadataEndpoint, w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
+	// Match the exact path and any path with additional segments after it
+	w.MainRouter.PathPrefix(model.OAuthMetadataEndpoint).Handler(w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
 
 	// API version independent OAuth 2.0 as a service provider endpoints
 	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)

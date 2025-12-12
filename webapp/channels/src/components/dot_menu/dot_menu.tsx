@@ -139,6 +139,7 @@ type Props = {
     isMentionedInRootPost?: boolean;
     threadReplyCount?: number;
     isChannelAutotranslated: boolean;
+    isBurnOnReadPost: boolean;
 }
 
 type State = {
@@ -426,11 +427,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const isFollowingThread = this.props.isFollowingThread ?? this.props.isMentionedInRootPost;
         const isMobile = this.props.isMobileView;
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
+        const isBurnOnReadPost = this.props.isBurnOnReadPost;
 
         const translation = PostUtils.getPostTranslation(this.props.post, this.props.intl.locale);
         const showTranslation = this.props.isChannelAutotranslated && translation?.state === 'ready';
 
-        this.canPostBeForwarded = !(isSystemMessage);
+        this.canPostBeForwarded = !(isSystemMessage || isBurnOnReadPost);
 
         const forwardPostItemText = (
             <span className={'dot-menu__item-new-badge'}>
@@ -523,7 +525,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     class: 'hidden-xs',
                 }}
             >
-                {!isSystemMessage && this.props.location === Locations.CENTER &&
+                {!isSystemMessage && !isBurnOnReadPost && this.props.location === Locations.CENTER &&
                     <Menu.Item
                         id={`reply_to_post_${this.props.post.id}`}
                         data-testid={`reply_to_post_${this.props.post.id}`}
@@ -571,6 +573,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 }
                 {Boolean(
                     !isSystemMessage &&
+                        !isBurnOnReadPost &&
                         this.props.isCollapsedThreadsEnabled &&
                         (this.props.location === Locations.CENTER ||
                             this.props.location === Locations.RHS_ROOT ||
@@ -647,7 +650,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}
-                {!isSystemMessage &&
+                {!isSystemMessage && !isBurnOnReadPost &&
                     <Menu.Item
                         id={`permalink_${this.props.post.id}`}
                         data-testid={`permalink_${this.props.post.id}`}
@@ -661,7 +664,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.copyLink}
                     />
                 }
-                {!isSystemMessage && <Menu.Separator/>}
+                {!isSystemMessage && !isBurnOnReadPost && <Menu.Separator/>}
                 {showTranslation && (
                     <Menu.Item
                         id={`show_translation_${this.props.post.id}`}
@@ -676,7 +679,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleShowTranslation}
                     />
                 )}
-                {this.state.canEdit &&
+                {this.state.canEdit && !isBurnOnReadPost &&
                     <Menu.Item
                         id={`edit_post_${this.props.post.id}`}
                         data-testid={`edit_post_${this.props.post.id}`}
@@ -690,7 +693,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleEditMenuItemActivated}
                     />
                 }
-                {!isSystemMessage &&
+                {!isSystemMessage && !isBurnOnReadPost &&
                     <Menu.Item
                         id={`copy_${this.props.post.id}`}
                         data-testid={`copy_${this.props.post.id}`}

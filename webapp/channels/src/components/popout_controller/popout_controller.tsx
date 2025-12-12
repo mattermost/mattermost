@@ -6,8 +6,10 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Route, Switch} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {getProfiles, getStatusesByIds} from 'mattermost-redux/actions/users';
+import {getMe} from 'mattermost-redux/actions/users';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
+import {loadStatusesByIds} from 'actions/status_actions';
 
 import LoggedIn from 'components/logged_in';
 import ModalController from 'components/modal_controller';
@@ -24,12 +26,12 @@ const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     useBrowserPopout();
     useEffect(() => {
         document.body.classList.add('app__body', 'popout');
-        dispatch(getProfiles());
+        dispatch(getMe());
     }, []);
 
     useEffect(() => {
         if (currentUserId) {
-            dispatch(getStatusesByIds([currentUserId]));
+            dispatch(loadStatusesByIds([currentUserId]));
         }
     }, [dispatch, currentUserId]);
 

@@ -89,6 +89,10 @@ export function isPopoutWindow() {
     return window.location.href.startsWith(`${Client4.getUrl()}/_popout/`);
 }
 
+export function isThreadPopoutWindow(teamName: string, threadId: string) {
+    return window.location.href.startsWith(`${Client4.getUrl()}/_popout/thread/${teamName}/${threadId}`);
+}
+
 export function canPopout() {
     return Boolean(!isDesktopApp() || DesktopApp.canPopout());
 }

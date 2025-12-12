@@ -6,6 +6,7 @@ import React from 'react';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
+import * as loginActions from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import Login from 'components/login/login';
@@ -413,5 +414,344 @@ describe('components/login/Login', () => {
         );
 
         expect(history.push).toHaveBeenCalledWith(redirectPath);
+    });
+
+    describe('EnableGuestMagicLink', () => {
+        it('should show password field when EnableGuestMagicLink is false', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'false',
+                        },
+                    },
+                },
+            });
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            // Password field should be visible
+            expect(screen.getByLabelText('Password')).toBeVisible();
+        });
+
+        it('should hide password field initially when EnableGuestMagicLink is true', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            // Password field should not be visible initially
+            expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+        });
+
+        it('should show GuestMagicLinkCard when user login type is guest_magic_link', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            // Mock the getUserLoginType to return 'magic_link'
+            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+                data: {
+                    auth_service: 'guest_magic_link',
+                    is_deactivated: false,
+                },
+            }));
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            // Should show the guest magic link success message
+            expect(await screen.findByText('We sent you a link to login!')).toBeVisible();
+            expect(screen.getByText('Please check your email for the link to login.')).toBeVisible();
+            expect(screen.getByText('Your link will expire in 5 minutes.')).toBeVisible();
+        });
+
+        it('should show password field when user login type requires password', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            // Mock the getUserLoginType to return empty string (requires password)
+            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
+            }));
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            // Password field should not be visible initially
+            expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            // Password field should now be visible
+            expect(await screen.findByLabelText('Password')).toBeVisible();
+            expect(mockGetUserLoginType).toHaveBeenCalledWith('user@example.com');
+        });
+
+        it('should show error when getUserLoginType fails', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            // Mock the getUserLoginType to return an error
+            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+                error: {
+                    message: 'Network error',
+                },
+            }));
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            // Should show error message
+            expect(await screen.findByText('Network error')).toBeVisible();
+        });
+
+        it('should focus password field after it appears when password is required', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            // Mock the getUserLoginType to return empty string (requires password)
+            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
+            }));
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            // Password field should appear and be focused
+            const passwordField = await screen.findByLabelText('Password');
+            expect(passwordField).toBeVisible();
+
+            // Wait for focus to be set (setTimeout in the code)
+            await new Promise((resolve) => setTimeout(resolve, 150));
+            expect(passwordField).toHaveFocus();
+        });
+
+        it('should submit with password when password field is shown', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
+            }));
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            const mockLogin = jest.fn().mockReturnValue(async () => ({
+                data: true,
+            }));
+            jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            // First submit - triggers getUserLoginType
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            // Password field should appear
+            const passwordField = await screen.findByLabelText('Password');
+            await userEvent.type(passwordField, 'password123');
+
+            // Second submit - triggers actual login
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
+        });
+
+        it('should not show forgot password link when EnableGuestMagicLink is true and password not required', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                            PasswordEnableForgotLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            // Forgot password link should not be visible when password field is hidden
+            expect(screen.queryByText('Forgot your password?')).not.toBeInTheDocument();
+        });
+
+        it('should show forgot password link when password field is displayed', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                            PasswordEnableForgotLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
+            }));
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            // After password field appears, forgot password link should be visible
+            await screen.findByLabelText('Password');
+            expect(screen.getByText('Forgot your password?')).toBeVisible();
+        });
+
+        it('should hide password field when user starts typing in login ID after password field appeared', async () => {
+            const state = mergeObjects(baseState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableSignInWithEmail: 'true',
+                            EnableGuestMagicLink: 'true',
+                        },
+                    },
+                },
+            });
+
+            // Mock the getUserLoginType to return empty string (requires password)
+            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
+                data: {
+                    auth_service: '',
+                    is_deactivated: false,
+                },
+            }));
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            // Click login - password field should appear
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+            expect(await screen.findByLabelText('Password')).toBeVisible();
+
+            // User starts typing in the login ID field again
+            await userEvent.clear(emailInput);
+            await userEvent.type(emailInput, 'different@example.com');
+
+            // Password field should be hidden
+            expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+        });
     });
 });

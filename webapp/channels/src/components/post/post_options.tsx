@@ -56,6 +56,7 @@ type Props = {
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
     isChannelAutotranslated: boolean;
+    isBurnOnReadPost?: boolean;
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -121,9 +122,10 @@ const PostOptions = (props: Props): JSX.Element => {
 
     const isPostDeleted = post && post.state === Posts.POST_DELETED;
     const hoverLocal = props.hover || showEmojiPicker || showDotMenu || showActionsMenu;
-    const showCommentIcon = isFromAutoResponder || (!systemMessage && (isMobileView ||
+    const isBurnOnReadPost = props.isBurnOnReadPost || false;
+    const showCommentIcon = !isBurnOnReadPost && (isFromAutoResponder || (!systemMessage && (isMobileView ||
             hoverLocal || (!post.root_id && Boolean(props.hasReplies)) ||
-            props.isFirstReply) && props.location === Locations.CENTER);
+            props.isFirstReply) && props.location === Locations.CENTER));
     const commentIconExtraClass = isMobileView ? '' : 'pull-right';
 
     let commentIcon;

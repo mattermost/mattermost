@@ -9,6 +9,11 @@ import (
 	"maps"
 )
 
+// TranslationObjectType identifies the type of object being translated
+const (
+	TranslationObjectTypePost = "post"
+)
+
 // TranslationType indicates the type of translated content
 type TranslationType string
 
@@ -40,6 +45,7 @@ type Translation struct {
 	State      TranslationState `json:"state"`
 	Meta       map[string]any   `json:"meta,omitempty"`
 	NormHash   string           `json:"norm_hash,omitempty"`
+	UpdateAt   int64            `json:"update_at,omitempty"` // Timestamp in milliseconds
 }
 
 func (t *Translation) Clone() *Translation {
@@ -74,7 +80,37 @@ func (t *Translation) Clone() *Translation {
 		State:      t.State,
 		Meta:       meta,
 		NormHash:   t.NormHash,
+		UpdateAt:   t.UpdateAt,
 	}
+}
+
+// ToPostTranslation converts a Translation to a PostTranslation.
+// This is the canonical conversion function used throughout the codebase
+// to ensure consistent struct creation when populating post metadata.
+func (t *Translation) ToPostTranslation() *PostTranslation {
+	if t == nil {
+		return nil
+	}
+
+	// Extract source language from meta if available
+	var sourceLang string
+	if srcLang, ok := t.Meta["src_lang"].(string); ok {
+		sourceLang = srcLang
+	}
+
+	pt := &PostTranslation{
+		Type:       string(t.Type),
+		State:      string(t.State),
+		SourceLang: sourceLang,
+	}
+
+	if t.Type == TranslationTypeObject {
+		pt.Object = t.ObjectJSON
+	} else {
+		pt.Text = t.Text
+	}
+
+	return pt
 }
 
 func (t *Translation) IsValid() *AppError {
@@ -124,6 +160,25 @@ type AutoTranslationContextKey string
 const (
 	ContextKeyAutoTranslationPath AutoTranslationContextKey = "autotranslation_path"
 )
+
+// ErrAutoTranslationNotAvailable is returned when the auto-translation feature is not available
+// due to missing license, disabled feature flag, or disabled configuration.
+// Callers can check for this specific error to handle unavailability gracefully.
+type ErrAutoTranslationNotAvailable struct {
+	reason string
+}
+
+func (e *ErrAutoTranslationNotAvailable) Error() string {
+	if e.reason != "" {
+		return "auto-translation feature not available: " + e.reason
+	}
+	return "auto-translation feature not available"
+}
+
+// NewErrAutoTranslationNotAvailable creates a new ErrAutoTranslationNotAvailable error
+func NewErrAutoTranslationNotAvailable(reason string) *ErrAutoTranslationNotAvailable {
+	return &ErrAutoTranslationNotAvailable{reason: reason}
+}
 
 // AutoTranslationPath represents the code path that initiated a translation.
 // This enables observability (metrics) and path-specific behavior (timeouts).

@@ -631,6 +631,22 @@ func (s *TimerLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, i
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.SetActiveStatusMultiple(rctx, list)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.SetActiveStatusMultiple", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	start := time.Now()
 
@@ -790,6 +806,38 @@ func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 	return result, resultVar1
 }
 
+func (s *TimerLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetAllByStatePage", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetAllForObject(objectID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetAllForObject", success, elapsed)
+	}
+	return result, resultVar1
+}
+
 func (s *TimerLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
 	start := time.Now()
 
@@ -802,6 +850,22 @@ func (s *TimerLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang st
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetBatch", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetByStateOlderThan(state, olderThanMillis, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetByStateOlderThan", success, elapsed)
 	}
 	return result, resultVar1
 }
@@ -6790,6 +6854,22 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsForReporting(rctx, queryParams)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsForReporting", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -11522,6 +11602,22 @@ func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	return result, err
 }
 
+func (s *TimerLayerTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.GetTokenByTypeAndEmail(tokenType, email)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.GetTokenByTypeAndEmail", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	start := time.Now()
 
@@ -11650,7 +11746,7 @@ func (s *TimerLayerUserStore) AnalyticsActiveCount(timestamp int64, options mode
 	return result, err
 }
 
-func (s *TimerLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int64, error) {
+func (s *TimerLayerUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime int64, options model.UserCountOptions) (int32, error) {
 	start := time.Now()
 
 	result, err := s.UserStore.AnalyticsActiveCountForPeriod(startTime, endTime, options)
@@ -11805,6 +11901,22 @@ func (s *TimerLayerUserStore) DeactivateGuests() ([]string, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DeactivateGuests", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.DeactivateMagicLinkGuests()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DeactivateMagicLinkGuests", success, elapsed)
 	}
 	return result, err
 }

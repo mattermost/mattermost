@@ -113,6 +113,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
             isMilitaryTime: false,
             canMove: true,
             isChannelAutotranslated: false,
+            isBurnOnReadPost: false,
         };
 
         renderWithContext(

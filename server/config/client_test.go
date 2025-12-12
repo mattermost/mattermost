@@ -383,6 +383,46 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableUserManagedAttributes":       "false",
 			},
 		},
+		{
+			"burn on read enabled",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableBurnOnRead:          model.NewPointer(true),
+					BurnOnReadDurationMinutes: model.NewPointer("30"),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableBurnOnRead":          "true",
+				"BurnOnReadDurationMinutes": "30",
+			},
+		},
+		{
+			"burn on read disabled",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableBurnOnRead:          model.NewPointer(false),
+					BurnOnReadDurationMinutes: model.NewPointer("10"),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableBurnOnRead":          "false",
+				"BurnOnReadDurationMinutes": "10",
+			},
+		},
+		{
+			"burn on read default",
+			&model.Config{},
+			"",
+			nil,
+			map[string]string{
+				"EnableBurnOnRead":          "false",
+				"BurnOnReadDurationMinutes": "10",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {

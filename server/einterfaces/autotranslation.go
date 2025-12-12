@@ -13,6 +13,11 @@ import (
 // This interface provides methods for managing channel and user translation settings,
 // and performing translations on content.
 type AutoTranslationInterface interface {
+	// IsFeatureAvailable checks if the auto-translation feature is available.
+	// Returns true if license, feature flag, and config all allow auto-translation.
+	// Callers should check this before calling other methods to handle unavailability gracefully.
+	IsFeatureAvailable() bool
+
 	// IsChannelEnabled checks if auto-translation is enabled for a channel.
 	// Returns false if the feature is unavailable (license, config, etc.).
 	IsChannelEnabled(channelID string) (bool, *model.AppError)
@@ -31,8 +36,6 @@ type AutoTranslationInterface interface {
 	SetUserEnabled(channelID, userID string, enabled bool) *model.AppError
 
 	// Translate translates content in a channel.
-	// This method returns the translation for the requesting user immediately if available,
-	// and asynchronously fans out translations to other users with active WebSocket connections (ADLS).
 	//
 	// Parameters:
 	//   - ctx: context for cancellation, deadlines, and request-scoped values (e.g., translation path for metrics)
@@ -44,37 +47,29 @@ type AutoTranslationInterface interface {
 	//
 	// Returns:
 	//   - Translation with state indicating success, skip, or unavailability for the requesting user
-	//   - nil, nil if the user hasn't opted in or the source content language matches the user's preferred language (translations still fan out to other users)
-	//   - error if a critical failure occurs
+	//   - error if feature unavailable, critical failure occurs, or content contains no translatable text
 	Translate(ctx context.Context, objectType, objectID, channelID, userID string, content any) (*model.Translation, *model.AppError)
 
 	// GetBatch fetches a batch of translations for a list of object IDs and a destination language.
 	// This is used for efficiently populating translations for list views (e.g., channel history).
+	// Returns error if the feature is unavailable.
 	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
 
 	// GetUserLanguage returns the preferred language for a user in a channel if auto-translation is enabled.
-	// Returns the language code or error.
+	// Returns the language code or error if feature is unavailable.
 	GetUserLanguage(userID, channelID string) (string, *model.AppError)
 
-	// Detect detects the language of the provided content.
-	// The content can be a string, json.RawMessage, map[string]any, or *model.Post.
-	// Returns the ISO language code (e.g., "en", "es", "pt-BR") and an optional confidence score.
-	//
-	// Detection Strategy:
-	//   1. First, use local library-based detection (e.g., lingua-go) for fast, offline detection
-	//   2. If local detection fails or confidence is below threshold, fall back to provider's Detect API
-	//   3. If both fail, return empty string (caller should decide whether to translate or skip)
-	//
-	// Parameters:
-	//   - content: the content to detect language from (string, json.RawMessage, map[string]any, or *model.Post)
-	//
-	// Returns:
-	//   - lang: ISO language code (e.g., "en", "es", "fr"), empty if detection fails
-	//   - confidence: detection confidence (0.0 to 1.0), nil if not available
-	//   - error: only for critical failures, not for failed detection
-	Detect(text string) (lang string, confidence *float64, err *model.AppError)
+	// DetectRemote detects the language of the provided content using the remote provider.
+	// Returns error if the feature is unavailable.
+	DetectRemote(ctx context.Context, text string) (string, *float64, *model.AppError)
 
 	// Close cleans up resources used by the auto-translation implementation.
 	// This includes removing the config listener and shutting down the provider if present.
 	Close() error
+
+	// Start initializes and starts the auto-translation service, including workers.
+	Start() error
+
+	// Shutdown gracefully shuts down the auto-translation service.
+	Shutdown() error
 }

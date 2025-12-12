@@ -35,45 +35,6 @@ func (_m *AutoTranslationInterface) Close() error {
 	return r0
 }
 
-// Detect provides a mock function with given fields: text
-func (_m *AutoTranslationInterface) Detect(text string) (string, *float64, *model.AppError) {
-	ret := _m.Called(text)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Detect")
-	}
-
-	var r0 string
-	var r1 *float64
-	var r2 *model.AppError
-	if rf, ok := ret.Get(0).(func(string) (string, *float64, *model.AppError)); ok {
-		return rf(text)
-	}
-	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(text)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(string) *float64); ok {
-		r1 = rf(text)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*float64)
-		}
-	}
-
-	if rf, ok := ret.Get(2).(func(string) *model.AppError); ok {
-		r2 = rf(text)
-	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(*model.AppError)
-		}
-	}
-
-	return r0, r1, r2
-}
-
 // GetBatch provides a mock function with given fields: objectIDs, dstLang
 func (_m *AutoTranslationInterface) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
 	ret := _m.Called(objectIDs, dstLang)
@@ -231,6 +192,42 @@ func (_m *AutoTranslationInterface) SetUserEnabled(channelID string, userID stri
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
 		}
+	}
+
+	return r0
+}
+
+// Shutdown provides a mock function with no fields
+func (_m *AutoTranslationInterface) Shutdown() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Shutdown")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Start provides a mock function with no fields
+func (_m *AutoTranslationInterface) Start() error {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Start")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
 	}
 
 	return r0

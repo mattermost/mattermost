@@ -1136,6 +1136,50 @@ func TestShouldSendPushNotifications(t *testing.T) {
 		result := th.App.ShouldSendPushNotification(th.Context, user, channelNotifyProps, false, status, post, false)
 		assert.False(t, result)
 	})
+
+	t.Run("should return false if recipient is a bot", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return false if recipient is a bot even with force notification", func(t *testing.T) {
+		botUser := &model.User{Id: model.NewId(), Email: "bot@test.com", IsBot: true, NotifyProps: make(map[string]string)}
+		botUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: model.NewId(), ChannelId: model.NewId()}
+		post.AddProp(model.PostPropsForceNotification, model.NewId())
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: botUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, botUser, channelNotifyProps, true, status, post, false)
+		assert.False(t, result)
+	})
+
+	t.Run("should return true for regular user even when post author is a bot", func(t *testing.T) {
+		botId := model.NewId()
+		regularUser := &model.User{Id: model.NewId(), Email: "user@test.com", IsBot: false, NotifyProps: make(map[string]string)}
+		regularUser.NotifyProps[model.PushNotifyProp] = model.UserNotifyAll
+
+		post := &model.Post{UserId: botId, ChannelId: model.NewId()}
+
+		channelNotifyProps := map[string]string{model.PushNotifyProp: model.ChannelNotifyAll}
+
+		status := &model.Status{UserId: regularUser.Id, Status: model.StatusOnline, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+
+		result := th.App.ShouldSendPushNotification(th.Context, regularUser, channelNotifyProps, true, status, post, false)
+		assert.True(t, result)
+	})
 }
 
 // testPushNotificationHandler is an HTTP handler to record push notifications

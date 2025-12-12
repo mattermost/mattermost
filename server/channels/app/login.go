@@ -69,7 +69,7 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 			token = &model.Token{
 				Token:    cwsToken,
 				CreateAt: model.GetMillis(),
-				Type:     TokenTypeCWSAccess,
+				Type:     model.TokenTypeCWSAccess,
 			}
 			err := a.Srv().Store().Token().Save(token)
 			if err != nil {
