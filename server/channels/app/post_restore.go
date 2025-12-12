@@ -46,7 +46,7 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 	}
 
 	// Check if this is a page - pages require special handling for PageContents
-	if toRestorePostVersion.Type == model.PostTypePage {
+	if IsPagePost(toRestorePostVersion) {
 		return a.RestorePageVersion(rctx, userID, postID, restoreVersionID, toRestorePostVersion)
 	}
 

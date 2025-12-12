@@ -63,6 +63,20 @@ func (s *SqlWikiStore) getWikiPropertyFieldID(groupID string) (string, error) {
 	return fieldID, nil
 }
 
+func (s *SqlWikiStore) getWikiPropertyIDs() (groupID string, fieldID string, err error) {
+	groupID, err = s.getPagePropertyGroupID()
+	if err != nil {
+		return "", "", err
+	}
+
+	fieldID, err = s.getWikiPropertyFieldID(groupID)
+	if err != nil {
+		return "", "", err
+	}
+
+	return groupID, fieldID, nil
+}
+
 func (s *SqlWikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
 	wiki.PreSave()
 	if err := wiki.IsValid(); err != nil {
@@ -228,12 +242,7 @@ func (s *SqlWikiStore) Delete(id string, hard bool) error {
 }
 
 func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post, error) {
-	groupID, err := s.getPagePropertyGroupID()
-	if err != nil {
-		return nil, err
-	}
-
-	fieldID, err := s.getWikiPropertyFieldID(groupID)
+	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return nil, err
 	}
@@ -270,12 +279,7 @@ func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post
 }
 
 func (s *SqlWikiStore) GetPageByTitleInWiki(wikiId, title string) (*model.Post, error) {
-	groupID, err := s.getPagePropertyGroupID()
-	if err != nil {
-		return nil, err
-	}
-
-	fieldID, err := s.getWikiPropertyFieldID(groupID)
+	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return nil, err
 	}
@@ -399,12 +403,7 @@ func (s *SqlWikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error
 }
 
 func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
-	groupID, err := s.getPagePropertyGroupID()
-	if err != nil {
-		return err
-	}
-
-	fieldID, err := s.getWikiPropertyFieldID(groupID)
+	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return err
 	}
@@ -497,12 +496,7 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 }
 
 func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error {
-	groupID, err := s.getPagePropertyGroupID()
-	if err != nil {
-		return err
-	}
-
-	fieldID, err := s.getWikiPropertyFieldID(groupID)
+	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return err
 	}
@@ -629,12 +623,7 @@ func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId 
 }
 
 func (s *SqlWikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
-	groupID, err := s.getPagePropertyGroupID()
-	if err != nil {
-		return nil, err
-	}
-
-	fieldID, err := s.getWikiPropertyFieldID(groupID)
+	groupID, fieldID, err := s.getWikiPropertyIDs()
 	if err != nil {
 		return nil, err
 	}

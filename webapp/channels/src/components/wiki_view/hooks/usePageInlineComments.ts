@@ -19,6 +19,9 @@ import type {GlobalState} from 'types/store';
 
 import {useInlineComments} from './useInlineComments';
 
+const SCROLL_INTO_VIEW_DELAY_MS = 300;
+const HIGHLIGHT_ANIMATION_DURATION_MS = 2000;
+
 /**
  * Shared hook for managing inline comments in both PageViewer and WikiPageEditor.
  * Handles fetching comments, clicking on highlights, creating new comments, and RHS management.
@@ -201,9 +204,9 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 commentElement.classList.add('highlight-animation');
                 setTimeout(() => {
                     commentElement.classList.remove('highlight-animation');
-                }, 2000);
+                }, HIGHLIGHT_ANIMATION_DURATION_MS);
             }
-        }, 300);
+        }, SCROLL_INTO_VIEW_DELAY_MS);
     });
 
     // Update the ref on every render with the latest values
@@ -227,9 +230,9 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                     commentElement.classList.add('highlight-animation');
                     setTimeout(() => {
                         commentElement.classList.remove('highlight-animation');
-                    }, 2000);
+                    }, HIGHLIGHT_ANIMATION_DURATION_MS);
                 }
-            }, 300);
+            }, SCROLL_INTO_VIEW_DELAY_MS);
         };
     }, [isWikiRhsOpen, lastClickedCommentId, pageId, wikiId, dispatch]);
 

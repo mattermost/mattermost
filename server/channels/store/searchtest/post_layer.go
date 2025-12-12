@@ -305,6 +305,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchWikiPagesByTitle,
 		Tags: []string{EnginePostgres},
 	},
+	{
+		Name: "Existing channel modifiers work with pages",
+		Fn:   testSearchPagesWithChannelModifiers,
+		Tags: []string{EnginePostgres},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -2320,5 +2325,152 @@ func testSearchWikiPagesByTitle(t *testing.T, th *SearchTestHelper) {
 
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+}
+
+func testSearchPagesWithChannelModifiers(t *testing.T, th *SearchTestHelper) {
+	channel1, err := th.Store.Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.Team.Id,
+		DisplayName: "Wiki Channel",
+		Name:        "wiki-channel-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	defer th.deleteChannel(channel1)
+
+	_, err = th.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   channel1.Id,
+		UserId:      th.User.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	channel2, err := th.Store.Channel().Save(th.Context, &model.Channel{
+		TeamId:      th.Team.Id,
+		DisplayName: "Other Channel",
+		Name:        "other-channel-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+	defer th.deleteChannel(channel2)
+
+	_, err = th.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
+		ChannelId:   channel2.Id,
+		UserId:      th.User.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	regularPost1, err := th.createPost(th.User.Id, channel1.Id, "testing in wiki channel", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+
+	regularPost2, err := th.createPost(th.User.Id, channel2.Id, "testing in other channel", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+
+	wikiPage1, err := th.createPost(th.User.Id, channel1.Id, "", "", model.PostTypePage, 0, false)
+	require.NoError(t, err)
+
+	pageContent1 := &model.PageContent{
+		PageId: wikiPage1.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": "testing page in wiki channel",
+						},
+					},
+				},
+			},
+		},
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
+	_, err = th.Store.Page().SavePageContent(pageContent1)
+	require.NoError(t, err)
+
+	wikiPage2, err := th.createPost(th.User.Id, channel2.Id, "", "", model.PostTypePage, 0, false)
+	require.NoError(t, err)
+
+	pageContent2 := &model.PageContent{
+		PageId: wikiPage2.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": "testing page in other channel",
+						},
+					},
+				},
+			},
+		},
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
+	_, err = th.Store.Page().SavePageContent(pageContent2)
+	require.NoError(t, err)
+
+	defer th.deleteUserPosts(th.User.Id)
+
+	t.Run("in: modifier filters pages by channel", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:      "testing",
+			InChannels: []string{channel1.Id},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2, "Should find both regular post and page in channel1")
+		th.checkPostInSearchResults(t, regularPost1.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage1.Id, results.Posts)
+	})
+
+	t.Run("-in: modifier excludes pages from channel", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:            "testing",
+			ExcludedChannels: []string{channel1.Id},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2, "Should find both regular post and page in channel2, excluding channel1")
+		th.checkPostInSearchResults(t, regularPost2.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage2.Id, results.Posts)
+	})
+
+	t.Run("Multiple in: channels finds pages in both", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms:      "testing",
+			InChannels: []string{channel1.Id, channel2.Id},
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 4, "Should find both posts and pages in both channels")
+		th.checkPostInSearchResults(t, regularPost1.Id, results.Posts)
+		th.checkPostInSearchResults(t, regularPost2.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage1.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage2.Id, results.Posts)
+	})
+
+	t.Run("Pages searchable without channel filter", func(t *testing.T) {
+		params := &model.SearchParams{
+			Terms: "testing",
+		}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.GreaterOrEqual(t, len(results.Posts), 4, "Should find at least posts and pages from both channels")
+		th.checkPostInSearchResults(t, regularPost1.Id, results.Posts)
+		th.checkPostInSearchResults(t, regularPost2.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage1.Id, results.Posts)
+		th.checkPostInSearchResults(t, wikiPage2.Id, results.Posts)
 	})
 }

@@ -45,7 +45,7 @@ func (a *App) SetPageStatus(rctx request.CTX, pageId, status string) *model.AppE
 		return model.NewAppError("SetPageStatus", "app.page.set_status.page_not_found.app_error", nil, "", http.StatusNotFound).Wrap(getErr)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return model.NewAppError("SetPageStatus", "app.page.set_status.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -105,7 +105,7 @@ func (a *App) GetPageStatus(rctx request.CTX, pageId string) (string, *model.App
 		return "", model.NewAppError("GetPageStatus", "app.page.get_status.page_not_found.app_error", nil, "", http.StatusNotFound).Wrap(getErr)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return "", model.NewAppError("GetPageStatus", "app.page.get_status.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -225,7 +225,7 @@ func (a *App) validatePageStatus(field *model.PropertyField, status string) *mod
 // EnrichPageWithProperties adds property values to page props before returning to client.
 // This method reuses the batch enrichment logic to avoid redundant DB queries.
 func (a *App) EnrichPageWithProperties(rctx request.CTX, page *model.Post) *model.AppError {
-	if page == nil || page.Type != model.PostTypePage {
+	if !IsPagePost(page) {
 		return nil
 	}
 
@@ -268,7 +268,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 	// Collect all page IDs
 	pageIds := make([]string, 0, len(postList.Posts))
 	for _, page := range postList.Posts {
-		if page.Type == model.PostTypePage {
+		if IsPagePost(page) {
 			pageIds = append(pageIds, page.Id)
 		}
 	}
@@ -323,7 +323,7 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 
 	// Apply status and wiki_id to each page
 	for _, page := range postList.Posts {
-		if page.Type != model.PostTypePage {
+		if !IsPagePost(page) {
 			continue
 		}
 

@@ -227,6 +227,73 @@ func TestPageContentPreSave(t *testing.T) {
 		require.Contains(t, pc.SearchText, "bold text")
 		require.Contains(t, pc.SearchText, "Second paragraph")
 	})
+
+	t.Run("includes title in search text", func(t *testing.T) {
+		pc := &PageContent{
+			PageId: NewId(),
+			Title:  "Product Roadmap",
+			Content: TipTapDocument{
+				Type: "doc",
+				Content: []map[string]any{
+					{
+						"type": "paragraph",
+						"content": []any{
+							map[string]any{
+								"type": "text",
+								"text": "This is the content of the page",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		pc.PreSave()
+
+		require.NotEmpty(t, pc.SearchText)
+		require.Contains(t, pc.SearchText, "Product Roadmap", "Title should be included in search text")
+		require.Contains(t, pc.SearchText, "content of the page", "Content should also be included")
+	})
+
+	t.Run("handles title-only pages", func(t *testing.T) {
+		pc := &PageContent{
+			PageId: NewId(),
+			Title:  "Empty Page Title",
+			Content: TipTapDocument{
+				Type:    "doc",
+				Content: []map[string]any{},
+			},
+		}
+
+		pc.PreSave()
+
+		require.Equal(t, "Empty Page Title", pc.SearchText, "Title-only pages should have title as search text")
+	})
+
+	t.Run("handles content-only pages without title", func(t *testing.T) {
+		pc := &PageContent{
+			PageId: NewId(),
+			Title:  "",
+			Content: TipTapDocument{
+				Type: "doc",
+				Content: []map[string]any{
+					{
+						"type": "paragraph",
+						"content": []any{
+							map[string]any{
+								"type": "text",
+								"text": "Page content without title",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		pc.PreSave()
+
+		require.Equal(t, "Page content without title", pc.SearchText, "Content-only pages should work")
+	})
 }
 
 func TestPageContentSetGetDocumentJSON(t *testing.T) {

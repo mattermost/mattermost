@@ -153,7 +153,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 			nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if parentComment.Type != model.PostTypePageComment {
+	if !IsPageComment(parentComment) {
 		return nil, model.NewAppError("CreatePageCommentReply",
 			"app.page.create_comment_reply.parent_not_comment.app_error",
 			nil, "parent is not a page comment", http.StatusBadRequest)
@@ -209,7 +209,7 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 
 // TransformPageCommentReply transforms a post structure when replying to a page comment
 func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, parentComment *model.Post) bool {
-	if parentComment.Type != model.PostTypePageComment {
+	if !IsPageComment(parentComment) {
 		return false
 	}
 

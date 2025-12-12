@@ -18,7 +18,7 @@ func (a *App) CreateBookmarkFromPage(rctx request.CTX, pageId string, channelId 
 	}
 
 	// Verify page type
-	if page.Type != model.PostTypePage {
+	if !IsPagePost(page) {
 		return nil, model.NewAppError("CreateBookmarkFromPage", "app.channel.bookmark.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
 

@@ -330,7 +330,7 @@ func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.App
 		return err
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return model.NewAppError("DeleteWikiPage", "api.wiki.delete.not_a_page", nil, "", http.StatusBadRequest)
 	}
 
@@ -486,7 +486,7 @@ func (a *App) validateMovePageSource(rctx request.CTX, pageId, targetWikiId stri
 		return nil, "", model.NewAppError("validateMovePageSource", "app.page.move.page_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if page.Type != model.PostTypePage {
+	if !IsPagePost(page) {
 		return nil, "", model.NewAppError("validateMovePageSource", "app.page.move.not_a_page", nil, "", http.StatusBadRequest)
 	}
 
@@ -554,7 +554,7 @@ func (a *App) validateMovePageParent(rctx request.CTX, pageId, targetWikiId stri
 			"Parent page not found", http.StatusNotFound).Wrap(err)
 	}
 
-	if parentPage.Type != model.PostTypePage {
+	if !IsPagePost(parentPage) {
 		return model.NewAppError("validateMovePageParent", "app.page.move.parent_not_a_page", nil,
 			"Parent must be a page", http.StatusBadRequest)
 	}
@@ -646,7 +646,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.source_not_found", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if sourcePage.Type != model.PostTypePage {
+	if !IsPagePost(sourcePage) {
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.not_a_page", nil, "", http.StatusBadRequest)
 	}
 

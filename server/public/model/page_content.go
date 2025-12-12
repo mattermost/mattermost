@@ -131,7 +131,19 @@ func (pc *PageContent) PreSave() {
 		pc.UpdateAt = GetMillis()
 	}
 
-	pc.SearchText = extractSimpleText(pc.Content)
+	pc.SearchText = pc.buildSearchText()
+}
+
+func (pc *PageContent) buildSearchText() string {
+	titleText := cleanText(pc.Title)
+	contentText := extractSimpleText(pc.Content)
+
+	if titleText != "" && contentText != "" {
+		return titleText + " " + contentText
+	} else if titleText != "" {
+		return titleText
+	}
+	return contentText
 }
 
 func (pc *PageContent) SetDocumentJSON(contentJSON string) error {

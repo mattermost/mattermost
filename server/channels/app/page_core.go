@@ -172,7 +172,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		if err != nil {
 			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_parent.app_error", nil, "parent page not found", http.StatusBadRequest).Wrap(err)
 		}
-		if parentPost.Type != model.PostTypePage {
+		if !IsPagePost(parentPost) {
 			return nil, model.NewAppError("CreatePage", "app.page.create.parent_not_page.app_error", nil, "parent must be a page", http.StatusBadRequest)
 		}
 		if parentPost.ChannelId != channelID {
@@ -249,7 +249,7 @@ func (a *App) getPagePost(rctx request.CTX, pageID string) (*model.Post, *model.
 			nil, "page not found", http.StatusNotFound).Wrap(err)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return nil, model.NewAppError("getPagePost", "app.page.get.not_a_page.app_error",
 			nil, "post is not a page", http.StatusBadRequest)
 	}
@@ -469,7 +469,7 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return nil, model.NewAppError("UpdatePageWithOptimisticLocking", "app.page.update.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
 	}
 
@@ -554,7 +554,7 @@ func (a *App) DeletePage(rctx request.CTX, pageID string, wikiId ...string) *mod
 		return model.NewAppError("DeletePage", "app.page.delete.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(err)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return model.NewAppError("DeletePage", "app.page.delete.not_a_page.app_error", nil, "post is not a page", http.StatusBadRequest)
 	}
 
@@ -583,7 +583,7 @@ func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
 			"app.page.restore.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return model.NewAppError("RestorePage",
 			"app.page.restore.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -637,7 +637,7 @@ func (a *App) PermanentDeletePage(rctx request.CTX, pageID string) *model.AppErr
 			"app.page.permanent_delete.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
-	if post.Type != model.PostTypePage {
+	if !IsPagePost(post) {
 		return model.NewAppError("PermanentDeletePage",
 			"app.page.permanent_delete.not_a_page.app_error", nil, "", http.StatusBadRequest)
 	}

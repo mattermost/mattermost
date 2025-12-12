@@ -54,6 +54,26 @@ type postWithExtra struct {
 func (s *SqlPostStore) ClearCaches() {
 }
 
+// PageContentTypes returns the page and page comment types (user-created page content).
+// Use this for queries that need to identify or filter page content posts.
+func PageContentTypes() []string {
+	return []string{
+		model.PostTypePage,
+		model.PostTypePageComment,
+	}
+}
+
+// PageContentTypesSQL returns a SQL-formatted string of page content types for use in raw SQL queries.
+// Returns format: 'page', 'page_comment'
+func PageContentTypesSQL() string {
+	types := PageContentTypes()
+	quoted := make([]string, len(types))
+	for i, t := range types {
+		quoted[i] = "'" + t + "'"
+	}
+	return strings.Join(quoted, ", ")
+}
+
 // PageSystemPostTypes returns the list of system notification post types for pages/wiki.
 // This excludes PostTypePage itself, which represents the actual page content.
 // Use this for search queries that should include pages but exclude page system notifications.
@@ -71,13 +91,14 @@ func PageSystemPostTypes() []string {
 // PagePostTypes returns the list of post types related to pages/wiki functionality.
 // Use this for filtering or cleanup queries that need to target page-related posts.
 func PagePostTypes() []string {
-	return append([]string{model.PostTypePage}, PageSystemPostTypes()...)
+	return append(PageContentTypes(), PageSystemPostTypes()[1:]...) // Skip PostTypePageComment since it's in PageContentTypes
 }
 
-// addRegularPostsFilter adds the page exclusion filter to a query builder.
+// AddRegularPostsFilter adds the page exclusion filter to a query builder.
 // Use this for any query that should operate only on messages, not pages.
 // tableAlias should be the alias used for the Posts table in the query (e.g., "p" or "Posts").
-func (s *SqlPostStore) addRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuilder {
+// This is a standalone function (not a method) so it can be used by any store file.
+func AddRegularPostsFilter(qb sq.SelectBuilder, tableAlias string) sq.SelectBuilder {
 	if tableAlias == "" {
 		tableAlias = "Posts"
 	}
@@ -85,6 +106,18 @@ func (s *SqlPostStore) addRegularPostsFilter(qb sq.SelectBuilder, tableAlias str
 		sq.NotEq{tableAlias + ".Type": PagePostTypes()},
 		sq.Eq{tableAlias + ".Type": nil},
 	})
+}
+
+// isPageTypeClause returns the SQL clause for checking if a post IS a page type.
+// Use tableAlias to specify the table alias (e.g., "q2", "Posts").
+func isPageTypeClause(tableAlias string) string {
+	return fmt.Sprintf("%s.Type = '%s'", tableAlias, model.PostTypePage)
+}
+
+// isNotPageTypeClause returns the SQL clause for checking if a post is NOT a page type.
+// Use tableAlias to specify the table alias (e.g., "q2", "Posts").
+func isNotPageTypeClause(tableAlias string) string {
+	return fmt.Sprintf("%s.Type != '%s'", tableAlias, model.PostTypePage)
 }
 
 func postSliceColumnsWithTypes() []struct {
@@ -1366,7 +1399,7 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Eq{"Posts.RootId": ""})
-	query = s.addRegularPostsFilter(query, "Posts")
+	query = AddRegularPostsFilter(query, "Posts")
 	postFetchQuery, args, _ := query.
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
@@ -1452,7 +1485,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""})
-	query = s.addRegularPostsFilter(query, "Posts")
+	query = AddRegularPostsFilter(query, "Posts")
 	postFetchQuery, args, err := query.
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000).
@@ -2022,7 +2055,7 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 			sq.Eq{"p.ChannelId": channelId},
 		}).
 		OrderBy("p.CreateAt")
-	query = s.addRegularPostsFilter(query, "p")
+	query = AddRegularPostsFilter(query, "p")
 
 	if !includeDeleted {
 		query = query.Where(sq.Eq{"p.DeleteAt": 0})
@@ -2341,7 +2374,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// Build search clause that searches both regular posts and pages
 		// For regular posts: search Message field
 		// For pages: search PageContents.SearchText field
-		regularPostsClause := fmt.Sprintf("(q2.Type != '%s' AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", model.PostTypePage, textSearchCfg, searchType, textSearchCfg)
+		regularPostsClause := fmt.Sprintf("(%s AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", isNotPageTypeClause("q2"), textSearchCfg, searchType, textSearchCfg)
 
 		// UserId = '' means published content (drafts have non-empty UserId)
 		pageSearchSubquery := s.getSubQueryBuilder().
@@ -2358,7 +2391,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			return nil, errors.Wrap(err, "failed to build page search subquery")
 		}
 
-		pagesClause := fmt.Sprintf("(q2.Type = '%s' AND q2.Id IN (%s))", model.PostTypePage, pageSearchClause)
+		pagesClause := fmt.Sprintf("(%s AND q2.Id IN (%s))", isPageTypeClause("q2"), pageSearchClause)
 
 		// Combine args: one for regular posts, then page search args
 		combinedArgs := append([]any{tsQueryClause}, pageSearchArgs...)
@@ -2774,7 +2807,7 @@ func (s *SqlPostStore) PermanentDeleteBatchForRetentionPolicies(retentionPolicyB
 		Select("Posts.Id").
 		From("Posts")
 
-	builder = s.addRegularPostsFilter(builder, "Posts")
+	builder = AddRegularPostsFilter(builder, "Posts")
 
 	if retentionPolicyBatchConfigs.PreservePinnedPosts {
 		builder = builder.Where(sq.Or{
@@ -2985,7 +3018,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		OrderBy("p.Id").
 		Limit(uint64(limit))
 
-	query = s.addRegularPostsFilter(query, "p")
+	query = AddRegularPostsFilter(query, "p")
 
 	if !includeArchivedChannels {
 		query = query.Where(

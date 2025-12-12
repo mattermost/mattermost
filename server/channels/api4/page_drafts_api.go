@@ -271,22 +271,15 @@ func notifyEditorStopped(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
+	wiki, _, ok := c.RequireWikiReadPermission()
+	if !ok {
 		return
 	}
 
 	userId := c.AppContext.Session().UserId
 	pageId := c.Params.PageId
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPageEditorStopped, "", channel.Id, "", nil, "")
+	message := model.NewWebSocketEvent(model.WebsocketEventPageEditorStopped, "", wiki.ChannelId, "", nil, "")
 	message.Add("page_id", pageId)
 	message.Add("user_id", userId)
 	c.App.Publish(message)

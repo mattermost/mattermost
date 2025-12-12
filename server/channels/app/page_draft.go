@@ -329,7 +329,7 @@ func (a *App) validateDraftPermissions(rctx request.CTX, draft *model.PageDraft,
 
 	// Check if this is an update to an existing page
 	existingPage, _ := a.GetSinglePost(rctx, draft.PageId, false)
-	if existingPage != nil && existingPage.Type == model.PostTypePage {
+	if IsPagePost(existingPage) {
 		return a.HasPermissionToModifyPage(rctx, session, existingPage, PageOperationEdit, "validateDraftPermissions")
 	}
 
@@ -531,7 +531,7 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId,
 	// With unified page ID model, check if a published page exists with this draft's PageId
 	var isUpdate bool
 	existingPage, _ := a.GetSinglePost(rctx, draft.PageId, false)
-	if existingPage != nil && existingPage.Type == model.PostTypePage {
+	if IsPagePost(existingPage) {
 		isUpdate = true
 	}
 

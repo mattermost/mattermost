@@ -286,7 +286,13 @@ func getPageActiveEditors(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.RequireWikiReadPermission(); !ok {
+	_, channel, ok := c.RequireWikiReadPermission()
+	if !ok {
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -322,7 +328,13 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, _, ok := c.RequireWikiReadPermission(); !ok {
+	_, channel, ok := c.RequireWikiReadPermission()
+	if !ok {
+		return
+	}
+
+	if channel.DeleteAt != 0 {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 

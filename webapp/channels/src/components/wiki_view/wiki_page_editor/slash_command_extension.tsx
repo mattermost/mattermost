@@ -11,6 +11,9 @@ import {filterFormattingActions, type FormattingAction} from './formatting_actio
 import SlashCommandMenu from './slash_command_menu';
 import type {SlashCommandMenuRef} from './slash_command_menu';
 
+const SLASH_MENU_Z_INDEX = 1000;
+const SLASH_MENU_HEIGHT = 400;
+
 // Global state for slash command menu to prevent conflicts between multiple editor instances
 let globalExitTimeout: ReturnType<typeof setTimeout> | null = null;
 let globalLastValidRange: {from: number; to: number} | null = null;
@@ -108,9 +111,9 @@ export const SlashCommandExtension = Extension.create<SlashCommandOptions>({
                                 if (rect) {
                                     popup.style.position = 'absolute';
                                     popup.style.left = `${rect.left + window.scrollX}px`;
-                                    popup.style.zIndex = '1000';
+                                    popup.style.zIndex = String(SLASH_MENU_Z_INDEX);
 
-                                    const menuHeight = 400;
+                                    const menuHeight = SLASH_MENU_HEIGHT;
                                     const spaceBelow = window.innerHeight - rect.bottom;
                                     const spaceAbove = rect.top;
 

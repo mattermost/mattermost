@@ -247,20 +247,14 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// For DM/Group channels: check membership and ensure user is not a guest
+		// For DM/Group channels: check guest status first (prevents info leakage), then membership
+		if c.AppContext.Session().IsGuest() {
+			c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
 			c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
-			return
-		}
-
-		user, gAppErr := c.App.GetUser(c.AppContext.Session().UserId)
-		if gAppErr != nil {
-			c.Err = gAppErr
-			return
-		}
-
-		if user.IsGuest() {
-			c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.direct_or_group_channels_by_guests.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 	default:

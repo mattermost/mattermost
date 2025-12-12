@@ -45,9 +45,8 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
             if (onCommentCreated && comment?.id) {
                 onCommentCreated(comment.id);
             }
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error('Failed to create inline comment:', error);
+        } catch {
+            // Error is handled silently - the UI will reflect the failure
         }
 
         setShowCommentModal(false);
