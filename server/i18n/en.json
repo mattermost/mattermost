@@ -11354,7 +11354,7 @@
   },
   {
     "id": "store.sql_autotranslation.get_by_state_older_than.app_error",
-    "translation": ""
+    "translation": "Failed to retrieve translations by state and time."
   },
   {
     "id": "store.sql_autotranslation.get_channel_enabled.app_error",
