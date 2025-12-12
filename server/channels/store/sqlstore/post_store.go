@@ -152,6 +152,7 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 	maxDateNewRootPosts := make(map[string]int64)
 	rootIds := make(map[string]int)
 	maxDateRootIds := make(map[string]int64)
+	burnOnReadPosts := make(map[string]*model.TemporaryPost)
 	for idx, post := range posts {
 		if post.Id != "" && !post.IsRemote() {
 			return nil, idx, store.NewErrInvalidInput("Post", "id", post.Id)
@@ -163,6 +164,29 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 			return nil, idx, err
 		}
 		post.ValidateProps(rctx.Logger())
+
+		if post.Type == model.PostTypeBurnOnRead {
+			expireAt := post.GetProp(model.PostPropsExpireAt)
+			if expireAt == "" {
+				return nil, idx, errors.New("expire_at is required for burn on read posts")
+			}
+
+			if post.RootId != "" {
+				return nil, idx, errors.New("burn on read posts cannot have a root_id")
+			}
+
+			expireAtInt, ok := expireAt.(int64)
+			if !ok {
+				return nil, idx, fmt.Errorf("expire_at is not a valid int64: %s", expireAt)
+			}
+
+			burnOnReadPost, _, err := model.CreateTemporaryPost(post, expireAtInt)
+			if err != nil {
+				return nil, idx, errors.Wrap(err, "failed to create burn on read post")
+			}
+			burnOnReadPosts[post.Id] = burnOnReadPost
+			continue
+		}
 
 		if currentChannelCount, ok := channelNewPosts[post.ChannelId]; !ok {
 			if post.IsJoinLeaveMessage() {
@@ -239,6 +263,19 @@ func (s *SqlPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*m
 
 	if err = s.savePostsPersistentNotifications(transaction, posts); err != nil {
 		return nil, -1, errors.Wrap(err, "failed to save posts persistent notifications")
+	}
+
+	for _, post := range burnOnReadPosts {
+		tmpStore := s.SqlStore.TemporaryPost()
+		tps, ok := tmpStore.(*SqlTemporaryPostStore)
+		if !ok {
+			return nil, -1, errors.New("temporary post store is not a SqlTemporaryPostStore")
+		}
+
+		_, err = tps.saveT(transaction, post)
+		if err != nil {
+			return nil, -1, errors.Wrap(err, "failed to save burn on read post")
+		}
 	}
 
 	if err = transaction.Commit(); err != nil {
@@ -866,6 +903,10 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 		}
 
 		for _, p := range posts {
+			if p.Type == model.PostTypeBurnOnRead {
+				pl.BurnOnReadPosts[p.Id] = p
+			}
+
 			if p.Id == id {
 				// Based on the conditions above such as sq.Or{ sq.Eq{"p.Id": rootId}, sq.Eq{"p.RootId": rootId}, }
 				// posts may contain the "id" post which has already been fetched and added in the "pl"
@@ -1016,6 +1057,14 @@ func (s *SqlPostStore) permanentDelete(postIds []string) (err error) {
 		return err
 	}
 
+	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
+		return err
+	}
+
 	query := s.getQueryBuilder().
 		Delete("Posts").
 		Where(
@@ -1069,6 +1118,14 @@ func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) (err error
 
 	// Delete all the reactions on the comments
 	if err = s.permanentDeleteReactions(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentDeleteTemporaryPosts(transaction, postIds); err != nil {
+		return err
+	}
+
+	if err = s.permanentDeleteReadReceipts(transaction, postIds); err != nil {
 		return err
 	}
 
@@ -1152,6 +1209,14 @@ func (s *SqlPostStore) PermanentDeleteByChannel(rctx request.CTX, channelId stri
 			return err
 		}
 		time.Sleep(10 * time.Millisecond)
+
+		if err = s.permanentDeleteTemporaryPosts(transaction, ids); err != nil {
+			return err
+		}
+
+		if err = s.permanentDeleteReadReceipts(transaction, ids); err != nil {
+			return err
+		}
 
 		query := s.getQueryBuilder().
 			Delete("Posts").
@@ -2259,6 +2324,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
 	} else {
 		for _, p := range posts {
+			// exclude burn on read posts from search results
+			if p.Type == model.PostTypeBurnOnRead {
+				continue
+			}
 			if searchType == "Hashtags" {
 				exactMatch := false
 				for tag := range strings.SplitSeq(p.Hashtags, " ") {
@@ -2997,6 +3066,30 @@ func (s *SqlPostStore) permanentDeleteReactions(transaction *sqlxTxWrapper, post
 		return errors.Wrap(err, "failed to delete Reactions")
 	}
 
+	return nil
+}
+
+func (s *SqlPostStore) permanentDeleteReadReceipts(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("ReadReceipts").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete ReadReceipts")
+	}
+	return nil
+}
+
+func (s *SqlPostStore) permanentDeleteTemporaryPosts(transaction *sqlxTxWrapper, postIds []string) error {
+	query := s.getQueryBuilder().
+		Delete("TemporaryPosts").
+		Where(
+			sq.Eq{"PostId": postIds},
+		)
+	if _, err := transaction.ExecBuilder(query); err != nil {
+		return errors.Wrap(err, "failed to delete Threads")
+	}
 	return nil
 }
 

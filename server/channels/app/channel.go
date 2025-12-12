@@ -2891,6 +2891,7 @@ func (a *App) MarkChannelAsUnreadFromPost(rctx request.CTX, postID string, userI
 	if !collapsedThreadsSupported || !a.IsCRTEnabledForUser(rctx, userID) {
 		return a.markChannelAsUnreadFromPostCRTUnsupported(rctx, postID, userID)
 	}
+
 	post, err := a.GetSinglePost(rctx, postID, false)
 	if err != nil {
 		return nil, err

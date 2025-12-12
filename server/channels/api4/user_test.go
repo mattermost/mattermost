@@ -8233,40 +8233,118 @@ func TestUserUpdateEvents(t *testing.T) {
 
 	client1 := th.CreateClient()
 	th.LoginBasicWithClient(t, client1)
-	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client1)
-	resp := <-WebSocketClient.ResponseChannel
-	require.Equal(t, resp.Status, model.StatusOk)
+	wsClient1 := th.CreateConnectedWebSocketClientWithClient(t, client1)
 
 	client2 := th.CreateClient()
 	th.LoginBasic2WithClient(t, client2)
-	WebSocketClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
-	resp = <-WebSocketClient2.ResponseChannel
-	require.Equal(t, resp.Status, model.StatusOk)
+	wsClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
 
-	time.Sleep(1000 * time.Millisecond)
-
-	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		// trigger user update for onlineUser2
-		th.BasicUser.Nickname = "something_else"
-		ruser, _, err := client1.UpdateUser(context.Background(), th.BasicUser)
-		require.NoError(t, err)
-		CheckUserSanitization(t, ruser)
-
-		assertExpectedWebsocketEvent(t, WebSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+	t.Run("nickname", func(t *testing.T) {
+		assertUpdated := func(t *testing.T, event *model.WebSocketEvent, expectedNickname string) *model.User {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
-			// assert eventUser.Id is same as th.BasicUser.Id
-			assert.Equal(t, eventUser.Id, th.BasicUser.Id)
-			// assert eventUser.NotifyProps isn't empty
-			require.NotEmpty(t, eventUser.NotifyProps, "user event for source user should not be sanitized")
+			assert.Equal(t, th.BasicUser.Id, eventUser.Id)
+			assert.Equal(t, expectedNickname, eventUser.Nickname)
+
+			// Some fields must always be sanitized
+			CheckUserSanitization(t, eventUser)
+
+			return eventUser
+		}
+
+		t.Run("update", func(t *testing.T) {
+			th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+				newNickname := model.NewUsername()
+				th.BasicUser.Nickname = newNickname
+				_, _, err := client1.UpdateUser(context.Background(), th.BasicUser)
+				require.NoError(t, err)
+
+				assertExpectedWebsocketEvent(t, wsClient1, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newNickname)
+					assert.NotEmpty(t, eventUser.NotifyProps, "source user should keep notify_props")
+				})
+
+				assertExpectedWebsocketEvent(t, wsClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newNickname)
+					assert.Empty(t, eventUser.NotifyProps, "non-source users should have sanitized notify_props")
+				})
+			})
 		})
-		assertExpectedWebsocketEvent(t, WebSocketClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+
+		t.Run("patch", func(t *testing.T) {
+			th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+				newNickname := model.NewUsername()
+
+				_, _, err := client1.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+					Nickname: &newNickname,
+				})
+				require.NoError(t, err)
+
+				assertExpectedWebsocketEvent(t, wsClient1, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newNickname)
+					assert.NotEmpty(t, eventUser.NotifyProps, "source user should keep notify_props")
+				})
+
+				assertExpectedWebsocketEvent(t, wsClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newNickname)
+					assert.Empty(t, eventUser.NotifyProps, "non-source users should have sanitized notify_props")
+				})
+			})
+		})
+	})
+
+	t.Run("username", func(t *testing.T) {
+		assertUpdated := func(t *testing.T, event *model.WebSocketEvent, expectedUsername string) *model.User {
 			eventUser, ok := event.GetData()["user"].(*model.User)
 			require.True(t, ok, "expected user")
-			// assert eventUser.Id is same as th.BasicUser.Id
-			assert.Equal(t, eventUser.Id, th.BasicUser.Id)
-			// assert eventUser.NotifyProps is an empty map
-			require.Empty(t, eventUser.NotifyProps, "user event for non-source users should be sanitized")
+			assert.Equal(t, th.BasicUser.Id, eventUser.Id)
+			assert.Equal(t, expectedUsername, eventUser.Username)
+
+			// Some fields must always be sanitized
+			CheckUserSanitization(t, eventUser)
+
+			return eventUser
+		}
+
+		t.Run("update", func(t *testing.T) {
+			th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+				newUsername := model.NewUsername()
+
+				th.BasicUser.Username = newUsername
+				_, _, err := client1.UpdateUser(context.Background(), th.BasicUser)
+				require.NoError(t, err)
+
+				assertExpectedWebsocketEvent(t, wsClient1, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newUsername)
+					assert.NotEmpty(t, eventUser.NotifyProps, "source user should keep notify_props")
+				})
+
+				assertExpectedWebsocketEvent(t, wsClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newUsername)
+					assert.Empty(t, eventUser.NotifyProps, "non-source users should have sanitized notify_props")
+				})
+			})
+		})
+
+		t.Run("patch", func(t *testing.T) {
+			th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+				newUsername := model.NewUsername()
+
+				_, _, err := client1.PatchUser(context.Background(), th.BasicUser.Id, &model.UserPatch{
+					Username: &newUsername,
+				})
+				require.NoError(t, err)
+
+				assertExpectedWebsocketEvent(t, wsClient1, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newUsername)
+					assert.NotEmpty(t, eventUser.NotifyProps, "source user should keep notify_props")
+				})
+
+				assertExpectedWebsocketEvent(t, wsClient2, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+					eventUser := assertUpdated(t, event, newUsername)
+					assert.Empty(t, eventUser.NotifyProps, "non-source users should have sanitized notify_props")
+				})
+			})
 		})
 	})
 }

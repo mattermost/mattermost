@@ -4,16 +4,33 @@
 .BurnOnReadBadge {
     display: inline-flex;
     align-items: center;
+    padding: 0;
+    border: none;
     margin-left: 8px;
+    background: transparent;
+    cursor: pointer;
     vertical-align: middle;
 
-    .icon-fire {
-        color: var(--dnd-indicator, #D24B4E);
-        cursor: pointer;
-        font-size: 14px;
+    &:disabled {
+        cursor: default;
+    }
 
-        &:hover {
-            opacity: 0.8;
+    &__icon {
+        color: var(--dnd-indicator, #D24B4E);
+    }
+
+    &:hover:not(:disabled) &__icon {
+        opacity: 0.8;
+    }
+
+    &__tooltip-content {
+        .primary-text {
+            color: rgba(255, 255, 255, 1);
+        }
+
+        .secondary-text {
+            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.64);
         }
     }
 }

@@ -97,7 +97,8 @@ func IsOAuthAPICall(a *app.App, r *http.Request) bool {
 
 	if r.URL.Path == path.Join(subpath, "oauth", "apps", "authorized") ||
 		r.URL.Path == path.Join(subpath, "oauth", "deauthorize") ||
-		r.URL.Path == path.Join(subpath, "oauth", "access_token") {
+		r.URL.Path == path.Join(subpath, "oauth", "access_token") ||
+		r.URL.Path == path.Join(subpath, "oauth", "intune") {
 		return true
 	}
 	return false

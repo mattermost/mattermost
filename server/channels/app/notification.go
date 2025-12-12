@@ -172,7 +172,17 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		mlog.String("post_id", post.Id),
 	)
 
-	mentions, keywords := a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	var mentions *MentionResults
+	var keywords MentionKeywords
+	if post.Type == model.PostTypeBurnOnRead {
+		borPost, appErr := a.getBurnOnReadPost(store.RequestContextWithMaster(rctx), post)
+		if appErr != nil {
+			return nil, appErr
+		}
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, borPost, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	} else {
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	}
 
 	var allActivityPushUserIds []string
 	if channel.Type != model.ChannelTypeDirect {
