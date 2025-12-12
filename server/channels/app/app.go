@@ -97,6 +97,9 @@ func (a *App) Metrics() einterfaces.MetricsInterface {
 func (a *App) Notification() einterfaces.NotificationInterface {
 	return a.ch.Notification
 }
+func (a *App) AutoTranslation() einterfaces.AutoTranslationInterface {
+	return a.Srv().AutoTranslation
+}
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.ch.Saml
 }

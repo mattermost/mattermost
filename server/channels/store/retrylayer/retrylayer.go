@@ -874,6 +874,30 @@ func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 
 }
 
+func (s *RetryLayerAutoTranslationStore) GetAllByStatePage(state model.TranslationState, offset int, limit int) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetAllByStatePage(state, offset, limit)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetAllForObject(objectID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetBatch(objectIDs, dstLang)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.GetByStateOlderThan(state, olderThanMillis, limit)
+
+}
+
 func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 
 	return s.AutoTranslationStore.GetUserLanguage(userID, channelID)
