@@ -238,7 +238,7 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 	// Default objectType to "post" if not set
 	objectType := translation.ObjectType
 	if objectType == "" {
-		objectType = "post"
+		objectType = model.TranslationObjectTypePost
 	}
 
 	result := &model.Translation{
@@ -296,7 +296,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 		// Default objectType to "post" if not set
 		objectType := t.ObjectType
 		if objectType == "" {
-			objectType = "post"
+			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -308,6 +308,7 @@ func (s *SqlAutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (
 			State:      model.TranslationState(t.State),
 			NormHash:   t.NormHash,
 			Meta:       meta,
+			UpdateAt:   t.UpdateAt,
 		}
 
 		if modelT.Type == model.TranslationTypeObject {
@@ -353,7 +354,7 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Tra
 		// Default objectType to "post" if not set
 		objectType := t.ObjectType
 		if objectType == "" {
-			objectType = "post"
+			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -365,6 +366,7 @@ func (s *SqlAutoTranslationStore) GetAllForObject(objectID string) ([]*model.Tra
 			State:      model.TranslationState(t.State),
 			NormHash:   t.NormHash,
 			Meta:       meta,
+			UpdateAt:   t.UpdateAt,
 		}
 
 		if modelT.Type == model.TranslationTypeObject {
@@ -482,7 +484,7 @@ func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState
 		// Default objectType to "post" if not set
 		objectType := t.ObjectType
 		if objectType == "" {
-			objectType = "post"
+			objectType = model.TranslationObjectTypePost
 		}
 
 		modelT := &model.Translation{
@@ -494,6 +496,68 @@ func (s *SqlAutoTranslationStore) GetAllByStatePage(state model.TranslationState
 			State:      model.TranslationState(t.State),
 			NormHash:   t.NormHash,
 			Meta:       meta,
+			UpdateAt:   t.UpdateAt,
+		}
+
+		if modelT.Type == model.TranslationTypeObject {
+			modelT.ObjectJSON = json.RawMessage(t.Text)
+		} else {
+			modelT.Text = t.Text
+		}
+
+		result = append(result, modelT)
+	}
+
+	return result, nil
+}
+
+func (s *SqlAutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("ObjectType", "ObjectId", "DstLang", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
+		From("Translations").
+		Where(sq.Eq{"State": string(state)}).
+		Where(sq.Lt{"UpdateAt": olderThanMillis}).
+		OrderBy("UpdateAt ASC").
+		Limit(uint64(limit))
+
+	var translations []Translation
+	if err := s.GetReplica().SelectBuilder(&translations, query); err != nil {
+		return nil, model.NewAppError("SqlAutoTranslationStore.GetByStateOlderThan",
+			"store.sql_autotranslation.get_by_state_older_than.app_error", nil, err.Error(), 500)
+	}
+
+	result := make([]*model.Translation, 0, len(translations))
+	for _, t := range translations {
+		var translationTypeStr string
+
+		meta, err := t.Meta.ToMap()
+		if err != nil {
+			// Log error but continue with other translations
+			continue
+		}
+
+		if v, ok := meta["type"]; ok {
+			if s, ok := v.(string); ok {
+				translationTypeStr = s
+			}
+		}
+
+		// Default objectType to "post" if not set
+		objectType := t.ObjectType
+		if objectType == "" {
+			objectType = model.TranslationObjectTypePost
+		}
+
+		modelT := &model.Translation{
+			ObjectID:   t.ObjectID,
+			ObjectType: objectType,
+			Lang:       t.DstLang,
+			Type:       model.TranslationType(translationTypeStr),
+			Confidence: t.Confidence,
+			State:      model.TranslationState(t.State),
+			NormHash:   t.NormHash,
+			Meta:       meta,
+			UpdateAt:   t.UpdateAt,
 		}
 
 		if modelT.Type == model.TranslationTypeObject {

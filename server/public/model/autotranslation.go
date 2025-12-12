@@ -9,6 +9,11 @@ import (
 	"maps"
 )
 
+// TranslationObjectType identifies the type of object being translated
+const (
+	TranslationObjectTypePost = "post"
+)
+
 // TranslationType indicates the type of translated content
 type TranslationType string
 
@@ -40,6 +45,7 @@ type Translation struct {
 	State      TranslationState `json:"state"`
 	Meta       map[string]any   `json:"meta,omitempty"`
 	NormHash   string           `json:"norm_hash,omitempty"`
+	UpdateAt   int64            `json:"update_at,omitempty"` // Timestamp in milliseconds
 }
 
 func (t *Translation) Clone() *Translation {
@@ -74,6 +80,7 @@ func (t *Translation) Clone() *Translation {
 		State:      t.State,
 		Meta:       meta,
 		NormHash:   t.NormHash,
+		UpdateAt:   t.UpdateAt,
 	}
 }
 

@@ -27,7 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
-func dummyWebsocketHandler(tb testing.TB) http.HandlerFunc {
+func dummyWebsocketHandler(t *testing.T) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		upgrader := &websocket.Upgrader{
 			ReadBufferSize:  1024,
@@ -38,17 +38,15 @@ func dummyWebsocketHandler(tb testing.TB) http.HandlerFunc {
 			_, _, err = conn.ReadMessage()
 		}
 		if _, ok := err.(*websocket.CloseError); !ok {
-			assert.NoError(tb, err)
+			require.NoError(t, err)
 		}
 	}
 }
 
-func registerDummyWebConn(tb testing.TB, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
+func registerDummyWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
 	d := websocket.Dialer{}
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
-	if err != nil {
-		tb.Fatalf("Failed to dial websocket: %v", err)
-	}
+	require.NoError(t, err)
 
 	cfg := &WebConnConfig{
 		WebSocket: c,
@@ -57,10 +55,7 @@ func registerDummyWebConn(tb testing.TB, th *TestHelper, addr net.Addr, session 
 		Locale:    "en",
 	}
 	wc := th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
-
-	if err := th.Service.HubRegister(wc); err != nil {
-		tb.Fatalf("Failed to register WebConn: %v", err)
-	}
+	require.NoError(t, th.Service.HubRegister(wc))
 	go wc.Pump()
 	return wc
 }

@@ -179,6 +179,38 @@ func (_m *AutoTranslationStore) GetBatch(objectIDs []string, dstLang string) (ma
 	return r0, r1
 }
 
+// GetByStateOlderThan provides a mock function with given fields: state, olderThanMillis, limit
+func (_m *AutoTranslationStore) GetByStateOlderThan(state model.TranslationState, olderThanMillis int64, limit int) ([]*model.Translation, *model.AppError) {
+	ret := _m.Called(state, olderThanMillis, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByStateOlderThan")
+	}
+
+	var r0 []*model.Translation
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int64, int) ([]*model.Translation, *model.AppError)); ok {
+		return rf(state, olderThanMillis, limit)
+	}
+	if rf, ok := ret.Get(0).(func(model.TranslationState, int64, int) []*model.Translation); ok {
+		r0 = rf(state, olderThanMillis, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Translation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.TranslationState, int64, int) *model.AppError); ok {
+		r1 = rf(state, olderThanMillis, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUserLanguage provides a mock function with given fields: userID, channelID
 func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 	ret := _m.Called(userID, channelID)

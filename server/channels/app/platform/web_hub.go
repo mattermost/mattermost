@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strconv"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -94,9 +93,6 @@ type Hub struct {
 
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
-
-	// Pool for temporary maps to reduce allocations in hot paths
-	stringStructMapPool sync.Pool
 }
 
 // newWebHub creates a new Hub.
@@ -115,12 +111,6 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
 		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
-		stringStructMapPool: sync.Pool{
-			New: func() any {
-				// Pre-allocate with reasonable capacity hint
-				return make(map[string]struct{}, 64)
-			},
-		},
 	}
 }
 

@@ -4,16 +4,17 @@
 package model
 
 import (
+	"encoding/json"
 	"maps"
 )
 
 // PostTranslation represents a translation of a post in a specific language
 type PostTranslation struct {
-	Text       string   `json:"text"`
-	Type       string   `json:"type"`
-	Confidence *float64 `json:"confidence,omitempty"`
-	State      string   `json:"state"`
-	SourceLang string   `json:"source_lang,omitempty"` // Original language of the post
+	Text       string          `json:"text,omitempty"`   // Used when Type is "string"
+	Object     json.RawMessage `json:"object,omitempty"` // Used when Type is "object" (e.g., posts with attachments)
+	Type       string          `json:"type"`
+	State      string          `json:"state"`
+	SourceLang string          `json:"source_lang,omitempty"` // Original language of the post
 }
 
 type PostMetadata struct {
