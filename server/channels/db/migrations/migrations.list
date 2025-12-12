@@ -291,3 +291,5 @@ channels/db/migrations/postgres/000146_add_audience_and_resource_to_oauth.down.s
 channels/db/migrations/postgres/000146_add_audience_and_resource_to_oauth.up.sql
 channels/db/migrations/postgres/000147_create_autotranslation_tables.down.sql
 channels/db/migrations/postgres/000147_create_autotranslation_tables.up.sql
+channels/db/migrations/postgres/000148_add_burn_on_read_messages.down.sql
+channels/db/migrations/postgres/000148_add_burn_on_read_messages.up.sql
