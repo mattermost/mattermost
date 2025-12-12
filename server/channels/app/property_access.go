@@ -53,20 +53,38 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 
 // GetPropertyField retrieves a property field by group and field ID.
 // callerID identifies the caller (pluginID, userID, or empty string for system).
+// Field options are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) GetPropertyField(callerID string, groupID, id string) (*model.PropertyField, error) {
-	return pas.propertyService.GetPropertyField(groupID, id)
+	field, err := pas.propertyService.GetPropertyField(groupID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return pas.applyFieldReadAccessControl(field, callerID), nil
 }
 
 // GetPropertyFields retrieves multiple property fields by their IDs.
 // callerID identifies the caller (pluginID, userID, or empty string for system).
+// Field options are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) GetPropertyFields(callerID string, groupID string, ids []string) ([]*model.PropertyField, error) {
-	return pas.propertyService.GetPropertyFields(groupID, ids)
+	fields, err := pas.propertyService.GetPropertyFields(groupID, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return pas.applyFieldReadAccessControlToList(fields, callerID), nil
 }
 
 // GetPropertyFieldByName retrieves a property field by name.
 // callerID identifies the caller (pluginID, userID, or empty string for system).
+// Field options are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) GetPropertyFieldByName(callerID string, groupID, targetID, name string) (*model.PropertyField, error) {
-	return pas.propertyService.GetPropertyFieldByName(groupID, targetID, name)
+	field, err := pas.propertyService.GetPropertyFieldByName(groupID, targetID, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return pas.applyFieldReadAccessControl(field, callerID), nil
 }
 
 // CountActivePropertyFieldsForGroup counts active property fields for a group.
@@ -95,8 +113,14 @@ func (pas *PropertyAccessService) CountAllPropertyFieldsForTarget(callerID strin
 
 // SearchPropertyFields searches for property fields based on the given options.
 // callerID identifies the caller (pluginID, userID, or empty string for system).
+// Field options are filtered based on the caller's access permissions.
 func (pas *PropertyAccessService) SearchPropertyFields(callerID string, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	return pas.propertyService.SearchPropertyFields(groupID, opts)
+	fields, err := pas.propertyService.SearchPropertyFields(groupID, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return pas.applyFieldReadAccessControlToList(fields, callerID), nil
 }
 
 // UpdatePropertyField updates a property field.
@@ -505,4 +529,48 @@ func (pas *PropertyAccessService) filterSharedOnlyValue(field *model.PropertyFie
 		// Should never reach here due to check at function start
 		return nil
 	}
+}
+
+// applyFieldReadAccessControl applies read access control to a single field.
+// Returns the field with options filtered based on the caller's access permissions.
+// - Public fields: returned as-is
+// - Source-only fields: returned with empty options if caller is not the source plugin
+// - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
+// - Unknown access modes: treated as source-only (secure default)
+func (pas *PropertyAccessService) applyFieldReadAccessControl(field *model.PropertyField, callerID string) *model.PropertyField {
+	// Check if caller has unrestricted access (public field or source plugin for source_only)
+	if err := pas.checkUnrestrictedFieldReadAccess(field, callerID); err == nil {
+		// Unrestricted access - return as-is
+		return field
+	}
+
+	// Access requires filtering
+	accessMode := pas.getAccessMode(field)
+
+	// Shared-only fields: use existing helper to filter options
+	if accessMode == model.CustomProfileAttributesAccessModeSharedOnly {
+		return pas.filterSharedOnlyFieldOptions(field, callerID)
+	}
+
+	// Source-only or unknown: return with empty options (secure default)
+	filteredField := pas.copyPropertyField(field)
+	if field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect {
+		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+	}
+	return filteredField
+}
+
+// applyFieldReadAccessControlToList applies read access control to a list of fields.
+// Returns a new list with each field's options filtered based on the caller's access permissions.
+func (pas *PropertyAccessService) applyFieldReadAccessControlToList(fields []*model.PropertyField, callerID string) []*model.PropertyField {
+	if len(fields) == 0 {
+		return fields
+	}
+
+	filtered := make([]*model.PropertyField, 0, len(fields))
+	for _, field := range fields {
+		filtered = append(filtered, pas.applyFieldReadAccessControl(field, callerID))
+	}
+
+	return filtered
 }
