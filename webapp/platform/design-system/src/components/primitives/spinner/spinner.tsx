@@ -31,7 +31,7 @@ const Spinner: React.FC<SpinnerProps> = ({
     ...htmlProps
 }) => {
     // Calculate stroke width based on size (roughly 10% of size, with min/max bounds)
-    const strokeWidth = Math.max(1, Math.min(3, size * 0.1));
+    const strokeWidth = Math.max(1, Math.min(3, Math.round(size * 0.1)));
 
     const spinnerClasses = classNames(
         'Spinner',
