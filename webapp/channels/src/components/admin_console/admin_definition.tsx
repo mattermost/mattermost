@@ -9,6 +9,7 @@ import {Link} from 'react-router-dom';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon, TableLargeIcon} from '@mattermost/compass-icons/components';
 
+import {Posts} from 'mattermost-redux/constants';
 import {RESOURCE_KEYS} from 'mattermost-redux/constants/permissions_sysconsole';
 
 import {
@@ -3247,37 +3248,81 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     type: 'dropdown',
-                                    key: 'ServiceSettings.BurnOnReadDurationMinutes',
+                                    key: 'ServiceSettings.BurnOnReadDurationSeconds',
                                     label: defineMessage({id: 'admin.posts.burnOnRead.duration.title', defaultMessage: 'Burn-on-Read Duration'}),
                                     help_text: defineMessage({id: 'admin.posts.burnOnRead.duration.desc', defaultMessage: 'Sets the countdown duration for Burn-on-Read messages once they are revealed. After a recipient clicks to reveal a BoR message, the message will delete itself for that user after the specified duration. This setting applies to all Burn-on-Read messages.'}),
                                     help_text_markdown: false,
                                     options: [
                                         {
-                                            value: '1',
+                                            value: String(Posts.BURN_ON_READ.DURATION_1_MINUTE),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1min', defaultMessage: '1 minute'}),
                                         },
                                         {
-                                            value: '5',
+                                            value: String(Posts.BURN_ON_READ.DURATION_5_MINUTES),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.5min', defaultMessage: '5 minutes'}),
                                         },
                                         {
-                                            value: '10',
+                                            value: String(Posts.BURN_ON_READ.DURATION_10_MINUTES),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.10min', defaultMessage: '10 minutes'}),
                                         },
                                         {
-                                            value: '30',
+                                            value: String(Posts.BURN_ON_READ.DURATION_30_MINUTES),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.30min', defaultMessage: '30 minutes'}),
                                         },
                                         {
-                                            value: '60',
+                                            value: String(Posts.BURN_ON_READ.DURATION_1_HOUR),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1hour', defaultMessage: '1 hour'}),
                                         },
                                         {
-                                            value: '480',
+                                            value: String(Posts.BURN_ON_READ.DURATION_8_HOURS),
                                             display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.8hours', defaultMessage: '8 hours'}),
                                         },
                                     ],
-                                    onConfigLoad: (value: any) => value ?? '10',
+                                    onConfigLoad: (value: number | string | undefined) => String(value ?? Posts.BURN_ON_READ.DURATION_DEFAULT),
+                                    onConfigSave: (value: string | undefined) => (value ? parseInt(value, 10) : Posts.BURN_ON_READ.DURATION_DEFAULT),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
+                                {
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.title', defaultMessage: 'Maximum time to live for burn-on-read messages'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.desc', defaultMessage: 'Sets the maximum duration that Burn-on-Read messages will be allowed to exist for after they are sent. The message will be deleted after the specified time after it is sent, even if it is not read by all recipients by then.'}),
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_2_MINUTES),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.2minutes', defaultMessage: '2 minutes'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_5_MINUTES),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.5minutes', defaultMessage: '5 minutes'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_1_DAY),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.1day', defaultMessage: '1 day'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_3_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.3days', defaultMessage: '3 days'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_7_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.7days', defaultMessage: '7 days'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_14_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.14days', defaultMessage: '14 days'}),
+                                        },
+                                        {
+                                            value: String(Posts.BURN_ON_READ.MAX_TTL_30_DAYS),
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.maximumTTL.30days', defaultMessage: '30 days'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: number | string | undefined) => String(value ?? Posts.BURN_ON_READ.MAX_TTL_DEFAULT),
+                                    onConfigSave: (value: string | undefined) => (value ? parseInt(value, 10) : Posts.BURN_ON_READ.MAX_TTL_DEFAULT),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
                                         it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),

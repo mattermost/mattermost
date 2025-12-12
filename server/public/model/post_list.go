@@ -18,14 +18,18 @@ type PostList struct {
 	HasNext *bool `json:"has_next,omitempty"`
 	// If there are inaccessible posts, FirstInaccessiblePostTime is the time of the latest inaccessible post
 	FirstInaccessiblePostTime int64 `json:"first_inaccessible_post_time"`
+	// HasBurnOnRead indicates whether there are any burn on read posts in the list
+	// this is not sent to the client
+	BurnOnReadPosts map[string]*Post `json:"-"`
 }
 
 func NewPostList() *PostList {
 	return &PostList{
-		Order:      make([]string, 0),
-		Posts:      make(map[string]*Post),
-		NextPostId: "",
-		PrevPostId: "",
+		Order:           make([]string, 0),
+		Posts:           make(map[string]*Post),
+		NextPostId:      "",
+		PrevPostId:      "",
+		BurnOnReadPosts: make(map[string]*Post),
 	}
 }
 
@@ -36,6 +40,10 @@ func (o *PostList) Clone() *PostList {
 	for k, v := range o.Posts {
 		postsCopy[k] = v.Clone()
 	}
+	burnOnReadPostsCopy := make(map[string]*Post)
+	for k, v := range o.BurnOnReadPosts {
+		burnOnReadPostsCopy[k] = v.Clone()
+	}
 	return &PostList{
 		Order:                     orderCopy,
 		Posts:                     postsCopy,
@@ -43,6 +51,7 @@ func (o *PostList) Clone() *PostList {
 		PrevPostId:                o.PrevPostId,
 		HasNext:                   o.HasNext,
 		FirstInaccessiblePostTime: o.FirstInaccessiblePostTime,
+		BurnOnReadPosts:           burnOnReadPostsCopy,
 	}
 }
 
@@ -123,6 +132,10 @@ func (o *PostList) AddOrder(id string) {
 func (o *PostList) AddPost(post *Post) {
 	if o.Posts == nil {
 		o.Posts = make(map[string]*Post)
+	}
+
+	if post.Type == PostTypeBurnOnRead {
+		o.BurnOnReadPosts[post.Id] = post
 	}
 
 	o.Posts[post.Id] = post
