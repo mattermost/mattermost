@@ -237,22 +237,6 @@ export default function InviteView(props: Props) {
                     canInviteGuests={props.canInviteGuests}
                 />
                 }
-                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithMagicLink && (
-                    <div className='InviteView__guestMagicLinkSection'>
-                        <label className='InviteView__guestMagicLinkCheckbox'>
-                            <input
-                                type='checkbox'
-                                checked={props.useGuestMagicLink}
-                                onChange={props.toggleGuestMagicLink}
-                                data-testid='InviteView__guestMagicLinkCheckbox'
-                            />
-                            <FormattedMessage
-                                id='invite_modal.guest_magic_link'
-                                defaultMessage='Allow newly created guests to login without password'
-                            />
-                        </label>
-                    </div>
-                )}
                 {(props.inviteType === InviteType.GUEST || (props.inviteType === InviteType.MEMBER && props.channelToInvite)) && (
                     <AddToChannels
                         setCustomMessage={props.setCustomMessage}
@@ -268,6 +252,22 @@ export default function InviteView(props: Props) {
                         channelToInvite={props.channelToInvite}
                         inviteType={props.inviteType}
                     />
+                )}
+                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithMagicLink && (
+                    <div className='InviteView__guestMagicLinkSection'>
+                        <label className='InviteView__guestMagicLinkCheckbox'>
+                            <input
+                                type='checkbox'
+                                checked={props.useGuestMagicLink}
+                                onChange={props.toggleGuestMagicLink}
+                                data-testid='InviteView__guestMagicLinkCheckbox'
+                            />
+                            <FormattedMessage
+                                id='invite_modal.guest_magic_link'
+                                defaultMessage='Allow invited guests to log in with a magic link (without password)'
+                            />
+                        </label>
+                    </div>
                 )}
                 <OverageUsersBannerNotice/>
             </Modal.Body>

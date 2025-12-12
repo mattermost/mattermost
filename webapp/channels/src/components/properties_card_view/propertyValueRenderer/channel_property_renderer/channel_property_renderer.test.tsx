@@ -12,9 +12,9 @@ import {TestHelper} from 'utils/test_helper';
 
 import ChannelPropertyRenderer from './channel_property_renderer';
 
-jest.mock('components/common/hooks/useChannel');
+jest.mock('hooks/useChannel');
 
-const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<typeof import('hooks/useChannel').useChannel>;
+const mockUseChannel = require('hooks/useChannel').useChannel as jest.MockedFunction<typeof import('hooks/useChannel').useChannel>;
 
 describe('ChannelPropertyRenderer', () => {
     const mockChannel: Channel = {

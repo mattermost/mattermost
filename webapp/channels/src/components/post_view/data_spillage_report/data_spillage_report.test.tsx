@@ -16,25 +16,25 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
 
-jest.mock('components/common/hooks/useUser');
-jest.mock('components/common/hooks/useChannel');
-jest.mock('components/common/hooks/usePost');
+jest.mock('hooks/useUser');
+jest.mock('hooks/useChannel');
+jest.mock('hooks/usePost');
 jest.mock('mattermost-redux/actions/posts');
-jest.mock('components/common/hooks/useContentFlaggingFields');
-jest.mock('components/common/hooks/usePropertyCardViewChannelLoader');
-jest.mock('components/common/hooks/usePropertyCardViewTeamLoader');
-jest.mock('components/common/hooks/usePropertyCardViewPostLoader');
+jest.mock('hooks/useContentFlaggingFields');
+jest.mock('hooks/usePropertyCardViewChannelLoader');
+jest.mock('hooks/usePropertyCardViewTeamLoader');
+jest.mock('hooks/usePropertyCardViewPostLoader');
 
-const mockedUseUser = require('components/common/hooks/useUser').useUser as jest.MockedFunction<any>;
-const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
-const mockedUsePost = require('components/common/hooks/usePost').usePost as jest.MockedFunction<any>;
+const mockedUseUser = require('hooks/useUser').useUser as jest.MockedFunction<any>;
+const mockUseChannel = require('hooks/useChannel').useChannel as jest.MockedFunction<any>;
+const mockedUsePost = require('hooks/usePost').usePost as jest.MockedFunction<any>;
 
 const mockGetPost = require('mattermost-redux/actions/posts').getPost as jest.MockedFunction<any>;
-const useContentFlaggingFields = require('components/common/hooks/useContentFlaggingFields').useContentFlaggingFields as jest.MockedFunction<any>;
-const usePostContentFlaggingValues = require('components/common/hooks/useContentFlaggingFields').usePostContentFlaggingValues as jest.MockedFunction<any>;
-const usePropertyCardViewChannelLoader = require('components/common/hooks/usePropertyCardViewChannelLoader').usePropertyCardViewChannelLoader as jest.MockedFunction<any>;
-const usePropertyCardViewTeamLoader = require('components/common/hooks/usePropertyCardViewTeamLoader').usePropertyCardViewTeamLoader as jest.MockedFunction<any>;
-const usePropertyCardViewPostLoader = require('components/common/hooks/usePropertyCardViewPostLoader').usePropertyCardViewPostLoader as jest.MockedFunction<any>;
+const useContentFlaggingFields = require('hooks/useContentFlaggingFields').useContentFlaggingFields as jest.MockedFunction<any>;
+const usePostContentFlaggingValues = require('hooks/useContentFlaggingFields').usePostContentFlaggingValues as jest.MockedFunction<any>;
+const usePropertyCardViewChannelLoader = require('hooks/usePropertyCardViewChannelLoader').usePropertyCardViewChannelLoader as jest.MockedFunction<any>;
+const usePropertyCardViewTeamLoader = require('hooks/usePropertyCardViewTeamLoader').usePropertyCardViewTeamLoader as jest.MockedFunction<any>;
+const usePropertyCardViewPostLoader = require('hooks/usePropertyCardViewPostLoader').usePropertyCardViewPostLoader as jest.MockedFunction<any>;
 
 describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     const reportingUser = TestHelper.getUserMock({

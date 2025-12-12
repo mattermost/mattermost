@@ -23,6 +23,39 @@ type Props = {
 const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
     const {formatMessage} = useIntl();
 
+    const formatDuration = () => {
+        if (durationMinutes >= 60) {
+            const hours = Math.floor(durationMinutes / 60);
+            const remainingMinutes = durationMinutes % 60;
+
+            if (remainingMinutes === 0) {
+                return formatMessage(
+                    {
+                        id: 'burn_on_read.label.text.hours',
+                        defaultMessage: 'BURN ON READ ({hours}h)',
+                    },
+                    {hours},
+                );
+            }
+
+            return formatMessage(
+                {
+                    id: 'burn_on_read.label.text.hours_minutes',
+                    defaultMessage: 'BURN ON READ ({hours}h {minutes}m)',
+                },
+                {hours, minutes: remainingMinutes},
+            );
+        }
+
+        return formatMessage(
+            {
+                id: 'burn_on_read.label.text',
+                defaultMessage: 'BURN ON READ ({duration}m)',
+            },
+            {duration: durationMinutes},
+        );
+    };
+
     return (
         <div className='BurnOnReadLabel'>
             <div className='BurnOnReadLabel__badge'>
@@ -31,13 +64,7 @@ const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
                     className='BurnOnReadLabel__icon'
                 />
                 <span className='BurnOnReadLabel__text'>
-                    {formatMessage(
-                        {
-                            id: 'burn_on_read.label.text',
-                            defaultMessage: 'BURN ON READ ({duration}m)',
-                        },
-                        {duration: durationMinutes},
-                    )}
+                    {formatDuration()}
                 </span>
             </div>
             {canRemove && (

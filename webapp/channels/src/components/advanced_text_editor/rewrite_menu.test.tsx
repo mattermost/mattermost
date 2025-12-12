@@ -32,9 +32,9 @@ jest.mock('components/menu', () => ({
     ),
 }));
 
-jest.mock('components/common/agents/agent_dropdown', () => ({
+jest.mock('components/agent_dropdown', () => ({
     __esModule: true,
-    default: ({selectedBotId, onBotSelect, bots, disabled}: any) => (
+    AgentDropdown: ({selectedBotId, onBotSelect, bots, disabled}: any) => (
         <div data-testid='agent-dropdown'>
             <select
                 data-testid='agent-select'

@@ -7,7 +7,7 @@ import type {ComponentType} from 'react';
 
 import withUseGetUsageDeltas from './index';
 
-jest.mock('components/common/hooks/useGetUsageDeltas', () => jest.fn(() => ({
+jest.mock('hooks/useGetUsageDeltas', () => jest.fn(() => ({
     teams: {
         active: -1,
     },

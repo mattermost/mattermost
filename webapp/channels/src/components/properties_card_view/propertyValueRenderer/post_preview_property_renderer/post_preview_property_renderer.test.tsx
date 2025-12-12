@@ -20,14 +20,14 @@ import type {GlobalState} from 'types/store';
 
 import PostPreviewPropertyRenderer from './post_preview_property_renderer';
 
-jest.mock('components/common/hooks/useChannel');
-jest.mock('components/common/hooks/use_team');
-jest.mock('components/common/hooks/usePost');
+jest.mock('hooks/useChannel');
+jest.mock('hooks/use_team');
+jest.mock('hooks/usePost');
 jest.mock('mattermost-redux/client');
 
-const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
-const mockUseTeam = require('components/common/hooks/use_team').useTeam as jest.MockedFunction<any>;
-const mockedUsePost = require('components/common/hooks/usePost').usePost as jest.MockedFunction<any>;
+const mockUseChannel = require('hooks/useChannel').useChannel as jest.MockedFunction<any>;
+const mockUseTeam = require('hooks/use_team').useTeam as jest.MockedFunction<any>;
+const mockedUsePost = require('hooks/usePost').usePost as jest.MockedFunction<any>;
 const mockedClient4 = jest.mocked(Client4);
 
 describe('PostPreviewPropertyRenderer', () => {

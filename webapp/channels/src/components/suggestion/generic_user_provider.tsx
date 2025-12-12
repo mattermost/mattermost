@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import usePrefixedIds, {joinIds} from 'hooks/usePrefixedIds.js';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
@@ -11,6 +10,7 @@ import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
+import usePrefixedIds, {joinIds} from 'hooks/usePrefixedIds';
 import * as Utils from 'utils/utils';
 
 import type {UserAutocomplete, UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies.js';

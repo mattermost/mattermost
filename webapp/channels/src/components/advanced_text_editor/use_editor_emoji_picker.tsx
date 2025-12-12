@@ -17,24 +17,17 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import useEmojiPicker, {useEmojiPickerOffset} from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 
-import useDidUpdate from 'hooks/useDidUpdate';
+import {focusAndInsertText} from 'utils/exec_commands';
 import {horizontallyWithin} from 'utils/floating';
-import {splitMessageBasedOnCaretPosition} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
-import type {PostDraft} from 'types/store/draft';
 
 import {IconContainer} from './formatting_bar/formatting_icon';
 
 const useEditorEmojiPicker = (
     textboxId: string,
     isDisabled: boolean,
-    draft: PostDraft,
-    caretPosition: number,
-    setCaretPosition: (pos: number) => void,
-    handleDraftChange: (draft: PostDraft) => void,
     shouldShowPreview: boolean,
-    focusTextbox: () => void,
 ) => {
     const intl = useIntl();
 
@@ -42,12 +35,25 @@ const useEditorEmojiPicker = (
     const enableGifPicker = useSelector((state: GlobalState) => getConfig(state).EnableGifPicker === 'true');
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [emojiSelected, setEmojiSelected] = useState(false);
 
     const toggleEmojiPicker = useCallback((e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
         setShowEmojiPicker((prev) => !prev);
     }, []);
+
+    const insertTextAtCaret = useCallback((text: string) => {
+        const textbox = document.getElementById(textboxId) as HTMLTextAreaElement | undefined;
+        if (!textbox) {
+            return;
+        }
+
+        // Only add a space before the inserted text if we're not at the start of the textarea and there's not already
+        // a space there, but always add a space after the inserted text
+        const needsSpaceBefore = textbox.selectionStart !== 0 && !(/\s/).test(textbox.value[textbox.selectionStart - 1]);
+        const textToBeAdded = needsSpaceBefore ? ` ${text} ` : `${text} `;
+
+        focusAndInsertText(textbox, textToBeAdded);
+    }, [textboxId]);
 
     const handleEmojiClick = useCallback((emoji: Emoji) => {
         const emojiAlias = getEmojiName(emoji);
@@ -57,62 +63,16 @@ const useEditorEmojiPicker = (
             return;
         }
 
-        let newMessage;
-        if (draft.message === '') {
-            newMessage = `:${emojiAlias}: `;
-            setCaretPosition(newMessage.length);
-        } else {
-            const {message} = draft;
-            const {firstPiece, lastPiece} = splitMessageBasedOnCaretPosition(caretPosition, message);
+        insertTextAtCaret(`:${emojiAlias}:`);
 
-            // check whether the first piece of the message is empty when cursor is placed at beginning of message and avoid adding an empty string at the beginning of the message
-            newMessage =
-                firstPiece === '' ? `:${emojiAlias}: ${lastPiece}` : `${firstPiece} :${emojiAlias}: ${lastPiece}`;
-
-            const newCaretPosition =
-                firstPiece === '' ? `:${emojiAlias}: `.length : `${firstPiece} :${emojiAlias}: `.length;
-            setCaretPosition(newCaretPosition);
-        }
-
-        handleDraftChange({
-            ...draft,
-            message: newMessage,
-        });
-
-        setEmojiSelected(true);
         setShowEmojiPicker(false);
-    }, [draft, caretPosition, handleDraftChange, setCaretPosition]);
+    }, [insertTextAtCaret]);
 
     const handleGifClick = useCallback((gif: string) => {
-        let newMessage: string;
-        if (draft.message === '') {
-            newMessage = gif;
-        } else if ((/\s+$/).test(draft.message)) {
-            // Check whether there is already a blank at the end of the current message
-            newMessage = `${draft.message}${gif} `;
-        } else {
-            newMessage = `${draft.message} ${gif} `;
-        }
-
-        handleDraftChange({
-            ...draft,
-            message: newMessage,
-        });
+        insertTextAtCaret(gif);
 
         setShowEmojiPicker(false);
-    }, [draft, handleDraftChange]);
-
-    // Focus textbox when the emoji picker closes
-    useDidUpdate(() => {
-        if (!showEmojiPicker && emojiSelected) {
-            setEmojiSelected(false);
-
-            // Wait a frame to let the emoji picker's focus trap disappear before changing focus
-            requestAnimationFrame(() => {
-                focusTextbox();
-            });
-        }
-    }, [showEmojiPicker, emojiSelected]);
+    }, [insertTextAtCaret]);
 
     const {
         emojiPicker,
