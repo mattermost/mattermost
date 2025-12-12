@@ -80,9 +80,8 @@ describe('components/primitives/button', () => {
             const button = screen.getByRole('button');
             expect(button).toHaveAttribute('aria-busy', 'true');
 
-            const loadingStatus = screen.getByRole('status', {hidden: true});
+            const loadingStatus = screen.getByRole('status');
             expect(loadingStatus).toHaveAttribute('aria-label', 'Loading');
-            expect(loadingStatus).toHaveAttribute('aria-hidden', 'true');
         });
 
         test('should be focusable and have proper focus management', async () => {
@@ -106,7 +105,7 @@ describe('components/primitives/button', () => {
         test('should announce loading state to screen readers', () => {
             render(<Button loading>Save</Button>);
 
-            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
+            expect(screen.getByRole('status')).toBeInTheDocument();
             expect(screen.getByLabelText('Loading')).toBeInTheDocument();
         });
 
@@ -125,7 +124,7 @@ describe('components/primitives/button', () => {
             const button = screen.getByRole('button');
             expect(button).toBeInTheDocument();
             expect(button).toHaveAttribute('aria-busy', 'true');
-            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
+            expect(screen.getByRole('status')).toBeInTheDocument();
         });
     });
 
@@ -201,7 +200,7 @@ describe('components/primitives/button', () => {
         test('should render loading state correctly', () => {
             render(<Button loading>Loading Button</Button>);
 
-            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
+            expect(screen.getByRole('status')).toBeInTheDocument();
             expect(screen.getByRole('button')).toHaveClass('Button--loading');
         });
 
@@ -320,7 +319,7 @@ describe('components/primitives/button', () => {
 
             expect(screen.queryByTestId('icon-before')).not.toBeInTheDocument();
             expect(screen.queryByTestId('icon-after')).not.toBeInTheDocument();
-            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
+            expect(screen.getByRole('status')).toBeInTheDocument();
         });
 
         test('should apply correct icon classes based on size', () => {
