@@ -46,8 +46,11 @@ type AutoTranslationInterface interface {
 	//   - content: the content to translate (string, json.RawMessage, map[string]any or *model.Post)
 	//
 	// Returns:
-	//   - Translation with state indicating success, skip, or unavailability for the requesting user
-	//   - error if feature unavailable, critical failure occurs, or content contains no translatable text
+	//   - Translation object, nil error: Translation available or being created for the requesting user
+	//   - nil, nil: User has not opted in to auto-translation (not an error - user choice)
+	//   - nil, error: Feature unavailable, validation failed, DB error, or no translatable content
+	//
+	// Note: Translations are still initialized for other users even when returning nil, nil for a non-opted-in user.
 	Translate(ctx context.Context, objectType, objectID, channelID, userID string, content any) (*model.Translation, *model.AppError)
 
 	// GetBatch fetches a batch of translations for a list of object IDs and a destination language.
