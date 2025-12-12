@@ -263,6 +263,20 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Updating AllowOpenInvite or AllowedDomains requires InviteUser permission
+	if (team.AllowOpenInvite != oldTeam.AllowOpenInvite || team.AllowedDomains != oldTeam.AllowedDomains) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
+	auditRec.AddEventPriorState(oldTeam)
+
 	updatedTeam, err := c.App.UpdateTeam(&team)
 	if err != nil {
 		c.Err = err
