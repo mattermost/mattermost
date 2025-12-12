@@ -3696,6 +3696,8 @@
   "channel_info_rhs.about_area.edit_channel_header": "Edit channel header",
   "channel_info_rhs.about_area.edit_channel_name": "Rename channel",
   "channel_info_rhs.about_area.edit_channel_purpose": "Edit channel purpose",
+  "channel_info_rhs.archived.title": "This channel is archived.",
+  "channel_info_rhs.archived.unarchive": "Unarchive",
   "channel_info_rhs.edit_link": "Edit",
   "channel_info_rhs.header.title": "Info",
   "channel_info_rhs.menu.files": "Files",
