@@ -188,7 +188,7 @@
     "clean": "rm -rf dist node_modules .eslintcache .stylelintcache tsconfig.tsbuildinfo",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "i18n-extract": "formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names localizeMessage --ignore 'src/**/*.d.ts' --ignore 'src/**/*.test.{js,jsx,ts,tsx}' --out-file src/i18n/en.json --format scripts/formatter.js --id-interpolation-pattern '[sha512:contenthash:base64:6]' --preserve-whitespace",
-    "i18n-extract:check": "npm run i18n-extract -- --throws --out-file .i18n-check.tmp.json && diff src/i18n/en.json .i18n-check.tmp.json; node ../scripts/cleanup.js .i18n-check.tmp.json || (node ../scripts/cleanup.js .i18n-check.tmp.json && echo '\nen.json is out of sync with code. \nTo update: npm run i18n-extract' && exit 1)",
+    "i18n-extract:check": "npm run i18n-extract -- --throws --out-file .i18n-check.tmp.json && diff src/i18n/en.json .i18n-check.tmp.json && rm -f .i18n-check.tmp.json || (rm -f .i18n-check.tmp.json && echo '\nen.json is out of sync with code. \nTo update: npm run i18n-extract' && exit 1)",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }
