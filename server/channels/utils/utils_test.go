@@ -445,7 +445,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.NoError(t, err)
 	})
 
@@ -457,7 +457,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com:8080/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.NoError(t, err)
 	})
 
@@ -469,7 +469,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "http://example.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "scheme")
 	})
@@ -482,7 +482,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://malicious.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "host")
 	})
@@ -495,7 +495,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com:9090/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "host")
 	})
@@ -508,7 +508,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "://not-a-valid-url"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to parse redirect URL")
 	})
@@ -521,7 +521,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "SiteURL is not configured")
 	})
@@ -534,7 +534,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to parse SiteURL")
 	})
@@ -547,7 +547,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://app.example.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.NoError(t, err)
 	})
 
@@ -559,7 +559,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://api.example.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "host")
 	})
@@ -572,7 +572,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/mattermost/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.NoError(t, err)
 	})
 
@@ -584,7 +584,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback?state=abc123&code=def456"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.NoError(t, err)
 	})
 
@@ -596,7 +596,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://example.com/oauth/callback#token=abc123"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.NoError(t, err)
 	})
 
@@ -608,7 +608,7 @@ func TestIsValidWebAuthRedirectURL(t *testing.T) {
 		}
 		redirectURL := "https://qa-release.test.mattermost.cloud@example.com/oauth/callback"
 
-		err := IsValidWebAuthRedirectURL(config, redirectURL)
+		err := ValidateWebAuthRedirectUrl(config, redirectURL)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "host")
 	})

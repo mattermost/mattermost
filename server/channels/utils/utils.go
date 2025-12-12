@@ -188,8 +188,8 @@ func AppendQueryParamsToURL(baseURL string, params map[string]string) string {
 	return u.String()
 }
 
-// Validates RedirectURL passed during OAuth or SAML
-func IsValidWebAuthRedirectURL(config *model.Config, redirectURL string) error {
+// ValidateWebAuthRedirectUrl validates a RedirectURL passed during OAuth or SAML.
+func ValidateWebAuthRedirectUrl(config *model.Config, redirectURL string) error {
 	u, err := url.Parse(redirectURL)
 	if err != nil {
 		return errors.Wrap(err, "failed to parse redirect URL")

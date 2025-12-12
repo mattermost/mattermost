@@ -465,7 +465,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	desktopToken := r.URL.Query().Get("desktop_token")
 
 	if redirectURL != "" {
-		if err := utils.IsValidWebAuthRedirectURL(c.App.Config(), redirectURL); err != nil {
+		if err := utils.ValidateWebAuthRedirectUrl(c.App.Config(), redirectURL); err != nil {
 			c.Err = model.NewAppError("loginWithOAuth", "api.invalid_redirect_url", nil, err.Error(), http.StatusBadRequest)
 			return
 		}
