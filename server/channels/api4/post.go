@@ -1637,7 +1637,7 @@ func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "post_id", postId)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
 
-	post, err := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	post, err, isMember := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
 	if err != nil {
 		c.Err = err
 		if err.Id == "app.post.cloud.get.app_error" {
@@ -1670,6 +1670,10 @@ func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isMember {
+		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+	}
+
 	auditRec.Success()
 	auditRec.AddEventResultState(revealedPost)
 
@@ -1694,7 +1698,7 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "post_id", postId)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
 
-	post, err := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	post, err, _ := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
 	if err != nil {
 		c.Err = err
 		if err.Id == "app.post.cloud.get.app_error" {

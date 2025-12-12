@@ -508,15 +508,17 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		}
 
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelTypeOpen && a.HasPermissionToReadChannel(rctx, post.UserId, mentioned) {
-				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
-				if err != nil {
-					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
-					continue
-				}
-				channelMentionsProp[mentioned.Name] = map[string]any{
-					"display_name": mentioned.DisplayName,
-					"team_name":    team.Name,
+			if mentioned.Type == model.ChannelTypeOpen {
+				if ok, _ := a.HasPermissionToReadChannel(rctx, post.UserId, mentioned); ok {
+					team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
+					if err != nil {
+						rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))
+						continue
+					}
+					channelMentionsProp[mentioned.Name] = map[string]any{
+						"display_name": mentioned.DisplayName,
+						"team_name":    team.Name,
+					}
 				}
 			}
 		}
