@@ -533,6 +533,11 @@ export function autoPlanMentions(text: string, tokens: Tokens): string {
 
 const INLINE_ENTITY_REGEX = /\[(POST|CHANNEL|TEAM):([^\]]+)\]/gi;
 
+// Strips inline entity tokens like [POST:id], [CHANNEL:id], [TEAM:id] from text
+export function stripInlineEntities(text: string): string {
+    return text.replace(INLINE_ENTITY_REGEX, '');
+}
+
 export function autolinkInlineEntities(text: string, tokens: Tokens, allowed?: string[]): string {
     const allowedSet = new Set((allowed || [
         Constants.InlineEntityTypes.POST,

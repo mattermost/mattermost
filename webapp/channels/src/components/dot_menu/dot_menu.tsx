@@ -44,6 +44,7 @@ import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
+import {stripInlineEntities} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
@@ -241,7 +242,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
     };
 
     copyText = () => {
-        Utils.copyToClipboard(this.props.post.message_source || this.props.post.message);
+        const text = this.props.post.message_source || this.props.post.message;
+        Utils.copyToClipboard(stripInlineEntities(text));
     };
 
     handlePinMenuItemActivated = (): void => {

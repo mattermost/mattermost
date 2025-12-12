@@ -16,8 +16,11 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
-// StripMarkdown remove some markdown syntax
+// StripMarkdown remove some markdown syntax and inline entity tokens
 func StripMarkdown(markdown string) (string, error) {
+	// First strip inline entity tokens
+	markdown = StripInlineEntities(markdown)
+
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.Strikethrough),
 		goldmark.WithRenderer(
@@ -37,6 +40,12 @@ func StripMarkdown(markdown string) (string, error) {
 
 var relLinkReg = regexp.MustCompile(`\[(.*)]\((/.*)\)`)
 var blockquoteReg = regexp.MustCompile(`^|\n(&gt;)`)
+var inlineEntityRegex = regexp.MustCompile(`\[(POST|CHANNEL|TEAM):[^\]]+\]`)
+
+// StripInlineEntities removes inline entity tokens like [POST:id], [CHANNEL:id], [TEAM:id] from text
+func StripInlineEntities(text string) string {
+	return inlineEntityRegex.ReplaceAllString(text, "")
+}
 
 // MarkdownToHTML takes a string containing Markdown and returns a string with HTML tagged version
 func MarkdownToHTML(markdown, siteURL string) (string, error) {

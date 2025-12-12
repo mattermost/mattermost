@@ -41,6 +41,7 @@ type Props = {
 const OPTIONS = {
     disableGroupHighlight: true,
     mentionHighlight: false,
+    inlineEntities: true,
 };
 
 function PanelBody({
