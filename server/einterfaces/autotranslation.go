@@ -13,6 +13,11 @@ import (
 // This interface provides methods for managing channel and user translation settings,
 // and performing translations on content.
 type AutoTranslationInterface interface {
+	// IsFeatureAvailable checks if the auto-translation feature is available.
+	// Returns true if license, feature flag, and config all allow auto-translation.
+	// Callers should check this before calling other methods to handle unavailability gracefully.
+	IsFeatureAvailable() bool
+
 	// IsChannelEnabled checks if auto-translation is enabled for a channel.
 	// Returns false if the feature is unavailable (license, config, etc.).
 	IsChannelEnabled(channelID string) (bool, *model.AppError)
@@ -42,17 +47,21 @@ type AutoTranslationInterface interface {
 	//
 	// Returns:
 	//   - Translation with state indicating success, skip, or unavailability for the requesting user
-	//   - nil, nil if the user hasn't opted in or the source content language matches the user's preferred language (translations still fans out to channel)
-	//   - error if a critical failure occurs
+	//   - error if feature unavailable, critical failure occurs, or content contains no translatable text
 	Translate(ctx context.Context, objectType, objectID, channelID, userID string, content any) (*model.Translation, *model.AppError)
 
 	// GetBatch fetches a batch of translations for a list of object IDs and a destination language.
 	// This is used for efficiently populating translations for list views (e.g., channel history).
+	// Returns error if the feature is unavailable.
 	GetBatch(objectIDs []string, dstLang string) (map[string]*model.Translation, *model.AppError)
 
 	// GetUserLanguage returns the preferred language for a user in a channel if auto-translation is enabled.
-	// Returns the language code or error.
+	// Returns the language code or error if feature is unavailable.
 	GetUserLanguage(userID, channelID string) (string, *model.AppError)
+
+	// DetectRemote detects the language of the provided content using the remote provider.
+	// Returns error if the feature is unavailable.
+	DetectRemote(ctx context.Context, text string) (string, *float64, *model.AppError)
 
 	// Close cleans up resources used by the auto-translation implementation.
 	// This includes removing the config listener and shutting down the provider if present.

@@ -92,7 +92,8 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 // Posts from WebSocket broadcasts (post_created) already have translations populated.
 // This function handles API requests (GetPostsForChannel, etc.) by fetching only the user's language.
 func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostList) {
-	if a.AutoTranslation() == nil {
+	// Check if auto-translation is available before making database calls
+	if a.AutoTranslation() == nil || !a.AutoTranslation().IsFeatureAvailable() {
 		return
 	}
 
@@ -117,13 +118,27 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 	// For API requests, fetch only the user's language translation
 	for channelID, postIDs := range postsNeedingTranslations {
 		userLang, err := a.AutoTranslation().GetUserLanguage(userID, channelID)
-		if err != nil || userLang == "" {
+		if err != nil {
+			var notAvailErr *model.ErrAutoTranslationNotAvailable
+			if !errors.As(err, &notAvailErr) {
+				// Log non-availability errors
+				rctx.Logger().Warn("Failed to get user language for auto-translation", mlog.String("channel_id", channelID), mlog.Err(err))
+			}
+			continue
+		}
+		if userLang == "" {
 			continue
 		}
 
 		translationsMap, err := a.AutoTranslation().GetBatch(postIDs, userLang)
 		if err != nil {
-			rctx.Logger().Warn("Failed to fetch translations batch", mlog.Err(err))
+			var notAvailErr *model.ErrAutoTranslationNotAvailable
+			if errors.As(err, &notAvailErr) {
+				rctx.Logger().Debug("Auto-translation feature not available during GetBatch", mlog.Err(err))
+			} else {
+				// Real error - log it
+				rctx.Logger().Warn("Failed to fetch translations batch", mlog.Err(err))
+			}
 			continue
 		}
 
@@ -137,25 +152,7 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 				post.Metadata.Translations = make(map[string]*model.PostTranslation)
 			}
 
-			// Extract source language from meta if available
-			var sourceLang string
-			if srcLang, ok := t.Meta["src_lang"].(string); ok {
-				sourceLang = srcLang
-			}
-
-			pt := &model.PostTranslation{
-				Type:       string(t.Type),
-				State:      string(t.State),
-				SourceLang: sourceLang,
-			}
-
-			if t.Type == model.TranslationTypeObject {
-				pt.Object = t.ObjectJSON
-			} else {
-				pt.Text = t.Text
-			}
-
-			post.Metadata.Translations[t.Lang] = pt
+			post.Metadata.Translations[t.Lang] = t.ToPostTranslation()
 		}
 	}
 }

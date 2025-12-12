@@ -386,10 +386,23 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	// Initialize translations for the post before sending WebSocket events
 	// This ensures translation metadata is included in the 'posted' event
-	if a.AutoTranslation() != nil {
+	// Check if auto-translation is available before making database calls
+	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
 		enabled, err := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
 		if err == nil && enabled {
-			_, _ = a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			_, translateErr := a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
+			if translateErr != nil {
+				var notAvailErr *model.ErrAutoTranslationNotAvailable
+				if errors.As(translateErr, &notAvailErr) {
+					// Feature not available - log at debug level and continue
+					rctx.Logger().Debug("Auto-translation feature not available", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				} else if translateErr.Id == "ent.autotranslation.no_translatable_content" {
+					// No translatable content (only URLs/mentions) - this is expected, don't log
+				} else {
+					// Unexpected error - log at warn level but don't fail post creation
+					rctx.Logger().Warn("Failed to translate post", mlog.String("post_id", rpost.Id), mlog.Err(translateErr))
+				}
+			}
 		} else if err != nil {
 			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
 		}

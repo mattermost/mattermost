@@ -8,15 +8,6 @@ import (
 	"maps"
 )
 
-// PostTranslation represents a translation of a post in a specific language
-type PostTranslation struct {
-	Text       string          `json:"text,omitempty"`   // Used when Type is "string"
-	Object     json.RawMessage `json:"object,omitempty"` // Used when Type is "object" (e.g., posts with attachments)
-	Type       string          `json:"type"`
-	State      string          `json:"state"`
-	SourceLang string          `json:"source_lang,omitempty"` // Original language of the post
-}
-
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -45,6 +36,15 @@ type PostMetadata struct {
 
 	// Translations holds translation data for configured target languages, keyed by language code
 	Translations map[string]*PostTranslation `json:"translations,omitempty"`
+}
+
+// PostTranslation represents a translation of a post in a specific language
+type PostTranslation struct {
+	Text       string          `json:"text,omitempty"`   // Used when Type is "string"
+	Object     json.RawMessage `json:"object,omitempty"` // Used when Type is "object"
+	Type       string          `json:"type"`
+	State      string          `json:"state"`
+	SourceLang string          `json:"source_lang,omitempty"` // Original language of the post
 }
 
 func (p *PostMetadata) Auditable() map[string]any {
