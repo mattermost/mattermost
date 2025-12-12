@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
@@ -29,6 +30,21 @@ const Divider = styled.div`
     width: 88%;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.04);
     margin: 0 auto;
+`;
+
+const ArchivedNoticeContainer = styled.div`
+    margin: 24px 24px 0 24px;
+`;
+
+const ArchivedNotice = styled.div`
+    .sectionNoticeIcon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .sectionNoticeTitle {
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+    }
 `;
 
 export interface DMUser {
@@ -153,18 +169,30 @@ const ChannelInfoRhs = ({
             className='sidebar-right__body'
         >
             <Header
-                channel={channel}
-                isArchived={isArchived}
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
             />
+            {isArchived && (
+                <ArchivedNoticeContainer className='sectionNoticeContainer warning'>
+                    <ArchivedNotice className='sectionNoticeContent'>
+                        <i className='icon icon-archive-outline sectionNoticeIcon'/>
+                        <h4 className='sectionNoticeTitle'>
+                            <FormattedMessage
+                                id='channel_info_rhs.archived.title'
+                                defaultMessage='This channel is archived'
+                            />
+                        </h4>
+                    </ArchivedNotice>
+                </ArchivedNoticeContainer>
+            )}
             <TopButtons
                 channelType={channel.type}
                 channelURL={channelURL}
                 isFavorite={isFavorite}
                 isMuted={isMuted}
                 isInvitingPeople={isInvitingPeople}
-                canAddPeople={canManageMembers}
+                isArchived={isArchived}
+                canAddPeople={!isArchived && canManageMembers}
                 actions={{toggleFavorite, toggleMute, addPeople}}
             />
             <AboutArea

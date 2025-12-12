@@ -14,9 +14,10 @@ import LineLimiter from './components/linelimiter';
 
 const ChannelName = styled.div`
     margin-bottom: 12px;
-    font-size: 18px;
+    font-size: 20px;
     font-family: Metropolis, sans-serif;
     font-weight: 600;
+    letter-spacing: -0.01em;
 `;
 
 const ChannelId = styled.div`
@@ -36,13 +37,13 @@ const ChannelPurpose = styled.div`
 
 const ChannelDescriptionHeading = styled.div`
     color: rgba(var(--center-channel-color-rgb), 0.75);
-    font-size: 12px;
+    font-size: 11px;
     font-style: normal;
     font-weight: 600;
     line-height: 16px;
     letter-spacing: 0.24px;
     text-transform: uppercase;
-    padding: 6px 0px;
+    padding: 4px 0px;
 `;
 
 const ChannelHeader = styled.div`
