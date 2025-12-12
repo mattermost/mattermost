@@ -387,10 +387,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// Initialize translations for the post before sending WebSocket events
 	// This ensures translation metadata is included in the 'posted' event
 	if a.AutoTranslation() != nil {
-		enabled, err := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
-		if err == nil && enabled {
+		enabled, atErr := a.AutoTranslation().IsChannelEnabled(rpost.ChannelId)
+		if atErr == nil && enabled {
 			_, _ = a.AutoTranslation().Translate(rctx.Context(), model.TranslationObjectTypePost, rpost.Id, rpost.ChannelId, rpost.UserId, rpost)
-		} else if err != nil {
+		} else if atErr != nil {
 			rctx.Logger().Warn("Failed to check if channel is enabled for auto-translation", mlog.String("channel_id", rpost.ChannelId), mlog.Err(err))
 		}
 	}
@@ -2848,7 +2848,7 @@ func (a *App) RewriteMessage(
 	}
 
 	// Prepare completion request in the format expected by the client
-	client := a.getBridgeClient(rctx.Session().UserId)
+	client := a.GetBridgeClient(rctx.Session().UserId)
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
 			{Role: "system", Message: model.RewriteSystemPrompt},

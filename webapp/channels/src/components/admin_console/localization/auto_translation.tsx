@@ -3,22 +3,25 @@
 
 import React, {useCallback, useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
-import DropdownSetting from 'components/admin_console/dropdown_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
+import Setting from 'components/admin_console/setting';
 import {
     AdminSection,
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
+import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import Toggle from 'components/toggle';
 
+import * as I18n from 'i18n/i18n.jsx';
+
+import AgentsSettings from './agents_settings';
 import AutoTranslationInfo from './auto_translation_info';
 import LibreTranslateSettings from './libreTranslate_settings';
-
-import * as I18n from 'i18n/i18n.jsx';
 
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
 import './localization.scss';
@@ -40,6 +43,7 @@ const messages = defineMessages({
 export const searchableStrings: SearchableStrings = Object.values(messages);
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
+    const {available: isAgentsBridgeEnabled, reason: agentsBridgeUnavailableReason} = useGetAgentsBridgeEnabled();
     const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(() => {
         const settings = props.value as AutoTranslationSettings;
         if (!settings.Provider) {
@@ -48,7 +52,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         return settings;
     });
 
-    const handleChange = useCallback((id: string, value: any) => {
+    const handleChange = useCallback((id: string, value: AutoTranslationSettings[keyof AutoTranslationSettings] | string[]) => {
         const updatedSettings = {
             ...autoTranslationSettings,
             [id]: value,
@@ -71,7 +75,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
 
         setAutoTranslationSettings(newSettings);
         props.onChange(props.id, newSettings);
-    }, [autoTranslationSettings, handleChange, props]);
+    }, [autoTranslationSettings, props]);
 
     const availableLanguages = useMemo(() => {
         const values: Array<{value: string; text: string; order: number}> = [];
@@ -83,9 +87,27 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     }, []);
 
     const providerHelpTextValues = useMemo(() => ({
-        br: <br/>,
         strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
     }), []);
+
+    const showAgentsError = autoTranslationSettings.Provider === 'agents' && !isAgentsBridgeEnabled;
+
+    const providerDescription = useMemo(() => (
+        <div className='auto-translation-provider-description'>
+            <FormattedMessage
+                id='admin.site.localization.autoTranslationProviderHint'
+                defaultMessage="Choose the provider you'd like to use for translation."
+            />
+        </div>
+    ), []);
+
+    const providerNote = useMemo(() => (
+        <FormattedMessage
+            id='admin.site.localization.autoTranslationProviderDescription'
+            defaultMessage='<strong>NOTE:</strong> If using external translation services (e.g., cloud-based LLMs), message data may be processed outside your environment.'
+            values={providerHelpTextValues}
+        />
+    ), [providerHelpTextValues]);
 
     const on = (
         <FormattedMessage
@@ -99,6 +121,8 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
             defaultMessage='Off'
         />
     );
+
+    const selectedLanguages = autoTranslationSettings.TargetLanguages || ['en'];
 
     return (
         <AdminSection>
@@ -129,57 +153,89 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                 </div>
             </SectionHeader>
             {autoTranslationSettings.Enable &&
-            <SectionContent>
-                <DropdownSetting
-                    id={'Provider'}
-                    label={
-                        <FormattedMessage
-                            id='admin.site.localization.autoTranslationProviderTitle'
-                            defaultMessage='Translation Service:'
-                        />
-                    }
-                    values={[
-                        {value: 'libretranslate', text: 'LibreTranslate'},
-                    ]}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.site.localization.autoTranslationProviderDescription'
-                            defaultMessage='<strong>NOTE:</strong> If using external translation services (e.g., cloud based),{br}message data may be processed outside of your environment.'
-                            values={providerHelpTextValues}
-                        />
-                    }
-                    value={autoTranslationSettings.Provider || 'libretranslate'}
-                    disabled={props.disabled || props.setByEnv}
-                    setByEnv={props.setByEnv}
+            <SectionContent $compact={true}>
+                <AutoTranslationInfo/>
+                <div className={showAgentsError ? 'autotranslation-provider-error' : ''}>
+                    <Setting
+                        label={
+                            <FormattedMessage
+                                id='admin.site.localization.autoTranslationProviderTitle'
+                                defaultMessage='Translation provider'
+                            />
+                        }
+                        inputId={'Provider'}
+                        setByEnv={props.setByEnv}
+                        helpText={providerNote}
+                    >
+                        <div className='auto-translation-provider-body'>
+                            {providerDescription}
+                            <select
+                                data-testid='Providerdropdown'
+                                className='form-control'
+                                id='Provider'
+                                value={autoTranslationSettings.Provider || 'libretranslate'}
+                                onChange={(e) => handleChange('Provider', e.target.value as AutoTranslationSettings['Provider'])}
+                                disabled={props.disabled || props.setByEnv}
+                            >
+                                <option value='libretranslate'>{'LibreTranslate'}</option>
+                                <option value='agents'>{'Mattermost Agents'}</option>
+                            </select>
+                            {showAgentsError && (
+                                <div className='auto-translation-provider-error-message'>
+                                    <i className='icon icon-alert-outline'/>
+                                    <FormattedMessage
+                                        id={agentsBridgeUnavailableReason || 'admin.site.localization.autoTranslationAgentsError'}
+                                        defaultMessage={agentsBridgeUnavailableReason ? 'Mattermost AI plugin is unavailable.' : 'Mattermost Agents plugin is either disabled or not configured properly.'}
+                                    />
+                                </div>
+                            )}
+                            {showAgentsError && (
+                                <Link
+                                    to='/admin_console/plugins/plugin_mattermost-ai'
+                                    className='agents-config-link'
+                                >
+                                    <FormattedMessage
+                                        id='admin.site.localization.goToAgentsConfig'
+                                        defaultMessage='Go to Agents plugin config'
+                                    />
+                                    <i className='icon icon-chevron-right'/>
+                                </Link>
+                            )}
+                        </div>
+                    </Setting>
+                </div>
+                {autoTranslationSettings.Provider === 'agents' && !showAgentsError &&
+                <AgentsSettings
+                    {...props}
                     onChange={handleChange}
                 />
-                <MultiSelectSetting
-                    id={'TargetLanguages'}
-                    label={
-                        <FormattedMessage
-                            id='admin.site.localization.targetLanguagesTitle'
-                            defaultMessage='Target Languages'
-                        />
-                    }
-                    values={availableLanguages}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.site.localization.targetLanguagesDescription'
-                            defaultMessage='Select which languages to translate messages into. Messages will automatically be translated to these languages in channels where auto-translation is enabled. Users will see translations based on their language preference.'
-                        />
-                    }
-                    selected={(autoTranslationSettings as any).TargetLanguages || ['en']}
-                    onChange={handleChange}
-                    disabled={props.disabled || props.setByEnv}
-                    setByEnv={props.setByEnv}
-                />
+                }
                 {autoTranslationSettings.Provider === 'libretranslate' &&
                 <LibreTranslateSettings
                     {...props}
                     onChange={handleChange}
                 />
                 }
-                <AutoTranslationInfo/>
+                <MultiSelectSetting
+                    id={'TargetLanguages'}
+                    label={
+                        <FormattedMessage
+                            id='admin.site.localization.targetLanguagesTitle'
+                            defaultMessage='Languages allowed'
+                        />
+                    }
+                    values={availableLanguages}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.site.localization.targetLanguagesDescription'
+                            defaultMessage="Choose which languages you'd like to make available for auto-translation."
+                        />
+                    }
+                    selected={selectedLanguages}
+                    onChange={handleChange}
+                    disabled={props.disabled || props.setByEnv}
+                    setByEnv={props.setByEnv}
+                />
             </SectionContent>
             }
         </AdminSection>
