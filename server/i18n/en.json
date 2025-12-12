@@ -8293,6 +8293,10 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": ""
+  },
+  {
     "id": "ent.autotranslation.detect_language.nil_context",
     "translation": "Context is required for language detection."
   },
@@ -8321,8 +8325,16 @@
     "translation": "Invalid language code provided."
   },
   {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": ""
+  },
+  {
     "id": "ent.autotranslation.provider_not_available",
     "translation": "Translation provider is not available."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": ""
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
