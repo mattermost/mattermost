@@ -33,9 +33,7 @@ function makeGetChannelNamesMap() {
 
             if (channelMentions) {
                 // Server data (channelMentions) takes precedence over Redux data (channelNamesMap)
-                // Server data is sanitized, has fresh display names, and correct permissions
-                var returnMap = Object.assign({}, channelNamesMap, channelMentions);
-                return returnMap;
+                return Object.assign({}, channelNamesMap, channelMentions);
             }
 
             return channelNamesMap;
