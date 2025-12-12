@@ -13557,6 +13557,48 @@ func (s *RetryLayerSystemStore) GetByName(name string) (*model.System, error) {
 
 }
 
+func (s *RetryLayerSystemStore) GetByNameWithContext(rctx request.CTX, name string) (*model.System, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.GetByNameWithContext(rctx, name)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSystemStore) GetWithContext(rctx request.CTX) (model.StringMap, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.GetWithContext(rctx)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSystemStore) InsertIfExists(system *model.System) (*model.System, error) {
 
 	tries := 0
