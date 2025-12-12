@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
-
-import './mark_all_threads_as_read_modal.scss';
+import ConfirmModal from 'components/confirm_modal';
 
 export type MarkAllThreadsAsReadModalProps = {
     onConfirm: () => void;
@@ -18,37 +16,39 @@ function MarkAllThreadsAsReadModal({
     onCancel,
 }: MarkAllThreadsAsReadModalProps) {
     const {formatMessage} = useIntl();
+    const [show, setShow] = useState(true);
+
+    const handleConfirm = useCallback(() => {
+        onConfirm();
+        setShow(false);
+    }, [onConfirm]);
+
+    const handleCancel = useCallback(() => {
+        onCancel();
+        setShow(false);
+    }, [onCancel]);
 
     return (
-        <GenericModal
-            className='mark-all-threads-as-read'
+        <ConfirmModal
             id='mark-all-threads-as-read-modal'
-            compassDesign={true}
-            modalHeaderText={formatMessage({
+            show={show}
+            title={formatMessage({
                 id: 'mark_all_threads_as_read_modal.title',
                 defaultMessage: 'Mark all your threads as read?',
+            })}
+            message={formatMessage({
+                id: 'mark_all_threads_as_read_modal.description',
+                defaultMessage: 'This will clear the unread state and mention badges on all your threads. Are you sure?',
             })}
             confirmButtonText={formatMessage({
                 id: 'mark_all_threads_as_read_modal.confirm',
                 defaultMessage: 'Mark all as read',
             })}
-            cancelButtonText={formatMessage({
-                id: 'mark_all_threads_as_read_modal.cancel',
-                defaultMessage: 'Cancel',
-            })}
+            confirmButtonClass='btn btn-primary'
+            onConfirm={handleConfirm}
+            onCancel={handleCancel}
             onExited={onCancel}
-            handleCancel={onCancel}
-            handleConfirm={onConfirm}
-        >
-            <div className='mark_all_threads_as_read_modal__body'>
-                <span>
-                    {formatMessage({
-                        id: 'mark_all_threads_as_read_modal.description',
-                        defaultMessage: 'This will clear the unread state and mention badges on all your threads. Are you sure?',
-                    })}
-                </span>
-            </div>
-        </GenericModal>
+        />
     );
 }
 
