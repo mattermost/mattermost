@@ -36,6 +36,9 @@ type PostMetadata struct {
 
 	// Translations holds translation data for configured target languages, keyed by language code
 	Translations map[string]*PostTranslation `json:"translations,omitempty"`
+
+	ExpireAt   int64    `json:"expire_at,omitempty"`
+	Recipients []string `json:"recipients,omitempty"`
 }
 
 // PostTranslation represents a translation of a post in a specific language
