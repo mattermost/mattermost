@@ -2714,7 +2714,6 @@ type AutoTranslationSettings struct {
 	Enable          *bool                           `access:"site_localization,cloud_restrictable"`
 	Provider        *string                         `access:"site_localization,cloud_restrictable"`
 	TargetLanguages *[]string                       `access:"site_localization,cloud_restrictable"`
-	QueueWorkers    *int                            `access:"site_localization,cloud_restrictable"`
 	TimeoutsMs      *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
 	LibreTranslate  *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
 	Agents          *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
@@ -2760,10 +2759,6 @@ func (s *AutoTranslationSettings) SetDefaults() {
 
 	if s.TargetLanguages == nil {
 		s.TargetLanguages = &[]string{"en"}
-	}
-
-	if s.QueueWorkers == nil {
-		s.QueueWorkers = NewPointer(4)
 	}
 
 	if s.TimeoutsMs == nil {

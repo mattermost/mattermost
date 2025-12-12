@@ -8293,8 +8293,20 @@
     "translation": " attached a file."
   },
   {
+    "id": "ent.autotranslation.add_task.missing_object_id",
+    "translation": "Translation task must include an object ID."
+  },
+  {
+    "id": "ent.autotranslation.add_task.missing_object_type",
+    "translation": "Translation task must include an object type."
+  },
+  {
+    "id": "ent.autotranslation.add_task.nil_task",
+    "translation": "Translation task cannot be null."
+  },
+  {
     "id": "ent.autotranslation.create_translation_failed",
-    "translation": ""
+    "translation": "Failed to create translation."
   },
   {
     "id": "ent.autotranslation.detect_language.nil_context",
@@ -8326,7 +8338,11 @@
   },
   {
     "id": "ent.autotranslation.mask_verification_failed",
-    "translation": ""
+    "translation": "Failed to update translation with new mask values."
+  },
+  {
+    "id": "ent.autotranslation.no_translatable_content",
+    "translation": "Content contains no translatable text."
   },
   {
     "id": "ent.autotranslation.provider_not_available",
@@ -8334,7 +8350,7 @@
   },
   {
     "id": "ent.autotranslation.provider_not_initialized",
-    "translation": ""
+    "translation": "Translation provider is not initialized."
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
