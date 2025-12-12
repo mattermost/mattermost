@@ -414,6 +414,11 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 			"store.sql_autotranslation.save.meta_json.app_error", nil, err.Error(), 500)
 	}
 
+	// Apply binary flag if enabled (required for PostgreSQL JSONB with binary_parameters=yes)
+	if s.IsBinaryParamEnabled() {
+		metaBytes = AppendBinaryFlag(metaBytes)
+	}
+
 	dstLang := translation.Lang
 	providerID := translation.Provider
 	confidence := translation.Confidence
@@ -421,7 +426,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	query := s.getQueryBuilder().
 		Insert("Translations").
 		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
-		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, sq.Expr("?::jsonb", string(metaBytes)), string(translation.State), now).
+		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, metaBytes, string(translation.State), now).
 		Suffix(`ON CONFLICT (ObjectId, dstLang)
 				DO UPDATE SET
 					ObjectType = EXCLUDED.ObjectType,

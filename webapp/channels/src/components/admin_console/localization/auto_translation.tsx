@@ -40,9 +40,7 @@ const messages = defineMessages({
     },
 });
 
-export const searchableStrings: SearchableStrings = [
-    ...Object.values(messages),
-];
+export const searchableStrings: SearchableStrings = Object.values(messages);
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
     const {available: isAgentsBridgeEnabled, reason: agentsBridgeUnavailableReason} = useGetAgentsBridgeEnabled();
