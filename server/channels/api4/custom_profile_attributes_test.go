@@ -1312,7 +1312,7 @@ func TestProtectedFieldRestrictions(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.PropertyService().CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Admin attempts to patch the protected field
@@ -1341,7 +1341,7 @@ func TestProtectedFieldRestrictions(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.PropertyService().CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Admin should be able to delete the protected field
@@ -1379,7 +1379,7 @@ func TestProtectedFieldValueRestrictions(t *testing.T) {
 		},
 	}
 
-	createdProtectedField, err := th.App.PropertyService().CreatePropertyField(protectedField)
+	createdProtectedField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 	require.NoError(t, err)
 
 	// Also create a non-protected field for comparison
@@ -1582,7 +1582,7 @@ func TestListCPAFieldsWithAccessMode(t *testing.T) {
 		require.NotNil(t, foundField)
 		options := foundField.Attrs["options"]
 		require.NotNil(t, options)
-		optionsSlice, ok := options.([]interface{})
+		optionsSlice, ok := options.([]any)
 		require.True(t, ok)
 		require.Len(t, optionsSlice, 1)
 	})
@@ -1620,7 +1620,7 @@ func TestListCPAFieldsWithAccessMode(t *testing.T) {
 		require.NotNil(t, foundField)
 		options := foundField.Attrs["options"]
 		require.NotNil(t, options)
-		optionsSlice, ok := options.([]interface{})
+		optionsSlice, ok := options.([]any)
 		require.True(t, ok)
 		require.Len(t, optionsSlice, 2)
 	})

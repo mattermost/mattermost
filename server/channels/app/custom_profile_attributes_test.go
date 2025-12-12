@@ -34,7 +34,7 @@ func TestGetCPAField(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", field)
 		require.NoError(t, err)
 
 		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
@@ -71,7 +71,7 @@ func TestGetCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   nil,
 		}
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", field)
 		require.NoError(t, err)
 
 		// GetCPAField should initialize Attrs with defaults
@@ -89,7 +89,7 @@ func TestGetCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{},
 		}
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", field)
 		require.NoError(t, err)
 
 		// GetCPAField should add missing default attrs
@@ -169,7 +169,7 @@ func TestListCPAFields(t *testing.T) {
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 1},
 		}
 
-		_, err := th.App.Srv().propertyService.CreatePropertyField(&field1)
+		_, err := th.App.PropertyAccessService().CreatePropertyField("", &field1)
 		require.NoError(t, err)
 
 		field2 := &model.PropertyField{
@@ -177,7 +177,7 @@ func TestListCPAFields(t *testing.T) {
 			Name:    "Field 2",
 			Type:    model.PropertyFieldTypeText,
 		}
-		_, err = th.App.Srv().propertyService.CreatePropertyField(field2)
+		_, err = th.App.PropertyAccessService().CreatePropertyField("", field2)
 		require.NoError(t, err)
 
 		field3 := model.PropertyField{
@@ -186,7 +186,7 @@ func TestListCPAFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 0},
 		}
-		_, err = th.App.Srv().propertyService.CreatePropertyField(&field3)
+		_, err = th.App.PropertyAccessService().CreatePropertyField("", &field3)
 		require.NoError(t, err)
 
 		fields, appErr := th.App.ListCPAFields()
@@ -204,7 +204,7 @@ func TestListCPAFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   nil,
 		}
-		_, err := th.App.Srv().propertyService.CreatePropertyField(fieldWithNilAttrs)
+		_, err := th.App.PropertyAccessService().CreatePropertyField("", fieldWithNilAttrs)
 		require.NoError(t, err)
 
 		// Create a field with empty Attrs
@@ -214,7 +214,7 @@ func TestListCPAFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{},
 		}
-		_, err = th.App.Srv().propertyService.CreatePropertyField(fieldWithEmptyAttrs)
+		_, err = th.App.PropertyAccessService().CreatePropertyField("", fieldWithEmptyAttrs)
 		require.NoError(t, err)
 
 		// ListCPAFields should initialize Attrs with defaults
@@ -328,7 +328,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, cpaGroupID, createdField.GroupID)
 		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, createdField.Attrs.Visibility)
 
-		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
+		fetchedField, gErr := th.App.PropertyAccessService().GetPropertyField("", "", createdField.ID)
 		require.NoError(t, gErr)
 		require.Equal(t, field.Name, fetchedField.Name)
 		require.NotZero(t, fetchedField.CreateAt)
@@ -358,7 +358,7 @@ func TestCreateCPAField(t *testing.T) {
 		require.Zero(t, createdField.DeleteAt, "DeleteAt should be 0 after creation")
 
 		// Double-check by fetching the field from the database
-		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
+		fetchedField, gErr := th.App.PropertyAccessService().GetPropertyField("", "", createdField.ID)
 		require.NoError(t, gErr)
 		require.Zero(t, fetchedField.DeleteAt, "DeleteAt should be 0 in database")
 	})
@@ -454,7 +454,7 @@ func TestPatchCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 		}
 
-		field, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		field, err := th.App.PropertyAccessService().CreatePropertyField("", newField)
 		require.NoError(t, err)
 
 		updatedField, uErr := th.App.PatchCPAField(field.ID, patch)
@@ -697,7 +697,7 @@ func TestDeleteCPAField(t *testing.T) {
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
 		}
-		value, err := th.App.Srv().propertyService.CreatePropertyValue(newValue)
+		value, err := th.App.PropertyAccessService().CreatePropertyValue("", newValue)
 		require.NoError(t, err)
 		require.NotZero(t, value.ID)
 	}
@@ -714,7 +714,7 @@ func TestDeleteCPAField(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		field, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		field, err := th.App.PropertyAccessService().CreatePropertyField("", newField)
 		require.NoError(t, err)
 
 		dErr := th.App.DeleteCPAField(field.ID)
@@ -725,7 +725,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should correctly delete the field", func(t *testing.T) {
 		// check that we have the associated values to the field prior deletion
 		opts := model.PropertyValueSearchOpts{PerPage: 10, FieldID: createdField.ID}
-		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
+		values, err := th.App.PropertyAccessService().SearchPropertyValues("", cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 
@@ -733,17 +733,17 @@ func TestDeleteCPAField(t *testing.T) {
 		require.Nil(t, th.App.DeleteCPAField(createdField.ID))
 
 		// check that it is marked as deleted
-		fetchedField, err := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
+		fetchedField, err := th.App.PropertyAccessService().GetPropertyField("", "", createdField.ID)
 		require.NoError(t, err)
 		require.NotZero(t, fetchedField.DeleteAt)
 
 		// ensure that the associated fields have been marked as deleted too
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
+		values, err = th.App.PropertyAccessService().SearchPropertyValues("", cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 0)
 
 		opts.IncludeDeleted = true
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
+		values, err = th.App.PropertyAccessService().SearchPropertyValues("", cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 		for _, value := range values {
@@ -775,7 +775,7 @@ func TestGetCPAValue(t *testing.T) {
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
 		}
-		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		propertyValue, err := th.App.PropertyAccessService().CreatePropertyValue("", propertyValue)
 		require.NoError(t, err)
 
 		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
@@ -791,7 +791,7 @@ func TestGetCPAValue(t *testing.T) {
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
 		}
-		propertyValue, err := th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		propertyValue, err := th.App.PropertyAccessService().CreatePropertyValue("", propertyValue)
 		require.NoError(t, err)
 
 		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
@@ -805,7 +805,7 @@ func TestGetCPAValue(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeMultiselect,
 		}
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(arrayField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", arrayField)
 		require.NoError(t, err)
 
 		propertyValue := &model.PropertyValue{
@@ -815,7 +815,7 @@ func TestGetCPAValue(t *testing.T) {
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
 		}
-		propertyValue, err = th.App.Srv().propertyService.CreatePropertyValue(propertyValue)
+		propertyValue, err = th.App.PropertyAccessService().CreatePropertyValue("", propertyValue)
 		require.NoError(t, err)
 
 		pv, appErr := th.App.GetCPAValue(propertyValue.ID)
@@ -853,7 +853,7 @@ func TestListCPAValues(t *testing.T) {
 				Name:    fmt.Sprintf("Field %d", i),
 				Type:    model.PropertyFieldTypeText,
 			}
-			_, err := th.App.Srv().propertyService.CreatePropertyField(field)
+			_, err := th.App.PropertyAccessService().CreatePropertyField("", field)
 			require.NoError(t, err)
 
 			value := &model.PropertyValue{
@@ -863,7 +863,7 @@ func TestListCPAValues(t *testing.T) {
 				FieldID:    field.ID,
 				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
 			}
-			_, err = th.App.Srv().propertyService.CreatePropertyValue(value)
+			_, err = th.App.PropertyAccessService().CreatePropertyValue("", value)
 			require.NoError(t, err)
 			expectedValues = append(expectedValues, value.Value)
 		}
@@ -903,7 +903,7 @@ func TestPatchCPAValue(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", newField)
 		require.NoError(t, err)
 
 		userID := model.NewId()
@@ -929,9 +929,9 @@ func TestPatchCPAValue(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(newField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", newField)
 		require.NoError(t, err)
-		err = th.App.Srv().propertyService.DeletePropertyField(cpaGroupID, createdField.ID)
+		err = th.App.PropertyAccessService().DeletePropertyField("", cpaGroupID, createdField.ID)
 		require.NoError(t, err)
 
 		userID := model.NewId()
@@ -955,7 +955,7 @@ func TestPatchCPAValue(t *testing.T) {
 				},
 			},
 		}
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(arrayField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", arrayField)
 		require.NoError(t, err)
 
 		// Create a JSON array with option IDs (not names)
@@ -1097,7 +1097,7 @@ func TestValidatePluginFieldUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Source plugin should be allowed to update
@@ -1116,7 +1116,7 @@ func TestValidatePluginFieldUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Different plugin should be denied
@@ -1135,7 +1135,7 @@ func TestValidatePluginFieldUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(regularField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", regularField)
 		require.NoError(t, err)
 
 		// Any plugin should be allowed to update non-protected field
@@ -1162,7 +1162,7 @@ func TestValidatePluginFieldDelete(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Source plugin should be allowed to delete
@@ -1181,7 +1181,7 @@ func TestValidatePluginFieldDelete(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Different plugin should be denied
@@ -1209,7 +1209,7 @@ func TestValidatePluginValueUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Source plugin should be allowed to update values
@@ -1228,7 +1228,7 @@ func TestValidatePluginValueUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(protectedField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", protectedField)
 		require.NoError(t, err)
 
 		// Different plugin should be denied
@@ -1247,7 +1247,7 @@ func TestValidatePluginValueUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(regularField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", regularField)
 		require.NoError(t, err)
 
 		// Any plugin should be allowed to update values for non-protected field
@@ -1266,7 +1266,7 @@ func TestValidatePluginValueUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(sourceOnlyField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", sourceOnlyField)
 		require.NoError(t, err)
 
 		// Different plugin should be denied due to lack of read access
@@ -1286,7 +1286,7 @@ func TestValidatePluginValueUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(sourceOnlyField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", sourceOnlyField)
 		require.NoError(t, err)
 
 		// Source plugin should be allowed
@@ -1305,7 +1305,7 @@ func TestValidatePluginValueUpdate(t *testing.T) {
 			},
 		}
 
-		createdField, err := th.App.Srv().propertyService.CreatePropertyField(sharedOnlyField)
+		createdField, err := th.App.PropertyAccessService().CreatePropertyField("", sharedOnlyField)
 		require.NoError(t, err)
 
 		// Different plugin should be denied due to lack of read access
