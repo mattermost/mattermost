@@ -422,6 +422,61 @@
         "404":
           $ref: "#/components/responses/NotFound"
 
+    put:
+      tags:
+        - wikis
+      summary: Update page
+      description: |
+        Update a page's content and metadata.
+
+        __Minimum server version__: TBD
+
+        ##### Permissions
+        Must have `edit_post` permission in the wiki's channel.
+      operationId: UpdatePage
+      parameters:
+        - name: wiki_id
+          in: path
+          description: Wiki GUID
+          required: true
+          schema:
+            type: string
+        - name: page_id
+          in: path
+          description: Page (Post) GUID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: The title of the page
+                message:
+                  type: string
+                  description: The content of the page
+        description: Page data to update
+        required: true
+      responses:
+        "200":
+          description: Page update successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
     delete:
       tags:
         - wikis
