@@ -45,19 +45,11 @@ describe('components/post_view/FailedPostOptions', () => {
 
         const retryButton = screen.getByRole('button', {name: 'Retry'});
 
-<<<<<<< HEAD
-        userEvent.click(retryButton);
+        await userEvent.click(retryButton);
 
         expect(props.actions.createPost.mock.calls.length).toBe(1);
 
-        userEvent.click(retryButton);
-=======
-        await userEvent.click(retryLink);
-
-        expect(props.actions.createPost.mock.calls.length).toBe(1);
-
-        await userEvent.click(retryLink);
->>>>>>> master
+        await userEvent.click(retryButton);
 
         expect(props.actions.createPost.mock.calls.length).toBe(2);
     });
@@ -75,11 +67,7 @@ describe('components/post_view/FailedPostOptions', () => {
 
         const deleteButton = screen.getByRole('button', {name: 'Delete'});
 
-<<<<<<< HEAD
-        userEvent.click(deleteButton);
-=======
-        await userEvent.click(cancelLink);
->>>>>>> master
+        await userEvent.click(deleteButton);
 
         expect(props.actions.removePost.mock.calls.length).toBe(1);
     });
