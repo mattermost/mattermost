@@ -87,6 +87,9 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 		log.Fatal(err)
 	}
 
+	// Use a fast password hasher during tests to speed up user creation.
+	setupFastTestHasher()
+
 	if options != nil {
 		mainHelper.Options = *options
 
