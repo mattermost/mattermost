@@ -53,7 +53,6 @@ const Spinner: React.FC<SpinnerProps> = ({
             className={spinnerClasses}
             role='status'
             aria-label={ariaLabel}
-            aria-hidden='true'
             style={spinnerStyle}
             {...htmlProps}
         />

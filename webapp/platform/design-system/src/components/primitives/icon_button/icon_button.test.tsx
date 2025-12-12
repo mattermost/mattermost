@@ -252,7 +252,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             expect(screen.queryByTestId('test-icon')).not.toBeInTheDocument();
 
             // Spinner should be visible
-            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
+            expect(screen.getByRole('status')).toBeInTheDocument();
         });
 
         test('should render toggled state correctly', () => {
