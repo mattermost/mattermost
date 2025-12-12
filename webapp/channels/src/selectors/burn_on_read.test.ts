@@ -65,16 +65,28 @@ describe('selectors/burn_on_read', () => {
             expect(result).toBe(10);
         });
 
-        it('should return configured duration', () => {
-            state.entities.general.config.BurnOnReadDurationMinutes = '15';
+        it('should convert configured duration from seconds to minutes', () => {
+            state.entities.general.config.BurnOnReadDurationSeconds = '900'; // 15 minutes
             const result = getBurnOnReadDurationMinutes(state);
             expect(result).toBe(15);
         });
 
         it('should parse different duration values', () => {
-            state.entities.general.config.BurnOnReadDurationMinutes = '30';
+            state.entities.general.config.BurnOnReadDurationSeconds = '1800'; // 30 minutes
             const result = getBurnOnReadDurationMinutes(state);
             expect(result).toBe(30);
+        });
+
+        it('should handle 1 minute (60 seconds)', () => {
+            state.entities.general.config.BurnOnReadDurationSeconds = '60';
+            const result = getBurnOnReadDurationMinutes(state);
+            expect(result).toBe(1);
+        });
+
+        it('should handle 5 minutes (300 seconds)', () => {
+            state.entities.general.config.BurnOnReadDurationSeconds = '300';
+            const result = getBurnOnReadDurationMinutes(state);
+            expect(result).toBe(5);
         });
     });
 
