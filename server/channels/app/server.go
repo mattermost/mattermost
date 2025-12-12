@@ -1349,7 +1349,7 @@ func (s *Server) doLicenseExpirationCheck() {
 	// To reproduce that case locally, attach a license to a server that was started with enterprise enabled
 	// Then restart using BUILD_ENTERPRISE=false make restart-server to enter Team Edition
 	if model.BuildEnterpriseReady != "true" {
-		mlog.Info("Skipping license expiration check because no license is expected on Team Edition")
+		mlog.Debug("Skipping license expiration check because no license is expected on Team Edition")
 		return
 	}
 
@@ -1774,7 +1774,7 @@ func runDNDStatusExpireJob(a *App) {
 			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 		})
 	} else {
-		mlog.Info("Skipping unset DND status job startup since this is not the leader node")
+		mlog.Debug("Skipping unset DND status job startup since this is not the leader node")
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
@@ -1784,7 +1784,7 @@ func runDNDStatusExpireJob(a *App) {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
-			mlog.Info("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
 		}
 	})
@@ -1798,7 +1798,7 @@ func runPostReminderJob(a *App) {
 			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 		})
 	} else {
-		mlog.Info("Skipping post reminder job startup since this is not the leader node")
+		mlog.Debug("Skipping post reminder job startup since this is not the leader node")
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
@@ -1810,7 +1810,7 @@ func runPostReminderJob(a *App) {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 			})
 		} else {
-			mlog.Info("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
@@ -1820,7 +1820,7 @@ func runScheduledPostJob(a *App) {
 	if a.IsLeader() {
 		doRunScheduledPostJob(a)
 	} else {
-		mlog.Info("Skipping scheduled posts job startup since this is not the leader node")
+		mlog.Debug("Skipping scheduled posts job startup since this is not the leader node")
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
@@ -1828,7 +1828,7 @@ func runScheduledPostJob(a *App) {
 		if a.IsLeader() {
 			doRunScheduledPostJob(a)
 		} else {
-			mlog.Info("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
 		}
 	})
