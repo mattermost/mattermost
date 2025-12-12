@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import './link.scss';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 
 export interface UpgradeLinkProps {
     buttonText?: string;

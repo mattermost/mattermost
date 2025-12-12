@@ -52,13 +52,13 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 import {getPostDraft} from 'selectors/rhs';
 import globalStore from 'stores/redux_store';
 
-import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
+import usePrefixedIds, {joinIds} from 'hooks/usePrefixedIds';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';

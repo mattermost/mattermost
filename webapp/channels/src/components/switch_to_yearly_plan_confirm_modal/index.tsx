@@ -10,7 +10,7 @@ import {GenericModal} from '@mattermost/components';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import Svg from 'components/common/svg_images_components/woman_credit_card_and_laptop_svg';
+import Svg from 'components/svg_images_components/woman_credit_card_and_laptop_svg';
 
 import {ModalIdentifiers} from 'utils/constants';
 

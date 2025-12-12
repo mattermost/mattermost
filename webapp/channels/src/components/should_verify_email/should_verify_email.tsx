@@ -9,9 +9,9 @@ import {useLocation, useHistory} from 'react-router-dom';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 
-import ManWithMailboxSVG from 'components/common/svg_images_components/man_with_mailbox_svg';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
+import ManWithMailboxSVG from 'components/svg_images_components/man_with_mailbox_svg';
 
 import './should_verify_email.scss';
 

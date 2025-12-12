@@ -7,7 +7,7 @@ import styled from 'styled-components';
 
 import type {UserTimezone} from '@mattermost/types/users';
 
-import Moon from 'components/common/svg_images_components/moon_svg';
+import Moon from 'components/svg_images_components/moon_svg';
 import Timestamp from 'components/timestamp';
 
 const Container = styled.div`

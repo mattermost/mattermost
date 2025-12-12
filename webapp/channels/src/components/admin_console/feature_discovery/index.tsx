@@ -12,7 +12,7 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 
 import {openModal} from 'actions/views/modals';
 
-import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
+import withGetCloudSubscription from 'components/with_get_cloud_subscription';
 
 import {LicenseSkus} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';

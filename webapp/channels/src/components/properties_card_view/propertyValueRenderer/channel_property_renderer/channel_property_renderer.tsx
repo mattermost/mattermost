@@ -6,9 +6,10 @@ import {FormattedMessage} from 'react-intl';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {usePropertyCardViewChannelLoader} from 'components/common/hooks/usePropertyCardViewChannelLoader';
 import type {ChannelFieldMetadata} from 'components/properties_card_view/properties_card_view';
 import SidebarBaseChannelIcon from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel_icon';
+
+import {usePropertyCardViewChannelLoader} from 'hooks/usePropertyCardViewChannelLoader';
 
 import './channel_property_renderer.scss';
 

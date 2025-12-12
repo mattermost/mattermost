@@ -12,7 +12,7 @@ import {CloudBanners, Preferences} from 'utils/constants';
 
 import CloudTrialBanner from './cloud_trial_banner';
 
-jest.mock('components/common/hooks/useOpenSalesLink', () => ({
+jest.mock('hooks/useOpenSalesLink', () => ({
     __esModule: true,
     default: () => () => true,
 }));

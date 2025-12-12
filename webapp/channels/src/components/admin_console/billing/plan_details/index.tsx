@@ -7,8 +7,7 @@ import {useSelector} from 'react-redux';
 
 import {getSubscriptionProduct, getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 
-import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-
+import useGetTotalUsersNoBots from 'hooks/useGetTotalUsersNoBots';
 import {TrialPeriodDays} from 'utils/constants';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 

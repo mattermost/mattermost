@@ -9,9 +9,10 @@ import {GenericModal} from '@mattermost/components';
 import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
-import useCopyText, {messages as copymsg} from 'components/common/hooks/useCopyText';
 import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
+
+import useCopyText, {messages as copymsg} from 'hooks/useCopyText';
 
 import {Button, ModalFieldset, ModalNoticeWrapper, ModalParagraph} from '../controls';
 

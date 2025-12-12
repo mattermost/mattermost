@@ -8,8 +8,7 @@ import {MemoryRouter, Route} from 'react-router-dom';
 import {fetchChannelsAndMembers, getChannelMembers, selectChannel} from 'mattermost-redux/actions/channels';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 
-import {useTeamByName} from 'components/common/hooks/use_team';
-
+import {useTeamByName} from 'hooks/use_team';
 import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -39,7 +38,7 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getChannelByName: jest.fn(),
 }));
 
-jest.mock('components/common/hooks/use_team', () => ({
+jest.mock('hooks/use_team', () => ({
     useTeamByName: jest.fn(),
 }));
 

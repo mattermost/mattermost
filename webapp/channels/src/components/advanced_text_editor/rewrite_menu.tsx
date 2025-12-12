@@ -17,7 +17,7 @@ import {
 import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {Agent} from '@mattermost/types/agents';
 
-import AgentDropdown from 'components/common/agents/agent_dropdown';
+import {AgentDropdown} from 'components/agent_dropdown';
 import * as Menu from 'components/menu';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
