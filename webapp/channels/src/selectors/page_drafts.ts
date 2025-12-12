@@ -39,6 +39,62 @@ export const hasPageDraft: (state: GlobalState, wikiId: string, pageId: string) 
     return getPageDraft(state, wikiId, pageId) !== null;
 };
 
+/**
+ * Checks if a TipTap JSON document is semantically empty.
+ * An empty TipTap doc has structure {type: 'doc', content: []} or content with only empty paragraphs.
+ */
+function isTipTapDocEmpty(doc: any): boolean {
+    if (!doc || typeof doc !== 'object') {
+        return true;
+    }
+
+    // Not a TipTap doc structure
+    if (doc.type !== 'doc') {
+        return Object.keys(doc).length === 0;
+    }
+
+    // No content array or empty content array
+    if (!Array.isArray(doc.content) || doc.content.length === 0) {
+        return true;
+    }
+
+    // Check if all content nodes are empty paragraphs (no text content)
+    return doc.content.every((node: any) => {
+        if (node.type === 'paragraph') {
+            return !node.content || node.content.length === 0;
+        }
+        return false;
+    });
+}
+
+/**
+ * Recursively removes null and undefined values from an object.
+ * TipTap sometimes adds null attributes (e.g., {type: null, start: 1} in orderedList)
+ * that cause deep comparison to fail even though the content is semantically identical.
+ */
+function removeNullValues(obj: any): any {
+    if (obj === null || obj === undefined) {
+        return undefined;
+    }
+
+    if (Array.isArray(obj)) {
+        return obj.map(removeNullValues);
+    }
+
+    if (typeof obj === 'object') {
+        const result: Record<string, any> = {};
+        for (const key of Object.keys(obj)) {
+            const value = removeNullValues(obj[key]);
+            if (value !== null && value !== undefined) {
+                result[key] = value;
+            }
+        }
+        return result;
+    }
+
+    return obj;
+}
+
 export const hasUnsavedChanges: (state: GlobalState, wikiId: string, pageId: string, publishedContent: string) => boolean = (state: GlobalState, wikiId: string, pageId: string, publishedContent: string): boolean => {
     const draft = getPageDraft(state, wikiId, pageId);
     if (!draft) {
@@ -51,8 +107,23 @@ export const hasUnsavedChanges: (state: GlobalState, wikiId: string, pageId: str
         const draftJson = JSON.parse(draft.message || '{}');
         const publishedJson = JSON.parse(publishedContent || '{}');
 
+        // Handle the case where both are semantically empty
+        // TipTap may serialize empty content as {type: 'doc', content: []}
+        // while the published page may be empty string '' (parsed as {})
+        const draftEmpty = isTipTapDocEmpty(draftJson);
+        const publishedEmpty = isTipTapDocEmpty(publishedJson);
+        if (draftEmpty && publishedEmpty) {
+            return false;
+        }
+
+        // Normalize both documents by removing null values before comparison
+        // TipTap sometimes adds null attributes (e.g., {type: null} in orderedList)
+        // that would cause comparison to fail even though content is identical
+        const normalizedDraft = removeNullValues(draftJson);
+        const normalizedPublished = removeNullValues(publishedJson);
+
         // Use lodash isEqual for deep comparison
-        return !isEqual(draftJson, publishedJson);
+        return !isEqual(normalizedDraft, normalizedPublished);
     } catch (error) {
         // Fallback to string comparison if JSON parsing fails
         // (though this shouldn't happen for TipTap content)

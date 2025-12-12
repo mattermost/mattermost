@@ -10,6 +10,8 @@ import {Table} from '@tiptap/extension-table';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {useEditor, EditorContent, ReactNodeViewRenderer, type Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -374,6 +376,10 @@ const TipTapEditor = ({
             TableRow,
             TableCell,
             TableHeader,
+            TaskList,
+            TaskItem.configure({
+                nested: true,
+            }),
         ];
 
         if (editable) {

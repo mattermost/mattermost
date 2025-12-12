@@ -125,6 +125,53 @@
             }
         }
 
+        // Task list styles (checkbox lists)
+        ul[data-type="taskList"] {
+            padding-left: 0;
+            list-style: none;
+
+            li {
+                display: flex;
+                align-items: flex-start;
+                margin: 0.25em 0;
+                gap: 8px;
+
+                > label {
+                    display: flex;
+                    flex: 0 0 auto;
+                    align-items: center;
+                    margin-top: 2px;
+                    user-select: none;
+
+                    input[type="checkbox"] {
+                        width: 16px;
+                        height: 16px;
+                        border: 1px solid var(--center-channel-color-40);
+                        border-radius: 3px;
+                        margin: 0;
+                        accent-color: var(--button-bg);
+                        cursor: pointer;
+                    }
+                }
+
+                > div {
+                    flex: 1 1 auto;
+                }
+
+                &[data-checked="true"] {
+                    > div {
+                        color: var(--center-channel-color-56);
+                        text-decoration: line-through;
+                    }
+                }
+            }
+
+            // Nested task lists
+            ul[data-type="taskList"] {
+                margin-top: 4px;
+            }
+        }
+
         blockquote {
             padding-left: 16px;
             border-left: 3px solid var(--center-channel-color-16);
