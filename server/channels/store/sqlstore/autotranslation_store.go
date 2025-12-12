@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"encoding/json"
+	"maps"
 
 	sq "github.com/mattermost/squirrel"
 
@@ -404,9 +405,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	metaMap := make(map[string]any)
 	if translation.Meta != nil {
 		// Copy existing Meta fields (e.g., "src_lang", "error", etc.)
-		for k, v := range translation.Meta {
-			metaMap[k] = v
-		}
+		maps.Copy(metaMap, translation.Meta)
 	}
 	// Always set "type" field
 	metaMap["type"] = string(translation.Type)
@@ -417,6 +416,11 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 			"store.sql_autotranslation.save.meta_json.app_error", nil, err.Error(), 500)
 	}
 
+	// Apply binary flag if enabled (required for PostgreSQL JSONB with binary_parameters=yes)
+	if s.IsBinaryParamEnabled() {
+		metaBytes = AppendBinaryFlag(metaBytes)
+	}
+
 	dstLang := translation.Lang
 	providerID := translation.Provider
 	confidence := translation.Confidence
@@ -424,7 +428,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	query := s.getQueryBuilder().
 		Insert("Translations").
 		Columns("ObjectId", "DstLang", "ObjectType", "ProviderId", "NormHash", "Text", "Confidence", "Meta", "State", "UpdateAt").
-		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), string(translation.State), now).
+		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, metaBytes, string(translation.State), now).
 		Suffix(`ON CONFLICT (ObjectId, dstLang)
 				DO UPDATE SET
 					ObjectType = EXCLUDED.ObjectType,

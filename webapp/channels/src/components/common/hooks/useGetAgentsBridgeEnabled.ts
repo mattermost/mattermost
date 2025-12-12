@@ -6,8 +6,8 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
 
-import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
-import {getAgents} from 'mattermost-redux/selectors/entities/agents';
+import {getAgentsStatus} from 'mattermost-redux/actions/agents';
+import {getAgentsStatus as getAgentsStatusSelector} from 'mattermost-redux/selectors/entities/agents';
 
 import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket/hooks';
@@ -15,26 +15,31 @@ import {useWebSocket} from 'utils/use_websocket/hooks';
 const AI_PLUGIN_ID = 'mattermost-ai';
 const DEBOUNCE_DELAY_MS = 100; // Debounce refetches within 100ms
 
+export type AgentsBridgeStatus = {
+    available: boolean;
+    reason?: string;
+};
+
 /**
- * Hook to determine if the bridge is enabled by checking if there are available agents.
+ * Hook to determine if the bridge is enabled by checking if the plugin is active and compatible.
  * This hook:
- * - Fetches agents on mount
- * - Returns true if agents are available, false otherwise
+ * - Fetches status on mount
+ * - Returns availability status and reason
  * - Listens to plugin enabled/disabled websocket events for the mattermost-ai plugin
- * - Refetches agents when the mattermost-ai plugin is enabled or disabled
- * - Refetches agents when the config changes to account for new agents being added
+ * - Refetches status when the mattermost-ai plugin is enabled or disabled
+ * - Refetches status when the config changes
  */
-export default function useGetAgentsBridgeEnabled(): boolean {
+export default function useGetAgentsBridgeEnabled(): AgentsBridgeStatus {
     const dispatch = useDispatch();
-    const agents = useSelector(getAgents);
+    const status = useSelector(getAgentsStatusSelector);
     const hasFetchedRef = useRef(false);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Fetch agents on mount
+    // Fetch status on mount
     useEffect(() => {
         if (!hasFetchedRef.current) {
             hasFetchedRef.current = true;
-            dispatch(getAgentsAction());
+            dispatch(getAgentsStatus());
         }
     }, [dispatch]);
 
@@ -53,7 +58,7 @@ export default function useGetAgentsBridgeEnabled(): boolean {
             clearTimeout(debounceTimerRef.current);
         }
         debounceTimerRef.current = setTimeout(() => {
-            dispatch(getAgentsAction());
+            dispatch(getAgentsStatus());
         }, DEBOUNCE_DELAY_MS);
     }, [dispatch]);
 
@@ -75,7 +80,5 @@ export default function useGetAgentsBridgeEnabled(): boolean {
 
     useWebSocket({handler: handleWebSocketMessage});
 
-    // Return true if agents list is not empty, false otherwise
-    return Boolean(agents && agents.length > 0);
+    return status;
 }
-

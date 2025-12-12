@@ -8293,8 +8293,8 @@
     "translation": " attached a file."
   },
   {
-    "id": "ent.autotranslation.create_translation.error",
-    "translation": "Failed to create translation."
+    "id": "ent.autotranslation.create_translation_failed",
+    "translation": ""
   },
   {
     "id": "ent.autotranslation.detect_language.nil_context",
@@ -8303,6 +8303,10 @@
   {
     "id": "ent.autotranslation.detect_language.text_too_large",
     "translation": "Text exceeds maximum size for language detection."
+  },
+  {
+    "id": "ent.autotranslation.detect_remote.error",
+    "translation": "Failed to detect language using translation provider."
   },
   {
     "id": "ent.autotranslation.extract_content.mask_error",
@@ -8319,6 +8323,18 @@
   {
     "id": "ent.autotranslation.invalid_input",
     "translation": "Invalid language code provided."
+  },
+  {
+    "id": "ent.autotranslation.mask_verification_failed",
+    "translation": ""
+  },
+  {
+    "id": "ent.autotranslation.provider_not_available",
+    "translation": "Translation provider is not available."
+  },
+  {
+    "id": "ent.autotranslation.provider_not_initialized",
+    "translation": ""
   },
   {
     "id": "ent.autotranslation.unmask.missing_mask",
@@ -9633,6 +9649,10 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.autotranslation.agents.llm_service_id.app_error",
+    "translation": "Invalid autotranslation agents configuration: AI service must not be empty."
+  },
+  {
     "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
     "translation": "LibreTranslate URL must be a valid URL and start with http:// or https://."
   },
@@ -9645,16 +9665,20 @@
     "translation": "Unsupported autotranslation provider."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
-    "translation": "Invalid fetch timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeouts.long.app_error",
+    "translation": "Invalid long timeout for autotranslation settings. Must be a positive number."
   },
   {
-    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
-    "translation": "Invalid new post timeout for autotranslation settings. Must be a positive number."
+    "id": "model.config.is_valid.autotranslation.timeouts.medium.app_error",
+    "translation": "Invalid medium timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.short.app_error",
+    "translation": "Invalid short timeout for autotranslation settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.cache_type.app_error",
@@ -10993,6 +11017,42 @@
     "translation": "Invalid token."
   },
   {
+    "id": "model.translation.is_valid.lang.app_error",
+    "translation": "Invalid language code. Use a standard ISO code such as 'en', 'ja', or 'fr'."
+  },
+  {
+    "id": "model.translation.is_valid.nil.app_error",
+    "translation": "Translation object cannot be null."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Invalid object id."
+  },
+  {
+    "id": "model.translation.is_valid.object_json.app_error",
+    "translation": "Invalid object JSON."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Invalid object type."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Invalid translation provider."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Invalid translation text."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Invalid translation type."
+  },
+  {
+    "id": "model.translation.is_valid.type_invalid.app_error",
+    "translation": "Invalid translation type. Must be 'string' or 'object'."
+  },
+  {
     "id": "model.upload_session.is_valid.channel_id.app_error",
     "translation": "Invalid value for ChannelId."
   },
@@ -11265,6 +11325,22 @@
     "translation": "Unable to get active languages."
   },
   {
+    "id": "store.sql_autotranslation.get_all_by_state_page.app_error",
+    "translation": "Unable to get translations by state."
+  },
+  {
+    "id": "store.sql_autotranslation.get_all_for_object.app_error",
+    "translation": "Unable to get translations for object."
+  },
+  {
+    "id": "store.sql_autotranslation.get_batch.app_error",
+    "translation": "Unable to get translation batch."
+  },
+  {
+    "id": "store.sql_autotranslation.get_by_state_older_than.app_error",
+    "translation": ""
+  },
+  {
     "id": "store.sql_autotranslation.get_channel_enabled.app_error",
     "translation": "Unable to get channel autotranslation enabled status."
   },
@@ -11295,10 +11371,6 @@
   {
     "id": "store.sql_autotranslation.save.app_error",
     "translation": "Unable to save translation."
-  },
-  {
-    "id": "store.sql_autotranslation.save.invalid_translation",
-    "translation": "Translation validation failed. The translation object is invalid."
   },
   {
     "id": "store.sql_autotranslation.save.meta_json.app_error",
