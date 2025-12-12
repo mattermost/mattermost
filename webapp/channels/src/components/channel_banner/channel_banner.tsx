@@ -9,10 +9,12 @@ import WithTooltip from '@mattermost/design-system/src/components/primitives/wit
 
 import {selectShowChannelBanner} from 'mattermost-redux/selectors/entities/channel_banner';
 import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 
 import type {GlobalState} from 'types/store';
@@ -30,7 +32,10 @@ type Props = {
 
 export default function ChannelBanner({channelId}: Props) {
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
-    const showChannelBanner = useSelector((state: GlobalState) => selectShowChannelBanner(state, channelId));
+    const license = useSelector(getLicense);
+    const licenseEnabled = isMinimumEnterpriseAdvancedLicense(license);
+    const channelBannerConfigured = useSelector((state: GlobalState) => selectShowChannelBanner(state, channelId));
+    const showChannelBanner = licenseEnabled && channelBannerConfigured;
     const textContainerRef = useRef<HTMLSpanElement>(null);
     const [tooltipNeeded, setTooltipNeeded] = React.useState<boolean>(false);
 

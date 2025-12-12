@@ -32,6 +32,9 @@ type PostMetadata struct {
 
 	// Acknowledgements holds acknowledgements made by users to the post
 	Acknowledgements []*PostAcknowledgement `json:"acknowledgements,omitempty"`
+
+	ExpireAt   int64    `json:"expire_at,omitempty"`
+	Recipients []string `json:"recipients,omitempty"`
 }
 
 func (p *PostMetadata) Auditable() map[string]any {

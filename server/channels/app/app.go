@@ -100,6 +100,9 @@ func (a *App) Notification() einterfaces.NotificationInterface {
 func (a *App) Saml() einterfaces.SamlInterface {
 	return a.ch.Saml
 }
+func (a *App) Intune() einterfaces.IntuneInterface {
+	return a.ch.Intune
+}
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud
 }
