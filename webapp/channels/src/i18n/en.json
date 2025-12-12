@@ -4929,7 +4929,6 @@
   "login.verified": " Email Verified",
   "manage_channel_groups_modal.search_placeholder": "Search groups",
   "manage_team_groups_modal.search_placeholder": "Search groups",
-  "mark_all_threads_as_read_modal.cancel": "Cancel",
   "mark_all_threads_as_read_modal.confirm": "Mark all as read",
   "mark_all_threads_as_read_modal.description": "This will clear the unread state and mention badges on all your threads. Are you sure?",
   "mark_all_threads_as_read_modal.title": "Mark all your threads as read?",
