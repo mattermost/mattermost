@@ -4,6 +4,10 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
+	"maps"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
@@ -185,4 +189,320 @@ func (pas *PropertyAccessService) DeletePropertyValuesForTarget(callerID string,
 // callerID identifies the caller (pluginID, userID, or empty string for system).
 func (pas *PropertyAccessService) DeletePropertyValuesForField(callerID string, groupID, fieldID string) error {
 	return pas.propertyService.DeletePropertyValuesForField(groupID, fieldID)
+}
+
+// Access Control Helper Methods
+
+// getSourcePluginID extracts the source_plugin_id from a PropertyField's attrs.
+// Returns empty string if not set.
+func (pas *PropertyAccessService) getSourcePluginID(field *model.PropertyField) string {
+	if field.Attrs == nil {
+		return ""
+	}
+	sourcePluginID, _ := field.Attrs[model.CustomProfileAttributesPropertyAttrsSourcePluginID].(string)
+	return sourcePluginID
+}
+
+// getAccessMode extracts the access_mode from a PropertyField's attrs.
+// Returns "public" if not set (default).
+func (pas *PropertyAccessService) getAccessMode(field *model.PropertyField) string {
+	if field.Attrs == nil {
+		return model.CustomProfileAttributesAccessModePublic
+	}
+	accessMode, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsAccessMode].(string)
+	if !ok || accessMode == "" {
+		return model.CustomProfileAttributesAccessModePublic
+	}
+	return accessMode
+}
+
+// isProtectedField checks if a PropertyField is protected from modifications.
+// Returns false if not set (default).
+func (pas *PropertyAccessService) isProtectedField(field *model.PropertyField) bool {
+	if field.Attrs == nil {
+		return false
+	}
+	protected, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsProtected].(bool)
+	return ok && protected
+}
+
+// checkUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
+// Returns nil if the caller has unrestricted read access (public field or source plugin for source_only).
+// Returns an error if access requires filtering or should be denied entirely.
+func (pas *PropertyAccessService) checkUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) error {
+	accessMode := pas.getAccessMode(field)
+
+	// Public fields are readable by everyone without restrictions
+	if accessMode == model.CustomProfileAttributesAccessModePublic {
+		return nil
+	}
+
+	// For source_only mode, only the source plugin has unrestricted access
+	if accessMode == model.CustomProfileAttributesAccessModeSourceOnly {
+		sourcePluginID := pas.getSourcePluginID(field)
+		if sourcePluginID != "" && sourcePluginID == callerID {
+			return nil
+		}
+	}
+
+	// All other cases require filtering or access denial
+	return fmt.Errorf("field %s has access_mode=%s and requires filtering", field.ID, accessMode)
+}
+
+// checkFieldWriteAccess checks if the given caller can modify a PropertyField.
+// Returns nil if modification is allowed, or an error if denied.
+func (pas *PropertyAccessService) checkFieldWriteAccess(field *model.PropertyField, callerID string) error {
+	// Check if field is protected
+	if !pas.isProtectedField(field) {
+		return nil
+	}
+
+	// Protected fields can only be modified by the source plugin
+	sourcePluginID := pas.getSourcePluginID(field)
+	if sourcePluginID == "" {
+		// Protected field with no source plugin - allow modification
+		return nil
+	}
+
+	if sourcePluginID != callerID {
+		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s'", field.ID, sourcePluginID)
+	}
+
+	return nil
+}
+
+// getCallerValuesForField retrieves all property values for the caller on a specific field.
+// This is used internally for shared_only filtering.
+// Returns an empty slice if callerID is empty or if there are no values.
+func (pas *PropertyAccessService) getCallerValuesForField(groupID, fieldID, callerID string) ([]*model.PropertyValue, error) {
+	if callerID == "" {
+		return []*model.PropertyValue{}, nil
+	}
+
+	allValues := []*model.PropertyValue{}
+	var cursor model.PropertyValueSearchCursor
+	pageSize := 100
+
+	for {
+		opts := model.PropertyValueSearchOpts{
+			FieldID:   fieldID,
+			TargetIDs: []string{callerID},
+			PerPage:   pageSize,
+		}
+
+		if !cursor.IsEmpty() {
+			opts.Cursor = cursor
+		}
+
+		values, err := pas.propertyService.SearchPropertyValues(groupID, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get caller values for field: %w", err)
+		}
+
+		allValues = append(allValues, values...)
+
+		// If we got fewer results than the page size, we're done
+		if len(values) < pageSize {
+			break
+		}
+
+		// Update cursor for next page
+		lastValue := values[len(values)-1]
+		cursor = model.PropertyValueSearchCursor{
+			PropertyValueID: lastValue.ID,
+			CreateAt:        lastValue.CreateAt,
+		}
+	}
+
+	return allValues, nil
+}
+
+// extractOptionIDsFromValue parses a JSON value and extracts option IDs into a set.
+// For select fields: returns a set with one option ID
+// For multiselect fields: returns a set with multiple option IDs
+// Returns nil if value is empty, or an error if field type is not select/multiselect.
+func (pas *PropertyAccessService) extractOptionIDsFromValue(fieldType model.PropertyFieldType, value []byte) (map[string]struct{}, error) {
+	if len(value) == 0 {
+		return nil, nil
+	}
+
+	optionIDs := make(map[string]struct{})
+
+	switch fieldType {
+	case model.PropertyFieldTypeSelect:
+		var optionID string
+		if err := json.Unmarshal(value, &optionID); err != nil {
+			return nil, err
+		}
+		if optionID != "" {
+			optionIDs[optionID] = struct{}{}
+		}
+
+	case model.PropertyFieldTypeMultiselect:
+		var ids []string
+		if err := json.Unmarshal(value, &ids); err != nil {
+			return nil, err
+		}
+		for _, id := range ids {
+			if id != "" {
+				optionIDs[id] = struct{}{}
+			}
+		}
+
+	default:
+		return nil, fmt.Errorf("extractOptionIDsFromValue only supports select and multiselect field types, got: %s", fieldType)
+	}
+
+	return optionIDs, nil
+}
+
+// copyPropertyField creates a deep copy of a PropertyField, including its Attrs map.
+func (pas *PropertyAccessService) copyPropertyField(field *model.PropertyField) *model.PropertyField {
+	copied := *field
+	copied.Attrs = make(model.StringInterface)
+	maps.Copy(copied.Attrs, field.Attrs)
+	return &copied
+}
+
+// getCallerOptionIDsForField retrieves the caller's values for a field and extracts all option IDs.
+// This is used for shared_only filtering to determine which options the caller has.
+// Returns an empty set if callerID is empty, if there are no values, or on error.
+func (pas *PropertyAccessService) getCallerOptionIDsForField(groupID, fieldID, callerID string, fieldType model.PropertyFieldType) (map[string]struct{}, error) {
+	callerValues, err := pas.getCallerValuesForField(groupID, fieldID, callerID)
+	if err != nil {
+		return make(map[string]struct{}), err
+	}
+
+	if len(callerValues) == 0 {
+		return make(map[string]struct{}), nil
+	}
+
+	// Extract option IDs from caller's values
+	callerOptionIDs := make(map[string]struct{})
+	for _, val := range callerValues {
+		optionIDs, err := pas.extractOptionIDsFromValue(fieldType, val.Value)
+		if err == nil && optionIDs != nil {
+			for optionID := range optionIDs {
+				callerOptionIDs[optionID] = struct{}{}
+			}
+		}
+	}
+
+	return callerOptionIDs, nil
+}
+
+// filterSharedOnlyFieldOptions filters a field's options to only include those the caller has values for.
+// Returns a new PropertyField with filtered options in the attrs.
+// If the caller has no values, returns a field with empty options.
+func (pas *PropertyAccessService) filterSharedOnlyFieldOptions(field *model.PropertyField, callerID string) *model.PropertyField {
+	// Only applies to select and multiselect fields
+	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
+		return field
+	}
+
+	// Get caller's option IDs for this field
+	callerOptionIDs, err := pas.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil || len(callerOptionIDs) == 0 {
+		// If no values or error, return field with empty options
+		filteredField := pas.copyPropertyField(field)
+		filteredField.Attrs[model.PropertyFieldAttributeOptions] = []any{}
+		return filteredField
+	}
+
+	// Get current options from field attrs
+	optionsArr, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok {
+		return field
+	}
+
+	// Convert to slice of maps (generic option representation)
+	optionsSlice, ok := optionsArr.([]any)
+	if !ok {
+		return field
+	}
+
+	// Filter options
+	filteredOptions := []any{}
+	for _, opt := range optionsSlice {
+		optMap, ok := opt.(map[string]any)
+		if !ok {
+			continue
+		}
+		optID, ok := optMap["id"].(string)
+		if !ok {
+			continue
+		}
+		if _, exists := callerOptionIDs[optID]; exists {
+			filteredOptions = append(filteredOptions, opt)
+		}
+	}
+
+	// Create a new field with filtered options
+	filteredField := pas.copyPropertyField(field)
+	filteredField.Attrs[model.PropertyFieldAttributeOptions] = filteredOptions
+	return filteredField
+}
+
+// filterSharedOnlyValue computes the intersection of caller and target values for shared_only fields.
+// Returns the filtered value or nil if there's no intersection.
+// For single-select: returns value only if both have the same value.
+// For multi-select: returns the intersection of arrays.
+func (pas *PropertyAccessService) filterSharedOnlyValue(field *model.PropertyField, value *model.PropertyValue, callerID string) *model.PropertyValue {
+	// Only applies to select and multiselect fields
+	if field.Type != model.PropertyFieldTypeSelect && field.Type != model.PropertyFieldTypeMultiselect {
+		return value
+	}
+
+	// Get caller's option IDs for this field
+	callerOptionIDs, err := pas.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+	if err != nil || len(callerOptionIDs) == 0 {
+		// No intersection possible
+		return nil
+	}
+
+	// Extract option IDs from target value
+	targetOptionIDs, err := pas.extractOptionIDsFromValue(field.Type, value.Value)
+	if err != nil || targetOptionIDs == nil || len(targetOptionIDs) == 0 {
+		return nil
+	}
+
+	// Find intersection
+	intersection := []string{}
+	for targetID := range targetOptionIDs {
+		if _, exists := callerOptionIDs[targetID]; exists {
+			intersection = append(intersection, targetID)
+		}
+	}
+
+	// If no intersection, return nil
+	if len(intersection) == 0 {
+		return nil
+	}
+
+	// Create filtered value based on field type
+	filteredValue := *value
+
+	switch field.Type {
+	case model.PropertyFieldTypeSelect:
+		// For single-select, return the single matching value
+		jsonValue, err := json.Marshal(intersection[0])
+		if err != nil {
+			return nil
+		}
+		filteredValue.Value = jsonValue
+		return &filteredValue
+
+	case model.PropertyFieldTypeMultiselect:
+		// For multi-select, return the array of matching values
+		jsonValue, err := json.Marshal(intersection)
+		if err != nil {
+			return nil
+		}
+		filteredValue.Value = jsonValue
+		return &filteredValue
+
+	default:
+		// Should never reach here due to check at function start
+		return nil
+	}
 }
