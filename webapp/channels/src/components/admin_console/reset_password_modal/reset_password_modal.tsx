@@ -127,6 +127,7 @@ export default function ResetPasswordModal({
             onHide={handleCancel}
             handleCancel={handleCancel}
             handleConfirm={handleConfirm}
+            handleEnterKeyPress={handleConfirm}
             confirmButtonText={formatMessage({
                 id: 'admin.reset_password.reset',
                 defaultMessage: 'Reset',

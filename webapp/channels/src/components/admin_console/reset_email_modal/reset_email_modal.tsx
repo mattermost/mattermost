@@ -129,6 +129,7 @@ export default function ResetEmailModal({
             onHide={handleCancel}
             handleCancel={handleCancel}
             handleConfirm={handleConfirm}
+            handleEnterKeyPress={handleConfirm}
             confirmButtonText={formatMessage({
                 id: 'admin.reset_email.update',
                 defaultMessage: 'Update',
