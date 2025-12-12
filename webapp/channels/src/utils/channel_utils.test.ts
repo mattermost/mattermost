@@ -4,9 +4,8 @@
 import {ArchiveLockOutlineIcon, ArchiveOutlineIcon, GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
-import Constants from 'utils/constants';
-
 import * as Utils from 'utils/channel_utils';
+import Constants from 'utils/constants';
 
 describe('Channel Utils', () => {
     describe('findNextUnreadChannelId', () => {

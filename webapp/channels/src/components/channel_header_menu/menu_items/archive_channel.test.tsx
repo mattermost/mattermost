@@ -108,7 +108,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
             display_name: 'Public Channel',
         });
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={publicChannel}/>
             </WithTestMenuContext>, initialState,
@@ -125,7 +125,7 @@ describe('components/ChannelHeaderMenu/MenuItems/ArchiveChannel', () => {
             display_name: 'Private Channel',
         });
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <WithTestMenuContext>
                 <ArchiveChannel channel={privateChannel}/>
             </WithTestMenuContext>, initialState,
