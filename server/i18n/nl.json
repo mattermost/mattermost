@@ -4596,7 +4596,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4608,15 +4608,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 128+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 138+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 138+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10810,5 +10810,293 @@
   {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Er is een ongeldige reactie gevonden bij het indienen van een interactief dialoogvenster."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kan een kanaal met beperkte directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Kan geen bericht plaatsen in beperkt DM"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Voeg een opmerking toe waarin je uitlegt waarom je dit bericht markeert."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "De reden voor het markeren van een bericht kan niet langer zijn dan {{.MaxLength}} tekens."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "De markeerfunctie voor inhoud is niet ingeschakeld in dit team."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Het gemarkeerde bericht moet de status 'in behandeling' of 'toegewezen' hebben om bewaard of verwijderd te worden."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Onbekende reden opgegeven voor markeren van bericht."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Selecteer een reden om dit bericht te markeren."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Kan concept niet opslaan in beperkt directe berichten kanaal"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Kan niet posten naar beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Kan geen bericht verwijderen in een beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in een beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Fout bij het ophalen van gemeenschappelijke teams voor kanaal"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Kan dit bericht niet markeren omdat het al gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Kan dit bericht niet markeren, het is verwijderd in een eerder verzoek voor markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Kan dit bericht niet markeren omdat het is bewaard in een eerder verzoek om markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Kan dit bericht niet markeren omdat het een onbekende status heeft."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Mislukt om commentaar van markerende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Faalde om de reden van de vlaggende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Het bericht van @{{.username}} is gemarkeerd voor beoordeling. Je ontvangt bericht zodra het is beoordeeld door een inhoudsbeoordeelaar. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Fout bij het ophalen van de Content Flagging bot."
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Fout bij het ophalen van het Statusveld."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Fout bij het zoeken van beoordeelaars in het team."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Fout bij het verkeken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Fout bij het bijwerken van de status van gemarkeerde bericht bij het verwijderen van gemarkeerd bericht "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht en de bijhorende data te verwijderen."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Fout bij  de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Overschrijven van bericht met verwijderd bericht mislukt bij definitief verwijderen van gemarkeerd bericht."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Fout bij het zoeken naar Content Flagging eigenschapsvelden."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Fout bij het ophalen van de waarden van de inhoudsmarkeringseigenschappen uit de database."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Fout bij het zoeken van de Property Values voor de gemelde post."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Fout bij het permanent verwijderen van de prioriteitsgegevens uit de database voor het bericht."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Kan bericht niet plannen in een beperkte DM"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Inhoud beoordelen"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Kan geen bestand uploaden naar een beperkt direct bericht."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Er is een fout opgetreden bij het coderen van JSON voor het API-antwoord"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Fout bij het ophalen van instellingen voor inhoudsbeoordelaar uit de database"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Het is niet gelukt om de instellingen van de inhoudsbeoordelaar op te slaan in de database."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "De URL van LibreTranslate moet een geldige URL zijn en beginnen met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Ongeldige autotranslation provider, mag niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Niet-ondersteunde provider voor automatische vertalingen."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Ongeldige fetch timeout voor instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Ongeldige time-out voor nieuwe berichten bij instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanaal ID komt niet overeen met het kanaal ID van het gemarkeerde bericht."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Kan geen rechten toevoegen die beperkt zijn door het machtigingsschema van het team of het systeem."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "De gebruiker is geen inhoudsbeoordelaar."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "TeamID komt niet overeen met de teamID van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Geen eigenschapveld ReviewerID gevonden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Fout bij het bijwerken van de waarde van de Status-eigenschap bij het instellen van reviewer."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Fout bij het instellen van een beoordelaar voor een gemarkeerd bericht."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Kan het eigenschapveld Flagged Post ID niet vinden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Kan het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Kan de waarde voor het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Kan de term niet vinden in Common Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Kan reviewer berichten niet vinden het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Reviewers."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Het is niet gelukt om reacties op de gemarkeerde post op te halen."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Manage By-eigenschapsveld is niet gevonden."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Status-eigenschapsveld niet gevonden."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Het is niet gelukt om eigenschappen in te stellen op antwoorden op het draadje voor het gemarkeerde bericht."
   }
 ]

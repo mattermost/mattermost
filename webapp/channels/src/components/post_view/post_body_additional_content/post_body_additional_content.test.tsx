@@ -350,7 +350,7 @@ describe('PostBodyAdditionalContent', () => {
         wrapper.instance().toggleEmbedVisibility();
 
         expect(baseProps.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.toggleEmbedVisibility).toBeCalledWith('post_id_1');
+        expect(baseProps.actions.toggleEmbedVisibility).toHaveBeenCalledWith('post_id_1');
     });
 
     test('should call getEmbedFromMetadata with metadata', () => {

@@ -1,6 +1,6 @@
 {
   "name": "mattermost-redux",
-  "version": "10.12.0",
+  "version": "11.1.0",
   "description": "Common code (API client, Redux stores, logic, utility functions) for building a Mattermost client",
   "keywords": [
     "mattermost"
@@ -39,8 +39,8 @@
     "directory": "webapp/platform/mattermost-redux"
   },
   "dependencies": {
-    "@mattermost/client": "10.12.0",
-    "@mattermost/types": "10.12.0",
+    "@mattermost/client": "11.1.0",
+    "@mattermost/types": "11.1.0",
     "@redux-devtools/extension": "3.3.0",
     "lodash": "^4.17.21",
     "moment-timezone": "^0.5.38",
@@ -61,7 +61,7 @@
   },
   "scripts": {
     "build": "tsc --build --verbose",
-    "postbuild": "cp ../../channels/src/packages/mattermost-redux/src/selectors/create_selector/index.d.ts lib/selectors/create_selector/index.d.ts",
+    "postbuild": "sh postbuild.sh",
     "clean": "rm -rf lib node_modules *.tsbuildinfo"
   }
 }

@@ -380,6 +380,7 @@ function CELEditor({
             {editorState.showTestResults && (
                 <TestResultsModal
                     onExited={() => setEditorState((prev) => ({...prev, showTestResults: false}))}
+                    isStacked={true}
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {

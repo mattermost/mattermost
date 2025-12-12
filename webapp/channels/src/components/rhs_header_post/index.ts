@@ -7,7 +7,7 @@ import {connect} from 'react-redux';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getInt, isCollapsedThreadsEnabled, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
@@ -24,6 +24,8 @@ import {
 } from 'actions/views/rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
+
+import {focusPost} from 'components/permalink_view/actions';
 
 import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
@@ -64,7 +66,7 @@ function makeMapStateToProps() {
             isExpanded: getIsRhsExpanded(state),
             isMobileView: getIsMobileView(state),
             relativeTeamUrl: getCurrentRelativeTeamUrl(state),
-            currentTeamId: getCurrentTeamId(state),
+            currentTeam: getCurrentTeam(state),
             currentUserId,
             isCollapsedThreadsEnabled: collapsedThreads,
             isFollowingThread,
@@ -84,6 +86,7 @@ const actions = {
     toggleRhsExpanded,
     setThreadFollow,
     goBack,
+    focusPost,
 };
 
 export default connect(makeMapStateToProps, actions)(RhsHeaderPost);

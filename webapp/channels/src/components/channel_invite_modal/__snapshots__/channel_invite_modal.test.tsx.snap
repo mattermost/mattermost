@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_invite_modal should match snapshot for channel_invite_modal with profiles 1`] = `
 <GenericModal

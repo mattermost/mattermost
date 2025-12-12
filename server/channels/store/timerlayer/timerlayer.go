@@ -30,6 +30,7 @@ type TimerLayer struct {
 	CommandStore                    store.CommandStore
 	CommandWebhookStore             store.CommandWebhookStore
 	ComplianceStore                 store.ComplianceStore
+	ContentFlaggingStore            store.ContentFlaggingStore
 	DesktopTokensStore              store.DesktopTokensStore
 	DraftStore                      store.DraftStore
 	EmojiStore                      store.EmojiStore
@@ -114,6 +115,10 @@ func (s *TimerLayer) CommandWebhook() store.CommandWebhookStore {
 
 func (s *TimerLayer) Compliance() store.ComplianceStore {
 	return s.ComplianceStore
+}
+
+func (s *TimerLayer) ContentFlagging() store.ContentFlaggingStore {
+	return s.ContentFlaggingStore
 }
 
 func (s *TimerLayer) DesktopTokens() store.DesktopTokensStore {
@@ -328,6 +333,11 @@ type TimerLayerCommandWebhookStore struct {
 
 type TimerLayerComplianceStore struct {
 	store.ComplianceStore
+	Root *TimerLayer
+}
+
+type TimerLayerContentFlaggingStore struct {
+	store.ContentFlaggingStore
 	Root *TimerLayer
 }
 
@@ -3401,6 +3411,53 @@ func (s *TimerLayerComplianceStore) Update(compliance *model.Compliance) (*model
 	return result, err
 }
 
+func (s *TimerLayerContentFlaggingStore) ClearCaches() {
+	start := time.Now()
+
+	s.ContentFlaggingStore.ClearCaches()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ContentFlaggingStore.ClearCaches", success, elapsed)
+	}
+}
+
+func (s *TimerLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSettings, error) {
+	start := time.Now()
+
+	result, err := s.ContentFlaggingStore.GetReviewerSettings()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ContentFlaggingStore.GetReviewerSettings", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error {
+	start := time.Now()
+
+	err := s.ContentFlaggingStore.SaveReviewerSettings(reviewerSettings)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ContentFlaggingStore.SaveReviewerSettings", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerDesktopTokensStore) Delete(token string) error {
 	start := time.Now()
 
@@ -5175,6 +5232,22 @@ func (s *TimerLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []stri
 	return result, err
 }
 
+func (s *TimerLayerJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetByTypeAndData(rctx, jobType, data, useMaster, statuses...)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetByTypeAndData", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 	start := time.Now()
 
@@ -6737,6 +6810,22 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.RefreshPostStats", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+	start := time.Now()
+
+	err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.RestoreContentFlaggedPost", success, elapsed)
 	}
 	return err
 }
@@ -11170,6 +11259,22 @@ func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 	}
 }
 
+func (s *TimerLayerTokenStore) ConsumeOnce(tokenType string, tokenStr string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.ConsumeOnce(tokenType, tokenStr)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.ConsumeOnce", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) Delete(token string) error {
 	start := time.Now()
 
@@ -12366,6 +12471,22 @@ func (s *TimerLayerUserStore) Search(rctx request.CTX, teamID string, term strin
 	return result, err
 }
 
+func (s *TimerLayerUserStore) SearchCommonContentFlaggingReviewers(term string) ([]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.SearchCommonContentFlaggingReviewers(term)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchCommonContentFlaggingReviewers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) SearchInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	start := time.Now()
 
@@ -12442,6 +12563,22 @@ func (s *TimerLayerUserStore) SearchNotInTeam(notInTeamID string, term string, o
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchNotInTeam", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) SearchTeamContentFlaggingReviewers(teamId string, term string) ([]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.SearchTeamContentFlaggingReviewers(teamId, term)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchTeamContentFlaggingReviewers", success, elapsed)
 	}
 	return result, err
 }
@@ -13308,10 +13445,6 @@ func (s *TimerLayer) MarkSystemRanUnitTests() {
 	s.Store.MarkSystemRanUnitTests()
 }
 
-func (s *TimerLayer) SetContext(context context.Context) {
-	s.Store.SetContext(context)
-}
-
 func (s *TimerLayer) TotalMasterDbConnections() int {
 	return s.Store.TotalMasterDbConnections()
 }
@@ -13345,6 +13478,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}
 	newStore.CommandWebhookStore = &TimerLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &TimerLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
+	newStore.ContentFlaggingStore = &TimerLayerContentFlaggingStore{ContentFlaggingStore: childStore.ContentFlagging(), Root: &newStore}
 	newStore.DesktopTokensStore = &TimerLayerDesktopTokensStore{DesktopTokensStore: childStore.DesktopTokens(), Root: &newStore}
 	newStore.DraftStore = &TimerLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &TimerLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}

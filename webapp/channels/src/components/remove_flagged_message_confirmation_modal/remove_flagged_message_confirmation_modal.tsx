@@ -168,7 +168,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
 
     return (
         <GenericModal
-            id='KeepRemoveFlaggedMessageConfirmationModal'
+            className='KeepRemoveFlaggedMessageConfirmationModal'
             dataTestId='keep-remove-flagged-message-confirmation-modal'
             ariaLabel={label}
             modalHeaderText={label}

@@ -69,6 +69,8 @@ const (
 	TeamCacheSec  = 30 * 60
 
 	ChannelCacheSec = 15 * 60 // 15 mins
+
+	ContentFlaggingCacheSize = 100
 )
 
 var clearCacheMessageData = []byte("")
@@ -124,6 +126,9 @@ type LocalCacheStore struct {
 
 	termsOfService      LocalCacheTermsOfServiceStore
 	termsOfServiceCache cache.Cache
+
+	contentFlagging      LocalCacheContentFlaggingStore
+	contentFlaggingCache cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -366,6 +371,15 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.team = LocalCacheTeamStore{TeamStore: baseStore.Team(), rootStore: &localCacheStore}
 
+	if localCacheStore.contentFlaggingCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ContentFlaggingCacheSize,
+		Name:                   "ContentFlagging",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForContentFlagging,
+	}); err != nil {
+		return
+	}
+	localCacheStore.contentFlagging = LocalCacheContentFlaggingStore{ContentFlaggingStore: baseStore.ContentFlagging(), rootStore: &localCacheStore}
+
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReactions, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForRoles, localCacheStore.role.handleClusterInvalidateRole)
@@ -390,6 +404,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForProfileInChannel, localCacheStore.user.handleClusterInvalidateProfilesInChannel)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAllProfiles, localCacheStore.user.handleClusterInvalidateAllProfiles)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTeams, localCacheStore.team.handleClusterInvalidateTeam)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
 	}
 	return
 }
@@ -436,6 +451,10 @@ func (s LocalCacheStore) User() store.UserStore {
 
 func (s LocalCacheStore) Team() store.TeamStore {
 	return s.team
+}
+
+func (s LocalCacheStore) ContentFlagging() store.ContentFlaggingStore {
+	return s.contentFlagging
 }
 
 func (s LocalCacheStore) DropAllTables() {

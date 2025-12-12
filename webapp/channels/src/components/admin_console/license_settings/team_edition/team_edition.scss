@@ -50,11 +50,24 @@
 }
 
 .TeamEditionLeftPanel {
-    .title {
-        color: #3f4350;
-        font-family: Metropolis;
+    &__Header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &__Title {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-family: 'Metropolis', sans-serif;
         font-size: 18px;
-        font-weight: 700;
-        line-height: 24px;
+        font-weight: 600;
+        gap: 8px;
+    }
+
+    &__LicenseNotices {
+        margin-top: 20px;
     }
 }

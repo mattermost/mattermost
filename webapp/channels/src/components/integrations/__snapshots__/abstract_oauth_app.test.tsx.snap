@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
 <div
@@ -95,6 +95,61 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           </div>
         </div>
       </Memo(SystemPermissionGate)>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="is_public"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Is Public Client"
+            id="installed_oauth_apps.public"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <label
+            className="radio-inline"
+          >
+            <input
+              checked={false}
+              name="is_public"
+              onChange={[Function]}
+              type="radio"
+              value="true"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="Yes"
+              id="installed_oauth_apps.public.yes"
+            />
+          </label>
+          <label
+            className="radio-inline"
+          >
+            <input
+              checked={true}
+              name="is_public"
+              onChange={[Function]}
+              type="radio"
+              value="false"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="No"
+              id="installed_oauth_apps.public.no"
+            />
+          </label>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret."
+              id="add_oauth_app.public.help"
+            />
+          </div>
+        </div>
+      </div>
       <div
         className="form-group"
       >
@@ -404,6 +459,61 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           </div>
         </div>
       </Memo(SystemPermissionGate)>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="is_public"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Is Public Client"
+            id="installed_oauth_apps.public"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <label
+            className="radio-inline"
+          >
+            <input
+              checked={false}
+              name="is_public"
+              onChange={[Function]}
+              type="radio"
+              value="true"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="Yes"
+              id="installed_oauth_apps.public.yes"
+            />
+          </label>
+          <label
+            className="radio-inline"
+          >
+            <input
+              checked={true}
+              name="is_public"
+              onChange={[Function]}
+              type="radio"
+              value="false"
+            />
+            <MemoizedFormattedMessage
+              defaultMessage="No"
+              id="installed_oauth_apps.public.no"
+            />
+          </label>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret."
+              id="add_oauth_app.public.help"
+            />
+          </div>
+        </div>
+      </div>
       <div
         className="form-group"
       >

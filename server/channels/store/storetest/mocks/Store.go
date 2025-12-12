@@ -5,8 +5,6 @@
 package mocks
 
 import (
-	context "context"
-
 	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
 
@@ -269,20 +267,20 @@ func (_m *Store) Compliance() store.ComplianceStore {
 	return r0
 }
 
-// Context provides a mock function with no fields
-func (_m *Store) Context() context.Context {
+// ContentFlagging provides a mock function with no fields
+func (_m *Store) ContentFlagging() store.ContentFlaggingStore {
 	ret := _m.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for Context")
+		panic("no return value specified for ContentFlagging")
 	}
 
-	var r0 context.Context
-	if rf, ok := ret.Get(0).(func() context.Context); ok {
+	var r0 store.ContentFlaggingStore
+	if rf, ok := ret.Get(0).(func() store.ContentFlaggingStore); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(context.Context)
+			r0 = ret.Get(0).(store.ContentFlaggingStore)
 		}
 	}
 
@@ -1107,11 +1105,6 @@ func (_m *Store) Session() store.SessionStore {
 	}
 
 	return r0
-}
-
-// SetContext provides a mock function with given fields: _a0
-func (_m *Store) SetContext(_a0 context.Context) {
-	_m.Called(_a0)
 }
 
 // SharedChannel provides a mock function with no fields

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/content_flagging/user_multiselector/UserProfilePill should render user profile pill with avatar and display name 1`] = `
 <div>

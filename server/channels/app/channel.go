@@ -1092,10 +1092,10 @@ func (a *App) PatchChannelModerationsForChannel(rctx request.CTX, channel *model
 
 	for _, moderationPatch := range channelModerationsPatch {
 		if moderationPatch.Roles.Members != nil && *moderationPatch.Roles.Members && !higherScopedMemberPermissions[*moderationPatch.Name] {
-			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+			return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error", nil, "", http.StatusForbidden)
 		}
 		if moderationPatch.Roles.Guests != nil && *moderationPatch.Roles.Guests && !higherScopedGuestPermissions[*moderationPatch.Name] {
-			return nil, &model.AppError{Message: "Cannot add a permission that is restricted by the team or system permission scheme"}
+			return nil, model.NewAppError("PatchChannelModerationsForChannel", "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error", nil, "", http.StatusForbidden)
 		}
 	}
 

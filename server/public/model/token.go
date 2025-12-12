@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	TokenSize          = 64
-	MaxTokenExipryTime = 1000 * 60 * 60 * 48 // 48 hour
-	TokenTypeOAuth     = "oauth"
-	TokenTypeSaml      = "saml"
+	TokenSize                = 64
+	MaxTokenExipryTime       = 1000 * 60 * 60 * 48 // 48 hour
+	TokenTypeOAuth           = "oauth"
+	TokenTypeSaml            = "saml"
+	TokenTypeSSOCodeExchange = "sso-code-exchange"
 )
 
 type Token struct {

@@ -30,8 +30,7 @@ func makePendingPostId(user *model.User) string {
 }
 
 func TestCreatePostDeduplicate(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("duplicate create post is idempotent", func(t *testing.T) {
 		session := &model.Session{
@@ -244,8 +243,8 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 		pendingPostId := makePendingPostId(th.BasicUser)
 
-		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, privateChannel)
 
 		post, err := th.App.CreatePostAsUser(th.Context.WithSession(sessionBasicUser), &model.Post{
 			UserId:        th.BasicUser.Id,
@@ -282,8 +281,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 func TestAttachFilesToPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should attach files", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 			&model.FileInfo{
@@ -311,8 +309,7 @@ func TestAttachFilesToPost(t *testing.T) {
 	})
 
 	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		info1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 			&model.FileInfo{
@@ -349,8 +346,7 @@ func TestAttachFilesToPost(t *testing.T) {
 
 func TestUpdatePostEditAt(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	post := th.BasicPost.Clone()
 
@@ -372,8 +368,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 
 func TestUpdatePostTimeLimit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	post := th.BasicPost.Clone()
 
@@ -407,11 +402,10 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 
 func TestUpdatePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	post := th.CreatePost(archivedChannel)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
+	post := th.CreatePost(t, archivedChannel)
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
 
@@ -424,8 +418,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 	userInChannel := th.BasicUser2
@@ -452,8 +445,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 
 func TestPostAttachPostToChildPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 	user := th.BasicUser
@@ -498,8 +490,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 
 func TestUpdatePostPluginHooks(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("Should stop processing at first reject", func(t *testing.T) {
 		setupMultiPluginAPITest(t, []string{
@@ -640,8 +631,7 @@ func TestUpdatePostPluginHooks(t *testing.T) {
 
 func TestPostChannelMentions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channel := th.BasicChannel
 	user := th.BasicUser
@@ -708,7 +698,6 @@ func TestPostChannelMentions(t *testing.T) {
 func TestImageProxy(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
 	mockUserStore := storemocks.UserStore{}
@@ -831,8 +820,7 @@ func TestImageProxy(t *testing.T) {
 
 func TestDeletePostWithFileAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a post with a file attachment.
 	teamID := th.BasicTeam.Id
@@ -878,15 +866,14 @@ func TestDeletePostWithRestrictedDM(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("cannot delete post in restricted DM", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
 		})
 
 		// Create a DM channel between two users who don't share a team
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// Ensure the two users do not share a team
 		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
@@ -903,10 +890,10 @@ func TestDeletePostWithRestrictedDM(t *testing.T) {
 		}
 
 		// Create separate teams for each user
-		team1 := th.CreateTeam()
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, team1)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		// Create a post in the DM channel
 		post := &model.Post{
@@ -932,11 +919,10 @@ func TestDeletePostWithRestrictedDM(t *testing.T) {
 
 func TestDeletePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	post := th.CreatePost(archivedChannel)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
+	post := th.CreatePost(t, archivedChannel)
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
 
@@ -949,8 +935,7 @@ func TestCreatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -978,9 +963,9 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Sets prop MENTION_HIGHLIGHT_DISABLED when it should", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
 		t.Run("Does not set prop when user has USE_CHANNEL_MENTIONS", func(t *testing.T) {
 			postWithNoMention := &model.Post{
@@ -1003,8 +988,8 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		t.Run("Sets prop when post has mentions and user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 
 			postWithNoMention := &model.Post{
 				ChannelId: th.BasicChannel.Id,
@@ -1024,16 +1009,16 @@ func TestCreatePost(t *testing.T) {
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProp(model.PostPropsMentionHighlightDisabled), true)
 
-			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
 	})
 
 	t.Run("Sets PostPropsPreviewedPost when a permalink is the first link", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
 		referencedPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1052,7 +1037,7 @@ func TestCreatePost(t *testing.T) {
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		channelForPreview := th.CreateChannel(th.Context, th.BasicTeam)
+		channelForPreview := th.CreateChannel(t, th.BasicTeam)
 		previewPost := &model.Post{
 			ChannelId: channelForPreview.Id,
 			Message:   permalink,
@@ -1067,10 +1052,9 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("creates a single record for a permalink preview post", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		channelForPreview := th.CreateChannel(th.Context, th.BasicTeam)
+		channelForPreview := th.CreateChannel(t, th.BasicTeam)
 
 		referencedPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1107,17 +1091,16 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 		})
 
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 		directChannel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, err)
 
@@ -1170,11 +1153,10 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Should not allow to create posts on shared DMs", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 		dm, appErr := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, dm)
@@ -1210,12 +1192,11 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("Should not allow to create posts on shared GMs", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		user3 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
 		gm, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, gm)
@@ -1251,15 +1232,14 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("MM-40016 should not panic with `concurrent map read and map write`", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		channelForPreview := th.CreateChannel(th.Context, th.BasicTeam)
+		channelForPreview := th.CreateChannel(t, th.BasicTeam)
 
 		for range 20 {
-			user := th.CreateUser()
-			th.LinkUserToTeam(user, th.BasicTeam)
-			th.AddUserToChannel(user, channelForPreview)
+			user := th.CreateUser(t)
+			th.LinkUserToTeam(t, user, th.BasicTeam)
+			th.AddUserToChannel(t, user, channelForPreview)
 		}
 
 		referencedPost := &model.Post{
@@ -1303,9 +1283,9 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("should sanitize the force notifications prop if the flag is not set", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
 		postToCreate := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1320,9 +1300,9 @@ func TestCreatePost(t *testing.T) {
 
 	t.Run("should add the force notifications prop if the flag is set", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
 		postToCreate := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1339,8 +1319,7 @@ func TestPatchPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -1376,10 +1355,9 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("Sets Prop MENTION_HIGHLIGHT_DISABLED when it should", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1405,8 +1383,8 @@ func TestPatchPost(t *testing.T) {
 		})
 
 		t.Run("Sets prop when user does not have USE_CHANNEL_MENTIONS", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-			th.RemovePermissionFromRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 
 			patchWithNoMention := &model.PostPatch{Message: model.NewPointer("This patch still does not have a mention")}
 			rpost, err = th.App.PatchPost(th.Context, rpost.Id, patchWithNoMention, nil)
@@ -1419,22 +1397,21 @@ func TestPatchPost(t *testing.T) {
 			require.Nil(t, err)
 			assert.Equal(t, rpost.GetProp(model.PostPropsMentionHighlightDisabled), true)
 
-			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
-			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
 	})
 
 	t.Run("cannot patch post in restricted DM", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
 		})
 
 		// Create a DM channel between two users who don't share a team
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// Ensure the two users do not share a team
 		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
@@ -1451,10 +1428,10 @@ func TestPatchPost(t *testing.T) {
 		}
 
 		// Create separate teams for each user
-		team1 := th.CreateTeam()
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, team1)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		// Create a post in the DM channel
 		post := &model.Post{
@@ -1485,8 +1462,7 @@ func TestCreatePostAsUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("marks channel as viewed for regular user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1509,8 +1485,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not mark channel as viewed for webhook from user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1534,16 +1509,15 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not mark channel as viewed for bot user in channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		bot := th.CreateBot()
+		bot := th.CreateBot(t)
 
 		botUser, appErr := th.App.GetUser(bot.UserId)
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(botUser, th.BasicTeam)
-		th.AddUserToChannel(botUser, th.BasicChannel)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		th.AddUserToChannel(t, botUser, th.BasicChannel)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1566,15 +1540,14 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not log warning for bot user not in channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
-		bot := th.CreateBot()
+		bot := th.CreateBot(t)
 
 		botUser, appErr := th.App.GetUser(bot.UserId)
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(botUser, th.BasicTeam)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1592,8 +1565,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("marks channel as viewed for reply post when CRT is off", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOff
@@ -1628,8 +1600,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("does not mark channel as viewed for reply post when CRT is on", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -1665,15 +1636,14 @@ func TestCreatePostAsUser(t *testing.T) {
 
 	t.Run("cannot create post as user in restricted DM", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
 		})
 
 		// Create a DM channel between two users who don't share a team
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// Ensure the two users do not share a team
 		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
@@ -1690,10 +1660,10 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 
 		// Create separate teams for each user
-		team1 := th.CreateTeam()
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, team1)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -1715,11 +1685,10 @@ func TestCreatePostAsUser(t *testing.T) {
 
 func TestPatchPostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	post := th.CreatePost(archivedChannel)
+	archivedChannel := th.CreateChannel(t, th.BasicTeam)
+	post := th.CreatePost(t, archivedChannel)
 	appErr := th.App.DeleteChannel(th.Context, archivedChannel, "")
 	require.Nil(t, appErr)
 
@@ -1732,9 +1701,9 @@ func TestUpdateEphemeralPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Post contains preview if the user has permissions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
 		referencedPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1767,11 +1736,11 @@ func TestUpdateEphemeralPost(t *testing.T) {
 
 	t.Run("Post does not contain preview if the user has no permissions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, privateChannel)
-		th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+		th := Setup(t).InitBasic(t)
+
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, th.BasicUser, privateChannel)
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 		referencedPost := &model.Post{
 			ChannelId: privateChannel.Id,
@@ -1805,8 +1774,7 @@ func TestUpdatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -1841,9 +1809,9 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("Sets PostPropsPreviewedPost when a post is updated to have a permalink as the first link", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th := Setup(t).InitBasic(t)
+
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
 		referencedPost := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -1862,7 +1830,7 @@ func TestUpdatePost(t *testing.T) {
 
 		permalink := fmt.Sprintf("%s/%s/pl/%s", *th.App.Config().ServiceSettings.SiteURL, th.BasicTeam.Name, referencedPost.Id)
 
-		channelForTestPost := th.CreateChannel(th.Context, th.BasicTeam)
+		channelForTestPost := th.CreateChannel(t, th.BasicTeam)
 		testPost := &model.Post{
 			ChannelId: channelForTestPost.Id,
 			Message:   "hello world",
@@ -1881,17 +1849,16 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("sanitizes post metadata appropriately", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 		})
 
-		th.AddUserToChannel(th.BasicUser, th.BasicChannel)
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
 
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 		directChannel, err := th.App.createDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, err)
 
@@ -1946,15 +1913,14 @@ func TestUpdatePost(t *testing.T) {
 
 	t.Run("cannot update post in restricted DM", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
 		})
 
 		// Create a DM channel between two users who don't share a team
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// Ensure the two users do not share a team
 		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
@@ -1971,10 +1937,10 @@ func TestUpdatePost(t *testing.T) {
 		}
 
 		// Create separate teams for each user
-		team1 := th.CreateTeam()
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, team1)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		// Create a post in the DM channel
 		post := &model.Post{
@@ -2005,7 +1971,7 @@ func TestSearchPostsForUser(t *testing.T) {
 	searchTerm := "searchTerm"
 
 	setup := func(t *testing.T, enableElasticsearch bool) (*TestHelper, []*model.Post) {
-		th := Setup(t).InitBasic()
+		th := Setup(t).InitBasic(t)
 
 		posts := make([]*model.Post, 7)
 		for i := 0; i < cap(posts); i++ {
@@ -2039,7 +2005,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return everything as first page of posts from database", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, false)
-		defer th.TearDown()
 
 		page := 0
 
@@ -2060,7 +2025,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should not return later pages of posts from database", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
-		defer th.TearDown()
 
 		page := 1
 
@@ -2073,7 +2037,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return first page of posts from ElasticSearch", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, true)
-		defer th.TearDown()
 
 		page := 0
 		resultsPage := []string{
@@ -2104,7 +2067,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return later pages of posts from ElasticSearch", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, true)
-		defer th.TearDown()
 
 		page := 1
 		resultsPage := []string{
@@ -2132,7 +2094,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should fall back to database if ElasticSearch fails on first page", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, posts := setup(t, true)
-		defer th.TearDown()
 
 		page := 0
 
@@ -2165,7 +2126,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return nothing if ElasticSearch fails on later pages", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, true)
-		defer th.TearDown()
 
 		page := 1
 
@@ -2190,7 +2150,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return the same results if there is a tilde in the channel name", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
-		defer th.TearDown()
 
 		page := 0
 
@@ -2212,7 +2171,6 @@ func TestSearchPostsForUser(t *testing.T) {
 	t.Run("should return the same results if there is an 'at' in the user", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th, _ := setup(t, false)
-		defer th.TearDown()
 
 		page := 0
 
@@ -2236,14 +2194,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not count posts without mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2272,14 +2229,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count keyword mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
 
@@ -2312,14 +2268,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count channel-wide mentions when enabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
 
@@ -2352,14 +2307,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count channel-wide mentions when disabled for user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "false"
 
@@ -2390,14 +2344,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count channel-wide mentions when disabled for channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.ChannelMentionsNotifyProp] = "true"
 
@@ -2433,14 +2386,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count comment mentions when using COMMENTS_NOTIFY_ROOT", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyRoot
 
@@ -2488,14 +2440,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count comment mentions when using COMMENTS_NOTIFY_ANY", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
@@ -2543,14 +2494,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count mentions caused by being added to the channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2593,8 +2543,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should return the number of posts made by the other user for a direct channel", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2629,8 +2578,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should return the number of posts made by the other user for a group message", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
@@ -2673,14 +2621,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count mentions from the before the given post", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		_, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2711,14 +2658,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not count mentions from the user's own posts", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2743,14 +2689,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should include comments made before the given post when counting comment mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
@@ -2791,8 +2736,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should not include comments made before the given post when rootPost is inaccessible", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// Create an Entry license with post history limits
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
@@ -2804,8 +2748,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.CommentsNotifyProp] = model.CommentsNotifyAny
 
@@ -2857,14 +2801,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count mentions from the user's webhook posts", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -2898,14 +2841,13 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count multiple pages of mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		numPosts := 215
 
@@ -2935,8 +2877,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 
 	t.Run("should count urgent mentions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.PostPriority = true
@@ -2945,8 +2886,8 @@ func TestCountMentionsFromPost(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		user2.NotifyProps[model.MentionKeysNotifyProp] = "apple"
 
@@ -2994,13 +2935,13 @@ func TestFillInPostProps(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should not add disable group highlight to post props for user with group mention permissions", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+
 		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		user1 := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -3017,8 +2958,7 @@ func TestFillInPostProps(t *testing.T) {
 
 	t.Run("should not add disable group highlight to post props for app without license", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		id := model.NewId()
 		guest := &model.User{
@@ -3030,10 +2970,10 @@ func TestFillInPostProps(t *testing.T) {
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
 		require.Nil(t, err)
-		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(guest, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, guest, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    guest.Id,
@@ -3050,8 +2990,8 @@ func TestFillInPostProps(t *testing.T) {
 
 	t.Run("should add disable group highlight to post props for guest user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+
 		th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 		id := model.NewId()
@@ -3064,10 +3004,10 @@ func TestFillInPostProps(t *testing.T) {
 		}
 		guest, err := th.App.CreateGuest(th.Context, guest)
 		require.Nil(t, err)
-		th.LinkUserToTeam(guest, th.BasicTeam)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(guest, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, guest, channel)
 
 		post1, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    guest.Id,
@@ -3081,14 +3021,111 @@ func TestFillInPostProps(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight": true})
 	})
+
+	t.Run("should set AI-generated username when user ID is post creator", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		user1 := th.BasicUser
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post",
+		}
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, user1.Id)
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		assert.Nil(t, err)
+		assert.Equal(t, user1.Id, post1.GetProp(model.PostPropsAIGeneratedByUserID))
+		assert.Equal(t, user1.Username, post1.GetProp(model.PostPropsAIGeneratedByUsername))
+	})
+
+	t.Run("should set AI-generated username when user ID is a bot", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		user1 := th.BasicUser
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		// Create a bot
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "testbot",
+			Description: "test bot",
+			OwnerId:     user1.Id,
+		})
+		require.Nil(t, appErr)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post generated by bot",
+		}
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, bot.UserId)
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		assert.Nil(t, err)
+		assert.Equal(t, bot.UserId, post1.GetProp(model.PostPropsAIGeneratedByUserID))
+		assert.Equal(t, bot.Username, post1.GetProp(model.PostPropsAIGeneratedByUsername))
+	})
+
+	t.Run("should return error when user ID is a different non-bot user", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post",
+		}
+		// Try to set AI-generated user ID to a different user (not post creator, not bot)
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, user2.Id)
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		// Should return an error since user2 is neither the post creator nor a bot
+		assert.NotNil(t, err)
+		assert.Equal(t, "FillInPostProps", err.Where)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("should remove AI-generated prop when user ID does not exist", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		user1 := th.BasicUser
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post",
+		}
+		// Set AI-generated user ID to a non-existent user
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, model.NewId())
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		assert.Nil(t, err)
+		// The property should be removed since the user doesn't exist
+		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUserID))
+		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUsername))
+	})
 }
 
 func TestThreadMembership(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should update memberships for conversation participants", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.ThreadAutoFollow = true
 			*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -3097,8 +3134,8 @@ func TestThreadMembership(t *testing.T) {
 		user1 := th.BasicUser
 		user2 := th.BasicUser2
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 
 		postRoot, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -3148,8 +3185,7 @@ func TestThreadMembership(t *testing.T) {
 
 func TestFollowThreadSkipsParticipants(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3218,8 +3254,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 func TestAutofollowBasedOnRootPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3247,8 +3282,7 @@ func TestAutofollowBasedOnRootPost(t *testing.T) {
 
 func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3282,8 +3316,7 @@ func TestViewChannelShouldNotUpdateThreads(t *testing.T) {
 
 func TestCollapsedThreadFetch(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3293,8 +3326,8 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	user2 := th.BasicUser2
 
 	t.Run("should only return root posts, enriched", func(t *testing.T) {
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 		defer func() {
 			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
 			require.Nil(t, appErr)
@@ -3336,8 +3369,8 @@ func TestCollapsedThreadFetch(t *testing.T) {
 	})
 
 	t.Run("Should not panic on unexpected db error", func(t *testing.T) {
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.AddUserToChannel(t, user2, channel)
 		defer func() {
 			appErr := th.App.DeleteChannel(th.Context, channel, user1.Id)
 			require.Nil(t, appErr)
@@ -3389,14 +3422,14 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		defer func() {
 			appErr = th.App.DeleteChannel(th.Context, channel, user1.Id)
 			require.Nil(t, appErr)
 		}()
 
-		th.LinkUserToTeam(user3, th.BasicTeam)
-		th.AddUserToChannel(user3, channel)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
+		th.AddUserToChannel(t, user3, channel)
 
 		postRoot, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user1.Id,
@@ -3458,8 +3491,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 func TestSharedChannelSyncForPostActions(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("creating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -3468,7 +3500,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		_, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -3482,8 +3514,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 	})
 
 	t.Run("updating a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -3492,7 +3523,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -3510,8 +3541,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 	})
 
 	t.Run("deleting a post in a shared channel performs a content sync when sync service is running on that node", func(t *testing.T) {
-		th := setupSharedChannels(t).InitBasic()
-		defer th.TearDown()
+		th := setupSharedChannels(t).InitBasic(t)
 
 		sharedChannelService := NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
 		th.Server.SetSharedChannelSyncService(sharedChannelService)
@@ -3520,7 +3550,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 		user := th.BasicUser
 
-		channel := th.CreateChannel(th.Context, th.BasicTeam, WithShared(true))
+		channel := th.CreateChannel(t, th.BasicTeam, WithShared(true))
 
 		post, err := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    user.Id,
@@ -3542,8 +3572,7 @@ func TestSharedChannelSyncForPostActions(t *testing.T) {
 
 func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3584,11 +3613,10 @@ func TestAutofollowOnPostingAfterUnfollow(t *testing.T) {
 
 func TestGetPostIfAuthorized(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("Private channel", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: privateChannel.Id, Message: "Hello"}, privateChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 		require.NotNil(t, post)
@@ -3611,7 +3639,7 @@ func TestGetPostIfAuthorized(t *testing.T) {
 	})
 
 	t.Run("Public channel", func(t *testing.T) {
-		publicChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		publicChannel := th.CreateChannel(t, th.BasicTeam)
 		post, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: publicChannel.Id, Message: "Hello"}, publicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 		require.NotNil(t, post)
@@ -3649,8 +3677,7 @@ func TestGetPostIfAuthorized(t *testing.T) {
 
 func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -3700,7 +3727,6 @@ func TestShouldNotRefollowOnOthersReply(t *testing.T) {
 func TestGetLastAccessiblePostTime(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	// Setup store mocks needed for GetServerLimits
 	mockStore := th.App.Srv().Store().(*storemocks.Store)
@@ -3762,7 +3788,6 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Updates the time, if Entry license limit is applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		// Set Entry license with post history limit of 100 messages
 		entryLicensePostsLimit := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
@@ -3789,7 +3814,6 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 
 	t.Run("Remove the time if license limit is NOT applicable", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		// Set license without post history limits (using test license without limits)
 		license := model.NewTestLicense()
@@ -3814,8 +3838,7 @@ func TestComputeLastAccessiblePostTime(t *testing.T) {
 
 func TestGetEditHistoryForPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	post := &model.Post{
 		ChannelId: th.BasicChannel.Id,
@@ -3956,8 +3979,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 
 func TestCopyWranglerPostlist(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Create a post with a file attachment
 	fileBytes := []byte("file contents")
@@ -4009,8 +4031,7 @@ func TestCopyWranglerPostlist(t *testing.T) {
 
 func TestValidateMoveOrCopy(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable = model.NewPointer(true)
@@ -4134,8 +4155,7 @@ func TestValidateMoveOrCopy(t *testing.T) {
 
 func TestPermanentDeletePost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should permanently delete a post and its file attachment", func(t *testing.T) {
 		// Create a post with a file attachment.
@@ -4226,8 +4246,8 @@ func TestPermanentDeletePost(t *testing.T) {
 
 func TestSendTestMessage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	t.Run("Should create the post with the correct prop", func(t *testing.T) {
 		post, result := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
 		assert.Nil(t, result)
@@ -4237,8 +4257,7 @@ func TestSendTestMessage(t *testing.T) {
 
 func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("should populate file metadata for all posts", func(t *testing.T) {
 		fileInfo1, err := th.App.Srv().Store().FileInfo().Save(th.Context,
@@ -4255,11 +4274,11 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+		post1 := th.CreatePost(t, th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo1.Id}
 		})
 
-		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+		post2 := th.CreatePost(t, th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
 		})
 
@@ -4288,11 +4307,11 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+		post1 := th.CreatePost(t, th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo1.Id}
 		})
 
-		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+		post2 := th.CreatePost(t, th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
 		})
 
@@ -4327,11 +4346,11 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			})
 		require.NoError(t, err)
 
-		post1 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+		post1 := th.CreatePost(t, th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo1.Id}
 		})
 
-		post2 := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+		post2 := th.CreatePost(t, th.BasicChannel, func(post *model.Post) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
 		})
 

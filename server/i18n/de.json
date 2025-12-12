@@ -4616,7 +4616,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
@@ -4628,15 +4628,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10798,5 +10798,293 @@
   {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Es wurde eine ungültige Antwort bei der Übermittlung eines interaktiven Dialogs gefunden."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Ein eingeschränkter Kanal für Direktnachrichten kann nicht aktualisiert werden."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Kann nicht in eine eingeschränkte Direktnachricht posten"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Bitte füge einen Kommentar hinzu, der erklärt, warum du diese Nachricht kennzeichnest."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Der Grund für die Kennzeichnung der Nachricht darf nicht länger als {{.MaxLength}} Zeichen sein."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Die Funktion zum Markieren von Inhalten ist in diesem Team nicht aktiviert."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Der markierte Beitrag muss sich im Status \"ausstehend\" oder \"zugewiesen\" befinden, um behalten oder entfernt zu werden."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Unbekannter Grund für die Markierung der Nachricht angegeben."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Bitte wähle einen Grund für die Markierung dieser Nachricht aus."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Entwurf kann nicht in einem beschränkten Kanal für Direktnachrichten gespeichert werden"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Ein Fehler bei der Kodierung von JSON für die API-Antwort ist aufgetreten"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Hochladen der Datei in eingeschränkte Direktnachrichten nicht möglich"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Hochladen der Datei in eingeschränkte Direktnachrichten nicht möglich"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Du kannst nicht in einen eingeschränkter Direktnachrichtenkanal posten."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Du kannst einen Beitrag in einem eingeschränkten Direktnachrichtenkanal nicht löschen."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kann den Beitrag in einem eingeschränktem Direktnachrichtenkanal nicht aktualisieren."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kann den Beitrag in einem eingeschränktem Direktnachrichtenkanal nicht aktualisieren."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kann in eingeschränkter DM nicht reagieren"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kann in eingeschränkter DM nicht reagieren"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Fehler beim Holen der gemeinsame Teams für diesen Kanal"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Dieser Beitrag kann nicht markiert werden, da er bereits markiert ist."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Dieser Beitrag kann nicht markiert werden, da er bei einer früheren Markierungsanfrage entfernt wurde."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Kann diesen Beitrag nicht markieren, da er in einem früheren Markierungsantrag beibehalten wurde."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Dieser Beitrag kann nicht gekennzeichnet werden, da er einen unbekannten Status hat."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Die Eigenschaftswerte für den markierten Beitrag können nicht gespeichert werden."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Der Kommentar des markierenden Benutzers konnte nicht zugeordnet werden"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Der Grund für die Markierung des Benutzers konnte nicht erfasst werden"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Die Nachricht von @{{.username}} wurde zur Überprüfung markiert. Du wirst benachrichtigt, sobald sie von einem Inhaltsprüfer überprüft wurde. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Der Bot für die Inhaltskennzeichnung konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Die Einstellungen für die Inhaltsüberprüfung konnten nicht aus der Datenbank geholt werden"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Das Eigenschaftsfeld Status konnte nicht abgerufen werden."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Die Suche nach Prüfern im Team ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Kommentar des Überprüfers konnte nicht zugeordnet werden"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Der Status des markierten Beitrags konnte nicht aktualisiert werden, wenn der markierte Beitrag wieder hergestellt wurde. "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Beim Versuch, die Löschung des markierten Beitrag und die zugehörigen Daten rückgängig zu machen, konnte der Beitrag nicht in der Datenbank aktualisiert werden."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Die Eigenschaftswerte für die Inhaltskennzeichnung konnten nicht in das WebSocket-Ereignis übertragen werden."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Gekennzeichneter Beitrag können nicht abgerufen werden, da der Beitrag nicht gekennzeichnet ist."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Beim dauerhaften Löschen von markierten Beiträgen konnte der Beitrag nicht mit dem gelöschten Beitrag überschrieben werden."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Kommentar des Überprüfers konnte nicht zugeordnet werden"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Beim dauerhaften Löschen von markierten Beiträgen wurde der Status der markierten Beiträge nicht aktualisiert."
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Die Einstellungen des Inhaltsprüfers konnten nicht in der Datenbank gespeichert werden."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Die Suche nach den Eigenschaftsfeldern für die Inhaltskennzeichnung ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Die Werte für die Inhaltskennzeichnung des Beitrags konnten nicht aus der Datenbank geholt werden."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Die Suche nach den Eigenschaftswerten für den markierten Beitrag ist fehlgeschlagen."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Das dauerhafte Löschen der Nachrichtprioritätsdaten aus der Datenbank für die Nachricht ist fehlgeschlagen."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Kann keinen Nachricht in einer eingeschränkten Direktnachricht planen"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Inhaltsüberprüfung"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Datei kann nicht in eine eingeschränkte Direktnachricht hochgeladen werden."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "Die LibreTranslate URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Ungültiger Autotranslationsanbieter, darf nicht leer sein."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Nicht unterstützter Autotranslationsanbieter."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Ungültiges Fetch-Timeout für die Autotranslation-Einstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Ungültige Zeitüberschreitung für neue Beiträge bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Ungültiges Zeitlimit für Benachrichtigungen bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Die Kanal-ID stimmt nicht mit der Kanal-ID des markierten Beitrags überein."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Kann keine Berechtigung hinzufügen, die durch das Team- oder Systemberechtigungsschema eingeschränkt ist."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Benutzer ist kein Inhaltsprüfer."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Die Team-ID stimmt nicht mit der Team-ID des markierten Beitrags überein."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Kein Reviewer-ID-Eigenschaftsfeld gefunden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Der Wert der Eigenschaft Status konnte beim Setzen des Überprüfers nicht aktualisiert werden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Überprüfer der Nachricht konnte nicht gesetzt werden."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Das Eigenschaftsfeld Flagged Post ID kann nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Das Feld \"Reporting User\" kann nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Es konnte kein Wert für das \"Reporting User\" Feld gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Die Suche nach dem Begriff in Allgemeine Prüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Die Suche nach dem markierten Beitrag in den Beiträgen der Überprüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in System Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Die Antworten auf den markierten Beitrag konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Das Eigenschaftsfeld \"Verwaltet durch\" konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Das Eigenschaftsfeld Status konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Das Setzen von Eigenschaftswerten auf Antworten von Unterhaltungen für den markierten Beitrag ist fehlgeschlagen."
   }
 ]

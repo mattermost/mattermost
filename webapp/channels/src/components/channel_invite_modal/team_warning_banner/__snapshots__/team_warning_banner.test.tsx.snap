@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_invite_modal/team_warning_banner should match snapshot for team_warning_banner with < 10 guest profiles 1`] = `
 <Provider

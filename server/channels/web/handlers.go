@@ -393,6 +393,19 @@ func (h Handler) handleContextError(c *Context, w http.ResponseWriter, r *http.R
 		c.Err = newErr
 	}
 
+	// Detect and fix AppError with missing StatusCode to prevent panics
+	if c.Err.StatusCode == 0 {
+		c.Logger.Error("AppError with zero StatusCode detected",
+			mlog.String("error_id", c.Err.Id),
+			mlog.String("error_message", c.Err.Message),
+			mlog.String("error_where", c.Err.Where),
+			mlog.String("request_path", r.URL.Path),
+			mlog.String("request_method", r.Method),
+			mlog.String("detailed_error", c.Err.DetailedError),
+		)
+		c.Err.StatusCode = http.StatusInternalServerError
+	}
+
 	c.Err.RequestId = c.AppContext.RequestId()
 	c.LogErrorByCode(c.Err)
 	// The locale translation needs to happen after we have logged it.
@@ -494,7 +507,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, tokenLocation app.
 				mlog.String("user_id", session.UserId),
 			}
 
-			if *c.App.Config().ServiceSettings.StrictCSRFEnforcement {
+			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
 				c.Logger.Warn(csrfErrorMessage, fields...)
 			} else {
 				c.Logger.Debug(csrfErrorMessage, fields...)

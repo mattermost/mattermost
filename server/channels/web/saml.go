@@ -106,7 +106,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Validate that the user is with SAML and all that
+	// Validate that the user is with SAML and all that
 	encodedXML := r.FormValue("SAMLResponse")
 	relayState := r.FormValue("RelayState")
 
@@ -161,7 +161,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); err != nil {
+	err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, "")
+	if err != nil {
 		handleError(err)
 		return
 	}
@@ -250,8 +251,10 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			"code_challenge":        samlChallenge,
 			"code_challenge_method": samlMethod,
 		})
-		code := model.NewToken(model.TokenTypeSaml, extra)
-		if err := c.App.Srv().Store().Token().Save(code); err != nil {
+
+		var code *model.Token
+		code, err = c.App.CreateSamlRelayToken(model.TokenTypeSSOCodeExchange, extra)
+		if err != nil {
 			handleError(model.NewAppError("completeSaml", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
 			return
 		}

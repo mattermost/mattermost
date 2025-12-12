@@ -150,7 +150,7 @@ test(
 Change to the `./` project directory, then run the docker container. (See https://playwright.dev/docs/docker for reference.)
 
 ```bash
-docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.55.0-noble /bin/bash
+docker run -it --rm -v "$(pwd):/mattermost/" --ipc=host mcr.microsoft.com/playwright:v1.56.0-noble /bin/bash
 ```
 
 #### 2. Inside the docker container
@@ -179,6 +179,41 @@ npm run test -- specs/visual --update-snapshots
 export PERCY_TOKEN=<your-percy-token>
 npm run percy:docker
 ```
+
+## Accessibility Testing
+
+Accessibility tests ensure Mattermost meets WCAG 2.1 AA compliance standards. Tests are located in `specs/accessibility/` and cover keyboard navigation, screen reader support, focus management, and automated accessibility scanning.
+
+For comprehensive guidelines on writing accessibility tests, aria snapshots, and folder structure, see [docs/accessibility/](docs/accessibility/).
+
+### Accessibility Locators
+
+**Playwright's accessibility locators should be the preferred approach for all tests, not just accessibility tests.** These locators query elements based on how users and assistive technologies perceive them, making tests more resilient to implementation changes and ensuring better accessibility by design.
+
+#### Why Use Accessibility Locators?
+
+- **Resilient to changes**: Tests won't break when CSS classes or data-testid attributes change
+- **Encourages accessibility**: Forces proper ARIA roles, labels, and semantic HTML
+- **Better readability**: `page.getByRole('button', {name: 'Save'})` is clearer than `page.locator('[data-testid="save-btn"]')`
+- **Aligns with user experience**: Tests what users actually perceive, not implementation details
+
+#### Preferred Locators (in order of preference)
+
+1. **Role-based**: `page.getByRole('button', {name: 'Save'})`, `page.getByRole('textbox', {name: 'Email'})`
+2. **Label-based**: `page.getByLabel('Email address')`
+3. **Text-based**: `page.getByText('Welcome')`, `page.getByPlaceholder('Enter email')`
+4. **Test IDs**: `page.locator('[data-testid="..."]')` - Use only when accessibility locators aren't possible
+5. **CSS selectors**: `page.locator('.class')` - Avoid unless absolutely necessary
+
+#### When Test IDs Are Acceptable
+
+Use `data-testid` only when:
+
+- Element has no semantic role (e.g., decorative divs)
+- Multiple identical elements need distinction
+- Component is not interactive or visible to assistive tech
+
+For all test examples, see [docs/accessibility/](docs/accessibility/) for comprehensive patterns and best practices.
 
 ## Page/Component Object Model
 

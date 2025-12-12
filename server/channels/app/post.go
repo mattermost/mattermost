@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -513,6 +514,24 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 	matched := atMentionPattern.MatchString(post.Message)
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAPGroups && matched && !a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseGroupMentions) {
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
+	}
+
+	// Populate AI-generated username from provided user ID
+	if aiGenUserID, ok := post.GetProp(model.PostPropsAIGeneratedByUserID).(string); ok && aiGenUserID != "" {
+		user, err := a.GetUser(aiGenUserID)
+		if err != nil {
+			// If user doesn't exist, remove the ai_generated_by prop to avoid storing invalid data
+			rctx.Logger().Warn("Failed to get user for AI-generated post, removing ai_generated_by prop", mlog.String("user_id", aiGenUserID), mlog.Err(err))
+			post.DelProp(model.PostPropsAIGeneratedByUserID)
+		} else {
+			// Only allow AI-generated username if the user is the post creator or a bot
+			if user.Id == post.UserId || user.IsBot {
+				post.AddProp(model.PostPropsAIGeneratedByUsername, user.Username)
+			} else {
+				// User ID cannot be a different non-bot user - return error
+				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.invalid_ai_generated_user.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil
@@ -2802,4 +2821,77 @@ func (a *App) SendTestMessage(rctx request.CTX, userID string) (*model.Post, *mo
 	}
 
 	return post, nil
+}
+
+// RewriteMessage rewrites a message using AI based on the specified action
+func (a *App) RewriteMessage(
+	rctx request.CTX,
+	agentID string,
+	message string,
+	action model.RewriteAction,
+	customPrompt string,
+) (*model.RewriteResponse, *model.AppError) {
+	userPrompt := getRewritePromptForAction(action, message, customPrompt)
+	if userPrompt == "" {
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
+	}
+
+	// Prepare completion request in the format expected by the client
+	client := a.getBridgeClient(rctx.Session().UserId)
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{Role: "system", Message: model.RewriteSystemPrompt},
+			{Role: "user", Message: userPrompt},
+		},
+	}
+
+	completion, err := client.AgentCompletion(agentID, completionRequest)
+	if err != nil {
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
+	}
+
+	var response model.RewriteResponse
+	if err := json.Unmarshal([]byte(completion), &response); err != nil {
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.parse_response_failed", nil, err.Error(), 500)
+	}
+
+	if response.RewrittenText == "" {
+		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.empty_response", nil, "", 500)
+	}
+
+	return &response, nil
+}
+
+// getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
+func getRewritePromptForAction(action model.RewriteAction, message string, customPrompt string) string {
+	if message == "" {
+		return fmt.Sprintf(`Write according to these instructions: %s`, customPrompt)
+	}
+
+	switch action {
+	case model.RewriteActionCustom:
+		return fmt.Sprintf(`%s
+
+%s`, customPrompt, message)
+
+	case model.RewriteActionShorten:
+		return fmt.Sprintf(`Make this up to 2 to 3 times shorter: %s`, message)
+
+	case model.RewriteActionElaborate:
+		return fmt.Sprintf(`Make this up to 2 to 3 times longer, using Markdown if necessary: %s`, message)
+
+	case model.RewriteActionImproveWriting:
+		return fmt.Sprintf(`Improve this writing, using Markdown if necessary: %s`, message)
+
+	case model.RewriteActionFixSpelling:
+		return fmt.Sprintf(`Fix spelling and grammar: %s`, message)
+
+	case model.RewriteActionSimplify:
+		return fmt.Sprintf(`Simplify this: %s`, message)
+
+	case model.RewriteActionSummarize:
+		return fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
+	}
+
+	return ""
 }

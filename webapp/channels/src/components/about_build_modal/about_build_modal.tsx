@@ -15,6 +15,7 @@ import Nbsp from 'components/html_entities/nbsp';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {AboutLinks} from 'utils/constants';
+import {getSkuDisplayName} from 'utils/subscription';
 import {getDesktopVersion, isDesktopApp} from 'utils/user_agent';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
@@ -128,27 +129,24 @@ export default function AboutBuildModal(props: Props) {
             />
         );
 
-        learnMore = (
-            <div>
-                <FormattedMessage
-                    id='about.enterpriseEditionLearn'
-                    defaultMessage='Learn more about Enterprise Edition at '
-                />
-                <ExternalLink
-                    location='about_build_modal'
-                    href='https://mattermost.com/'
-                >
-                    {'mattermost.com'}
-                </ExternalLink>
-            </div>
-        );
-
         if (license.IsLicensed === 'true') {
-            title = (
-                <FormattedMessage
-                    id='about.enterpriseEditione1'
-                    defaultMessage='Enterprise Edition'
-                />
+            // Show the plan name instead of generic "Enterprise Edition"
+            const skuName = getSkuDisplayName(license.SkuShortName || '', license.IsGovSku === 'true');
+            title = <>{skuName}</>;
+            learnMore = (
+                <div>
+                    <FormattedMessage
+                        id='about.enterpriseEditionLearn'
+                        defaultMessage='Learn more about Mattermost {planName} at '
+                        values={{planName: skuName}}
+                    />
+                    <ExternalLink
+                        location='about_build_modal'
+                        href='https://mattermost.com/'
+                    >
+                        {'mattermost.com'}
+                    </ExternalLink>
+                </div>
             );
             licensee = (
                 <div className='form-group'>
@@ -157,6 +155,21 @@ export default function AboutBuildModal(props: Props) {
                         defaultMessage='Licensed to:'
                     />
                     <Nbsp/>{license.Company}
+                </div>
+            );
+        } else {
+            learnMore = (
+                <div>
+                    <FormattedMessage
+                        id='about.enterpriseEditionLearn'
+                        defaultMessage='Learn more about Enterprise Edition at '
+                    />
+                    <ExternalLink
+                        location='about_build_modal'
+                        href='https://mattermost.com/'
+                    >
+                        {'mattermost.com'}
+                    </ExternalLink>
                 </div>
             );
         }

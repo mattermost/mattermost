@@ -89,7 +89,7 @@ describe('useOperation', () => {
         const [doAction, status1] = result.current;
         expect(status1.loading).toBe(false);
         expect(status1.error).toBe(undefined);
-        expect(testResolvingAsyncAction).not.toBeCalled();
+        expect(testResolvingAsyncAction).not.toHaveBeenCalled();
 
         let actionPromise: Promise<any>;
         await act(async () => {
@@ -100,7 +100,7 @@ describe('useOperation', () => {
         const [, status2] = result.current;
         expect(status2.loading).toBe(true);
         expect(status2.error).toBe(undefined);
-        expect(testResolvingAsyncAction).toBeCalledTimes(1);
+        expect(testResolvingAsyncAction).toHaveBeenCalledTimes(1);
 
         jest.runAllTimers();
 

@@ -7,10 +7,9 @@ import * as util from 'node:util';
 
 import Adapter from '@cfaester/enzyme-adapter-react-18';
 import {configure} from 'enzyme';
-import nock from 'nock';
+import nodeFetch from 'node-fetch';
 
 import '@testing-library/jest-dom';
-import 'isomorphic-fetch';
 
 import './performance_mock';
 import './redux-persist_mock';
@@ -35,6 +34,10 @@ Object.defineProperty(window, 'location', {
         search: '',
     },
 });
+
+// The current version of jsdom that's used by jest-environment-jsdom 29 doesn't support fetch, so we have to
+// use node-fetch despite some mismatched parameters.
+globalThis.fetch = nodeFetch as unknown as typeof fetch;
 
 const supportedCommands = ['copy', 'insertText'];
 
@@ -165,6 +168,3 @@ jest.mock('react-redux', () => ({
     __esModule: true,
     ...jest.requireActual('react-redux'),
 }));
-
-// Prevent any connections from being made to the internet outside of Nock
-nock.disableNetConnect();

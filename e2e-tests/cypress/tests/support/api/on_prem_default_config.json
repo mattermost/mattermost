@@ -81,7 +81,7 @@
         "EnableAPITriggerAdminNotifications": false,
         "EnableAPIUserDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "StrictCSRFEnforcement": false,
+        "ExperimentalStrictCSRFEnforcement": false,
         "EnableEmailInvitations": true,
         "DisableBotsWhenOwnerIsDeactivated": true,
         "EnableBotAccountCreation": true,

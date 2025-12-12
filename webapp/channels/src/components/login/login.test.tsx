@@ -13,11 +13,27 @@ import Login from 'components/login/login';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
+import {showNotification} from 'utils/notifications';
+import {isDesktopApp} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
 jest.unmock('react-intl');
 jest.unmock('react-router-dom');
+
+jest.mock('utils/notifications', () => ({
+    showNotification: jest.fn(),
+}));
+
+jest.mock('utils/desktop_api', () => ({
+    dispatchNotification: jest.fn(),
+    setSessionExpired: jest.fn(),
+}));
+
+jest.mock('utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
+}));
 
 describe('components/login/Login', () => {
     const baseState = {
@@ -95,6 +111,10 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(false);
     });
 
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('should match snapshot', () => {
         renderWithContext(
             <Login/>,
@@ -127,6 +147,7 @@ describe('components/login/Login', () => {
 
     it('should handle session expired', async () => {
         LocalStorageStore.setWasLoggedIn(true);
+        (showNotification as jest.Mock).mockReturnValue(() => Promise.resolve({status: 'success', callback: () => {}}));
 
         const state = mergeObjects(baseState, {
             entities: {
@@ -144,10 +165,34 @@ describe('components/login/Login', () => {
         );
 
         expect(await screen.findByText('Your session has expired. Please log in again.')).toBeVisible();
+        expect(showNotification).toHaveBeenCalled();
 
         await userEvent.click(screen.getByLabelText('Close'));
 
         expect(screen.queryByText('Your session has expired. Please log in again.')).not.toBeInTheDocument();
+    });
+
+    it('should call the correct function to show the session expired notification on Desktop App', () => {
+        (isDesktopApp as jest.Mock).mockReturnValue(true);
+        LocalStorageStore.setWasLoggedIn(true);
+        const state = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <Login/>,
+            state,
+        );
+
+        expect(showNotification).not.toHaveBeenCalled();
+        expect(DesktopApp.dispatchNotification).toHaveBeenCalled();
+        expect(DesktopApp.setSessionExpired).toHaveBeenCalledWith(true);
     });
 
     it('should handle initializing when logout status success', () => {
