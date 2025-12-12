@@ -635,6 +635,10 @@ export function movePage(pageId: string, newParentId: string, wikiId: string): A
 }
 
 // Move a draft in hierarchy (used for drag-and-drop on drafts)
+// NOTE: This function doesn't have access to the autosave timeout from WikiView hooks.
+// The autosave is scoped to the editor component, and drag-and-drop happens in the hierarchy panel.
+// Since moves only update page_parent_id (not title/content), the race condition is less critical.
+// The autosave will preserve the correct title/content and only the parent might briefly conflict.
 function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();

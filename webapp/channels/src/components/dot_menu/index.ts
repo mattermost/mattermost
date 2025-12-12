@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -24,6 +25,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
+import {burnPostNow} from 'actions/burn_on_read_deletion';
 import {resolvePageComment, unresolvePageComment} from 'actions/pages';
 import {
     flagPost,
@@ -33,8 +35,8 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
-import {openModal} from 'actions/views/modals';
-import {isBurnOnReadPost} from 'selectors/burn_on_read_posts';
+import {openModal, closeModal} from 'actions/views/modals';
+import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 import {isPageCommentResolved} from 'selectors/wiki_posts';
@@ -133,6 +135,7 @@ function makeMapStateToProps() {
             canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
             canFlagContent,
             isBurnOnReadPost: isBurnOnReadPost(state, post.id),
+            isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
             isPageComment: isPageCommentPost,
             isCommentResolved: isResolved,
             wikiId,
@@ -150,8 +153,11 @@ function mapDispatchToProps(dispatch: Dispatch) {
             pinPost,
             unpinPost,
             openModal,
+            closeModal,
             markPostAsUnread,
             setThreadFollow,
+            burnPostNow,
+            savePreferences,
             resolvePageComment,
             unresolvePageComment,
         }, dispatch),

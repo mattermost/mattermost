@@ -216,6 +216,7 @@ type UseWikiPageActionsResult = {
     handleTitleChange: (title: string) => void;
     handleContentChange: (content: string) => void;
     handleDraftStatusChange: (status: string) => void;
+    cancelAutosave: () => void;
     conflictModal: {
         show: boolean;
         currentPage: Post | null;
@@ -610,12 +611,20 @@ export function useWikiPageActions(
         setShowConflictModal(false);
     }, []);
 
+    const cancelAutosave = useCallback(() => {
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current);
+            autosaveTimeoutRef.current = null;
+        }
+    }, []);
+
     return {
         handleEdit,
         handlePublish,
         handleTitleChange,
         handleContentChange,
         handleDraftStatusChange,
+        cancelAutosave,
         conflictModal: {
             show: showConflictModal,
             currentPage: conflictPageData,

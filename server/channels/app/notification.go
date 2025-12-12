@@ -175,7 +175,13 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	var mentions *MentionResults
 	var keywords MentionKeywords
 
-	if len(preExtractedMentions) > 0 {
+	if post.Type == model.PostTypeBurnOnRead {
+		borPost, appErr := a.getBurnOnReadPost(store.RequestContextWithMaster(rctx), post)
+		if appErr != nil {
+			return nil, appErr
+		}
+		mentions, keywords = a.getExplicitMentionsAndKeywords(rctx, borPost, channel, profileMap, groups, channelMemberNotifyPropsMap, parentPostList)
+	} else if len(preExtractedMentions) > 0 {
 		rctx.Logger().Debug("Using pre-extracted mentions for page notification",
 			mlog.String("post_id", post.Id),
 			mlog.Int("mention_count", len(preExtractedMentions)),

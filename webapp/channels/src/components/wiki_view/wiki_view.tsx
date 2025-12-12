@@ -231,7 +231,7 @@ const WikiView = () => {
     // draft id in local state.
     // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
 
-    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, conflictModal, confirmOverwriteModal} = useWikiPageActions(
+    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange, cancelAutosave, conflictModal, confirmOverwriteModal} = useWikiPageActions(
         channelId,
         pageId,
         draftId,
@@ -367,6 +367,7 @@ const WikiView = () => {
                             currentPageId={pageId || draftId}
                             onPageSelect={handlePageSelect}
                             onVersionHistory={handleVersionHistory}
+                            onCancelAutosave={cancelAutosave}
                         />
                     )}
 

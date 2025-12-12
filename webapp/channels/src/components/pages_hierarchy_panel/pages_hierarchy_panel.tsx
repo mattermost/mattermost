@@ -36,6 +36,7 @@ type Props = {
     currentPageId?: string;
     onPageSelect: (pageId: string, isDraft?: boolean) => void;
     onVersionHistory?: (pageId: string) => void;
+    onCancelAutosave?: () => void;
 
     // From Redux
     pages: Post[];
@@ -67,6 +68,7 @@ const PagesHierarchyPanel = ({
     currentPageId,
     onPageSelect,
     onVersionHistory,
+    onCancelAutosave,
     pages,
     drafts,
     loading,
@@ -90,6 +92,7 @@ const PagesHierarchyPanel = ({
         pages,
         drafts,
         onPageSelect,
+        onCancelAutosave,
     });
 
     const handleChannelSelected = useCallback(async (selectedChannelId: string) => {

@@ -528,6 +528,43 @@ test('renames page via context menu', {tag: '@pages'}, async ({pw, sharedPagesSe
 });
 
 /**
+ * @objective Verify renaming a first-time draft (unpublished) via context menu
+ */
+test('renames first-time draft via context menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${await pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // # Create wiki through UI
+    await createWikiThroughUI(page, `Draft Rename Wiki ${await pw.random.id()}`);
+
+    // # Create a draft (not published) through UI
+    const draft = await createDraftThroughUI(page, 'Original Draft Name', 'Draft content');
+
+    // # Rename draft via context menu
+    await renamePageViaContextMenu(page, 'Original Draft Name', 'Renamed Draft');
+
+    // # Wait for network to settle
+    await page.waitForLoadState('networkidle');
+
+    // * Verify draft renamed in hierarchy
+    const hierarchyPanel = getHierarchyPanel(page);
+    const renamedNode = hierarchyPanel.locator('text="Renamed Draft"').first();
+    await expect(renamedNode).toBeVisible({timeout: ELEMENT_TIMEOUT});
+
+    // * Verify old name no longer visible
+    const oldNode = hierarchyPanel.locator('text="Original Draft Name"').first();
+    await expect(oldNode).not.toBeVisible();
+
+    // * Verify the node is still marked as a draft
+    const draftNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft.id}"]`);
+    await expect(draftNode).toHaveAttribute('data-is-draft', 'true');
+});
+
+/**
  * @objective Verify inline rename via double-click
  *
  * NOTE: Skipped - inline rename via double-click is not yet implemented in the UI

@@ -10,7 +10,7 @@ import type {Wiki} from '@mattermost/types/wikis';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {removePageDraft} from 'actions/page_drafts';
+import {removePageDraft, savePageDraft} from 'actions/page_drafts';
 import {createPage, deletePage, duplicatePage, loadChannelWikis, loadPages, movePageToWiki, updatePage} from 'actions/pages';
 import {expandAncestors} from 'actions/views/pages_hierarchy';
 
@@ -25,9 +25,10 @@ type UsePageMenuHandlersProps = {
     pages: Post[];
     drafts: PostDraft[];
     onPageSelect?: (pageId: string, isDraft?: boolean) => void;
+    onCancelAutosave?: () => void;
 };
 
-export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSelect}: UsePageMenuHandlersProps) => {
+export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSelect, onCancelAutosave}: UsePageMenuHandlersProps) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
 
@@ -172,15 +173,47 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
         setRenamingPage(true);
         try {
-            const result = await dispatch(updatePage(pageToRename.pageId, newTitle, wikiId)) as ActionResult<Post>;
-            if (result.error) {
-                throw result.error;
+            const page = allPages.find((p) => p.id === pageToRename.pageId);
+            const isDraft = page?.type === PageDisplayTypes.PAGE_DRAFT;
+
+            if (isDraft) {
+                const draft = drafts.find((d) => d.rootId === pageToRename.pageId);
+
+                if (draft) {
+                    onCancelAutosave?.();
+
+                    const {page_parent_id: pageParentId, has_published_version: hasPublishedVersion, ...otherProps} = draft.props || {};
+                    const propsToPreserve = {
+                        ...(pageParentId !== undefined && {page_parent_id: pageParentId}),
+                        ...(hasPublishedVersion !== undefined && {has_published_version: hasPublishedVersion}),
+                        ...otherProps,
+                    };
+
+                    const result = await dispatch(savePageDraft(
+                        channelId,
+                        wikiId,
+                        pageToRename.pageId,
+                        draft.message || '',
+                        newTitle,
+                        draft.updateAt,
+                        propsToPreserve,
+                    )) as ActionResult<boolean>;
+
+                    if (result.error) {
+                        throw result.error;
+                    }
+                }
+            } else {
+                const result = await dispatch(updatePage(pageToRename.pageId, newTitle, wikiId)) as ActionResult<Post>;
+                if (result.error) {
+                    throw result.error;
+                }
             }
         } finally {
             setRenamingPage(false);
             setPageToRename(null);
         }
-    }, [dispatch, pageToRename, wikiId]);
+    }, [dispatch, pageToRename, wikiId, allPages, channelId, drafts, onCancelAutosave]);
 
     const handleCancelRename = useCallback(() => {
         setShowRenameModal(false);

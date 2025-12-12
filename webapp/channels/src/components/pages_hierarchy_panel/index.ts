@@ -22,6 +22,7 @@ type OwnProps = {
     currentPageId?: string;
     onPageSelect: (pageId: string, isDraft?: boolean) => void;
     onVersionHistory?: (pageId: string) => void;
+    onCancelAutosave?: () => void;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

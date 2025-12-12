@@ -121,8 +121,8 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 	// This ensures the draft can store file attachments before being published
 	draftBuilder := s.getQueryBuilder().
 		Insert("Drafts").
-		Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "WikiId", "UserId", "FileIds", "Props", "Priority").
-		Values(now, now, 0, "", pageId, savedWiki.Id, savedWiki.Id, userId, "[]", "{}", "{}")
+		Columns("CreateAt", "UpdateAt", "DeleteAt", "Message", "RootId", "ChannelId", "WikiId", "UserId", "FileIds", "Props", "Priority", "Type").
+		Values(now, now, 0, "", pageId, savedWiki.Id, savedWiki.Id, userId, "[]", "{}", "{}", "")
 
 	if _, err = transaction.ExecBuilder(draftBuilder); err != nil {
 		return nil, errors.Wrap(err, "create_default_draft_metadata")

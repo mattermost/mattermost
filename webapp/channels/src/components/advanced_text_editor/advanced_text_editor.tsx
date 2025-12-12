@@ -398,15 +398,15 @@ const AdvancedTextEditor = ({
 
     // Unified handler to remove all labels (priority + burn on read)
     const handleRemoveAllLabels = useCallback(() => {
-        // Remove both priority and burn_on_read in a single draft update
+        // Remove priority from metadata and burn-on-read type
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+        const {priority: _priority, ...restMetadata} = draft.metadata || {};
+
         const updatedDraft = {
             ...draft,
+            type: undefined, // Remove burn-on-read type
+            metadata: restMetadata, // Remove priority from metadata
         };
-
-        // Remove both priority and burn_on_read from metadata
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
-        const {priority: _priority, burn_on_read: _burnOnRead, ...restMetadata} = updatedDraft.metadata || {};
-        updatedDraft.metadata = restMetadata;
 
         handleDraftChange(updatedDraft, {instant: true});
         focusTextbox();

@@ -112,6 +112,8 @@ type SqlStoreStores struct {
 	Attributes                 store.AttributesStore
 	autotranslation            store.AutoTranslationStore
 	ContentFlagging            store.ContentFlaggingStore
+	readReceipt                store.ReadReceiptStore
+	temporaryPost              store.TemporaryPostStore
 	wiki                       store.WikiStore
 	page                       store.PageStore
 }
@@ -265,6 +267,8 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
+	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 	store.stores.wiki = newSqlWikiStore(store)
 	store.stores.page = newSqlPageStore(store)
 
@@ -884,6 +888,14 @@ func (ss *SqlStore) Attributes() store.AttributesStore {
 
 func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
 	return ss.stores.autotranslation
+}
+
+func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
+	return ss.stores.readReceipt
+}
+
+func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
+	return ss.stores.temporaryPost
 }
 
 func (ss *SqlStore) DropAllTables() {

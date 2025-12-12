@@ -188,11 +188,14 @@ describe('components/dot_menu/DotMenu', () => {
             pinPost: jest.fn(),
             unpinPost: jest.fn(),
             openModal: jest.fn(),
+            closeModal: jest.fn(),
             markPostAsUnread: jest.fn(),
             postEphemeralCallResponseForPost: jest.fn(),
             setThreadFollow: jest.fn(),
             addPostReminder: jest.fn(),
             setGlobalItem: jest.fn(),
+            burnPostNow: jest.fn(),
+            savePreferences: jest.fn(),
         },
         canEdit: false,
         canDelete: false,
@@ -207,6 +210,7 @@ describe('components/dot_menu/DotMenu', () => {
         isMilitaryTime: false,
         canMove: true,
         isBurnOnReadPost: false,
+        isUnrevealedBurnOnReadPost: false,
     };
 
     test('should show edit menu, on Center', async () => {
@@ -439,5 +443,75 @@ describe('components/dot_menu/DotMenu', () => {
 
         const flagPostOption = screen.queryByTestId(`flag_post_${gmPost.id}`);
         expect(flagPostOption).toBeNull();
+    });
+
+    test('should show copy link for burn-on-read post sender', () => {
+        const borPost = {
+            ...post1,
+            type: 'burn_on_read' as PostType,
+            user_id: 'current_user_id',
+        };
+        const props = {
+            ...baseProps,
+            post: borPost,
+        };
+        const stateWithBorPost = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities!.posts,
+                    posts: {
+                        ...initialState.entities!.posts!.posts,
+                        [borPost.id]: borPost,
+                    },
+                },
+            },
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            stateWithBorPost,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        fireEvent.click(button);
+
+        const copyLinkOption = screen.queryByTestId(`permalink_${borPost.id}`);
+        expect(copyLinkOption).not.toBeNull();
+    });
+
+    test('should not show copy link for burn-on-read post receiver', () => {
+        const borPost = {
+            ...post1,
+            type: 'burn_on_read' as PostType,
+            user_id: 'other_user_id',
+        };
+        const props = {
+            ...baseProps,
+            post: borPost,
+        };
+        const stateWithBorPost = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities!.posts,
+                    posts: {
+                        ...initialState.entities!.posts!.posts,
+                        [borPost.id]: borPost,
+                    },
+                },
+            },
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            stateWithBorPost,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        fireEvent.click(button);
+
+        const copyLinkOption = screen.queryByTestId(`permalink_${borPost.id}`);
+        expect(copyLinkOption).toBeNull();
     });
 });

@@ -23,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+type PostContextKey string
+
 const (
 	PostSystemMessagePrefix      = "system_"
 	PostTypeDefault              = ""
@@ -63,6 +65,7 @@ const (
 	PostTypePageUpdated          = "system_page_updated"
 	PostCustomTypePrefix         = "custom_"
 	PostTypeReminder             = "reminder"
+	PostTypeBurnOnRead           = "burn_on_read"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -105,9 +108,13 @@ const (
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
-	PostPropsCommentType              = "comment_type"
 
-	// Page/Wiki Props keys
+	PostPriorityUrgent = "urgent"
+
+	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
+	DefaultReadDurationSeconds = 10 * 60          // 10 minutes
+
+	PostPropsCommentType     = "comment_type"
 	PagePropsPageID          = "page_id"
 	PagePropsWikiID          = "wiki_id"
 	PagePropsParentCommentID = "parent_comment_id"
@@ -116,13 +123,13 @@ const (
 	PagePropsResolvedAt      = "resolved_at"
 	PagePropsResolvedBy      = "resolved_by"
 	PagePropsInlineAnchor    = "inline_anchor"
+	DraftPropsPageParentID   = "page_parent_id"
 
-	// Draft Props keys (for unpublished page drafts)
-	DraftPropsPageParentID = "page_parent_id"
+	PageCommentTypeInline        = "inline"
+	PostPropsExpireAt            = "expire_at"
+	PostPropsReadDurationSeconds = "read_duration"
 
-	PageCommentTypeInline = "inline"
-
-	PostPriorityUrgent = "urgent"
+	PostContextKeyIsScheduledPost PostContextKey = "isScheduledPost"
 )
 
 type Post struct {
@@ -559,7 +566,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypePageAdded,
 		PostTypePageUpdated,
 		PostTypeWrangler,
-		PostTypeGMConvertedToChannel:
+		PostTypeGMConvertedToChannel,
+		PostTypeBurnOnRead:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
