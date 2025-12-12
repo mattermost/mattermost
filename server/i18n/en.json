@@ -11325,6 +11325,10 @@
     "translation": "Unable to get translation batch."
   },
   {
+    "id": "store.sql_autotranslation.get_by_state_older_than.app_error",
+    "translation": ""
+  },
+  {
     "id": "store.sql_autotranslation.get_channel_enabled.app_error",
     "translation": "Unable to get channel autotranslation enabled status."
   },
