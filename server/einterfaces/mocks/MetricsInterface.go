@@ -563,6 +563,11 @@ func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success st
 	_m.Called(method, success, elapsed)
 }
 
+// ObserveWikiBreadcrumbFetch provides a mock function with given fields: elapsed
+func (_m *MetricsInterface) ObserveWikiBreadcrumbFetch(elapsed float64) {
+	_m.Called(elapsed)
+}
+
 // ObserveWikiHierarchyDepth provides a mock function with given fields: depth
 func (_m *MetricsInterface) ObserveWikiHierarchyDepth(depth float64) {
 	_m.Called(depth)
@@ -570,11 +575,6 @@ func (_m *MetricsInterface) ObserveWikiHierarchyDepth(depth float64) {
 
 // ObserveWikiHierarchyLoad provides a mock function with given fields: elapsed
 func (_m *MetricsInterface) ObserveWikiHierarchyLoad(elapsed float64) {
-	_m.Called(elapsed)
-}
-
-// ObserveWikiBreadcrumbFetch provides a mock function with given fields: elapsed
-func (_m *MetricsInterface) ObserveWikiBreadcrumbFetch(elapsed float64) {
 	_m.Called(elapsed)
 }
 

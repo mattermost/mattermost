@@ -463,36 +463,6 @@ func (_m *DraftStore) PublishPageDraft(pageId string, userId string) (*model.Pag
 	return r0, r1
 }
 
-// UpsertPageDraftContent provides a mock function with given fields: pageId, userId, wikiId, content, title, lastUpdateAt
-func (_m *DraftStore) UpsertPageDraftContent(pageId string, userId string, wikiId string, content string, title string, lastUpdateAt int64) (*model.PageContent, error) {
-	ret := _m.Called(pageId, userId, wikiId, content, title, lastUpdateAt)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpsertPageDraftContent")
-	}
-
-	var r0 *model.PageContent
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) (*model.PageContent, error)); ok {
-		return rf(pageId, userId, wikiId, content, title, lastUpdateAt)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) *model.PageContent); ok {
-		r0 = rf(pageId, userId, wikiId, content, title, lastUpdateAt)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PageContent)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, string, string, string, int64) error); ok {
-		r1 = rf(pageId, userId, wikiId, content, title, lastUpdateAt)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // UpdatePropsOnly provides a mock function with given fields: userId, wikiId, draftId, props, expectedUpdateAt
 func (_m *DraftStore) UpdatePropsOnly(userId string, wikiId string, draftId string, props map[string]interface{}, expectedUpdateAt int64) error {
 	ret := _m.Called(userId, wikiId, draftId, props, expectedUpdateAt)
@@ -564,6 +534,36 @@ func (_m *DraftStore) UpsertPageDraft(d *model.Draft) (*model.Draft, error) {
 
 	if rf, ok := ret.Get(1).(func(*model.Draft) error); ok {
 		r1 = rf(d)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpsertPageDraftContent provides a mock function with given fields: pageId, userId, wikiId, content, title, lastUpdateAt
+func (_m *DraftStore) UpsertPageDraftContent(pageId string, userId string, wikiId string, content string, title string, lastUpdateAt int64) (*model.PageContent, error) {
+	ret := _m.Called(pageId, userId, wikiId, content, title, lastUpdateAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPageDraftContent")
+	}
+
+	var r0 *model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) (*model.PageContent, error)); ok {
+		return rf(pageId, userId, wikiId, content, title, lastUpdateAt)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, int64) *model.PageContent); ok {
+		r0 = rf(pageId, userId, wikiId, content, title, lastUpdateAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, int64) error); ok {
+		r1 = rf(pageId, userId, wikiId, content, title, lastUpdateAt)
 	} else {
 		r1 = ret.Error(1)
 	}
