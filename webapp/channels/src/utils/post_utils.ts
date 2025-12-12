@@ -157,6 +157,11 @@ export function shouldShowActionsMenu(state: GlobalState, post: Post): boolean {
         return false;
     }
 
+    // Hide plugin/app actions for burn-on-read posts
+    if (post.type === Constants.PostTypes.BURN_ON_READ) {
+        return false;
+    }
+
     return true;
 }
 
