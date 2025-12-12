@@ -26,6 +26,9 @@ const ChannelId = styled.div`
     line-height: 16px;
     letter-spacing: 0.02em;
     color: rgba(var(--center-channel-color-rgb), 0.75);
+    &:not(:last-child) {
+        margin-bottom: 4px;
+    }
 `;
 
 const ChannelPurpose = styled.div`
@@ -125,6 +128,9 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
 
             <ChannelId>
                 {formatMessage({id: 'channel_info_rhs.about_area_id', defaultMessage: 'ID:'})} {channel.id}
+            </ChannelId>
+            <ChannelId>
+                {formatMessage({id: 'channel_info_rhs.about_area_url_name', defaultMessage: 'URL name:'})} {channel.name}
             </ChannelId>
         </>
     );

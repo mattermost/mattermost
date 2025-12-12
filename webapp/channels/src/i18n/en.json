@@ -3685,6 +3685,7 @@
   "channel_header.userHelpGuide": "Help",
   "channel_header.viewMembers": "View Members",
   "channel_info_rhs.about_area_id": "ID:",
+  "channel_info_rhs.about_area_url_name": "URL name:",
   "channel_info_rhs.about_area.add_channel_header": "Add a channel header",
   "channel_info_rhs.about_area.add_channel_purpose": "Add a channel purpose",
   "channel_info_rhs.about_area.channel_header.heading": "Channel Header",
