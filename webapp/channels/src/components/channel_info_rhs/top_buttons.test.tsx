@@ -158,6 +158,25 @@ describe('channel_info_rhs/top_buttons', () => {
         expect(screen.queryByText('Add People')).not.toBeInTheDocument();
     });
 
+    test('should not show Add People when archived (including GM)', () => {
+        // Open/Private channels
+        const archivedOpenProps: Props = {
+            ...topButtonDefaultProps,
+            isArchived: true,
+        };
+        renderWithContext(<TopButtons {...archivedOpenProps}/>);
+        expect(screen.queryByText('Add People')).not.toBeInTheDocument();
+
+        // GM channel should also be hidden when archived
+        const archivedGMProps: Props = {
+            ...topButtonDefaultProps,
+            channelType: Constants.GM_CHANNEL,
+            isArchived: true,
+        };
+        renderWithContext(<TopButtons {...archivedGMProps}/>);
+        expect(screen.queryByText('Add People')).not.toBeInTheDocument();
+    });
+
     test('can copy link', () => {
         renderWithContext(
             <TopButtons

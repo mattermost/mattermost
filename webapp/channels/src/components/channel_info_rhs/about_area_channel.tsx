@@ -12,12 +12,23 @@ import Markdown from 'components/markdown';
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
 
+const ChannelName = styled.div`
+    margin-bottom: 12px;
+    font-size: 20px;
+    font-family: Metropolis, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+`;
+
 const ChannelId = styled.div`
     margin-bottom: 12px;
     font-size: 11px;
     line-height: 16px;
     letter-spacing: 0.02em;
     color: rgba(var(--center-channel-color-rgb), 0.75);
+    &:not(:last-child) {
+        margin-bottom: 4px;
+    }
 `;
 
 const ChannelPurpose = styled.div`
@@ -29,13 +40,13 @@ const ChannelPurpose = styled.div`
 
 const ChannelDescriptionHeading = styled.div`
     color: rgba(var(--center-channel-color-rgb), 0.75);
-    font-size: 12px;
+    font-size: 11px;
     font-style: normal;
     font-weight: 600;
     line-height: 16px;
     letter-spacing: 0.24px;
     text-transform: uppercase;
-    padding: 6px 0px;
+    padding: 4px 0px;
 `;
 
 const ChannelHeader = styled.div`
@@ -46,6 +57,7 @@ interface Props {
     channel: Channel;
     canEditChannelProperties: boolean;
     actions: {
+        editChannelName: () => void;
         editChannelPurpose: () => void;
         editChannelHeader: () => void;
     };
@@ -56,6 +68,16 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
 
     return (
         <>
+            <ChannelName>
+                <EditableArea
+                    editable={canEditChannelProperties}
+                    content={<div>{channel.display_name}</div>}
+                    onEdit={actions.editChannelName}
+                    editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name', defaultMessage: 'Rename channel'})}
+                    emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_name', defaultMessage: 'Rename channel'})}
+                />
+            </ChannelName>
+
             {(channel.purpose || canEditChannelProperties) && (
                 <ChannelPurpose>
                     <ChannelDescriptionHeading>
@@ -74,6 +96,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                             </LineLimiter>
                         )}
                         onEdit={actions.editChannelPurpose}
+                        editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_purpose', defaultMessage: 'Edit channel purpose'})}
                         emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_purpose', defaultMessage: 'Add a channel purpose'})}
                     />
                 </ChannelPurpose>
@@ -97,6 +120,7 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
                         )}
                         editable={canEditChannelProperties}
                         onEdit={actions.editChannelHeader}
+                        editTooltip={formatMessage({id: 'channel_info_rhs.about_area.edit_channel_header', defaultMessage: 'Edit channel header'})}
                         emptyLabel={formatMessage({id: 'channel_info_rhs.about_area.add_channel_header', defaultMessage: 'Add a channel header'})}
                     />
                 </ChannelHeader>
@@ -104,6 +128,9 @@ const AboutAreaChannel = ({channel, canEditChannelProperties, actions}: Props) =
 
             <ChannelId>
                 {formatMessage({id: 'channel_info_rhs.about_area_id', defaultMessage: 'ID:'})} {channel.id}
+            </ChannelId>
+            <ChannelId>
+                {formatMessage({id: 'channel_info_rhs.about_area_url_name', defaultMessage: 'URL name:'})} {channel.name}
             </ChannelId>
         </>
     );
