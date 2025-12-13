@@ -10,7 +10,7 @@ import store from 'stores/redux_store';
 
 import type EmojiMap from 'utils/emoji_map';
 import RemoveMarkdown from 'utils/markdown/remove_markdown';
-import {convertEntityToCharacter} from 'utils/text_formatting';
+import {convertEntityToCharacter, stripInlineEntities} from 'utils/text_formatting';
 import {getScheme} from 'utils/url';
 
 import Renderer from './renderer';
@@ -53,8 +53,10 @@ const getAutolinkedUrlSchemeFilter = createSelector(
 
 export function stripMarkdown(text: string) {
     if (typeof text === 'string' && text.length > 0) {
+        // Strip inline entity tokens before processing
+        const strippedText = stripInlineEntities(text);
         return convertEntityToCharacter(
-            formatWithRenderer(text, removeMarkdown),
+            formatWithRenderer(strippedText, removeMarkdown),
         ).trim();
     }
 

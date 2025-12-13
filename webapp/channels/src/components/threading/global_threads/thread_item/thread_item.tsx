@@ -64,6 +64,7 @@ const markdownPreviewOptions = {
     singleline: true,
     mentionHighlight: false,
     atMentions: true,
+    inlineEntities: true,
 };
 
 function ThreadItem({

@@ -127,6 +127,7 @@ function Markdown({
         mentionKeys,
         highlightKeys,
         atMentions: true,
+        inlineEntities: true,
         channelNamesMap,
         proxyImages: hasImageProxy && proxyImages,
         team,
@@ -152,6 +153,8 @@ function Markdown({
         editedAt,
         atSumOfMembersMentions: options?.atSumOfMembersMentions,
         atPlanMentions: options?.atPlanMentions,
+        inlineEntities: true,
+        inlineEntityTypes: options?.inlineEntityTypes,
     });
 }
 

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -106,13 +107,16 @@ func ESPostFromPost(post *model.Post, teamId string) (*ESPost, error) {
 }
 
 func ESPostFromPostForIndexing(post *model.PostForIndexing) *ESPost {
+	// Strip inline entity tokens from the message before indexing
+	message := utils.StripInlineEntities(post.Message)
+
 	searchPost := ESPost{
 		Id:        post.Id,
 		TeamId:    post.TeamId,
 		ChannelId: post.ChannelId,
 		UserId:    post.UserId,
 		CreateAt:  post.CreateAt,
-		Message:   post.Message,
+		Message:   message,
 		Type:      post.Type,
 		Hashtags:  strings.Fields(post.Hashtags),
 	}

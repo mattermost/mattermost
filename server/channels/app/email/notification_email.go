@@ -126,6 +126,8 @@ func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessage
 }
 
 func prepareTextForEmail(text, siteURL string) template.HTML {
+	// Strip inline entity tokens before processing
+	text = utils.StripInlineEntities(text)
 	escapedText := html.EscapeString(text)
 	markdownText, err := utils.MarkdownToHTML(escapedText, siteURL)
 	if err != nil {
@@ -137,6 +139,8 @@ func prepareTextForEmail(text, siteURL string) template.HTML {
 }
 
 func (es *Service) prepareNotificationMessageForEmail(postMessage, teamName, siteURL string) string {
+	// Strip inline entity tokens before processing
+	postMessage = utils.StripInlineEntities(postMessage)
 	postMessage = html.EscapeString(postMessage)
 	mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, siteURL)
 	if mdErr != nil {

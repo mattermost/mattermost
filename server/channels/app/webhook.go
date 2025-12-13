@@ -86,7 +86,7 @@ func (a *App) handleWebhookEvents(rctx request.CTX, post *model.Post, team *mode
 			UserId:      post.UserId,
 			UserName:    user.Username,
 			PostId:      post.Id,
-			Text:        post.Message,
+			Text:        utils.StripInlineEntities(post.Message),
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
