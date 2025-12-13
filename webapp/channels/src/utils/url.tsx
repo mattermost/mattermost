@@ -77,7 +77,110 @@ export function getRelativeChannelURL(teamName: string, channelName: string): st
     return `/${teamName}/channels/${channelName}`;
 }
 
+// Returns true if the URL uses the Mattermost application scheme
+export function isMattermostAppURL(url: string): boolean {
+    return /^mattermost:\/\//i.test(url);
+}
+
+export type MattermostLinkTarget = {
+    // Internal SPA path starting with '/'
+    path: string;
+    // Optional extracted context
+    team?: string;
+    channel?: string;
+    postId?: string;
+    username?: string;
+    kind?: 'channel' | 'permalink' | 'dm' | 'generic' | 'global';
+};
+
+// Parses a mattermost:// URL into an internal SPA path (web client routing)
+export function parseMattermostLink(url: string): MattermostLinkTarget | null {
+    try {
+        const u = new URL(url);
+        if (u.protocol.toLowerCase() !== 'mattermost:') {
+            return null;
+        }
+
+        // Extract raw parts
+        let team = (u.host || '').trim();
+        const rawPath = u.pathname.replace(/^\/+/, '');
+        let parts = rawPath ? rawPath.split('/').filter(Boolean) : [];
+
+        // Allow team to be supplied via query (?team=foo)
+        const qTeam = u.searchParams.get('team')?.trim();
+        if (!team && qTeam) {
+            team = qTeam;
+        }
+
+        // If no team yet, but the first path segment is not a known global route, assume it's a team
+        const globalRoots = new Set(['admin_console', 'oauth', 'login', 'signup', 'error']);
+        if (!team && parts.length > 0 && !globalRoots.has(parts[0])) {
+            team = parts[0];
+            parts = parts.slice(1);
+        }
+
+        // Known patterns
+        if (team && parts[0] === 'channels' && parts[1]) {
+            const channel = parts[1];
+            return {
+                kind: 'channel',
+                team,
+                channel,
+                path: `/${team}/channels/${channel}`,
+            };
+        }
+
+        if (team && parts[0] === 'pl' && parts[1]) {
+            const postId = parts[1];
+            return {
+                kind: 'permalink',
+                team,
+                postId,
+                path: `/${team}/pl/${postId}`,
+            };
+        }
+
+        if (team && (parts[0] === 'messages' || parts[0] === 'dm') && parts[1]) {
+            // Accept both messages/@username and messages/username
+            const username = parts[1].startsWith('@') ? parts[1] : `@${parts[1]}`;
+            return {
+                kind: 'dm',
+                team,
+                username,
+                path: `/${team}/messages/${username}`,
+            };
+        }
+
+        // Global routes without team
+        if (!team && parts.length > 0 && globalRoots.has(parts[0])) {
+            return {
+                kind: 'global',
+                path: `/${parts.join('/')}`,
+            };
+        }
+
+        // Fallbacks/generics
+        if (team) {
+            const rest = parts.join('/');
+            return {
+                kind: 'generic',
+                team,
+                path: `/${team}${rest ? '/' + rest : ''}`,
+            };
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
 export function isUrlSafe(url: string): boolean {
+    // mattermost:// URLs are safe for internal navigation
+    if (isMattermostAppURL(url)) {
+        return true;
+    }
+
     let unescaped: string;
 
     try {
@@ -241,10 +344,19 @@ export function mightTriggerExternalRequest(url: string, siteURL?: string): bool
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {
+    // mattermost:// URLs are internal
+    if (isMattermostAppURL(url)) {
+        return true;
+    }
     return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {
+    // mattermost:// URLs should not open in new tab
+    if (isMattermostAppURL(url)) {
+        return false;
+    }
+    
     if (!isInternalURL(url, siteURL)) {
         return true;
     }
