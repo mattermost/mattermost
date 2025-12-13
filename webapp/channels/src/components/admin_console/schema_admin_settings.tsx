@@ -1178,6 +1178,10 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 serverErrorId: error.id,
             });
         } else {
+            this.setState({
+                serverError: null,
+                serverErrirId: null,
+            });
             this.setState(getStateFromConfig(config, this.props.schema));
         }
 

@@ -4,6 +4,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
+import type {AdminConfig} from '@mattermost/types/config';
+
 import ConfirmModal from 'components/confirm_modal';
 
 import BooleanSetting from './boolean_setting';
@@ -16,6 +18,7 @@ type Props = {
     disabled?: boolean;
     setByEnv: boolean;
     showConfirm: boolean;
+    config: AdminConfig;
 }
 
 const messages = defineMessages({
@@ -40,9 +43,11 @@ const CustomEnableDisableGuestAccountsMagicLinkSetting = ({
     disabled,
     setByEnv,
     showConfirm,
+    config,
 }: Props) => {
+    const enableGuestMagicLink = config.GuestAccountsSettings.EnableGuestMagicLink;
     const handleChange = useCallback((targetId: string, newValue: boolean, submit = false) => {
-        const confirmNeeded = newValue === false; // Requires confirmation if disabling magic links
+        const confirmNeeded = enableGuestMagicLink && (newValue === false); // Requires confirmation if disabling magic links
         let warning: React.ReactNode = '';
         if (confirmNeeded) {
             warning = (
@@ -52,7 +57,7 @@ const CustomEnableDisableGuestAccountsMagicLinkSetting = ({
             );
         }
         onChange(targetId, newValue, confirmNeeded, submit, warning);
-    }, [onChange]);
+    }, [enableGuestMagicLink, onChange]);
 
     const handleConfirm = useCallback(() => {
         handleChange(id, false, true);
@@ -80,7 +85,7 @@ const CustomEnableDisableGuestAccountsMagicLinkSetting = ({
                 disabled={disabled}
             />
             <ConfirmModal
-                show={showConfirm && (value === false)}
+                show={showConfirm && (enableGuestMagicLink && value === false)}
                 title={memoizedTexts.title}
                 message={memoizedTexts.message}
                 confirmButtonText={memoizedTexts.confirmButtonText}
