@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {PostTypes} from 'mattermost-redux/constants';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {usePost} from 'components/common/hooks/usePost';
 import InlineCommentContext from 'components/inline_comment_context';
@@ -14,8 +16,10 @@ import Markdown from 'components/markdown';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostTime from 'components/post_view/post_time';
 import UserProfile from 'components/user_profile';
+import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
 
-import {isPageComment, getPageInlineAnchorText} from 'utils/page_utils';
+import {isPageComment, getPageInlineAnchorText, getPageInlineAnchorId} from 'utils/page_utils';
+import {getWikiUrl} from 'utils/url';
 
 type Props = {
     onCommentClick?: (e: React.MouseEvent, pagePost: Post | null) => void;
@@ -26,8 +30,20 @@ type Props = {
 function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props) {
     const rootPost = usePost(rootId);
     const pagePost = usePost(isPageComment(rootPost) && rootPost?.props?.page_id ? rootPost.props.page_id as string : '');
+    const currentTeam = useSelector(getCurrentTeam);
 
     const shouldRender = isPageComment(rootPost) && pagePost;
+
+    const anchorId = getPageInlineAnchorId(rootPost);
+    const wikiId = rootPost?.props?.wiki_id as string | undefined;
+
+    const pageUrl = useMemo(() => {
+        if (!anchorId || !pagePost || !wikiId || !currentTeam?.name) {
+            return undefined;
+        }
+        const basePageUrl = getWikiUrl(currentTeam.name, pagePost.channel_id, wikiId, pagePost.id);
+        return getPageAnchorUrl(basePageUrl, anchorId);
+    }, [anchorId, pagePost, wikiId, currentTeam?.name]);
 
     const handleClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -95,7 +111,12 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
                     </span>
                     {anchorText && (
                         <div style={{marginTop: '8px'}}>
-                            <InlineCommentContext anchorText={anchorText}/>
+                            <InlineCommentContext
+                                anchorText={anchorText}
+                                anchorId={anchorId || undefined}
+                                pageUrl={pageUrl}
+                                commentPostId={rootPost?.id}
+                            />
                         </div>
                     )}
                     {rootPost?.message && (

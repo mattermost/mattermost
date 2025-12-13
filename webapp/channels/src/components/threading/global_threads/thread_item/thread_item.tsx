@@ -330,6 +330,7 @@ function ThreadItem({
                                 mentionsKeys,
                                 imageProps,
                                 handlePageLinkClick,
+                                currentRelativeTeamUrl,
                             );
                         }
 

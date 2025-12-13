@@ -2254,7 +2254,7 @@ export default class Client4 {
         );
     };
 
-    createPageComment = (wikiId: string, pageId: string, message: string, inlineAnchor?: {text: string; context_before: string; context_after: string; node_path: string[]; char_offset: number}) => {
+    createPageComment = (wikiId: string, pageId: string, message: string, inlineAnchor?: {text: string; anchor_id: string}) => {
         const body: {message: string; inline_anchor?: any} = {message};
         if (inlineAnchor) {
             body.inline_anchor = inlineAnchor;

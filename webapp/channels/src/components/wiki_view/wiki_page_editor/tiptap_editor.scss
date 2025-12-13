@@ -451,3 +451,57 @@
         font-size: 14px;
     }
 }
+
+// Comment anchor mark styles (new mark-based approach)
+// Used for inline comments with stable anchor IDs
+// Base class: no visible styling (resolved comments have mark but no highlight)
+.comment-anchor {
+    // Account for sticky header when scrolling to anchor
+    scroll-margin-top: 80px;
+}
+
+// Active class: applied via decorations only when comment is non-resolved
+// This class is added dynamically by InlineCommentExtension based on inlineComments
+.comment-anchor-active {
+    padding: 2px 0;
+    border-radius: 2px;
+    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
+    background-color: rgba(255, 235, 59, 0.2);
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-bottom-color: rgba(255, 193, 7, 0.9);
+        background-color: rgba(255, 235, 59, 0.4);
+    }
+}
+
+// Native :target selector for fragment navigation
+// Triggered when URL hash matches the anchor id (e.g., #ic-abc123)
+// Only apply to active anchors
+.comment-anchor-active:target,
+.comment-anchor-active.anchor-highlighted {
+    animation: anchor-pulse 0.5s ease-in-out 2;
+    background-color: rgba(255, 235, 59, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.4);
+}
+
+@keyframes anchor-pulse {
+    0%, 100% {
+        background-color: rgba(255, 235, 59, 0.5);
+        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.4);
+    }
+
+    50% {
+        background-color: rgba(255, 235, 59, 0.7);
+        box-shadow: 0 0 0 5px rgba(255, 193, 7, 0.6);
+    }
+}
+
+// Respect reduced motion preference for accessibility
+@media (prefers-reduced-motion: reduce) {
+    .comment-anchor-active:target,
+    .comment-anchor-active.anchor-highlighted {
+        animation: none;
+    }
+}

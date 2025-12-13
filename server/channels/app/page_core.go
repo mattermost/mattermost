@@ -235,6 +235,10 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, enrichErr
 	}
 
+	if contentErr := a.loadPageContentForPost(createdPage); contentErr != nil {
+		return nil, contentErr
+	}
+
 	return createdPage, nil
 }
 
@@ -394,6 +398,34 @@ func (a *App) loadPageContentForPostList(rctx request.CTX, postList *model.PostL
 	return nil
 }
 
+// loadPageContentForPost loads the page content from PageContents table and sets it to post.Message.
+// This is needed because page content is stored in a separate table, not in Posts.Message.
+// Returns nil if content is loaded successfully or if content is not found (acceptable for new pages).
+// Returns error for database issues or serialization failures.
+func (a *App) loadPageContentForPost(post *model.Post) *model.AppError {
+	if post == nil {
+		return nil
+	}
+
+	pageContent, contentErr := a.Srv().Store().Page().GetPageContent(post.Id)
+	if contentErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(contentErr, &nfErr) {
+			post.Message = ""
+			return nil // Not found is acceptable - new page or edge case
+		}
+		return model.NewAppError("loadPageContentForPost", "app.page.load_content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+	}
+
+	contentJSON, jsonErr := pageContent.GetDocumentJSON()
+	if jsonErr != nil {
+		return model.NewAppError("loadPageContentForPost", "app.page.serialize_content.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	post.Message = contentJSON
+	return nil
+}
+
 // UpdatePage updates a page's title and/or content
 func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(rctx, pageID, false)
@@ -435,6 +467,10 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 
 	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
 		return nil, enrichErr
+	}
+
+	if contentErr := a.loadPageContentForPost(updatedPost); contentErr != nil {
+		return nil, contentErr
 	}
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
@@ -533,6 +569,10 @@ func (a *App) UpdatePageWithOptimisticLocking(rctx request.CTX, pageID, title, c
 
 	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
 		return nil, enrichErr
+	}
+
+	if contentErr := a.loadPageContentForPost(updatedPost); contentErr != nil {
+		return nil, contentErr
 	}
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)

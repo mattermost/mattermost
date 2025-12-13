@@ -39,14 +39,16 @@ import PageLinkModal from 'components/page_link_modal';
 import TextInputModal from 'components/text_input_modal';
 
 import {getHistory} from 'utils/browser_history';
-import {PageConstants, ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 import {slugifyHeading} from 'utils/slugify_heading';
 import {getWikiUrl, isUrlSafe, isValidUrl} from 'utils/url';
+import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
+import CommentAnchor from './comment_anchor_mark';
 import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
 import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentExtension from './inline_comment_extension';
@@ -124,6 +126,12 @@ const HeadingIdPlugin = Extension.create({
     },
 });
 
+// Simplified anchor type - only text and anchor_id needed
+export type InlineAnchorData = {
+    text: string;
+    anchor_id: string;
+};
+
 type Props = {
     content: string | Record<string, any>; // Accept both string (legacy) and object
     contentKey?: string; // Cheap version key for content (e.g., page.message) to detect content changes
@@ -136,19 +144,16 @@ type Props = {
     pageId?: string;
     wikiId?: string;
     pages?: Post[];
-    onCreateInlineComment?: (anchor: {text: string; context_before: string; context_after: string; char_offset: number}) => void;
+    onCreateInlineComment?: (anchor: InlineAnchorData) => void;
     inlineComments?: Array<{
         id: string;
         props: {
-            inline_anchor?: {
-                text: string;
-                context_before: string;
-                context_after: string;
-                char_offset: number;
-            };
+            inline_anchor?: InlineAnchorData;
         };
     }>;
     onCommentClick?: (commentId: string) => void;
+    deletedAnchorIds?: string[];
+    onDeletedAnchorIdsProcessed?: () => void;
 };
 
 const getInitialContent = (content: string | Record<string, any>) => {
@@ -232,6 +237,8 @@ const TipTapEditor = ({
     onCreateInlineComment,
     inlineComments = [],
     onCommentClick,
+    deletedAnchorIds = [],
+    onDeletedAnchorIdsProcessed,
 }: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
@@ -336,6 +343,7 @@ const TipTapEditor = ({
             Placeholder.configure({
                 placeholder,
             }),
+            CommentAnchor,
             Link.extend({
                 addKeyboardShortcuts() {
                     return {
@@ -681,14 +689,77 @@ const TipTapEditor = ({
     }, [teamId, editable]); // Removed dispatch from dependencies
 
     // Update inline comments when they change
+    // Uses simple DOM manipulation to add/remove .comment-anchor-active class
     useEffect(() => {
         if (editor && (editor.storage as any).inlineComment) {
             (editor.storage as any).inlineComment.comments = inlineComments;
 
-            // Force decorations to update
-            editor.view.updateState(editor.state);
+            // Function to update anchor classes in the DOM
+            const updateAnchorClasses = () => {
+                // Build a set of active anchor IDs (comments that are not resolved)
+                const activeAnchorIds = new Set(
+                    inlineComments.
+                        map((c) => c.props?.inline_anchor?.anchor_id).
+                        filter(Boolean),
+                );
+
+                // Find all comment anchor elements in the editor DOM
+                const editorElement = editor.view.dom;
+                const anchorElements = editorElement.querySelectorAll('[id^="ic-"]');
+
+                anchorElements.forEach((element) => {
+                    const id = element.getAttribute('id');
+                    const anchorId = id?.replace('ic-', '');
+
+                    if (anchorId && activeAnchorIds.has(anchorId)) {
+                        element.classList.add('comment-anchor-active');
+                    } else {
+                        element.classList.remove('comment-anchor-active');
+                    }
+                });
+            };
+
+            // Run immediately
+            updateAnchorClasses();
+
+            // Also run after a short delay to handle editor re-renders
+            // This ensures the classes are applied after TipTap finishes rendering
+            const timeoutId = setTimeout(updateAnchorClasses, 100);
+
+            return () => clearTimeout(timeoutId);
         }
+        return undefined;
     }, [editor, inlineComments]);
+
+    // Remove marks for deleted comments (only when explicitly deleted, not resolved)
+    useEffect(() => {
+        if (!editor || deletedAnchorIds.length === 0) {
+            return;
+        }
+
+        const {tr} = editor.state;
+        let hasChanges = false;
+
+        editor.state.doc.descendants((node, pos) => {
+            if (node.isText && node.marks.length > 0) {
+                node.marks.forEach((mark) => {
+                    if (mark.type.name === 'commentAnchor' && deletedAnchorIds.includes(mark.attrs.anchorId)) {
+                        tr.removeMark(pos, pos + node.nodeSize, mark.type);
+                        hasChanges = true;
+                    }
+                });
+            }
+        });
+
+        if (hasChanges) {
+            editor.view.dispatch(tr);
+        }
+
+        // Clear the deleted anchor IDs after processing
+        if (onDeletedAnchorIdsProcessed) {
+            onDeletedAnchorIdsProcessed();
+        }
+    }, [editor, deletedAnchorIds, onDeletedAnchorIdsProcessed]);
 
     // Handle clicks on channel mentions to navigate to channel
     useEffect(() => {
@@ -932,16 +1003,29 @@ const TipTapEditor = ({
         }
 
         const {state} = editor;
-        const doc = state.doc;
+        const {from, to} = selection;
 
-        const contextBefore = doc.textBetween(Math.max(0, selection.from - PageConstants.INLINE_COMMENT_CONTEXT_LENGTH), selection.from).trim();
-        const contextAfter = doc.textBetween(selection.to, Math.min(doc.content.size, selection.to + PageConstants.INLINE_COMMENT_CONTEXT_LENGTH)).trim();
+        // Validate: selection must be within a single block (no multi-paragraph anchors)
+        const $from = state.doc.resolve(from);
+        const $to = state.doc.resolve(to);
+        if ($from.parent !== $to.parent) {
+            // Show toast: multi-paragraph selection not allowed
+            // For now, just return silently - the UI should prevent this
+            return;
+        }
 
+        // Generate a unique anchor ID
+        const anchorId = generateId();
+
+        // Apply the CommentAnchor mark to the selected text
+        editor.chain().
+            setMark('commentAnchor', {anchorId}).
+            run();
+
+        // Create simplified anchor data with just text and anchor_id
         const anchor = {
             text: selection.text,
-            context_before: contextBefore,
-            context_after: contextAfter,
-            char_offset: selection.from,
+            anchor_id: anchorId,
         };
 
         onCreateInlineComment(anchor);

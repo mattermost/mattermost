@@ -2027,9 +2027,7 @@ export async function addInlineCommentInEditMode(page: Page, commentText: string
  * @returns The comment marker locator
  */
 export async function verifyCommentMarkerVisible(page: Page): Promise<Locator> {
-    const commentMarker = page
-        .locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]')
-        .first();
+    const commentMarker = page.locator('[id^="ic-"], .comment-anchor').first();
     await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     return commentMarker;
 }

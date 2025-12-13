@@ -189,11 +189,13 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
                         ...otherProps,
                     };
 
+                    const contentToSave = draft.message || '';
+
                     const result = await dispatch(savePageDraft(
                         channelId,
                         wikiId,
                         pageToRename.pageId,
-                        draft.message || '',
+                        contentToSave,
                         newTitle,
                         draft.updateAt,
                         propsToPreserve,

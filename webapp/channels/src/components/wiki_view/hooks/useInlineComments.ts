@@ -10,9 +10,7 @@ import {createPageComment} from 'actions/pages';
 
 type CommentAnchor = {
     text: string;
-    context_before: string;
-    context_after: string;
-    char_offset: number;
+    anchor_id: string;
 };
 
 export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCreated?: (commentId: string) => void) => {
@@ -32,10 +30,7 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
 
         const inlineAnchor = {
             text: commentAnchor.text,
-            context_before: commentAnchor.context_before,
-            context_after: commentAnchor.context_after,
-            char_offset: commentAnchor.char_offset,
-            node_path: [] as string[],
+            anchor_id: commentAnchor.anchor_id,
         };
 
         try {

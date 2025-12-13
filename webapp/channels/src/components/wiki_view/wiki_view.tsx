@@ -33,6 +33,7 @@ import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 import type {GlobalState} from 'types/store';
 
 import {useWikiPageData, useWikiPageActions, useFullscreen, useAutoPageSelection, useVersionHistory} from './hooks';
+import {handleAnchorHashNavigation} from './page_anchor';
 import PageViewer from './page_viewer';
 import WikiPageEditor from './wiki_page_editor';
 import WikiPageHeader from './wiki_page_header';
@@ -224,6 +225,24 @@ const WikiView = () => {
             history.replace(newUrl);
         }
     }, [location.search, location.pathname, pageId, wikiId, isWikiRhsOpen, dispatch, history]);
+
+    // Handle anchor hash navigation when page loads or when switching to edit mode
+    // Wait for content to be ready (not loading) before attempting to scroll
+    React.useEffect(() => {
+        // pageId is set in view mode, draftId is set in edit mode (same ID, different route param)
+        const contentId = pageId || draftId;
+        if (!isLoading && contentId && location.hash) {
+            // Small delay to ensure TipTap has rendered the content
+            // Use longer delay for edit mode as editor takes more time to initialize
+            const delay = draftId ? 300 : 100;
+            const timeoutId = setTimeout(() => {
+                handleAnchorHashNavigation();
+            }, delay);
+
+            return () => clearTimeout(timeoutId);
+        }
+        return undefined;
+    }, [isLoading, pageId, draftId, location.hash]);
 
     // --------------------------------------------------------------------------
     // Clear editingDraftId when the draft is deleted or published while we are

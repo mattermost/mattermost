@@ -134,15 +134,18 @@ test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, shar
     // # Resolve the comment
     await toggleCommentResolution(page, rhs);
 
-    // * Verify highlight disappears from editor when resolved
-    const highlight = page.locator('.inline-comment-highlight').first();
+    // * Verify comment marker highlight disappears from editor when resolved
+    // The mark still exists but .comment-anchor-active class (which shows highlight) is removed
+    const highlight = page.locator('.comment-anchor-active').first();
     await expect(highlight).not.toBeVisible({timeout: WEBSOCKET_WAIT});
 
     // # Unresolve the comment
     await toggleCommentResolution(page, rhs);
 
     // * Verify highlight reappears in editor when unresolved
-    await expect(highlight).toBeVisible({timeout: WEBSOCKET_WAIT});
+    // The .comment-anchor-active class is re-added via decorations
+    const highlightAfterUnresolve = page.locator('.comment-anchor-active').first();
+    await expect(highlightAfterUnresolve).toBeVisible({timeout: WEBSOCKET_WAIT});
 });
 
 /**
@@ -193,7 +196,7 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
     await publishPage(page);
 
     // * Verify both comment markers exist
-    const commentMarkers = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]');
+    const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
     await expect(async () => {
         const markerCount = await commentMarkers.count();
         expect(markerCount).toBeGreaterThanOrEqual(2);
@@ -258,7 +261,7 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
     await publishPage(page);
 
     // * Verify both comment markers exist
-    const commentMarkers = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]');
+    const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
     await expect(async () => {
         const markerCount = await commentMarkers.count();
         expect(markerCount).toBeGreaterThanOrEqual(2);
@@ -271,12 +274,14 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
     await expect(marker1).toBeVisible();
     await expect(marker2).toBeVisible();
 
-    // * Verify each marker has a unique ID attribute
-    const marker1Id = (await marker1.getAttribute('data-comment-id')) || (await marker1.getAttribute('id'));
-    const marker2Id = (await marker2.getAttribute('data-comment-id')) || (await marker2.getAttribute('id'));
+    // * Verify each marker has a unique ID attribute (format: ic-<uuid>)
+    const marker1Id = await marker1.getAttribute('id');
+    const marker2Id = await marker2.getAttribute('id');
 
     expect(marker1Id).toBeTruthy();
+    expect(marker1Id).toMatch(/^ic-/);
     expect(marker2Id).toBeTruthy();
+    expect(marker2Id).toMatch(/^ic-/);
     expect(marker1Id).not.toBe(marker2Id);
 
     // * Verify each marker is clickable
@@ -343,8 +348,8 @@ test(
         await verifyWikiRHSContent(page, rhs, [originalText, commentText]);
 
         // * Additionally verify the highlighted text in editor matches original
-        // Get the text content of the highlight span
-        const highlightedText = await page.locator('.inline-comment-highlight').first().textContent();
+        // Get the text content of the comment anchor span
+        const highlightedText = await page.locator('[id^="ic-"], .comment-anchor').first().textContent();
         expect(highlightedText).toContain('The quick brown fox');
     },
 );
@@ -409,7 +414,7 @@ test(
         await verifyWikiRHSContent(page, rhs, [commentedText, commentText]);
 
         // * Additionally verify the highlighted text in editor matches original
-        const highlightedText = await page.locator('.inline-comment-highlight').first().textContent();
+        const highlightedText = await page.locator('[id^="ic-"], .comment-anchor').first().textContent();
         expect(highlightedText).toContain('The quick brown fox');
     },
 );
@@ -617,7 +622,7 @@ test('switches between multiple comment threads in RHS', {tag: '@pages'}, async 
     await publishPage(page);
 
     // * Verify both comment markers exist
-    const commentMarkers = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]');
+    const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
     await expect(async () => {
         const markerCount = await commentMarkers.count();
         expect(markerCount).toBeGreaterThanOrEqual(2);
@@ -791,7 +796,7 @@ test(
         await publishPage(page);
 
         // # Check if inline comment markers exist
-        const commentMarkers = page.locator('.inline-comment-marker, [data-inline-comment-marker], [data-comment-id]');
+        const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
         const markerCount = await commentMarkers.count();
 
         // Note: Adding multiple inline comments programmatically is complex
@@ -938,7 +943,7 @@ test(
         }
 
         // # Check if any inline comments were actually created
-        const commentMarkers = page.locator('.inline-comment-marker, [data-inline-comment-marker], [data-comment-id]');
+        const commentMarkers = page.locator('[id^="ic-"], .comment-anchor');
         const markerCount = await commentMarkers.count();
 
         // Note: Adding multiple inline comments programmatically is complex

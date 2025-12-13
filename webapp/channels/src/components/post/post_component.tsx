@@ -49,7 +49,7 @@ import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalI
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {navigateToPageFromPost} from 'utils/page_navigation';
-import {isPageInlineComment, isPagePost} from 'utils/page_utils';
+import {isPageComment, isPagePost} from 'utils/page_utils';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -518,7 +518,8 @@ function PostComponent(props: Props) {
     }
 
     let pageCommentContext;
-    if (isPageInlineComment(post) && props.location === Locations.RHS_ROOT) {
+    const showPageCommentContext = isPageComment(post) && (props.location === Locations.CENTER || props.location === Locations.RHS_ROOT);
+    if (showPageCommentContext) {
         pageCommentContext = (
             <PageCommentedOn
                 rootId={post.id}
@@ -565,7 +566,7 @@ function PostComponent(props: Props) {
     const showConcealedPlaceholder = props.shouldDisplayBurnOnReadConcealed && post.type === PostTypes.BURN_ON_READ;
 
     // Hide message when PageCommentedOn is shown (it renders the message itself)
-    const hideMessageForPageComment = isPageInlineComment(post) && props.location === Locations.RHS_ROOT;
+    const hideMessageForPageComment = showPageCommentContext;
 
     let message = null;
     if (!hideMessageForPageComment) {

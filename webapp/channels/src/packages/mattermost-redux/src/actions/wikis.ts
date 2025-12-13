@@ -365,10 +365,7 @@ export function getPageComments(wikiId: string, pageId: string): ActionFuncAsync
 
 type InlineAnchor = {
     text: string;
-    context_before: string;
-    context_after: string;
-    node_path: string[];
-    char_offset: number;
+    anchor_id: string;
 };
 
 export function createPageComment(wikiId: string, pageId: string, message: string, inlineAnchor?: InlineAnchor): ActionFuncAsync<Post> {

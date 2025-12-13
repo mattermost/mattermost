@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {matchPath} from 'react-router-dom';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
@@ -21,7 +20,6 @@ import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {clearOutlineCache} from 'actions/views/pages_hierarchy';
 import {getPageDraft, getUserDraftKeysForPage, makePageDraftKey} from 'selectors/page_drafts';
 
-import {getHistory} from 'utils/browser_history';
 import {PageConstants, PagePropsKeys} from 'utils/constants';
 import {getPageReceiveActions} from 'utils/page_utils';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
@@ -408,15 +406,6 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             dispatch(batchActions([...actions, ...cleanupActions]));
 
             dispatch(removeGlobalItem(draftKey));
-
-            const history = getHistory();
-            const match = matchPath<{wikiId: string; draftId: string}>(history.location.pathname, {
-                path: '/wikis/:wikiId/drafts/:draftId',
-                exact: true,
-            });
-            if (match && match.params.draftId === draftId) {
-                history.replace(`/wikis/${wikiId}/pages/${data.id}`);
-            }
 
             // Clear outline cache for the published page so fresh headings are extracted
             dispatch(clearOutlineCache(data.id));
@@ -877,10 +866,7 @@ export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsy
 
 type InlineAnchor = {
     text: string;
-    context_before: string;
-    context_after: string;
-    node_path: string[];
-    char_offset: number;
+    anchor_id: string;
 };
 
 export function createPageComment(wikiId: string, pageId: string, message: string, inlineAnchor?: InlineAnchor): ActionFuncAsync<Post> {

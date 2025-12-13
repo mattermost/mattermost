@@ -31,6 +31,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
     const [inlineComments, setInlineComments] = useState<Post[]>([]);
     const [lastClickedCommentId, setLastClickedCommentId] = useState<string | null>(null);
+    const [deletedAnchorIds, setDeletedAnchorIds] = useState<string[]>([]);
 
     const isWikiRhsOpen = rhsState === 'wiki';
 
@@ -166,13 +167,23 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 return;
             }
 
-            // Handle comment deletion - removes highlight
+            // Handle comment deletion - removes highlight and mark
             if (msg.event === SocketEvents.PAGE_COMMENT_DELETED) {
                 const commentId = msg.data?.comment_id;
                 const eventPageId = msg.data?.page_id;
 
                 if (commentId && eventPageId === pageId) {
-                    setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
+                    // Find the anchor ID for this comment before removing it
+                    setInlineComments((prev) => {
+                        const deletedComment = prev.find((comment) => comment.id === commentId);
+                        const inlineAnchor = deletedComment?.props?.inline_anchor as {anchor_id?: string} | undefined;
+                        const anchorId = inlineAnchor?.anchor_id;
+                        if (anchorId) {
+                            // Track the anchor ID so the editor can remove the mark
+                            setDeletedAnchorIds((ids) => [...ids, anchorId]);
+                        }
+                        return prev.filter((comment) => comment.id !== commentId);
+                    });
                 }
             }
         };
@@ -241,6 +252,11 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         handleCommentClickRef.current(commentId);
     }, []);
 
+    // Clear deleted anchor IDs after they've been processed by the editor
+    const clearDeletedAnchorIds = useCallback(() => {
+        setDeletedAnchorIds([]);
+    }, []);
+
     return {
         inlineComments,
         handleCommentClick,
@@ -249,5 +265,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         commentAnchor,
         handleSubmitComment,
         handleCloseModal,
+        deletedAnchorIds,
+        clearDeletedAnchorIds,
     };
 };

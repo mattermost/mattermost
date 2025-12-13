@@ -46,6 +46,13 @@ export function getPageInlineAnchorText(post: Post | null | undefined): string |
     return (post.props[PagePropsKeys.INLINE_ANCHOR] as {text: string}).text || null;
 }
 
+export function getPageInlineAnchorId(post: Post | null | undefined): string | null {
+    if (!isPageInlineComment(post) || !post?.props?.[PagePropsKeys.INLINE_ANCHOR]) {
+        return null;
+    }
+    return (post.props[PagePropsKeys.INLINE_ANCHOR] as {anchor_id: string}).anchor_id || null;
+}
+
 export function isEditingExistingPage(draft: PostDraft | Post | null | undefined): boolean {
     if (!draft) {
         return false;

@@ -18,10 +18,11 @@ import (
 )
 
 const (
-	// regularPostsFilter excludes pages and page comments from post queries.
+	// regularPostsFilter excludes pages from post queries.
 	// Pages have separate lifecycle management and should not be included in
 	// regular post operations like retention policies, exports, or cleanup.
-	reactionRegularPostsFilter = "(p.Type NOT IN ('page', 'page_comment') OR p.Type IS NULL)"
+	// Page comments are allowed since they appear in the channel feed.
+	reactionRegularPostsFilter = "(p.Type NOT IN ('page') OR p.Type IS NULL)"
 )
 
 type SqlReactionStore struct {

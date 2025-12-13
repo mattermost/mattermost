@@ -12,6 +12,9 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import InlineCommentContext from 'components/inline_comment_context';
 import Markdown from 'components/markdown';
+import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
+
+import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -34,8 +37,20 @@ export function renderPageCommentPreview(
     mentionsKeys: Array<{key: string}>,
     imageProps: ImageProps,
     onPageLinkClick?: (e: React.MouseEvent) => void,
+    currentRelativeTeamUrl?: string,
 ): JSX.Element {
-    const anchorText = post.props?.inline_anchor ? (post.props.inline_anchor as {text: string}).text : null;
+    const inlineAnchor = post.props?.inline_anchor as {text?: string; anchor_id?: string} | undefined;
+    const anchorText = inlineAnchor?.text || null;
+    const anchorId = inlineAnchor?.anchor_id || null;
+    const wikiId = post.props?.wiki_id as string | undefined;
+
+    let pageUrl: string | undefined;
+    if (anchorId && wikiId && currentRelativeTeamUrl) {
+        // Extract team name from relative URL (e.g., "/teamname" -> "teamname")
+        const teamName = currentRelativeTeamUrl.replace(/^\//, '');
+        const basePageUrl = getWikiUrl(teamName, pagePost.channel_id, wikiId, pagePost.id);
+        pageUrl = getPageAnchorUrl(basePageUrl, anchorId);
+    }
 
     return (
         <>
@@ -70,7 +85,12 @@ export function renderPageCommentPreview(
                 </a>
             </div>
             {anchorText && (
-                <InlineCommentContext anchorText={anchorText}/>
+                <InlineCommentContext
+                    anchorText={anchorText}
+                    anchorId={anchorId || undefined}
+                    pageUrl={pageUrl}
+                    commentPostId={post.id}
+                />
             )}
             {post.message && (
                 <div style={{marginTop: '4px'}}>

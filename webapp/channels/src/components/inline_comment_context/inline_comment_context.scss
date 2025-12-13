@@ -2,6 +2,9 @@
 // See LICENSE.txt for license information.
 
 .inline-comment-anchor-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 8px 12px;
     border-radius: 4px;
     border-left: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -10,11 +13,83 @@
     background-color: rgba(var(--center-channel-color-rgb), 0.04);
 
     .inline-comment-anchor-text {
+        flex: 1;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: 15px;
         font-weight: 600;
         line-height: 20px;
         overflow-wrap: break-word;
         word-wrap: break-word;
+    }
+
+    .icon-arrow-right {
+        margin-left: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 16px;
+    }
+
+    &.clickable {
+        cursor: pointer;
+        transition: background-color 150ms ease;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+            .icon-arrow-right {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+        }
+
+        &:focus {
+            outline: 2px solid rgba(var(--button-bg-rgb), 0.5);
+            outline-offset: 2px;
+        }
+
+        &:active {
+            background-color: rgba(var(--center-channel-color-rgb), 0.12);
+        }
+    }
+}
+
+.inline-comment-anchor-banner {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 13px;
+
+    .inline-comment-anchor-banner-text {
+        font-style: italic;
+        font-weight: 600;
+    }
+
+    .icon-arrow-right {
+        margin-left: auto;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 16px;
+    }
+
+    &.clickable {
+        cursor: pointer;
+        transition: background-color 150ms ease;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+
+            .icon-arrow-right {
+                color: rgba(var(--center-channel-color-rgb), 0.72);
+            }
+        }
+
+        &:focus {
+            outline: 2px solid rgba(var(--button-bg-rgb), 0.5);
+            outline-offset: -2px;
+        }
+
+        &:active {
+            background-color: rgba(var(--center-channel-color-rgb), 0.12);
+        }
     }
 }

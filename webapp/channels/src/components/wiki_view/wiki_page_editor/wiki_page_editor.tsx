@@ -93,6 +93,8 @@ const WikiPageEditor = ({
         commentAnchor,
         handleSubmitComment,
         handleCloseModal,
+        deletedAnchorIds,
+        clearDeletedAnchorIds,
     } = usePageInlineComments(
         hookPageId,
         wikiId,
@@ -200,6 +202,8 @@ const WikiPageEditor = ({
                     inlineComments={inlineComments}
                     onCommentClick={handleCommentClick}
                     onCreateInlineComment={isExistingPage ? handleCreateInlineComment : undefined}
+                    deletedAnchorIds={deletedAnchorIds}
+                    onDeletedAnchorIdsProcessed={clearDeletedAnchorIds}
                 />
             </div>
             {showCommentModal && commentAnchor && (

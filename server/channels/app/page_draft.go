@@ -677,17 +677,8 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId string, opts model.Publi
 		rctx.Logger().Warn("Failed to update child draft parent references", mlog.Err(updateErr))
 	}
 
-	// Load page content for the response
-	pageContent, contentErr := a.Srv().Store().Page().GetPageContent(savedPost.Id)
-	if contentErr != nil {
-		savedPost.Message = ""
-	} else {
-		contentJSON, jsonErr := pageContent.GetDocumentJSON()
-		if jsonErr != nil {
-			savedPost.Message = ""
-		} else {
-			savedPost.Message = contentJSON
-		}
+	if contentErr := a.loadPageContentForPost(savedPost); contentErr != nil {
+		return nil, contentErr
 	}
 
 	// Broadcast to all clients in the channel

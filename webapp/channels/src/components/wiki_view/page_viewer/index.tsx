@@ -69,6 +69,8 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         commentAnchor,
         handleSubmitComment,
         handleCloseModal,
+        deletedAnchorIds,
+        clearDeletedAnchorIds,
     } = usePageInlineComments(pageId, wikiId || undefined);
 
     // Derive a stable boolean from page object to avoid unnecessary effect re-runs
@@ -185,6 +187,8 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                     inlineComments={inlineComments}
                     onCommentClick={handleCommentClick}
                     onCreateInlineComment={handleCreateInlineComment}
+                    deletedAnchorIds={deletedAnchorIds}
+                    onDeletedAnchorIdsProcessed={clearDeletedAnchorIds}
                 />
             </div>
             {showCommentModal && commentAnchor && (

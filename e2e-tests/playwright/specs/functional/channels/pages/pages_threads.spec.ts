@@ -121,9 +121,7 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     await page.waitForLoadState('networkidle');
 
     // # Click comment marker to open thread in RHS
-    const commentMarker = page
-        .locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]')
-        .first();
+    const commentMarker = page.locator('[id^="ic-"], .comment-anchor').first();
     await expect(commentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await commentMarker.click();
 
@@ -253,9 +251,7 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     await page.waitForLoadState('networkidle');
 
     // # Click first comment marker to open thread
-    const firstCommentMarker = page
-        .locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]')
-        .first();
+    const firstCommentMarker = page.locator('[id^="ic-"], .comment-anchor').first();
     await expect(firstCommentMarker).toBeVisible({timeout: ELEMENT_TIMEOUT});
     await firstCommentMarker.click();
 
