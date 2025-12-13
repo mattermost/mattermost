@@ -1531,6 +1531,19 @@ func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.Pr
 		return nil, fmt.Errorf("invalid input: property field parameter is required")
 	}
 
+	cpaGroupID, err := api.app.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("CreatePropertyField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Include plugin ID in CPA fields
+	if field.GroupID == cpaGroupID {
+		if field.Attrs == nil {
+			field.Attrs = make(model.StringInterface)
+		}
+		field.Attrs[model.CustomProfileAttributesPropertyAttrsSourcePluginID] = api.manifest.Id
+	}
+
 	return api.app.PropertyService().CreatePropertyField(field)
 }
 
@@ -1543,10 +1556,30 @@ func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	cpaGroupID, err := api.app.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("UpdatePropertyField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if groupID == cpaGroupID {
+		if appErr := api.app.ValidatePluginFieldUpdate(groupID, field.ID, api.manifest.Id); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	return api.app.PropertyService().UpdatePropertyField(groupID, field)
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
+	cpaGroupID, err := api.app.CpaGroupID()
+	if err != nil {
+		return model.NewAppError("DeletePropertyField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if groupID == cpaGroupID {
+		if appErr := api.app.ValidatePluginFieldDelete(groupID, fieldID, api.manifest.Id); appErr != nil {
+			return appErr
+		}
+	}
+
 	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
 }
 
@@ -1581,10 +1614,30 @@ func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	cpaGroupID, err := api.app.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("UpdatePropertyValue", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if groupID == cpaGroupID {
+		if appErr := api.app.ValidatePluginValueUpdate(groupID, value.FieldID, api.manifest.Id); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	return api.app.PropertyService().UpdatePropertyValue(groupID, value)
 }
 
 func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	cpaGroupID, err := api.app.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("UpsertPropertyValue", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if value.GroupID == cpaGroupID {
+		if appErr := api.app.ValidatePluginValueUpdate(value.GroupID, value.FieldID, api.manifest.Id); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	return api.app.PropertyService().UpsertPropertyValue(value)
 }
 
