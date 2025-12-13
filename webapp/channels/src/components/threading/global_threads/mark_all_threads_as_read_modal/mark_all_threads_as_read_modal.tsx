@@ -4,7 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import ConfirmModal from 'components/confirm_modal';
+import {GenericModal} from '@mattermost/components';
 
 export type MarkAllThreadsAsReadModalProps = {
     onConfirm: () => void;
@@ -29,26 +29,29 @@ function MarkAllThreadsAsReadModal({
     }, [onCancel]);
 
     return (
-        <ConfirmModal
+        <GenericModal
             id='mark-all-threads-as-read-modal'
-            show={show}
-            title={formatMessage({
+            className='MarkAllThreadsAsReadModal'
+            modalHeaderText={formatMessage({
                 id: 'mark_all_threads_as_read_modal.title',
-                defaultMessage: 'Mark all your threads as read?',
+                defaultMessage: 'Mark all your threads as read',
             })}
-            message={formatMessage({
-                id: 'mark_all_threads_as_read_modal.description',
-                defaultMessage: 'This will clear the unread state and mention badges on all your threads. Are you sure?',
-            })}
+            show={show}
+            onExited={onCancel}
+            onHide={handleCancel}
+            handleCancel={handleCancel}
+            handleConfirm={handleConfirm}
             confirmButtonText={formatMessage({
                 id: 'mark_all_threads_as_read_modal.confirm',
                 defaultMessage: 'Mark all as read',
             })}
-            confirmButtonClass='btn btn-primary'
-            onConfirm={handleConfirm}
-            onCancel={handleCancel}
-            onExited={onCancel}
-        />
+            compassDesign={true}
+        >
+            {formatMessage({
+                id: 'mark_all_threads_as_read_modal.description',
+                defaultMessage: 'All your threads will be marked as read, with unread and mention badges cleared. Do you want to continue?',
+            })}
+        </GenericModal>
     );
 }
 
