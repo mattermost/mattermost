@@ -25,7 +25,7 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 			statusCode = http.StatusInternalServerError
 		}
 
-		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, err.Error(), statusCode)
+		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.get_single.app_error", nil, "", statusCode).Wrap(err)
 	}
 
 	// restoreVersionID needs to be an old version of postID
@@ -45,6 +45,12 @@ func (a *App) RestorePostVersion(rctx request.CTX, userID, postID, restoreVersio
 		return nil, model.NewAppError("RestorePostVersion", "app.post.restore_post_version.not_valid_post_history_item.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// Check if this is a page - pages require special handling for PageContents
+	if IsPagePost(toRestorePostVersion) {
+		return a.RestorePageVersion(rctx, userID, postID, restoreVersionID, toRestorePostVersion)
+	}
+
+	// Regular post restoration
 	postPatch := &model.PostPatch{
 		Message: &toRestorePostVersion.Message,
 		FileIds: &toRestorePostVersion.FileIds,

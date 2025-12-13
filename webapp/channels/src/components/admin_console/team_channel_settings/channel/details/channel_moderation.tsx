@@ -29,6 +29,8 @@ const MEMBERS_CAN_USE_CHANNEL_MENTIONS_PERMISSION = 'use_channel_mentions';
 const GUESTS_CAN_USE_CHANNEL_MENTIONS_PERMISSION = 'guest_use_channel_mentions';
 const MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION = 'manage_{public_or_private}_channel_bookmarks';
 const GUESTS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION = 'guest_manage_{public_or_private}_channel_bookmarks';
+const MEMBERS_CAN_MANAGE_PAGES_PERMISSION = 'manage_pages';
+const GUESTS_CAN_MANAGE_PAGES_PERMISSION = 'guest_manage_pages';
 
 function getChannelModerationPermissionNames(permission: string) {
     if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
@@ -68,6 +70,14 @@ function getChannelModerationPermissionNames(permission: string) {
             disabledGuests: GUESTS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
             disabledMembers: MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
             disabledBoth: MEMBERS_CAN_MANAGE_CHANNEL_BOOKMARKS_PERMISSION,
+        };
+    }
+
+    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_PAGES) {
+        return {
+            disabledGuests: GUESTS_CAN_MANAGE_PAGES_PERMISSION,
+            disabledMembers: MEMBERS_CAN_MANAGE_PAGES_PERMISSION,
+            disabledBoth: MEMBERS_CAN_MANAGE_PAGES_PERMISSION,
         };
     }
 
@@ -214,6 +224,33 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
         },
     });
 
+    const managePagesRowMessages = defineMessages({
+        title: {
+            id: 'admin.channel_settings.channel_moderation.managePages',
+            defaultMessage: 'Manage Pages',
+        },
+        description: {
+            id: 'admin.channel_settings.channel_moderation.managePagesDesc',
+            defaultMessage: 'The ability for members and guests to create, edit, and delete pages.',
+        },
+        descriptionMembers: {
+            id: 'admin.channel_settings.channel_moderation.managePagesDescMembers',
+            defaultMessage: 'The ability for members to create, edit, and delete pages.',
+        },
+        disabledGuests: {
+            id: 'admin.channel_settings.channel_moderation.managePages.disabledGuest',
+            defaultMessage: 'Manage pages for guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+        },
+        disabledMembers: {
+            id: 'admin.channel_settings.channel_moderation.managePages.disabledMember',
+            defaultMessage: 'Manage pages for members are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+        },
+        disabledBoth: {
+            id: 'admin.channel_settings.channel_moderation.managePages.disabledBoth',
+            defaultMessage: 'Manage pages for members and guests are disabled in [{scheme_name}](../permissions/{scheme_link}).',
+        },
+    });
+
     if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.CREATE_POST) {
         return createPostRowMessages;
     }
@@ -232,6 +269,10 @@ function getChannelModerationRowsMessages(permission: string): Record<string, Me
 
     if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_BOOKMARKS) {
         return manageBookmarksRowMessages;
+    }
+
+    if (permission === Permissions.CHANNEL_MODERATED_PERMISSIONS.MANAGE_PAGES) {
+        return managePagesRowMessages;
     }
 
     return null;
@@ -480,9 +521,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                 id='channel_moderation'
                 title={channelModerationHeaderMessages.titleMessage}
                 subtitle={
-                    guestAccountsEnabled ?
-                        channelModerationHeaderMessages.subtitleMessageForMembersAndGuests :
-                        channelModerationHeaderMessages.subtitleMessageForMembers
+                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests : channelModerationHeaderMessages.subtitleMessageForMembers
                 }
             >
                 <div className='channel-moderation'>

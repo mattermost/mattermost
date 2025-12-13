@@ -768,6 +768,113 @@ func (c *Context) RequireContentReviewerId() *Context {
 	return c
 }
 
+func (c *Context) RequireWikiId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.WikiId) {
+		c.SetInvalidURLParam("wiki_id")
+	}
+	return c
+}
+
+func (c *Context) RequirePageId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.PageId) {
+		c.SetInvalidURLParam("page_id")
+	}
+	return c
+}
+
+func (c *Context) RequireWikiModifyPermission(op app.WikiOperation, callerContext string) (*model.Wiki, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, false
+	}
+
+	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, op, callerContext); err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	return wiki, channel, true
+}
+
+func (c *Context) RequireWikiReadPermission() (*model.Wiki, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, false
+	}
+
+	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return nil, nil, false
+	}
+
+	return wiki, channel, true
+}
+
+func (c *Context) ValidatePageBelongsToWiki() (*model.Post, bool) {
+	if c.Err != nil {
+		return nil, false
+	}
+
+	page, err := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	if err != nil {
+		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_not_found",
+			nil, "", http.StatusNotFound).Wrap(err)
+		return nil, false
+	}
+
+	pageWikiId, ok := page.Props[model.PagePropsWikiID].(string)
+	if !ok || pageWikiId == "" {
+		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_not_set",
+			nil, "", http.StatusBadRequest)
+		return nil, false
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		// Check if the wiki in the URL exists before returning a mismatch error
+		// If the wiki doesn't exist, return 404; if it exists but page doesn't belong to it, return 400
+		if _, wikiErr := c.App.GetWiki(c.AppContext, c.Params.WikiId); wikiErr != nil {
+			c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.not_found",
+				nil, "", http.StatusNotFound).Wrap(wikiErr)
+			return nil, false
+		}
+		c.Err = model.NewAppError("ValidatePageBelongsToWiki", "api.wiki.page_wiki_mismatch",
+			nil, "", http.StatusBadRequest)
+		return nil, false
+	}
+
+	return page, true
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }

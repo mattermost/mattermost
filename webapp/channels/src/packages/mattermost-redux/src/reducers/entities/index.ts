@@ -3,6 +3,7 @@
 
 import {combineReducers} from 'redux';
 
+import activeEditors from './active_editors';
 import admin from './admin';
 import agents from './agents';
 import apps from './apps';
@@ -32,9 +33,12 @@ import threads from './threads';
 import typing from './typing';
 import usage from './usage';
 import users from './users';
+import wikiPages from './wiki_pages';
+import wikis from './wikis';
 
 export default combineReducers({
     general,
+    activeEditors,
     agents,
     users,
     limits,
@@ -63,4 +67,6 @@ export default combineReducers({
     scheduledPosts,
     sharedChannels,
     contentFlagging,
+    wikiPages,
+    wikis,
 });

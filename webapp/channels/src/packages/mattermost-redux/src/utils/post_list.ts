@@ -24,6 +24,8 @@ export const DATE_LINE = 'date-';
 export const START_OF_NEW_MESSAGES = 'start-of-new-messages-';
 export const MAX_COMBINED_SYSTEM_POSTS = 100;
 
+const PAGE_POST_TYPES = [Posts.POST_TYPES.PAGE, Posts.POST_TYPES.PAGE_COMMENT];
+
 interface PostFilterOptions {
     postIds: string[];
     lastViewedAt: number;
@@ -76,6 +78,11 @@ export function makeFilterPostsAndAddSeparators() {
 
                 // Filter out join/leave messages if necessary
                 if (shouldFilterJoinLeavePost(post, showJoinLeave, currentUser.username)) {
+                    continue;
+                }
+
+                // Filter out page posts from channel timelines
+                if (PAGE_POST_TYPES.includes(post.type)) {
                     continue;
                 }
 

@@ -71,6 +71,8 @@ func genStore() *mocks.Store {
 	mock.On("ContentFlagging").Return(&mocks.ContentFlaggingStore{})
 	mock.On("ReadReceipt").Return(&mocks.ReadReceiptStore{})
 	mock.On("TemporaryPost").Return(&mocks.TemporaryPostStore{})
+	mock.On("Wiki").Return(&mocks.WikiStore{})
+	mock.On("Page").Return(&mocks.PageStore{})
 	return mock
 }
 

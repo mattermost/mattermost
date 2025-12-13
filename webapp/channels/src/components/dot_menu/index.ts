@@ -26,6 +26,7 @@ import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/sele
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
 import {burnPostNow} from 'actions/burn_on_read_deletion';
+import {resolvePageComment, unresolvePageComment} from 'actions/pages';
 import {
     flagPost,
     unflagPost,
@@ -38,9 +39,11 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {isBurnOnReadPost, shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
+import {isPageCommentResolved} from 'selectors/wiki_posts';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences} from 'utils/constants';
+import {isPageComment} from 'utils/page_utils';
 import * as PostUtils from 'utils/post_utils';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
@@ -106,6 +109,10 @@ function makeMapStateToProps() {
         }
 
         const canFlagContent = channel && !isSystemMessage(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
+        const isPageCommentPost = isPageComment(post);
+        const isResolved = isPageCommentPost ? isPageCommentResolved(post) : false;
+        const wikiId = isPageCommentPost ? (post.props?.wiki_id as string) : null;
+        const pageId = isPageCommentPost ? (post.props?.page_id as string) : null;
 
         return {
             channelIsArchived: isArchivedChannel(channel),
@@ -129,6 +136,10 @@ function makeMapStateToProps() {
             canFlagContent,
             isBurnOnReadPost: isBurnOnReadPost(state, post.id),
             isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
+            isPageComment: isPageCommentPost,
+            isCommentResolved: isResolved,
+            wikiId,
+            pageId,
         };
     };
 }
@@ -147,6 +158,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             setThreadFollow,
             burnPostNow,
             savePreferences,
+            resolvePageComment,
+            unresolvePageComment,
         }, dispatch),
     };
 }

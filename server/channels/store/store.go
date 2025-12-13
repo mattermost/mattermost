@@ -100,6 +100,8 @@ type Store interface {
 	ContentFlagging() ContentFlaggingStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	Wiki() WikiStore
+	Page() PageStore
 }
 
 type RetentionPolicyStore interface {
@@ -366,6 +368,7 @@ type ThreadStore interface {
 	SaveMultipleMemberships(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	MaintainMultipleFromImport(memberships []*model.ThreadMembership) ([]*model.ThreadMembership, error)
 	UpdateTeamIdForChannelThreads(channelId, teamId string) error
+	CreateThreadForPageComment(thread *model.Thread) error
 }
 
 type PostStore interface {
@@ -1055,8 +1058,11 @@ type PostPriorityStore interface {
 }
 
 type DraftStore interface {
+	// Draft metadata methods (Drafts table)
 	Upsert(d *model.Draft) (*model.Draft, error)
+	UpsertPageDraft(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
+	GetManyByRootIds(userID, channelID string, rootIDs []string, includeDeleted bool) ([]*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
 	DeleteDraftsAssociatedWithPost(channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
@@ -1064,6 +1070,24 @@ type DraftStore interface {
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
+	UpdatePropsOnly(userId, wikiId, draftId string, props map[string]any, expectedUpdateAt int64) error
+
+	// Page draft content methods (PageContents table with status='draft')
+	// With unified page ID model, drafts are stored in PageContents table
+	CreatePageDraft(content *model.PageContent) (*model.PageContent, error)
+	UpsertPageDraftContent(pageId, userId, wikiId, content, title string, lastUpdateAt int64) (*model.PageContent, error)
+	GetPageDraft(pageId, userId string) (*model.PageContent, error)
+	DeletePageDraft(pageId, userId string) error
+	GetPageDraftsForUser(userId, wikiId string) ([]*model.PageContent, error)
+	GetActiveEditorsForPage(pageId string, minUpdateAt int64) ([]*model.PageContent, error)
+
+	// Publish operations (atomic state transition)
+	PublishPageDraft(pageId, userId string) (*model.PageContent, error)
+	CreateDraftFromPublished(pageId, userId string) (*model.PageContent, error)
+
+	// Cleanup operations
+	PermanentDeletePageDraftsByUser(userId string) error
+	PermanentDeletePageContentsByWiki(wikiId string) error
 }
 
 type PostAcknowledgementStore interface {
@@ -1202,6 +1226,76 @@ type TemporaryPostStore interface {
 	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX) ([]string, error)
+}
+
+type WikiStore interface {
+	Save(wiki *model.Wiki) (*model.Wiki, error)
+	CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error)
+	Get(id string) (*model.Wiki, error)
+	GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error)
+	Update(wiki *model.Wiki) (*model.Wiki, error)
+	Delete(id string, hard bool) error
+	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
+	GetPageByTitleInWiki(wikiId, title string) (*model.Post, error)
+	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
+	DeleteAllPagesForWiki(wikiId string) error
+	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
+	MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error)
+	SetWikiIdInPostProps(pageId, wikiId string) error
+}
+
+// PageStore manages page hierarchy operations.
+// Pages are stored as Posts with Type="page", but hierarchy-specific
+// operations are isolated in this store for better separation of concerns.
+type PageStore interface {
+	// CreatePage creates a page and its content in a single transaction
+	CreatePage(rctx request.CTX, post *model.Post, content, searchText string) (*model.Post, error)
+
+	// GetPage fetches a page by ID
+	GetPage(pageID string, includeDeleted bool) (*model.Post, error)
+
+	// DeletePage soft-deletes a page and its content in a single transaction
+	DeletePage(pageID string, deleteByID string) error
+
+	// GetPageChildren fetches direct children of a page
+	GetPageChildren(postID string, options model.GetPostsOptions) (*model.PostList, error)
+
+	// GetPageDescendants fetches all descendants of a page (entire subtree)
+	GetPageDescendants(postID string) (*model.PostList, error)
+
+	// GetPageAncestors fetches all ancestors of a page up to the root
+	GetPageAncestors(postID string) (*model.PostList, error)
+
+	// GetChannelPages fetches all pages in a channel
+	GetChannelPages(channelID string) (*model.PostList, error)
+
+	// ChangePageParent updates the parent of a page
+	ChangePageParent(postID string, newParentID string) error
+
+	// UpdatePageWithContent updates a page's title and/or content and creates edit history
+	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)
+
+	// Update updates a page (following MM pattern - no business logic, just UPDATE)
+	// Returns ErrNotFound if page doesn't exist or was deleted
+	Update(page *model.Post) (*model.Post, error)
+
+	// GetPageVersionHistory fetches the version history for a page (limited to PostEditHistoryLimit versions)
+	GetPageVersionHistory(pageID string) ([]*model.Post, error)
+
+	// GetCommentsForPage fetches all comments and replies for a page
+	GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error)
+
+	// PageContent operations (PageContents table)
+	// PageStore owns both Posts (Type='page') and PageContents tables for transactional atomicity
+	SavePageContent(pageContent *model.PageContent) (*model.PageContent, error)
+	GetPageContent(pageID string) (*model.PageContent, error)
+	GetManyPageContents(pageIDs []string) ([]*model.PageContent, error)
+	GetPageContentWithDeleted(pageID string) (*model.PageContent, error)
+	GetManyPageContentsWithDeleted(pageIDs []string) ([]*model.PageContent, error)
+	UpdatePageContent(pageContent *model.PageContent) (*model.PageContent, error)
+	DeletePageContent(pageID string) error
+	PermanentDeletePageContent(pageID string) error
+	RestorePageContent(pageID string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

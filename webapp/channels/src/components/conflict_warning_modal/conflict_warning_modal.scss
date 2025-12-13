@@ -1,0 +1,146 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.conflict-warning-modal,
+.confirm-overwrite-modal {
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    .modal-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}
+
+.conflict-warning-modal {
+    .conflict-warning-content {
+        .conflict-warning-primary {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            gap: 12px;
+
+            i {
+                flex-shrink: 0;
+                margin-top: 2px;
+                color: rgba(var(--button-bg-rgb), 1);
+                font-size: 20px;
+            }
+        }
+
+        .conflict-warning-info {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+
+            strong {
+                font-weight: 600;
+            }
+        }
+
+        .conflict-warning-options {
+            margin: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
+        }
+    }
+
+    .modal-footer {
+        .conflict-warning-actions-left {
+            display: flex;
+            gap: 8px;
+        }
+
+        .conflict-warning-actions-right {
+            display: flex;
+            gap: 8px;
+
+            .btn-danger {
+                border-color: var(--error-text);
+                background-color: var(--error-text);
+
+                &:hover {
+                    border-color: rgba(var(--error-text-color-rgb), 0.88);
+                    background-color: rgba(var(--error-text-color-rgb), 0.88);
+                }
+            }
+        }
+    }
+}
+
+.confirm-overwrite-modal {
+    .confirm-overwrite-content {
+        .confirm-overwrite-warning {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            border: 1px solid rgba(var(--error-text-color-rgb), 0.24);
+            border-radius: 4px;
+            margin-bottom: 16px;
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
+            gap: 12px;
+
+            i {
+                flex-shrink: 0;
+                margin-top: 2px;
+                color: var(--error-text);
+                font-size: 20px;
+            }
+        }
+
+        .confirm-overwrite-info {
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 16px;
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+
+            strong {
+                font-weight: 600;
+            }
+        }
+
+        p {
+            margin-bottom: 12px;
+
+            &:last-of-type {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    .modal-footer {
+        justify-content: flex-end;
+
+        .btn-danger {
+            border-color: var(--error-text);
+            background-color: var(--error-text);
+
+            &:hover {
+                border-color: rgba(var(--error-text-color-rgb), 0.88);
+                background-color: rgba(var(--error-text-color-rgb), 0.88);
+            }
+        }
+    }
+}

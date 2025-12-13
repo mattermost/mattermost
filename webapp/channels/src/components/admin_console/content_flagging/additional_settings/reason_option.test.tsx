@@ -3,7 +3,7 @@
 
 import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
-import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
+import type {MultiValueProps} from 'react-select';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 

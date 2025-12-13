@@ -1,0 +1,200 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useState, useCallback} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+
+import {createBookmarkFromPage} from 'actions/channel_bookmarks';
+import {hasUnpublishedChanges} from 'selectors/page_drafts';
+
+import BookmarkChannelSelect from 'components/bookmark_channel_select';
+
+import type {GlobalState} from 'types/store';
+
+import PageActionsMenu from '../../pages_hierarchy_panel/page_actions_menu';
+import PageBreadcrumb from '../page_breadcrumb';
+
+type Props = {
+    wikiId: string;
+    pageId: string;
+    channelId: string;
+    isDraft: boolean;
+    isExistingPage?: boolean;
+    parentPageId?: string;
+    draftTitle?: string;
+    onEdit: () => void;
+    onPublish: () => void;
+    onToggleComments: () => void;
+    isFullscreen?: boolean;
+    onToggleFullscreen?: () => void;
+    onCreateChild?: () => void;
+    onRename?: () => void;
+    onDuplicate?: () => void;
+    onMove?: () => void;
+    onDelete?: () => void;
+    onVersionHistory?: () => void;
+    pageLink?: string;
+    canEdit?: boolean;
+};
+
+const WikiPageHeader = ({
+    wikiId,
+    pageId,
+    channelId,
+    isDraft,
+    isExistingPage = false,
+    parentPageId,
+    draftTitle,
+    onEdit,
+    onPublish,
+    onToggleComments,
+    isFullscreen,
+    onToggleFullscreen,
+    onCreateChild,
+    onRename,
+    onDuplicate,
+    onMove,
+    onDelete,
+    onVersionHistory,
+    pageLink,
+    canEdit = true,
+}: Props) => {
+    const dispatch = useDispatch();
+    const [showBookmarkModal, setShowBookmarkModal] = useState(false);
+
+    const page = useSelector((state: GlobalState) => getPost(state, pageId));
+    const showUnpublishedIndicator = useSelector((state: GlobalState) => {
+        if (isDraft || !pageId || !wikiId) {
+            return false;
+        }
+        const pageContent = getPost(state, pageId)?.message || '';
+        return hasUnpublishedChanges(state, wikiId, pageId, pageContent);
+    });
+
+    const handleBookmarkInChannel = useCallback(() => {
+        setShowBookmarkModal(true);
+    }, []);
+
+    const handleChannelSelected = useCallback(async (selectedChannelId: string) => {
+        if (page && page.props?.title) {
+            const title = typeof page.props.title === 'string' ? page.props.title : String(page.props.title);
+            await dispatch(createBookmarkFromPage(selectedChannelId, pageId, title));
+        }
+    }, [dispatch, pageId, page]);
+
+    const handleCloseBookmarkModal = useCallback(() => {
+        setShowBookmarkModal(false);
+    }, []);
+
+    return (
+        <div
+            className='PagePane__header'
+            data-testid='wiki-page-header'
+        >
+            <div
+                className='PagePane__header-inner'
+                data-testid='wiki-page-header-inner'
+            >
+                <PageBreadcrumb
+                    wikiId={wikiId}
+                    pageId={pageId}
+                    channelId={channelId}
+                    isDraft={isDraft}
+                    parentPageId={parentPageId}
+                    draftTitle={draftTitle}
+                    className='PagePane__breadcrumb'
+                />
+                <div
+                    className='PagePane__controls'
+                    data-testid='wiki-page-controls'
+                >
+                    {showUnpublishedIndicator && (
+                        <span
+                            className='PagePane__unpublished-indicator'
+                            data-testid='wiki-page-unpublished-indicator'
+                        >
+                            {'Unpublished changes'}
+                        </span>
+                    )}
+                    {(!isDraft || isExistingPage) && (
+                        <button
+                            className='PagePane__icon-button btn btn-icon btn-sm'
+                            aria-label='Toggle comments'
+                            title='Toggle comments'
+                            onClick={onToggleComments}
+                            data-testid='wiki-page-toggle-comments'
+                        >
+                            <i className='icon icon-message-text-outline'/>
+                        </button>
+                    )}
+                    {isDraft ? (
+                        <button
+                            className='PagePane__publish-button btn btn-primary'
+                            aria-label={isExistingPage ? 'Update' : 'Publish'}
+                            title={isExistingPage ? 'Update' : 'Publish'}
+                            onClick={onPublish}
+                            data-testid='wiki-page-publish-button'
+                        >
+                            <i className='icon-check'/>
+                            {isExistingPage ? 'Update' : 'Publish'}
+                        </button>
+                    ) : (
+                        <button
+                            className='PagePane__edit-button btn btn-tertiary'
+                            aria-label='Edit'
+                            title='Edit'
+                            onClick={onEdit}
+                            disabled={!canEdit}
+                            data-testid='wiki-page-edit-button'
+                        >
+                            <i className='icon icon-pencil-outline'/>
+                            {'Edit'}
+                        </button>
+                    )}
+                    {pageId && (
+                        <PageActionsMenu
+                            pageId={pageId}
+                            wikiId={wikiId}
+                            onCreateChild={onCreateChild}
+                            onRename={onRename}
+                            onDuplicate={onDuplicate}
+                            onMove={onMove}
+                            onBookmarkInChannel={handleBookmarkInChannel}
+                            onDelete={onDelete}
+                            onVersionHistory={onVersionHistory}
+                            isDraft={isDraft}
+                            pageLink={pageLink}
+                            buttonTestId='wiki-page-more-actions'
+                        />
+                    )}
+                    {onToggleFullscreen && (
+                        <button
+                            className='PagePane__icon-button btn btn-icon btn-sm'
+                            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                            onClick={onToggleFullscreen}
+                            data-testid='wiki-page-fullscreen-button'
+                        >
+                            {isFullscreen ? (
+                                <i className='icon icon-arrow-collapse'/>
+                            ) : (
+                                <i className='icon icon-arrow-expand'/>
+                            )}
+                        </button>
+                    )}
+                </div>
+            </div>
+            {showBookmarkModal && (
+                <BookmarkChannelSelect
+                    onSelect={handleChannelSelected}
+                    onClose={handleCloseBookmarkModal}
+                    title='Bookmark in channel'
+                />
+            )}
+        </div>
+    );
+};
+
+export default WikiPageHeader;

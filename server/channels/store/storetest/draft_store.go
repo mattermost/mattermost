@@ -21,11 +21,13 @@ func TestDraftStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) 
 	t.Run("DeleteDraft", func(t *testing.T) { testDeleteDraft(t, rctx, ss) })
 	t.Run("DeleteDraftsAssociatedWithPost", func(t *testing.T) { testDeleteDraftsAssociatedWithPost(t, rctx, ss) })
 	t.Run("GetDraft", func(t *testing.T) { testGetDraft(t, rctx, ss) })
+	t.Run("GetManyByRootIds", func(t *testing.T) { testGetManyByRootIds(t, rctx, ss) })
 	t.Run("GetDraftsForUser", func(t *testing.T) { testGetDraftsForUser(t, rctx, ss) })
 	t.Run("GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration", func(t *testing.T) { testGetLastCreateAtAndUserIDValuesForEmptyDraftsMigration(t, rctx, ss) })
 	t.Run("DeleteEmptyDraftsByCreateAtAndUserId", func(t *testing.T) { testDeleteEmptyDraftsByCreateAtAndUserID(t, rctx, ss) })
 	t.Run("DeleteOrphanDraftsByCreateAtAndUserId", func(t *testing.T) { testDeleteOrphanDraftsByCreateAtAndUserID(t, rctx, ss) })
 	t.Run("PermanentDeleteByUser", func(t *testing.T) { testPermanentDeleteDraftsByUser(t, rctx, ss) })
+	t.Run("UpdatePropsOnly", func(t *testing.T) { testUpdatePropsOnly(t, rctx, ss) })
 }
 
 func testSaveDraft(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -364,6 +366,113 @@ func testGetDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
+func testGetManyByRootIds(t *testing.T, rctx request.CTX, ss store.Store) {
+	user := &model.User{
+		Id: model.NewId(),
+	}
+
+	channel := &model.Channel{
+		Id: model.NewId(),
+	}
+
+	member := &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	}
+
+	_, err := ss.Channel().SaveMember(rctx, member)
+	require.NoError(t, err)
+
+	rootId1 := model.NewId()
+	rootId2 := model.NewId()
+	rootId3 := model.NewId()
+
+	draft1 := &model.Draft{
+		CreateAt:  00001,
+		UpdateAt:  00001,
+		UserId:    user.Id,
+		ChannelId: channel.Id,
+		RootId:    rootId1,
+		Message:   "draft1",
+	}
+
+	draft2 := &model.Draft{
+		CreateAt:  00002,
+		UpdateAt:  00002,
+		UserId:    user.Id,
+		ChannelId: channel.Id,
+		RootId:    rootId2,
+		Message:   "draft2",
+	}
+
+	draft3 := &model.Draft{
+		CreateAt:  00003,
+		UpdateAt:  00003,
+		UserId:    user.Id,
+		ChannelId: channel.Id,
+		RootId:    rootId3,
+		Message:   "draft3",
+	}
+
+	_, err = ss.Draft().Upsert(draft1)
+	require.NoError(t, err)
+
+	_, err = ss.Draft().Upsert(draft2)
+	require.NoError(t, err)
+
+	_, err = ss.Draft().Upsert(draft3)
+	require.NoError(t, err)
+
+	t.Run("get multiple drafts by root ids", func(t *testing.T) {
+		rootIds := []string{rootId1, rootId2, rootId3}
+		drafts, err := ss.Draft().GetManyByRootIds(user.Id, channel.Id, rootIds, false)
+		assert.NoError(t, err)
+		assert.Len(t, drafts, 3)
+
+		messages := []string{drafts[0].Message, drafts[1].Message, drafts[2].Message}
+		assert.Contains(t, messages, "draft1")
+		assert.Contains(t, messages, "draft2")
+		assert.Contains(t, messages, "draft3")
+	})
+
+	t.Run("get subset of drafts", func(t *testing.T) {
+		rootIds := []string{rootId1, rootId3}
+		drafts, err := ss.Draft().GetManyByRootIds(user.Id, channel.Id, rootIds, false)
+		assert.NoError(t, err)
+		assert.Len(t, drafts, 2)
+
+		messages := []string{drafts[0].Message, drafts[1].Message}
+		assert.Contains(t, messages, "draft1")
+		assert.Contains(t, messages, "draft3")
+	})
+
+	t.Run("get with empty root ids", func(t *testing.T) {
+		rootIds := []string{}
+		drafts, err := ss.Draft().GetManyByRootIds(user.Id, channel.Id, rootIds, false)
+		assert.NoError(t, err)
+		assert.Len(t, drafts, 0)
+	})
+
+	t.Run("get with non-existent root ids", func(t *testing.T) {
+		rootIds := []string{model.NewId(), model.NewId()}
+		drafts, err := ss.Draft().GetManyByRootIds(user.Id, channel.Id, rootIds, false)
+		assert.NoError(t, err)
+		assert.Len(t, drafts, 0)
+	})
+
+	t.Run("get with mix of existing and non-existing root ids", func(t *testing.T) {
+		rootIds := []string{rootId1, model.NewId(), rootId2}
+		drafts, err := ss.Draft().GetManyByRootIds(user.Id, channel.Id, rootIds, false)
+		assert.NoError(t, err)
+		assert.Len(t, drafts, 2)
+
+		messages := []string{drafts[0].Message, drafts[1].Message}
+		assert.Contains(t, messages, "draft1")
+		assert.Contains(t, messages, "draft2")
+	})
+}
+
 func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := &model.User{
 		Id: model.NewId(),
@@ -424,7 +533,9 @@ func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 func clearDrafts(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Helper()
 
-	_, err := ss.GetInternalMasterDB().Exec("DELETE FROM Drafts")
+	_, err := ss.GetInternalMasterDB().Exec("DELETE FROM PageContents WHERE UserId != ''")
+	require.NoError(t, err)
+	_, err = ss.GetInternalMasterDB().Exec("DELETE FROM Drafts")
 	require.NoError(t, err)
 }
 
@@ -439,11 +550,20 @@ func makeDrafts(t *testing.T, ss store.Store, count int, message string) {
 	}
 
 	for i := 1; i <= count; i++ {
-		_, err := ss.Draft().Upsert(&model.Draft{
+		channel := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel " + model.NewId(),
+			Name:        "channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(nil, channel, 9999)
+		require.NoError(t, err)
+
+		_, err = ss.Draft().Upsert(&model.Draft{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			UserId:    model.NewId(),
-			ChannelId: model.NewId(),
+			ChannelId: channel.Id,
 			Message:   message,
 		})
 		require.NoError(t, err)
@@ -505,11 +625,20 @@ func makeDraftsWithNonDeletedPosts(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Helper()
 
 	for i := 1; i <= count; i++ {
+		channel := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel " + model.NewId(),
+			Name:        "channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(rctx, channel, 9999)
+		require.NoError(t, err)
+
 		post, err := ss.Post().Save(rctx, &model.Post{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			UserId:    model.NewId(),
-			ChannelId: model.NewId(),
+			ChannelId: channel.Id,
 			Message:   message,
 		})
 		require.NoError(t, err)
@@ -536,12 +665,21 @@ func makeDraftsWithDeletedPosts(t *testing.T, rctx request.CTX, ss store.Store, 
 	t.Helper()
 
 	for i := 1; i <= count; i++ {
+		channel := &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Channel " + model.NewId(),
+			Name:        "channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(rctx, channel, 9999)
+		require.NoError(t, err)
+
 		post, err := ss.Post().Save(rctx, &model.Post{
 			CreateAt:  model.GetMillis(),
 			UpdateAt:  model.GetMillis(),
 			DeleteAt:  model.GetMillis(),
 			UserId:    model.NewId(),
-			ChannelId: model.NewId(),
+			ChannelId: channel.Id,
 			Message:   message,
 		})
 		require.NoError(t, err)
@@ -1095,5 +1233,116 @@ func testDeleteDraftsAssociatedWithPost(t *testing.T, rctx request.CTX, ss store
 		draft, err = ss.Draft().Get(user2.Id, channel2.Id, post2.Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, draft4.Message, draft.Message)
+	})
+}
+
+func testUpdatePropsOnly(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+	wikiId := model.NewId()
+	draftId := model.NewId()
+
+	t.Run("successfully updates props with correct version", func(t *testing.T) {
+		initialProps := map[string]any{
+			model.DraftPropsPageParentID: "old-parent-id",
+			model.PagePropsPageID:        "page-123",
+		}
+
+		draft := &model.Draft{
+			UserId:    userId,
+			WikiId:    wikiId,
+			ChannelId: wikiId,
+			RootId:    draftId,
+			Message:   "",
+		}
+		draft.SetProps(initialProps)
+
+		savedDraft, err := ss.Draft().UpsertPageDraft(draft)
+		require.NoError(t, err)
+		require.NotNil(t, savedDraft)
+
+		time.Sleep(10 * time.Millisecond)
+
+		updatedProps := map[string]any{
+			model.DraftPropsPageParentID: "new-parent-id",
+			model.PagePropsPageID:        "page-123",
+		}
+
+		err = ss.Draft().UpdatePropsOnly(userId, wikiId, draftId, updatedProps, savedDraft.UpdateAt)
+		require.NoError(t, err)
+
+		retrievedDraft, err := ss.Draft().Get(userId, wikiId, draftId, false)
+		require.NoError(t, err)
+
+		retrievedProps := retrievedDraft.GetProps()
+		assert.Equal(t, "new-parent-id", retrievedProps[model.DraftPropsPageParentID])
+		assert.Equal(t, "page-123", retrievedProps[model.PagePropsPageID])
+
+		assert.Greater(t, retrievedDraft.UpdateAt, savedDraft.UpdateAt)
+	})
+
+	t.Run("fails with stale version (optimistic lock)", func(t *testing.T) {
+		userId2 := model.NewId()
+		wikiId2 := model.NewId()
+		draftId2 := model.NewId()
+
+		initialProps := map[string]any{
+			model.DraftPropsPageParentID: "old-parent-id",
+			model.PagePropsPageID:        "page-456",
+		}
+
+		draft := &model.Draft{
+			UserId:    userId2,
+			WikiId:    wikiId2,
+			ChannelId: wikiId2,
+			RootId:    draftId2,
+			Message:   "",
+		}
+		draft.SetProps(initialProps)
+
+		savedDraft, err := ss.Draft().UpsertPageDraft(draft)
+		require.NoError(t, err)
+
+		staleUpdateAt := savedDraft.UpdateAt
+
+		time.Sleep(10 * time.Millisecond)
+
+		intermediateProps := map[string]any{
+			model.DraftPropsPageParentID: "intermediate-parent-id",
+			model.PagePropsPageID:        "page-456",
+		}
+		draft.SetProps(intermediateProps)
+		updatedDraft, err := ss.Draft().UpsertPageDraft(draft)
+		require.NoError(t, err)
+		require.Greater(t, updatedDraft.UpdateAt, staleUpdateAt)
+
+		updatedPropsWithStaleVersion := map[string]any{
+			model.DraftPropsPageParentID: "should-not-be-saved",
+			model.PagePropsPageID:        "page-456",
+		}
+
+		err = ss.Draft().UpdatePropsOnly(userId2, wikiId2, draftId2, updatedPropsWithStaleVersion, staleUpdateAt)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "draft was modified by another process")
+
+		retrievedDraft, err := ss.Draft().Get(userId2, wikiId2, draftId2, false)
+		require.NoError(t, err)
+
+		retrievedProps := retrievedDraft.GetProps()
+		assert.Equal(t, "intermediate-parent-id", retrievedProps[model.DraftPropsPageParentID])
+		assert.NotEqual(t, "should-not-be-saved", retrievedProps[model.DraftPropsPageParentID])
+	})
+
+	t.Run("fails when draft does not exist", func(t *testing.T) {
+		nonExistentUserId := model.NewId()
+		nonExistentWikiId := model.NewId()
+		nonExistentDraftId := model.NewId()
+
+		props := map[string]any{
+			model.DraftPropsPageParentID: "some-parent",
+		}
+
+		err := ss.Draft().UpdatePropsOnly(nonExistentUserId, nonExistentWikiId, nonExistentDraftId, props, model.GetMillis())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "draft was modified by another process or does not exist")
 	})
 }
