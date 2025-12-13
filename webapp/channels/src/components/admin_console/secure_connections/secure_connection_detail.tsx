@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useParams, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
-import {GlobeIcon, LockIcon, PlusIcon, ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {PlusIcon} from '@mattermost/compass-icons/components';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -22,8 +22,7 @@ import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {isArchivedChannel} from 'utils/channel_utils';
-import Constants from 'utils/constants';
+import {getChannelIconComponent} from 'utils/channel_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -425,19 +424,11 @@ const TabsWrapper = styled.div`
 
 const ChannelIcon = ({channelId}: {channelId: string}) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
-    let icon = <GlobeIcon size={16}/>;
-
-    if (channel?.type === Constants.PRIVATE_CHANNEL) {
-        icon = <LockIcon size={16}/>;
-    }
-
-    if (isArchivedChannel(channel)) {
-        icon = <ArchiveOutlineIcon size={16}/>;
-    }
+    const IconComponent = getChannelIconComponent(channel);
 
     return (
         <ChannelIconWrapper>
-            {icon}
+            <IconComponent size={16}/>
         </ChannelIconWrapper>
     );
 };

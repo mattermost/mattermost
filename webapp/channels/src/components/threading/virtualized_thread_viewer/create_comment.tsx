@@ -5,7 +5,6 @@ import React, {memo, forwardRef, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -14,6 +13,7 @@ import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/post
 import AdvancedCreateComment from 'components/advanced_create_comment';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
 
+import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -69,11 +69,12 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     }
 
     if (channelIsArchived) {
+        const ArchiveIcon = getArchiveIconComponent(channelType);
         return (
             <div className='channel-archived-warning__container'>
                 <BasicSeparator/>
                 <div className='channel-archived-warning__content'>
-                    <ArchiveOutlineIcon
+                    <ArchiveIcon
                         size={20}
                         color={'rgba(var(--center-channel-color-rgb), 0.75)'}
                     />

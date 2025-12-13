@@ -59,6 +59,7 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
+import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants, StoragePrefixes} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import * as Utils from 'utils/utils';
@@ -195,7 +196,7 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
                     defaultMessage: 'Archived channel',
                 })}
             >
-                <i className='icon icon-archive-outline'/>
+                <i className={`icon ${getArchiveIconClassName(channel.type)}`}/>
             </span>
         );
     } else if (hasDraft) {
