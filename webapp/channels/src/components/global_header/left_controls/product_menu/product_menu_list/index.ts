@@ -5,7 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Permissions} from 'mattermost-redux/constants';
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {
@@ -33,6 +32,7 @@ import {isCloudLicense} from 'utils/license_utils';
 import type {GlobalState} from 'types/store';
 
 import ProductMenuList from './product_menu_list';
+import {tryGetPrevTrialLicense} from 'actions/license';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
@@ -104,7 +104,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,
-            getPrevTrialLicense,
+            tryGetPrevTrialLicense,
         }, dispatch),
     };
 }
