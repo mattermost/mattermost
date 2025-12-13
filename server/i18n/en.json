@@ -2473,6 +2473,10 @@
     "translation": "api endpoint requires a license"
   },
   {
+    "id": "api.mark_all_as_read.disabled.app_error",
+    "translation": "Mark all as read feature is not enabled."
+  },
+  {
     "id": "api.marshal_error",
     "translation": "Failed to marshal."
   },
@@ -5057,6 +5061,10 @@
   {
     "id": "app.channel.get_channels_by_ids.not_found.app_error",
     "translation": "No channel found."
+  },
+  {
+    "id": "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error",
+    "translation": "Unable to get channels with unreads and mentions."
   },
   {
     "id": "app.channel.get_channels_member_count.existing.app_error",
@@ -7919,6 +7927,10 @@
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
     "translation": "Unable to mark all threads as read by channel"
+  },
+  {
+    "id": "app.thread.mark_all_channels_and_threads.app_error",
+    "translation": "Unable to mark all threads as read."
   },
   {
     "id": "app.update_error",

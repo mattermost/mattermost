@@ -1,0 +1,43 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.mark_all_as_read_modal {
+    width: 512px;
+
+    .modal-body {
+        margin-bottom: 48px;
+    }
+
+    .modal-header {
+        min-height: 56px;
+        padding-bottom: 0;
+    }
+}
+
+.mark_all_as_read_modal__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 48px 32px;
+    text-align: center;
+
+    h2 {
+        margin-top: 0;
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    mark + mark {
+        margin-left: 4px;
+    }
+
+    .checkbox {
+        margin-top: 16px;
+    }
+}
+
+.mark_all_as_read_modal__footer {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
