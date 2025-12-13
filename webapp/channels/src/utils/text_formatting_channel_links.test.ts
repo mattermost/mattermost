@@ -81,6 +81,22 @@ describe('TextFormatting.ChannelLinks', () => {
                 '<p>(<a class="mention-link" href="/myteam/channels/town-square" data-channel-mention="town-square">~Town Square</a>)</p>',
             );
         });
+
+        test('should link ~town-square with team context from post props', () => {
+            expect(
+                TextFormatting.formatText('~town-square', {
+                    channelNamesMap: {
+                        'town-square': {
+                            display_name: 'Town Square',
+                            team_name: 'team1',
+                        },
+                    },
+                    team: TH.getTeamMock({name: 'team2'}),
+                }, emojiMap).trim(),
+            ).toBe(
+                '<p><a class="mention-link" href="/team1/channels/town-square" data-channel-mention-team="team1" data-channel-mention="town-square">~Town Square</a></p>',
+            );
+        });
     });
 
     describe('invalid channel links', () => {
