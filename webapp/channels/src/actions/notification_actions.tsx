@@ -27,7 +27,8 @@ import {isThreadOpen} from 'selectors/views/threads';
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions, DesktopSound} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
-import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
+import {formatWithRenderer} from 'utils/markdown';
+import DisplayNameMentionRenderer from 'utils/markdown/display_name_mention_renderer';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
@@ -213,6 +214,12 @@ const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPo
     return Utils.localizeMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'});
 };
 
+const replaceMentionsAndStripMarkdown = (state: GlobalState, text: string): string => {
+    const teammateNameDisplay = getTeammateNameDisplaySetting(state);
+    const renderer = new DisplayNameMentionRenderer(state, teammateNameDisplay);
+    return formatWithRenderer(text, renderer);
+};
+
 const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMessageProps) => {
     const username = getNotificationUsername(state, post, msgProps);
 
@@ -230,7 +237,7 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
         image = Boolean(image || (attachment.image_url?.length));
     });
 
-    const strippedMarkdownNotifyText = stripMarkdown(notifyText);
+    const strippedMarkdownNotifyText = replaceMentionsAndStripMarkdown(state, notifyText);
 
     let body = `@${username}`;
     if (strippedMarkdownNotifyText.length === 0) {
