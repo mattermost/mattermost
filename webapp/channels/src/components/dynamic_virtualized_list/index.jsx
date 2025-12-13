@@ -27,6 +27,10 @@ export class DynamicVirtualizedList extends PureComponent {
     _keepScrollToBottom = false;
     _mountingCorrections = 0;
     _correctedInstances = 0;
+    _isPermalinkMode = false;
+    _permalinkItemId = null;
+    _permalinkStabilizationTimer = null;
+    _heightChangesCount = 0;
 
     static defaultProps = {
         innerTagName: 'div',
@@ -97,6 +101,17 @@ export class DynamicVirtualizedList extends PureComponent {
 
         //Ideally the below scrollTo works fine but firefox has 6px issue and stays 6px from bottom when corrected
         //so manually keeping scroll position bottom for now
+        if (align === 'center' && index > 0 && this.props.itemData) {
+            this._isPermalinkMode = true;
+            this._permalinkItemId = this.props.itemData[index];
+            this._heightChangesCount = 0;
+
+            // Clear existing timer
+            if (this._permalinkStabilizationTimer) {
+                clearTimeout(this._permalinkStabilizationTimer);
+            }
+        }
+
         const element = this._outerRef;
         if (index === 0 && align === 'end') {
             this.scrollTo(element.scrollHeight - this.props.height);
@@ -214,6 +229,9 @@ export class DynamicVirtualizedList extends PureComponent {
     componentWillUnmount() {
         if (this._scrollByCorrection) {
             window.cancelAnimationFrame(this._scrollByCorrection);
+        }
+        if (this._permalinkStabilizationTimer) {
+            clearTimeout(this._permalinkStabilizationTimer);
         }
     }
 
@@ -493,6 +511,39 @@ export class DynamicVirtualizedList extends PureComponent {
             this.scrollToItem(0, 'end');
             this.forceUpdate();
             return;
+        }
+
+        if (this._isPermalinkMode && this._permalinkItemId) {
+            const permalinkIndex = itemData.findIndex((item) => item === this._permalinkItemId);
+
+            if (permalinkIndex !== -1) {
+                this._heightChangesCount++;
+                this._generateOffsetMeasurements();
+
+                // Recenter the permalink item
+                this.scrollToItem(permalinkIndex, 'center');
+                this.forceUpdate();
+
+                if (this._permalinkStabilizationTimer) {
+                    clearTimeout(this._permalinkStabilizationTimer);
+                }
+
+                this._permalinkStabilizationTimer = setTimeout(() => {
+                    if (this._heightChangesCount < 20) {
+                        this._isPermalinkMode = false;
+                        this._permalinkItemId = null;
+                        this._heightChangesCount = 0;
+                    }
+                }, 2000);
+
+                if (this._heightChangesCount >= 20) {
+                    this._isPermalinkMode = false;
+                    this._permalinkItemId = null;
+                    this._heightChangesCount = 0;
+                }
+
+                return;
+            }
         }
 
         if (forceScrollCorrection || this._keepScrollPosition) {
