@@ -252,8 +252,17 @@ func (a *App) sanitizePostMetadataForUserAndChannel(rctx request.CTX, post *mode
 		return post
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
+	if previewedChannel != nil {
+		hasPermission, isMember := a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+		if !hasPermission {
+			removePermalinkMetadataFromPost(post)
+		} else if !isMember {
+			auditRec := a.MakeAuditRecord(rctx, model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+			defer a.LogAuditRec(rctx, auditRec, nil)
+			auditRec.AddMeta("reason", "permalink_preview")
+			auditRec.AddMeta("post_id", previewedPost.PostID)
+			auditRec.AddEventResultState(rctx.Session())
+		}
 	}
 
 	return post
@@ -274,8 +283,17 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 		return nil, err
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
-		removePermalinkMetadataFromPost(post)
+	if previewedChannel != nil {
+		hasPermission, isMember := a.HasPermissionToReadChannel(rctx, userID, previewedChannel)
+		if !hasPermission {
+			removePermalinkMetadataFromPost(post)
+		} else if !isMember {
+			auditRec := a.MakeAuditRecord(rctx, model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+			defer a.LogAuditRec(rctx, auditRec, nil)
+			auditRec.AddMeta("reason", "permalink_preview")
+			auditRec.AddMeta("post_id", previewPost.PostID)
+			auditRec.AddEventResultState(rctx.Session())
+		}
 	}
 
 	return post, nil
