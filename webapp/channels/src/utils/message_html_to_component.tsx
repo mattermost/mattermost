@@ -9,6 +9,7 @@ import AtMention from 'components/at_mention';
 import AtPlanMention from 'components/at_plan_mention';
 import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
+import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
 import MarkdownImage from 'components/markdown_image';
@@ -37,6 +38,9 @@ export type Options = Partial<{
     atPlanMentions: boolean;
     channelId: string;
     channelIsShared: boolean;
+    inlineEntities: boolean;
+    inlineEntityTypes?: string[];
+    onInlineEntityClick?: (type: string, value: string) => void;
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
@@ -119,6 +123,21 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                     </PluginLinkTooltip>
                 );
             },
+        });
+    }
+
+    if (options.inlineEntities) {
+        processingInstructions.push({
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => node.attribs && node.attribs['data-inline-entity-type'],
+            processNode: (node: any, _children: any, index?: number) => (
+                <InlineEntityLink
+                    key={`inline-entity-${index}`}
+                    type={node.attribs['data-inline-entity-type']}
+                    value={node.attribs['data-inline-entity-value']}
+                    onClick={options.onInlineEntityClick}
+                />
+            ),
         });
     }
 
