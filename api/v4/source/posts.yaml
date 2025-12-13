@@ -79,7 +79,7 @@
     post:
       tags:
         - posts
-      summary: Create a ephemeral post
+      summary: Create an ephemeral post
       description: >
         Create a new ephemeral post in a channel.
 
