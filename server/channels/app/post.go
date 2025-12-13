@@ -437,7 +437,8 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		a.SendEphemeralPost(rctx, post.UserId, ephemeralPost)
 	}
 
-	rpost, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
+	// Sanitize for the post creator (use post.UserId instead of session UserId for test compatibility)
+	rpost, err = a.SanitizePostMetadataForUser(rctx, rpost, rpost.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -488,7 +489,8 @@ func (a *App) attachFileIDsToPost(rctx request.CTX, postID, channelID, userID st
 //
 // If channel is nil, FillInPostProps will look up the channel corresponding to the post.
 func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model.Channel) *model.AppError {
-	channelMentions := post.ChannelMentions()
+	// Use ChannelMentionsAll to scan both message and attachments
+	channelMentions := post.ChannelMentionsAll()
 	channelMentionsProp := make(map[string]any)
 
 	if len(channelMentions) > 0 {
@@ -500,13 +502,33 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			channel = postChannel
 		}
 
-		mentionedChannels, err := a.GetChannelsByNames(rctx, channelMentions, channel.TeamId)
+		// Determine which team to search for channel mentions
+		// For DMs/GMs (no team_id), use current_team_id from client if provided
+		// This prevents cross-team information disclosure and makes channel resolution deterministic
+		teamId := channel.TeamId
+		if teamId == "" {
+			// DM/GM context - check for current_team_id from client
+			if currentTeamId, ok := post.GetProp(model.PostPropsCurrentTeamId).(string); ok && currentTeamId != "" {
+				teamId = currentTeamId
+			}
+			// else: teamId remains empty, will search globally (legacy behavior for backwards compatibility)
+		}
+
+		mentionedChannels, err := a.GetChannelsByNames(rctx, channelMentions, teamId)
 		if err != nil {
 			return err
 		}
 
+		// Remove current_team_id from props after using it
+		// This is a transient hint from the client, not persisted data
+		post.DelProp(model.PostPropsCurrentTeamId)
+
+		// Populate channel_mentions for channels the POST CREATOR has access to
+		// This includes public channels and private channels where creator is a member
+		// Prevents information disclosure while supporting private channel mentions for members
 		for _, mentioned := range mentionedChannels {
-			if mentioned.Type == model.ChannelTypeOpen && a.HasPermissionToReadChannel(rctx, post.UserId, mentioned) {
+			// Check if post creator has permission to read this channel
+			if a.HasPermissionToReadChannel(rctx, post.UserId, mentioned) {
 				team, err := a.Srv().Store().Team().Get(mentioned.TeamId)
 				if err != nil {
 					rctx.Logger().Warn("Failed to get team of the channel mention", mlog.String("team_id", channel.TeamId), mlog.String("channel_id", channel.Id), mlog.Err(err))

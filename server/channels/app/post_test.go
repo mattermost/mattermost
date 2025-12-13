@@ -4800,3 +4800,64 @@ func TestBurnPost(t *testing.T) {
 		require.LessOrEqual(t, receipt.ExpireAt, model.GetMillis())
 	})
 }
+
+func TestPostChannelMentionsWithPrivateChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+
+	// Create a private channel where user IS a member
+	privateChannelMember, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Private Member",
+		Name:        "private-member",
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+	th.AddUserToChannel(t, user, privateChannelMember)
+
+	// Create a private channel where user is NOT a member
+	privateChannelNonMember, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Private Non-Member",
+		Name:        "private-non-member",
+		Type:        model.ChannelTypePrivate,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+
+	// Create a public channel where user is NOT a member
+	publicChannel, err := th.App.CreateChannel(th.Context, &model.Channel{
+		DisplayName: "Public Channel",
+		Name:        "public-channel",
+		Type:        model.ChannelTypeOpen,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	require.Nil(t, err)
+
+	post := &model.Post{
+		Message:       fmt.Sprintf("~%v and ~%v and ~%v", privateChannelMember.Name, privateChannelNonMember.Name, publicChannel.Name),
+		ChannelId:     channel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	post, err = th.App.CreatePostAsUser(th.Context, post, "", true)
+	require.Nil(t, err)
+
+	mentions := post.GetProp(model.PostPropsChannelMentions)
+	require.NotNil(t, mentions)
+	mentionsMap, ok := mentions.(map[string]any)
+	require.True(t, ok)
+
+	// Should include private channel where user IS a member
+	assert.Contains(t, mentionsMap, privateChannelMember.Name)
+
+	// Should NOT include private channel where user is NOT a member
+	assert.NotContains(t, mentionsMap, privateChannelNonMember.Name)
+
+	// Should include public channel (user has team access)
+	assert.Contains(t, mentionsMap, publicChannel.Name)
+}
