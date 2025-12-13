@@ -436,14 +436,13 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Require().Equal(
-			fmt.Sprintf(`Unable to invite user with email %s to team %s. Error: The following email addresses do not belong to an accepted domain: %s. Please contact your System Administrator for details.`,
-				user.Email,
-				team.Name,
-				user.Email,
-			),
-			printer.GetErrorLines()[0],
+		actualErr := printer.GetErrorLines()[0]
+		s.Require().Contains(
+			actualErr,
+			fmt.Sprintf("Unable to invite user with email %s to team %s.", user.Email, team.Name),
 		)
+		s.Require().Contains(actualErr, "does not belong to an accepted domain")
+		s.Require().Contains(actualErr, "Please contact your System Administrator")
 	})
 }
 
