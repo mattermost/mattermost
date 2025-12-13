@@ -1,0 +1,8 @@
+node_modules
+package.json
+package-lock.json
+baseline
+results
+storage_state
+specs/**/*.yml
+specs/**/*.yaml
