@@ -61,14 +61,17 @@
  *      - will create test cycle for all production tests with specs specifically ordered as first and last
  */
 
-const os = require('os');
+import os from 'os';
 
-const chalk = require('chalk');
+import chalk from 'chalk';
+import dotenv from 'dotenv';
 
-const {createAndStartCycle} = require('./utils/dashboard');
-const {getSortedTestFiles} = require('./utils/file');
+import {initializeYargs} from './utils/args.js';
+import {createAndStartCycle} from './utils/dashboard.js';
+import {getSortedTestFiles} from './utils/file.js';
 
-require('dotenv').config();
+dotenv.config({quiet: true});
+const argv = await initializeYargs();
 
 const {
     BRANCH,
@@ -82,7 +85,7 @@ async function main() {
     const browser = BROWSER || 'chrome';
     const headless = typeof HEADLESS === 'undefined' ? true : HEADLESS === 'true';
     const platform = os.platform();
-    const {weightedTestFiles} = getSortedTestFiles(platform, browser, headless);
+    const {weightedTestFiles} = getSortedTestFiles(platform, browser, headless, argv);
 
     if (!weightedTestFiles.length) {
         console.log(chalk.red('Nothing to test!'));
