@@ -7247,6 +7247,10 @@
     "translation": "Unable to get page version history."
   },
   {
+    "id": "app.page.load_content.app_error",
+    "translation": "Unable to load page content."
+  },
+  {
     "id": "app.page.move.channel_not_found",
     "translation": "Channel not found for page move."
   },
@@ -7357,6 +7361,10 @@
   {
     "id": "app.page.restore.update_title.app_error",
     "translation": "Unable to update page title during restore."
+  },
+  {
+    "id": "app.page.serialize_content.app_error",
+    "translation": "Unable to serialize page content."
   },
   {
     "id": "app.page.set_status.app_error",

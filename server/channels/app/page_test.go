@@ -1847,7 +1847,7 @@ func TestUpdatePageWithOptimisticLocking_Success(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, updatedPage)
 	require.Equal(t, "Updated Title", updatedPage.Props["title"])
-	require.Equal(t, newContent, updatedPage.Message)
+	require.JSONEq(t, newContent, updatedPage.Message)
 	require.Greater(t, updatedPage.EditAt, baseEditAt)
 
 	pageContent, contentErr := th.App.Srv().Store().Page().GetPageContent(updatedPage.Id)
