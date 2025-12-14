@@ -136,7 +136,7 @@ export default function ResetEmailModal({
             })}
             compassDesign={true}
             autoCloseOnConfirmButton={false}
-            errorText={error}
+            errorText={error ? <span className='error'>{error}</span> : undefined}
             dataTestId='resetEmailModal'
         >
             <div className='ResetEmailModal__body'>

@@ -134,7 +134,7 @@ export default function ResetPasswordModal({
             })}
             compassDesign={true}
             autoCloseOnConfirmButton={false}
-            errorText={errorCurrentPass}
+            errorText={errorCurrentPass ? <span className='error'>{errorCurrentPass}</span> : undefined}
         >
             <div className='ResetPasswordModal__body'>
                 {isResettingOwnPassword && (
