@@ -4,6 +4,7 @@
 import truncate from 'lodash/truncate';
 import React from 'react';
 import type {KeyboardEvent, MouseEvent, CSSProperties} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {PostActionOption} from '@mattermost/types/integration_actions';
 import type {
@@ -66,7 +67,7 @@ type State = {
     checkOverflow: number;
     actionExecuting: boolean;
     actionExecutingMessage: string | null;
-    actionError: string | null;
+    actionError: React.ReactNode | null;
 }
 
 export default class MessageAttachment extends React.PureComponent<Props, State> {
@@ -212,7 +213,12 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 this.setState({
                     actionExecuting: false,
                     actionExecutingMessage: null,
-                    actionError: result.error.message || 'Action failed to execute',
+                    actionError: result.error.message || (
+                        <FormattedMessage
+                            id='post.message_attachment.action_failed'
+                            defaultMessage='Action failed to execute'
+                        />
+                    ),
                 });
                 return;
             }
@@ -227,7 +233,12 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
             this.setState({
                 actionExecuting: false,
                 actionExecutingMessage: null,
-                actionError: error.message || 'Action failed to execute',
+                actionError: error.message || (
+                    <FormattedMessage
+                        id='post.message_attachment.action_failed'
+                        defaultMessage='Action failed to execute'
+                    />
+                ),
             });
         });
     };
