@@ -5506,6 +5506,7 @@
   "rhs_header.details": "Thread",
   "rhs_header.expandSidebarTooltip": "Expand the right sidebar",
   "rhs_header.expandSidebarTooltip.icon": "Expand Sidebar Icon",
+  "rhs_plugin_popout.title": "{serverName} - {pluginDisplayName}",
   "rhs_root.mobile.add_reaction": "Add Reaction",
   "rhs_root.mobile.flag": "Save Message",
   "rhs_root.mobile.unflag": "Remove from Saved",
