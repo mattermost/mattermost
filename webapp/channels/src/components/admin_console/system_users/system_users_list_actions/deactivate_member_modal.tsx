@@ -52,7 +52,7 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
     const defaultMessage = (
         <FormattedMessage
             id='deactivate_member_modal.desc'
-            defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system.\n'
+            defaultMessage={'This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system.\n'}
             values={{
                 username: user.username,
             }}
