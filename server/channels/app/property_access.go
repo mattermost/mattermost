@@ -157,20 +157,51 @@ func (pas *PropertyAccessService) CreatePropertyValues(callerID string, values [
 
 // GetPropertyValue retrieves a property value by ID.
 // callerID identifies the caller (pluginID, userID, or empty string for system).
+// Returns (nil, nil) if the value exists but the caller doesn't have access.
 func (pas *PropertyAccessService) GetPropertyValue(callerID string, groupID, id string) (*model.PropertyValue, error) {
-	return pas.propertyService.GetPropertyValue(groupID, id)
+	value, err := pas.propertyService.GetPropertyValue(groupID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Apply access control filtering
+	filtered, err := pas.applyValueReadAccessControl([]*model.PropertyValue{value}, callerID)
+	if err != nil {
+		return nil, err
+	}
+
+	// If the value was filtered out, return nil
+	if len(filtered) == 0 {
+		return nil, nil
+	}
+
+	return filtered[0], nil
 }
 
 // GetPropertyValues retrieves multiple property values by their IDs.
 // callerID identifies the caller (pluginID, userID, or empty string for system).
+// Values the caller doesn't have access to are silently filtered out.
 func (pas *PropertyAccessService) GetPropertyValues(callerID string, groupID string, ids []string) ([]*model.PropertyValue, error) {
-	return pas.propertyService.GetPropertyValues(groupID, ids)
+	values, err := pas.propertyService.GetPropertyValues(groupID, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	// Apply access control filtering
+	return pas.applyValueReadAccessControl(values, callerID)
 }
 
 // SearchPropertyValues searches for property values based on the given options.
 // callerID identifies the caller (pluginID, userID, or empty string for system).
+// Values the caller doesn't have access to are silently filtered out.
 func (pas *PropertyAccessService) SearchPropertyValues(callerID string, groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
-	return pas.propertyService.SearchPropertyValues(groupID, opts)
+	values, err := pas.propertyService.SearchPropertyValues(groupID, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// Apply access control filtering
+	return pas.applyValueReadAccessControl(values, callerID)
 }
 
 // UpdatePropertyValue updates a property value.
@@ -573,4 +604,89 @@ func (pas *PropertyAccessService) applyFieldReadAccessControlToList(fields []*mo
 	}
 
 	return filtered
+}
+
+// getFieldsForValues fetches all unique fields associated with the given values.
+// Returns a map of fieldID -> PropertyField.
+// Returns an error if any field cannot be fetched.
+func (pas *PropertyAccessService) getFieldsForValues(values []*model.PropertyValue) (map[string]*model.PropertyField, error) {
+	if len(values) == 0 {
+		return make(map[string]*model.PropertyField), nil
+	}
+
+	// Get unique field IDs and group ID
+	fieldIDs := make(map[string]struct{})
+	var groupID string
+	for _, value := range values {
+		if groupID == "" {
+			groupID = value.GroupID
+		}
+		fieldIDs[value.FieldID] = struct{}{}
+	}
+
+	// Convert map to slice
+	fieldIDSlice := make([]string, 0, len(fieldIDs))
+	for fieldID := range fieldIDs {
+		fieldIDSlice = append(fieldIDSlice, fieldID)
+	}
+
+	// Fetch all fields (we use PropertyService directly here, not PropertyAccessService,
+	// since we need unfiltered fields for access control decisions)
+	fields, err := pas.propertyService.GetPropertyFields(groupID, fieldIDSlice)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch fields for values: %w", err)
+	}
+
+	// Build map
+	fieldMap := make(map[string]*model.PropertyField, len(fields))
+	for _, field := range fields {
+		fieldMap[field.ID] = field
+	}
+
+	return fieldMap, nil
+}
+
+// applyValueReadAccessControl applies read access control to a list of values.
+// Returns a new list containing only the values the caller can access, with shared_only values filtered.
+// Values are silently filtered out if the caller doesn't have access.
+func (pas *PropertyAccessService) applyValueReadAccessControl(values []*model.PropertyValue, callerID string) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+
+	// Fetch all associated fields
+	fieldMap, err := pas.getFieldsForValues(values)
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter values based on field access
+	filtered := make([]*model.PropertyValue, 0, len(values))
+	for _, value := range values {
+		field, exists := fieldMap[value.FieldID]
+		if !exists {
+			// Skip values whose fields don't exist or couldn't be fetched
+			continue
+		}
+
+		accessMode := pas.getAccessMode(field)
+
+		// Check if caller can read this value
+		unrestrictedErr := pas.checkUnrestrictedFieldReadAccess(field, callerID)
+
+		if unrestrictedErr == nil {
+			// Caller has unrestricted access (public or source plugin) - include as-is
+			filtered = append(filtered, value)
+		} else if accessMode == model.CustomProfileAttributesAccessModeSharedOnly {
+			// Shared-only mode: apply filtering
+			filteredValue := pas.filterSharedOnlyValue(field, value, callerID)
+			if filteredValue != nil {
+				filtered = append(filtered, filteredValue)
+			}
+			// If filteredValue is nil, skip this value (no intersection)
+		}
+		// For source_only mode where caller is not the source, skip the value
+	}
+
+	return filtered, nil
 }
