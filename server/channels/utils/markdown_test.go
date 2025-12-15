@@ -304,8 +304,8 @@ func TestStripInlineEntities(t *testing.T) {
 		},
 		{
 			name: "mixed text",
-			args: "Check out [POST:123] in [CHANNEL:456]",
-			want: "Check out  in ",
+			args: "This is a web source with a citation [POST:123] and [CHANNEL:456]",
+			want: "This is a web source with a citation  and ",
 		},
 		{
 			name: "partial match",

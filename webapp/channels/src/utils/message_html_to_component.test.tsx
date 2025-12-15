@@ -77,14 +77,15 @@ const myFunction = () => {
     });
 
     test('Inline entity link', () => {
-        const input = 'Check out [POST:123]';
+        const input = 'This is a web source with a citation [POST:123]';
         const options = {inlineEntities: true};
         const html = TextFormatting.formatText(input, options, emptyEmojiMap);
 
         const component = messageHtmlToComponent(html, {inlineEntities: true});
-        expect(component).toMatchSnapshot();
-        expect(shallow(component).find(InlineEntityLink).prop('type')).toBe('POST');
-        expect(shallow(component).find(InlineEntityLink).prop('value')).toBe('123');
+        const wrapper = shallow(component);
+        expect(wrapper.find(InlineEntityLink).prop('type')).toBe('POST');
+        expect(wrapper.find(InlineEntityLink).prop('value')).toBe('123');
+        expect(wrapper.text()).toContain('This is a web source with a citation');
     });
 
     test('Inline markdown image', () => {

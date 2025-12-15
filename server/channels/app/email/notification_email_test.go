@@ -72,9 +72,9 @@ func TestProcessMessageAttachments(t *testing.T) {
 }
 
 func TestPrepareTextForEmail(t *testing.T) {
-	text := "Check out [POST:123] and [CHANNEL:456]"
+	text := "This is a web source with a citation [POST:123] and [CHANNEL:456]"
 	result := prepareTextForEmail(text, "http://localhost:8065")
 	require.NotContains(t, string(result), "[POST:123]")
 	require.NotContains(t, string(result), "[CHANNEL:456]")
-	require.Contains(t, string(result), "Check out")
+	require.Contains(t, string(result), "This is a web source with a citation")
 }

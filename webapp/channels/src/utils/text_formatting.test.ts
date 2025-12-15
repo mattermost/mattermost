@@ -623,11 +623,11 @@ describe('isChannelsNameMap', () => {
 
 describe('autolinkInlineEntities', () => {
     test('should replace inline entity tokens with tokens', () => {
-        const text = 'Check [POST:123] and [CHANNEL:456]';
+        const text = 'This is a web source with a citation [POST:123] and [CHANNEL:456]';
         const tokens = new Map();
         const output = autolinkInlineEntities(text, tokens);
 
-        expect(output).toBe('Check $MM_INLINEENTITY0$ and $MM_INLINEENTITY1$');
+        expect(output).toBe('This is a web source with a citation $MM_INLINEENTITY0$ and $MM_INLINEENTITY1$');
         expect(tokens.get('$MM_INLINEENTITY0$').value).toContain('data-inline-entity-type="POST"');
         expect(tokens.get('$MM_INLINEENTITY0$').value).toContain('data-inline-entity-value="123"');
         expect(tokens.get('$MM_INLINEENTITY1$').value).toContain('data-inline-entity-type="CHANNEL"');
@@ -635,19 +635,19 @@ describe('autolinkInlineEntities', () => {
     });
 
     test('should respect allowed types', () => {
-        const text = 'Check [POST:123] and [CHANNEL:456]';
+        const text = 'This is a web source with a citation [POST:123] and [CHANNEL:456]';
         const tokens = new Map();
         const output = autolinkInlineEntities(text, tokens, ['POST']);
 
-        expect(output).toBe('Check $MM_INLINEENTITY0$ and [CHANNEL:456]');
+        expect(output).toBe('This is a web source with a citation $MM_INLINEENTITY0$ and [CHANNEL:456]');
         expect(tokens.get('$MM_INLINEENTITY0$').value).toContain('data-inline-entity-type="POST"');
     });
 });
 
 describe('stripInlineEntities', () => {
     test('should strip inline entities', () => {
-        const text = 'Check [POST:123] and [CHANNEL:456]';
+        const text = 'This is a web source with a citation [POST:123] and [CHANNEL:456]';
         const output = stripInlineEntities(text);
-        expect(output).toBe('Check  and ');
+        expect(output).toBe('This is a web source with a citation  and ');
     });
 });
