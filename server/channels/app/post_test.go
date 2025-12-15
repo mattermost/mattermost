@@ -4250,6 +4250,11 @@ func TestValidateMoveOrCopy(t *testing.T) {
 }
 
 func TestPermanentDeletePost(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
+	t.Cleanup(func() {
+		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
+	})
+
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -4337,6 +4342,71 @@ func TestPermanentDeletePost(t *testing.T) {
 		infos, err = th.App.Srv().Store().FileInfo().GetForPost(post.Id, true, true, false)
 		require.NoError(t, err)
 		assert.Len(t, infos, 0)
+	})
+
+	t.Run("should permanently delete a burn-on-read post and its file attachments", func(t *testing.T) {
+		// Enable feature with license
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = model.NewPointer(true)
+		})
+
+		// Create a burn-on-read post with a file attachment
+		teamID := th.BasicTeam.Id
+		channelID := th.BasicChannel.Id
+		userID := th.BasicUser.Id
+		filename := "burn_on_read_file"
+		data := []byte("burn on read file content")
+
+		info1, err := th.App.DoUploadFile(th.Context, time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamID, channelID, userID, filename, data, true)
+		require.Nil(t, err)
+
+		post := &model.Post{
+			Message:       "burn on read message with file",
+			ChannelId:     channelID,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userID,
+			CreateAt:      0,
+			FileIds:       []string{info1.Id},
+			Type:          model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		post, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		// Verify that the post has empty message and file IDs (stored in TemporaryPosts)
+		assert.Empty(t, post.Message)
+		assert.Empty(t, post.FileIds)
+
+		// Verify that TemporaryPost exists with original content
+		tmpPost, tmpErr := th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		require.NoError(t, tmpErr)
+		require.NotNil(t, tmpPost)
+		assert.Equal(t, "burn on read message with file", tmpPost.Message)
+		assert.Equal(t, model.StringArray{info1.Id}, tmpPost.FileIDs)
+
+		// Verify file info exists before deletion
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		require.Nil(t, err)
+
+		// Permanently delete the post
+		appErr = th.App.PermanentDeletePost(th.Context, post.Id, userID)
+		require.Nil(t, appErr)
+
+		// Check that the post can no longer be reached
+		_, err = th.App.GetSinglePost(th.Context, post.Id, true)
+		assert.NotNil(t, err)
+
+		// Check that the file also deleted
+		_, err = th.App.GetFileInfo(th.Context, info1.Id)
+		assert.NotNil(t, err)
+
+		// Verify TemporaryPost is also deleted
+		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id)
+		assert.Error(t, tmpErr)
+		assert.True(t, store.IsErrNotFound(tmpErr))
 	})
 }
 
