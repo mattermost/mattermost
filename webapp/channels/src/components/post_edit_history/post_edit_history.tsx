@@ -1,18 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import Scrollbars from 'components/common/scrollbars';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
 import SearchResultsHeader from 'components/search_results_header';
+
+import {isPopoutWindow, popoutPostEditHistory} from 'utils/popouts/popout_windows';
 
 import EditedPostItem from './edited_post_item';
 
@@ -28,7 +32,18 @@ const PostEditHistory = ({
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const dispatch = useDispatch();
     const scrollbars = useRef<HTMLDivElement>(null);
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
+    const currentTeam = useSelector(getCurrentTeam);
+    const currentChannel = useSelector(getCurrentChannel);
+
+    const newWindowHandler = useCallback(() => {
+        if (originalPost?.id && currentTeam && currentChannel) {
+            popoutPostEditHistory(intl, originalPost.id, currentTeam.name, currentChannel.name);
+        }
+    }, [intl, originalPost?.id, currentTeam, currentChannel]);
+
+    const shouldShowPopoutButton = !isPopoutWindow() && originalPost?.id && currentTeam && currentChannel;
     const retrieveErrorHeading = formatMessage({
         id: 'post_info.edit.history.retrieveError',
         defaultMessage: 'Unable to load edit history',
@@ -120,7 +135,7 @@ const PostEditHistory = ({
             className='sidebar-right__body sidebar-right__edit-post-history'
         >
             <Scrollbars ref={scrollbars}>
-                <SearchResultsHeader>
+                <SearchResultsHeader newWindowHandler={shouldShowPopoutButton ? newWindowHandler : undefined}>
                     <h2 id='rhsPanelTitle'>
                         {title}
                     </h2>

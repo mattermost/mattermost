@@ -75,6 +75,24 @@ export async function popoutRhsPlugin(
     return listeners;
 }
 
+export async function popoutPostEditHistory(
+    intl: IntlShape,
+    postId: string,
+    teamName: string,
+    channelName: string,
+) {
+    return popout(
+        `/_popout/rhs/${teamName}/${channelName}/post-edit-history/${postId}`,
+        {
+            isRHS: true,
+            titleTemplate: intl.formatMessage({
+                id: 'post_edit_history_popout.title',
+                defaultMessage: 'Post Edit History - {channelName} - {teamName}',
+            }, {channelName: '{channelName}', teamName: '{teamName}'}),
+        },
+    );
+}
+
 /**
  * Below this is generic popout code
  * You likely do not need to add anything below this.

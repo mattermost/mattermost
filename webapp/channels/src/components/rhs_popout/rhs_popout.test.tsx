@@ -53,6 +53,11 @@ jest.mock('components/rhs_plugin_popout', () => ({
     default: () => <div data-testid='rhs-plugin-popout'>{'RHS Plugin Popout'}</div>,
 }));
 
+jest.mock('components/post_edit_history_popout', () => ({
+    __esModule: true,
+    default: () => <div data-testid='post-edit-history-popout'>{'Post Edit History Popout'}</div>,
+}));
+
 const mockDispatch = jest.fn();
 const mockUseDispatch = ReactRedux.useDispatch as jest.MockedFunction<typeof ReactRedux.useDispatch>;
 const mockUseSelector = ReactRedux.useSelector as jest.MockedFunction<typeof ReactRedux.useSelector>;
@@ -135,6 +140,20 @@ describe('RhsPopout', () => {
         );
 
         expect(screen.getByTestId('rhs-plugin-popout')).toBeInTheDocument();
+    });
+
+    it('should render PostEditHistoryPopout for post-edit-history route', () => {
+        const postId = 'a'.repeat(26);
+        renderWithContext(
+            <MemoryRouter initialEntries={[`/_popout/rhs/team1/channel1/post-edit-history/${postId}`]}>
+                <Route
+                    path='/_popout/rhs/:team/:identifier'
+                    component={RhsPopout}
+                />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('post-edit-history-popout')).toBeInTheDocument();
     });
 });
 

@@ -5307,6 +5307,7 @@
   "post_delete.notPosted": "Comment could not be posted",
   "post_delete.okay": "Okay",
   "post_delete.someone": "Someone deleted the message on which you tried to post a comment.",
+  "post_edit_history_popout.title": "Post Edit History - {channelName} - {teamName}",
   "post_header.update_status": "Update your status",
   "post_info.actions.noActions.first_line": "No Actions currently",
   "post_info.actions.noActions.second_line": "configured for this server",

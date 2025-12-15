@@ -10,8 +10,11 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
 
 import {useTeamByName} from 'components/common/hooks/use_team';
+import PostEditHistoryPopout from 'components/post_edit_history_popout';
 import RhsPluginPopout from 'components/rhs_plugin_popout';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
+
+import {ID_PATH_PATTERN} from 'utils/path';
 
 import type {GlobalState} from 'types/store';
 
@@ -53,6 +56,10 @@ export default function RhsPopout() {
                             <Route
                                 path={`${match.path}/plugin/:pluginId`}
                                 component={RhsPluginPopout}
+                            />
+                            <Route
+                                path={`${match.path}/post-edit-history/:postId(${ID_PATH_PATTERN})`}
+                                component={PostEditHistoryPopout}
                             />
                         </Switch>
                     </div>

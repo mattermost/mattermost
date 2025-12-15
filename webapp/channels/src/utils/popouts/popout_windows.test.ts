@@ -6,7 +6,7 @@ import type {IntlShape} from 'react-intl';
 import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';
 
-import {FOCUS_REPLY_POST, popoutRhsPlugin, popoutThread} from './popout_windows';
+import {FOCUS_REPLY_POST, popoutPostEditHistory, popoutRhsPlugin, popoutThread} from './popout_windows';
 
 // Mock dependencies
 jest.mock('utils/desktop_api', () => ({
@@ -48,6 +48,9 @@ describe('popout_windows', () => {
             }
             if (id === 'rhs_plugin_popout.title') {
                 return '{serverName} - {pluginDisplayName}';
+            }
+            if (id === 'post_edit_history_popout.title') {
+                return 'Post Edit History - {channelName} - {teamName}';
             }
             return defaultMessage;
         }),
@@ -184,6 +187,58 @@ describe('popout_windows', () => {
             mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
 
             const result = await popoutRhsPlugin(mockIntl, 'test-plugin-id', 'Test Plugin', 'test-team', 'test-channel');
+
+            expect(result).toEqual(mockListeners);
+        });
+    });
+
+    describe('popoutPostEditHistory', () => {
+        it('should call popout with correct path and props for desktop app', async () => {
+            mockIsDesktopApp.mockReturnValue(true);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+
+            await popoutPostEditHistory(mockIntl, 'post-123', 'test-team', 'test-channel');
+
+            expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
+                '/_popout/rhs/test-team/test-channel/post-edit-history/post-123',
+                {
+                    isRHS: true,
+                    titleTemplate: 'Post Edit History - {channelName} - {teamName}',
+                },
+            );
+        });
+
+        it('should call popout with correct path and props for browser popout', async () => {
+            mockIsDesktopApp.mockReturnValue(false);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+
+            await popoutPostEditHistory(mockIntl, 'post-123', 'test-team', 'test-channel');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/rhs/test-team/test-channel/post-edit-history/post-123',
+            );
+        });
+
+        it('should return popout listeners', async () => {
+            mockIsDesktopApp.mockReturnValue(true);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+
+            const result = await popoutPostEditHistory(mockIntl, 'post-123', 'test-team', 'test-channel');
 
             expect(result).toEqual(mockListeners);
         });
