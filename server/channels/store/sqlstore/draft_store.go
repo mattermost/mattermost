@@ -567,7 +567,8 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 	if lastUpdateAt == 0 {
 		// Try to update existing draft first (handles case where draft was created via POST endpoint)
 		// UserId != '' means it's a draft (status derived from UserId)
-		result, err := s.GetMaster().Exec(`
+		var result sql.Result
+		result, err = s.GetMaster().Exec(`
 			UPDATE PageContents
 			SET Content = $1, Title = $2, UpdateAt = $3
 			WHERE PageId = $4
@@ -593,7 +594,8 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 			WikiId: wikiId,
 			Title:  title,
 		}
-		if err := content.SetDocumentJSON(contentStr); err != nil {
+		err = content.SetDocumentJSON(contentStr)
+		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse content JSON")
 		}
 		return s.CreatePageDraft(content)
