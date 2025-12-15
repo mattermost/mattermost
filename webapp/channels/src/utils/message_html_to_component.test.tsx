@@ -5,6 +5,7 @@ import {shallow} from 'enzyme';
 import type {AnchorHTMLAttributes} from 'react';
 
 import AtMention from 'components/at_mention';
+import InlineEntityLink from 'components/inline_entity_link';
 import MarkdownImage from 'components/markdown_image';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -73,6 +74,17 @@ const myFunction = () => {
         const html = TextFormatting.formatText(input, {}, emptyEmojiMap);
 
         expect(messageHtmlToComponent(html, {hasPluginTooltips: true})).toMatchSnapshot();
+    });
+
+    test('Inline entity link', () => {
+        const input = 'Check out [POST:123]';
+        const options = {inlineEntities: true};
+        const html = TextFormatting.formatText(input, options, emptyEmojiMap);
+
+        const component = messageHtmlToComponent(html, {inlineEntities: true});
+        expect(component).toMatchSnapshot();
+        expect(shallow(component).find(InlineEntityLink).prop('type')).toBe('POST');
+        expect(shallow(component).find(InlineEntityLink).prop('value')).toBe('123');
     });
 
     test('Inline markdown image', () => {

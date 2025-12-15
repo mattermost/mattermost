@@ -70,3 +70,11 @@ func TestProcessMessageAttachments(t *testing.T) {
 	require.Equal(t, processedAttachmentsPost[0].FieldRows[0].Cells[0].Title, "message attachment 1 field 1 title")
 	require.Equal(t, processedAttachmentsPost[1].Color, "#FF0000")
 }
+
+func TestPrepareTextForEmail(t *testing.T) {
+	text := "Check out [POST:123] and [CHANNEL:456]"
+	result := prepareTextForEmail(text, "http://localhost:8065")
+	require.NotContains(t, string(result), "[POST:123]")
+	require.NotContains(t, string(result), "[CHANNEL:456]")
+	require.Contains(t, string(result), "Check out")
+}

@@ -281,6 +281,46 @@ func TestStripMarkdown(t *testing.T) {
 	}
 }
 
+func TestStripInlineEntities(t *testing.T) {
+	tests := []struct {
+		name string
+		args string
+		want string
+	}{
+		{
+			name: "post link",
+			args: "[POST:123]",
+			want: "",
+		},
+		{
+			name: "channel link",
+			args: "[CHANNEL:123]",
+			want: "",
+		},
+		{
+			name: "team link",
+			args: "[TEAM:123]",
+			want: "",
+		},
+		{
+			name: "mixed text",
+			args: "Check out [POST:123] in [CHANNEL:456]",
+			want: "Check out  in ",
+		},
+		{
+			name: "partial match",
+			args: "[POST:123",
+			want: "[POST:123",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := StripInlineEntities(tt.args)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestMarkdownToHTML(t *testing.T) {
 	siteURL := "https://example.com"
 	tests := []struct {

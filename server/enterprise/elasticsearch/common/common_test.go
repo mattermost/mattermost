@@ -105,6 +105,22 @@ func TestESPostFromPostForIndexing(t *testing.T) {
 	assert.Equal(t, "slack_attachment", espost2.Type)
 	assert.Len(t, espost2.Hashtags, 2)
 	assert.Equal(t, "text 2", espost2.Attachments)
+
+	// Create one with inline entities in the message
+	post3 := model.PostForIndexing{
+		TeamId:         model.NewId(),
+		ParentCreateAt: nil,
+		Post: model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			CreateAt:  model.GetMillis(),
+			Message:   "This is a web source with a citation [POST:123]",
+		},
+	}
+
+	espost3 := ESPostFromPostForIndexing(&post3)
+	assert.Equal(t, "This is a web source with a citation ", espost3.Message)
 }
 
 func TestGetMatchesForHit(t *testing.T) {

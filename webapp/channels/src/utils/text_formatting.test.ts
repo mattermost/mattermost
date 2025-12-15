@@ -24,6 +24,8 @@ import {
     doFormatText,
     replaceTokens,
     isChannelNamesMap,
+    autolinkInlineEntities,
+    stripInlineEntities,
 } from 'utils/text_formatting';
 import type {ChannelNamesMap} from 'utils/text_formatting';
 
@@ -616,5 +618,36 @@ describe('isChannelsNameMap', () => {
 
         delete (prop['some id'] as any).display_name;
         expect(isChannelNamesMap(prop)).toBe(false);
+    });
+});
+
+describe('autolinkInlineEntities', () => {
+    test('should replace inline entity tokens with tokens', () => {
+        const text = 'Check [POST:123] and [CHANNEL:456]';
+        const tokens = new Map();
+        const output = autolinkInlineEntities(text, tokens);
+
+        expect(output).toBe('Check $MM_INLINEENTITY0$ and $MM_INLINEENTITY1$');
+        expect(tokens.get('$MM_INLINEENTITY0$').value).toContain('data-inline-entity-type="POST"');
+        expect(tokens.get('$MM_INLINEENTITY0$').value).toContain('data-inline-entity-value="123"');
+        expect(tokens.get('$MM_INLINEENTITY1$').value).toContain('data-inline-entity-type="CHANNEL"');
+        expect(tokens.get('$MM_INLINEENTITY1$').value).toContain('data-inline-entity-value="456"');
+    });
+
+    test('should respect allowed types', () => {
+        const text = 'Check [POST:123] and [CHANNEL:456]';
+        const tokens = new Map();
+        const output = autolinkInlineEntities(text, tokens, ['POST']);
+
+        expect(output).toBe('Check $MM_INLINEENTITY0$ and [CHANNEL:456]');
+        expect(tokens.get('$MM_INLINEENTITY0$').value).toContain('data-inline-entity-type="POST"');
+    });
+});
+
+describe('stripInlineEntities', () => {
+    test('should strip inline entities', () => {
+        const text = 'Check [POST:123] and [CHANNEL:456]';
+        const output = stripInlineEntities(text);
+        expect(output).toBe('Check  and ');
     });
 });
