@@ -1,0 +1,28 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.HelpButton {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 4px;
+
+    &__link {
+        padding: 2px 4px;
+        border: none;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        font-size: 11px;
+        text-decoration: none;
+
+        &:hover {
+            color: var(--button-bg);
+            text-decoration: underline;
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+}
+
