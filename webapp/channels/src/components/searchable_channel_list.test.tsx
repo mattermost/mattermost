@@ -62,6 +62,7 @@ describe('components/SearchableChannelList', () => {
                 type: 'O',
                 delete_at: 1234567890,
                 team_id: 'team1',
+                purpose: '',
             } as Channel,
         ];
 
@@ -86,6 +87,7 @@ describe('components/SearchableChannelList', () => {
                 type: 'P',
                 delete_at: 1234567890,
                 team_id: 'team1',
+                purpose: '',
             } as Channel,
         ];
 
