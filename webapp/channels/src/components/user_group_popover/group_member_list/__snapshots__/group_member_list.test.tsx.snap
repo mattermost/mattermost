@@ -299,7 +299,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
               }
             }
           >
-            <Component>
+            <AutoSizer>
               <InfiniteLoader
                 isItemLoaded={[Function]}
                 itemCount={5}
@@ -1239,7 +1239,7 @@ exports[`component/user_group_popover/group_member_list should match snapshot 1`
                   </div>
                 </List>
               </InfiniteLoader>
-            </Component>
+            </AutoSizer>
           </div>
         </UserList>
       </Memo(GroupMemberList)>

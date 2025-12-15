@@ -88,6 +88,7 @@ describe('components/Root', () => {
                 redirectToOnboardingOrDefaultTeam,
             }, store.dispatch),
         },
+        dispatch: store.dispatch,
         permalinkRedirectTeamName: 'myTeam',
         ...{
             location: {
