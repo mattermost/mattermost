@@ -3019,6 +3019,10 @@
     "translation": "This feature is not enabled."
   },
   {
+    "id": "api.recap.permission_denied",
+    "translation": "You do not have permission to access this recap."
+  },
+  {
     "id": "api.remote_cluster.accept_invitation_error",
     "translation": "Could not accept the remote cluster invitation"
   },
