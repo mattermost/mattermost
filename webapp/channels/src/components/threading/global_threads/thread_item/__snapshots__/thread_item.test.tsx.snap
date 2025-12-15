@@ -90,6 +90,7 @@ exports[`components/threading/global_threads/thread_item should report total num
         options={
           Object {
             "atMentions": true,
+            "inlineEntities": true,
             "mentionHighlight": false,
             "singleline": true,
           }
@@ -244,6 +245,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         options={
           Object {
             "atMentions": true,
+            "inlineEntities": true,
             "mentionHighlight": false,
             "singleline": true,
           }
@@ -396,6 +398,7 @@ exports[`components/threading/global_threads/thread_item should report unread me
         options={
           Object {
             "atMentions": true,
+            "inlineEntities": true,
             "mentionHighlight": false,
             "singleline": true,
           }
