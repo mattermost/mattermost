@@ -133,7 +133,7 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedRecap, err := c.App.MarkRecapAsRead(c.AppContext, c.Params.RecapId)
+	updatedRecap, err := c.App.MarkRecapAsRead(c.AppContext, recap)
 	if err != nil {
 		c.Err = err
 		return
@@ -167,7 +167,7 @@ func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedRecap, err := c.App.RegenerateRecap(c.AppContext, c.AppContext.Session().UserId, c.Params.RecapId)
+	updatedRecap, err := c.App.RegenerateRecap(c.AppContext, c.AppContext.Session().UserId, recap)
 	if err != nil {
 		c.Err = err
 		return

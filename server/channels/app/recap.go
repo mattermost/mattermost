@@ -89,27 +89,31 @@ func (a *App) GetRecapsForUser(rctx request.CTX, page, perPage int) ([]*model.Re
 }
 
 // MarkRecapAsRead marks a recap as read
-func (a *App) MarkRecapAsRead(rctx request.CTX, recapID string) (*model.Recap, *model.AppError) {
+func (a *App) MarkRecapAsRead(rctx request.CTX, recap *model.Recap) (*model.Recap, *model.AppError) {
 	// Mark as read
-	if markErr := a.Srv().Store().Recap().MarkRecapAsRead(recapID); markErr != nil {
+	if markErr := a.Srv().Store().Recap().MarkRecapAsRead(recap.Id); markErr != nil {
 		return nil, model.NewAppError("MarkRecapAsRead", "app.recap.mark_read.app_error", nil, "", http.StatusInternalServerError).Wrap(markErr)
 	}
 
-	// Return updated recap
-	updatedRecap, getErr := a.GetRecap(rctx, recapID)
-	if getErr != nil {
-		return nil, getErr
+	// Update the passed recap with read timestamp
+	recap.ReadAt = model.GetMillis()
+	recap.UpdateAt = recap.ReadAt
+
+	// Load channels if not already loaded
+	if recap.Channels == nil {
+		channels, err := a.Srv().Store().Recap().GetRecapChannelsByRecapId(recap.Id)
+		if err != nil {
+			return nil, model.NewAppError("MarkRecapAsRead", "app.recap.get_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		recap.Channels = channels
 	}
 
-	return updatedRecap, nil
+	return recap, nil
 }
 
 // RegenerateRecap regenerates an existing recap
-func (a *App) RegenerateRecap(rctx request.CTX, userID, recapID string) (*model.Recap, *model.AppError) {
-	recap, err := a.Srv().Store().Recap().GetRecap(recapID)
-	if err != nil {
-		return nil, model.NewAppError("RegenerateRecap", "app.recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-	}
+func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Recap) (*model.Recap, *model.AppError) {
+	recapID := recap.Id
 
 	// Get existing recap channels to extract channel IDs
 	channels, err := a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)

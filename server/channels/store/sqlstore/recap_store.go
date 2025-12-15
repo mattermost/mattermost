@@ -63,8 +63,8 @@ func newSqlRecapStore(sqlStore *SqlStore) store.RecapStore {
 	return s
 }
 
-func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]interface{} {
-	return map[string]interface{}{
+func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]any {
+	return map[string]any{
 		"Id":                recap.Id,
 		"UserId":            recap.UserId,
 		"Title":             recap.Title,
@@ -78,7 +78,7 @@ func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]interface{} {
 	}
 }
 
-func (s *SqlRecapStore) recapChannelToMap(rc *model.RecapChannel) (map[string]interface{}, error) {
+func (s *SqlRecapStore) recapChannelToMap(rc *model.RecapChannel) (map[string]any, error) {
 	highlightsJSON, err := json.Marshal(rc.Highlights)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal Highlights")
@@ -94,7 +94,7 @@ func (s *SqlRecapStore) recapChannelToMap(rc *model.RecapChannel) (map[string]in
 		return nil, errors.Wrap(err, "failed to marshal SourcePostIds")
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
 		"Id":            rc.Id,
 		"RecapId":       rc.RecapId,
 		"ChannelId":     rc.ChannelId,
@@ -152,7 +152,7 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 func (s *SqlRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		SetMap(map[string]interface{}{
+		SetMap(map[string]any{
 			"Title":             recap.Title,
 			"UpdateAt":          recap.UpdateAt,
 			"TotalMessageCount": recap.TotalMessageCount,
@@ -172,7 +172,7 @@ func (s *SqlRecapStore) UpdateRecapStatus(id, status string) error {
 
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		SetMap(map[string]interface{}{
+		SetMap(map[string]any{
 			"Status":   status,
 			"UpdateAt": updateAt,
 		}).
@@ -190,7 +190,7 @@ func (s *SqlRecapStore) MarkRecapAsRead(id string) error {
 
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		SetMap(map[string]interface{}{
+		SetMap(map[string]any{
 			"ReadAt":   now,
 			"UpdateAt": now,
 		}).
@@ -208,7 +208,7 @@ func (s *SqlRecapStore) DeleteRecap(id string) error {
 
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		SetMap(map[string]interface{}{
+		SetMap(map[string]any{
 			"DeleteAt": deleteAt,
 		}).
 		Where(sq.Eq{"Id": id})

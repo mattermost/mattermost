@@ -78,9 +78,6 @@ func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance stor
 
 		if result.MessageCount == 0 {
 			logger.Debug("No posts to summarize", mlog.String("channel_id", channelID))
-			// We continue here but don't count it as a "successful channel" in terms of having content?
-			// Actually, if it succeeded but had no content, it is a success.
-			// But if we want to warn about "empty recap", we need to track if we found ANYTHING.
 			successfulChannels = append(successfulChannels, channelID)
 			continue
 		}

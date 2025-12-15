@@ -208,12 +208,12 @@ func TestMarkRecapAsRead(t *testing.T) {
 			Status:            model.RecapStatusCompleted,
 		}
 
-		_, err := th.App.Srv().Store().Recap().SaveRecap(recap)
+		savedRecap, err := th.App.Srv().Store().Recap().SaveRecap(recap)
 		require.NoError(t, err)
 
 		// Mark as read
 		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
-		updatedRecap, appErr := th.App.MarkRecapAsRead(ctx, recap.Id)
+		updatedRecap, appErr := th.App.MarkRecapAsRead(ctx, savedRecap)
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedRecap)
 		assert.Greater(t, updatedRecap.ReadAt, int64(0))
@@ -232,12 +232,12 @@ func TestMarkRecapAsRead(t *testing.T) {
 			Status:            model.RecapStatusCompleted,
 		}
 
-		_, err := th.App.Srv().Store().Recap().SaveRecap(recap)
+		savedRecap, err := th.App.Srv().Store().Recap().SaveRecap(recap)
 		require.NoError(t, err)
 
 		// Try to mark as read as a different user - create context with BasicUser2's session
 		ctx := request.TestContext(t).WithSession(&model.Session{UserId: th.BasicUser2.Id})
-		updatedRecap, appErr := th.App.MarkRecapAsRead(ctx, recap.Id)
+		updatedRecap, appErr := th.App.MarkRecapAsRead(ctx, savedRecap)
 		// Permissions are now checked in API layer, so App layer should allow it
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedRecap)
