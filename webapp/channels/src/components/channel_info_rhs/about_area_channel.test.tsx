@@ -112,6 +112,7 @@ describe('channel_info_rhs/about_area_channel', () => {
     const defaultProps = {
         channel: {
             id: 'test-c-id',
+            name: 'my-channel',
             header: 'my channel header',
             purpose: 'my channel purpose',
             display_name: 'My Channel',
