@@ -26,98 +26,109 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
-
-		recapID := job.Data["recap_id"]
-		userID := job.Data["user_id"]
-		channelIDs := strings.Split(job.Data["channel_ids"], ",")
-		agentID := job.Data["agent_id"]
-
-		logger.Info("Starting recap job",
-			mlog.String("recap_id", recapID),
-			mlog.String("agent_id", agentID),
-			mlog.Int("channel_count", len(channelIDs)))
-
-		// Update status to processing
-		_ = storeInstance.Recap().UpdateRecapStatus(recapID, model.RecapStatusProcessing)
-		publishRecapUpdate(appInstance, recapID, userID)
-
-		totalMessages := 0
-		successfulChannels := []string{}
-		failedChannels := []string{}
-
-		for i, channelID := range channelIDs {
-			// Update progress
-			progress := int64((i * 100) / len(channelIDs))
+		return processRecapJob(logger, job, storeInstance, appInstance, func(progress int64) {
 			_ = jobServer.SetJobProgress(job, progress)
-
-			// Process the channel
-			result, err := appInstance.ProcessRecapChannel(request.EmptyContext(logger), recapID, channelID, userID, agentID)
-			if err != nil {
-				logger.Warn("Failed to process channel",
-					mlog.String("channel_id", channelID),
-					mlog.Err(err))
-				failedChannels = append(failedChannels, channelID)
-				continue
-			}
-
-			if !result.Success {
-				logger.Warn("Channel processing unsuccessful", mlog.String("channel_id", channelID))
-				failedChannels = append(failedChannels, channelID)
-				continue
-			}
-
-			if result.MessageCount == 0 {
-				logger.Debug("No posts to summarize", mlog.String("channel_id", channelID))
-				continue
-			}
-
-			totalMessages += result.MessageCount
-			successfulChannels = append(successfulChannels, channelID)
-		}
-
-		// Update recap with final data (title is already set by user in CreateRecap)
-		recap, _ := storeInstance.Recap().GetRecap(recapID)
-		recap.TotalMessageCount = totalMessages
-		recap.UpdateAt = model.GetMillis()
-
-		if len(failedChannels) > 0 && len(successfulChannels) == 0 {
-			recap.Status = model.RecapStatusFailed
-			_, err := storeInstance.Recap().UpdateRecap(recap)
-			if err != nil {
-				logger.Error("Failed to update recap", mlog.Err(err))
-				return fmt.Errorf("failed to update recap: %w", err)
-			}
-			publishRecapUpdate(appInstance, recapID, userID)
-			return fmt.Errorf("all channels failed to process")
-		} else if len(failedChannels) > 0 {
-			recap.Status = model.RecapStatusCompleted
-			_, err := storeInstance.Recap().UpdateRecap(recap)
-			if err != nil {
-				logger.Error("Failed to update recap", mlog.Err(err))
-				return fmt.Errorf("failed to update recap: %w", err)
-			}
-			publishRecapUpdate(appInstance, recapID, userID)
-			logger.Warn("Some channels failed", mlog.Int("failed_count", len(failedChannels)))
-			// Job succeeds with warning
-		} else {
-			recap.Status = model.RecapStatusCompleted
-			_, err := storeInstance.Recap().UpdateRecap(recap)
-			if err != nil {
-				logger.Error("Failed to update recap", mlog.Err(err))
-				return fmt.Errorf("failed to update recap: %w", err)
-			}
-			publishRecapUpdate(appInstance, recapID, userID)
-		}
-
-		logger.Info("Recap job completed",
-			mlog.String("recap_id", recapID),
-			mlog.Int("successful_channels", len(successfulChannels)),
-			mlog.Int("failed_channels", len(failedChannels)))
-
-		return nil
+		})
 	}
 
 	return jobs.NewSimpleWorker("Recap", jobServer, execute, isEnabled)
+}
+
+func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, appInstance AppIface, setProgress func(int64)) error {
+	recapID := job.Data["recap_id"]
+	userID := job.Data["user_id"]
+	channelIDs := strings.Split(job.Data["channel_ids"], ",")
+	agentID := job.Data["agent_id"]
+
+	logger.Info("Starting recap job",
+		mlog.String("recap_id", recapID),
+		mlog.String("agent_id", agentID),
+		mlog.Int("channel_count", len(channelIDs)))
+
+	// Update status to processing
+	_ = storeInstance.Recap().UpdateRecapStatus(recapID, model.RecapStatusProcessing)
+	publishRecapUpdate(appInstance, recapID, userID)
+
+	totalMessages := 0
+	successfulChannels := []string{}
+	failedChannels := []string{}
+
+	for i, channelID := range channelIDs {
+		// Update progress
+		progress := int64((i * 100) / len(channelIDs))
+		if setProgress != nil {
+			setProgress(progress)
+		}
+
+		// Process the channel
+		result, err := appInstance.ProcessRecapChannel(request.EmptyContext(logger), recapID, channelID, userID, agentID)
+		if err != nil {
+			logger.Warn("Failed to process channel",
+				mlog.String("channel_id", channelID),
+				mlog.Err(err))
+			failedChannels = append(failedChannels, channelID)
+			continue
+		}
+
+		if !result.Success {
+			logger.Warn("Channel processing unsuccessful", mlog.String("channel_id", channelID))
+			failedChannels = append(failedChannels, channelID)
+			continue
+		}
+
+		if result.MessageCount == 0 {
+			logger.Debug("No posts to summarize", mlog.String("channel_id", channelID))
+			// We continue here but don't count it as a "successful channel" in terms of having content?
+			// Actually, if it succeeded but had no content, it is a success.
+			// But if we want to warn about "empty recap", we need to track if we found ANYTHING.
+			successfulChannels = append(successfulChannels, channelID)
+			continue
+		}
+
+		totalMessages += result.MessageCount
+		successfulChannels = append(successfulChannels, channelID)
+	}
+
+	// Update recap with final data (title is already set by user in CreateRecap)
+	recap, _ := storeInstance.Recap().GetRecap(recapID)
+	recap.TotalMessageCount = totalMessages
+	recap.UpdateAt = model.GetMillis()
+
+	if len(failedChannels) > 0 && len(successfulChannels) == 0 {
+		recap.Status = model.RecapStatusFailed
+		_, err := storeInstance.Recap().UpdateRecap(recap)
+		if err != nil {
+			logger.Error("Failed to update recap", mlog.Err(err))
+			return fmt.Errorf("failed to update recap: %w", err)
+		}
+		publishRecapUpdate(appInstance, recapID, userID)
+		return fmt.Errorf("all channels failed to process")
+	} else if len(failedChannels) > 0 {
+		recap.Status = model.RecapStatusCompleted
+		_, err := storeInstance.Recap().UpdateRecap(recap)
+		if err != nil {
+			logger.Error("Failed to update recap", mlog.Err(err))
+			return fmt.Errorf("failed to update recap: %w", err)
+		}
+		publishRecapUpdate(appInstance, recapID, userID)
+		logger.Warn("Some channels failed", mlog.Int("failed_count", len(failedChannels)))
+		// Job succeeds with warning
+	} else {
+		recap.Status = model.RecapStatusCompleted
+		_, err := storeInstance.Recap().UpdateRecap(recap)
+		if err != nil {
+			logger.Error("Failed to update recap", mlog.Err(err))
+			return fmt.Errorf("failed to update recap: %w", err)
+		}
+		publishRecapUpdate(appInstance, recapID, userID)
+	}
+
+	logger.Info("Recap job completed",
+		mlog.String("recap_id", recapID),
+		mlog.Int("successful_channels", len(successfulChannels)),
+		mlog.Int("failed_channels", len(failedChannels)))
+
+	return nil
 }
 
 func publishRecapUpdate(appInstance AppIface, recapID, userID string) {

@@ -83,6 +83,11 @@ func getRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if recap.UserId != c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("getRecap", "api.recap.permission_denied", nil, "", http.StatusForbidden)
+		return
+	}
+
 	if err := json.NewEncoder(w).Encode(recap); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
 	}
@@ -116,13 +121,25 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recap, err := c.App.MarkRecapAsRead(c.AppContext, c.Params.RecapId)
+	// Check permissions
+	recap, err := c.App.GetRecap(c.AppContext, c.Params.RecapId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(recap); err != nil {
+	if recap.UserId != c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("markRecapAsRead", "api.recap.permission_denied", nil, "", http.StatusForbidden)
+		return
+	}
+
+	updatedRecap, err := c.App.MarkRecapAsRead(c.AppContext, c.Params.RecapId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(updatedRecap); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
 	}
 }
@@ -138,13 +155,25 @@ func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recap, err := c.App.RegenerateRecap(c.AppContext, c.Params.RecapId)
+	// Check permissions
+	recap, err := c.App.GetRecap(c.AppContext, c.Params.RecapId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(recap); err != nil {
+	if recap.UserId != c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("regenerateRecap", "api.recap.permission_denied", nil, "", http.StatusForbidden)
+		return
+	}
+
+	updatedRecap, err := c.App.RegenerateRecap(c.AppContext, c.AppContext.Session().UserId, c.Params.RecapId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(updatedRecap); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
 	}
 }
@@ -157,6 +186,18 @@ func deleteRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.RequireRecapId()
 	if c.Err != nil {
+		return
+	}
+
+	// Check permissions
+	recap, err := c.App.GetRecap(c.AppContext, c.Params.RecapId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if recap.UserId != c.AppContext.Session().UserId {
+		c.Err = model.NewAppError("deleteRecap", "api.recap.permission_denied", nil, "", http.StatusForbidden)
 		return
 	}
 

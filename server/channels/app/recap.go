@@ -11,21 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// getRecapAndCheckOwnership fetches a recap and verifies the user is the owner
-func (a *App) getRecapAndCheckOwnership(recapID, userID, callerName string) (*model.Recap, *model.AppError) {
-	recap, err := a.Srv().Store().Recap().GetRecap(recapID)
-	if err != nil {
-		return nil, model.NewAppError(callerName, "app.recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	// Only owner can access
-	if recap.UserId != userID {
-		return nil, model.NewAppError(callerName, "app.recap.permission_denied", nil, "", http.StatusForbidden)
-	}
-
-	return recap, nil
-}
-
 // CreateRecap creates a new recap job for the specified channels
 func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, agentID string) (*model.Recap, *model.AppError) {
 	userID := rctx.Session().UserId
@@ -76,12 +61,11 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 	return savedRecap, nil
 }
 
-// GetRecap retrieves a recap by ID (with permission check)
+// GetRecap retrieves a recap by ID
 func (a *App) GetRecap(rctx request.CTX, recapID string) (*model.Recap, *model.AppError) {
-	userID := rctx.Session().UserId
-	recap, appErr := a.getRecapAndCheckOwnership(recapID, userID, "GetRecap")
-	if appErr != nil {
-		return nil, appErr
+	recap, err := a.Srv().Store().Recap().GetRecap(recapID)
+	if err != nil {
+		return nil, model.NewAppError("GetRecap", "app.recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	// Load channels
@@ -106,36 +90,25 @@ func (a *App) GetRecapsForUser(rctx request.CTX, page, perPage int) ([]*model.Re
 
 // MarkRecapAsRead marks a recap as read
 func (a *App) MarkRecapAsRead(rctx request.CTX, recapID string) (*model.Recap, *model.AppError) {
-	userID := rctx.Session().UserId
-
-	// Check ownership
-	_, appErr := a.getRecapAndCheckOwnership(recapID, userID, "MarkRecapAsRead")
-	if appErr != nil {
-		return nil, appErr
-	}
-
 	// Mark as read
 	if markErr := a.Srv().Store().Recap().MarkRecapAsRead(recapID); markErr != nil {
 		return nil, model.NewAppError("MarkRecapAsRead", "app.recap.mark_read.app_error", nil, "", http.StatusInternalServerError).Wrap(markErr)
 	}
 
 	// Return updated recap
-	updatedRecap, getErr := a.Srv().Store().Recap().GetRecap(recapID)
+	updatedRecap, getErr := a.GetRecap(rctx, recapID)
 	if getErr != nil {
-		return nil, model.NewAppError("MarkRecapAsRead", "app.recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+		return nil, getErr
 	}
 
 	return updatedRecap, nil
 }
 
 // RegenerateRecap regenerates an existing recap
-func (a *App) RegenerateRecap(rctx request.CTX, recapID string) (*model.Recap, *model.AppError) {
-	userID := rctx.Session().UserId
-
-	// Check ownership
-	recap, appErr := a.getRecapAndCheckOwnership(recapID, userID, "RegenerateRecap")
-	if appErr != nil {
-		return nil, appErr
+func (a *App) RegenerateRecap(rctx request.CTX, userID, recapID string) (*model.Recap, *model.AppError) {
+	recap, err := a.Srv().Store().Recap().GetRecap(recapID)
+	if err != nil {
+		return nil, model.NewAppError("RegenerateRecap", "app.recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	// Get existing recap channels to extract channel IDs
@@ -183,9 +156,9 @@ func (a *App) RegenerateRecap(rctx request.CTX, recapID string) (*model.Recap, *
 	}
 
 	// Return updated recap
-	updatedRecap, getErr := a.Srv().Store().Recap().GetRecap(recapID)
+	updatedRecap, getErr := a.GetRecap(rctx, recapID)
 	if getErr != nil {
-		return nil, model.NewAppError("RegenerateRecap", "app.recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+		return nil, getErr
 	}
 
 	return updatedRecap, nil
@@ -193,14 +166,6 @@ func (a *App) RegenerateRecap(rctx request.CTX, recapID string) (*model.Recap, *
 
 // DeleteRecap deletes a recap (soft delete)
 func (a *App) DeleteRecap(rctx request.CTX, recapID string) *model.AppError {
-	userID := rctx.Session().UserId
-
-	// Check ownership
-	_, appErr := a.getRecapAndCheckOwnership(recapID, userID, "DeleteRecap")
-	if appErr != nil {
-		return appErr
-	}
-
 	// Delete recap
 	if deleteErr := a.Srv().Store().Recap().DeleteRecap(recapID); deleteErr != nil {
 		return model.NewAppError("DeleteRecap", "app.recap.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)

@@ -63,11 +63,53 @@ func newSqlRecapStore(sqlStore *SqlStore) store.RecapStore {
 	return s
 }
 
+func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]interface{} {
+	return map[string]interface{}{
+		"Id":                recap.Id,
+		"UserId":            recap.UserId,
+		"Title":             recap.Title,
+		"CreateAt":          recap.CreateAt,
+		"UpdateAt":          recap.UpdateAt,
+		"DeleteAt":          recap.DeleteAt,
+		"ReadAt":            recap.ReadAt,
+		"TotalMessageCount": recap.TotalMessageCount,
+		"Status":            recap.Status,
+		"BotID":             recap.BotID,
+	}
+}
+
+func (s *SqlRecapStore) recapChannelToMap(rc *model.RecapChannel) (map[string]interface{}, error) {
+	highlightsJSON, err := json.Marshal(rc.Highlights)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal Highlights")
+	}
+
+	actionItemsJSON, err := json.Marshal(rc.ActionItems)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal ActionItems")
+	}
+
+	sourcePostIdsJSON, err := json.Marshal(rc.SourcePostIds)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal SourcePostIds")
+	}
+
+	return map[string]interface{}{
+		"Id":            rc.Id,
+		"RecapId":       rc.RecapId,
+		"ChannelId":     rc.ChannelId,
+		"ChannelName":   rc.ChannelName,
+		"Highlights":    string(highlightsJSON),
+		"ActionItems":   string(actionItemsJSON),
+		"SourcePostIds": string(sourcePostIdsJSON),
+		"CreateAt":      rc.CreateAt,
+	}, nil
+}
+
 func (s *SqlRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Insert("Recaps").
-		Columns(recapColumns...).
-		Values(recap.Id, recap.UserId, recap.Title, recap.CreateAt, recap.UpdateAt, recap.DeleteAt, recap.ReadAt, recap.TotalMessageCount, recap.Status, recap.BotID)
+		SetMap(s.recapToMap(recap))
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return nil, errors.Wrap(err, "failed to save Recap")
@@ -110,10 +152,12 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 func (s *SqlRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		Set("Title", recap.Title).
-		Set("UpdateAt", recap.UpdateAt).
-		Set("TotalMessageCount", recap.TotalMessageCount).
-		Set("Status", recap.Status).
+		SetMap(map[string]interface{}{
+			"Title":             recap.Title,
+			"UpdateAt":          recap.UpdateAt,
+			"TotalMessageCount": recap.TotalMessageCount,
+			"Status":            recap.Status,
+		}).
 		Where(sq.Eq{"Id": recap.Id})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
@@ -128,8 +172,10 @@ func (s *SqlRecapStore) UpdateRecapStatus(id, status string) error {
 
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		Set("Status", status).
-		Set("UpdateAt", updateAt).
+		SetMap(map[string]interface{}{
+			"Status":   status,
+			"UpdateAt": updateAt,
+		}).
 		Where(sq.Eq{"Id": id})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
@@ -144,8 +190,10 @@ func (s *SqlRecapStore) MarkRecapAsRead(id string) error {
 
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		Set("ReadAt", now).
-		Set("UpdateAt", now).
+		SetMap(map[string]interface{}{
+			"ReadAt":   now,
+			"UpdateAt": now,
+		}).
 		Where(sq.Eq{"Id": id, "ReadAt": 0})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
@@ -160,7 +208,9 @@ func (s *SqlRecapStore) DeleteRecap(id string) error {
 
 	query := s.getQueryBuilder().
 		Update("Recaps").
-		Set("DeleteAt", deleteAt).
+		SetMap(map[string]interface{}{
+			"DeleteAt": deleteAt,
+		}).
 		Where(sq.Eq{"Id": id})
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
@@ -183,27 +233,14 @@ func (s *SqlRecapStore) DeleteRecapChannels(recapId string) error {
 }
 
 func (s *SqlRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
-	// Convert arrays to JSON strings for storage
-	highlightsJSON, err := json.Marshal(recapChannel.Highlights)
+	rcMap, err := s.recapChannelToMap(recapChannel)
 	if err != nil {
-		return errors.Wrap(err, "failed to marshal Highlights")
-	}
-
-	actionItemsJSON, err := json.Marshal(recapChannel.ActionItems)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal ActionItems")
-	}
-
-	sourcePostIdsJSON, err := json.Marshal(recapChannel.SourcePostIds)
-	if err != nil {
-		return errors.Wrap(err, "failed to marshal SourcePostIds")
+		return err
 	}
 
 	query := s.getQueryBuilder().
 		Insert("RecapChannels").
-		Columns(recapChannelColumns...).
-		Values(recapChannel.Id, recapChannel.RecapId, recapChannel.ChannelId, recapChannel.ChannelName,
-			string(highlightsJSON), string(actionItemsJSON), string(sourcePostIdsJSON), recapChannel.CreateAt)
+		SetMap(rcMap)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return errors.Wrap(err, "failed to save RecapChannel")

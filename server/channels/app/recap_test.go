@@ -115,9 +115,10 @@ func TestGetRecap(t *testing.T) {
 		// Try to get as a different user - create context with BasicUser2's session
 		ctx := request.TestContext(t).WithSession(&model.Session{UserId: th.BasicUser2.Id})
 		retrievedRecap, appErr := th.App.GetRecap(ctx, recap.Id)
-		require.NotNil(t, appErr)
-		assert.Nil(t, retrievedRecap)
-		assert.Equal(t, "app.recap.permission_denied", appErr.Id)
+		// Permissions are now checked in API layer, so App layer should return the recap
+		require.Nil(t, appErr)
+		require.NotNil(t, retrievedRecap)
+		assert.Equal(t, recap.Id, retrievedRecap.Id)
 	})
 }
 
@@ -237,9 +238,49 @@ func TestMarkRecapAsRead(t *testing.T) {
 		// Try to mark as read as a different user - create context with BasicUser2's session
 		ctx := request.TestContext(t).WithSession(&model.Session{UserId: th.BasicUser2.Id})
 		updatedRecap, appErr := th.App.MarkRecapAsRead(ctx, recap.Id)
-		require.NotNil(t, appErr)
-		assert.Nil(t, updatedRecap)
-		assert.Equal(t, "app.recap.permission_denied", appErr.Id)
+		// Permissions are now checked in API layer, so App layer should allow it
+		require.Nil(t, appErr)
+		require.NotNil(t, updatedRecap)
+		assert.Greater(t, updatedRecap.ReadAt, int64(0))
+	})
+}
+
+func TestProcessRecapChannel(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+
+	t.Run("process empty channel", func(t *testing.T) {
+		// Ensure channel has no posts (it shouldn't in init)
+		channel := th.CreateChannel(t, th.BasicTeam)
+		// No posts added
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recapID := model.NewId()
+		agentID := "test-agent"
+
+		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		assert.True(t, result.Success)
+		assert.Equal(t, 0, result.MessageCount)
+	})
+
+	t.Run("process channel with posts", func(t *testing.T) {
+		// This test expects failure at SummarizePosts because we can't mock AI easily in integration test
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.CreatePost(t, channel)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recapID := model.NewId()
+		agentID := "test-agent"
+
+		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		// It will fail at SummarizePosts agent call
+		require.NotNil(t, err)
+		assert.Equal(t, "app.ai.summarize.agent_call_failed", err.Id)
+		assert.False(t, result.Success)
 	})
 }
 

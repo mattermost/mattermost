@@ -3,10 +3,6 @@
 
 package model
 
-import (
-	"encoding/json"
-)
-
 type Recap struct {
 	Id                string          `json:"id"`
 	UserId            string          `json:"user_id"`
@@ -56,19 +52,3 @@ const (
 	RecapStatusCompleted  = "completed"
 	RecapStatusFailed     = "failed"
 )
-
-func (r *Recap) ToJSON() (string, error) {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
-func (rc *RecapChannel) ToJSON() (string, error) {
-	b, err := json.Marshal(rc)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
