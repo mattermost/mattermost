@@ -5,6 +5,89 @@ import {Client4} from '@mattermost/client';
 
 import {testConfig} from '@/test_config';
 
+const AI_PLUGIN_ID = 'mattermost-ai';
+
+interface PluginStatus {
+    plugin_id: string;
+    state: number;
+    error?: string;
+}
+
+/**
+ * Verifies the AI plugin is running by checking plugin statuses.
+ * @param adminClient - Admin client to check plugin status
+ * @returns Promise<boolean> - true if plugin is running
+ */
+async function verifyPluginRunning(adminClient: Client4): Promise<boolean> {
+    const statuses: PluginStatus[] = await adminClient.getPluginStatuses();
+    const aiPluginStatus = statuses.find((s: PluginStatus) => s.plugin_id === AI_PLUGIN_ID);
+
+    if (!aiPluginStatus) {
+        return false;
+    }
+
+    // Plugin states from server/public/model/plugin_status.go:
+    // 0 = NotRunning, 1 = Starting (unused), 2 = Running, 3 = FailedToStart, 4 = FailedToStayRunning
+    return aiPluginStatus.state === 2;
+}
+
+/**
+ * Waits for the AI plugin to reach running state.
+ * @param adminClient - Admin client to check plugin status
+ * @param maxAttempts - Maximum number of attempts (default: 15)
+ * @param delayMs - Delay between attempts in milliseconds (default: 2000)
+ * @returns Promise<boolean> - true if plugin reached running state
+ */
+async function waitForPluginReady(
+    adminClient: Client4,
+    maxAttempts: number = 15,
+    delayMs: number = 2000,
+): Promise<boolean> {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        if (await verifyPluginRunning(adminClient)) {
+            return true;
+        }
+
+        if (attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+    }
+    return false;
+}
+
+/**
+ * Verifies the AI plugin configuration is valid.
+ * @param adminClient - Admin client to check configuration
+ * @returns Promise<boolean> - true if configuration is valid
+ */
+async function verifyPluginConfiguration(adminClient: Client4): Promise<boolean> {
+    const config = await adminClient.getConfig();
+    const pluginConfig = config.PluginSettings?.Plugins?.[AI_PLUGIN_ID]?.config;
+
+    if (!pluginConfig) {
+        return false;
+    }
+
+    const services = pluginConfig.services || [];
+    const bots = pluginConfig.bots || [];
+
+    if (services.length === 0 || bots.length === 0) {
+        return false;
+    }
+
+    // Check if service has API key configured
+    const hasConfiguredService = services.some((s: {apiKey?: string}) => s.apiKey && s.apiKey.length > 0);
+    if (!hasConfiguredService) {
+        return false;
+    }
+
+    // Check if bot is linked to a service
+    const bot = bots[0];
+    const linkedService = services.find((s: {id: string}) => s.id === bot.serviceID);
+
+    return !!linkedService;
+}
+
 /**
  * Configures the AI plugin (mattermost-ai) with the provided API keys from environment variables.
  * This should only be called in tests that specifically need AI functionality.
@@ -16,6 +99,7 @@ import {testConfig} from '@/test_config';
  *
  * @param adminClient - Admin client to update plugin configuration
  * @returns Promise<void>
+ * @throws Error if plugin fails to configure or start
  */
 export async function configureAIPlugin(adminClient: Client4): Promise<void> {
     if (!testConfig.aiPluginEnabled) {
@@ -39,13 +123,13 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
             ...currentConfig.PluginSettings,
             PluginStates: {
                 ...currentConfig.PluginSettings?.PluginStates,
-                'mattermost-ai': {
+                [AI_PLUGIN_ID]: {
                     Enable: true,
                 },
             },
             Plugins: {
                 ...currentConfig.PluginSettings?.Plugins,
-                'mattermost-ai': {
+                [AI_PLUGIN_ID]: {
                     config: {
                         allowUnsafeLinks: false,
                         allowedUpstreamHostnames: '',
@@ -141,7 +225,35 @@ export async function configureAIPlugin(adminClient: Client4): Promise<void> {
         },
     };
 
+    // Save configuration
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await adminClient.updateConfig(aiPluginConfig as any);
+
+    // Verify configuration was saved correctly
+    const configValid = await verifyPluginConfiguration(adminClient);
+    if (!configValid) {
+        throw new Error('AI plugin configuration verification failed - configuration not saved correctly');
+    }
+
+    // Disable then enable plugin to ensure it restarts with new config
+    try {
+        await adminClient.disablePlugin(AI_PLUGIN_ID);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch {
+        // Plugin might not be running, ignore
+    }
+
+    await adminClient.enablePlugin(AI_PLUGIN_ID);
+
+    // Wait for plugin to be running
+    const isRunning = await waitForPluginReady(adminClient);
+    if (!isRunning) {
+        // Get plugin status for error details
+        const statuses: PluginStatus[] = await adminClient.getPluginStatuses();
+        const aiStatus = statuses.find((s) => s.plugin_id === AI_PLUGIN_ID);
+        const errorMsg = aiStatus?.error || 'Unknown error';
+        throw new Error(`AI plugin failed to start. Status: ${aiStatus?.state}, Error: ${errorMsg}`);
+    }
 }
 
 /**

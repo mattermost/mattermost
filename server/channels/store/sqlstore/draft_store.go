@@ -550,6 +550,18 @@ func (s *SqlDraftStore) CreatePageDraft(content *model.PageContent) (*model.Page
 func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentStr, title string, lastUpdateAt int64) (*model.PageContent, error) {
 	now := model.GetMillis()
 
+	// Validate content is valid TipTap JSON before attempting to store
+	// This prevents PostgreSQL JSONB errors and ensures data integrity
+	validatedContent := &model.PageContent{}
+	if err := validatedContent.SetDocumentJSON(contentStr); err != nil {
+		return nil, store.NewErrInvalidInput("PageContent", "content", err.Error())
+	}
+	// Get the validated JSON string to ensure proper formatting
+	validatedContentStr, err := validatedContent.GetDocumentJSON()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to serialize validated content")
+	}
+
 	// If lastUpdateAt == 0, this is a draft for a new page (not yet published)
 	// Try to update existing draft first, create if it doesn't exist
 	if lastUpdateAt == 0 {
@@ -561,7 +573,7 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 			WHERE PageId = $4
 			  AND UserId = $5
 			  AND UserId != ''`,
-			contentStr, title, now, pageId, userId)
+			validatedContentStr, title, now, pageId, userId)
 
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to update draft")
@@ -596,7 +608,7 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 		  AND UserId = $5
 		  AND UserId != ''
 		  AND UpdateAt = $6`,
-		contentStr, title, now, pageId, userId, lastUpdateAt)
+		validatedContentStr, title, now, pageId, userId, lastUpdateAt)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to save draft")
@@ -614,7 +626,7 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 		queryString, args, err := query.ToSql()
 		if err != nil {
 			// No draft exists - create one for editing an existing page
-			return s.createDraftForExistingPage(pageId, userId, wikiId, contentStr, title, lastUpdateAt)
+			return s.createDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
 		}
 
 		var updateAt int64
@@ -622,7 +634,7 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 		if err != nil {
 			if err == sql.ErrNoRows {
 				// No draft exists yet - create one for editing an existing page
-				return s.createDraftForExistingPage(pageId, userId, wikiId, contentStr, title, lastUpdateAt)
+				return s.createDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
 			}
 			return nil, errors.Wrap(err, "failed to check existing draft")
 		}
@@ -632,7 +644,7 @@ func (s *SqlDraftStore) UpsertPageDraftContent(pageId, userId, wikiId, contentSt
 			return nil, store.NewErrConflict("PageContent", errors.New("version_conflict"), "updateat mismatch")
 		}
 		// Should not reach here - create draft as fallback
-		return s.createDraftForExistingPage(pageId, userId, wikiId, contentStr, title, lastUpdateAt)
+		return s.createDraftForExistingPage(pageId, userId, wikiId, validatedContentStr, title, lastUpdateAt)
 	}
 
 	return s.GetPageDraft(pageId, userId)

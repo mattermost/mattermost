@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -49,8 +50,23 @@ func (a *App) UpsertPageDraft(rctx request.CTX, userId, wikiId, pageId, contentJ
 		return nil, model.NewAppError("UpsertPageDraft", "app.draft.save_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
+	// Auto-convert plain text to TipTap JSON if content is not already valid JSON
+	// This supports AI-generated content that may be in plain text/markdown format
+	processedContent := contentJSON
+	if contentJSON != "" {
+		trimmed := strings.TrimSpace(contentJSON)
+		if !strings.HasPrefix(trimmed, "{") || !isValidTipTapJSON(contentJSON) {
+			// Not valid TipTap JSON - convert plain text to TipTap JSON
+			processedContent = convertPlainTextToTipTapJSON(contentJSON)
+			rctx.Logger().Debug("Auto-converted plain text to TipTap JSON for draft",
+				mlog.String("page_id", pageId),
+				mlog.Int("original_length", len(contentJSON)),
+				mlog.Int("converted_length", len(processedContent)))
+		}
+	}
+
 	// Upsert draft content using unified PageContent model with optimistic locking
-	savedContent, err := a.Srv().Store().Draft().UpsertPageDraftContent(pageId, userId, wikiId, contentJSON, title, lastUpdateAt)
+	savedContent, err := a.Srv().Store().Draft().UpsertPageDraftContent(pageId, userId, wikiId, processedContent, title, lastUpdateAt)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		var invErr *store.ErrInvalidInput
