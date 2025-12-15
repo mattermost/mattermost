@@ -166,7 +166,7 @@ export default function AboutBuildModal(props: Props) {
                 <div>
                     <FormattedMessage
                         id='about.enterpriseEditionLearn'
-                        defaultMessage='Learn more about Enterprise Edition at {link}}'
+                        defaultMessage='Learn more about Enterprise Edition at {link}'
                         values={{
                             link: (
                                 <ExternalLink

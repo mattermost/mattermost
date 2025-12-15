@@ -6,7 +6,7 @@
   "about.date": "Build Date:",
   "about.dbversion": "Database Schema Version:",
   "about.desktopVersion": "Desktop Version:",
-  "about.enterpriseEditionLearn": "Learn more about Enterprise Edition at {link}}",
+  "about.enterpriseEditionLearn": "Learn more about Enterprise Edition at {link}",
   "about.enterpriseEditionSst": "High trust messaging for the enterprise",
   "about.enterpriseEditionSt": "Modern communication from behind your firewall.",
   "about.hash": "Build Hash:",
