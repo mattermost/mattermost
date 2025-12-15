@@ -12,9 +12,11 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import PostMessageView from 'components/post_view/post_message_view';
 import Tag from 'components/widgets/tag/tag';
 
+import {getPostTranslation} from 'utils/post_utils';
+
 import type {GlobalState} from 'types/store';
 
-import './view_translation_modal.scss';
+import './show_translation_modal.scss';
 
 type Props = {
     postId: string;
@@ -22,14 +24,15 @@ type Props = {
     onHide?: () => void;
 }
 
-function ViewTranslationModal({postId, onExited, onHide}: Props) {
+function ShowTranslationModal({postId, onExited, onHide}: Props) {
     const intl = useIntl();
     const post = useSelector((state: GlobalState) => getPost(state, postId));
     if (!post) {
         return null;
     }
 
-    const originalLanguage = 'en'; //post.metadata?.original_language || 'en';
+    const translation = getPostTranslation(post, intl.locale);
+    const originalLanguage = translation?.source_lang || 'unknown';
 
     const handleHide = () => {
         if (onHide) {
@@ -39,36 +42,39 @@ function ViewTranslationModal({postId, onExited, onHide}: Props) {
 
     return (
         <GenericModal
-            id='viewTranslationModal'
-            className='ViewTranslationModal a11y__modal'
+            id='showTranslationModal'
+            className='ShowTranslationModal a11y__modal'
             show={true}
             onHide={handleHide}
             onExited={onExited}
-            ariaLabelledby='viewTranslationModalLabel'
+            ariaLabelledby='showTranslationModalLabel'
             compassDesign={true}
             modalHeaderText={intl.formatMessage({
-                id: 'view_translation.modal.title',
+                id: 'show_translation.modal.title',
                 defaultMessage: 'Show Translation',
             })}
         >
-            <div className='ViewTranslationModal__body'>
-                <div className='ViewTranslationModal__content'>
+            <div className='ShowTranslationModal__body'>
+                <div className='ShowTranslationModal__content'>
                     {/* Original Message */}
-                    <div className='ViewTranslationModal__messageBlock ViewTranslationModal__messageBlock--original'>
-                        <div className='ViewTranslationModal__badgeContainer'>
-                            <span className='ViewTranslationModal__languageText'>
-                                {intl.formatDisplayName(originalLanguage, {type: 'language'})}
+                    <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--original'>
+                        <div className='ShowTranslationModal__badgeContainer'>
+                            <span className='ShowTranslationModal__languageText'>
+                                {originalLanguage === 'unknown' ? intl.formatMessage({
+                                    id: 'show_translation.unknown_language',
+                                    defaultMessage: 'Unknown',
+                                }) : intl.formatDisplayName(originalLanguage, {type: 'language'})}
                             </span>
                             <Tag
                                 text={intl.formatMessage({
-                                    id: 'view_translation.original_badge',
+                                    id: 'show_translation.original_badge',
                                     defaultMessage: 'ORIGINAL',
                                 })}
                                 variant='info'
                                 size='sm'
                             />
                         </div>
-                        <div className='ViewTranslationModal__postContent'>
+                        <div className='ShowTranslationModal__postContent'>
                             <PostMessageView
                                 post={post}
                                 isRHS={false}
@@ -79,21 +85,21 @@ function ViewTranslationModal({postId, onExited, onHide}: Props) {
                     </div>
 
                     {/* Translated Message */}
-                    <div className='ViewTranslationModal__messageBlock ViewTranslationModal__messageBlock--translated'>
-                        <div className='ViewTranslationModal__badgeContainer'>
-                            <span className='ViewTranslationModal__languageText'>
+                    <div className='ShowTranslationModal__messageBlock ShowTranslationModal__messageBlock--translated'>
+                        <div className='ShowTranslationModal__badgeContainer'>
+                            <span className='ShowTranslationModal__languageText'>
                                 {intl.formatDisplayName(intl.locale, {type: 'language'})}
                             </span>
                             <Tag
                                 text={intl.formatMessage({
-                                    id: 'view_translation.auto_translated_badge',
+                                    id: 'show_translation.auto_translated_badge',
                                     defaultMessage: 'AUTO-TRANSLATED',
                                 })}
                                 variant='default'
                                 size='sm'
                             />
                         </div>
-                        <div className='ViewTranslationModal__postContent'>
+                        <div className='ShowTranslationModal__postContent'>
                             <PostMessageView
                                 post={post}
                                 isRHS={false}
@@ -108,5 +114,5 @@ function ViewTranslationModal({postId, onExited, onHide}: Props) {
     );
 }
 
-export default ViewTranslationModal;
+export default ShowTranslationModal;
 

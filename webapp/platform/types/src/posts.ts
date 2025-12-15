@@ -64,9 +64,9 @@ export type PostPriorityMetadata = {
 }
 
 export type PostTranslation = {
-    text: string;
-    type: string;
-    confidence?: number;
+    object?: {
+        message: string;
+    };
     state: 'ready' | 'skipped' | 'processing' | 'unavailable';
     source_lang?: string;
 };

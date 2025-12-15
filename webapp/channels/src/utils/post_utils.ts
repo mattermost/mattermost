@@ -875,3 +875,7 @@ export function getPostTranslation(post: Post, locale: string): PostTranslation 
     const normalizedLocale = locale.split('-')[0];
     return post.metadata?.translations?.[normalizedLocale];
 }
+
+export function getPostTranslatedMessage(originalMessage: string, translation: PostTranslation): string {
+    return translation.object?.message ?? originalMessage;
+}

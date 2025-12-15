@@ -19,7 +19,7 @@ import type {AttachmentTextOverflowType} from 'components/post_view/show_more/sh
 
 import Pluggable from 'plugins/pluggable';
 import {PostTypes} from 'utils/constants';
-import {getPostTranslation} from 'utils/post_utils';
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
 import * as Utils from 'utils/utils';
 
@@ -155,8 +155,8 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
         // Use translation if channel is autotranslated and translation is available
         const translation = getPostTranslation(post, this.props.userLanguage);
-        if (this.props.isChannelAutotranslated && translation?.state === 'ready' && translation?.text) {
-            message = translation.text;
+        if (this.props.isChannelAutotranslated && translation?.state === 'ready') {
+            message = getPostTranslatedMessage(message, translation);
         }
 
         const id = isRHS ? `rhsPostMessageText_${post.id}` : `postMessageText_${post.id}`;

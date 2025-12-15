@@ -346,9 +346,9 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             ...translations,
             [data.language]: {
                 lang: data.language,
-                text: data.translation,
-                type: data.translation_type,
+                object: data.translation ? JSON.parse(data.translation) : undefined,
                 state: data.state,
+                source_lang: data.src_lang,
             }};
         return {
             ...state,
@@ -376,7 +376,6 @@ type PostTranslationUpdateData = {
     src_lang: string;
     state: 'ready' | 'skipped' | 'processing' | 'unavailable';
     translation: string;
-    translation_type: 'string' | 'object';
 }
 
 function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: number) {

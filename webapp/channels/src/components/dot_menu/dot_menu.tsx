@@ -38,7 +38,7 @@ import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import ViewTranslationModal from 'components/view_translation_modal';
+import ShowTranslationModal from 'components/show_translation_modal';
 
 import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
@@ -416,8 +416,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
 
     handleShowTranslation = () => {
         this.props.actions.openModal({
-            modalId: ModalIdentifiers.VIEW_TRANSLATION,
-            dialogType: ViewTranslationModal,
+            modalId: ModalIdentifiers.SHOW_TRANSLATION,
+            dialogType: ShowTranslationModal,
             dialogProps: {postId: this.props.post.id},
         });
     };

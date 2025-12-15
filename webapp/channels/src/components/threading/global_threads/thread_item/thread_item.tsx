@@ -32,7 +32,7 @@ import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';
 
-import {getPostTranslation} from 'utils/post_utils';
+import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -195,7 +195,7 @@ function ThreadItem({
     const translation = getPostTranslation(post, locale);
     let message = post.message;
     if (isChannelAutotranslated && translation?.state === 'ready') {
-        message = translation.text;
+        message = getPostTranslatedMessage(message, translation);
     }
 
     return (

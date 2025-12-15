@@ -10,7 +10,7 @@ import type {PostTranslation} from '@mattermost/types/posts';
 
 import {openModal} from 'actions/views/modals';
 
-import ViewTranslationModal from 'components/view_translation_modal';
+import ShowTranslationModal from 'components/show_translation_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
@@ -29,8 +29,8 @@ function PostHeaderTranslateIcon({
 
     const handleTranslationClick = useCallback(() => {
         dispatch(openModal({
-            modalId: ModalIdentifiers.VIEW_TRANSLATION,
-            dialogType: ViewTranslationModal,
+            modalId: ModalIdentifiers.SHOW_TRANSLATION,
+            dialogType: ShowTranslationModal,
             dialogProps: {postId},
         }));
     }, [dispatch, postId]);
