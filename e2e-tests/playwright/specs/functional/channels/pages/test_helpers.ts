@@ -17,6 +17,7 @@ export const UI_MICRO_WAIT = 100; // Very short wait for micro UI updates (100-3
 export const SHORT_WAIT = 500; // Short wait for UI updates
 export const EDITOR_LOAD_WAIT = 1000; // Wait for editor to load
 export const AUTOSAVE_WAIT = 2000; // Wait for auto-save to complete (500ms debounce + buffer)
+export const MODAL_CLOSE_TIMEOUT = 2000; // Timeout for modal to close after user action (should be prompt)
 export const WEBSOCKET_WAIT = 3000; // Wait for WebSocket message to propagate
 export const ELEMENT_TIMEOUT = 5000; // Standard timeout for element visibility (modals, dropdowns, panels, indicators)
 export const HIERARCHY_TIMEOUT = 10000; // Timeout for hierarchy panel operations
@@ -645,7 +646,7 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
                         content: [{type: 'text', text: content}],
                     },
                 ],
-            });
+            }, true); // emitUpdate: true - triggers onUpdate callback for autosave
             // Trigger focus to ensure content change is registered
             editorInstance.commands.focus();
         }
@@ -754,7 +755,7 @@ export async function createChildPageThroughContextMenu(
                         content: [{type: 'text', text: content}],
                     },
                 ],
-            });
+            }, true); // emitUpdate: true - triggers onUpdate callback for autosave
             // Trigger focus to ensure content change is registered
             editorInstance.commands.focus();
         }
@@ -938,8 +939,8 @@ export async function renamePageViaContextMenu(page: Page, currentTitle: string,
     const confirmButton = renameModal.locator('button.btn-primary');
     await confirmButton.click();
 
-    // # Wait for modal to close
-    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    // # Wait for modal to close promptly after user action
+    await renameModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
 
     // # Wait for rename to complete and propagate
     await page.waitForLoadState('networkidle');
@@ -1404,7 +1405,7 @@ export async function renameWikiThroughModal(page: Page, oldWikiName: string, ne
     const renameButton = renameModal.getByRole('button', {name: /rename/i});
     await renameButton.click();
 
-    await renameModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await renameModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
     await page.waitForTimeout(EDITOR_LOAD_WAIT);
 }
 
@@ -1423,7 +1424,7 @@ export async function deleteWikiThroughModalConfirmation(page: Page, wikiName: s
     const confirmButton = confirmModal.getByRole('button', {name: /delete|yes/i});
     await confirmButton.click();
 
-    await confirmModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await confirmModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
 }
 
 /**
@@ -1540,7 +1541,7 @@ export async function moveWikiToChannel(page: Page, wikiName: string, targetChan
     const moveButton = moveModal.getByRole('button', {name: /move wiki/i});
     await moveButton.click();
 
-    await moveModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    await moveModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
     await page.waitForLoadState('networkidle');
 }
 
@@ -3297,8 +3298,8 @@ export async function confirmRestoreVersion(page: Page): Promise<void> {
     await confirmButton.waitFor({state: 'visible', timeout: ELEMENT_TIMEOUT});
     await confirmButton.click();
 
-    // # Wait for modal to close
-    await restoreModal.waitFor({state: 'hidden', timeout: ELEMENT_TIMEOUT});
+    // # Wait for modal to close promptly after user action
+    await restoreModal.waitFor({state: 'hidden', timeout: MODAL_CLOSE_TIMEOUT});
 }
 
 /**

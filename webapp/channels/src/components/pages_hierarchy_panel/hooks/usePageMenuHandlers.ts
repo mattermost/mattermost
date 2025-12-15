@@ -145,10 +145,12 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         } finally {
             setCreatingPage(false);
             setCreatePageParent(null);
+            setShowCreatePageModal(false);
         }
     }, [dispatch, createPageParent, wikiId, onPageSelect]);
 
     const handleCancelCreatePage = useCallback(() => {
+        setShowCreatePageModal(false);
         setCreatePageParent(null);
     }, []);
 
@@ -214,6 +216,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         } finally {
             setRenamingPage(false);
             setPageToRename(null);
+            setShowRenameModal(false);
         }
     }, [dispatch, pageToRename, wikiId, allPages, channelId, drafts, onCancelAutosave]);
 
