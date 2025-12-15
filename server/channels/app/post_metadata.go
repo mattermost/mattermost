@@ -153,6 +153,9 @@ func (a *App) populatePostListTranslations(rctx request.CTX, list *model.PostLis
 			}
 
 			post.Metadata.Translations[t.Lang] = t.ToPostTranslation()
+			if t.UpdateAt > post.UpdateAt {
+				post.UpdateAt = t.UpdateAt
+			}
 		}
 	}
 }

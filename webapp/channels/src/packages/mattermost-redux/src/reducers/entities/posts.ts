@@ -397,11 +397,11 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
     case PostTypes.POST_TRANSLATION_UPDATED: {
         const data: PostTranslationUpdateData = action.data;
-        if (!state[data.post_id]) {
+        if (!state[data.object_id]) {
             return state;
         }
 
-        const translations = state[data.post_id].metadata?.translations || {};
+        const translations = state[data.object_id].metadata?.translations || {};
         const newTranslations = {
             ...translations,
             [data.language]: {
@@ -412,10 +412,10 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
             }};
         return {
             ...state,
-            [data.post_id]: {
-                ...state[data.post_id],
+            [data.object_id]: {
+                ...state[data.object_id],
                 metadata: {
-                    ...state[data.post_id].metadata,
+                    ...state[data.object_id].metadata,
                     translations: newTranslations,
                 },
             },
@@ -432,7 +432,6 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 type PostTranslationUpdateData = {
     language: string;
     object_id: string;
-    post_id: string;
     src_lang: string;
     state: 'ready' | 'skipped' | 'processing' | 'unavailable';
     translation: string;
