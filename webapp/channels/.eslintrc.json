@@ -10,7 +10,7 @@
   "settings": {
     "import/resolver": "webpack",
     "formatjs": {
-      "additionalFunctionNames": ["localizeMessage"]
+      "additionalFunctionNames": ["localizeMessage", "defineMessage"]
     }
   },
   "rules": {
