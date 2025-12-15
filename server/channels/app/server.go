@@ -43,6 +43,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_expired_posts"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
@@ -1635,15 +1636,36 @@ func (s *Server) initJobs() {
 		delete_dms_preferences_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
 
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteExpiredPosts,
+		delete_expired_posts.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		delete_expired_posts.MakeScheduler(s.Jobs),
+	)
+
 	s.platform.Jobs = s.Jobs
 }
 
+// ServerId returns the unique identifier for an installation of Mattermost servers.
+//
+// It is also known as the "telemetry id" or the "diagnostic id". Once generated
+// on first start, the value is persisted to the database and should remain static
+// for the lifetime of the installation.
+//
+// Only one server in a cluster will succeed in writing to the database on first
+// start, after which the other servers will converge on the same value.
 func (s *Server) ServerId() string {
-	props, err := s.Store().System().Get()
+	if s.telemetryService != nil && s.telemetryService.ServerID != "" {
+		return s.telemetryService.ServerID
+	}
+
+	prop, err := s.Store().System().GetByNameWithContext(
+		store.RequestContextWithMaster(request.EmptyContext(s.Log())),
+		model.SystemServerId,
+	)
 	if err != nil {
 		return ""
 	}
-	return props[model.SystemServerId]
+	return prop.Value
 }
 
 func (s *Server) HTTPService() httpservice.HTTPService {

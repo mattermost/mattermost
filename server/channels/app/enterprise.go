@@ -122,6 +122,12 @@ func RegisterAutoTranslationInterface(f func(*Server) einterfaces.AutoTranslatio
 	autoTranslationInterface = f
 }
 
+var intuneInterface func(*App) einterfaces.IntuneInterface
+
+func RegisterIntuneInterface(f func(*App) einterfaces.IntuneInterface) {
+	intuneInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)

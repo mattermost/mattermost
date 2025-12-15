@@ -533,7 +533,15 @@ export function getUnreadPostsChunk(state: GlobalState, channelId: Channel['id']
         }
     }
 
-    return getPostsChunkInChannelAroundTime(state, channelId, timeStamp);
+    // Try to find a chunk where lastViewedAt falls within the post range
+    const chunkAroundTime = getPostsChunkInChannelAroundTime(state, channelId, timeStamp);
+
+    if (chunkAroundTime) {
+        return chunkAroundTime;
+    }
+
+    // All fetched posts are newer than lastViewedAt. Return the recent chunk.
+    return recentChunk;
 }
 
 export const isPostsChunkIncludingUnreadsPosts = (state: GlobalState, chunk: PostOrderBlock, timeStamp: number): boolean => {

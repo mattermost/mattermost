@@ -48,4 +48,6 @@ import (
 	_ "github.com/mattermost/enterprise/message_export/global_relay_export"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/enterprise/autotranslation"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/enterprise/intune"
 )

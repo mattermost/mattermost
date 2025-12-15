@@ -29,6 +29,7 @@ import store from 'stores/redux_store';
 
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
+import {registerRHSPluginPopoutListener, type PopoutListeners} from 'utils/popouts/popout_windows';
 import {generateId} from 'utils/utils';
 
 import type {
@@ -1420,5 +1421,9 @@ export default class PluginRegistry {
      */
     registerSystemConsoleGroupTable = reArg(['component'], ({component}: DPluginComponentProp) => {
         return dispatchPluginComponentAction('SystemConsoleGroupTable', this.id, component);
+    });
+
+    registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void}) => {
+        registerRHSPluginPopoutListener(pluginId, onPopoutOpened);
     });
 }

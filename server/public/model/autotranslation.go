@@ -99,7 +99,6 @@ func (t *Translation) ToPostTranslation() *PostTranslation {
 	}
 
 	pt := &PostTranslation{
-		Type:       string(t.Type),
 		State:      string(t.State),
 		SourceLang: sourceLang,
 	}

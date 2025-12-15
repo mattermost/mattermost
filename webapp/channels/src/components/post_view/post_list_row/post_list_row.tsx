@@ -182,6 +182,11 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
             );
         }
 
+        // Don't render if post has been deleted/removed
+        if (!this.props.post) {
+            return null;
+        }
+
         return (
             <PostComponent
                 post={this.props.post}

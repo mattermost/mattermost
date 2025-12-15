@@ -195,7 +195,6 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 		Email:         email,
 		EmailVerified: true,
 		Username:      username,
-		Password:      model.NewId(), // Random password - user won't use it
 		AuthService:   model.UserAuthServiceMagicLink,
 	}
 
@@ -1083,6 +1082,10 @@ func (a *App) UpdatePasswordAsUser(rctx request.CTX, userID, currentPassword, ne
 		return model.NewAppError("updatePassword", "api.user.update_password.oauth.app_error", nil, "auth_service="+user.AuthService, http.StatusBadRequest)
 	}
 
+	if user.IsMagicLinkEnabled() {
+		return model.NewAppError("updatePassword", "api.user.update_password.magic_link.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if err := a.DoubleCheckPassword(rctx, user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
@@ -1380,9 +1383,11 @@ func (a *App) sendUpdatedUserEvent(user *model.User) {
 	// First, creating a base copy to avoid race conditions
 	// from setting the binaryParamKey in userstore.Update.
 	user = user.DeepCopy()
-	// declare admin and unsanitized copy of user
+	// Create copies for different sanitization levels:
+	// - adminCopyOfUser: moderately sanitized for admins
+	// - sourceUserCopyOfUser: minimally sanitized (keeps NotifyProps) for event creator
 	adminCopyOfUser := user.DeepCopy()
-	unsanitizedCopyOfUser := user.DeepCopy()
+	sourceUserCopyOfUser := user.DeepCopy()
 
 	a.SanitizeProfile(adminCopyOfUser, true)
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", "", omitUsers, "")
@@ -1396,9 +1401,9 @@ func (a *App) sendUpdatedUserEvent(user *model.User) {
 	message.GetBroadcast().ContainsSanitizedData = true
 	a.Publish(message)
 
-	// send unsanitized user to event creator
-	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", unsanitizedCopyOfUser.Id, nil, "")
-	sourceUserMessage.Add("user", unsanitizedCopyOfUser)
+	sourceUserCopyOfUser.Sanitize(nil)
+	sourceUserMessage := model.NewWebSocketEvent(model.WebsocketEventUserUpdated, "", "", sourceUserCopyOfUser.Id, nil, "")
+	sourceUserMessage.Add("user", sourceUserCopyOfUser)
 	a.Publish(sourceUserMessage)
 }
 
@@ -1623,6 +1628,10 @@ func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword str
 		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	if user.IsMagicLinkEnabled() {
+		return model.NewAppError("UpdatePassword", "api.user.update_password.magic_link.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	hashedPassword, err := hashers.Hash(newPassword)
 	if err != nil {
 		// can't be password length (checked in IsPasswordValid)
@@ -1740,7 +1749,7 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	if user.IsGuest() && user.IsMagicLinkEnabled() {
+	if user.IsMagicLinkEnabled() {
 		return model.NewAppError("ResetPasswordFromCode", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
@@ -1777,7 +1786,7 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	if user.IsGuest() && user.IsMagicLinkEnabled() {
+	if user.IsMagicLinkEnabled() {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 

@@ -92,12 +92,15 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
                 pinPost: jest.fn(),
                 unpinPost: jest.fn(),
                 openModal: jest.fn(),
+                closeModal: jest.fn(),
                 markPostAsUnread: jest.fn(),
                 handleBindingClick: jest.fn(),
                 postEphemeralCallResponseForPost: jest.fn(),
                 setThreadFollow: jest.fn(),
                 addPostReminder: jest.fn(),
                 setGlobalItem: jest.fn(),
+                burnPostNow: jest.fn(),
+                savePreferences: jest.fn(),
             },
             canEdit: false,
             canDelete: false,
@@ -114,6 +117,7 @@ describe('components/dot_menu/DotMenu on mobile view', () => {
             canMove: true,
             isChannelAutotranslated: false,
             isBurnOnReadPost: false,
+            isUnrevealedBurnOnReadPost: false,
         };
 
         renderWithContext(
