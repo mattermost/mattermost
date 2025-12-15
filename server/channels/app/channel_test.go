@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -2864,59 +2865,156 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 func TestGetGroupMessageMembersCommonTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
-	defer th.TearDown()
 
-	teamsToCreate := 2
-	usersToCreate := 4 // at least 3 users to create a GM channel, last user is not in any team
-	teams := make([]string, 0, teamsToCreate)
-	for i := 0; i < cap(teams); i++ {
-		team := th.CreateTeam()
-		defer func(team *model.Team) {
-			appErr := th.App.PermanentDeleteTeam(th.Context, team)
-			require.Nil(t, appErr)
-		}(team)
-		teams = append(teams, team.Id)
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+	user3 := th.CreateUser()
+	user4NotInAnyTeams := th.CreateUser()
+	unrelatedUser := th.CreateUser()
+
+	// All of user1, user2 and user3, and unrelatedUser on team1
+	th.LinkUserToTeam(user1, team1)
+	th.LinkUserToTeam(user2, team1)
+	th.LinkUserToTeam(user3, team1)
+	th.LinkUserToTeam(unrelatedUser, team1)
+
+	// Only user2, user3, and unrelatedUser on team2
+	th.LinkUserToTeam(user2, team2)
+	th.LinkUserToTeam(user3, team2)
+	th.LinkUserToTeam(unrelatedUser, team2)
+
+	assertNoTeamsInCommon := func(t *testing.T, commonTeams []*model.Team) {
+		t.Helper()
+		assert.Empty(t, commonTeams, "expected no teams in common")
 	}
 
-	users := make([]string, 0, usersToCreate)
-	for i := 0; i < cap(users); i++ {
-		user := th.CreateUser()
-		defer func(user *model.User) {
-			appErr := th.App.PermanentDeleteUser(th.Context, user)
-			require.Nil(t, appErr)
-		}(user)
-		users = append(users, user.Id)
-	}
-
-	for _, teamId := range teams {
-		// add first 3 users to each team, last user is not in any team
-		for i := range 3 {
-			_, _, appErr := th.App.AddUserToTeam(th.Context, teamId, users[i], "")
-			require.Nil(t, appErr)
+	assertTeam1InCommon := func(t *testing.T, commonTeams []*model.Team) {
+		t.Helper()
+		if assert.Len(t, commonTeams, 1, "expected 1 team in common") {
+			assert.Equal(t, team1.Id, commonTeams[0].Id, "expected team1 in common")
 		}
 	}
 
-	// create GM channel with first 3 users who share common teams
-	gmChannel, appErr := th.App.createGroupChannel(th.Context, users[:3], users[0])
-	require.Nil(t, appErr)
-	require.NotNil(t, gmChannel)
+	assertTeam1And2InCommon := func(t *testing.T, commonTeams []*model.Team) {
+		t.Helper()
+		if assert.Len(t, commonTeams, 2, "expected 2 teams in common") {
+			assert.True(t, slices.ContainsFunc(commonTeams, func(team *model.Team) bool {
+				return team.Id == team1.Id
+			}), "expected team1 in common")
+			assert.True(t, slices.ContainsFunc(commonTeams, func(team *model.Team) bool {
+				return team.Id == team2.Id
+			}), "expected team2 in common")
+		}
+	}
 
-	// normally you can't create a GM channel with users that don't share any teams, but we do it here to test the edge case
-	// create GM channel with last 3 users, where last member is not in any team
-	otherGMChannel, appErr := th.App.createGroupChannel(th.Context, users[1:], users[0])
-	require.Nil(t, appErr)
-	require.NotNil(t, otherGMChannel)
+	t.Run("teams for gm with user1, user2 and user3", func(t *testing.T) {
+		gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, gmChannel)
 
-	t.Run("Get teams for GM channel", func(t *testing.T) {
 		commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, 2, len(commonTeams))
+		assertTeam1InCommon(t, commonTeams)
+
+		t.Run("as user1", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user1.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as user2", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as user3", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1InCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
 	})
 
-	t.Run("No common teams", func(t *testing.T) {
-		commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeams(th.Context, otherGMChannel.Id)
+	t.Run("teams for gm with user2, user3, and user4NotInAnyTeams", func(t *testing.T) {
+		gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user2.Id, user3.Id, user4NotInAnyTeams.Id}, user1.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, 0, len(commonTeams))
+		require.NotNil(t, gmChannel)
+
+		commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+		require.Nil(t, appErr)
+		assertNoTeamsInCommon(t, commonTeams)
+
+		t.Run("as user2", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+
+		t.Run("as user3", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+	})
+
+	t.Run("teams for gm with user2, user3, and deactivatedUser", func(t *testing.T) {
+		deactivatedUser := th.CreateUser()
+
+		// deactiverUser on team2 only
+		th.LinkUserToTeam(deactivatedUser, team2)
+
+		gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user2.Id, user3.Id, deactivatedUser.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, gmChannel)
+
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+		require.Nil(t, appErr)
+		// By default, we return the teams common only to active users.
+		assertTeam1And2InCommon(t, commonTeams)
+
+		t.Run("as user2", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user2.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1And2InCommon(t, commonTeams)
+		})
+
+		t.Run("as user3", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: user3.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertTeam1And2InCommon(t, commonTeams)
+		})
+
+		t.Run("as deactivatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: deactivatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+
+			// When requesting as deactivated user in the gm, no teams are considered in common.
+			assertNoTeamsInCommon(t, commonTeams)
+		})
+
+		t.Run("as unrelatedUser", func(t *testing.T) {
+			commonTeams, appErr := th.App.GetGroupMessageMembersCommonTeamsAsUser(th.Context.WithSession(&model.Session{UserId: unrelatedUser.Id}), gmChannel.Id)
+			require.Nil(t, appErr)
+			assertNoTeamsInCommon(t, commonTeams)
+		})
 	})
 }
 
