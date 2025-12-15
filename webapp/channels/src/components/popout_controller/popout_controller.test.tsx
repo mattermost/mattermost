@@ -40,9 +40,9 @@ jest.mock('components/rhs_popout', () => ({
     __esModule: true,
     default: () => <div data-testid='rhs-popout'>{'RHS Popout'}</div>,
 }));
-jest.mock('utils/popouts/use_browser_popout', () => ({
+jest.mock('utils/popouts/use_popout_history', () => ({
     __esModule: true,
-    useBrowserPopout: jest.fn(),
+    usePopoutHistory: jest.fn(),
 }));
 
 jest.mock('components/logged_in', () => ({

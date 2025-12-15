@@ -6,7 +6,7 @@ import type {IntlShape} from 'react-intl';
 import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';
 
-import {FOCUS_REPLY_POST, popoutRhsPlugin, popoutThread} from './popout_windows';
+import {FOCUS_REPLY_POST, popoutChannelInfo, popoutChannelMembers, popoutRhsPlugin, popoutThread} from './popout_windows';
 
 // Mock dependencies
 jest.mock('utils/desktop_api', () => ({
@@ -48,6 +48,12 @@ describe('popout_windows', () => {
             }
             if (id === 'rhs_plugin_popout.title') {
                 return '{serverName} - {pluginDisplayName}';
+            }
+            if (id === 'channel_info_popout.title') {
+                return 'Channel Info - {channelName} - {teamName}';
+            }
+            if (id === 'channel_members_popout.title') {
+                return 'Channel Members - {channelName} - {teamName}';
             }
             return defaultMessage;
         }),
@@ -184,6 +190,110 @@ describe('popout_windows', () => {
             mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
 
             const result = await popoutRhsPlugin(mockIntl, 'test-plugin-id', 'Test Plugin', 'test-team', 'test-channel');
+
+            expect(result).toEqual(mockListeners);
+        });
+    });
+
+    describe('popoutChannelInfo', () => {
+        it('should call popout with correct path and props for desktop app', async () => {
+            mockIsDesktopApp.mockReturnValue(true);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+
+            await popoutChannelInfo(mockIntl, 'test-team', 'test-channel');
+
+            expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
+                '/_popout/rhs/test-team/test-channel/channel-info',
+                {
+                    isRHS: true,
+                    titleTemplate: 'Channel Info - {channelName} - {teamName}',
+                },
+            );
+        });
+
+        it('should call popout with correct path and props for browser popout', async () => {
+            mockIsDesktopApp.mockReturnValue(false);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+
+            await popoutChannelInfo(mockIntl, 'test-team', 'test-channel');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/rhs/test-team/test-channel/channel-info',
+            );
+        });
+
+        it('should return popout listeners', async () => {
+            mockIsDesktopApp.mockReturnValue(true);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+
+            const result = await popoutChannelInfo(mockIntl, 'test-team', 'test-channel');
+
+            expect(result).toEqual(mockListeners);
+        });
+    });
+
+    describe('popoutChannelMembers', () => {
+        it('should call popout with correct path and props for desktop app', async () => {
+            mockIsDesktopApp.mockReturnValue(true);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+
+            await popoutChannelMembers(mockIntl, 'test-team', 'test-channel');
+
+            expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(
+                '/_popout/rhs/test-team/test-channel/channel-members',
+                {
+                    isRHS: true,
+                    titleTemplate: 'Channel Members - {channelName} - {teamName}',
+                },
+            );
+        });
+
+        it('should call popout with correct path and props for browser popout', async () => {
+            mockIsDesktopApp.mockReturnValue(false);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            getMockSetupBrowserPopout().mockReturnValue(mockListeners);
+
+            await popoutChannelMembers(mockIntl, 'test-team', 'test-channel');
+
+            expect(getMockSetupBrowserPopout()).toHaveBeenCalledWith(
+                '/_popout/rhs/test-team/test-channel/channel-members',
+            );
+        });
+
+        it('should return popout listeners', async () => {
+            mockIsDesktopApp.mockReturnValue(true);
+            const mockListeners = {
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
+            };
+            mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
+
+            const result = await popoutChannelMembers(mockIntl, 'test-team', 'test-channel');
 
             expect(result).toEqual(mockListeners);
         });

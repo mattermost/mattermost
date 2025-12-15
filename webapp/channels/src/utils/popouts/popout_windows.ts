@@ -14,7 +14,7 @@ import BrowserPopouts from './browser_popouts';
 import {
     sendToParent as sendToParentBrowser,
     onMessageFromParent as onMessageFromParentBrowser,
-} from './use_browser_popout';
+} from './use_popout_history';
 
 const pluginPopoutListeners: Map<string, (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void> = new Map();
 export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened: (teamName: string, channelName: string, listeners: Partial<PopoutListeners>) => void) {
@@ -73,6 +73,40 @@ export async function popoutRhsPlugin(
     pluginPopoutListeners.get(pluginId)?.(teamName, channelName, listeners);
 
     return listeners;
+}
+
+export async function popoutChannelInfo(
+    intl: IntlShape,
+    teamName: string,
+    channelName: string,
+) {
+    return popout(
+        `/_popout/rhs/${teamName}/${channelName}/channel-info`,
+        {
+            isRHS: true,
+            titleTemplate: intl.formatMessage({
+                id: 'channel_info_popout.title',
+                defaultMessage: 'Channel Info - {channelName} - {teamName}',
+            }),
+        },
+    );
+}
+
+export async function popoutChannelMembers(
+    intl: IntlShape,
+    teamName: string,
+    channelName: string,
+) {
+    return popout(
+        `/_popout/rhs/${teamName}/${channelName}/channel-members`,
+        {
+            isRHS: true,
+            titleTemplate: intl.formatMessage({
+                id: 'channel_members_popout.title',
+                defaultMessage: 'Channel Members - {channelName} - {teamName}',
+            }),
+        },
+    );
 }
 
 /**

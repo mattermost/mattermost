@@ -7,13 +7,17 @@ import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import PopoutButton from 'components/popout_button';
 import WithTooltip from 'components/with_tooltip';
+
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 
 interface Props {
     channel: Channel;
     isArchived: boolean;
     isMobile: boolean;
     onClose: () => void;
+    newWindowHandler?: () => void;
 }
 
 const Icon = styled.i`
@@ -24,13 +28,13 @@ const HeaderTitle = styled.span`
     line-height: 2.4rem;
 `;
 
-const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
+const Header = ({channel, isArchived, isMobile, onClose, newWindowHandler}: Props) => {
     const {formatMessage} = useIntl();
 
     return (
         <div className='sidebar--right__header'>
             <span className='sidebar--right__title'>
-                {isMobile && (
+                {isMobile && !isPopoutWindow() && (
                     <button
                         className='sidebar--right__back btn btn-icon btn-sm'
                         onClick={onClose}
@@ -61,27 +65,31 @@ const Header = ({channel, isArchived, isMobile, onClose}: Props) => {
                     }
                 </h2>
             </span>
-
-            <WithTooltip
-                title={
-                    <FormattedMessage
-                        id='rhs_header.closeSidebarTooltip'
-                        defaultMessage='Close'
-                    />
-                }
-            >
-                <button
-                    id='rhsCloseButton'
-                    type='button'
-                    className='sidebar--right__close btn btn-icon btn-sm'
-                    aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
-                    onClick={onClose}
+            {newWindowHandler && (
+                <PopoutButton onClick={newWindowHandler}/>
+            )}
+            {!isPopoutWindow() && (
+                <WithTooltip
+                    title={
+                        <FormattedMessage
+                            id='rhs_header.closeSidebarTooltip'
+                            defaultMessage='Close'
+                        />
+                    }
                 >
-                    <i
-                        className='icon icon-close'
-                    />
-                </button>
-            </WithTooltip>
+                    <button
+                        id='rhsCloseButton'
+                        type='button'
+                        className='sidebar--right__close btn btn-icon btn-sm'
+                        aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
+                        onClick={onClose}
+                    >
+                        <i
+                            className='icon icon-close'
+                        />
+                    </button>
+                </WithTooltip>
+            )}
         </div>
     );
 };

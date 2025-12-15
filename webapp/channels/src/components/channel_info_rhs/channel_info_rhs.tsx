@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
+import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
@@ -15,6 +16,7 @@ import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {isPopoutWindow, popoutChannelInfo} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
 import type {ModalData} from 'types/actions';
@@ -81,6 +83,7 @@ const ChannelInfoRhs = ({
     canManageProperties,
     actions,
 }: Props) => {
+    const intl = useIntl();
     const currentUserId = currentUser.id;
     const channelURL = getSiteURL() + '/' + currentTeam.name + '/channels/' + channel.name;
 
@@ -134,6 +137,14 @@ const ChannelInfoRhs = ({
         dialogProps: {channel, currentUser, focusOriginElement: 'channelInfoRHSNotificationSettings'},
     });
 
+    const newWindowHandler = useCallback(() => {
+        if (currentTeam && channel.name) {
+            popoutChannelInfo(intl, currentTeam.name, channel.name);
+        }
+    }, [intl, currentTeam, channel.name]);
+
+    const shouldShowPopoutButton = !isPopoutWindow() && currentTeam && channel.name;
+
     const gmUsers = channelMembers.filter((user) => {
         return user.id !== currentUser.id;
     });
@@ -150,6 +161,7 @@ const ChannelInfoRhs = ({
                 isArchived={isArchived}
                 isMobile={isMobile}
                 onClose={actions.closeRightHandSide}
+                newWindowHandler={shouldShowPopoutButton ? newWindowHandler : undefined}
             />
             <TopButtons
                 channelType={channel.type}

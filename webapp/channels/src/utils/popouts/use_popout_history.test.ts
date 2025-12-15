@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {sendToParent, onMessageFromParent} from './use_browser_popout';
+import {sendToParent, onMessageFromParent} from './use_popout_history';
 
-describe('use_browser_popout', () => {
+describe('use_popout_history', () => {
     let originalAddEventListener: typeof window.addEventListener;
     let messageListeners: Array<(event: MessageEvent) => void>;
 

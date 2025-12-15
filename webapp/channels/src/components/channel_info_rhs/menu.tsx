@@ -10,6 +10,7 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 
 const MenuContainer = styled.nav`
     display: flex;
@@ -171,26 +172,31 @@ export default function Menu(props: MenuProps) {
                     onClick={() => actions.showChannelMembers(channel.id)}
                 />
             )}
-            <MenuItem
-                icon={<i className='icon icon-pin-outline'/>}
-                text={formatMessage({
-                    id: 'channel_info_rhs.menu.pinned',
-                    defaultMessage: 'Pinned messages',
-                })}
-                opensSubpanel={true}
-                badge={channelStats?.pinnedpost_count}
-                onClick={() => actions.showPinnedPosts(channel.id)}
-            />
-            <MenuItem
-                icon={<i className='icon icon-file-text-outline'/>}
-                text={formatMessage({
-                    id: 'channel_info_rhs.menu.files',
-                    defaultMessage: 'Files',
-                })}
-                opensSubpanel={true}
-                badge={loadingStats ? <LoadingSpinner/> : fileCount}
-                onClick={() => actions.showChannelFiles(channel.id)}
-            />
+            {/* TODO: Disable these for now in the popout since they won't work without the search RHS */}
+            {!isPopoutWindow() &&
+                <>
+                    <MenuItem
+                        icon={<i className='icon icon-pin-outline'/>}
+                        text={formatMessage({
+                            id: 'channel_info_rhs.menu.pinned',
+                            defaultMessage: 'Pinned messages',
+                        })}
+                        opensSubpanel={true}
+                        badge={channelStats?.pinnedpost_count}
+                        onClick={() => actions.showPinnedPosts(channel.id)}
+                    />
+                    <MenuItem
+                        icon={<i className='icon icon-file-text-outline'/>}
+                        text={formatMessage({
+                            id: 'channel_info_rhs.menu.files',
+                            defaultMessage: 'Files',
+                        })}
+                        opensSubpanel={true}
+                        badge={loadingStats ? <LoadingSpinner/> : fileCount}
+                        onClick={() => actions.showChannelFiles(channel.id)}
+                    />
+                </>
+            }
         </MenuContainer>
     );
 }

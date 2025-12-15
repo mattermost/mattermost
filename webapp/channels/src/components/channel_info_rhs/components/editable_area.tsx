@@ -5,6 +5,8 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import * as Utils from 'utils/utils';
+
 const EditButton = styled.button`
     border: 0;
     margin: 0px;
@@ -56,7 +58,10 @@ const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className}: Ed
 
     return (
         <div className={className}>
-            <div className='EditableArea__content'>
+            <div
+                className='EditableArea__content'
+                onClick={Utils.handleFormattedTextClick}
+            >
                 {content}
                 {!content && editable && (
                     <EmptyPlace

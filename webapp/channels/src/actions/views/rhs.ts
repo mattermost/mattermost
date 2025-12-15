@@ -19,7 +19,7 @@ import {
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
@@ -35,8 +35,10 @@ import {
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
+import {getHistory} from 'utils/browser_history';
 import {ActionTypes, RHSStates, Constants} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
+import {isPopoutWindow} from 'utils/popouts/popout_windows';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'types/store';
@@ -275,6 +277,11 @@ export function showRHSPlugin(pluggableId: string) {
 export function showChannelMembers(channelId: string, inEditingMode = false): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
+
+        if (isPopoutWindow()) {
+            getHistory().replace(`/_popout/rhs/${getCurrentTeam(state)?.name}/${getChannelSelector(state, channelId)?.name}/channel-members`);
+            return {data: true};
+        }
 
         if (inEditingMode) {
             await dispatch(setEditChannelMembers(true));

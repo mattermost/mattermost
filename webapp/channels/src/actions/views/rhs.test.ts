@@ -83,6 +83,14 @@ jest.mock('mattermost-redux/actions/search', () => ({
     getPinnedPosts: jest.fn(),
 }));
 
+jest.mock('utils/popouts/popout_windows', () => ({
+    isPopoutWindow: jest.fn(),
+}));
+
+jest.mock('utils/browser_history', () => ({
+    getHistory: jest.fn(),
+}));
+
 describe('rhs view actions', () => {
     const initialState = {
         entities: {
@@ -439,6 +447,14 @@ describe('rhs view actions', () => {
     });
 
     describe('showChannelMembers', () => {
+        const mockGetHistory = require('utils/browser_history').getHistory as jest.MockedFunction<typeof import('utils/browser_history').getHistory>;
+        const mockIsPopoutWindow = require('utils/popouts/popout_windows').isPopoutWindow as jest.MockedFunction<typeof import('utils/popouts/popout_windows').isPopoutWindow>;
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockIsPopoutWindow.mockReturnValue(false);
+        });
+
         test('it dispatches the right actions', async () => {
             await store.dispatch(showChannelMembers(currentChannelId));
 
@@ -450,6 +466,45 @@ describe('rhs view actions', () => {
                     previousRhsState: null,
                 },
             ]);
+        });
+
+        test('it redirects to popout URL when in popout window', async () => {
+            const testChannel = TestHelper.getChannelMock({id: currentChannelId, name: 'test-channel'});
+            const testTeam = TestHelper.getTeamMock({id: currentTeamId, name: 'test-team'});
+            const state = {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    channels: {
+                        ...initialState.entities.channels,
+                        channels: {
+                            [currentChannelId]: testChannel,
+                        },
+                    },
+                    teams: {
+                        ...initialState.entities.teams,
+                        teams: {
+                            [currentTeamId]: testTeam,
+                        },
+                    },
+                },
+            } as unknown as GlobalState;
+
+            store = mockStore(state);
+            mockIsPopoutWindow.mockReturnValue(true);
+            const mockHistory = {
+                replace: jest.fn(),
+            };
+
+            // For some reason "as unknown as History<unknown>" is not working
+            mockGetHistory.mockReturnValue(mockHistory as unknown as ReturnType<typeof import('utils/browser_history').getHistory>);
+
+            await store.dispatch(showChannelMembers(currentChannelId));
+
+            expect(mockHistory.replace).toHaveBeenCalledWith(
+                '/_popout/rhs/test-team/test-channel/channel-members',
+            );
+            expect(store.getActions()).toEqual([]);
         });
     });
 

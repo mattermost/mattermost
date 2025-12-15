@@ -18,14 +18,14 @@ import ThreadPopout from 'components/thread_popout';
 
 import Pluggable from 'plugins/pluggable';
 import {TEAM_NAME_PATH_PATTERN, ID_PATH_PATTERN, IDENTIFIER_PATH_PATTERN} from 'utils/path';
-import {useBrowserPopout} from 'utils/popouts/use_browser_popout';
+import {usePopoutHistory} from 'utils/popouts/use_popout_history';
 
 import './popout_controller.scss';
 
 const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
-    useBrowserPopout();
+    usePopoutHistory();
     useEffect(() => {
         document.body.classList.add('app__body', 'popout');
         dispatch(getMe());

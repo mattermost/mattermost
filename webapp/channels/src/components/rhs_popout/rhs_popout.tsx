@@ -5,11 +5,15 @@ import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Route, Switch, useParams, useRouteMatch} from 'react-router-dom';
 
-import {fetchChannelsAndMembers, getChannelMembers, selectChannel} from 'mattermost-redux/actions/channels';
+import {fetchChannelsAndMembers, getChannelMembers, getChannelStats, selectChannel} from 'mattermost-redux/actions/channels';
 import {selectTeam} from 'mattermost-redux/actions/teams';
-import {getChannelByName} from 'mattermost-redux/selectors/entities/channels';
+import {getChannelByName, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import ChannelInfoRhs from 'components/channel_info_rhs';
+import ChannelMembersRhs from 'components/channel_members_rhs';
 import {useTeamByName} from 'components/common/hooks/use_team';
+import LoadingScreen from 'components/loading_screen';
 import RhsPluginPopout from 'components/rhs_plugin_popout';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
@@ -25,6 +29,8 @@ export default function RhsPopout() {
 
     const team = useTeamByName(teamName);
     const channel = useSelector((state: GlobalState) => getChannelByName(state, channelIdentifier));
+    const currentChannel = useSelector(getCurrentChannel);
+    const currentTeam = useSelector(getCurrentTeam);
 
     const teamId = team?.id;
     const channelId = channel?.id;
@@ -33,6 +39,7 @@ export default function RhsPopout() {
         if (channelId) {
             dispatch(selectChannel(channelId));
             dispatch(getChannelMembers(channelId));
+            dispatch(getChannelStats(channelId));
         }
     }, [dispatch, channelId]);
 
@@ -43,10 +50,14 @@ export default function RhsPopout() {
         }
     }, [dispatch, teamId]);
 
+    if (!channel || !team) {
+        return <LoadingScreen/>;
+    }
+
     return (
         <>
             <UnreadsStatusHandler/>
-            <div className='main-wrapper rhs-popout'>
+            {currentChannel && currentTeam && <div className='main-wrapper rhs-popout'>
                 <div className='sidebar--right'>
                     <div className='sidebar-right__body'>
                         <Switch>
@@ -54,10 +65,18 @@ export default function RhsPopout() {
                                 path={`${match.path}/plugin/:pluginId`}
                                 component={RhsPluginPopout}
                             />
+                            <Route
+                                path={`${match.path}/channel-info`}
+                                component={ChannelInfoRhs}
+                            />
+                            <Route
+                                path={`${match.path}/channel-members`}
+                                component={ChannelMembersRhs}
+                            />
                         </Switch>
                     </div>
                 </div>
-            </div>
+            </div>}
         </>
     );
 }

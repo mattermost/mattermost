@@ -4,12 +4,14 @@
 import debounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -20,6 +22,7 @@ import AlertTag from 'components/widgets/tag/alert_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {isPopoutWindow, popoutChannelMembers} from 'utils/popouts/popout_windows';
 
 import type {ModalData} from 'types/actions';
 
@@ -76,7 +79,9 @@ export default function ChannelMembersRHS({
 
     const [page, setPage] = useState(0);
     const [isNextPageLoading, setIsNextPageLoading] = useState(false);
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
+    const currentTeam = useSelector(getCurrentTeam);
 
     const {structuredAttributes, loading} = useAccessControlAttributes(
         EntityType.Channel,
@@ -212,6 +217,14 @@ export default function ChannelMembersRHS({
         await actions.closeRightHandSide();
     }, [actions.openDirectChannelToUserId, history, teamUrl, actions.closeRightHandSide]);
 
+    const newWindowHandler = useCallback(() => {
+        if (currentTeam && channel.name) {
+            popoutChannelMembers(intl, currentTeam.name, channel.name);
+        }
+    }, [intl, currentTeam, channel.name]);
+
+    const shouldShowPopoutButton = !isPopoutWindow() && currentTeam && channel.name;
+
     const loadMore = useCallback(async () => {
         setIsNextPageLoading(true);
 
@@ -227,12 +240,12 @@ export default function ChannelMembersRHS({
             id='rhsContainer'
             className='sidebar-right__body channel-members-rhs'
         >
-
             <Header
                 channel={channel}
                 canGoBack={canGoBack}
                 onClose={actions.closeRightHandSide}
                 goBack={actions.goBack}
+                newWindowHandler={shouldShowPopoutButton ? newWindowHandler : undefined}
             />
             {/* Show banner for policy-enforced channels */}
             {channel.policy_enforced && (
