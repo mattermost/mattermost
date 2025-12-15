@@ -1655,9 +1655,9 @@
     }
 
     .post__translation-icon-processing {
+        margin-left: 4px;
         color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 10px;
-        margin-left: 4px;
     }
 
     .post_permalink_mobile_view {
@@ -2297,6 +2297,7 @@
 }
 
 .post-message__shimmer {
+    animation: shimmer 3.5s linear infinite;
     background: linear-gradient(
         92deg,
         rgba(var(--center-channel-color-rgb), 0) 0%,
@@ -2306,7 +2307,6 @@
         rgba(var(--center-channel-color-rgb), 0) 100%
     );
     background-size: 300% 100%;
-    animation: shimmer 3.5s linear infinite;
 }
 
 @keyframes shimmer {

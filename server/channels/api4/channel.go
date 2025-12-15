@@ -1848,20 +1848,20 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	model.AddEventParameterToAuditRec(auditRec, "autotranslation", props.Autotranslation)
 
-	updatedChannelMember, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.AppContext.Session().UserId, props.Autotranslation)
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	_, appErr := c.App.UpdateChannelMemberAutotranslation(c.AppContext, c.Params.ChannelId, c.Params.UserId, props.Autotranslation)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
-	auditRec.AddEventResultState(updatedChannelMember)
-	auditRec.AddEventObjectType("channel_member")
-	c.LogAudit("channel_id=" + c.Params.ChannelId)
 
-	if err := json.NewEncoder(w).Encode(updatedChannelMember); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
+	ReturnStatusOK(w)
 }
 
 func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {

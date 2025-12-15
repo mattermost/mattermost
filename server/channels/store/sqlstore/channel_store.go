@@ -4124,7 +4124,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 		ChannelMembers.SchemeAdmin,
 		(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
 		Channels.Name as ChannelName,
-		ChannelMembers.AutoTranslation,
+		ChannelMembers.AutoTranslation
 	FROM
 		ChannelMembers
 	INNER JOIN

@@ -16,9 +16,9 @@
 
     &__messageBlock {
         flex: 1;
-        background-color: var(--center-channel-bg);
         padding: 16px;
         border-radius: 4px;
+        background-color: var(--center-channel-bg);
 
         &--original {
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
@@ -35,9 +35,9 @@
 
     &__languageText {
         color: var(--center-channel-color);
-        text-transform: uppercase;
-        font-weight: 600;
         font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
     }
 }
 
